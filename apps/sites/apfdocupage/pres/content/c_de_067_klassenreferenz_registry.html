@@ -1,0 +1,74 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Klassen-Referenz - Registry</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+<a name="1-Einleitung"></a><h3>1. Einleitung</h3>
+Die <strong>Registry</strong> (siehe registry pattern) dient im Adventure PHP Framework als zentrale
+Stelle f&uuml;r die Speicherung von Konfigurationsparametern. Parameter sind in diesem Zusammenhang
+sowohl einfache Datentypen wie Zeichenketten und Zahlen als auch Objekte. Die <strong>Registry</strong>
+wird von den core- und tools-Komponenten dazu verwendet, die Konfigurationsdirektiven
+<ul>
+  <li><strong>URLRewriting</strong> (Konfiguration des URL-Rewriting)</li>
+  <li><strong>URLBasePath</strong> (Pfad zur aktuellen Anwendung)</li>
+  <li><strong>Environment</strong> (Umgebungsvariable f&uuml;r die Konfiguration)</li>
+  <li><strong>LogDir</strong> (Pfad zum Log-Verzeichnis)</li>
+  <li><strong>LibPath</strong> (Pfad zu den Quellcode-Dateien)</li>
+</ul>
+im Namespace <strong>apf::core</strong> vorzuhalten. Die Registry dient jedoch nicht nicht nur als
+globale Speicherstelle f&uuml;r die Parameter des Frameworks, sondern kann auch in Applikationen zur
+Speicherung von Applikationskonfigurationen verwendet werden.
+<br />
+<br />
+<br />
+<a name="2-Einsatz-der-Registry"></a><h3>2. Einsatz der Registry</h3>
+Um die Registry als zentrale Komponente nutzen zu k&ouml;nnen, muss diese <em>SINGLETON</em> erstellt
+werden. Da die Registry bereits im PageController eingebunden und initialisiert wird, gen&uuml;gt ein
+einfaches
+<php:highlight>
+$Reg = &Singleton::getInstance('Registry');
+</php:highlight>
+um eine Referenz auf die Singleton-Instanz der Registry im aktuellen G&uuml;ltigkeitsbereich zu
+beziehen. Anschlie&szlig;end dient die Methode <strong>register()</strong> bereits vorhandene Werte
+zu manipulieren oder neue Werte hinzuzuf&uuml;gen. Die Funktion <strong>retrieve()</strong> bezieht
+Werte aus der Registry. Um eine definierte Abgrenzung zwischen Wertebereichen zu schaffen, besitzt die
+Registry Namespaces. Um auch bei der Verwendung durch weitere Applikationen keine &Uuml;berschneidung
+von Wertebereichen zu generieren, ist es ratsam, den Namespace der Applikation als Namespace in der
+Registry zu verwenden.
+<br />
+<br />
+Um die oben genannten Standard-Werte zu manipulieren, kann folgender PHP-Code eingesetzt werden:
+<php:highlight>
+$Reg = &Singleton::getInstance('Registry');
+$Reg->register('apf::core','URLRewriting',true);
+$Reg->register('apf::core','URLBasePath','http://example.com/folder');
+$Reg->register('apf::core','Environment','TESTSERVER');
+$Reg->register('apf::core','LogDir','/path/to/my/log/dir');
+</php:highlight>
+Bei der Manipulation der Standard-Werte oder auch von eigenen Registry-Eintr&auml;gen ist darauf zu
+achten, dass diese vor dem Erstellen des Page- bzw. FrontControllers ge&auml;ndert werden.
+<br />
+<br />
+<br />
+<a name="3-Schreibschutz"></a><h3>3. Schreibschutz</h3>
+Um bei Eintr&auml;gen f&uuml;r eigene Applikationen sicher gehen zu k&ouml;nnen, dass diese w&auml;hrend
+der Laufzeit nicht mehr ver&auml;ndert werden k&ouml;nnen, bietet die Registry einen Schreibschutz.
+Dieser kann mit einem optionalen Parameter bei der Bef&uuml;llung eines Wertes aktiviert werden und
+bleibt bis zum Ende des Requests erhalten. Hierzu kann folgendes Beispiel als Quellcode-Vorlage
+hinzugezogen werden:
+<php:highlight>
+// Referenz auf die Registry beziehen
+$Reg = &Singleton::getInstance('Registry');
+
+// Wird erfolgreich durchgef&uuml;hrt
+$Reg->register('modules::mymodule','MyModuleID',1,true);
+
+// Erzeugt einen Fehler
+$Reg->register('modules::mymodule','MyModuleID',2);
+</php:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_klassenref_registry_de" />

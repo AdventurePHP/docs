@@ -1,0 +1,397 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Frontcontroller</font>
+<br />
+<br />
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+The front controller is as mentioned before another central integral part of the adventure php
+framework. Basic to this implementation ar the definition of the fron controller pattern of
+<a href="http://www.martinfowler.com/eaaCatalog/frontController.html" title="Martin Fowler">Martin Fowler</a>
+and the java sources of the java application framework
+<a href="http://struts.apache.org/1.x/userGuide/building_controller.html" title="Struts">struts</a>.
+To go further into this topic please visit the
+<a href="http://www.phppatterns.com/docs/design/the_front_controller_and_php" title="PHP-Patterns">PHP patterns</a>
+website (german content!).
+<br />
+<br />
+The front controller component used in this application framework is a singleton instance of the
+<strong>FrontController</strong> class, takes the command given in the users' requests and executes
+the actions existing for the effective application. There are several kinds of actions that are
+executed according to the timing model described later on. In common, action types containing the
+"pre" keyword are execuded before a specific task, action types that contain the "post" keyword are
+execued after a defined step. The "prepagecreate" actions often are taken to create the application's
+model, "posttransform" actions merely are used to to things like logging. To implement front controller
+actions the framework contains two abstract implementations that serve as basis for concrete
+implementations for actions (<strong>AbstractFrontcontrollerAction</strong>) and their information
+(<strong>FrontcontrollerInput</strong>). The <strong>frontcontrollerRequestFilter</strong> and
+<strong>frontcontrollerRewriteRequestFilter</strong> are designed to extract the action commands out
+of the url so that the front controller can execute them. These two components the developers does
+not get in contact with in common, becaus the front controller executes them itself. In order to have
+actions, that are executed at each request, the developer can register these actions to the front
+controller in the central <em>index.php</em> file. These act like normal actions concering the timing
+model. The following UML diagramm shows the front controller components altogether:
+<br />
+<br />
+<center>
+  <img src="/frontend/media/FrontController.jpg" alt="Frontcontroller" border="0" width="750" />
+</center>
+<br />
+<br />
+<a name="2-Implementation"></a><h3>2. Implementation</h3>
+Software written in front controller style merely contain two areas. For a start action and input
+classes must be written that inherit from <strong>AbstractFrontcontrollerAction</strong> and
+<strong>FrontcontrollerInput</strong>, further, a configuration that describes the action must be
+built.
+<br />
+<br />
+<br />
+<a name="2-1-Action-and-input-classes"></a><h4>2.1. Action and input classes</h4>
+Classes that are descended from the abstract action and input classes encapsulate the functionality
+of an action. As it is described in the <a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>
+an action class must implement the <strong>run()</strong> method, because this function is execuded
+for each action during dispatching. An input class is a data class that contains the model information
+of the action. In a simple application, the input object of an front controller action can form the
+model concurrently. The code example printed after this passage shows two simple action an input
+classes:
+<php:highlight>
+   class DemoAction extends AbstractFrontcontrollerAction
+   {
+
+      function DemoAction(){
+      }
+
+      function run(){
+         echo 'I am front controller action class! My name is '.$this->__Input->getAttribute('Name').'!';
+       // end function
+      }
+
+    // end class
+   }
+
+   class DemoInput extends FrontcontrollerInput
+   {
+
+      function DemoInput(){
+         $this->__Attributes['Name'] = 'James Blunt';
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+If this action is executed, the output shows the sentence
+<pre class="tagexample">
+  I am front controller action class! My name is James Blunt!
+</pre>
+Due to the fact that actions know the context of the entire application, actions can be used to
+encapsulate various parts of an application if reasonable. A popular example is user authentication.
+This can be achieved by checking the user's credentials in a "prepagecreate" action and set the
+parameters of the application to the desired valued.
+<br />
+<br />
+<br />
+<a name="2-2-Configuration"></a><h4>2.2. Configuration</h4>
+Each action must be defined within a configuration file. This file must contain the namespace to the
+action and input classes, the file name of the classes and the class names itself. Configuration
+files must be stored under the directory that can be defined by the expression
+<pre class="tagexample">
+{ActionNamespace}::actions::{Context}
+</pre>
+The name of the configuration file can be described by
+<pre class="tagexample">
+{ENVIRONMENT}_actionconfig.ini
+</pre>
+<strong>{ENVIRONMENT}</strong> must be replaced by the current value of the environment variable stored
+in the registry. By default, this valus must be replaced with <strong>DEFAULT</strong>. Each file can
+contain one or more action definitions for actions, that belong to the same namespace.
+<pre class="tagexample">
+[{ActionName}]
+FC.ActionNamespace = ""
+FC.ActionFile = ""
+FC.ActionClass = ""
+FC.InputFile = ""
+FC.InputClass = ""
+FC.InputParams = ""
+</pre>
+Besides, the performed parameters have the following meanings:
+<br />
+<ul>
+  <li>
+    <strong>ActionName</strong>:
+    <br />
+    Name of the action. This name must be present in the URL if the defined action should be called
+    (Example: <em>setModel</em>).
+  </li>
+  <li>
+    <strong>FC.ActionNamespace</strong>:
+    <br />
+    Namespace of the action's configuration file (Example: <em>sites::demosite::biz::actions</em>).
+  </li>
+  <li>
+    <strong>FC.ActionFile</strong>:
+    <br />
+    Name of the file that contains the action class implementation (Example: <em>LoadModelAction</em>).
+  </li>
+  <li>
+    <strong>FC.ActionClass</strong>:
+    <br />
+    Name of the action class (Example: <em>LoadModelAction</em>).
+  </li>
+  <li>
+    <strong>FC.InputFile</strong>:
+    <br />
+    Name of the file, the input class resides (Example: <em>DemositeModel</em>).
+  </li>
+  <li>
+    <strong>FC.InputClass</strong>:
+    <br />
+    Name of the input class (Example: <em>DemositeModel</em>).
+  </li>
+  <li>
+    <strong>FC.InputParams</strong>:
+    <br />
+    Configuration directive that defines the start parameters of an input object. This is often used
+    to configure a specific action for the use in a specific application without changing the source
+    code. (Example: <em>login:true|headview:menu</em>. Key and value are separated by ":", different
+    pairs by "|").
+  </li>
+</ul>
+Due to the fact, that front controller actions are part of the business layer the code files should
+be placed under the <strong>biz</strong> folder of an module or application. In common the developer
+creates a subfolder named <strong>actions</strong> to store these files and to generate more clarity.
+Since namespace and name of the class files can be choosen freely the developer faces no restictions.
+<br />
+<br />
+<br />
+<a name="2-3-Bootstrapping"></a><h4>2.3. Changes to the index.php</h4>
+To operate an application in front controller style the <em>index.php</em> file must contain the
+following lines of code:
+<php:highlight>
+   // create an instance of the front controller
+   $fC = &Singleton::getInstance('Frontcontroller');
+
+   // set the context of the application
+   $fC->set('Context','sites::demosite');
+
+   // set the desired standard language
+   $fC->set('Language','de');
+
+   // generate the specified site
+   $fC->start('sites::demosite::pres::templates','website');
+</php:highlight>
+If desired the developer can register "permanent" actions by
+<php:highlight>
+   // register action "Login"
+   $fC->registerAction('sites::demosite::biz','Login');
+</php:highlight>
+before the execution of the <strong>start()</strong> methode. Now it is possible to execute any
+actions in applications or modules.
+<br />
+<br />
+<br />
+<a name="2-4-Link-generation"></a><h4>2.4. Link generation</h4>
+In order to generate links as easy as within page controller applications the component
+<strong>frontcontrollerLinkHandler</strong> was introduced. This class can be used to manipulate
+existing URLs or create new URLs. If an action's private attribute <strong>$__KeepInURL</strong> is
+set to <em>true</em>, the action along with its input attributes is added to the URL that is
+generated by the <strong>frontcontrollerLinkHandler</strong>. This adds the possibility to have more
+than one action definition in one URL and so create complex programms. The following example shows
+how the <strong>frontcontrollerLinkHandler</strong> can be used. To keep things simple the links will
+be descussed in rewrite mode only. Manipulating "normal" URLs is similar.
+<br />
+<br />
+<br />
+<a name="2-4-1-Simple-url-manipulation"></a><h5>2.4.1. Simple manipulation of parameters</h5>
+In many applications it is necessary to generate dynamic links. Within front controller based
+applications where no dynamic URLs are necessary the <strong>linkHandler</strong> can be used instead
+of the <strong>frontcontrollerLinkHandler</strong> component. But it is recommended to use the the
+latter to be secure. To change the link
+<pre class="tagexample">
+  http://www.adventure-php-framework.org/Page/Home/benchmarkreport/true/param1/value1/param2/value2
+</pre>
+to the link
+<pre class="tagexample">
+  http://www.adventure-php-framework.org/Page/Guestbook/benchmarkreport/true
+</pre>
+in an easy way, the following code fragment can be used:
+<php:highlight>
+   // define URL
+   $URL = 'http://www.adventure-php-framework.org/Page/ChangeLog/benchmarkreport/true/param1/value1/param2/value2';
+
+   // define changes
+   $ChangeParams = array(
+                         'Page' => 'Guestbook',
+                         'param1' => '',
+                         'param2' => ''
+                         );
+
+   echo frontcontrollerLinkHandler::generateLink($URL,$ChangeParams);
+</php:highlight>
+<br />
+<a name="2-4-2-Action-manipulation"></a><h5>2.4.2. Manipulation of parameters and actions</h5>
+Action definitions are treated as "normal" URL parameters as well. Thus is low-end to change the URL
+<pre class="tagexample">
+  http://www.adventure-php-framework.org/Page/ChangeLog/benchmarkreport/true/param1/value1/param2/value2
+</pre>
+to
+<pre class="tagexample">
+  http://www.adventure-php-framework.org/Page/Guestbook/benchmarkreport/true/param1/value1/param2/value2/~/
+  modules_guestbook_biz-action/LoadEntryList/pagesize/20/pager/false/adminview/true
+</pre>
+In this case the following parameter array was given to the <strong>generateLink</strong> methode:
+<php:highlight>
+   // define URL
+   $URL = 'http://www.adventure-php-framework.org/Page/ChangeLog/benchmarkreport/true/param1/value1/param2/value2';
+
+   // define changes to the URL
+   $ChangeParams = array(
+                         'modules_guestbook_biz-action:LoadEntryList' => 'pagesize:20|pager:false|adminview:true',
+                         'Page' => 'Guestbook'
+                         );
+
+   // generate link
+   echo frontcontrollerLinkHandler::generateLink($URL,$ChangeParams);
+</php:highlight>
+If the desired action was added as a "permanent" action it is only necessary to call the
+<strong>frontcontrollerLinkHandler</strong> without a second parameter. In doing so all actions that
+have configured <strong>$__KeepInURL</strong> to <em>true</em> will be contained in the URL definition.
+<br />
+<br />
+<br />
+<a name="2-4-3-URL-manipulation-with-generateURLParams"></a><h5>2.4.3. Manipulation of parameters and actions with help of <em>generateURLParams()</em></h5>
+The example in chapter 1.4.2 has the disadvantage, that the developer must be aware of the syntax of
+a frontcontroller URL. To make generation of front controller URLs more comfortable, the
+<strong>frontcontrollerLinkHandler</strong> features the method <strong>generateURLParams</strong>.
+This function can generate an action parameter array for use with the <em>generateLink()</em> method.
+Generation goes as follows:
+<php:highlight>
+   // define URL
+   $URL = 'http://www.adventure-php-framework.org/Page/ChangeLog/benchmarkreport/true/param1/value1/param2/value2';
+
+   // define URL changes
+   $ChangeParams = array(
+                         'Page' => 'Guestbook'
+                        );
+
+   // Parameter der FrontController-Action erzeugen
+   $ChangeParams = array_merge(
+                               $ChangeParams,
+                               frontcontrollerLinkHandler::generateURLParams(
+                                                                             'modules::guestbook::biz',
+                                                                             'LoadEntryList',
+                                                                             array(
+                                                                                   'pagesize' => '20',
+                                                                                   'pager' => 'false',
+                                                                                   'adminview'  => 'true'
+                                                                                  )
+                                                                             )
+                              );
+
+   // generate link
+   echo frontcontrollerLinkHandler::generateLink($URL,$ChangeParams);
+</php:highlight>
+Owing to performance issues this method should not be used excessively. One generation commonly
+consumes about 0.004 sec to generate the parameter array. If the operation mode concerning the url
+style is clear, the URLs should be generated as described in chapter 1.4.2.
+<br />
+<br />
+<br />
+<a name="2-5-Timing-model"></a><h4>2.5. Timing model</h4>
+The FrontController has it's own timing model that enables the developer to influence at which point
+of time the action is executed. The time can be defined the class attribute <strong>$__Type</strong>
+of the <strong>AbstractFrontcontrollerAction</strong> class. This value is <strong>prepagecreate</strong>
+by default. There are four modes defined:
+<ul>
+  <li>
+    <strong>prepagecreate</strong>: Action is executed before the page object is created an the DOM
+    tree is created.
+  </li>
+  <li>
+    <strong>postpagecreate</strong>: Action is executed after the creation of the page controller page.
+  </li>
+  <li>
+    <strong>pretransform</strong>: Action is executed before transforming the page controller page.
+  </li>
+  <li>
+    <strong>posttransform</strong>: Action is executed after transforming the page controller page.
+  </li>
+</ul>
+To define the right mode of your action, please define your action class as follows:
+<php:highlight>
+   class MyAction extends AbstractFrontcontrollerAction
+   {
+
+      // set timing
+      var $__Type = 'pretransform';
+
+
+      function MyAction(){
+      }
+
+      function run(){
+      }
+
+    // end class
+   }
+</php:highlight>
+Details for the function <strong>run()</strong> can be seen in the <a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>
+of the class <strong>Frontcontroller</strong>.
+<br />
+<br />
+<br />
+<a name="2-6-Model-based-view-concept"></a><h4>2.6. Model based view concept</h4>
+In contrast to page controller applications, the front controller allows to instanciate the business
+layer <strong>before</strong> the presentation tier. This holds the advantage to use the business
+layer to control the presentation tier, in particular, the views or the content of the views of an
+application.
+<br />
+<br />
+To rip this advantage off in GUI design the XML taglib <strong>fcon_taglib_importdesign</strong> was
+introduced. This component includes views, that are defined within an application model, that is filled
+by front controller actions. In common the developer can create a independent business class like this:
+<php:highlight>
+   class DemoSiteModel extends coreObject
+   {
+
+      function DemoSiteModel(){
+         $this->__Attributes['view.content.template'] = 'login';
+         $this->__Attributes['view.topmenu.template'] = 'empty';
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+Filling the attributes can be achieved by getting reference on this class by
+<php:highlight>
+   $Model = &$this->__getServiceObject('sites::demosite::biz','DemoSiteModel');
+</php:highlight>
+By adding the XML tag
+<pre class="tagexample">
+  &lt;fcon:importdesign
+      templatenamespace="sites::demosite::pres::templates"
+      modelnamespace="sites::demosite::biz"
+      modelfile="DemoSiteModel"
+      modelclass="DemoSiteModel"
+      modelparam="view.content.template"
+  /&gt;
+</pre>
+to a template file a view depending on the model's parameters can be included. To use the tag it
+must be announced using the
+<pre class="tagexample">
+  &lt;core:addtaglib namespace="tools::html::taglib" prefix="fcon" class="importdesign" /&gt;
+</pre>
+directive.
+<br />
+<br />
+With this concept views can easily be included by model information and the GUI can be controlled by
+the business layer completely. Moreover this is more flexible compared with the page controller as
+a single responsible entity.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_frontcontroller_en" />

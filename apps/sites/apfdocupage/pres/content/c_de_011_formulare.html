@@ -1,0 +1,534 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="file" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Formulare</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+Das Adventure-PHP-Framework unterst&uuml;tzt die dynamische Generierung und Abstraktion von Formularen
+out-of-the-box. Durch den generischen Tag-Parser k&ouml;nnen Formulare durch Tags in Templates und die
+entsprechenden DOM-Objekte im Objektbaum der Pr&auml;sentations-Schicht abgebildet werden. Dadurch ist
+es m&ouml;glich Formular-Elementen "interne Intelligenz" mitzugeben. Hierrunter f&auml;llt das
+automatische Ausf&uuml;llen anhand eines URL-Parameters und die Validierung von Benutzereingaben. Dies
+beiden Features k&ouml;nnen einfach durch die Definition des Verhaltens in den Templates gesteuert
+werden und der Entwickler ben&ouml;tigt keine weiteren Hilfmittel und Logiken mehr.
+<br />
+<br />
+<br />
+<a name="1-Aufbau-von-Formularen"></a><h3>1. Aufbau von Formularen</h3>
+Formulare werden im Framework wie Templates behandelt und sind Kinder eines Baum-Knotens. Mit der
+Methode <strong>__getForm()</strong> kann innerhalb eines Document-Controllers auf ein Formular
+zugegriffen werden. Das Formular unterst&uuml;tzt folgende wichtige Funktionen:
+<ul>
+  <li>
+    <strong>addFormElement()</strong>
+    <br />
+    F&uuml;gt ein Formular-Element zum Formular hinzu. Die Methode ist f&uuml;r
+    die dynamische Generierung von Formularen gedacht.
+  </li>
+  <li>
+    <strong>addFormContent()</strong>
+    <br />
+    F&uuml;gt (HTML-/Text-)Inhalt zum Formular hinzu. Die Methode ist f&uuml;r
+    die dynamische Generierung von Formularen gedacht.
+  </li>
+  <li>
+    <strong>addFormContentBeforeMarker()</strong>
+    <br />
+    F&uuml;gt (HTML-/Text-)Inhalt vor einem Marker-Tag zum Formular hinzu. Die Methode ist f&uuml;r
+    die dynamische Generierung von Formularen gedacht.
+  </li>
+  <li>
+    <strong>addFormContentAfterMarker()</strong>
+    <br />
+    F&uuml;gt (HTML-/Text-)Inhalt nach einem Marker-Tag zum Formular hinzu. Die Methode ist f&uuml;r
+    die dynamische Generierung von Formularen gedacht.
+  </li>
+  <li>
+    <strong>addFormElementBeforeMarker()</strong>
+    <br />
+    F&uuml;gt ein Formular-Element vor einem Marker-Tag zum Formular hinzu. Die Methode ist f&uuml;r
+    die dynamische Generierung von Formularen gedacht.
+  </li>
+  <li>
+    <strong>addFormElementAfterMarker()</strong>
+    <br />
+    F&uuml;gt ein Formular-Element nach einem Marker-Tag zum Formular hinzu. Die Methode ist f&uuml;r
+    die dynamische Generierung von Formularen gedacht.
+  </li>
+  <li>
+    <strong>setPlaceHolder()</strong>
+    <br />
+    F&uuml;llt einen angegebenen Platzhalter mit einem Wert.
+  </li>
+  <li>
+    <strong>setAction()</strong>
+    <br />
+    Setzt das "action"-Attribut des Formulars.
+  </li>
+  <li>
+    <strong>getFormElementByName()</strong>
+    <br />
+    Gibt eine Referenz auf ein Formular-Objekt zur&uuml;ck.
+  </li>
+  <li>
+    <strong>getFormElementByID()</strong>
+    <br />
+    Gibt eine Referenz auf ein Formular-Objekt zur&uuml;ck.
+  </li>
+  <li>
+    <strong>getFormElementByObjectID()</strong>
+    <br />
+    Gibt eine Referenz auf ein Formular-Objekt zur&uuml;ck.
+  </li>
+  <li>
+    <strong>transformForm()</strong>
+    <br />
+    Erzeugt die HTML-Ausgabe eines Formular-Objekts und gibt diese zur&uuml;ck.
+  </li>
+  <li>
+    <strong>transformOnPlace()</strong>
+    <br />
+    Definiert, dass das Formular an der Stelle, an der es im Template-File definiert wurde ausgegeben
+    wird. Damit ist es nicht mehr n&ouml;tigt, das Formular per <em>transformForm()</em> zu transformieren
+    und in einen Platzhalter einzusetzen.
+  </li>
+</ul>
+Um ein Formular in einer Template-Datei zu definieren muss zuerst per
+<pre class="tagexample">
+  &lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+</pre>
+<strong>vor</strong> der Verwendung hinzugef&uuml;gt werden. Anschlie&szlig;end kann beispielsweise
+ein Formular einer Login-Maske definiert werden:
+<pre class="tagexample">
+  &lt;html:form name="AdminLogin" method="post" action=""&gt;
+    &lt;form:placeholder name="LogInError" /&gt;
+    Benutzer: &lt;form:text name="Username" class="eingabe_feld" style="width: 200px; margin-left: 20px;"
+    validate="true" button="AdminLogin" /&gt;
+    &lt;br /&gt;
+    Passwort: &lt;form:password name="Password" class="eingabe_feld" style="width: 200px; margin-left: 16px;"
+    validate="true" button="AdminLogin" /&gt;
+    &lt;br /&gt;
+    &lt;br /&gt;
+    &lt;form:button name="AdminLogin" value="Login" class="eingabe_feld" style="margin-left: 227px;"/&gt;
+  &lt;/html:form&gt;
+</pre>
+In Prosa: das Formular definiert die Attribute <strong>name</strong>, damit im Controller sp&auml;ter
+auf dieses zugegriffen werden kann, <strong>method</strong> um die Methode des Abschickens zu
+definieren und <strong>action</strong> um die Ziel-URL zu definieren. Letzteres muss in der Template-
+Datei nicht zwingend gesetzt werden, da die TagLib dieses selbst mit der aktuellen URL setzt oder
+f&uuml;llt, falls es nicht vorhanden ist.
+<br />
+<br />
+Innerhalb des Formulars werden viel Formular-Elemente definiert: ein Platzhalter, f&uuml;r die Aufnahme
+von Hinweistexten, ein Text- und ein Passwort-Feld und ein Button. Diese sind jeweils mit den unter
+<a href="./?Seite=046-Standard-TagLibs" title="Standard-TagLibs">Standard-TagLibs</a> beschriebenen Attributen
+ausgestattet. Im Document-Controller kann nun per
+<php:highlight>
+  $Form__AdminLogin = &$this->__getForm('AdminLogin');
+</php:highlight>
+eine Referenz auf das Formular geholt werden. Anschlie&szlig;end kann per
+<php:highlight>
+  $Form__Placeholder_LogInError = &$Form__AdminLogin->getFormElementByName('LogInError');
+  $Form__Placeholder_LogInError->setPlaceHolder('Login failed!');
+</php:highlight>
+der Inhalt des Platzhalters manipuliert oder mit
+<php:highlight>
+  if($Form__AdminLogin->get('isValid') && $Form__AdminLogin->get('isSent')){
+
+     // Aktion ausführen, die bei abgeschicktem und
+     // valide ausgefülltem Formular passieren soll...
+
+   // end if
+  }
+</php:highlight>
+abgefragt werden, ob das Formular abgeschickt wurden und die Eingaben valide sind.
+<br />
+<br />
+Um das Formular auszugeben gibt es zwei M&ouml;glichkeiten: Ausgabe &uuml;ber einen im Template-File
+definierten Platzhalter oder Verwendung von <em>transformOnPlace()</em>:
+<php:highlight>
+   function transformContent(){
+
+      ...
+
+      // Formular transformieren und in einen Platzhalter einsetzen ...
+      $this->setPlaceHolder('...',$Form__AdminLogin->tranformForm());
+
+      // ... oder das Formular an der Definitionsstelle ausgeben
+      $Form__AdminLogin->tranformOnPlace();
+
+      ...
+
+    // end function
+   }
+</php:highlight>
+<br />
+<a name="2-Validierung"></a><h3>2. Validierung</h3>
+Wie bereits erw&auml;hnt ist die Validierung von Formular-Feldern bereits out-of-the-box m&ouml;glich.
+Hierzu muss ein Formular-Feld lediglich um die Attribute
+<ul>
+  <li>validate</li>
+  <li>validator</li>
+  <li>button</li>
+</ul>
+wie unter <a href="./?Seite=046-Standard-TagLibs" title="Standard-TagLibs">Standard-TagLibs</a>, Kapitel 2.3.,
+beschrieben, erweitert werden. F&uuml;r die Validierung des oben genannten Login-Formulars muss das
+Textfeld wie folgt definiert werden:
+<pre class="tagexample">
+  &lt;form:text name="Username" validate="true" button="AdminLogin" /&gt;
+</pre>
+Wichtig ist die Angabe des Button-Namens, da das Formular erst nach dem Abschicken validiert werden
+soll. Ist das Button-Attribut nicht gesetzt, wird von der TagLib ein Fehler ausgegeben. Zur
+Ausgabe-Formatierung kann dieser Tag um weitere Attribute wie "class" und style" erweitert werden.
+<pre class="tagexample">
+  &lt;form:text name="Username" class="eingabe_feld" style="width: 200px; margin-left: 20px;"
+  validate="true" button="AdminLogin" /&gt;
+</pre>
+Ist das Attribut "validator" nicht gesetzt, so wird validiert, ob das Feld > 3 Zeichen enth&auml;lt.
+<br />
+<br />
+<br />
+<a name="3-Manipulation-von-Formularelementen"></a><h3>3. Manipulation von Formularwerten</h3>
+Die Implementierung der Formular-TagLibs des Frameworks bringt einige M&ouml;glichkeiten zur
+Manipulation von Formularelementen oder deren Werte mit. Die folgenden Kapitel zeigen h&auml;ufig
+auftretende Anwendungsbeispiele.
+<br />
+<br />
+<br />
+<a name="3-1-Vorbefuellung"></a><h4>3.1. Vorbef&uuml;llung von Formularen</h4>
+Zur Vorbef&uuml;llung von Formularen (z.B. in einem Bearbeiten-Dialog) k&ouml;nnen Methoden
+<strong>getFormElementByID()</strong>, <strong>getFormElementByID()</strong> oder
+<strong>getFormElementByObjectID()</strong> eingesetzt werden um eine Referenz auf ein Formular-Element
+zu beziehen. Anschlie&szlig;end stehen die Standard-Methoden <strong>get()</strong> und
+<strong>getAttribute()</strong>, bzw. <strong>set()</strong> und <strong>setAttribute()</strong> zur
+Verf&uuml;gung.
+<br />
+<br />
+Die folgenden Codebox definiert ein Beispiel-Formular, das im anschlie&szlig;end
+abgedruckten PHP-Code bef&uuml;llt wird:
+<br />
+<pre class="tagexample">
+  &lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+  &lt;html:form name="UserEdit" method="post"&gt;
+    &lt;strong&gt;FirstName&lt;/strong&gt;:
+    &lt;form:text name="FirstName" validate="true" button="Edit" /&gt;
+    &lt;br /&gt;
+    &lt;strong&gt;LastName&lt;/strong&gt;:
+    &lt;form:text name="LastName" validate="true" button="Edit" /&gt;
+    &lt;br /&gt;
+    &lt;br /&gt;
+    &lt;form:button name="Edit" value="Save" /&gt;
+    &lt;form:hidden name="userid" /&gt;
+  &lt;/html:form&gt;
+</pre>
+<php:highlight>
+   // Referenz auf das Form-Objekt beziehen
+   $Form__Edit = &$this->__getForm('UserEdit');
+
+   // Referenz auf das Hidden-Feld beziehen und Wert befuellen
+   $UserID = &$Form__Edit->getFormElementByName('userid');
+   $UserID->setAttribute('value','...');
+
+   // Referenz auf das FirstName-Feld beziehen und Wert befuellen
+   $FirstName = &$Form__Edit->getFormElementByName('FirstName');
+   $FirstName->setAttribute('value','...');
+
+   // Referenz auf das LastName-Feld beziehen und Wert befuellen
+   $LastName = &$Form__Edit->getFormElementByName('LastName');
+   $LastName->setAttribute('value','...');
+</php:highlight>
+<br />
+<a name="3-2-Befuellen-von-Select-Feldern"></a><h4>3.2. Bef&uuml;llen von Select-Feldern</h4>
+Die Behandlung Select- und Multiselect-Feldern unterscheidet sich ein wenig von einfachen
+Formular-Elementen. Das Framework stellt jedoch auch hier Methoden zur Verf&uuml;gung, mit denen das
+Bef&uuml;llen von Feldern vereinfacht wird. Im nachfolgend aufgef&uuml;hrten Code wird ein Formular
+vorausgef&uuml;llt, das zus&auml;tzlich zu den Standard-Text-Felder auch Auswahlfelder beinhaltet:
+<pre class="tagexample">
+  &lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+  &lt;html:form name="UserCreate" method="post"&gt;
+    &lt;strong&gt;Salutation&lt;/strong&gt;:
+    &lt;form:select name="Salutation" /&gt;
+    &lt;br /&gt;
+    &lt;strong&gt;FirstName&lt;/strong&gt;:
+    &lt;form:text name="FirstName" validate="true" button="Edit" /&gt;
+    &lt;br /&gt;
+    &lt;strong&gt;LastName&lt;/strong&gt;:
+    &lt;form:text name="LastName" validate="true" button="Edit" /&gt;
+    &lt;br /&gt;
+    &lt;br /&gt;
+    &lt;strong&gt;Salutation&lt;/strong&gt;:
+    &lt;br /&gt;
+    &lt;form:multiselect name="Group[]" validate="true" button="Edit" /&gt;
+    &lt;br /&gt;
+    &lt;br /&gt;
+    &lt;form:button name="Edit" value="Save" /&gt;
+    &lt;form:hidden name="userid" /&gt;
+  &lt;/html:form&gt;
+</pre>
+Wie in der Definition des Multiselect-Feldes <strong>Groups[]</strong> zu sehen ist, m&uuml;ssen bei
+einem Multiselect-Feld die Namen eckigen Klammern versehen werden. Vergisst der Template-Entwickler
+dies, wird eine entsprechende Fehlermeldung ausgegeben.
+<br />
+<br />
+Der folgende PHP-Code bef&uuml;llt das Formular:
+<php:highlight>
+   // Referenz auf das Form-Objekt beziehen
+   $Form__Create = &$this->__getForm('UserCreate');
+
+   ...
+
+   // Referenz auf das Salutation-Feld beziehen und Wert befuellen
+   $Salutation = &$Form__Create->getFormElementByName('Salutation');
+
+   for($i = 0; $i < count($Salutations); $i++){
+      $Salutation->addOption($Salutations[$i]['Value'],$Salutations[$i]['DisplayName']);
+    // end for
+   }
+
+
+   // Referenz auf das Groups[]-Feld beziehen und Werte befuellen
+   $Group = &$Form__Create->getFormElementByName('Groups[]');
+
+   for($i = 0; $i < count($Groups); $i++){
+      $Group->addOption($Groups[$i]['Value'],$Groups[$i]['DisplayName']);
+    // end for
+   }
+
+   ...
+</php:highlight>
+<br />
+<a name="3-3-Auslesen-von-Formular-Elementen"></a><h4>3.3. Auslesen von Formular-Elementen</h4>
+Das Auslesen von Formular-Elementen gestaltet sich &auml;hnlich wie das Bef&uuml;llen. Eine
+Besonderheit stellen auch hier die Einfach- und Mehrfachselektionsfelder dar. Das folgende Code-Beispiel
+zeigt, wie die Werte des unter 3.1 dargestellten Formulars im DocumentController ausgelesen werden
+k&ouml;nnen:
+<php:highlight>
+   // Referenz auf das Form-Objekt beziehen
+   $Form__Edit = &$this->__getForm('UserEdit');
+
+   // Hidden-Feld auslesen
+   $UserID = &$Form__Edit->getFormElementByName('userid');
+   echo $UserID->getAttribute('value');
+
+   // FirstName-Feld auslesen
+   $FirstName = &$Form__Edit->getFormElementByName('FirstName');
+   echo $FirstName->getAttribute('value');
+
+   // LastName-Feld auslesen
+   $LastName = &$Form__Edit->getFormElementByName('LastName');
+   echo $LastName->getAttribute('value');
+</php:highlight>
+Um die selektierten Optionen eines Einfach- oder Mehrfachselektionsfeldes auszulesen, stehen die
+Methoden <strong>getSelectedOption()</strong> und <strong>getSelectedOptions()</strong> zur
+Verf&uuml;gung. Die folgende Codebox zeigt den Anwendungsfall:
+<php:highlight>
+   // Referenz auf das Form-Objekt beziehen
+   $Form__Create = &$this->__getForm('UserCreate');
+
+   // Feld Salutation fuellen
+   $Salutation = &$Form__Create->getFormElementByName('Salutation');
+   for($i = 0; $i < count($Salutations); $i++){
+      $Salutation->addOption($Salutations[$i]['Value'],$Salutations[$i]['DisplayName']);
+    // end for
+   }
+
+   // Salutation auslesen
+   $Option = &$Salutation->getSelectedOption();
+   echo $Option->getAttribute('value').', '.$Option->get('Content');
+
+
+   // Feld Group fuellen
+   $Group = &$Form__Create->getFormElementByName('Groups[]');
+
+   for($i = 0; $i < count($Groups); $i++){
+      $Group->addOption($Groups[$i]['Value'],$Groups[$i]['DisplayName']);
+    // end for
+   }
+
+   // Gruppen auslesen
+   $SelectedGroups = &$Group->getSelectedOptions();
+   for($i = 0; $i < count($SelectedGroups); $i++){
+      echo $SelectedGroups[$i]->getAttribute('value').', '.$SelectedGroups[$i]->get('Content');
+    // end for
+   }
+</php:highlight>
+<br />
+<a name="4-Dynamische-Formulare"></a><h3>4. Dynamische Formulare</h3>
+In einigen Anwendungsf&auml;llen ist es notwenig, Formulare dynamisch nach Anforderung zu erstellen.
+Hierzu besitzt die Implementierung der Formular-TagLib (<em>html_taglib_form</em>) die Methoden
+<ul>
+  <li>addFormElement()</li>
+  <li>addFormContent()</li>
+</ul>
+und seit dem Release 1.7
+<ul>
+  <li>addFormContentBeforeMarker()</li>
+  <li>addFormContentAfterMarker()</li>
+  <li>addFormElementBeforeMarker()</li>
+  <li>addFormElementAfterMarker()</li>
+</ul>
+an. Die ersten beiden Funktionen lassen sich dazu nutzen, Inhalte oder konkrete Formular-Elemente
+an das Ende des Formulars anzuh&auml;ngen. Die zu letzt genannten Methoden sind dazu gedacht, Inhalte
+oder Formular-Elemente an konkreten Stellen zu platzieren. Zur Positionierung steht das
+<strong>&lt;form:marker /&gt;</strong>-Tag zur Verf&uuml;gung. Das Tag selbst generiert keine Ausgabe,
+sondern dient lediglich als Positionierungshilfe.
+<br />
+<br />
+Die folgenden Kapitel sollen zeigen, wie ein dynamisches Formular zur Eingabe von Form-Koordinaten
+(Dreieck, Quadrat, ...) realisiert werden kann. Je nach Auswahl des Typs sollen die jeweils notwenigen
+Felder angezeigt werden. Bei Auswahl des Typs "square" werden vier Felder angezeigt ...
+<br />
+<br />
+<img src="/frontend/media/dynamic_forms_02.png" alt="APF - Dynamische Formular-Generierung; Auswahl des Typs square" />
+<br />
+<br />
+... und bei Auswahl von "triangle" drei:
+<br />
+<br />
+<img src="/frontend/media/dynamic_forms_01.png" alt="APF - Dynamische Formular-Generierung; Auswahl des Typs triangle" />
+<br />
+<br />
+<br />
+<a name="4-1-Formular-Definition"></a><h4>4.1. Formular-Definition</h4>
+Bei der Definition des Formulars sollte bereits bedacht werden, welche Art der Formular-Generierung
+angestrebt wird. Kommen die Methoden <em>addFormElement()</em> und/oder <em>addFormContent()</em>
+zum Einsatz, ist keinen Marker erforderlich. In diesem Beispiel wird jedoch ein Marker eingesetzt, da
+das Formular bereits Inhalte besitzt, die nach den dynamisch erzeugten Elementen angezeigt werden
+sollen.
+<br />
+<br />
+Die folgende Code-Box zeigt das notwenige Formular mit einem Auswahlfeld. Bei der Implementierung
+wurde auf CSS-Formatierung verzichtet um die wesentlichen Elemente besser hervorheben zu k&ouml;nnen.
+Das Formular besteht dabei aus einem statisch definierten Auswahlfeld, das den Typ der geometrischen
+Form vorgibt und aus einem Marker-Tag, der als Positionierungshilfe f&uuml;r die dynamisch erzeugten
+Felder dient. Weiterhin wird ein DocumentController definiert, der die gew&uuml;nschten Felder
+dynamisch an der Stelle des Markers hinzuf&uuml;gt:
+<pre class="tagexample">
+&lt;@controller namespace="..." file="..." class="select_controller" @&gt;
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;html:form name="type" method="post"&gt;
+  &lt;table&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+        Please choose the desired form type:
+        &lt;form:select name="type"&gt;
+          &lt;select:option value="triangle"&gt;triangle&lt;/select:option&gt;
+          &lt;select:option value="square"&gt;square&lt;/select:option&gt;
+        &lt;/form:select&gt;
+      &lt;/td&gt;
+      &lt;td&gt;
+        &lt;form:button name="submit" value="send" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+        &lt;form:marker name="fields" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/html:form&gt;
+</pre>
+<br />
+<a name="4-2-Controller"></a><h4>4.2. Controller</h4>
+Der DocumentController &uuml;bernimmt im beschriebenen Beispiel die Generierung der abh&auml;ngigen
+Formularfelder, die je nach Auswahl angezeigt werden sollen. Hierzu wird im Controller zun&auml;chst
+definiert, welche Formular-Felder f&uuml;r welchen Typ angezeigt werden. Anschlie&szlig;end wird
+das Typ-Feld ausgewertet und das Formular mit Inhalten und Text-Feldern gem&auml;&szlig; Typ
+erg&auml;nzt. Die folgende Code-Box zeigt die Implementierung des DocumentControllers:
+<php:highlight>
+class select_controller extends baseController
+{
+
+   // specify form element container
+   var $__FormElements = array();
+
+
+   function select_controller(){
+
+      // define form elements for the triangle
+      $this->__FormElements['triangle'][] = array('label' => 'coord 1','name' => 'coordone');
+      $this->__FormElements['triangle'][] = array('label' => 'coord 2','name' => 'coordtwo');
+      $this->__FormElements['triangle'][] = array('label' => 'coord 3','name' => 'coordthree');
+
+      // define form elements for the square
+      $this->__FormElements['square'][] = array('label' => 'coord 1','name' => 'coordone');
+      $this->__FormElements['square'][] = array('label' => 'coord 2','name' => 'coordtwo');
+      $this->__FormElements['square'][] = array('label' => 'coord 3','name' => 'coordthree');
+      $this->__FormElements['square'][] = array('label' => 'coord 4','name' => 'coordfour');
+
+    // end function
+   }
+
+
+   function transformContent(){
+
+      // get form reference
+      $Form = &$this->__getForm('type');
+
+      // get current decision
+      $Select = &$Form->getFormElementByName('type');
+      $Option = &$Select->getSelectedOption();
+      if($Option === null){
+         $CurrentType = 'triangle';
+       // end if
+      }
+      else{
+         $CurrentType = $Option->getAttribute('value');
+       // end else
+      }
+
+      // add form elements
+      for($i = 0; $i < count($this->__FormElements[$CurrentType]); $i++){
+
+         // add label
+         $Form->addFormContentBeforeMarker('fields',$this->__FormElements[$CurrentType][$i]['label'].': ');
+
+         // add text field (name attribute is present to enable validation and presetting!)
+         $CurrentElementID = $Form->addFormElementBeforeMarker(
+                                          'fields',
+                                          'form:text',
+                                          array('name' => $this->__FormElements[$CurrentType][$i]['name'])
+                                                              );
+
+         // configure further form element attributes
+         $CurrentElement = &$Form->getFormElementByObjectID($CurrentElementID);
+         $CurrentElement->setAttribute('style','width: 200px;');
+
+         // add a line break
+         $Form->addFormContentBeforeMarker('fields','<br />');
+
+       // end for
+      }
+
+      // display form
+      $Form->transformOnPlace();
+
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
+<br />
+<a name="4-3-Wichtige-Hinweise"></a><h4>4.3. Wichtige Hinweise</h4>
+Ein APF-Formular-Element ben&ouml;tigt bereits bei der Erstellung des Objekts die Information &uuml;ber
+den Namen des Feldes. Ist dieser nicht bekannt, kann es nicht vorausgef&uuml;llt oder validiert werden.
+Um die Presetting und Validierung von Formular-Elementen nutzen zu k&ouml;nnen besitzen die Methoden
+<em>addFormElement()</em>, <em>addFormElementBeforeMarker()</em> und <em>addFormElementBeforeMarker()</em>
+einen optionalen, dritten Parameter. Dieser erwartet eine assoziative Liste von Tag-Attributen, die
+dem Formular-Tag bei der Erstellung mitgegeben werden. Bei der Erstellung von dynamischen
+Formular-Elementen ist es daher sinnvoll, der Methode mindestens den Namen des Feldes in der Form
+<pre class="tagexample">
+array(
+      'name' => 'currentname'
+     )
+</pre>
+als drittes Argument mitzugeben.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_formulare" />

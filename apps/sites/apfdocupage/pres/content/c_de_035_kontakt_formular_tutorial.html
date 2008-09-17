@@ -1,0 +1,467 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="file" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<font style="font-size: 26px; font weight: bold;">Kontaktformular</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+<a name="1-Einleitung"></a><h3>1. Einleitung</h3>
+Das vorliegende Tutorial m&ouml;chte eine weitere Anwendung der Formular-TagLibs und des
+<strong>&lt;core:importdesign /&gt;</strong>-Tags zeigen. Das hier diskutierte Kontakt-Formular
+bietet die Möglichkeit, Empfänger-Adressen vor Grabbern und Bots zu schützen, die E-Mail-Adressen
+von Webseiten auslesen. Die Empfängerliste des Formulars ist beliebig konfigurier- und erweiterbar.
+Die Anwendung kann mit Hilfe des <em>&lt;core:importdesign /&gt;</em>-Tags an beliebiger
+Stelle in eine PageController-basierte Anwendung eingebunden werden.
+<br />
+<br />
+<br />
+<a name="2-Grundlagen"></a><h3>2. Grundlagen</h3>
+Auch in diesem Tutorial werden Techniken eingesetzt, die bereits in den vorangegangenen Tutorials
+zur Anwendung gekommen sind. Der Autor geht davon aus, dass das Kapitel 2 des
+<a href="./?Seite=032-Kommentarfunktion" title="KommentarFunktion-Tutorial">Kommentarfunktion-Tutorials</a>
+gelesen und verstanden wurden. Kapitel 2 beschreibt dabei die Trennung der Funktionen einer Software
+in drei Schichten, denen unterschiedliche Funktionen zugeteilt werden. Weiterhin beschreibt das
+Kapitel, wie Domain-Objekte zur Kommunikation zwischen den genannten Schichten fungieren und welche
+Rolle das MVC-Pattern bei der Implementierung einer Anwendung spielt.
+<br />
+<br />
+<br />
+<a name="2-1-Konfiguration"></a><h4>2.1. Konfiguration</h4>
+Um die Applikation in unterschiedlichen Projekten einsetzbar zu machen m&uuml;ssen Projekt-spezifische
+Belange in Konfigurationsdateien ausgelagert werden. Konfiguration ist beim Kontaktformular in
+zweierlei Hinsicht notwendig: Zum einen m&uuml;ssen die Enpf&auml;nger-Namen und -Adressen
+konfigurierbar sein, zum anderen m&uuml;ssen die Ausgabetexte der verwendeten Formular-TagLibs
+(Validatoren) f&uuml;r das Projekt konfiguriert werden.
+<br />
+<br />
+An dieser Stelle soll ein kleiner Exkurs zur Konfiguration der Formular-Validatoren eingeschoben
+werden:
+<br />
+Die Tags
+<ul>
+  <li>&lt;form:validate /&gt;</li>
+  <li>&lt;valgroup:validate /&gt;</li>
+</ul>
+ben&ouml;tigen zur Ausgabe einer Validierungsmeldung eine sprachabh&auml;ngige Konfigurationsdatei,
+die die entsprechenden Texte beinhaltet. Die Konfigurationsdatei wird dabei unter dem Pfad
+<pre class="tagexample">
+  /config/tools/form/taglib/{CONTEXT}/{ENVIRONMENT}_formconfig.ini
+</pre>
+erwartet. <em>{CONTEXT}</em> ist dabei der Context der aktuellen Applikation und <em>{ENVIRONMENT}</em>
+ist gegen den Wert der Umgebungsvariable der Registry zu ersetzen. Im Fall der vorliegenden
+Dokumentationsseite wird die Datei unter
+<pre class="tagexample">
+  /config/tools/form/taglib/sites/demosite/DEFAULT_formconfig.ini
+</pre>
+erwartet. Wie im Kapitel <a href="./?Seite=046-Standard-TagLibs" title="Standard-TagLibs">Standard-TagLibs</a>
+unter 2.3.16 und 2.3.17 zu lesen ist, k&ouml;nnen jedem der genannten Tags die optionalen Attribute
+<ul>
+  <li>msginputreq=""</li>
+  <li>msginputwrg=""</li>
+</ul>
+mitgegeben werden. Diese definieren einen Konfigurationsschl&uuml;ssel, der einen
+sprachabh&auml;ngigen Text enth&auml;llt, der bei Eingabe eines nicht g&uuml;ltigen Wertes angezeigt
+wird. Mit diesem Mechanismus werden zwei Bereiche abgedeckt: einerseits ist es m&ouml;glich,
+einen Satz an Texten f&uuml;r eine komplette Applikation zu definieren und diese anschlie&szlig;end
+in mehreren Modulen nutzen zu k&ouml;nnen, zum anderen werden die Texte in einfache Textedateien
+ausgelagert und k&ouml;nnen einfach &uuml;bersetzt werden.
+<br />
+<br />
+<strong>Beispiel:</strong>
+<br />
+Soll bei der Validierung eines E-Mail-Feldes der Text
+<pre class="tagexample">
+  Bitte geben Sie eine E-Mail-Adresse sein!
+</pre>
+erscheinen, wenn das Feld nicht gef&uuml;llt wurde und
+<pre class="tagexample">
+  Bitte geben Sie eine g&uuml;ltige E-Mail-Adresse sein!
+</pre>
+wenn das Feld nicht mit einer syntaktisch richtigen E-Mail-Adresse gef&uuml;llt wurde, dann kann
+f&uuml;r dieses Feld innerhalb eines Formulars wie folgt ein Validator-Tag definiert werden:
+<pre class="tagexample">
+  &lt;form:validate
+                  button="send"
+                  field="email"
+                  type="EMail"
+                  msginputreq="Contact.EMail.InputRequired"
+                  msginputwrg="Contact.EMail.InputWrong"
+  /&gt;
+</pre>
+Das Attribut <strong>button</strong> definiert dabei den Namen des Button, der die Validierung
+ausl&ouml;sen soll, das Attribut <strong>field</strong> das zu validierende Feld und
+<strong>type</strong> den Validator-Typ. Die Inhalte der Attribute <strong>msginputreq</strong> und
+<strong>msginputwrg</strong> wurden in diesem Fall mit dem Prefix "<strong>Contact.EMail.</strong>"
+versehen um die Zugeh&ouml;rigkeit zur Applikation <em>Kontaktformular</em> und zum Feld
+<strong>E-Mail</strong> kenntlich zu machen. Diese Konvention hat sich eingeb&uuml;rgert, um schnell
+erkennen zu k&ouml;nnen, welcher Konfigurationsschl&uuml;ssel zu welcher Applikation geh&ouml;rt.
+Des Weiteren ist es ratsam, die Konfigurationsdateien zu kommentieren.
+<br />
+<br />
+Die Konfigurationsdatei muss damit bei Betrieb der Applikation in deutscher und englischer Sprache
+folgenden Inhalt haben:
+<pre class="tagexample">
+[de]
+Contact.EMail.InputRequired = "Bitte geben Sie eine E-Mail-Adresse sein!"
+Contact.EMail.InputWrong = "Bitte geben Sie eine g&uuml;ltige E-Mail-Adresse sein!"
+
+[en]
+Contact.EMail.InputRequired = "Please fill the field sender name!"
+Contact.EMail.InputWrong = "Please provide a valid email address!"
+</pre>
+<br />
+<a name="2-2-Mehrsprachigkeit"></a><h4>2.2. Mehrsprachigkeit</h4>
+Das Framework bietet mehrere M&ouml;glichkeiten Applikationen und Module auf Mehrsprachigkeit
+auszulegen. Zum einen wird die Sprache eines Objekts in jedem DOM-Knoten mitgef&uuml;hrt und der
+Entwickler hat damit die M&ouml;glichkeit sprachabh&auml;ngige Texte in einem DocumentController
+einzusetzen, zum anderen gibt es XML-Tags wie
+<ul>
+  <li>&lt;html:getstring /&gt;</li>
+  <li>&lt;template:getstring /&gt;</li>
+  <li>&lt;form:getstring /&gt;</li>
+</ul>
+die sprachabh&auml;ngige Texte aus Konfigurationsdateien an enstprechenden Stellen anzeigen. Im Fall
+des Kontaktformulars wird eine Mischform eingesetzt. Als Basis f&uuml;r beide M&ouml;glichkeiten
+dient eine gemeinsame Konfigurationsdatei
+<pre class="tagexample">
+ /config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_language.ini
+</pre>
+Diese wird mit folgenden Werten gef&uuml;llt:
+<br />
+<br />
+<file:highlight name="DEFAULT_language.ini" />
+<br />
+Die Werte k&ouml;nnen damit z.B. per
+<ul>
+  <li><strong>&lt;html:getstring namespace="modules::kontakt4" config="language" entry="form.person" /&gt;</strong>,</li>
+  <li><strong>&lt;template:getstring namespace="modules::kontakt4" config="language" entry="form.person" /&gt;</strong> oder</li>
+  <li><strong>&lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.person" /&gt;</strong></li>
+</ul>
+ausgelesen werden. Die Beschriftung von Formular-Controls stellt eine zweite M&ouml;glichkeit dar,
+sprachabh&auml;ngige Texte zur Anzeige zu bringen. In diesem Fall muss im DocumentController
+Einfluss auf die Beschriftung genommen werden. Dies kann mit folgenden Code passieren:
+<php:highlight>
+   // Sprachabhängige Konfiguration laden
+   $Config = &$this->__getConfiguration('modules::kontakt4','language');
+
+   // Referenz auf das Button-Control holen
+   $Button = &$Form->getFormElementByName('KontaktSenden');
+
+   // Sprachabhängigen Text mit Hilfe von $this->__Language auslesen
+   $Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
+</php:highlight>
+<br />
+<a name="2-3-Struktur-des-Moduls"></a><h4>2.3. Struktur des Moduls</h4>
+&Auml;hnlich der Struktur des Moduls "comments" wird auch dieses Software unter dem Ordner
+<strong>modules</strong> abgelegt. Hierzu dient der Ordner <strong>kontakt4</strong>, der wie folgt
+unterteilt wird:
+<pre class="tagexample">
+  /modules/
+           kontakt4/
+                    biz/
+                    data/
+                    pres/
+                         documentcontroller/
+                         templates/
+</pre>
+Der Ordner <strong>biz</strong> dient der Ablage der Business-Komponenten (je ein Domain-Objekt
+f&uuml;r die Daten des Formulars und die Empf&auml;nger), im Ordner <strong>data</strong> ist der
+Mapper beheimatet, der die Empf&auml;nger einliest und der Ordner <strong>pres</strong> dient zur
+Ablage der Controller- und Template-Dateien der Pr&auml;sentationsschicht. Im Ganzen betrachtet soll
+das Kontaktformular aus den folgenden Dateien bestehen:
+<br />
+<br />
+<ul>
+  <li>
+    <strong>/modules/kontakt4/pres/templates/kontakt.html</strong>:
+    <br />
+    Die Datei <em>kontakt.html</em> beinhaltet das Hauptdesign und steuert die Ausgabe von Formular
+    oder Dankesseite mit einem <em>&lt;core:importdesign /&gt;</em>-Tag.
+  </li>
+  <li>
+    <strong>/modules/kontakt4/pres/templates/formular.html</strong>:
+    <br />
+    Die Datei <em>formular.html</em> beinhaltet das Formular.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/pres/templates/meldung.html</strong>:
+    <br />
+    In <em>meldung.html</em> ist der Inhalt der Dankesseite definiert.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/pres/documentcontroller/kontakt_v2_controller.php</strong>:
+    <br />
+    F&uuml;r die Ausgabe des Formulars wird ein DocumentController ben&ouml;tigt, der in der Datei
+    <em>kontakt_v2_controller.php</em> enthalten ist.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/biz/contactManager.php</strong>:
+    <br />
+    <em>contactManager.php</em> beheimatet die Business-Komponente, die den Ablauf der Software
+    koordiniert.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/biz/oRecipient.php</strong>:
+    <br />
+    <em>oRecipient.php</em> beinhaltet das Empf&auml;nger-Domain-Objekt.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/biz/oFormData.php</strong>:
+    <br />
+    <em>oFormData.php</em> beinhaltet das Domain-Objekt f&uuml;r die Formulardaten.
+  </li>
+  <li>
+    <strong>/modules/kontakt4/data/contactMapper.php</strong>:
+    <br />
+    Die Datei <em>contactMapper.php</em> dient zur Definition der Datenschicht-Komponente, die die
+    Empf&auml;nger aus der Konfiguration als Domain-Objekte zur Verf&uuml;gung stellt.
+  </li>
+</ul>
+Wie bereits erw&auml;hnt m&uuml;ssen dar&uuml;ber hinaus folgende Konfigurations-Dateien vorgehalten
+werden:
+<br />
+<ul>
+  <li>
+    <strong>/config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_empfaenger.ini</strong>:
+    <br />
+    Konfiguration der Empf&auml;nger
+  </li>
+  <li>
+    <strong>/config/tools/form/taglib/{CONTEXT}/{ENVIRONMENT}_formconfig.ini</strong>:
+    <br />
+    Texte f&uuml;r die Validator-Tags
+  </li>
+  <li>
+    <strong>/config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_language.ini</strong>:
+    <br />
+    Sprachabh&auml;ngige Texte.
+  </li>
+</ul>
+Die Syntax der Konfigurationsdateien wurde bereits weiter oben diskutiert, die Inhalte werden im
+Folgenden noch genauer beschrieben.
+<br />
+<br />
+<br />
+<a name="3-Implementierung"></a><h3>3. Implementierung des Moduls</h3>
+In diesem Tutorial soll wieder der TOP-DOWN-Designansatz verwendet werden. Das aktuelle Kapitel
+beschreibt daher die oben genannten Dateien ausgehend von der Pr&auml;sentationsschicht und in der
+Reihenfolge der Aufz&auml;hlung.
+<br />
+<br />
+<br />
+<a name="3-1-kontakt"></a><h4>3.1. Datei kontakt.html</h4>
+Die Templatedatei <strong>kontakt.html</strong> definiert das Grundger&uuml;st des Moduls. Es
+beinhaltet die &Uuml;berschrift, die per <strong>&lt;html:getstring /&gt;</strong>-Tag aus der
+Sprach-Konfigurationsdatei eingebunden wird, und einen <strong>&lt;core:importdesign /&gt;</strong>-
+Tag, der einen View definiert, der entweder das Formular (Standard) oder eine Dankesmeldung anzeigt:
+<br />
+<br />
+<file:highlight name="kontakt.html" />
+<br />
+<strong>Hinweis</strong>: Im Template wird das <strong>&lt;core:importdesign /&gt;</strong>-Tag mit
+der pagepart-Option benutzt. Dies bedeutet, dass je nach URL-Parameter <strong>pagepart</strong> ein
+anderes Template aus den angegebenen Namespace eingebunden wird. Ist kein Parameter in der URL
+vorhanden wird die im Attribut <strong>template</strong> angegebene Templatedatei - das Formular -
+eingebunden.
+<br />
+<br />
+<br />
+<a name="3-2-formular"></a><h4>3.2. Datei formular.html</h4>
+Die hier behandelte Templatedatei enth&auml;lt im Wesentlichen vier unterschiedliche Bl&ouml;cke:
+<ul>
+  <li>
+    <strong>Definition des DocumentControllers</strong> <em>(Zeile 1)</em>
+    <br />
+    Hier wird definiert, welcher Controller (MVC-Controller f&uuml;r den aktuellen DOM-Knoten)
+    zur Transformation herangezogen wird.
+  </li>
+  <li>
+    <strong>Einbindung von weiteren TagLibs:</strong> <em>(Zeilen 2-3)</em>
+    <br />
+    Um die Tag-Library "html:form" bzw. "html:getstring" nutzen zu k&ouml;nnen m&uuml;ssen diese
+    zun&auml;chst mit einem "core:addtaglib"-Tag eingebunden werden.
+  </li>
+  <li>
+    <strong>Definition der HTML-Inhalte:</strong> <em>(Zeilen 5-9)</em>
+    <br />
+    In den Zeilen 5 bis 9 wird das HTML-Grundger&uuml;st des Formular-Views definiert. Dieser
+    beinhaltet einen Hinweistext, der mit einem <em>&lt;html:getstring /&gt;</em>-Tag eingebunden
+    wird und einen <em>&lt;html:placeholder /&gt;</em>-XML-Tag, der sp&auml;ter vom DocumentController
+    mit dem Inhalt des transformierten Formulars gef&uuml;llt wird.
+  </li>
+  <li>
+    <strong>Formular:</strong> (Zeilen 11-43)
+    <br />
+    In den Zeilen 11 bis 43 wird das Formular definiert. Dieses beinhaltet eine Validator-Gruppe, die
+    zur Anzeige der Validierungsmeldungen genutzt wird. Die Beschriftungen werden mit dem
+    <strong>&lt;form:getstring /&gt;</strong>-Tag uns der oben beschriebenen Konfigurationsdatei
+    realisiert.
+  </li>
+</ul>
+<file:highlight name="formular.html" />
+<br />
+<br />
+<a name="3-3-meldung"></a><h4>3.3. Datei meldung.html</h4>
+In der Datei <em>meldung.html</em> wird die Dankesmeldung definiert, die bei erfolgreichem Absenden
+des Formulars eingeblendet wird. In der Regel ist das ein Satz, der besagt, dass der Kunde baldige
+Rückantwort erhalten werden. In diesem Fall wird die Meldung aus einer Konfigurationsdatei gelesen,
+die einen mehrsprachigen, aber statischen Text enth&auml;lt. Aus diesem Grund ist kein weiterer
+DocumentController notwenig.
+<br />
+<br />
+<file:highlight name="meldung.html" />
+<br />
+<br />
+<a name="3-4-kontakt_v4_controller"></a><h4>3.4. DocumentController kontakt_v4_controller</h4>
+Der DocumentController <em>kontakt_v4_controller</em> erbt vom abstrakten DocumentController
+<em>baseController</em> (Interface). Auf Grund der Objekt-Struktur muss dies immer gegeben sein, die
+übrige Gestaltung der Klasse bleibt jedoch dem Programmierer überlassen. Es ist somit jederzeit
+möglich eigene Methoden zu definieren und weitere eigene Klassen per <em>import()</em> hinzuzuladen
+und zu verwenden. Im Fall des Kontakt-Formulars wird zum Aufbau des Formular-Views die private
+Methode <em>__buildForm()</em> verwendet. Zu Steuerung der Ausgabe des Designs <em>kontakt.html</em>
+wird die öffentliche Methode <em>transformContent()</em> implementiert. Sie beschreibt, dass das
+Formular so lange angezeigt wird, bis alle als Pflichtfelder gekennzeichneten Eingabe-Felder mit
+validen Werten ausgefüllt sind (siehe Zeile 60). Tritt dieser Fall ein, so wird die Business-Schicht
+instanziert, das Formular abgeschickt und der Bestätigungsview (Templatedatei <em>meldung.html</em>)
+angezeigt.
+<br />
+<br />
+<file:highlight name="kontakt_v4_controller.php" />
+<br />
+<br />
+Bei näherer Betrachtung der Klasse <em>kontakt_v4_controller</em> wird deutlich, dass der
+DocumentController die Komponenten <em>variablenHandler</em> und <em>contactManager</em> verwendet.
+Die zuerst genannte Klasse ist eine im Framework integrierte Klasse, die f&uuml;r die Extraktion von
+REQUEST-Variablen verwendet wird und nicht im Request enthaltene Variablen mit Standard-Werten
+belegen kann. Details zu dieser Komponente k&ouml;nnen der
+<a href="./?Seite=016-Klassenreferenz_variablenHandler" title="Klassenreferenz">Klassenreferenz</a>
+entnommen werden. Die zweite Komponente ist die Business-Schicht des Kontaktformulars. Sie stellt
+der Pr&auml;sentations-Schicht eine Schnittstelle zum Laden von Empf&auml;ngern und Abschicken des
+Formulars zur Verf&uuml;gung.
+<br />
+<br />
+<br />
+<a name="3-4-1-transformContent"></a><h5>3.4.1. Methode transformContent()</h5>
+In der Methode <em>transformContent()</em> findet die Generierung der Darstellung statt. Hierzu wird
+eine Referenz auf das Formular-Objekt geholt und anschlie&szlig;end gepr&uuml;ft, ob das Formular
+abgeschickt wurde und die Eingaben valide sind. Ist das nicht der Fall, wird der oben erw&auml;hnte
+Platzhalter mit der Formularausgabe gef&uuml;llt. Sind die Eingaben valide, so wird ein
+Form-Daten-Objekt erzeugt und mit Werten gef&uuml;llt. Anschlie&szlig;end wird die Business-Komponente
+mit Hilfe der privaten Methode <em>__getServiceObject()</em> erzeugt und die Methode
+<em>sendContactForm()</em> mit dem DomainObjekt <strong>oFormData</strong> als Parameter aufgerufen
+und das Formular abgesendet. Das Verschicken der Daten per Mail und die Weiterleitung wird dabei von
+der Businessschicht &uuml;bernommen.
+<br />
+<br />
+<br />
+<a name="3-4-2-buildForm"></a><h5>3.4.2. Methode __buildForm()</h5>
+Die Funktion <em>__buildForm()</em> wird vom Autor gerne als "Helper-Funktion" bezeichnet, da siese
+lediglich die Ausgabe des Formulars kapselt. Die Methode &uuml;bernimmt jedoch drei Aufgaben: Zuerst
+muss das action-Attribut mit dem f&uuml;r das Modul g&uuml;ltigen URL versehen werden,
+anschlie&szlig;end wird die Bild-URL f&uuml;r das Warnungs-Symbol der Validator-Gruppe gesetzt und
+schlie&szlig;lich das Select-Feld mit den Empf&auml;ngern gef&uuml;llt. Weiterhin muss der Button des
+Formulars noch mit einem sprachabh&auml;ngigen Wert beschriftet werden.
+<br />
+<br />
+<strong>Setzen des action-Attributes:</strong>
+<br />
+Da jedes Objekt von "coreObject" erbt, besitzt dieses - genau wie das Form-Objekt - die Methode
+<em>setAttribute()</em>. Mit Hilfe dieser Funktion kann damit das Attribut <strong>action</strong>
+des Formular-Objektes gesetzt werden.
+<br />
+<br />
+<strong>Konfigurieren der Validator-Gruppe:</strong>
+<br />
+Um den Platzhalter "WarnBild" und "WarnText" in der Validator-Gruppe setzen zu k&ouml;nnen, holt
+sich der Entwickler zun&auml;chst eine Referenz auf dieses Objekt. Im internen DOM ist die
+Validator-Gruppe ein Kind-Objekt des Formulars. Um eine Referenz auf ein Kind-Element zu bekommen,
+muss der Entwickler zun&auml;chst eine g&uuml;ltige Referenz auf das Formular-Objekt besitzen.
+Anschlie&szlig;end stehen die Methoden <em>getFormElementByName()</em> und <em>getFormElementByID()</em>
+zur Verf&uuml;gung. Die Klasse, die die Funktion der Validator-Gruppe repr&auml;sentiert, besitzt
+gem&auml;&szlig; <a href="Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a> die
+Methode <em>setPlaceHolder()</em>. Mit Hilfe dieser Funktion kann ein Platzhalter der
+Validator-Gruppe gef&uuml;llt werden.
+<br />
+<br />
+Im Fall des "WarnImage" und "WarnText" werden sprachabh&auml;ngige Konfigurationsdateien verwendet.
+Die URL des Warnhinweis-Bildes und der zugeh&ouml;rige Text befinden sich dabei in der
+Konfigurationsdatei
+<pre class="tagexample">
+  /config/tools/form/taglib/{CONTEXT}/{ENVIRONMENT}_formconfig.ini
+</pre>
+unter der Sektion <strong>[de]</strong> (f&uuml;r deutsche Sprache) und dem Schl&uuml;ssel
+<pre class="tagexample">
+  Contact.Warning.Image
+</pre>
+Um einen sprachabh&auml;ngigen Wert aus der Konfiguration zu lesen wird die Sektion &uuml;ber die
+interne Membervariable <strong>$this->__Language</strong> gesteuert, die je nach gew&auml;hlter
+Sprache den entsprechenden zweistelligen ISO-L&auml;ndercode beinhaltet, der als Titel f&uuml;r die
+Sprachsektion in der Konfigurationsdatei gew&auml;hlt wurde. Im vorliegenden DocumentController wird
+das F&uuml;llen der beiden Platzhalter per
+<php:highlight>
+   $Config = &$this->__getConfiguration('tools::form::taglib','formconfig');
+   $ValGroup = &$Form__Kontakt->getFormElementByName('FormValGroup');
+   $ValGroup->setPlaceHolder('WarnImage',$Config->getValue($this->__Language,'Contact.Warning.Image'));
+   $ValGroup->setPlaceHolder('WarnText',$Config->getValue($this->__Language,'Contact.Warning.Text'));
+</php:highlight>
+erledigt.
+<br />
+<br />
+Zum Schluss der Methode wird das Formular transformiert und an die aufrufende Methode
+zur&uuml;ckgegeben.
+<br />
+<br />
+<br />
+<a name="3-5-contactManager"></a><h4>3.5. Klasse contactManager</h4>
+Die Klasse <em>contactManager</em> ist eine Implementierung der Business-Schicht. Sie kapselt die
+eigentliche Gesch&auml;fts-Logik der Anwendung und kommuniziert mit weiter unten liegenden Schichten
+(Daten-Schicht oder weitere Treiber-Schichten). Im Fall des Kontakt-Formulars wird in der
+Business-Schicht das Formular abgesendet oder Empfängerdaten geladen. Dazu stehen der
+Präsentations-Schicht zwei öffentliche Methoden zur Verf&uuml;gung: <em>sendContactForm()</em> um
+ein Formular abzusenden und <em>loadRecipients()</em> um Empf&auml;nger zu laden. Die Schnittstelle
+zwischen diesen beiden Schichten bilden die Domain-Objekte <em>oFormData</em> und <em>oRecipient</em>.
+<br />
+<br />
+<file:highlight name="contactManager.php" />
+<br />
+In den ersten beiden Zeilen werden wiederum Komponenten aus dem Framework eingebunden, die sp&auml;ter
+f&uuml;r den Mailversand (<strong>mailSender</strong>)und das Generieren von Links
+(<strong>linkHandler</strong>) verwendet werden.
+<br />
+In der Methode <em>sendContactForm()</em> werden zwei ServiceObjekte initialisiert, die f&uuml;r den
+Versand notwendig sind: die Datenschicht um das ausgew&auml;hlte Empf&auml;nger-Objekt zu laden und
+der <em>mailSender</em> um die Best&auml;tigungs- und Benachrichtigungs-Mails zu versenden.
+<br />
+Die Methode <em>loadRecipients()</em> ist der Service f&uuml;r die Pr&auml;sentationsschicht, die
+die Empf&auml;nger-Objekte l&auml;d.
+<br />
+<br />
+<br />
+<a name="4-contactMapper"></a><h3>4. Klasse contactMapper</h3>
+Die Klasse <em>contactMapper</em> ist eine Implementierung des DataMapper-Patterns und dient der
+Business-Schicht um Daten aus der Empf&auml;nger-Konfigurationsdatei in Form von Domain-Objekten zur
+Verf&uuml;gung zu stellen. Dazu l&auml;d der Mapper die Daten zun&auml;chst mit Hilfe der Funktion
+<em>__getConfiguration()</em> aus der Konfigurations-Datei und mappt dies anschlie&szlig;end in
+Empf&auml;nger-Dom&auml;nen-Objekte (<em>oRecipient</em>).
+<br />
+<br />
+<file:highlight name="contactMapper.php" />
+<br />
+<br />
+Die Konfigurationsdatei selbst ist mit mehreren Sektionen der Form
+<pre class="tagexample">
+[Kontakt <em>([0-9]+)</em>]
+EmpfaengerName = "<em>([A-Za-z0-9,.-_ ]+)</em>"
+EmpfaengerAdresse = "<em>([A-Za-z0-9.-_@]+)</em>"
+</pre>
+aufgebaut. Die Methode <em>loadRecipients()</em> mappt dabei jede Sektion in ein Domain-Objekt
+(<em>oRecipient</em>) und liefert eine Liste dieser zurück. Jeder Empfänger kann beim Versenden des
+Formulars an Hand seiner eindeutigen ID (siehe Sektionsnamen) referenziert und per
+<em>loadRecipientById()</em> geladen werden.
+<br />
+Wird als Quelle keine Konfigurations-Datei, sondern eine Datenbank verwendet, muss lediglich
+die Implementierungen der Daten-Schicht-Methoden dahin ge&auml;ndert werden, dass die Daten aus der
+Datenbank statt aus der Datei gelesen werden.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="tut_kontaktform" />

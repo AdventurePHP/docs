@@ -1,0 +1,186 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="file" class="highlight" />
+<font style="font-size: 26px; font weight: bold;">G&auml;stebuch</font> (Fortsetzung)
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+Die folgenden Kapiteln beschreiben die Implementierungsdatails des G&auml;stebuchs. Die Ausgabe
+desselben kann unter <a href="./?Seite=038-Gaestebuch" title="G&auml;stebuch">G&auml;stebuch</a> eingesehen werden.
+<br />
+<br />
+<br />
+<a name="6-Implementierung-Datenschicht"></a><h3>6. Implementierung der Datenschicht</h3>
+Die Hauptaufgabe des <em>guestbookMapper</em>'s ist es, Daten zwischen Datenhaltung und Anwendung zu
+&uuml;bersetzen. Im Fall des Lesens muss ein Resultset in ein Dom&auml;nen-Objekt &uuml;bersetzt werden,
+im Fall des Schreibens muss ein Dom&auml;nen-Objekt in seine Bestandteile zerlegt und in den zugeh&ouml;rigen
+Tabellen gespeichert werden. Dazu werden - wie im Design beschrieben - jeweils eine Mapping-Methode
+f&uuml;r jedes Objekt der Anwendung erstellt. Das Schreiben &uuml;bernehmen die <em>save*()</em>-Methoden.
+Hier zun&auml;chst der Quellcode des G&auml;stebuchs:
+<br />
+<br />
+<strong>guestbookMapper.php:</strong>
+<br />
+<file:highlight name="guestbookMapper.php" />
+<br />
+<br />
+<br />
+<a name="6-1-Lese-Mapper-Methoden"></a><h4>6.1. Lese-Mapper-Methoden</h4>
+Um der Business-Schicht Objekte zur Verf&uuml;gung stellen zu k&ouml;nnen muss ein Ergebnis einer
+Datenbank-Abfrage in die Business-Objekte gemappt werden. Dazu wurden die Funktionen <strong>_mapEntry2DomainObject()</strong>,
+<strong>__mapGuestbook2DomainObject</strong> und <strong>__mapComment2DomainObject</strong> vorgesehen.
+Diese wiederum werden von den <em>load*ByID()</em>- und <em>load*WithEntries()</em>-Methoden verwendet.
+Jede dieser Methoden stellt der Business-Schicht einen Service zur Verf&uuml;gung, mit dem Daten aus
+der Datenquelle geladen werden k&ouml;nnen. Zur Kommunikation mit der Datenbank kommt der <strong>MySQLHandler</strong>
+zur Verf&uuml;gung. Dieses Service-Objekt kennt die Methoden <em>executeTextStatement()</em> um ein SQL-
+Statement auszuf&uuml;hren und <em>fetchData()</em> um Daten abzuholen. Der MySQLHandler stellt eine
+Abstraktionsschicht f&uuml;r den Datenzugriff dar.
+<br />
+<br />
+<br />
+<a name="6-2-Schreibe-Mapper-Methoden"></a><h4>6.2. Schreibe-Mapper-Methoden</h4>
+Da das G&auml;stebuch keine rein lesenden Anwendung ist, muss die Anwendung Daten auch wieder persistieren
+k&ouml;nnen. Um sicherzustellen, dass sich die Anwendung nicht um die Spezifika der Datenschicht k&uuml;mmern
+muss werden <em>save*()</em>-Methoden angeboten. Mit diesen kann durch &Uuml;bergabe eines Objekts oder
+auch eines Objekt-Baums die Objekte oder B&auml;ume transparent f&uuml;r die Anwendung gespeichert werden.
+Beim Erstellen eines G&auml;stebuch-Eintrags beispielsweise muss lediglich das zugeh&ouml;rige
+G&auml;stebuch der Methode <em>saveGuestbook()</em> &uuml;bergeben werden und die Datenschicht k&uuml;mmert
+sich um die Speicherung des G&auml;stebuchs, bzw. der Eintr&auml;ge. Innerhalb dieser Funktion wird
+dann &uuml;berpr&uuml;ft, ob das &uuml;bergebene G&auml;stebuch bereits existiert. Wenn nein, wird es
+gespeichert, wenn ja nur upgedatet. Ebenso werden nur neue Eintr&auml;ge mit Hilfe der Funktion
+<em>saveEntry()</em> gespeichert. Damit die Zuordnung eines Eintrags zu deinem G&auml;stebuch konsistent
+bleibt, k&uuml;mmerst sich jede dieser Methoden darum, dass die Beziehungsinformationen richtig
+gespeichert werden.
+<br />
+<br />
+<br />
+<br />
+<a name="7-Businessschicht"></a><h3>7. Implementierung der Business-Schicht</h3>
+In den Implementierungen des Frameworks werden die Business- und Datenschicht-Komponenten in der
+Regel als Service-Objekte verwendet. Um diese in einer Methode verwenden zu k&ouml;nnen ist in
+jeder Klasse, die direkt oder indirekt von coreObject erbt die Methode <em>__getServiceObject()</em>
+oder <em>__getAndInitServiceObject()</em>. Die beiden Funktionen liefern dabei jeweils eine Referenz
+auf die Instanz des spezifizierten Service-Objekts zur&uuml;ck. Um als Service-Objekt aufgerufen und
+erzeugt zu werden muss diese Klasse direkt oder indirekt von <em>coreObject</em> erben und falls ein
+Service mit <em>__getAndInitServiceObject()</em> erstellt wird die Methode <em>init()</em> implementieren.
+Letzter dient dazu einen Service zu initialisieren. Dazu besitzt <em>__getAndInitServiceObject()</em>
+einen dritten Parameter, der als Initialisierungs-Parameter an die Methode <em>init()</em> weitergegeben
+wird. Wird jedes Service-Layer mit den genannten Funktionen erstellt, so ist sichergestellt, dass die
+Layer die f&uuml;r die Anwendung wichtigen Attribute wie <strong>Context</strong> und <strong>Language</strong>
+kennen. Dies ist insbesondere f&uuml;r das Auslesen von Konfigurations-Dateien wichtig.
+<br />
+<br />
+<strong>guestbookManager.php:</strong>
+<br />
+<file:highlight name="guestbookManager.php" />
+<br />
+<br />
+<br />
+<a name="7-1-Initialisierung"></a><h4>7.1. Initialisierung</h4>
+Da allein die Pr&auml;sentations-Schicht &uuml;ber den "&lt;core:importdesign /&gt;"-Tag die
+G&auml;stebuch-ID kennt, muss die Pr&auml;sentations-Schicht eine M&ouml;glichkeit haben diese dem
+Business-Layer mitzuteilen. Dazu wird die bereits genannte Methode <em>__getAndInitServiceObject()</em>
+verwendet um die Business-Schicht zu initialisieren. Die Business-Schicht implementiert dazu die
+Funktion <em>init()</em>, die einen Parameter zur Initialisierung erwartet. Beim Aufrufen der Business-
+Schicht wird dann jeweils die ID des G&auml;stebuchs mitgegeben.
+<br />
+<br />
+<br />
+<a name="7-2-Laden-von-Eintraegen"></a><h4>7.2. Laden von Eintr&auml;gen</h4>
+Um das Anzeigen von Eintr&auml;gen zu erleichtern, wird die Pager-Komponente bereits in der Business-
+Schicht eingesetzt. So muss sich die Pr&auml;sentations-Schicht keine Gedanken zur Menge der darzustellenden
+Eintr&auml;ge machen. Die Pager-Komponente wird hier in Form des <em>pagerManager</em>'s aus dem
+Package <em>modules::pager</em> eingesetzt. Das ist eine bereits fertig implementierte Komponente, die
+lediglich f&uuml; den Einsatz konfiguriert werden muss. Um mehrere Instanzen des <em>pagerManager</em>'s
+innerhalb der Applikation verwenden zu k&ouml;nnen, wurde eine <em>pagerManagerFabric</em> implementiert.
+Diese liefert bei Aufruf der Funktion <em>getPagerManager</em> die initialisierte Instanz eines
+<em>pagerManager</em>'s zur&uuml;ck. Der Pager gibt bei Aufruf der Methode <em>loadEntries()</em> die
+IDs der anzuzeigenden Eint&auml;ge zur&uuml;ck. Diese k&ouml;nnen dann mit Hilfe der Daten-Schicht geladen
+und an das G&auml;stebuch geh&auml;ngt werden.
+<br />
+<br />
+<br />
+<a name="7-3-Pager-Ausgabe"></a><h4>7.3. Ausgabe des Pagers</h4>
+Die unter 7.2. eingef&uuml;hrte Pager-Komponente bietet die M&ouml;glichkeit eine HTML-Ausgabe auszugeben.
+Diese beinhaltet das Bl&auml;ttern in Seiten und die Wahl der Eintr&auml;ge pro Seite. Hierzu muss
+einfach die Methode <em>getPager()</em> aufgerufen werden. Diese gibt dei HTML-Ausgabe zur&uuml;ck, die
+in der Pr&auml;sentations-Schicht in die Seite oder ein Template eingesetzt werden kann.
+<br />
+<br />
+<br />
+<a name="7-4-Speichern-von-Eintraegen"></a><h4>7.4. Speichern von Eintr&auml;gen</h4>
+Der Pr&auml;sentations-Schicht wird mit der Methode <em>saveEntry()</em> ein weiterer Service bereit
+gestellt. Um diesen nutzen zu k&ouml;nnen muss die Pr&auml;sentations-Schicht die Methode aufrufen und
+ein Domain-Objekt <strong>Entry</strong> &uuml;bergeben. Dieses wird dann gespeichert und die Funktion
+leitet den Benutzer auf den <em>display</em>-View weiter.
+<br />
+<br />
+<br />
+<br />
+<a name="8-Praesentationsschicht"></a><h3>8. Implementierung der Pr&auml;sentations-Schicht</h3>
+Die Pr&auml;sentations-Schicht besteht aus zwei Views: der Anzeige der Eintr&auml;ge und dem Formular.
+Dies zwei Views werden durch jeweils eine Template- und eine Controller-Datei repr&auml;sentiert. Um
+die Anzeige der Views zu erleichtern, wird das G&auml;stebuch mit einem weiteren Wrapper-Template
+eingebunden: <strong>guestbook.html</strong>. Diese beinhaltet die globalen Ausgaben eines G&auml;stbuchs
+und verf&uuml;gt ebenfalls &uuml;ber einen Controller.
+<br />
+<br />
+<br />
+<a name="8-1-Design-Rahmen"></a><h4>8.1. G&auml;stebuch Design-Rahmen</h4>
+Die Datei <em>guestbook.html</em> beinhaltet die globalen Ausgaben eines G&auml;stebuchs.
+<br />
+<br />
+<file:highlight name="guestbook.html" />
+<br />
+<br />
+Hier werden Platzhalter f&uuml;r die Ausgabe des Namens und der Beschreibung sowie die Einbindung der
+oben genannten Views per "&lt;core:importdesign /&gt;"-Tag definiert. Der zugeh&ouml;rige Controller
+liest zur Generierung der Darstellung das G&auml;stebuch-Objekt aus und stellt die genannten Attribute
+dar.
+<br />
+<br />
+<file:highlight name="guestbook_v1_controller.php" />
+<br />
+<br />
+<br />
+<a name="8-2-Display-View"></a><h4>8.2. Display-View</h4>
+Der Display-View definiert Platzhalter f&uuml;r Pager, Link zum Formular und der Eintrags-Liste sowie
+Templates f&uuml;r die Darstellung der Domain-Objekte "Entry" und "Comment".
+<br />
+<br />
+<file:highlight name="display.html" />
+<br />
+<br />
+Im Controller werden dann auf generische Art und Weise die Inhalte mit den Methoden <em>__generateEntryList()</em>,
+<em>__createEntry()</em> und <em>__createComment()</em> zusammengesetzt und in der Funktion
+<em>transformContent()</em> ausgegeben. Das Laden der Eintr&auml;ge &uuml;bernimmt dabei die oben
+beschriebene Business-Schicht. Um die Eintr&auml;ge laden zu k&ouml;nnen wir der <em>guestbookManager</em>
+mit Hilfe der Funktion <em>loadGuestbook()</em> angefragt.
+<br />
+<br />
+<file:highlight name="guestbook_display_v1_controller.php" />
+<br />
+<br />
+<a name="8-3-Formular-View"></a><h4>8.3. Formular-View</h4>
+Im Formular-View wird das Formular zum Erzeugen eines Inhalts ausgegeben. Die Template-Datei definiert
+im Wesentlichen das Formular und dessen Verhalten hinsichtlich Validierung der Felder.
+<br />
+<br />
+<file:highlight name="createentry.html" />
+<br />
+<br />
+Der zugeh&ouml;rige DocumentController implementiert dazu lediglich die Methode <em>transformContent()</em>,
+in der abgefragt wird, ob das Formular korrekt ausgef&uuml;llt wurde. Ist das der Fall wird aus den
+Werten ein Entry-Domain-Objekt erstellt und dieses an die Business-Schicht zur Speicherung desselben
+weitergegeben.
+<br />
+<br />
+<file:highlight name="guestbook_createentry_v1_controller.php" />
+<br />
+<br />
+<br />
+<strong>Fortsetzung:</strong>
+Die Implementierung des Frontends ist damit erledigt. <a href="./?Seite=059-Gaestebuch-Tutorial-3" title="Backend">Seite 3</a>
+besch&auml;ftigt sich nun mit der Erstellung des Backends.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="tut_guestbook2" />

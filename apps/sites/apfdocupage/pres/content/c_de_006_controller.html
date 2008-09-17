@@ -1,0 +1,246 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">(Document-)Controller</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+<br />
+<a name="1-Zweck-eines-Controllers"></a><h3>1. Zweck eines (Document-)Controllers</h3>
+Wie unter <a href="./?Seite=046-Standard-TagLibs" title="Standard-TagLibs">Standard-TagLibs</a> und
+<a href="./?Seite=047-Templates" title="Templates">Templates</a> bereits mehrfach angesprochen, werden
+(MVC-Document-)Controller zur Generierung von dynamischen Inhalten verwendet. Um diese Aufgabe wahr
+nehmen zu k&ouml;nnen muss ein Document-Controller einem DOM-Knoten bekannt gemacht werden. Dies
+passiert in der ersten Zeile einer Template-Datei durch ein <strong>&lt;@controller @&gt;</strong>-Tag.
+Der PageController weist dem aktuellen DOM-Knoten damit den dort angegebenen Document-Controller zu
+und f&uuml;hrt diesen bei der Transformation des Knotens aus.
+<br />
+<br />
+<br />
+<a name="2-Aufbau-eines-Controllers"></a><h3>2. Aufbau eines (Document-)Controllers</h3>
+Jeder Document-Controller erbt vom Basis-Controller <em>baseController</em>. Dieser besitzt zur
+Verarbeitung der bekannten TagLib-Tags notwendige Methoden. Beispiel hierf&uuml;r ist die Funktion
+<strong>__getTemplate()</strong> um eine Referenz auf ein im Knoten enthaltenes Template zugreifen zu
+k&ouml;nnen, oder die Methode <strong>setPlaceHolder()</strong>, mit der ein
+<strong>&lt;html:placeholder /&gt;</strong>-Tag gef&uuml;llt werden kann.
+<br />
+<br />
+Das Ger&uuml;st eines Document-Controllers hat immer folgende Gestalt:
+<php:highlight>
+   class myDocumentController extends baseController
+   {
+
+      function myDocumentController(){
+      }
+
+      function transformContent(){
+      }
+
+    // end class
+   }
+</php:highlight>
+Ein Document-Controller ist im Prinzip eine PHP-Klasse "wie jede andere auch". Dem Entwickler steht
+es frei eigene Klassenvariablen zu definieren, eigene Methoden einzuf&uuml;hren und weitere Klassen
+einzubinden. Wichtig ist nur, dass das zuvor gezeigte Interface eingehalten wird.
+<br />
+<br />
+Wie der <a href="Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a> zu entnehmen ist
+verf&uuml;gt der <em>baseController</em> &uuml;ber folgende Methoden:
+<ul>
+  <li>
+    <strong>__getTemplate():</strong>
+    <br />
+    Methode um eine Referenz auf ein Template-Objekt zu holen.
+  </li>
+  <li>
+    <strong>__getForm():</strong>
+    <br />
+    Funktion um auf ein Formular-Objekt zuzugreifen.
+  </li>
+
+  <li>
+    <strong>__placeholderExists():</strong>
+    <br />
+    Pr&uuml;ft, ob in der Seite ein Platzhalter-Tag mit dem &uuml;bergebenen Namen existiert.
+  </li>
+
+  <li>
+    <strong>__templatePlaceholderExists():</strong>
+    <br />
+    Pr&uuml;ft, ob in einem Template ein Platzhalter-Tag mit dem &uuml;bergebenen Namen existiert.
+  </li>
+</ul>
+Des Weiteren verf&uuml;gt der <em>baseController</em> &uuml;ber alle Methoden der Klasse <em>coreObject</em>.
+<br />
+<br />
+<br />
+<a name="3-Beispiele"></a><h3>3. Beispiele f&uuml;r (Document-)Controller</h3>
+<a name="3-1-Dynamische-META-Tags"></a><h4>3.1. Darstellung dynamischer Inhalte in Meta-Tags</h4>
+In diesem Kapitel soll nun die Implementierung eines Document-Controllers erl&auml;utert werden, der das
+in <a href="./?Seite=047-Templates" title="Templates">Templates</a>, Kapitel 2.1, aufgef&uuml;hrte
+Template mit Inhalten f&uuml;llt. Dazu ist das Template zun&auml;chst um die Definition des
+Document-Controllers zu erweitern und sieht daher wie folgt aus:
+<br />
+<pre class="tagexample">
+&lt;@controller namespace="sites::demosite::pres::templates::documentcontroller" file="website_v1_controller"
+class="website_v1_controller" @&gt;
+[..]
+&lt;meta name="DC.Date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
+&lt;meta name="DC.Type" content="Text" /&gt;
+&lt;meta name="DC.Format" content="text/html" /&gt;
+&lt;meta name="DC.Identifier" content="Dipl.-Ing. (FH) Christian W. Achatz" /&gt;
+&lt;meta name="DC.Source" content="&lt;html:placeholder name="URI" /&gt;" /&gt;
+&lt;meta name="DC.Language" content="de" /&gt;
+&lt;meta name="DC.Relation" content="&lt;html:placeholder name="URI" /&gt;" /&gt;
+[..]
+&lt;meta name="keywords" lang="de" content="PHP,Framework,PageController,FrontController,Pattern,[..]" /&gt;
+&lt;meta name="date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
+&lt;meta name="robots" content="index,follow" /&gt;
+&lt;meta name="revisit-after" content="5 days" /&gt;
+[..]
+</pre>
+Der zugeh&ouml;rige Document-Controller implementiert in diesem Fall lediglich die Methode
+<strong>transformContent()</strong> die bei der Transformation aufgerufen wird. Der Quellcode der
+Klasse sieht dann wie folgt aus:
+<br />
+<php:highlight>
+   class website_v1_controller extends baseController
+   {
+
+      function website_v1_controller(){
+      }
+
+      function transformContent(){
+
+         // Platzhalter-Tag "URI" setzen
+         $this->setPlaceHolder('URI',$_SERVER['REQUEST_URI']);
+
+         // Platzhalter-Tag "Date" setzen
+         $this->setPlaceHolder('Date',date('Y-m-d'));
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+<br />
+<a name="3-2-Dynamische-Listen"></a><h4>3.2. Darstellung dynamischer Listen</h4>
+Die folgenden Zeilen greifen das in <a href="./?Seite=047-Templates" title="Templates">Templates</a>,
+Kapitel 2.2, aufgef&uuml;hrte Template zur Darstellung einer Liste. Dazu wird das Template - wie
+oben - zun&auml;chst um die Definition desc Document-Controllers erweitert:
+<br />
+<br />
+<pre class="tagexample">
+&lt;@controller namespace="sites::demosite::pres::templates::documentcontroller" file="list_v1_controller"
+class="list_v1_controller" @&gt;
+[..]
+&lt;html:placeholder name="List" /&gt;
+
+&lt;html:template name="ListHeader"&gt;
+  &lt;table cellpadding="0" cellspacing="0" border="0"&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+         &lt;strong&gt;ExampleList&lt;/strong&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;template:placeholder name="TableElements" /&gt;
+  &lt;/table&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="ListItem"&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+         &lt;template:placeholder name="ItemValue" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/html:template&gt;
+</pre>
+Der zugeh&ouml;rige Document-Controller implementiert nun einerseits die Methode <em>transformContent()</em>,
+wird aber die privaten Methoden <strong>__buildList()</strong> und <strong>__buildListItem()</strong>
+erweitert. Somit werden die Tasks nochmal in eigene "Helper-Methoden" verpackt und der Code gestaltet
+sich &uuml;bersichtlicher und besser lesbar. Das Laden der Liste &uuml;bernimmt eine fiktive
+Business-Komponente (<strong>listLoader</strong>), die eine Liste (=Array) von <strong>listItem</strong>-
+Objekten zur&uuml;ckgibt. Letzters ist ein Daten-Objekt, das von <em>coreObject</em> erbt und genau
+eine Eigenschaft mit dem Namen <strong>ListContent</strong> besitzt das mit <em>get()</em> abgefragt
+werden kann. Die Liste wird dann iteriert und daraus eine HTML-Ausgabe generiert:
+<br />
+<php:highlight>
+   import('sites::demosite::biz','listLoader');
+
+
+   class list_v1_controller extends baseController
+   {
+
+      function list_v1_controller(){
+      }
+
+      function transformContent(){
+
+         // Liste in Platzhalter-Tag "List" einsetzen
+         $this->setPlaceHolder('List',$this->__buildList());
+
+       // end function
+      }
+
+      function __buildList(){
+
+         // listLoader erzeugen
+         $listLoader = &$this->__getServiceObject('sites::demosite::biz','listLoader');
+
+         // Liste laden
+         $List = $listLoader->loadList();
+
+         // HTML-Puffer initialisieren
+         $Buffer = (string)'';
+
+         // Referenz auf Header-Template holen
+         $Template__ListHeader = &$this->__getTemplate('ListHeader');
+
+         // Liste durchlaufen und Items generieren
+         foreach($List as $lKey => $lItem){
+
+            // Ausgabe für Item generieren
+            $Buffer .= $this->__buildListItem($lItem);
+
+          // end foreach
+         }
+
+         // Items in das Header-Template einsetzen
+         $Template__ListHeader->setPlaceHolder('TableElements',$Buffer);
+
+         // Template transformieren und zurückgeben
+         return $Template__ListHeader->transformTemplate();
+
+       // end function
+      }
+
+      function __buildListItem(&$listItem){
+
+         // Referenz auf ListItem-Template holen
+         $Template__ListItem = &$this->__getTemplate('ListItem');
+
+         // Inhalt des Templates setzen
+         $Template__ListItem->setPlaceHolder('ItemValue',$listItem->get('ListContent'));
+
+         // Template transformieren und zurückgeben
+         return $Template__ListItem->transformTemplate();
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+<br />
+<a name="3-3-Weitere-Beispiele"></a><h4>3.3. Weiterf&uuml;hrende Beispiele</h4>
+Weiterf&uuml;hrende Controller-Beispiele sind unter <a href="./?Seite=057-Gaestebuch-Tutorial" title="G&auml;stebuch">G&auml;stebuch-Tutorial</a>
+und <a href="./?Seite=034-Kontakt-Formularformular" title="Kontaktformular-Tutorial">Kontaktformular-Tutorial</a>
+zu finden. Das Thema Formulare wird auf der Seite "<a href="./?Seite=011-Formulare" title="Formulare">Formulare</a>"
+nochmals genauer behandelt.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_controller" />

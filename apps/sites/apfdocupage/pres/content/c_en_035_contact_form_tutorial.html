@@ -1,0 +1,437 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="file" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<font style="font-size: 26px; font weight: bold;">Contact form</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+The present chapter gives another application of the form tag libs and the
+<strong>&lt;core:importdesign /&gt;</strong> tag. The contact form described in the following text
+gives the opportunity to prevent e-mail addresses from beeing grabbed by bots. Moreover, the
+recipient list is configurable and extensible. The module can be included in any page
+controller compliant application by using the <em>&lt;core:importdesign /&gt;</em> tag.
+<br />
+<br />
+<br />
+<a name="2-Basics"></a><h3>2. Basics</h3>
+This tutorial includes technics that were already used in the previous tutorials. The author assumes,
+that you have read chapter 2 of the
+<a href="./?Page=032-Comment-function" title="comment function tutorial">comment function tutorial</a>
+carefully. This chapter describes the separation of a single software into three different layers,
+that contain different functionality. Beyond, the section depicts how domain objects are used as an
+agent of communication and which role is dedicated to the MVC pattern.
+<br />
+<br />
+<br />
+<a name="2-1-Configuration"></a><h4>2.1. Configuration</h4>
+To be able to integrate the contact form module in various projects the project specific parts must
+be outsourced to application configuration files. Configuration is necessary in two flavours: first
+of all the recipients must be configured, second the texts of the form tag libs (validators) must
+be defined per project.
+<br />
+<br />
+At this point of the tutorial we're going to do a little excurse to functionality of the form
+validation included in the framework:
+<br />
+The tags
+<ul>
+  <li>&lt;form:validate /&gt;</li>
+  <li>&lt;valgroup:validate /&gt;</li>
+</ul>
+need a language dependent configuration file for the validation messages to display. The configuration
+file required for the taglibs is expected to be storend in
+<pre class="tagexample">
+  /config/tools/form/taglib/{CONTEXT}/{ENVIRONMENT}_formconfig.ini
+</pre>
+<em>{CONTEXT}</em> is meant to be a place holder for the context of the current application and the
+value for <em>{ENVIRONMENT}</em> must be read from the registry. In case of the presend documentation
+page the file must be named like
+<pre class="tagexample">
+  /config/tools/form/taglib/sites/demosite/DEFAULT_formconfig.ini
+</pre>
+As described in the <a href="./?Page=046-Standard-TagLibs" title="Standard tag libs">standard tag libs</a>
+article in section 2.3.16 and 2.3.17 these tags can be configured using the additional attributes
+<ul>
+  <li>msginputreq=""</li>
+  <li>msginputwrg=""</li>
+</ul>
+These attributs define the configuration key that contains a language dependent text to be shown, if
+the desired field is not filled correctly. This makes it possible to define a single set of validation
+texts for an entire application. Moreover, it is easy to translate these texts, becaues they are
+stored in simple text files.
+<br />
+<br />
+<strong>Example:</strong>
+<br />
+In order to display the message
+<pre class="tagexample">
+  Please fill the field in e-mail address!
+</pre>
+if a form control was not filled and to print the text
+<pre class="tagexample">
+  Please provide a valid e-mail address!
+</pre>
+if the field was not filled with a correct e-mail address, the validator must be configured as
+follows:
+<pre class="tagexample">
+  &lt;form:validate
+                  button="send"
+                  field="email"
+                  type="EMail"
+                  msginputreq="Contact.EMail.InputRequired"
+                  msginputwrg="Contact.EMail.InputWrong"
+  /&gt;
+</pre>
+The attribute <strong>button</strong> defines the name of the button, that should initiate validation,
+<strong>field</strong> indicates the field, that should be checked and <strong>type</strong> explains
+the type of the validator. The keys contained in the two attributes <strong>msginputreq</strong> and
+<strong>msginputwrg</strong> were prefixed with "<strong>Contact.EMail.</strong>" to indicate, that
+these configuration keys belong to the contact form application and are intended to declare the
+validation texts of the <strong>e-mail</strong> field. This convention is common to be able to
+differentiate between the various configuration keys provided within one configuration file. Besides,
+it is useful to place some comments in the configuration file.
+<br />
+<br />
+A configuration file intended to be a basis for a multilanguage application may have the following
+content:
+<pre class="tagexample">
+[de]
+Contact.EMail.InputRequired = "Bitte geben Sie eine E-Mail-Adresse sein!"
+Contact.EMail.InputWrong = "Bitte geben Sie eine g&uuml;ltige E-Mail-Adresse sein!"
+
+[en]
+Contact.EMail.InputRequired = "Please fill the field sender name!"
+Contact.EMail.InputWrong = "Please provide a valid email address!"
+</pre>
+<br />
+<a name="2-2-Multilanguage-support"></a><h4>2.2. Multilanguage applications</h4>
+The adventure php framework features several options to create multilangual applications or modules.
+At first, the language is stored within every single DOM node or service layer and hence can be used
+to display language dependent texts within a document controller. Further the framework provides the
+XML tags
+<ul>
+  <li>&lt;html:getstring /&gt;</li>
+  <li>&lt;template:getstring /&gt;</li>
+  <li>&lt;form:getstring /&gt;</li>
+</ul>
+that display language dependent texts from configuration files. In case of the present module both
+possibilities are used. As a basis, the configuration file
+<pre class="tagexample">
+ /config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_language.ini
+</pre>
+is used to store the texts to be displayed in the module. The file is filled with the following
+values:
+<br />
+<br />
+<file:highlight name="DEFAULT_language.ini" />
+<br />
+The values stored there can be displayed by using the follwing XML tags:
+<ul>
+  <li><strong>&lt;html:getstring namespace="modules::kontakt4" config="language" entry="form.person" /&gt;</strong>,</li>
+  <li><strong>&lt;template:getstring namespace="modules::kontakt4" config="language" entry="form.person" /&gt;</strong> oder</li>
+  <li><strong>&lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.person" /&gt;</strong></li>
+</ul>
+The second possibility of of displaying language dependent texts can be used to label form controls
+like buttons. In this case the labelling must be done within a document controller. The following
+code shows how to achieve this:
+<php:highlight>
+   // Load language dependent configuration
+   $Config = &$this->__getConfiguration('modules::kontakt4','language');
+
+   // Get a reference on the desired form control
+   $Button = &$Form->getFormElementByName('KontaktSenden');
+
+   // Set the value attribute of the control using the $this->__Language member
+   $Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
+</php:highlight>
+<br />
+<a name="2-3-Structure-of-the-module"></a><h4>2.3. Structure of the module</h4>
+According to the structure described in the comment module tutorial the structure of the
+<strong>kontakt4</strong> module looks like this:
+<pre class="tagexample">
+  /modules/
+           kontakt4/
+                    biz/
+                    data/
+                    pres/
+                         documentcontroller/
+                         templates/
+</pre>
+The <strong>biz</strong> folder serves the business components (two domain objects and one manager),
+<strong>data</strong> contains the mapper class, that reads the recipients, and the
+<strong>pres</strong> folder stores the controller and template files needed by the presentation
+layer. Considered as a whole, the contact form consists of the following files:
+<br />
+<br />
+<ul>
+  <li>
+    <strong>/modules/kontakt4/pres/templates/kontakt.html</strong>:
+    <br />
+    The file <em>kontakt.html</em> contains the main design and coordinated the output of the form
+    or the thank-you-page with a <em>&lt;core:importdesign /&gt;</em> tag.
+  </li>
+  <li>
+    <strong>/modules/kontakt4/pres/templates/formular.html</strong>:
+    <br />
+    This file contains the definition of the form view.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/pres/templates/meldung.html</strong>:
+    <br />
+    In the file <em>meldung.html</em> the content of the thank-you-page is defined.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/pres/documentcontroller/kontakt_v2_controller.php</strong>:
+    <br />
+    To fill the form view with dynamically generated content a document controller is needed. The
+    file <em>kontakt_v2_controller.php</em> contains the document controller class definition.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/biz/contactManager.php</strong>:
+    <br />
+    <em>contactManager.php</em> is the home of the business component class, that coordinates the
+    workflow of the application.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/biz/oRecipient.php</strong>:
+    <br />
+    <em>oRecipient.php</em> contains the definition of the recipient domain object.
+   </li>
+  <li>
+    <strong>/modules/kontakt4/biz/oFormData.php</strong>:
+    <br />
+    <em>oFormData.php</em> contains the definition of the form data domain object.
+  </li>
+  <li>
+    <strong>/modules/kontakt4/data/contactMapper.php</strong>:
+    <br />
+    The file <em>contactMapper.php</em> is used to define the data layer component, that loads the
+    recipients out of the configuration file and presents them as domain objects.
+  </li>
+</ul>
+As already mentioned the following configuration files must be provided:
+<br />
+<ul>
+  <li>
+    <strong>/config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_empfaenger.ini</strong>:
+    <br />
+    Configuration of the recipients.
+  </li>
+  <li>
+    <strong>/config/tools/form/taglib/{CONTEXT}/{ENVIRONMENT}_formconfig.ini</strong>:
+    <br />
+    Texts for the validator form tags.
+  </li>
+  <li>
+    <strong>/config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_language.ini</strong>:
+    <br />
+    Language dependent labels.
+  </li>
+</ul>
+The syntax of the configuration files was already described above but the content of these files
+is discussed later on.
+<br />
+<br />
+<br />
+<a name="3-Implementation"></a><h3>3. Implementation of the module</h3>
+This tutorial uses the TOP-DOWN approach once again. The current chapter therefore describes the
+files mentioned above starting with the presentation layer and in the given order:
+<br />
+<br />
+<br />
+<a name="3-1-kontakt"></a><h4>3.1. File kontakt.html</h4>
+The template file <strong>kontakt.html</strong> defines the structure of the module. It contains
+the headline, that is displayed by use of the <strong>&lt;html:getstring /&gt;</strong> tag and a
+<strong>&lt;core:importdesign /&gt;</strong> tag, that defines the view that either displays the
+form (default behaviour) of the thank-you-page:
+<br />
+<br />
+<file:highlight name="kontakt.html" />
+<br />
+<strong>Note</strong>: Within this template file, the <strong>&lt;core:importdesign /&gt;</strong>
+tag is used with the pagepart option. This means, that the name of the template can be influenced
+by the URL parameter <strong>pagepart</strong>. If the parameter is not present in the request string,
+the name of the template is taken from the XML tag definition. In this case the form is displayed.
+<br />
+<br />
+<br />
+<a name="3-2-formular"></a><h4>3.2. File formular.html</h4>
+This template file contains four essential blocks:
+<ul>
+  <li>
+    <strong>Definition of the document controller</strong> <em>(Line 1)</em>
+    <br />
+    Here the document controller (MVC controller of the current DOM node) that is taken for
+    transformation is defined.
+  </li>
+  <li>
+    <strong>Inclusion of external tag libs:</strong> <em>(Lines 2-3)</em>
+    <br />
+    To be able to use the "html:form" or "html:getstring" tag libraries they must be introduced by
+    using the "core:addtaglib" tag.
+  </li>
+  <li>
+    <strong>Definition of the HTML content:</strong> <em>(Lines 5-9)</em>
+    <br />
+    The lines 5 to 9 define the HTML frame of the form view. This view features notices, that are
+    included using the <em>&lt;html:getstring /&gt;</em> tag and a <em>&lt;html:placeholder /&gt;</em>
+    tag that is filled with the output of the form within the document controller.
+  </li>
+  <li>
+    <strong>Form:</strong> (Lines 11-43)
+    <br />
+    The lines 11 to 43 define the form. It contains a validator group, that is used to display
+    validation messages. The labeling of the form controls is done by the
+    <strong>&lt;form:getstring /&gt;</strong> tag.
+  </li>
+</ul>
+<file:highlight name="formular.html" />
+<br />
+<br />
+<a name="3-3-meldung"></a><h4>3.3. File meldung.html</h4>
+Within the file <em>meldung.html</em> the thank-you message is defined, that is displayed on
+submission of the form. Merely this message contains a sentence that describes, that the recipient
+will send an answer soon. In this case, the message is taken from a configuration file, that contains
+the multilanguage texts of the module. Due to the fact, that these texts are statical no more document
+controller is necessary.
+<br />
+<br />
+<file:highlight name="meldung.html" />
+<br />
+<br />
+<a name="2-4-kontakt_v4_controller"></a><h4>2.4. Document controller kontakt_v4_controller</h4>
+The document controller <em>kontakt_v4_controller</em> inherits from the abstract document controller
+<em>baseController</em> (interface). Because of the DOM structure of the framework each document
+controller must inherit from the base document controller. The rest of th class can be defined
+freely. The developer can define own class methods or load classes via <em>import()</em> each time
+he wants to. In case of the contact form the method <em>__buildForm()</em> is used to build the
+form. To control the output of the form the abstract method <em>transformContent()</em> is
+implemented. This function describes, that the form is diplayed as long as the form is not filled
+as desired by the programmer (see line 60). In case of correct values the business layer is created
+to send the form and to display the thank-you-page (template file <em>meldung.html</em>).
+<br />
+<br />
+<file:highlight name="kontakt_v4_controller.php" />
+<br />
+<br />
+Taking a closer look to the source code, you can see, that the controller class uses two more
+components: the <em>variablenHandler</em> and the <em>contactManager</em>. The first class is a class
+integrated in the framework, that registers request variables in a locally used array and fills this
+offsets with default values if not present in the request. Details on this class can be seen on the
+<a href="./?Page=016-Classesreferenz_variablenHandler" title="class reference">class reference page</a>.
+The second component is the business layer class of the contact form. This class provides interfaces
+to load recipients or to submit the form.
+<br />
+<br />
+<br />
+<a name="3-4-1-transformContent"></a><h5>3.4.1. Method transformContent()</h5>
+The method <em>transformContent()</em> takes over the generation of the view. For this reason a
+reference on the form object is fetched to check, wheather the form is sent and filled correctly. If
+not, the form is displayed in the current view. Is the user input considered ok, a form data domain
+object is created and filled. After that the business component is created by use of the
+<em>__getServiceObject()</em> method. The function <em>sendContactForm()</em> called with the
+domain object <strong>oFormData</strong> as an argument then sends the data of the form via mail.
+The submission and the redirection to the thank-you-message is completely done by the business layer.
+<br />
+<br />
+<br />
+<a name="3-4-2-buildForm"></a><h5>3.4.2. Method __buildForm()</h5>
+The function <em>__buildForm()</em> is often called a "helper function", due to the fact that this
+private method only encapsulates the form generation. <em>__buildForm()</em> is in charge of these
+three tasks: at first, the action attribute of the form must be filled with a URL fitting the module's
+URL structure, second the URL of the validator group's warning image must be set and last but not
+least the select field must be filled with recipients. Moreover, the button of the form must be
+labeled with a language dependent text.
+<br />
+<br />
+<strong>Set the action attribute:</strong>
+<br />
+As each object inherits from "coreObject", the form method features the function
+<em>setAttribute()</em>. With aid of this method the attribut <strong>action</strong> can be set.
+<br />
+<br />
+<strong>Configuration of the validator group:</strong>
+<br />
+To set the validator group's place holder "WarnBild" and "WarnText" the programmer at first gets a
+reference on the validator group. Within the internal DOM the validator group is a child object of
+the form DOM node. In order to get a reference the developer needs to have a valid pointer on the
+form object. The method <em>getFormElementByName()</em> and <em>getFormElementByID()</em> is intended
+to return a reference on a form child object identified by name or ID. The validator group class
+offers the <em>setPlaceHolder()</em> function, concerning the
+<a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>. This method can be taken
+to set the place holder of the validator group.
+<br />
+<br />
+In case of the place holders "WarnImage" and "WarnText" the language dependent configuration file is
+used. The image and the corresponding text are located in thge configuration file
+<pre class="tagexample">
+  /config/tools/form/taglib/{CONTEXT}/{ENVIRONMENT}_formconfig.ini
+</pre>
+in the section <strong>[en]</strong> (for englisch language) and the under the configuration key
+<pre class="tagexample">
+  Contact.Warning.Image
+</pre>
+To get the lanuage dependent value out of the configuration file the section is choosen by the
+internal member <strong>$this->__Language</strong>, that allways contains the current language
+selected on page controller or front controller startup or during front controller action execution.
+The member variable contains a two letter ISO country code. Within the current document controller
+this task is done by the following source code:
+<php:highlight>
+   $Config = &$this->__getConfiguration('tools::form::taglib','formconfig');
+   $ValGroup = &$Form__Kontakt->getFormElementByName('FormValGroup');
+   $ValGroup->setPlaceHolder('WarnImage',$Config->getValue($this->__Language,'Contact.Warning.Image'));
+   $ValGroup->setPlaceHolder('WarnText',$Config->getValue($this->__Language,'Contact.Warning.Text'));
+</php:highlight>
+<br />
+At the end of the method the form object is transformed and returnd to the calling method.
+<br />
+<br />
+<br />
+<a name="3-5-contactManager"></a><h4>3.5. Class contactManager</h4>
+The <em>contactManager</em> class is an implementation of the business layer. It encapsulates the
+business logic of the application and communicates with lower tiers. In this case the business layer
+is in charge of sending the form or loading recipients. Therefore the current layer defines two API
+methods: <em>sendContactForm()</em> to send the form and <em>loadRecipients()</em> to provide a list
+of recipients. The interface between the presentation and business layer is formed by the two domain
+objects <em>oFormData</em> and <em>oRecipient</em>.
+<br />
+<br />
+<file:highlight name="contactManager.php" />
+<br />
+In the first two lines twoe more framework components are included to assist mail delivery
+(<strong>mailSender</strong>) and link generation (<strong>linkHandler</strong>).
+<br />
+Within the method <em>sendContactForm()</em> two service layers are instanciated, that are necessary
+for the delivery of the form data: the data layer to load the choosen recipient object and the
+<em>mailSender</em> to send confirmation and notification mails.
+<br />
+The function <em>loadRecipients()</em> is a service function for the presentation layer, that loads
+recipient domain objects.
+<br />
+<br />
+<br />
+<a name="4-contactMapper"></a><h3>4. Class contactMapper</h3>
+The <em>contactMapper</em> is a data mapper pattern implementation. It is used as a data provider by
+the business layer. For this reason the mapper loads the configuraton file, that contains the
+recipients and maps this data into recipient domain object (<em>oRecipient</em>).
+<br />
+<br />
+<file:highlight name="contactMapper.php" />
+<br />
+<br />
+The configuration file itself is separated into several sections:
+<pre class="tagexample">
+[Kontakt <em>([0-9]+)</em>]
+EmpfaengerName = "<em>([A-Za-z0-9,.-_ ]+)</em>"
+EmpfaengerAdresse = "<em>([A-Za-z0-9.-_@]+)</em>"
+</pre>
+Each section is mapped into on domain object (<em>oRecipient</em>). <em>loadRecipients()</em> returns
+a list if <em>oRecipient</em> objects. Every recipient can be identified by an unique ID (see section
+name) and can thus the loaded by the method <em>loadRecipientById()</em>.
+<br />
+If you intend to read the recipients from a database instead of a configuration file, only the
+implementation of the data layer methods must be changed to read the domain objects from a database.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="tut_kontaktform_en" />

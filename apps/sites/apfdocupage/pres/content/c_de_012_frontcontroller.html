@@ -1,0 +1,418 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Frontcontroller</font>
+<br />
+<br />
+<a name="1-Einleitung"></a><h3>1. Einleitung</h3>
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+Ein weiterer Bestandteil dieses Frameworks ist - wie bereits erw&auml;hnt - eine Implementierung des
+Frontcontrollers. Basis f&uuml;r die hier zur Verf&uuml;gung stehende Implementierung ist die
+Pattern-Definition von
+<a href="http://www.martinfowler.com/eaaCatalog/frontController.html" title="Martin Fowler">Martin Fowler</a>
+und die Auslegung des Patterns im JAVA-Framework
+<a href="http://struts.apache.org/1.x/userGuide/building_controller.html" title="Struts">Struts</a>.
+Einf&uuml;hrend Beispiele k&ouml;nnen auf der
+<a href="http://www.phppatterns.com/docs/design/the_front_controller_and_php" title="PHP-Patterns">PHP-Patterns</a>-
+Webseite eingesehen werden.
+<br />
+<br />
+Die FrontController-Komponente des Applikations-Frameworks besteht aus einer Singleton-Instanz der
+Klasse <strong>FrontController</strong>, die den Benutzer-Requests auswertet und die enthaltenen
+Anweisungen ausf&uuml;hrt. Es gibt mehrere Arten von Actions, die gem&auml;&szlig; den sp&auml;ter
+beschriebenen Timing Model ausgef&uuml;hrt werden. Im Allgemeinen werden Actions, die das
+Schl&uuml;sselwort "pre" enthalten, vor einer definierten Aktion ausgef&uuml;hrt und Actions mit
+"post" in der Typenbezeichnung nach einem Code-Teil. Aktionen des Typs "prepagecreate" dienen meist
+zum Aufbau des Models einer Applikation, Actions des Typs "posttransform" z.B. f&uuml;r
+Logging-Aufgaben oder &Auml;hnliches. Um eigene Actions zu implementieren bietet das Framework zwei
+abstrakte Basisklassen f&uuml;r Actions (<strong>AbstractFrontcontrollerAction</strong>) und ihre
+Informationen (<strong>FrontcontrollerInput</strong>). Der <strong>frontcontrollerRequestFilter</strong>
+und der <strong>frontcontrollerRewriteRequestFilter</strong> sind Komponenten, die die Action-Anweisungen
+aus der URL extrahieren, so dass der FrontController diese ausf&uuml;hren kann. Mit diesen beiden
+Komponenten kommt der Entwickler aber in der Regel nicht in Ber&uuml;hrung, da diese vom FrontController
+selbstst&auml;ndig ausgef&uuml;hrt werden. Um Actions zu haben, die bei jedem Request ausgef&uuml;hrt
+werden, hat der Entwickler die M&ouml;glichkeit diese Actions in der <em>index.php</em> zu registrieren.
+Diese verhalten sich gem&auml;&szlig; dem Timing Model wie normale Actions. Das folgende UML-Diagramm
+zeigt die Komponenten des FrontControllers in der &Uuml;bersicht:
+<br />
+<br />
+<center>
+  <img src="/frontend/media/FrontController.jpg" alt="Frontcontroller Actions Inputs UML" border="0" width="750" />
+</center>
+<br />
+<br />
+<a name="2-Implementierung"></a><h3>2. Implementierung</h3>
+Die Implementierung im FrontController-Style beinhaltet im Wesentlichen zwei Bereiche. Zum einen muss
+eine Action- und Input-Klasse erzeugt werden, die jeweils von <strong>AbstractFrontcontrollerAction</strong>
+und <strong>FrontcontrollerInput</strong> ableiten, zum anderen muss eine Konfiguration angelegt werden,
+die eine Action beschreibt.
+<br />
+<br />
+<br />
+<a name="2-1-Action-und-Input-Klassen"></a><h4>2.1. Action- und Input-Klassen</h4>
+Die vom Entwickler erzeugte Action-Klasse kapselt die Funktion einer Action. Wie der
+<a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a> der Klasse
+<strong>AbstractFrontcontrollerAction</strong> zu entnehmen ist, muss hierzu die Methode <strong>run()</strong>
+implementiert werden, da diese bei der Ausf&uuml;hrung einer Action durch den FrontController
+angesprochen wird. Die Input-Klasse ist eine einfache Daten-Klasse die die Model-Informationen der
+jeweiligen Action beinhaltet. Ein Input-Objekt kann im einfachsten Anwendungsfall auch das Model einer
+Applikation sein. Das folgende Code-Beispiel zeigt zwei einfache Action- und Input-Klassen:
+<br />
+<br />
+<php:highlight>
+   class DemoAction extends AbstractFrontcontrollerAction
+   {
+
+      function DemoAction(){
+      }
+
+      function run(){
+         echo 'I am front controller action class! My Name is '.$this->__Input->getAttribute('Name').'!';
+       // end function
+      }
+
+    // end class
+   }
+
+   class DemoInput extends FrontcontrollerInput
+   {
+
+      function DemoInput(){
+         $this->__Attributes['Name'] = 'Max Mueller';
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+Wird die hier gezeigte Action ausgef&uuml;hrt, erscheint im Browser der Satz
+<pre class="tagexample">
+  I am front controller action class! My Name is Max Mueller!
+</pre>
+Da die Actions ebenso den Context der Applikation kennen, k&ouml;nnen in den Actions beliebige
+Applikations-Teile verpackt werden. Ein beliebtes Beispiel ist die Benutzer-Authentifizierung. In der
+Action kann dann abgepr&uuml;ft werden, ob der Benutzer eingeloggt ist oder nicht und ggf. die Model-
+Informationen des Login-Moduls setzen.
+<br />
+<br />
+<br />
+<a name="2-2-Konfiguration"></a><h4>2.2. Konfiguration</h4>
+Jede Action muss in einer Konfigurations-Datei definiert sein. Zur Definition geh&ouml;ren der
+Namespace, die Dateinamen f&uuml;r Action- und Input-Klassen, deren Namen selbst und evtl. ben&ouml;tigte
+Model-Informationen. Konfigurations-Dateien werden immer unter dem Verzeichnis
+<pre class="tagexample">
+{ActionNamespace}::actions::{Context}
+</pre>
+und mit dem Namen
+<pre class="tagexample">
+{ENVIRONMENT}_actionconfig.ini
+</pre>
+abgelegt. <strong>{ENVIRONMENT}</strong> ist dabei gegen den Wert der Umgebungsvariable zu ersetzen.
+Im Standard-Fall ist dies der Wert <strong>DEFAULT</strong>. Eine Action-Konfiguration beinhalten
+dabei ein oder mehrere Definitionen von Actions, die wie folgt aussehen:
+<pre class="tagexample">
+[{ActionName}]
+FC.ActionNamespace = ""
+FC.ActionFile = ""
+FC.ActionClass = ""
+FC.InputFile = ""
+FC.InputClass = ""
+FC.InputParams = ""
+</pre>
+Die aufgef&uuml;hrten Parametern haben dabei folgende Bedeutungen:
+<br />
+<ul>
+  <li>
+    <strong>ActionName</strong>:
+    <br />
+    Name der Action. Dieser Name wird in der URL als Action-Name verlangt (Beispiel: <em>setModel</em>).
+  </li>
+  <li>
+    <strong>FC.ActionNamespace</strong>:
+    <br />
+    Namespace der Konfigurationsdatei der Action (Beipsiel: <em>sites::demosite::biz::actions</em>).
+  </li>
+  <li>
+    <strong>FC.ActionFile</strong>:
+    <br />
+    Name of der Datei, in der die Action-Klasse implementiert ist (Beispiel: <em>LoadModelAction</em>).
+  </li>
+  <li>
+    <strong>FC.ActionClass</strong>:
+    <br />
+    Name der Action-Klasse (Beispiel: <em>LoadModelAction</em>).
+  </li>
+  <li>
+    <strong>FC.InputFile</strong>:
+    <br />
+    Name der Datei, in dem die Input-Klasse residiert (Beispiel: <em>DemositeModel</em>).
+  </li>
+  <li>
+    <strong>FC.InputClass</strong>:
+    <br />
+    Name der Input-Klasse (Beispiel: <em>DemositeModel</em>).
+  </li>
+  <li>
+    <strong>FC.InputParams</strong>:
+    <br />
+    Konfigurations-Direktive, mit der Model-Daten per Konfiguration gesetzt werden k&ouml;nnen (Beispiel:
+    <em>login:true|headview:menu</em>. Schl&uuml;ssel und Wert sind per ":" getrennt, unterschiedliche
+    Wertepaare per "|").
+  </li>
+</ul>
+Da FrontController-Actions in der Regel Teile der Business-Schicht sind, sollten diese unter dem
+<strong>biz</strong>-Ordner einer Seite, Applikation oder eines Moduls abgelegt werden. Sinnvollerweise
+legt der Entwickler im Ordner <strong>biz</strong> noch einen Unterordner <strong>actions</strong> an,
+um die &Uuml;bersichtlichkeit zu verbessern. Da Namespace, Namen der Dateien und Klassen frei w&auml;hlbar
+sind, ist dem Entwickler hinsichtlich der Benennung und Strukturierung freie Hand gelassen.
+<br />
+<br />
+<br />
+<a name="2-3-Bootstrap-Datei"></a><h4>2.3. &Auml;nderungen in der index.php</h4>
+Um eine Applikation im FrontController-Style laufen zu lassen, sollte in der <em>index.php</em>
+folgendes eingetragen sein:
+<php:highlight>
+   // Instanz des Frontcontroller holen/erzeugen
+   $fC = &Singleton::getInstance('Frontcontroller');
+
+   // Context der Applikation setzen
+   $fC->set('Context','sites::demosite');
+
+   // Sprache der Applikation setzen
+   $fC->set('Language','de');
+
+   // Seite generieren
+   $fC->start('sites::demosite::pres::templates','website');
+</php:highlight>
+Ist es erw&uuml;nscht, "permanente" Actions auszuf&uuml;hren, so ist ein
+<php:highlight>
+   // Standard-Action "Login" mitteilen
+   $fC->registerAction('sites::demosite::biz','Login');
+</php:highlight>
+vor dem Aufruf der Methode <strong>start()</strong> notwendig. Anschlie&szlig;end ist es jederzeit
+m&ouml;glich Actions von Modulen oder Applikationen ausf&uuml;hren zu lassen.
+<br />
+<br />
+<br />
+<a name="2-4-Generierung-von-Links"></a><h4>2.4. Generierung von Links</h4>
+Um Links in FrontController-basierten Applikationen ebenso einfach generieren zu k&ouml;nnen wie bei
+PageController-Anwendungen wurde die Komponente <strong>frontcontrollerLinkHandler</strong>
+eingef&uuml;hrt. Diese manipuliert einen Link auf Basis einer bestehenden URL und bettet alle
+in der URL erw&uuml;nschten Action-Definitionen aus dem aktuellen Model (Input-Objekte der Actions)
+ein, falls das private Attribut <strong>$__KeepInURL</strong> einer Action auf <em>true</em> gesetzt
+wurde. So k&ouml;nnen auch mehrfach abh&auml;ngige Actions in der URL vorhanden sein. Das folgende
+Beispiel zeigt, wie der <strong>frontcontrollerLinkHandler</strong> angewendet wird. Der Einfachheit
+halber werden Links nur im Rewrite-Modus betrachtet. Die Manipulation ohne URL-Rewriting funktioniert
+analog dazu.
+<br />
+<br />
+<br />
+<a name="2-4-1-Einfache-URL-Manipulation"></a><h5>2.4.1. Einfache Manipulation von Parametern</h5>
+In vielen Applikationen ist es notwenig Links zu generieren. In Frontcontroller-basierten Anwendungen,
+in denen keine Action-Anweisungen in URLs manupuliert werden m&uuml;ssen, kann der
+<strong>frontcontrollerLinkHandler</strong> wie sein "kleiner Bruder" <strong>linkHandler</strong>
+eingesetzt werden um URLs zu erzeugen. Aus einem Link
+<pre class="tagexample">
+  http://www.adventure-php-framework.org/Seite/ChangeLog/benchmarkreport/true/param1/value1/param2/value2
+</pre>
+kann auf einfache Weise
+<pre class="tagexample">
+  http://www.adventure-php-framework.org/Seite/Guestbook/benchmarkreport/true
+</pre>
+generiert werden. Hierzu ist lediglich ein
+<php:highlight>
+   // URL definieren
+   $URL = 'http://www.adventure-php-framework.org/Seite/ChangeLog/benchmarkreport/true/param1/value1/param2/value2';
+
+   // URL-Aenderungen definieren
+   $ChangeParams = array(
+                         'Seite' => 'Guestbook',
+                         'param1' => '',
+                         'param2' => ''
+                         );
+
+   echo frontcontrollerLinkHandler::generateLink($URL,$ChangeParams);
+</php:highlight>
+notwenig.
+<br />
+<br />
+<br />
+<a name="2-4-2-Action-Manipulation"></a><h5>2.4.2. Manipulation von Parametern und Actions</h5>
+Actions werden gleicherma&szlig;en als URL-Parameter behandelt wie "normale" URL-Bestandteile. Daher
+gestaltet es sich sehr einfach, aus einer URL
+<pre class="tagexample">
+  http://www.adventure-php-framework.org/Seite/ChangeLog/benchmarkreport/true/param1/value1/param2/value2
+</pre>
+den Link
+<pre class="tagexample">
+  http://www.adventure-php-framework.org/Seite/Guestbook/benchmarkreport/true/param1/value1/param2/value2/~/
+  modules_guestbook_biz-action/LoadEntryList/pagesize/20/pager/false/adminview/true
+</pre>
+zu generieren. Hier wurde lediglich durch ein ge&auml;ndertes Parameter-Array eine Action hinzugef&uuml;gt:
+<php:highlight>
+   // URL definieren
+   $URL = 'http://www.adventure-php-framework.org/Seite/ChangeLog/benchmarkreport/true/param1/value1/param2/value2';
+
+   // URL-Aenderungen definieren
+   $ChangeParams = array(
+                         'modules_guestbook_biz-action:LoadEntryList' => 'pagesize:20|pager:false|adminview:true',
+                         'Seite' => 'Guestbook'
+                         );
+
+   // Link generieren
+   echo frontcontrollerLinkHandler::generateLink($URL,$ChangeParams);
+</php:highlight>
+Wurde die in der URL darzustellende Action bereits als "permanente" Action in der <em>index.php</em>
+eingeh&auml;ngt ist es lediglich notwendig, den <strong>frontcontrollerLinkHandler</strong> aufzurufen
+und die gew&uuml;nschten "normalen" Parameter zu manipulieren. Dabei werden die vorhandenen Actions
+automatisch in die URL eingef&uuml;gt.
+<br />
+<br />
+<br />
+<a name="2-4-3-Manipulation-mit-generateURLParams"></a><h5>2.4.3. Manipulation von Parametern und Actions mit <em>generateURLParams()</em></h5>
+Das Beispiel in Kapitel 1.4.2. hat den Nachteil, dass sich der Entwickler Gedanken &uuml;ber die
+Semantik einer FrontController-URL machen muss. Um URL-Generierung noch komfortabler zu gestalten,
+wurde dem <strong>frontcontrollerLinkHandler</strong> die Methode <strong>generateURLParams</strong>
+hinzugef&uuml;gt. Diese erm&ouml;glicht, aus einem Satz von Parametern eine Action-Anweisung in Form
+eines Arrays zu generieren, das der Methode <strong>generateLink</strong> &uuml;bergeben werden kann.
+Die URL-Generierung kann dann wie folgt erfolgen:
+<php:highlight>
+   // URL definieren
+   $URL = 'http://www.adventure-php-framework.org/Seite/ChangeLog/benchmarkreport/true/param1/value1/param2/value2';
+
+   // URL-Aenderungen definieren
+   $ChangeParams = array(
+                         'Seite' => 'Guestbook'
+                        );
+
+   // Parameter der FrontController-Action erzeugen
+   $ChangeParams = array_merge(
+                               $ChangeParams,
+                               frontcontrollerLinkHandler::generateURLParams(
+                                                                             'modules::guestbook::biz',
+                                                                             'LoadEntryList',
+                                                                             array(
+                                                                                   'pagesize' => '20',
+                                                                                   'pager' => 'false',
+                                                                                   'adminview'  => 'true'
+                                                                                  )
+                                                                             )
+                              );
+
+   // Link generieren
+   echo frontcontrollerLinkHandler::generateLink($URL,$ChangeParams);
+</php:highlight>
+Aus Performancegr&uuml;nden sollte diese Methode allerdings nicht &uuml;berm&auml;&szlig;ig
+Verwendung finden, da diese bereits ~0.004 s zur Generierung des Parameter-Arrays ben&ouml;tigt. Ist
+klar, in welchem Betriebsmodus die Anwendung sp&auml;ter laufen wird (Rewrite-URLs vs. normale URLs),
+sollte auf ein manuelles Generieren der URLs, wie in Kapitel 1.4.2. aufgezeigt, zur&uuml;ckgegriffen
+werden.
+<br />
+<br />
+<br />
+<a name="2-5-Timing-Modell"></a><h4>2.5. Timing-Modell</h4>
+Der FrontController besitzt ein eigenes vierstufiges Timing-Modell, mit dem vom Entwickler beeinflusst
+werden kann, wann eine Action ausgef&uuml;hrt wird. Hierzu existiert in der Interface-Definition der
+Klasse <strong>AbstractFrontcontrollerAction</strong> das Attribut <strong>$__Type</strong>. Dieses
+ist standardm&auml;&szlig;ig mit dem Wert <strong>prepagecreate</strong> gef&uuml;llt. Soll die Action
+zu anderen Zeiten zum Einsatz kommen, so stehen folgende Werte f&uuml;r diesen Parameter zur Verf&uuml;gung:
+<ul>
+  <li>
+    <strong>prepagecreate</strong>: Action wird vor dem Erzeugen der PageController-Seite ausgef&uuml;hrt.
+  </li>
+  <li>
+    <strong>postpagecreate</strong>: Action wird nach dem Erzeugen der PageController-Seite ausgef&uuml;hrt.
+  </li>
+  <li>
+    <strong>pretransform</strong>: Action wird vor der Transformation der PageController-Seite ausgef&uuml;hrt.
+  </li>
+  <li>
+    <strong>posttransform</strong>: Action wird nach der Transformation der PageController-Seite ausgef&uuml;hrt.
+  </li>
+</ul>
+Das Timing kann nur zur Entwicklungszeit per
+<php:highlight>
+   class MyAction extends AbstractFrontcontrollerAction
+   {
+
+      // Timing festlegen
+      var $__Type = 'pretransform';
+
+
+      function MyAction(){
+      }
+
+      function run(){
+      }
+
+    // end class
+   }
+</php:highlight>
+manipuliert werden. Implementierungsdetails zur Methode <strong>run()</strong> finden sich in der
+<a href="Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a> der Klasse
+<strong>Frontcontroller</strong>.
+<br />
+<br />
+<br />
+<a name="2-6-Modelbasiertes-View-Konzept"></a><h4>2.6. Model-basiertes View-Konzept</h4>
+Da es mit dem Frontcontroller m&ouml;glich ist, die Business-Schicht, bzw. das Model der Anwendung
+<strong>vor</strong> der Pr&auml;sentationsschicht zu erzeugen, kann, im Gegensatz zu einer
+PageController-Implementierung, die Business-Schicht dazu verwendet werden, die
+Pr&auml;sentationsschicht zu steuern. Der hier wichtigste Bereich ist die Steuerung von Views, bzw.
+der Inhalte der Views.
+<br />
+<br />
+Um den Vorteil einer Frontcontroller-basierten Anwendung auch im Bereich des GUI-Designs voll
+aussch&ouml;pfen zu k&ouml;nnen wurde den HTML-Tools die TagLib <strong>fcon_taglib_importdesign</strong>
+hinzugef&uuml;gt. Diese Komponente bindet, wie oben angedeutet, Views ein die im Model der Anwendung
+definiert werden. &Uuml;blicherweise wird f&uuml;r das Model ein eigenes Applikationsmodel definiert,
+das aus Frontcontroller-Actions bedient und gef&uuml;llt wird. Hierzu wird in der Regel eine eigene
+Klasse der Form
+<php:highlight>
+   class DemoSiteModel extends coreObject
+   {
+
+      function DemoSiteModel(){
+         $this->__Attributes['view.content.template'] = 'login';
+         $this->__Attributes['view.topmenu.template'] = 'empty';
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+implementiert, die an den relevanten Stellen mit einem
+<php:highlight>
+   $Model =&$this->__getServiceObject('sites::demosite::biz','DemoSiteModel');
+</php:highlight>
+verwendet oder bef&uuml;llt werden kann.
+<br />
+<br />
+In einer Template-Datei kann dann mit einem
+<pre class="tagexample">
+  &lt;fcon:importdesign
+      templatenamespace="sites::demosite::pres::templates"
+      modelnamespace="sites::demosite::biz"
+      modelfile="DemoSiteModel"
+      modelclass="DemoSiteModel"
+      modelparam="view.content.template"
+  /&gt;
+</pre>
+ein View in Abh&auml;ngigkeit der Inhalte des Models eingebunden werden. Um die TagLib verwenden zu
+k&ouml;nnen muss diese jedoch dem aktuellen <em>Document</em> zun&auml;cht per
+<pre class="tagexample">
+  &lt;core:addtaglib namespace="tools::html::taglib" prefix="fcon" class="importdesign" /&gt;
+</pre>
+bekannt gemacht werden.
+<br />
+<br />
+Mit diesem Konstrukt l&auml;sst sich die Einbindung von Views bequem &uuml;ber das Model einer
+Applikation steuern und so die Verantwortung wird komplett an die Business-Schicht &uuml;bergeben.
+Des Weiteren erf&auml;hrt die Implementierung an Flexibilit&auml;t gegen&uuml;ber der Verwendung des
+PageControllers als alleinige Steuerungskomponente f&uuml;r das Aussehen einer GUI.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_frontcontroller" />

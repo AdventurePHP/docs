@@ -1,0 +1,99 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Benchmark</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+Performance is am extremely important topic on web applications. No visitor is likely to wait longer
+than 10 seconds to see a web page. For this reason a benchmark component was introduced to this
+framework. With the <strong>benchmarkTimer</strong> component is is easy to controll the performance
+of an application or just a single module during development. The component measures all relevant
+parts by setting mesuring points within application parts and contains methods to display the process
+tree of the applications performance values. The page and front controller implementations already
+have included a lot of important measuring points to guarantee accurate performance tracking
+out-of-the-box. In example, the performance of each document controller is recorded by default.
+<br />
+<br />
+<br />
+<a name="1-Benchmarker-practice"></a><h3>1. Benchmarker practice</h3>
+Benchmarking applications or parts of an application is quite easy. To measure a particural part of
+the code, the follwoing code must be introduced to the program:
+<php:highlight>
+  // start timer
+  $T = &Singleton::getInstance('benchmarkTimer');
+  $T->start('MyEvent');
+
+  //
+  // code to be benchmarked
+  //
+
+  // stop timer
+  $T->stop('MyEvent');
+</php:highlight>
+Please note, that the <em>benchmarkTimer</em> must <strong>always</strong> be instanciated singleton
+style, because all timing information have to be stored in a single instance of the
+<em>benchmarkTimer</em> to generate a proper process tree. If this is fact is not kept in mind,
+benchmark information might be lost. Futher, the scope of applications must be considered. This means,
+that breakpoints throughout functions or classes determine, that the instance of the
+<strong>benchmarkTimer</strong> must be fetched by using the <em>Singleton</em> class every time
+<strong>start()</strong> or <strong>stop()</strong> is called. In such situations, the following code
+can be used:
+<php:highlight>
+  // start timer
+  $T = &Singleton::getInstance('benchmarkTimer');
+  $T->start('MyEvent');
+
+  //
+  // code to be benachmarked
+  //
+
+  // stop timer
+  $T = &Singleton::getInstance('benchmarkTimer');
+  $T->stop('MyEvent');
+</php:highlight>
+In most situations, this case is not necessary.
+<br />
+<br />
+<br />
+<a name="2-Benchmark-reports"></a><h3>2. Benchmark reports</h3>
+Due to the fact, that the present framework is written to operate in the so called <strong>postback
+mode</strong>, the developer is able to easily integrate benchmark reporting in the central bootstrap
+file (mostly <em>index.php</em>). In the majority of cases it is adequate to place
+<php:highlight>
+  $T = &Singleton::getInstance('benchmarkTimer');
+  echo $T->createReport();
+</php:highlight>
+at the end of the <em>index.php</em> file. If it is desired to not display benchmark information in
+the live system you might place the follwing code at the bottom of the <em>index.php</em> file:
+<php:highlight>
+   if(isset($_REQUEST['benchmarkreport'])){
+      if($_REQUEST['benchmarkreport'] == 'true'){
+         $T = &Singleton::getInstance('benchmarkTimer');
+         echo $T->createReport();
+       // end if
+      }
+    // end if
+   }
+</php:highlight>
+This makes it possible to display benchmark information on demand by adding the parameter
+<strong>benchmarkreport=true</strong> to the current URL. In case of URL rewriting, the parameter must
+be rewrited to <strong>/benchmarkreport/true</strong> or <strong>/~/benchmarkreport/true</strong> for
+use in frontcontroller applications. If this parameter is present the following report will be displayed
+at the end of the HTML page:
+<br />
+<br />
+<center>
+  <img src="/frontend/media/benchmark_report2.png" border="0" alt="benchmark report process tree" />
+</center>
+<br />
+To view a live benchmark please click
+<a href="./?Page=004-Benchmark&benchmarkreport=true#bottom" title="Print benchmark report">here</a>.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_benchmark_en" />
+<br />
+<a name="bottom" />

@@ -1,0 +1,297 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<style type="text/css">
+   .division_1
+   {
+      width: 100px;
+      padding: 2px;
+      font-size: 12px;
+   }
+   .division_2
+   {
+      width: 70px;
+      padding: 2px;
+      text-align: center;
+      font-size: 12px;
+   }
+</style>
+<font style="font-size: 26px; font weight: bold;">Referenzen</font>
+<br />
+<br />
+Die vorliegende Seite ist dazu gedacht, die von Anwendern erstellten Projekte aufzuf&uuml;hren.
+<strong>Ich w&uuml;rde mich freuen, wenn auch Sie Ihr Projekt melden und einen kurzen
+Erfahrungsbericht abgeben. Nur so kann die Qualit&auml;t der Dokumentation und des Frameworks selbst
+verbessert und vereinfacht werden.</strong> Bitte verwenden Sie dazu das
+<a href="./?Seite=034-Kontakt-Formular" title="Kontaktformular">Kontaktformular</a> oder posten im
+<a href="http://forum.adventure-php-framework.org/de" title="Forum" target="_blank">Forum</a>. Die
+folgenden Kapitel stellen die bis jetzt verf&uuml;gbaren Anwenderprojekte vor.
+<br />
+<br />
+<br />
+<h4>1. Projekte</h4>
+<h5>1.1. Unternehmenswebseite EasyFLOCK</h5>
+<br />
+<img src="/frontend/media/referenzen_easyflock.gif" border="0" alt="adventure-php-framework.org-Referenz: easyflock.de" style="float: left; margin-right: 10px; margin-bottom: 10px;" />
+Die Webseite
+<a href="http://www.easyflock.de" title="EasyFLOCK" target="_blank">easyflock.de</a>
+basiert vollst&auml;ndig auf dem Framework und einem darauf
+aufgesetzten - vollst&auml;ndig selbst entwickelten - CMS-Backend. Zur Entwicklung wird die
+<strong>Version 1.4 mit allen verf&uuml;gbaren Patches (=Version 1.5)</strong> eingesetzt. Der dort
+konfigurierte VHOST wird mit <strong>Apache 1.3.37 und PHP 4.4.7</strong> betrieben. Als wichtigste
+Features werden genutzt:
+<ul style="margin-left: 320px;">
+  <li>Templating</li>
+  <li>Dynamische Erzeugung von Inhalten mit einem DocumentController</li>
+  <li>Datenbank-Abstraktion</li>
+</ul>
+Die Wechselanzeige auf der linken Seite wurde dabei mit Hilfe von unterschiedlichen Templates
+gel&ouml;st, die nach einem Zufallsprinzip wechselnd angezeigt werden. Das Code-Snippet wurde
+freundlicherweise zur Verf&uuml;gung gestellt:
+<br />
+<br />
+<br />
+<br />
+<br />
+<strong>Template-Datei:</strong>
+<br />
+<pre class="tagexample">
+&lt;@controller namespace="projects::easyflock::pres::doccon" file="teaser_controller" class="teaser_controller" @&gt;
+&lt;div style="background-color: white; border: 1px solid black; border-right: 0px solid black; padding: 5px; margin-right: 25px;"&gt;
+  &lt;font style="font-size: 12px; font-weight: bold; color: green;"&gt;Aktuelle TOP-HITS:&lt;/font&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;html:placeholder name="Teaser" /&gt;
+&lt;/div&gt;
+
+&lt;html:template name="Tricot"&gt;
+  &lt;img src="/frontend/media/zico.jpg" alt="EasyFLOCK.de - Tricot"/&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;font style="font-size: 10px;"&gt;
+    Langarm-Trikot mit Beflockung (Spielername, Nummer und Vereinsname) auf Saller-T-Shirts und -Hosen!
+  &lt;/font&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="Langlaufjacke"&gt;
+  &lt;img src="/frontend/media/langlaufjacke.jpg" alt="EasyFLOCK.de - Langlaufjacke"/&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;font style="font-size: 10px;"&gt;
+    Funktions-Langlaufjacke mit Beflockung!
+  &lt;/font&gt;
+&lt;/html:template&gt;
+...
+</pre>
+<strong>Controller-Datei</strong> (nachformatiert und kommentiert):
+<br />
+<php:highlight>
+   class teaser_controller extends baseController
+   {
+
+      function teaser_controller(){
+      }
+
+      function transformContent(){
+
+         // Templates-Array initialisieren
+         $templates = array();
+
+         // Kinder des Dokuments holen
+         $children = &$this->__Document->getByReference('Children');
+
+         // Referenzen der Templates in Array aufnehmen
+         foreach($children as $key => $dummy){
+
+            // Prüfen, ob Kind ein Template ist
+            if(get_class($children[$key]) == 'html_taglib_template'){
+               $templates[] = &$children[$key];
+             // end if
+            }
+
+          // end foreach
+         }
+
+         // Zufälliges Template transformieren und einsetzen
+         $teaser = &$templates[rand(0,count($templates) - 1)];
+         $this->setPlaceHolder('Teaser',$teaser->transformTemplate());
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+<br />
+<h5>1.2. Webseite Beratungsunternehmen</h5>
+<br />
+<img src="/frontend/media/referenzen_zierpflanzenberatung_1.gif" border="0" alt="adventure-php-framework.org-Referenz: zierpflanzenberatung.de" style="float: left; margin-right: 10px; margin-bottom: 10px;" />
+Die Webseite
+<a href="http://www.zierpflanzenberatung.de" title="Zierpflanzenberatung" target="_blank">zierpflanzenberatung.de</a>
+ist eine sehr umfangreiche Webseite, die auf einem CMS-Backend
+basiert, das mit der Unterst&uuml;tzung des Entwicklers erstellt wurde. Das Backend bietet die
+M&ouml;glichkeit, die in der Seite eingebetteten Module (G&auml;stebuch, Kontaktformulare, ...)
+selbstst&auml;ndig zu verwalten und &Auml;nderungen an den Inhalten der Seiten vorzunehmen. Das
+Backend basiert dabei genau wie die Ausgabe-Funktion der Seite auf dem Framework. Das Backend wurde
+als eigenst&auml;ndiges Projekt realisiert, die Module der Seite sind als eigenst&auml;ndige Module
+realisiert, die von einer weiteren Koordinationsinstanz in die CMS-Seiten eingebunden werden. Alle
+Entwicklungen basieren auf der Version <strong>Version 1.4</strong>. Der dort konfigurierte VHOST
+wird mit <strong>Apache 1.3.33 und PHP 4.4.7</strong> betrieben.
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<img src="/frontend/media/referenzen_zierpflanzenberatung_2.gif" border="0" alt="adventure-php-framework.org-Referenz: zierpflanzenberatung.de - Backend" style="float: left; margin-right: 10px; margin-bottom: 10px;"/>
+Die nebenstehende Abbildung zeigt einen Screenshot des CMS-Backends.
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<h5>1.3. Streaming-Administration (Backend)</h5>
+<br />
+<img src="/frontend/media/referenzen_streamadmin.gif" border="0" alt="adventure-php-framework.org-Referenz: Streaming-Administration der Messe M&uuml;nchen GmbH" style="float: left; margin-right: 10px; margin-bottom: 10px;"/>
+In diesem
+<a href="http://streamadmin.nmm.de.nmm.de" title="Streaming-Administration der Messe M&uuml;nchen GmbH" target="_blank">Projekt</a>
+wird das Framework als Basis einer Backend-Applikation eingesetzt. Die Anwendung basiert komplett
+auf dem FrontController, der als zentrale Komponente f&uuml;r die Authentifizierung und die
+Generierung des Models der Applikation eingesetzt wird. Zu diesem Zweck wurde eine zentrale Action
+implementiert, die diese Aufgaben wahrnimmt. F&uuml;r dieses Projekt wurde der Tag
+<strong>&lt;fcon:importdesign /&gt;</strong> entwickelt, damit auch in der Pr&auml;sentatonsschicht
+von Modelinformationen Gebrauch gemacht werden kann. Die im Moment in der BETA-Phase befindliche
+Applikation setzt <strong>Version 1.5</strong> ein. Die Applikation l&auml;uft auf einem
+<strong>Apache 2.0.52 mit PHP 4.3.9</strong>.
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<h5>1.4. Unternehmenswebseite</h5>
+<br />
+<img src="/frontend/media/referenzen_schlereth.gif" border="0" alt="adventure-php-framework.org-Referenz: Unternehmenswebseite Paul Schlereth, Hammelburg" style="float: left; margin-right: 10px; margin-bottom: 10px;"/>
+Die Unternehmenswebseite
+<a href="http://www.paulschlereth.de" title="Paul Schlereth" target="_blank">paulschlereth.de</a>
+des Gartenbaubetriebs Paul Schlereth stammt aus dem Jahr 2004 uns ist mit der
+<strong>Version 1.0</strong> des Frameworks umgesetzt. Derzeit soll die Seite auf <strong>Version
+1.5</strong> portiert werden. F&uuml;r die Seitengenerierung wird der PageController in der Version
+1 (statischer XML-Parser) eingesetzt. Das Newsletter-Formular ist ein selbst eingef&uuml;gtes
+Formular, das nicht auf den Formular-TagLibs basiert. Diese waren in der <strong>Version 1.0</strong>
+noch nicht enthalten. Die Seite ist per mod_rewrite aus Suchmaschinen-Sicht aus quasi-statischen
+PHP-Dateien aufgebaut. Im Hintergrund werden die Anfragen jedoch auch auf eine zentrale index.php
+weitergeleitet und ausgef&uuml;hrt.
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<h5>1.5. Vereinswebseite</h5>
+<br />
+<img src="/frontend/media/referenzen_volleyball.gif" border="0" alt="adventure-php-framework.org-Referenz: Vereinswebseite TSV Wollbach, Abt. Volleyball" style="float: left; margin-right: 10px; margin-bottom: 10px;"/>
+Die Vereinswebseite
+<a href="http://www.wollbach-volleyball.de" title="TSV Wollbach, Abt. Volleyball" target="_blank">wollbach-volleyball.de</a>
+basiert auf der <strong>Version 1.1</strong> des Frameworks und stammt aus dem Jahr 2004. Auch hier
+steht eine Migration auf eine aktuelle Version bevor, da auch hier noch die statische PageController-
+Version verwendet wird, die hinsichtlich der Implementierung erhebliche Einschr&auml;nkungen hat. Der
+Einsatz der neuen PageController-Implementierung bietet beispielsweise die M&ouml;glichkeit eigene
+TagLibs hinzuzuf&uuml;gen, oder bekannte Tags mit eigenen Attributen auszustatten. Die Seite wurde
+mit Unterst&uuml;tzung des Autors des Frameworks erstellt, aber mittlererweile selbst administriert
+und weiterentwickelt.
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<h5>1.6. Unternehmenswebseite</h5>
+<br />
+<img src="/frontend/media/referenzen_schaefer.gif" border="0" alt="adventure-php-framework.org-Referenz: Unternehmenswebseite Schaefer - Blumen &amp; Pflanzen" style="float: left; margin-right: 10px; margin-bottom: 10px;"/>
+Die Unternehmenswebseite
+<a href="http://www.schaefer-blumen-und-pflanzen.de" title="Schaefer - Blumen &amp; Pflanzen" target="_blank">schaefer-blumen-und-pflanzen.de</a>
+wurde von einem Familienmitglied designed und umgesetzt. Die aus dem Jahre 2004 stammende Webseite,
+die in n&auml;chster Zeit einem Relaunch unterzogen wird basiert, wie unter 1.4 beschrieben, auf der
+Version <strong>Version 1.0</strong>.
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<h4>2. Statistiken</h4>
+<h5>2.1. Downloads</h5>
+Die folgende Statistik zeigt die Downloads seit der Ver&ouml;ffentlichung im <strong>Mai 2007</strong>.
+Bei den Zahlen sind die Downloads aller Release-Packages der Versionen 1.3 bis 1.6-RC1
+ber&uuml;cksichtigt. Auf der
+<a href="http://sourceforge.net/projects/adventurephpfra/" title="sourceforge.net" target="_blank">sourceforge.net</a>
+-Projektseite wurden bisher <strong>158 Pakete</strong> der Version 1.4, 1.5, 1.6-RC1 und 1.6-RC2
+heruntergeladen.
+<br />
+<br />
+<center>
+  <table cellspacing="0" cellpadding="0" border="0">
+    <tr style="background-color: #dddddd; font-variant: bold; height: 20px;">
+      <td class="division_1"><strong>Zeitraum:</strong></td>
+      <td class="division_2"><strong>Downloads:</strong></td>
+    </tr>
+    <tr>
+      <td class="division_1">bis 18.10.2007</td>
+      <td class="division_2">114</td>
+    </tr>
+    <tr>
+      <td class="division_1">bis 17.11.2007</td>
+      <td class="division_2">297</td>
+    </tr>
+    <tr>
+      <td class="division_1">bis 30.12.2007</td>
+      <td class="division_2">783</td>
+    </tr>
+    <tr>
+      <td class="division_1">bis 15.01.2008</td>
+      <td class="division_2">900</td>
+    </tr>
+    <tr>
+      <td class="division_1">bis 26.04.2008</td>
+      <td class="division_2">2494</td>
+    </tr>
+    <tr>
+      <td class="division_1">bis 28.08.2008</td>
+      <td class="division_2">4750</td>
+    </tr>
+  </table>
+</center>

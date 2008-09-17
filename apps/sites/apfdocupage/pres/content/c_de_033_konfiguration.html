@@ -1,0 +1,366 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Konfiguration</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+<a name="1-Einfuehrung"></a><h3>1. Einf&uuml;hrung</h3>
+Um wiederverwendbare Anwendungen implementieren zu k&ouml;nnen wird an ein einigen Stellen das
+Hilfsmittel Konfiguration eingesetzt. Um auch hier eine generische Schnittstelle f&uuml;r das Laden
+und das Auslesen f&uuml;r Konfigurationen im Windows-INI-Stil zur Verf&uuml;gung zu haben wurde
+der <em>configurationManager</em> in das Framework integriert. Eine zus&auml;tzliche Wrapper-Methode
+in der Klasse <em>coreObject</em> bietet in jeder von <em>coreObject</em> erbenden Klasse die
+M&ouml;glichkeit die Methode <em>__getConfiguration()</em> aufzurufen und mit dieser eine
+Konfiguration zu laden. Da der <em>configurationManager</em> im Singleton-Modus initialisiert wird,
+kann ohne Performance-Einbu&szlig;en beliebig oft auf diesen zugegriffen werden - die Konfigurationen
+werden intern gecached. Wie bereits erw&auml;hnt sind die Konfigurations-Dateien wie INI-Dateien
+aufgebaut, haben somit Sektionen- und Werte-Bereiche. Eine typische INI-Datei zeigt folgendes
+Code-Beispiel:
+<pre class="tagexample">
+  [Section1]
+  Param1 = "Value1"
+  Param2 = "Value2"
+  ...
+
+  [Section2]
+  Param1 = "Value1"
+  Param2 = "Value2"
+  ...
+</pre>
+Die in der Konfigurationsdatei enthaltenen Sektionen und Schl&uuml;ssel-Werte-Paare sind frei
+vom Entwickler w&auml;hlbar. Lediglich die Struktur der bereits bestehenden Komponenten sind vorgegeben
+und die verwendeten Sektionen und Konfigurationsschl&uuml;ssel stehen fest.
+<br />
+<br />
+<br />
+<a name="2-Bennenung-Pfade-und-Dateien"></a><h3>2. Benennung von Pfaden und Dateien</h3>
+Bei der Bezeichnung der Dateien und Pfade sind einige Rahmenbedingungen zu beachten. Um Anwendungen
+oder Module (=Software-Teile, die in mehreren Applikationen eingesetzt werden k&ouml;nnen) in
+verschiedenen Applikationen (=Webseiten oder Anwendungen) wiederverwendbar zu machen ist eine
+Konfigurationsdatei aus viel unterschiedlichen Teilen zusammengesetzt:
+<ul>
+  <li>
+    <strong>Namespace:</strong>
+    <br />
+    Der Namespace ist der Pfad zum Basis-Ordner, in der alle Konfiguration einer Core-Klasse oder
+    eines Moduls residieren. Der Namespace ist oft &uuml;bereinstimmend mit dem Namespace des Moduls,
+    in dem die Konfiguration ben&ouml;tigt wird. Grunds&auml;tzlich sind alle Konfigurationen unter
+    dem Ordner <strong>config</strong> abgelegt um Konfigurationen vom Code zu separieren.
+  </li>
+  <li>
+    <strong>Context:</strong>
+    <br />
+    Um Wiederverwendbarkeit zu realisieren, wird der Pfad zur Konfigurationsdatei mit dem Context
+    der Applikation erweitert. So kann ein Modul A in der Webseite B und C ohne &Auml;nderung
+    des Codes und nur durch Modifikation der jeweiligen Konfiguration eingesetzt werden.
+  </li>
+  <li>
+    <strong>Environment:</strong>
+    <br />
+    Das dritte Unterscheidungsmerkmal ist das Umfeld, in dem die Applikation oder das Modul eingesetzt
+    wird. Es ist mit dieser Unterscheidung m&ouml;glich jeweils eine Konfigurationsdatei f&uuml;r
+    ein Umfeld (Test-Server, Produktions-Server) anzulegen und nur durch setzen der Umgebungsvariable
+    wird jeweils die "richtige" Konfiguration gezogen. Die Umgebungsvariable wird dabei in der
+    <strong>Registry</strong> verwaltet und kann - falls n&ouml;tig - in der Bootstrap-Datei angepasst
+    werden (siehe hierzu
+    <a href="./?Seite=013-Grundlagen" title="Grundlagen">Grundlagen, Kapitel 3.3. Basis-Konfiguration</a>).
+  </li>
+  <li>
+    <strong>Name:</strong>
+    <br />
+    Der Name der Konfigurationsdatei sollte den Inhalt m&ouml;glichst treffend beschreiben. Dieser
+    wird dann um das Pr&auml;fix <em>{ENVIRONMENT}</em> und dem Suffix <em>.ini</em> erweitert.
+    M&ouml;chte der Entwickler eine Konfigurationsdatei mit dem Namen <strong>myconfig</strong>
+    verwenden und die Umgebungsvariable wurde nicht ver&auml;ndert, wird die Datei unter dem Namen
+    <strong>DEFAULT_myconfig.ini</strong> erwartet.
+  </li>
+</ul>
+Der Context einer Applikation kann durch explizites Setzen desselben bei Einsatz des FrontControllers
+und durch explizites und implizites Setzen bei Einsatz des PageControllers beeinflusst werden.
+<br />
+<br />
+<br />
+<a name="2-1-Context-FrontController"></a><h4>2.1. Context beim FrontController</h4>
+Dem FrontController wird durch explizites Aufrufen der <em>set()</em>-Methode die interne Variable
+"Context" mit dem f&uuml;r die Applikation geltenden "Context" versorgt. Der Context wird intern
+beim Erstellen weiterer Objekte im DOM der Pr&auml;sentations-Schicht oder von Service-Objekten der
+Business- und Daten-Schicht weitergegeben. Der Aufruf gestaltet sich wie folgt:
+<php:highlight>
+  $fC = &Singleton::getInstance('Frontcontroller');
+  $fC->set('Context','my::apps::context');
+  $fC->start('sites::mysite::pres::templates','mywebsite');
+</php:highlight>
+<br />
+<a name="2-1-Context-PageController"></a><h4>2.2. Context beim PageController</h4>
+Beim Einsatz des PageControllers wird der Context implizit mit dem in der Methode <em>loadDesign()</em>
+angegebenen Namespace des zu ladenden Templates gef&uuml;llt, wenn vorher kein explizites Setzen des
+Contextes veranlasst wurde:
+<php:highlight>
+  $Page = new Page('mywebsite');
+  $Page->loadDesign('sites::mysite','pres/templates/mywebsite');
+  echo $Page->transform();
+</php:highlight>
+Der Context der Applikation ist nun "sites::mysite". Wird der Context - wie im folgenden Beispiel -
+zuvor gesetzt, so tr&auml;gt er den Wert "sites::myapp":
+<php:highlight>
+  $Page = new Page('mywebsite');
+  $Page->set('Context','sites::myapp');
+  $Page->loadDesign('sites::mysite::pres::templates','mywebsite');
+  echo $Page->transform();
+</php:highlight>
+F&uuml;hrt man das eben genannte Beispiel weiter, so w&uuml;rde der <em>configurationManager</em> bei
+Aufruf des Befehls
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+</php:highlight>
+und einer <strong>index.php</strong> mit dem Inhalt
+<php:highlight>
+  $Page = new Page('mywebsite');
+  $Page->set('Context','sites::myapp');
+  $Page->loadDesign('sites::mysite::pres::templates','mywebsite');
+  echo $Page->transform();
+</php:highlight>
+eine Konfigurations-Datei im Ordner
+<pre class="tagexample">
+  /apps/config/<strong>modules/mymodule</strong>/<em>sites</em>/<em>myapp</em>/
+</pre>
+mit dem Dateinamen
+<pre class="tagexample">
+  DEFAULT_<strong>mymoduleconfig</strong>.ini
+</pre>
+erwarten. Ist die Datei falsch benannt oder passen Namespace oder Context nicht korrekt, wird eine
+Fehlermeldung ausgegeben, die den Entwickler darauf hinweist, welcher Pfad und welche Datei erwartet
+wird.
+<br />
+<br />
+<br />
+<a name="3-Serviceobjekte"></a><h3>3. Service-Objekte</h3>
+Da Konfigurationen oft in der Business- und Daten-Schicht Verwendung finden, muss diesen beiden
+Schichten ebenso der Context der Applikation bekannt sein. Beim Einsatz des FrontControllers wird
+jeder Action der aktuelle Context mitgegeben und diese kann Service-Objekte der Business-Schicht mit
+diesem Aufrufen. In PageController-Anwendungen wird der Context beim Aufbau des DOM-Baumes jedem
+neu erstellten Objekt mitgegeben. M&ouml;chte nun ein DocumentController eine Business-Komponente
+erzeugen, oder eine Referenz auf diese holen, so m&uuml;ssen immer die Methoden
+<em>__getServiceObject()</em> oder <em>__getAndInitServiceObject</em> verwendet werden. Die beiden
+Funktionen stellen sicher, dass jedes Service-Objekt den richtigen Context erh&auml;lt. Implementierungs-
+Details und Dokumentation der Parameter finden sich in der API-Dokumentation. In der Regel reicht es
+aus eine Service-Schicht mit dem PHP-Code
+<php:highlight>
+  $GuestbookID = '1';
+  $oGuestbookManager = &$this->__getServiceObject('modules::guestbook::biz','guestbookManager');
+  $Guestbook = $oGuestbookManager->loadGuestbook($GuestbookID);
+</php:highlight>
+aufzurufen und anschlie&szlig;end zu verwenden. Um eine initialisierte Service-Komponente zu erhalten
+kann
+<php:highlight>
+  $GuestbookID = '1';
+  $oGuestbookManager = &$this->__getAndInitServiceObject(
+                                                         'modules::guestbook::biz',
+                                                         'guestbookManager',
+                                                         $GuestbookID
+                                                        );
+  $Guestbook = $oGuestbookManager->loadGuestbook();
+</php:highlight>
+verwendet werden.
+<br />
+<br />
+<br />
+<a name="4-Konfiguration-auslesen"></a><h3>4. Konfigurationen auslesen</h3>
+Um die Werte einer Konfiguration auszulesen stehen mehrere Methoden des zentrale Konfigurations-Objekts
+zur Verf&uuml;gung. Diese sind <em>getConfiguration()</em>, <em>getSection()</em> und <em>getValue()</em>.
+Mit diesen k&ouml;nnen entweder die komplette Konfiguration, eine einzelne Sektion oder der Wert
+einer Sektion zur&uuml;ckgegeben werden.
+<br />
+<br />
+<strong>Beispiel:</strong>
+<br />
+<br />
+Wurde die verwendete Konfigurations-Datei mit den Werten
+<pre class="tagexample">
+  [Section1]
+  Key1 = "Value1"
+  Key2 = "Value2"
+  Key3 = "Value3"
+  [Section2]
+  Key1 = "Value1"
+  Key2 = "Value2"
+  Key3 = "Value3"
+</pre>
+gef&uuml;llt, so kann mit dem PHP-Code
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+  echo printObject($Config->getConfiguration());
+</php:highlight>
+das komplette Konfigurations-Array
+<pre class="tagexample">
+Array
+(
+    [Section1] => Array
+        (
+            [Key1] => Value1
+            [Key2] => Value2
+            [Key3] => Value3
+        )
+
+    [Section2] => Array
+        (
+            [Key1] => Value1
+            [Key2] => Value2
+            [Key3] => Value3
+        )
+)
+</pre>
+ausgegeben werden, mit
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+  echo printObject($Config->getSection('Section2'));
+</php:highlight>
+das Array
+<pre class="tagexample">
+Array
+(
+    [Section2] => Array
+        (
+            [Key1] => Value1
+            [Key2] => Value2
+            [Key3] => Value3
+        )
+)
+</pre>
+und mit
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+  echo $Config->getValue('Section1','Key2');
+</php:highlight>
+der Wert
+<pre class="tagexample">
+  Value2
+</pre>
+. Die Funktion <em>printObject()</em> wurde in den Code-Beispielen lediglich zur "Versch&ouml;nerung"
+der Ausgabe eingesetzt und ist in der Realit&auml;t nicht erforderlich.
+<br />
+<br />
+<br />
+<a name="5-Mehrsprachigkeit"></a><h3>5. Anwendungsfall Mehrsprachigkeit</h3>
+Um mehrsprachige Anwendungen einfach implementieren zu k&ouml;nnen wird in jedem GUI-Objekt des
+Frameworks die Sprache vorgehalten. So ist die aktuell verwendete Sprache immer bekannt und Teilb&auml;ume
+k&ouml;nnen auch mit unterschiedlichen Sprachen ausgestattet werden. Die Realisierung der Mehrsprachigkeit
+in Anwendung wird durch die Tags <strong>&lt;html:getstring /&gt;</strong> und
+<strong>&lt;template:getstring /&gt;</strong> unterst&uuml;tzt. Diese lesen aus einer in den Tags
+spezifizierten Konfigurations-Datei die sprachabh&auml;ngigen Inhalte aus und stellen diese in
+Template-Dateien oder HTML-Templates dar.
+<br />
+<br />
+F&uuml;r die Realisierung sind zwei Schritte notwenig:
+<br />
+<br />
+<br />
+<a name="5-1-Erstellen-Konfiguration"></a><h4>5.1. Erstellen der Konfigurations-Datei</h4>
+Wie in Kapitel 2 beschrieben muss beim Anlegen der Konfigurations-Datei darauf geachtet werden, in
+welchem <strong>Context</strong> die Applikation ausgef&uuml;hrt wird. Sinnvollerweise erstellt der
+Entwickler zur Ablage der sprachabh&auml;ngigen Daten einen eigenen Ordner unter dem Namespace der
+aktuellen Applikation. Unter der Annahme, dass die aktuell besprochene Applikation ein Modul im
+Namespace
+<pre class="tagexample">
+<em>/apps/modules/<strong>mymodule</strong>/</em>
+</pre>
+ist und der aktuelle Context der Applikation <strong>sites::myapp</strong> lautet, muss die
+Konfigurations-Datei f&uuml;r die sprachabh&auml;ngigen Inhalte im Ordner
+<pre class="tagexample">
+<em>/apps/modules/<strong>mymodule</strong>/<strong>sites</strong>/<strong>myapp</strong>/</em>
+</pre>
+liegen. Um zu kennzeichnen, dass die Datei eine Sprachdatei ist, wird dieser der Name
+<pre class="tagexample">
+DEFAULT_<strong>mymodule_lang</strong>.ini
+</pre>
+gegeben. Der Inhalt der Datei kann vom Entwickler oder Template-Bauer selbst bestimmt werden. Lediglich
+die Sektionen sind mit den ISO-L&auml;ndercodes zu benennen. Siehe hierzu
+<a href="http://de.wikipedia.org/wiki/ISO-L%C3%A4ndercode" title="ISO-L&auml;ndercodes bei Wikipedia" target="_blank">http://de.wikipedia.org/../ISO-L%C3%A4ndercode</a>
+bzw.
+<a href="http://www.iso.org/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1.html" title="ISO-L&auml;ndercode-Tabelle" target="_blank">http://www.iso.org/../list-en1.html</a>
+. Die Konfigurationsdatei kann dann folgende Struktur f&uuml;r ein Kontaktformular besitzen:
+<pre class="tagexample">
+  [de]
+  Form.Name = "Ihr Name"
+  Form.EMail = "Ihre E-Mail-Adresse"
+  Form.Subject = "Betreff"
+  ..
+
+  [en]
+  Form.Name = "Your name"
+  Form.EMail = "Your email adress"
+  Form.Subject = "Subject"
+  ..
+</pre>
+<br />
+<a name="5-2-Sprachabhaengige-Texte-darstellen"></a><h4>5.2. Darstellen der sprachabh&auml;ngigen Texte</h4>
+Zur Darstellung von sprachabh&auml;ngigen Texten sind zwei M&ouml;glchkeiten im Framework vorhanden.
+Einerseits k&ouml;nnen in Template-Dateien und HTML-Templates die Tags <strong>&lt;html:getstring /&gt;</strong>
+und <strong>&lt;template:getstring /&gt;</strong> genutzt werden, andererseits kann auch mit dem
+<em>configurationManager</em> bzw. mit der Methode <em>__getConfiguration()</em> auf die Datei
+zugegriffen und Begriffe - beispielsweise f&uuml;r die Beschriftung von Buttons - ausgelesen werden.
+Zuerst sei die Einbindung der oben beschriebenen Konfigurationsdatei in ein HTML-Template erl&auml;utert:
+<br />
+<br />
+Ein Template der Form
+<pre class="tagexample">
+  &lt;html:template name="MyTemplate"&gt;
+    [..]
+    Ihr Name: &lt;template:placeholder name="Name" /&gt;
+    &lt;br /&gt;
+    Ihre E-Mail-Adresse: &lt;template:placeholder name="EMail" /&gt;
+    &lt;br /&gt;
+    [..]
+  &lt;/html:template&gt;
+</pre>
+muss, um den Wert des Schl&uuml;sselwortes "Form.Name" statt des statischen Textes "Ihr Name"
+darstellen zu k&ouml;nnen folgenderma&szlig;en erweitert werden:
+<pre class="tagexample">
+  &lt;html:template name="MyTemplate"&gt;
+    [..]
+    &lt;template:getstring namespace="modules::mymodule" config="mymodule_lang" entry="Form.Name" /&gt;:
+    &lt;template:placeholder name="Name" /&gt;
+    &lt;br /&gt;
+    &lt;template:getstring namespace="modules::mymodule" config="mymodule_lang" entry="Form.EMail" /&gt;:
+    &lt;template:placeholder name="EMail" /&gt;
+    &lt;br /&gt;
+    [..]
+  &lt;/html:template&gt;
+</pre>
+Werden innerhalb eines Controllers sprachabh&auml;ngige Werte zur Beschriftung oder beispielsweise
+zum Versand einer E-Mail ben&ouml;tigt, k&ouml;nnen diese durch
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymodule_lang');
+  echo '<br />Form.Name: '.$Config->getValue($this->__Language,'Form.Name');
+  echo '<br />Form.EMail: '.$Config->getValue($this->__Language,'Form.EMail');
+  echo '<br />Form.Subject: '.$Config->getValue($this->__Language,'Form.Subject');
+</php:highlight>
+ausgelesen und verarbeitet werden. Die "echo"-Befehle wurden nur zu Verdeutlichung des Zugriffs notiert.
+In Realit&auml;t w&uuml;rde der Inhalt eines "&lt;div /&gt;"-Tags im Template
+<pre class="tagexample">
+  &lt;html:template name="MyTemplate"&gt;
+    &lt;div class="FormHeader"&gt;
+      &lt;template:placeholder name="FormHeader" /&gt;
+    &lt;/div&gt;
+  &lt;/html:template&gt;
+</pre>
+mit dem Code
+<php:highlight>
+  // Konfiguration auslesen
+  $Config = &$this->__getConfiguration('modules::mymodule','mymodule_lang');
+
+  // Referenz auf Template holen
+  $Template__MyTemplate = &$this->__getTemplate('MyTemplate');
+
+  // Platzhalter "FormHeader" setzen
+  $Template__MyTemplate->setPlaceHolder('FormHeader',$Config->getValue($this->__Language,'Form.Name'));
+</php:highlight>
+gef&uuml;llt werden. Ein gutes Beispiel bieten hier die Template- und Controller-Dateien des Moduls
+<a href="./?Seite=057-Gaestebuch-Tutorial" title="G&auml;stebuch-Tutorial">G&auml;stebuch</a>.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_konfiguration" />

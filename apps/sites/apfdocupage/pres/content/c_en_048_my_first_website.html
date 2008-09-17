@@ -1,0 +1,454 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="html" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="link" />
+<font style="font-size: 26px; font weight: bold;">My first website</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+The present tutorial describes - based on the <a href="./?Page=013-Basics" title="basics">basics</a>
+- how to build a website with the adventure php framework. To make things easy the design of the
+example page is not too complex.
+<br />
+<br />
+<br />
+<a name="2-Requirements"></a><h3>2. Requirements</h3>
+The website shuold provide space for a key visual, a header, a menu and an area where content and
+footer can be placed. The content view should be filled with dynamic content dependent on the request
+parameters given. The site should have the following appearance:
+<br />
+<br />
+<center>
+  <img src="/frontend/media/tutorial_webseiteerstellen_design_webseite.png" style="border: 1px dashed gray; padding: 10px;" alt="Website example" />
+</center>
+<br />
+<br />
+<br />
+<a name="3-Installation-configuration"></a><h3>3. Installation and configuration</h3>
+The author assumes that you have downloaded the <em>code pack</em> on the
+<a href="./?Page=008-Downloads" title="download page">download page</a>. These packages are named like
+<strong>adventure-codepack-*.[zip | tar.gz | tar.bz2]</strong>. They only contain the basic libraries
+of the framework, the structure of a web project and the configuration files must be added by oneself.
+<br />
+<br />
+To start the creation your first web project the code pack must be extracted in the document root
+of your local webserver installation. To have a basis for discussion this folder should be named
+<strong>apps/</strong>. For clearness reasons this folder should be created in the folder
+<strong>testwebsite/</strong> that directly exists under the document root.
+<br />
+<br />
+As a second step the structure of the website and the configuration files necessary must be created.
+Please refer to the <a href="./?Page=013-Basics" title="Basics">basics chapter</a> for more details.
+This task is now done step-by-step in the next chapters.
+<br />
+<br />
+<br />
+<a name="3-1-Folder-structure"></a><h4>3.1. Folder structure of the web page</h4>
+The structure of the program of the web page should be hosted in the following folders created under
+<strong>testwebsite/apps/</strong>:
+<br />
+<pre class="tagexample">
+sites/
+      testwebsite/
+                  pres/
+                       templates/
+                       documentcontroller/
+</pre>
+The folders <em>templates</em> and <em>documentcontroller</em> are intended to be filled with the
+template and controller files responsible for the generation of the page.
+<br />
+<br />
+<br />
+<a name="3-2-Bootstrap-file"></a><h4>3.2. Create bootstrap file</h4>
+The framework is designed to deliver any web application with just one file - the boottrap file. For
+this reason we have to create such a file in the <strong>testwebsite/</strong> folder. The content
+of that file can merely be copied from the code box provided below. To keep things simple again the
+application will be designed as a page controller application without front controller parts.
+<php:highlight>
+   // define the style of php error messages (if not configured, there appear some strange
+   // errors as described under
+   // http://forum.adventure-php-framework.org/de/viewtopic.php?f=7&t=32!)
+   ini_set('html_errors','off');
+
+   // include ApplicationManager
+   require_once('./apps/core/pagecontroller/pagecontroller.php');
+
+   // create page object
+   $Page = new Page();
+
+   // load initial template
+   $Page->loadDesign('sites::testwebsite','pres/templates/website');
+
+   // transform page and flush the output
+   echo $Page->transform();
+</php:highlight>
+<br />
+<a name="3-3-Template-files"></a><h4>3.3. Create template files</h4>
+As already defined within the code listing the initial template file must be stored in the
+<strong>testwebsite/apps/sites/testwebsite/pres/templates</strong> folder and named
+<strong>website.html</strong>. This file contains the basic HTML code that defines the HTML body and
+the views described in chapter 2. The file may have the following content (stripped-down):
+<br />
+<html:highlight>
+<html>
+<head>
+  <title>TestWebSite</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <style type="text/css">
+    [..]
+  </style>
+</head>
+<body>
+  <center>
+    <table width="800" border="0" cellpadding="0" cellspacing="0" class="table_layout">
+      <tr>
+        <td class="table_keyvisual">
+          K e y
+          <br />
+          V i s
+          <br />
+          u a l
+         </td>
+        <td class="table_header">
+          Header
+        </td>
+      </tr>
+      <tr>
+        <td class="table_menu">
+          <br />
+          Home
+          <br />
+          Impress
+        </td>
+        <td class="table_content">
+          Content
+        </td>
+      </tr>
+    </table>
+  </center>
+</body>
+</html>
+</html:highlight>
+<br />
+Now we can test the project starting our locally installed webserver (e.g. XAMPP or APACHE of IIS
+with the PHP 4 or PHP 5 module loaded) and requesting the URL
+<pre class="tagexample">
+http://localhost/testwebsite/
+</pre>
+by any type of browser. The website printed above must be displayed there.
+<br />
+<br />
+<br />
+<a name="4-Dynamic-views"></a><h3>4. Creating dynamic views</h3>
+To add more flexibility in administrating the page the central views like header, menu and content
+area are now spinned off into seperate template files. To show this parts of the page they are
+included on the place they have to be displayed. For that purpose three template files will be
+created in the folder <strong>testwebsite/apps/sites/testwebsite/pres/templates</strong>:
+<ul>
+  <li>
+    <strong>header.html</strong>: Content of the headers
+  </li>
+  <li>
+    <strong>menu.html</strong>: Content of the menu
+  </li>
+  <li>
+    <strong>content.html</strong>: Content of the website
+  </li>
+</ul>
+Now the cetral template file <strong>website.html</strong> must be changed as described below:
+<html:highlight>
+<html>
+<head>
+  <title>TestWebSite</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <style type="text/css">
+    [..]
+  </style>
+</head>
+<body>
+  <center>
+    <table width="800" border="0" cellpadding="0" cellspacing="0" class="table_layout">
+      <tr>
+        <td class="table_keyvisual">
+          K e y
+          <br />
+          V i s
+          <br />
+          u a l
+        </td>
+        <td class="table_header">
+          &lt;core:importdesign
+            namespace="sites::testwebsite::pres::templates"
+            template="header"
+          /&gt;
+        </td>
+      </tr>
+      <tr>
+        <td class="table_menu">
+          &lt;core:importdesign
+            namespace="sites::testwebsite::pres::templates"
+            template="menu"
+          /&gt;
+        </td>
+        <td class="table_content">
+          &lt;core:importdesign
+            namespace="sites::testwebsite::pres::templates"
+            template="content"
+          /&gt;
+        </td>
+      </tr>
+    </table>
+  </center>
+</body>
+</html>
+</html:highlight>
+To gain insight to the usage of the <strong>&lt;core:importdesign /&gt;</strong> please have a look
+at the <a href="./?Page=046-Standard-TagLibs" title="Standard taglibs">Standard taglibs page</a> at chapter 1.2.
+The newly created template files must have the following content:
+<br />
+<br />
+<strong>header.html:</strong>
+<pre class="tagexample">
+  Header
+</pre>
+<br />
+<strong>menu.html:</strong>
+<pre class="tagexample">
+  &lt;br /&gt;
+  Home
+  &lt;br /&gt;
+  Impress
+</pre>
+<br />
+<strong>content.html:</strong>
+<pre class="tagexample">
+  Content
+</pre>
+With this step all necessary preparations are done to be able to maintain central content. Another
+F5 to
+<pre class="tagexample">
+http://localhost/testwebsite/
+</pre>
+should display the same site described in chapter 3.4.
+<br />
+<br />
+<br />
+<a name="5-Dynamic-content"></a><h3>5. Dynamic content</h3>
+Now building up on the separation of a webpage into single views described in chapter 4, this section
+points out the way of displaying dynamic content in the content view. Therefore the content to be
+displayed should be controllable through the URL parameter <strong>Page</strong>.
+<br />
+<br />
+To generate the behaviour described above the menu view must be updated to indicate which page has
+to be displayed. The code could look like this:
+<br />
+<br />
+<strong>menu.html:</strong>
+<pre class="tagexample">
+  &lt;br /&gt;
+  &lt;a href="./?Page=Home"&gt;Home&lt;/a&gt;
+  &lt;br /&gt;
+  &lt;a href="./?Page=Impress"&gt;Impress&lt;/a&gt;
+</pre>
+Clicking in the navigation nodes the bootstrap file (<em>index.php</em>) is called including the URL
+parameter <strong>Page</strong>. To render dynamic content two methods are available out-of-the-box:
+<br />
+<br />
+<br />
+<a name="5-1-Text-files"></a><h4>5.1. Content from text files</h4>
+A straight-forward way of displaying dynamic content from text files is to use the
+<strong>&lt;doc:createobject /&gt;</strong> taglib described in the
+<a href="./?Page=046-Standard-TagLibs" title="standard taglibs">standard taglibs page</a> in chapter 3.1. This
+taglib must be configured to meet the requirements depicted above. The library expectds the text files
+countaining the contents to be located in the
+Die Bibliothek erwartet, dass die sprachabh&auml;ngigen <strong>./frontend/content/</strong> folder
+that exists in parallel to the bootstrap file. Assuming that the content should be displayed in
+english language the files
+<ul>
+  <li>./frontend/content/c_en_home.html</li>
+  <li>./frontend/content/c_en_impress.html</li>
+</ul>
+must be created. Due to the fact, that the content wants to be displayed in the content view the file
+<strong>content.html</strong> must be changed to
+<br />
+<br />
+<strong>content.html</strong>
+<pre class="tagexample">
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="doc" class="createobject" /&gt;
+&lt;doc:createobject requestparam="Page" defaultvalue="Home" /&gt;
+</pre>
+<br />
+<strong>Note:</strong>
+<br />
+The taglib class expects the file names in lower letters only. On Windows machines other dictions
+don't matter, but operating the application on LINUX-link operating systems, the desired file cannot
+be found.
+<br />
+<br />
+<br />
+<a name="5-2-Database-content"></a><h4>5.2. Content from a database</h4>
+Another possibility is to read content from a database table and integrate it into the content view.
+To achieve this the developer can make use of a document controller that reads and displays the
+content.
+<br />
+<br />
+For a start a database table must be created to store the content. The following SQL statement may be
+used to create such a table:
+<pre class="tagexample">
+CREATE TABLE demopage_content (
+  PageID tinyint(5) NOT NULL auto_increment,
+  PageURLName varchar(50) NOT NULL default '',
+  PageTitle varchar(50) NOT NULL default '',
+  PageContent text NOT NULL,
+  PRIMARY KEY (PageID),
+  UNIQUE KEY PageURLName (PageURLName),
+  KEY PageTitle (PageTitle)
+) ENGINE=MyISAM;
+</pre>
+<br />
+As mentioned under section 5.1 the content view template (<strong>content.html</strong>) must be
+adapted as follows:
+<pre class="tagexample">
+&lt;@controller
+   namespace="sites::testwebsite::pres::documentcontroller"
+   file="content_v1_controller"
+   class="content_v1_controller"
+@&gt;
+</pre>
+This XML tag defines a document controller for the current DOM node. This controller is mentioned
+to be a MVC-pattern-style controller to the current node. As printed on the
+<a href="./?Page=006-Controller" title="controller">controller page</a> a <strong>document
+controller</strong> class must inherit from the <strong>baseController</strong> class that is a
+standardized interface class to all document controller containing important methods to generate
+dynamic content during transformation of a DOM node.
+<br />
+<br />
+Because the content is read from a database (here: MySQL), the component <strong>MySQLHandler</strong>
+is beeing used. To apply this module an instance must be cerated via the private method
+<strong>__getServiceObject()</strong> of the document controller. The core functionality of the
+document controller must be implemented in the <strong>transformContent()</strong> function, because
+this method is called during transformation of a specific DOM node. The controller class file
+<strong>testwebsite/apps/sites/testwebsite/pres/documentcontroller/content_v1_controller.php</strong>
+must then be filled with the following content:
+<br />
+<php:highlight>
+   // import the MySQLHandler component
+   import('core::database','MySQLHandler');
+
+   // define the controller class
+   class content_v1_controller extends baseController
+   {
+
+      function content_v1_controller(){
+      }
+
+      function transformContent(){
+
+         // create an instance of the database abstraction layer
+         $SQL = $this->__getServiceObject('core::database','MySQLHandler');
+
+
+         // Define the URL parameter
+         if(isset($_REQUEST['Page']) && !empty($_REQUEST['Page'])){
+            $Page = $_REQUEST['Page'];
+          // end if
+         }
+         else{
+            $Page = 'Home';
+          // end else
+         }
+
+
+         // select content from the desired table
+         $select = 'SELECT PageContent
+                    FROM demopage_content
+                    WHERE PageURLName = \''.$Page.'\'
+                    LIMIT 1';
+         $result = $SQL->executeTextStatement($select);
+         $data = $SQL->fetchData($result);
+
+
+         // insert content to the currend node
+         $this->__Content = $data['PageContent'];
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+The source code of the controller class should be self-explanatory. In general the functionality
+included there only fetches content from a database and displays the content found there.
+<br />
+<br />
+To use the MySQLHandler component a configuration file containing the database connnection data must
+be created. The file must be named
+<pre class="tagexample">
+  testwebsite/apps/config/core/sites/testwebsite/DEFAULT_connections.ini
+</pre>
+This name on the one hand contains the path definition:
+<pre class="tagexample">
+  testwebsite/apps/config/core/{CONTEXT}/
+</pre>
+and the name of the configuration file:
+<pre class="tagexample">
+  {ENVIRONMENT}_connections.ini
+</pre>
+The value of the place holder <strong>{CONTEXT}</strong> depends on the application context
+defined in the <em>index.php</em> file, that is set while loading the template implicitly. Within
+this tutorial's example the context of the application is <strong>sites::testwebsite</strong>. To
+get a deeper insight into configuration please refer to the
+<a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a> of the <strong>Page</strong>
+class. Having a look at the code of the bootstrap file the line
+<php:highlight>
+   $Page->loadDesign('sites::testwebsite','pres/templates/website');
+</php:highlight>
+is responsible for setting the context of the present application. Here the first parameter if the
+<em>loadDesign()</em> function is taken as the application's context. The <strong>ENVIRONMENT</strong>
+value is stored in the registry and ist set to <strong>DEFAULT</strong> by default. The scheme of
+the configuration file looks like this:
+<pre class="tagexample">
+[MySQL]
+DB.Host = "" ; Server name or IP address of the database
+DB.User = "" ; Username
+DB.Pass = "" ; Password
+DB.Name = "" ; Name of the database
+</pre>
+<br />
+<a name="6-Conclusion"></a><h3>6. Conclusion</h3>
+The present tutorial described how to create a web page using the adventur php framework and display
+dynamic content from files or a database table. A deficiency of the implementing still lies in the
+fact that it is not checked whether contents really exist in the database. In the case of the solution
+discussed in chapter 5.2 a blank content page is displayed containing no error message if no content
+is available. By use of the file variation this is already implemented in the taglib.
+<br />
+<br />
+Moreover the chapter 5.2 solution lacks of the possibility to create, maintain and delete contents.
+This task can only be handled with database administration tools like
+<a href="http://www.phpmyadmin.net/home_page/index.php" title="PHPMyAdmin" target="_blank">PHPMyAdmin</a>
+or a tool created for this task seperately.
+<br />
+<br />
+To keep things simple the controller source code this tutorial was not implemented in the three tier
+architecture merely used in object orientated applications. This would have heightend the degree of
+complexity by the need to introduce a business and database layer to the application. The business
+layer normally returns so called domain objects to the presentation layer and takes care of situations
+where no content can be displayed. To complete the architecture discussion the business layer makes
+use of the database layer of the application to gather the database content. Within the database layer
+the database component utilizes the <em>MySQLHandler</em> class to have a generic database abstraction
+layer. More suggestions on this topic can be found in the tutorials
+<ul>
+  <li><a href="./?Page=032-Comment-function" title="comment function">comment function</a></li>
+  <li><a href="./?Page=035-Contact-form-tutorial" title="contact form">contact form</a></li>
+  <li><a href="./?Page=057-Guestbook-tutorial" title="guestbook">guestbook</a></li>
+</ul>
+<br />
+<a name="7-Source-code-downloads"></a><h3>7. Source code downloads</h3>
+The source code provided in the present tutorial can be downloaded using the file
+<a href="/frontend/media/tutorial_testwebsite.zip" title="Code-Package">tutorial_testwebsite.zip</a>.
+The framework's core libraries are not included but can be obtained on the downloads page
+<a href="./?Page=008-Downloads" title="downloads page">downloads page</a>.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="tut_websiteerstellen_en" />

@@ -1,0 +1,114 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Klassen-Referenz - bbCodeParser</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+Der <strong>bbCodeParser</strong> kann zur Formatierung von beliebigen Texten eingesetzt werden.
+Typischerweise beinhaltet bbCode-formatierter Text Steuerzeichen wie
+<ul>
+  <li>[b]..[/b]</li>
+  <li>[i]..[/i]</li>
+  <li>[u]..[/u]</li>
+</ul>
+um fett, kursiv und unterstrichene Textpassagen zu kennzeichnen. Die Klasse bietet eine einfache und
+standardisierte Schnittstelle um diesen bbCode-&auml;hnlich gestalteten Text mit HTML-Code
+formatiert ausgeben zu k&ouml;nnen. Die Einbindung der Komponente kann per
+<php:highlight>
+  import('tools::string','bbCodeParser');
+</php:highlight>
+erfolgen.
+<br />
+<br />
+<strong>Hinweis:</strong> Der hier verwendete Formatierungscode ist an den als <strong>BBCode</strong>
+bekannten Formatierungscode angelehnt und benutzt an manchen Stellen andere Formatierungszeichen.
+Details k&ouml;nnen der <a href="Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>
+entnommen werden.
+<br />
+<br />
+Um den im Framework enthaltenen <strong>bbCodeParser</strong> verwenden zu k&ouml;nnen, muss dieser
+zun&auml;chst konfiguriert werden. Zu diesem Zweck muss eine Konfigurationsdatei unter dem Pfad
+<pre class="tagexample">
+   /config/tools/string/{CONTEXT}/{ENVIRONMENT}_fonttags.ini
+</pre>
+vorhanden sein. Diese Datei definiert die Bereiche Schriftgr&ouml;&szlig;en und Farben. Ein typischer
+Inhalt ist:
+<pre class="tagexample">
+  [FontSize]
+  1 = "10px"
+  2 = "12px"
+  3 = "16px"
+  4 = "18px"
+  5 = "24px"
+  6 = "32px"
+
+  [Color]
+  gruen = "#56a437"
+  blau = "#002488"
+  hellblau  = "rgb(102 153 255)"
+  orange = "rgb(233 142 31)"
+  grau = "#666666"
+  rot = "red"
+  lila = "yellow"
+</pre>
+Damit ist es m&ouml;glich Schriftgr&ouml;&szlig;en per
+<pre class="tagexample">
+  [3]...[/3]
+</pre>
+und Schriftfarben mit
+<pre class="tagexample">
+  [orange]...[/orange]
+</pre>
+zu beeinflussen. Die Anzahl der Eintr&auml;ge pro Sektion ist nicht begrenzt und kann beliebig
+angepasst werden.
+<br />
+<br />
+<br />
+Der <strong>bbCodeParser</strong> bietet zudem eine Erweiterungsschnittstelle (extension point), um
+weitere Formatierer einfach einh&auml;ngen zu k&ouml;nnen. Zu diesem Zweck muss die Konfigurationsdatei
+<pre class="tagexample">
+   /config/tools/string/{CONTEXT}/{ENVIRONMENT}_bbcpext.ini
+</pre>
+angelegt werden. Diese definiert die zus&auml;tzlichen Formatter, die nach dem Formatieren der
+Standard-Tags aufgerufen werden. Eine typische Konfigurationsdatei hat folgende Gestalt:
+<pre class="tagexample">
+  [News]
+  Namespace = "sites::demosite::biz::bbcpext"
+  Module = "HeadlineFormatter"
+  Class = "HeadlineTagParser"
+  Method = "parseTags"
+</pre>
+Jede Sektion beschreibt den Namespace, in dem der Formatter liegt, dessen Datei- und Klassennamen und
+den Namen der Methode, die zur Formatierung verwendet wird. Der dort definierten Methode wird ein
+zu formatierender Text &uuml;bergeben und muss den fertig formatierten Text zur&uuml;ckliefern. Die
+Extension-Konfigurationsdatei kann beliebig viele Formatter definieren.
+<br />
+<br />
+Der im Beispiel gezeigte Formatter wird wie folgt implementiert (gek&uuml;rzt):
+<php:highlight>
+   class HeadlineTagParser
+   {
+
+      function HeadlineTagParser(){
+      }
+
+      function parseTags($Text){
+
+         $Headlines = array('[U1]' => '<font style="font-size: 20px; font-weight: bold;">',
+                            '[u1]' => '<font style="font-size: 20px; font-weight: bold;">',
+                            '[/U1]' => '</font>',
+                            '[/u1]' => '</font>'
+                         );
+         return strtr($Text,$Headlines);
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_klassenref_bbcp" />

@@ -1,0 +1,731 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="file" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="link" />
+<font style="font-size: 26px; font weight: bold;">AJAX & the adventure php framework</font>
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::newspager::pres::templates" template="newspager" />
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+AJAX is noted for beeing a common technique to build web applications, that are more agile compared
+to standard applications. It gives the possibility to change specific parts of the DOM of a HTML
+page by using the XMLHTTPRequest implementation and some lines of java script code.
+<br />
+<br />
+AJAX is not brand-new and there are a plenty of online arcticles about building AJAX applications.
+At a glance, the following resources are worth being read:
+<ul>
+  <li>
+    <strong>Mozilla developer zone:</strong>
+    <doku:link>http://developer.mozilla.org/en/docs/AJAX:Getting_Started</doku:link>
+  </li>
+  <li>
+    <strong>Dr. Web:</strong>
+    <doku:link>http://www.drweb.de/programmierung/ajax-tutorials.shtml</doku:link>
+  </li>
+  <li>
+     <strong>Wikipedia:</strong>
+     <doku:link>http://en.wikipedia.org/wiki/Ajax_%28programming%29</doku:link> and
+     <doku:link>http://en.wikipedia.org/wiki/Ajax_framework</doku:link>
+  </li>
+</ul>
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+Starting to write AJAX applications you will face with the problem to integrate AJAX widgets and
+dynamic updates of certain areas of your web page into existing application structures and designs.
+This fact often leads to the problem, that AJAX-featured applications tend to be not well-designed.
+Im most cases, the client <-> server communication is done by requesting a file (e.g. a PHP file),
+that sends back an XML string containing the information the client needs. In common for each AJAX
+"action" one appropriate file is created. This does not only lead to complexity but also to
+redundant code in the server side scripts. A second problem is security. Due to the fact, that the
+application code merely resides on the client and hence can be analysed and manipulated easily, an
+application tends to get insecure.
+<br />
+<br />
+The two problems described above are well known problems. On this account many server and cliend
+side AJAX frameworks have been built to solve the daily life problems a programmer is facing during
+AJAX application development. However, building AJAX aplications is not as easy as it is described
+in many of those "getting started" tutorials.
+<br />
+<br />
+<br />
+<a name="2-Tools-included"></a><h3>2. Which tools are included in the APF?</h3>
+Basically the adventure php framework features no special AJAX component to use either on the client
+or on the server side. Having no special module does not mean, that the APF does not have a way to
+facilitate server side programming within AJAX applications.
+<br />
+<br />
+To assist implementation of server side AJAX application parts, the front controller can be used.
+Taking the front controller supports the programmer to build server side AJAX "actions" in a
+standardized and powerful way. He is not forced to create several action files and reimplement
+the functionality included in those files several times. Each AJAX action can be represented by one
+special front controller action. Due to the fact that the front controller pattern is located in the
+business layer, the front controller action can easily use existing application components (e.g.
+business or data layer classes). Moreover using the front controller makes it easy to access the
+parameters the action is called with. In other words, all modules known for building server side
+applications can be involved.
+<br />
+<br />
+Due to a wide range of java sctip AJAX frameworks the adventure php framework features no
+java script libraries. For client side purpose any common AJAX framework can be used to create the
+desired widgets. The following list shows a selection of famous java script frameworks:
+<ul>
+  <li>
+    <strong>Prototype</strong>
+    <doku:link>http://www.prototypejs.org/</doku:link>
+  </li>
+  <li>
+    <strong>jQuery</strong>
+    <doku:link>http://jquery.com/</doku:link>
+  </li>
+  <li>
+    <strong>Dojo Toolkit</strong>
+    <doku:link>http://dojotoolkit.org/</doku:link>
+  </li>
+  <li>
+    <strong>script.aculo.us</strong>
+    <doku:link>http://script.aculo.us/</doku:link>
+  </li>
+  <li>
+    <strong>Yahoo! UI Library</strong>
+    <doku:link>http://developer.yahoo.com/yui/</doku:link>
+  </li>
+</ul>
+<br />
+<a name="3-My-first-AJAX-application"></a><h3>3. My first AJAX application</h3>
+To not getting you bored with theory, this chapter shows you, how to build a AJAX web application
+with the adventure php framework from the scratch.
+<br />
+<br />
+<a name="3-1-Requirements"></a><h4>3.1. Requirements and considerations</h4>
+Due to the fact, that we both are good software architects, we need to think about the requirements
+of the software, we want to create. To keep things simple, the application to design should be
+simple and easy to imagine. I think a news box would be a good example to show how an AJAX
+application can be built with the adventure php framework.
+<br />
+<br />
+Let me give you a brief description of the major features:
+<ul>
+  <li>news box can be included in any adventure php framework application</li>
+  <li>news can be paged clockwise and vice versa</li>
+  <li>news are read from several text files, each containing one news page, to keep maintenance easy</li>
+</ul>
+<br />
+<a name="3-2-Design"></a><h4>3.2. Design of the application</h4>
+Compared to a standard application only the paging functionality is realized in AJAX style. The rest
+of the module can be implemented as customary. The concepts used here (commonly known as patterns)
+can be comprehended reading the
+<a href="./?Page=032-Comment-function" title="comment function">comment function tutorial</a>. But the
+focus of this article lies on the design of the AJAX part of the application.
+<br />
+<br />
+In order to implement the paging functionality we need client and server addons. On the cliend side
+we will use some java script code around the XMLHTTPRequest object to draw the widgets and to catch
+user interaction. The server side is done by a special front controller action, that reads the
+desired news page and gives it back to the client.
+<br />
+<br />
+<br />
+<a name="4-Implementation"></a><h3>4. Implementation</h3>
+To make sure, that the news box can be included in any APF style application we create a new module
+named <strong>newspager</strong>. In the first instance, the folders and files must be created as
+follows:
+<pre class="tagexample">
+  /apps/
+        modules/
+                newspager/
+                          biz/
+                              actions/
+                          data/
+                          pres/
+                               documentcontroller/
+                               templates/
+</pre>
+As a next step, the files necessary must be created. As already mentioned above, we need to create
+the following files:
+<ul>
+  <li>
+    <strong>biz/newspagerManager.php</strong>:
+    <br />
+    business component, that is used to get the news page content
+  </li>
+  <li>
+    <strong>biz/newspagerContent.php</strong>:
+    <br />
+    the domain object, that contains the content of one news page
+  </li>
+  <li>
+    <strong>biz/actions/newspagerAction.php</strong>:
+    <br />
+    file that contains the front controller action class
+  </li>
+  <li>
+    <strong>biz/actions/newspagerInput.php</strong>:
+    <br />
+    file that contains the front controller input class
+  </li>
+  <li>
+    <strong>data/newspagerMapper.php</strong>:
+    <br />
+    data layer component, that loads the newspager content from text files
+  </li>
+  <li>
+    <strong>pres/documentcontroller/newspager_v1_controller.php</strong>:
+    <br />
+    document controller, that generates the output of the module
+  </li>
+  <li>
+    <strong>pres/templates/newspager.html</strong>:
+    <br />
+    template file, that contains the style of the module and the additional java script code needed
+    to add AJAX style paging
+  </li>
+</ul>
+<br />
+In this tutorial we are going to use the bottom-up approch during implementation phase.
+<br />
+<br />
+<br />
+<a name="4-1-Data-layer"></a><h4>4.1. Data layer implementation</h4>
+The data layer's duty is to load content from plain text files, map a news file into a domain
+object and give it back to the business layer. The news files are located in the
+<strong>./frontend/news/</strong> folder located in parallel to the <strong>index.php</strong> file
+of a project. Each file contains news text in a certain semantic: the first line is interpreted as
+the headline, the second as a subheadline and the rest of the file is assumed to belong to the
+content. On this account the domain object mentioned above has three properties: title, subtitle and
+content. To have multilanguage support, each file should be named like
+<pre class="tagexample">
+  news_{LANG}_{PAGENUMBER}.txt
+</pre>
+Here <strong>{LANG}</strong> must be any two letter ISO language code, <strong>{PAGENUMBER}</strong>
+is a number beginning with <strong>1</strong>. As an example, the news pager module can have the
+following news files located in <strong>./frontend/news/</strong>:
+<pre class="tagexample">
+  news_en_1.txt
+  news_en_2.txt
+  news_en_3.txt
+  news_en_4.txt
+  news_en_5.txt
+  news_it_1.txt
+  news_it_2.txt
+  news_it_3.txt
+  news_it_4.txt
+</pre>
+The source code of the data layer class can be seen in the code box below:
+<br />
+<br />
+<file:highlight name="newspagerMapper.php" />
+<br />
+Calling the mapper class like
+<php:highlight>
+  $M = new newspagerMapper();
+  $M->set('Context','sites::demosite');
+  $M->set('Language','en');
+  echo printObject($M->getNewsByPage(1));
+</php:highlight>
+is will return an <strong>newspagerContent</strong> object, that contains the information of the
+first news page residing in the <strong>news_en_1.txt</strong> file. This object can later on be
+used to deliver the xml requested by the java script code executed on the client machine or to
+generate the output of the news box during rendering of the page.
+<br />
+<br />
+<br />
+<a name="4-2-Business-layer"></a><h4>4.2. Business layer implementation</h4>
+<a name="4-2-1-Domain-object"></a><h5>4.2.1. Domain object</h5>
+First of all, we must define the <strong>newspagerContent</strong> class, that was already used in
+the data layer component. This class is a simple data storage class, that contains the information
+of a certain news page. Due to the fact, that this class inherits from <strong>coreObject</strong>
+no more <strong>get()</strong> and <strong>set()</strong> methods must be implemented. The source
+code looks like this:
+<br />
+<br />
+<file:highlight name="newspagerContent.php" />
+<br />
+The attribute <strong>$__NewsCount</strong> was introduced to control the pager widgets.
+<br />
+<br />
+<br />
+<a name="4-2-2-Manager"></a><h5>4.2.2. The manager</h5>
+To be compilant to the classical thee tier architecture described in the pattern of the same name,
+we introduce a business component, that contains the business logic of the application. In this case
+the business layer component (often called <em>manager</em>) only contains of one singe method:
+<strong>getNewsByPage()</strong>. The implementation is quite easy and so the php code looks as
+follows:
+<br />
+<br />
+<file:highlight name="newspagerManager.php" />
+<br />
+A unit test for the class and the underlaying data layer may look like this:
+<php:highlight>
+  $M = new newspagerManager();
+  $M->set('Context','sites::demosite');
+  $M->set('Language','en');
+  echo printObject($M->getNewsByPage());
+</php:highlight>
+This statement will print out the content of the loaded <strong>newspagerContent</strong> object.
+<br />
+<br />
+<br />
+<a name="4-2-3-AJAX-data-source"></a><h5>4.2.3. AJAX data source</h5>
+As mentioned above, the client side java script codes needs a server side data source to obtain the
+desired news page via xml. For this reason a front controller action is implemented, that delivers
+the desired page. Due to the fact, that we have a business layer component (<em>manager</em>), the
+action can make use of this class. The only task is then to transform the object returned by the
+business layer component into valid xml and transfer it to the client machine. To indicate, which
+page should be served, the front controller action url string does contains the parameter
+<strong>page</strong>. Adventure php framework front controller actions normally contain three main
+parts: the action class definition, the input class definition and the action configuration that
+defines the parameters of the front controller action. Details can be seen on the
+<a href="./?Page=012-Frontcontroller" title="front controller">front controller page</a>. Because this
+example has no special requirements, the implementation is straight forward.
+<br />
+<br />
+First of all, we have to implement the input object, that is filled with the url parameters present
+in the url string when requesting the action. The class must inherit from the
+<strong>FrontcontrollerInput</strong> class and the file only contains the following body:
+<br />
+<br />
+<file:highlight name="newspagerInput.php" />
+<br />
+The action class definition encapsulates the functionality described a few lines above. As described
+on the <a href="./?Page=012-Frontcontroller" title="front controller">front controller page</a>, each
+action must implement the interface method <strong>run()</strong>, that is called during action
+execution by the front controller. This function includes the main capacity and delivers the xml
+string to the requestor. The source code may look like follows:
+<br />
+<br />
+<file:highlight name="newspagerAction.php" />
+<br />
+To be able to write a unit test, or to call the action, the third part of an APF style front
+controller action must be added: the configuration. To create this file, we must define, under which
+namespace the action should be callable. For this example, we assume, that the action can be executed
+using the url definition
+<pre class="tagexample">
+http://dev.adventure-php-framework.org/~/modules_newspager_biz-action/Pager/page/1/lang/en
+ /~/modules_newspager_biz-action/Pager/page/{PAGE}/lang/{LANG}
+</pre>
+where <strong>{PAGE}</strong> must be replaced by any integer and <strong>LANG</strong> a two letter
+ISO language code. Hence, the namespace of the action is <strong>modules::newspager::biz</strong>
+and though the configuration file for this action must be created under the folder
+<pre class="tagexample">
+ /apps/config/modules/newspager/biz/actions/{APPS__CONTEXT}/
+</pre>
+Thereby <strong>{APPS__CONTEXT}</strong> is the folder path resulting from the current context of the
+application. In this example, the context is <strong>sites::demosite</strong>, and consequently, the
+full path must be
+<pre class="tagexample">
+ /apps/config/modules/newspager/biz/actions/sites/demosite/
+</pre>
+The config file itself must be named
+<pre class="tagexample">
+ TESTSERVER_actionconfig.ini
+</pre>
+because the current environment variable is set to <strong>TESTSERVER</strong>. In common, the action
+definition file contains the following lines:
+<br />
+<br />
+<file:highlight name="TESTSERVER_actionconfig.ini" />
+<br />
+As described on the
+<a href="./?Page=012-Frontcontroller" title="front controller">front controller page</a>, the section
+name corresponds to the action name, the section itself defines which files contain the action and
+input classes. The sixth parameter can be used to specify standard parameters for the input object.
+<br />
+<br />
+Calling the url
+<pre class="tagexample">
+  /~/modules_newspager_biz-action/Pager/page/1/lang/en
+</pre>
+will display a XML similar to that:
+<pre class="tagexample">
+  &lt;news&gt;
+    &lt;headline&gt;APF news&lt;/headline&gt;
+    &lt;subheadline&gt;New version 1.5 available!&lt;/subheadline&gt;
+    &lt;content&gt;
+      We are proud to present the new version 1.5 of the adventure php framework. It includes
+      bugfixes and enhancements of the front controller component and a complete review of the
+      documentation plus translation of the entire documentation chapters into english language.
+    &lt;/content&gt;
+    &lt;newscount&gt;4&lt;/newscount&gt;
+ &lt;/news&gt;
+</pre>
+<br />
+<a name="4-3-Presentation-layer"></a><h4>4.3. Presentation layer implementation</h4>
+The presentation layer faces two main issues: create the news box on page creation and provide the
+necessary java script code to update the news box in AJAX style. Sensibly, we first deal with the
+generation of the news box, because this can be done with standard adventure php framework
+appliances. Due to the fact, that the news box is created through dynamically generated content
+(here: text files), we need a document controller and a template file. The template file defines the
+structure of the box according to the MVC pattern and the document controller generates the view
+content using the template file definition.
+<br />
+<br />
+<br />
+<a name="4-3-1-Template-file"></a><h5>4.3.1. The template file</h5>
+Due to the fact, that we have to display a box with three values filled in it, the template file
+looks as follows:
+<pre class="tagexample">
+&lt;@controller
+               namespace="modules::newspager::pres::documentcontroller"
+               file="newspager_v1_controller"
+               class="newspager_v1_controller"
+@&gt;
+&lt;div style="width: 300px; float: right; border: 1px dashed #777BB4; margin: 10px;"&gt;
+  &lt;table cellpadding="0" cellspacing="0"&gt;
+    &lt;tr&gt;
+      &lt;td style="text-align: center; vertical-align: center; width: 15px; background-color: #777BB4; font-size: 16px;"&gt;
+        &lt;span style="font-weight: bold;"&gt;&amp;lt;&lt;/span&gt;
+      &lt;/td&gt;
+      &lt;td style="width: 270px; height: 80px; padding: 2px; vertical-align: top; text-align: left;"&gt;
+        &lt;span style="font-variant: small-caps; font-size: 16px; font-weight: bold;"&gt;
+          &lt;html:placeholder name="Headline" /&gt;
+        &lt;/span&gt;
+        &lt;br /&gt;
+        &lt;span style="font-size: 12px; font-style: italic;"&gt;&lt;html:placeholder name="Subheadline" /&gt;&lt;/span&gt;
+        &lt;br /&gt;
+        &lt;br /&gt;
+        &lt;span style="font-size: 11px;"&gt;&lt;html:placeholder name="Content" /&gt;&lt;/span&gt;
+      &lt;/td&gt;
+      &lt;td style="text-align: center; vertical-align: center; width: 15px; background-color: #777BB4; font-size: 16px;"&gt;
+        &lt;span style="font-weight: bold;"&gt;&amp;gt;&lt;/span&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/div&gt;
+</pre>
+As the html code box shows, the template file contains a document controller specification and three
+place holders to be filled with the content of the domain object.
+<br />
+<br />
+<br />
+<a name="4-3-2-Document-controller"></a><h5>4.3.2. The document controller</h5>
+The corresponding document controller loads the <strong>newspagerContent</strong> object and filles
+the place holders:
+<php:highlight>
+   import('modules::newspager::biz','newspagerManager');
+
+
+   class newspager_v1_controller extends baseController
+   {
+
+      function newspager_v1_controller(){
+      }
+
+
+      function transformContent(){
+
+         // get manager
+         $nM = &$this->__getServiceObject('modules::newspager::data','newspagerManager');
+
+         // load default news page
+         $N = $nM->getNewsByPage();
+
+         // fill place holders
+         $this->setPlaceHolder('Headline',$N->get('Headline'));
+         $this->setPlaceHolder('Subheadline',$N->get('Subheadline'));
+         $this->setPlaceHolder('Content',$N->get('Content'));
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+<br />
+<a name="4-3-3-JavaScript-code"></a><h5>4.3.3. The AJAX java script code</h5>
+To add dynamic paging to the news box, some java script code must be added. Therefore, we add a
+<pre class="tagexample">
+  &lt;script type="text/javascript"&gt;
+  &lt;/script&gt;
+</pre>
+to the <strong>newspager.html</strong> template file. As we have learned above, the XMLHTTPRequest
+object is used to send a request via java script to retrieve dynamic information from a server
+script to update a page part without reloading the page. For this reason we use the following java
+script function to create an instance of the XMLHTTPRequest object:
+<pre class="tagexample">
+   function createXMLHttpRequest(){
+
+     if(window.ActiveXObject){
+
+          try{
+             // IE 6 and higher
+             xhttp = new ActiveXObject("MSXML2.XMLHTTP");
+           // end try
+          }
+          catch (e){
+
+              try{
+                 // IE 5
+                 xhttp = new ActiveXObject("Microsoft.XMLHTTP");
+               // end try
+              }
+              catch (e){
+                 xhttp = false;
+               // end catch
+              }
+
+           // end catch
+          }
+
+       // end if
+      }
+      else if(window.XMLHttpRequest){
+
+          try{
+             // Mozilla, Opera, Safari ...
+             xhttp = new XMLHttpRequest();
+           // end try
+          }
+          catch (e){
+             xhttp = false;
+           // end catch
+          }
+
+       // end else if
+      }
+
+    // end function
+   }
+
+   // execute createXMLHttpRequest() on window load
+   window.onload = createXMLHttpRequest;
+</pre>
+The <strong>window.onload</strong> tells the browser to execute the
+<strong>createXMLHttpRequest</strong> after having loaded the page. In order to be able to
+manipulate the content of the page, we have to upgrade the template definition with
+<strong>id</strong>s for each tag. So we can access each tag by using the
+<pre class="tagexample">
+   var dom_node = document.getElementById('dom_node_id');
+</pre>
+construct. Moreover, we must add an event handler to the two pager signs, so that the content of the
+box can be changed. Therefore I defined two different java script functions (<strong>prev()</strong>
+and <strong>next()</strong>), that wrap the functionality of getting forward or backward. Te next
+code box shows the changes, we have to apply to the html code of the template file:
+<pre class="tagexample">
+&lt;div style="width: 300px; float: right; border: 1px dashed #777BB4; margin: 10px;"&gt;
+  &lt;table cellpadding="0" cellspacing="0"&gt;
+    &lt;tr&gt;
+      &lt;td style="text-align: center; vertical-align: center; width: 15px; background-color: #777BB4; font-size: 16px;"&gt;
+        &lt;span id="newspager_prev_button" style="font-weight: bold; cursor: pointer; visibility: hidden;" onclick="prev();"&gt;
+          &amp;lt;
+        &lt;/span&gt;
+      &lt;/td&gt;
+      &lt;td style="width: 270px; height: 80px; padding: 2px; vertical-align: top; text-align: left;"&gt;
+        &lt;span id="newspager_headline" style="font-variant: small-caps; font-size: 16px; font-weight: bold;"&gt;
+          &lt;html:placeholder name="Headline" /&gt;
+        &lt;/span&gt;
+        &lt;br /&gt;
+        &lt;span id="newspager_subheadline" style="font-size: 12px; font-style: italic;"&gt;
+          &lt;html:placeholder name="Subheadline" /&gt;
+        &lt;/span&gt;
+        &lt;br /&gt;
+        &lt;br /&gt;
+        &lt;span id="newspager_content" style="font-size: 11px;"&gt;&lt;html:placeholder name="Content" /&gt;&lt;/span&gt;
+      &lt;/td&gt;
+      &lt;td style="text-align: center; vertical-align: center; width: 15px; background-color: #777BB4; font-size: 16px;"&gt;
+        &lt;span id="newspager_next_button" style="font-weight: bold; cursor: pointer;" onclick="next();"&gt;
+          &amp;gt;
+        &lt;/span&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/div&gt;
+</pre>
+The functions mentioned above contain the following lines:
+<pre class="tagexample">
+   function next(){
+
+      // check if XMLHTTPRequest object is initialized correctly
+      if(!xhttp){
+         alert("An Error occured when trying to initialize the XMLHttpRequest object!");
+         return;
+       // end if
+      }
+
+      // increment page number
+      pagenumber = pagenumber + 1;
+
+      // create request
+      var request = "/~/modules_newspager_biz-action/Pager/page/" + pagenumber + "/lang/" + language;
+
+      // send request for next news
+      xhttp.open("GET",request,true);
+      xhttp.onreadystatechange = updateNewsContent;
+      xhttp.send(null);
+
+    // end function
+   }
+
+   function prev(){
+
+      // check if XMLHTTPRequest object is initialized correctly
+      if(!xhttp){
+         alert("An Error occured when trying to initialize the XMLHttpRequest object!");
+         return;
+       // end if
+      }
+
+      // decrement page number
+      pagenumber = pagenumber - 1;
+
+      // create request
+      var request = "/~/modules_newspager_biz-action/Pager/page/" + pagenumber + "/lang/" + language;
+
+      // send request for next or prev news page
+      xhttp.open("GET",request,true);
+      xhttp.onreadystatechange = updateNewsContent;
+      xhttp.send(null);
+
+    // end function
+   }
+</pre>
+First of all, each function checks, wheather the XMLHTTPRequest object was created successfully.
+Second, the page number is either incremented or decremented to indicate the page number to load.
+After that, the front controller style request is constructed. Due to the fact, that xml http
+requests only can be done for the same domain, the page is delivered, we can define the url string
+relatively. The last code block then opens the defined url for a GET request, defines a event handler
+for the <strong>readystatechange</strong> event and sends the request.
+<br />
+<br />
+Some of you now may say, that the function definition should be more generic. The answer is: yes, it
+may. But this example is there to demonstrate the way of how you can add AJAX support to your
+application. As this module is quite simple, complexity drastically raises, when implementing more
+substantial applications.
+<br />
+<br />
+Let's now discuss the event handler function for updating the content view of the news box. This
+method has two main tasks to execute: display the content of the XMLHTTPRequest request and control
+the pager arrows, when the maximum or minimum number of pages has been reached. To do so, we have
+to create the following java script code:
+<pre class="tagexample">
+   function updateNewsContent() {
+
+      // check for ready loadad and HTTP status 200 (OK)
+      if(xhttp.readyState == 4 && xhttp.status == 200){
+
+         // get request xml
+         var responseXML = xhttp.responseXML;
+
+         // insert xml values into the desired spans
+         var headline = responseXML.getElementsByTagName('news').item(0).childNodes[0].textContent;
+         document.getElementById("newspager_headline").innerHTML = headline;
+
+         var subheadline = responseXML.getElementsByTagName('news').item(0).childNodes[1].textContent;
+         document.getElementById("newspager_subheadline").innerHTML = subheadline;
+
+         var content = responseXML.getElementsByTagName('news').item(0).childNodes[2].textContent;
+         document.getElementById("newspager_content").innerHTML = content;
+
+         // extract news count out of the xml
+         var newscount = responseXML.getElementsByTagName('news').item(0).childNodes[3].textContent;
+
+         // enable prev and next button by default
+         document.getElementById("newspager_prev_button").style.visibility = "visible";
+         document.getElementById("newspager_next_button").style.visibility = "visible";
+
+         // disable next button if desired
+         if(pagenumber >= newscount){
+            document.getElementById("newspager_next_button").style.visibility = "hidden";
+          // end if
+         }
+
+         // disable prev button if desired
+         if(pagenumber <= 1){
+            document.getElementById("newspager_prev_button").style.visibility = "hidden";
+            pagenumber = 1;
+          // end if
+         }
+
+       // end if
+      }
+</pre>
+As you can see in line 4, the function waits for the request being completed. If this is the case,
+the content of the request is read from the xhttp object created before. The
+<strong>responseXML</strong> attribute contains a <strong>DOM document</strong>, that can be accessed
+via java script functions. The second code block updates the spans addressed by the given DOM ids.
+To be able to control the pager buttons, we have to know the maximum number of pages and the current
+page number. For this reason the news count is initially filled and is included in each response.
+The initialisation of the <strong>newscount</strong> value is simply done by adding the declaration
+block
+<pre class="tagexample">
+   // declare variable to be initialized with the XMLHttpRequest object
+   var xhttp;
+
+   // declare current page number
+   var pagenumber = 1;
+
+   // declace news count
+   var newscount = &lt;html:placeholder name="NewsCount" /&gt;;
+
+   // declare current language
+   var language = "&lt;html:placeholder name="NewsLanguage" /&gt;";
+</pre>
+to the java script code and fill the place holders by append the following php code to the document
+controller:
+<php:highlight>
+   $this->setPlaceHolder('NewsLanguage',$this->__Language);
+   $this->setPlaceHolder('NewsCount',$N->get('NewsCount'));
+</php:highlight>
+<br />
+<a name="5-Lessons-learned"></a><h3>5. Lessons learned</h3>
+This chapter is intended to list the pitfalls, that can appear during AJAX application development.
+<ul>
+  <li>
+    <strong>Apache answers request with a 404 error page:</strong>
+    <br />
+    If you write any application, that saves data in your data base using an AJAX request, it is
+    recommended to encode your form data using the <strong>encodeURIComponent()</strong> function.
+    Doing so, also slashes and backslashes are encoded. If your server side AJAX component is a
+    front controller action, that is requested by a url rewrited url string, having encoded slashes
+    or backslashes will result in a 404 error code. The problem is, that the apache webserver
+    decodes the slashes and thus creates a wrong url.
+    <br />
+    <br />
+    The solution is quite easy: you just have to add the directive
+    <pre class="tagexample">AllowEncodedSlashes On</pre>
+    to your VHOST configuration. This apache bug cost me three days to find!
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>Degugging tools:</strong>
+    <br />
+    Unfortunately only the firefox browser contains a powerful debugging and analyzing tool
+    (firebug), that really helps tracing your application. Opera features a firefox-like toolbar,
+    but the functionality is less. For the internet explorer I have not found any equivalent product
+    to be able to see the browser objects (especially the content of the <strong>xhttp</strong>
+    variable). The IE toolbar only has a DOM tree browser and some other useful features.
+    <br />
+    <br />
+    Due to this fact, I was not able to get the news box application running on IE browsers. Perhaps
+    someone could give me advive. Please refer to the following thread, that contains a description:
+    <doku:link>http://www.phpfriend.de/forum/ftopic63486.html</doku:link>.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>Character encoding issues:</strong>
+    <br />
+    As I mentioned during tests with user input data, firefox and opera send data in UTF-8 format to
+    the server although the page is delivered in ISO-8859-1 encoding. This leads to the problem,
+    that data, that is sent back to the browser is encoded with the wrong character set. To solve
+    this, the data must be translated into the target charset using <strong>utf8_decode()</strong>.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>Implementation review:</strong>
+    <br />
+    In my opinion it is much mor complex to build AJAX applications from the scratch, because you
+    are forced to implement all the features you have included in a server side php framework like
+    the adventure php framework once more. Otherwise you are getting crazy with all that
+    <pre class="tagexample">document.getElementById()</pre> or
+    <pre class="tagexample">foo.innerHTML = bar</pre>
+    So adding AJAX features to your application means, that you have to think very carefully about
+    your application or module design. I even claim, that writing AJAX applications needs much more
+    understanding of good application design. Otherwise, this leads to bad software architecture!
+    <br />
+    <br />
+  </li>
+</ul>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="article_ajax_en" />

@@ -1,0 +1,110 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Class reference table - bbCodeParser</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+The <strong>bbCodeParser</strong> component can be used to format text that contains bbCode compatible
+control characters like
+<ul>
+  <li>[b]..[/b]</li>
+  <li>[i]..[/i]</li>
+  <li>[u]..[/u]</li>
+</ul>
+to mark a string to be displayed bold, italic or underlined. The class offers an easy and
+standardised interface to format bbCode text with HTML code. The integration of the component can be
+achieved by
+<php:highlight>
+  import('tools::string','bbCodeParser');
+</php:highlight>
+<strong>Note:</strong> The formating code used here is similar to the <strong>BBCode</strong>
+formatting code but is not congruent altogether. Please refer to the
+<a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a> to get a general idea
+of the formating features.
+<br />
+<br />
+To use the <strong>bbCodeParser</strong> contained in the framework, it must be configured first.
+For this reason the configuration file
+<pre class="tagexample">
+   /config/tools/string/{CONTEXT}/{ENVIRONMENT}_fonttags.ini
+</pre>
+must be present. This files defines the sections font size and color. Typically the content of the
+configuration file is as follows:
+<pre class="tagexample">
+  [FontSize]
+  1 = "10px"
+  2 = "12px"
+  3 = "16px"
+  4 = "18px"
+  5 = "24px"
+  6 = "32px"
+
+  [Color]
+  gruen = "#56a437"
+  blau = "#002488"
+  hellblau  = "rgb(102 153 255)"
+  orange = "rgb(233 142 31)"
+  grau = "#666666"
+  rot = "red"
+  lila = "yellow"
+</pre>
+Hence the author of a bbCode formated text can influence font size by using the
+<pre class="tagexample">
+  [3]...[/3]
+</pre>
+tags as well as define the font color by using
+<pre class="tagexample">
+  [orange]...[/orange]
+</pre>
+The number of definitions within these sections is not limited and can be extended individually.
+<br />
+<br />
+<br />
+Moreover the <strong>bbCodeParser</strong> offers an extension point to latch additional formaters.
+For this reason the configuration file
+<pre class="tagexample">
+   /config/tools/string/{CONTEXT}/{ENVIRONMENT}_bbcpext.ini
+</pre>
+must be created. This file defines the additional formaters that will be invoked after calling the
+standard formatting methods. A single config section looks as follows:
+<pre class="tagexample">
+  [News]
+  Namespace = "sites::demosite::biz::bbcpext"
+  Module = "HeadlineFormatter"
+  Class = "HeadlineTagParser"
+  Method = "parseTags"
+</pre>
+Each section defines the namespace where the formatter is stored, the file and class name and the
+name of the method that is used to format a certain string. The thus defined method is given a string
+to format internally and give back after processing it. The configuration file can contain any amount
+of formatters.
+<br />
+<br />
+The formatter described in the config section example can be implemented as follows (condensed ):
+<php:highlight>
+   class HeadlineTagParser
+   {
+
+      function HeadlineTagParser(){
+      }
+
+      function parseTags($Text){
+
+         $Headlines = array('[U1]' => '<font style="font-size: 20px; font-weight: bold;">',
+                            '[u1]' => '<font style="font-size: 20px; font-weight: bold;">',
+                            '[/U1]' => '</font>',
+                            '[/u1]' => '</font>'
+                         );
+         return strtr($Text,$Headlines);
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_klassenref_bbcp_en" />

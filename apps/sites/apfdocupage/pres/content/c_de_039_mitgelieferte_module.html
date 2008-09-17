@@ -1,0 +1,367 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Mitgelieferte Module</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+Das Adventure-PHP-Framework verf&uuml;gt &uuml;ber einige, bereits bei der Auslieferung enthaltene
+Module, die auf Basis der Core-Komponenten basiertend entwickelt wurden. Die Module stammen vor allem
+aus Anwendungen, die in Applikationen live eingesetzt werden und dem Release als Zugabe mitgegeben
+werden um die Entwicklung von Webseiten oder weiteren Anwendungen zu erleichtern, bzw. um weitere
+Code-Beispiele zu geben. Zu den verf&uuml;gbaren Modulen z&auml;hlen:
+<ul>
+  <li>Kommentar-Funktion</li>
+  <li>Kontaktformular</li>
+  <li>G&auml;stebuch</li>
+  <li>Pager</li>
+  <li>Socialbookmarking</li>
+  <li>CAPTCHA-Taglib f&uuml;r Formulare</li>
+</ul>
+<br />
+<a name="1-Kommentar-Funktion"></a><h3>1. Kommentar-Funktion</h3>
+Das Modul "Kommentar-Funktion" bietet ein voll funktionsf&auml;higes Kommentar-Modul f&uuml;r Webseiten,
+das lediglich &uuml;ber einen XML-Tag in die Seite eingebunden und konfiguriert werden muss.
+<pre class="tagexample">
+  &lt;core:importdesign
+    namespace="modules::comments::pres::templates"
+    template="comment"
+    categorykey="{CAT_KEY}"
+   /&gt;
+</pre>
+Der Wert "<em>{CAT_KEY}</em>" ist dabei lediglich auf den Wert der aktuellen Kategorie zu &auml;ndern.
+Eine ausf&uuml;hrliche Beschreibung zur Benutztung und zur Implementierung findet sich im Bereich
+<strong>Tutorials</strong> unter <a href="./?Seite=032-Kommentarfunktion" title="Kommentar-Funktion">Kommentar-Funktion</a>.
+<br />
+<br />
+<br />
+<a name="2-Kontaktformular"></a><h3>2. Kontaktformular</h3>
+Eine sehr h&auml;ufige Anwendung auf einer Webseite ist ein Kontaktformular. Das Modul "Kontaktformular"
+bietet hier eine fertige und konfigurierbare L&ouml;sung an, die nur noch verwendet werden muss. Das
+Formular kann auf einer daf&uuml;r vorgesehenen Seite mit
+<pre class="tagexample">
+  &lt;core:importdesign
+    namespace="modules::kontakt4::pres::templates"
+    template="kontakt"
+   /&gt;
+</pre>
+eingebunden werden. Eine ausf&uuml;hrliche Beschreibung zur Benutztung und zur Implementierung findet sich
+im Bereich <strong>Tutorials</strong> unter
+<a href="./?Seite=034-Kontaktformular-Tutorial" title="Kontakt-Formular">Kontakt-Formular</a>.
+<br />
+<br />
+<br />
+<a name="3-Gaestebuch"></a><h3>3. G&auml;stebuch</h3>
+&Auml;hnlich wie die "Kommentar-Funktion" ist auch das G&auml;stebuch-Modul ein out-of-the-box Modul,
+das nach einem Datenbank-Setup eingesetzt werden kann. Da Anwendungen im Adventure-PHP-Framework per
+XML-Tag in eine bestehende Seite eingebunden werden, kann das G&auml;stebuch auf der gew&uuml;nschten
+Seite mit einem
+<pre class="tagexample">
+  &lt;core:importdesign
+    namespace="modules::guestbook::pres::templates"
+    template="guestbook"
+    guestbookid="{GB_ID}"
+   /&gt;
+</pre>
+aktiviert werden. Der Wert "<em>{GB_ID}</em>" muss dabei auf die ID des anzuzeigenden G&auml;stebuchs
+gesetzt werden. Eine ausf&uuml;hrliche Beschreibung zur Benutztung und zur Implementierung findet sich
+im Bereich <strong>Tutorials</strong> unter
+<a href="./?Seite=057-Gaestebuch-Tutorial" title="G&auml;stebuch">G&auml;stebuch</a>.
+<br />
+<br />
+<br />
+<a name="4-Pager"></a><h3>4. Pager</h3>
+Der Pager ist eine Komponente, die zur Ausgabe-Steuerung von Datenbank-Eintr&auml;gen verwendet werden
+kann. Diese findet bereits in den oben genannten Modulen <em>Kommentar-Funktion</em> und <em>G&auml;stebuch</em>
+Anwendung. An dieser Stelle sei trotzdem der Aufbau des Moduls und die Verwendung n&auml;her erl&auml;utert.
+<br />
+<br />
+<br />
+<a name="4-1-Aufbau"></a><h4>4.1. Aufbau</h4>
+Der Pager besteht im wesentlichen aus einer Business-Komponente (<strong>pagerManager</strong>), der
+Ausgabe-Komponente f&uuml;r die Pager-HTML-Darstellung (DocumentController
+<strong>pager_2_v1_controller.php</strong>) und einer Daten-Schicht, die die f&uuml;r den Betrieb des
+Managers notwendigen Informationen aus der Datenbank liest. Um einen Pager verwenden zu k&ouml;nnen
+muss dieser zun&auml;chst initialisiert und mit den richtigen Parametern versorgt werden. Diese Arbeit
+wird durch die <strong>pagerManagerFabric</strong> erledigt.
+<br />
+<br />
+<br />
+<a name="4-2-Konfiguration"></a><h4>4.2. Konfiguration</h4>
+Um den PagerManager zum Laden der f&uuml;r eine Seite relevanten Eintr&auml;ge nutzen zu k&ouml;nnen,
+muss dieser zun&auml;chst konfiguriert werden. Dazu sind im Wesentlichen eine Konfigurationsdatei und
+zwei Statementment-Dateien notwenig. Die Konfigurationsdatei umfasst folgende Parameter:
+<pre class="tagexample">
+[&lt;Abschnittsname&gt;]
+Pager.EntriesPerPage = "&lt;Anzahl&gt;"
+
+Pager.ParameterStartName = "&lt;URL-Parameter&gt;"
+Pager.ParameterCountName = "&lt;URL-Parameter&gt;"
+
+Pager.StatementNamespace = "&lt;Statement-Namespace&gt;"
+Pager.CountStatement = "&lt;Load-Entries-Count-Statement&gt;"
+Pager.CountStatement.Params = "&lt;Statement-Parameter&gt;"
+Pager.EntriesStatement = "&lt;Statement-Parameter&gt;"
+Pager.EntriesStatement.Params = "&lt;Load-Entry-Statement&gt;"
+
+Pager.DesignNamespace = "&lt;Ausgabe-Template-Namespace&gt;"
+Pager.DesignTemplate = "&lt;Ausgabe-Template-Name&gt;"
+</pre>
+In den beiden Statements werden jeweils definierte Statement-Parameter erwartet, damit der Pager
+arbeiten kann. Innerhalb des <em>Load-Entries-Count-Statements</em> k&ouml;nnen beliebiger Parameter
+eingesetzt werden um das Ergebnis einzuschr&auml;nken. Diese m&uuml;ssen aber entweder in der
+Konfiguration unter <strong>Pager.CountStatement.Params</strong> oder beim Erzeugen des Pagers
+&uuml;bergeben werden. Das Ergebnis wird im Offset <strong>EntriesCount</strong> erwartet. Hier muss
+also per
+<pre class="tagexample">
+  SELECT COUNT(Spalte) AS EntriesCount ...
+</pre>
+gearbeitet werden. Im <em>Load-Entry-Statement</em> muss immer eine LIMIT-Klausel der Form
+<pre class="tagexample">
+  LIMIT [Start],[EntriesCount]
+</pre>
+aufgef&uuml;hrt sein. Weiterhin erwartet der Pager auch hier das Ergebnis (ID des Datensatzes) in
+einem Offset <strong>DB_ID</strong>. Auch hier muss mit einem Alias der Form
+<pre class="tagexample">
+  SELECT Spalte AS DB_ID ...
+</pre>
+gearbeitet werden. Weitere Parameter m&uuml;ssen auch hier entweder in der Konfiguration unter
+<strong>Pager.EntriesStatement.Params</strong> oder beim Erzeugen des Pagers &uuml;bergeben werden.
+<br />
+<br />
+<br />
+<a name="4-3-Anwendungsbeispiel"></a><h4>4.3. Anwendungsbeispiel</h4>
+Ein ausf&uuml;hrliches Anwendungsbeispiele findet sich unter
+<a href="./?Seite=032-Kommentarfunktion" title="Kommentar-Funktion">Kommentar-Funktion</a> im Kapitel
+4.3. Dabei wird die API des PagerManagers wie folgt verwendet:
+<br />
+<br />
+<strong>Laden der anzuzeigenden IDs:</strong>
+<php:highlight>
+   // pagerManager holen
+   $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
+   $pM = &$pMF->getPagerManager('{CONFIG_SECTION}',array('AddParams' => 'Value'));
+
+   // IDs laden
+   $IDs = $pM->loadEntries();
+
+   // Daten laden
+   $M = &$this->__getServiceObject('namespace::to::data::component','DataMapper');
+
+   $List = array();
+
+   for($i = 0; $i < count($IDs); $i++){
+      $List[] = $M->loadDomainObjectByID($IDs[$i]);
+    // end for
+   }
+</php:highlight>
+<br />
+<strong>Laden der Business-Objekte mit dem pagerManager:</strong>
+<php:highlight>
+   // pagerManager holen
+   $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
+   $pM = &$pMF->getPagerManager('{CONFIG_SECTION}',array('AddParams' => 'Value'));
+
+   // Daten laden
+   $M = &$this->__getServiceObject('namespace::to::data::component','DataMapper');
+   $List = $pM->loadEntriesByAppDataComponent($M,'loadDomainObjectByID');
+</php:highlight>
+<br />
+<a name="5-Socialbookmarking"></a><h3>5. Socialbookmarking</h3>
+Unter das Schlagwort <strong>Web 2.0</strong> fallen vor allem Funktionen, die eine Benutzer-Interaktion
+mit einer Webseite verbessern. Zu diesem Bereich geh&ouml;rt auch das "Socialbookmarking", das auf
+Seiten wie <em>http://del.icio.us/</em>, <em>http://www.mister-wong.de/</em> oder
+<em>http://www.technorati.com/</em> als Internet-Service angeboten wird. Um es einem Benutzer zu
+erleichtern eine Seite zu bei den genannten Services zu bookmarken wurde das Modul erstellt. Dieses
+erzeugt beispielsweise die oben neben dem Druck-Symbol angezeigten Bookmark-Symbole.
+<br />
+<br />
+<br />
+<a name="5-1-Konfiguration"></a><h4>5.1. Konfiguration</h4>
+Um das Modul mit der mit dem Release ausgelieferten Demo-Seite einsetzen zu k&ouml;nnen ist
+zun&auml;chst keine Konfiguration notwenig. M&ouml;chte der Entwickler das Modul in seine Webseite
+einbinden zu k&ouml;nnen m&uuml;ssen zwei Konfigurations-Dateien &uuml;bernommen werden:
+<ul>
+  <li>
+    <strong>/apps/config/modules/socialbookmark/actions/sites/demosite/DEFAULT_actionconfig.ini</strong>
+    <br />
+    Die Konfigurations-Datei <em>DEFAULT_actionconfig.ini</em> enth&auml;lt die Action-Definition
+    f&uuml;r die Action, die die Auslieferung der Bookmark-Bilder &uuml;bernimmt. Diese liest die
+    Bilder im Ordner <em>/apps/modules/socialbookmark/pres/image</em> aus uns stellt diese dar.
+    Wichtig dabei ist, dass die Anwendung nur in FrontController-basierte Projekte eingebunden werden
+    kann, da die Auslieferung der Bilder sonst nicht funktioniert.<br />
+    Die Datei bzw. der Ordner-Pfad unterhalb von <strong>/apps/config/modules/socialbookmark/</strong>
+    m&uuml;ssen ggf. umbenannt werden, wenn die Umgebungsvariable der Registry bzw. der Context der
+    Applikation anders gesetzt ist.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>/apps/config/modules/socialbookmark/sites/demosite/DEFAULT_bookmarkservices.ini</strong>
+    <br />
+    Die Datei <em>DEFAULT_bookmarkservices.ini</em> enth&auml;lt die Definition der Bookmark-
+    Services. Pro Service muss ein eigener Abschnitt existieren, der nach dem in der Datei ersichtlichen
+    Schema bef&uuml;llt sein muss:
+    <pre class="tagexample">[Mr. Wong]
+BookmarkService.BaseURL = "http://www.mister-wong.de/index.php?action=addurl"
+BookmarkService.Param.URL = "bm_url"
+BookmarkService.Param.Title = "bm_description"
+BookmarkService.Display.Title = "Bookmark &#64; Mr. Wong"
+BookmarkService.Display.Image = "bookmark_mister_wong"
+BookmarkService.Display.ImageExt = "png"</pre>
+    Die Datei bzw. der Ordner-Pfad unterhalb von <strong>/apps/config/modules/socialbookmark/</strong>
+    m&uuml;ssen ggf. umbenannt werden, wenn die Umgebungsvariable der Registry bzw. der Context der
+    Applikation anders gesetzt ist.
+  </li>
+</ul>
+Weitere Konfigurationen sind nicht notwendig.
+<br />
+<br />
+<br />
+<a name="5-2-Anwendung"></a><h4>5.2. Anwendung</h4>
+Um die konfigurierten Bookmarkservices anzeigen zu k&ouml;nnen gibt es zwei M&ouml;glichkeiten:
+Verwendung des <strong>socialBookmarkManager</strong>s oder der TagLib. Der <em>socialBookmarkManager</em>
+muss dabei als Service-Objekt erzeugt werden.
+<php:highlight>
+   //
+   // Bookmark-Manager holen
+   //
+   $sBM = &$this->__getServiceObject('modules::socialbookmark::biz','socialBookmarkManager');
+
+
+   //
+   // Parameter konfigurieren (optional)
+   //
+   $sBM->set('Width','20'); // Breite der Bookmark-Icons
+   $sBM->set('Height','20'); // H&ouml;he der Bookmark-Icons
+   $sBM->set('URL','http://www.example.com'); // URL der zum Bookmarking angebotenen Seite
+   $sBM->set('Title','Titel der Seite'); // Titel der zum Bookmarking angebotenen Seite
+   $sBM->set('Target','_blank'); // Ziel-Fenster der Bookmarking-Links
+
+
+   //
+   // Bookmark-Quelltext erzeugen
+   //
+   $BookmarkServices = $sBM->getBookmarkCode();
+</php:highlight>
+Die einfachere Anwendung ist die Verwendung des Tags. Dieser kann mit den Attributen <strong>width</strong>
+und <strong>height</strong> parametrisiert werden. Vor der Anwendung muss die TagLib per
+<strong>&lt;core:addtaglib /&gt;</strong> eingebunden werden:
+<pre class="tagexample">
+  &lt;core:addtaglib namespace="modules::socialbookmark::pres::taglib" prefix="social" class="bookmark" /&gt;
+  &lt;social:bookmark [width=""] [height=""] [url=""] [title=""] [target=""] /&gt;
+</pre>
+<br />
+<br />
+<a name="6-CAPTCHA-Taglib"></a><h3>6. CAPTCHA-Taglib f&uuml;r Formulare</h3>
+Mit dem Modul <strong>captcha</strong> ist es dem Entwickler m&ouml;glich, auf einfache Weise ein
+Formular mit einem (Bild-)CAPTCHA zu sch&uuml;tzen. Hierzu muss die im Modul enthaltene TagLib
+lediglich in ein Formular eingef&uuml;gt und eine FrontController-Konfiguration f&uuml;r die
+Auslieferung des Bildes erstellt werden. Die Implementierung zeigt zudem, wie die bestehenden
+Formular-TagLibs mit Hilfe des <strong>&lt;form:addtaglib /&gt;</strong>-Tags einfach erweitert
+werden k&ouml;nnen.
+<br />
+<br />
+Die folgenden Kapitel beschreiben, welche Vorarbeiten f&uuml;r den Einsatz der TagLib notwendig sind.
+<br />
+<br />
+<br />
+<a name="6-1-Konfiguration"></a><h4>6.1. Konfiguration der FrontController-Action</h4>
+Da die Auslieferung des CAPTCHA-Bildes &uuml;ber eine FrontController-Action stattfindet, ist es
+beim eingesetzten Projekt notwendig, die Auslieferung der Seite &uuml;ber den FrontController zu
+steuern. Sollte die Generierung bisher nur mit Hilfe des PageControllers passiert sein, so muss
+zun&auml;chst die Bootstrapdatei angepasst werden. Beinhaltet die <em>index.php</em> die Zeilen
+<php:highlight>
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+$Page = new Page('apfdemo');
+$Page->loadDesign('sites::demosite','pres/templates/website');
+echo $Page->transform();
+</php:highlight>
+so m&uuml;ssen diese zu
+<php:highlight>
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller','Frontcontroller');
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->set('Context','sites::demosite');
+$fC->start('sites::demosite::pres::templates','website');
+</php:highlight>
+angepasst werden. Die Werte f&uuml;r den Context der Applikation, den Pfad und Namen des initialen
+Templates m&uuml;ssen entsprechend den Werten des jeweiligen Projektes angepasst werden.
+<br />
+<br />
+Sobald diese Anpassung wirksam ist, muss die zur Auslieferung des CAPTCHA-Bildes verwendete
+FrontController-Action konfiguriert werden. Dazu erwartet der FrontController bei Aufruf der URL
+<pre class="tagexample">
+/?modules_captcha_biz-action:showCaptcha=name:...
+</pre>
+oder im Fall von aktivem URL-Rewriting
+<pre class="tagexample">
+/~/modules_captcha_biz-action/showCaptcha/name/...
+</pre>
+(Auszug aus dem Quellcode der Implementierung der Taglib) unter dem Namespace
+<pre class="tagexample">
+/config/modules/captcha/biz/&lt;CONTEXT&gt;/&lt;Environment&gt;_actionconfig.ini
+</pre>
+die Konfiguration der Action. Die Werte <strong>Context</strong> und <strong>Environment</strong>
+sind dabei durch die f&uuml;r das Projekt g&uuml;ltigen Werte zu ersetzen. Siehe hierzu auch
+<a href="./?Seite=013-Grundlagen#3-3-Basiskonfiguration" title="Grundlagen">Grundlagen, Kapitel 3.3</a> bzw.
+<a href="./?Seite=033-Konfiguration#2-Bennenung-Pfade-und-Dateien" title="Konfiguration">Konfiguration, Kapitel 2</a>.
+<br />
+<br />
+Der Inhalt der Action-Konfigurationsdatei kann aus der Vorlage
+<strong>/config/modules/captcha/biz/actions/EXAMPLE_actionconfig.ini</strong> des
+<strong>adventure-configpack-*</strong>-Releases entnommen werden.
+<br />
+<br />
+<br />
+<a name="6-2-Einbindung-des-Tags"></a><h4>6.2. Einbindung des Tags</h4>
+Um den Tag verwenden zu k&ouml;nnen, muss dieser innerhalb eines Formulares zun&auml;chst bekannt
+gemacht werden. Dies funktioniert mit Hilfe des <strong>&lt;form:addtaglib /&gt;</strong>-Tags,
+der sich analog zum <strong>&lt;core:addtaglib /&gt;</strong>-Tag verh&auml;lt. Anschlie&szlig;end
+ist das Tag innerhalb des gew&uuml;nschten Formulars verf&uuml;gbar. Die folgende Code-Box zeigt
+einen Anwendungsfall, der die wichtigsten Attribute des Tags beinhaltet:
+<pre class="tagexample">
+  &lt;html:form name="MeinFormular" action="post"&gt;
+    ...
+    &lt;form:addtaglib namespace="modules::captcha::pres::taglib" prefix="form" class="captcha" /&gt;
+    &lt;form:captcha
+              text_class="eingabe_feld"
+              text_style="width: 318px;"
+              validate="true"
+              button="ErzeugeGaestebuchEintragButton"
+    /&gt;
+    ...
+  &lt;/html:form&gt;
+</pre>
+In der Ausgabe des Formulars erzeugt das Tag ein CAPTCHA-Bild und ein Textfeld, das vom Benutzer zur
+Eingabe des gezeigten Strings verwendet werden muss. Die folgende Liste gibt eine &Uuml;bersicht
+&uuml;ber die verf&uuml;gbaren Attribute und deren Bedeutung:
+<ul>
+  <li><strong>action_baseurl</strong>: Basis-URL des CAPTCHA-Bildes</li>
+  <li><strong>image_style</strong>: CSS-Stil-Angaben zum CAPTCHA-Bild</li>
+  <li><strong>image_class</strong>: CSS-Klassen-Angaben zum CAPTCHA-Bild</li>
+  <li><strong>text_style</strong>: CSS-Stil-Angaben zum generierten Text-Feld</li>
+  <li><strong>text_class</strong>: CSS-Klassen-Angaben zum generierten Text-Feld</li>
+  <li><strong>validate</strong>: Aktiviert die Validierung</li>
+  <li><strong>button</strong>: Name des Buttons, auf dessen Klick die Validierung stattfinden soll</li>
+</ul>
+Noch ein Hinweis zu <strong>action_baseurl</strong>: dieses Attribut kann dazu verwendet werden, eine
+andere URL als Bild-Quelle anzugeben. Sollte die aktuelle Bootstrap-Datei nicht f&uuml;r die Verwendung
+des FrontControllers konfiguriert sein, kann eine andere URL angegeben werden. Hierbei ist jedoch zu
+beachten, dass die Quelle auf dem selben Server liegen muss (Session-Benutzung!).
+<br />
+<br />
+<br />
+<a name="6-3-Funktion-des-Tags"></a><h4>6.3. Funktion des Tags</h4>
+Durch die direkte Integration des CAPTCHA-Tags in das Formular kann der Tag direkten Einfluss auf die
+Validierung des Formulars nehmen. Wurde das CAPTCHA-Feld richtig ausgef&uuml;llt und sind alle
+&uuml;brigen Felder des Formulars valide, wird auch das Formular als Valide gekennzeichnet. Ist das
+CAPTCHA-Feld nicht korrekt ausgef&uuml;llt, kann das Formular nicht abgesendet werden. Wichtig dabei
+ist, dass das Formular im Controller sowohl auf <strong>isSent</strong> als auch <strong>isValid</strong>
+gepr&uuml;ft wird. Zur Sicherheit wird bei jedem Aufruf des Formulars das CAPTCHA-Bild neu generiert.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_module" />

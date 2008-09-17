@@ -1,0 +1,88 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Benchmark</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+Gerade bei Webapplikationen ist Performance extrem wichtig. Kein Besucher wartet freiwillig l&auml;nger
+als 10s auf eine Webseite. Um bereits bei der Entwicklung das Thema Performance nicht aus den Augen
+zu verlieren stellt das Framework mit dem <strong>benchmarkTimer</strong> eine Benchmark-Komponente
+zur Verf&uuml;gung, mit der alle Ausf&uuml;hrungszeiten gemessen und anschlie&szlig;end dargestellt
+werden k&ouml;nnen. Die GUI-Schicht (Page- und Frontcontroller) unterst&uuml;tzen das Beurteilen der
+Ausf&uuml;hrungszeiten mit vielen Messpunkten. Beispielsweise werden die Ausf&uuml;hrungszeiten von
+Document-Controllern ohne Zutun des Entwicklers aufgenommen und im Report dargestellt.
+<br />
+<br />
+<br />
+<a name="1-Anwendung"></a><h3>1. Anwendung des Benchmarkers</h3>
+Die Anwendung des <em>benchmarkTimers</em> gestaltet sich sehr einfach. Es ist lediglich folgender
+Code vor und nach dem zu messenden Events einzuf&uuml;gen:
+<php:highlight>
+  $T = &Singleton::getInstance('benchmarkTimer');
+  $T->start('MyEvent');
+
+  //
+  // Zu messender PHP-Code
+  //
+
+  $T->stop('MyEvent');
+</php:highlight>
+Zu beachten ist dabei lediglich, dass der <em>benchmarkTimer</em> <strong>immer</strong> singleton
+instanziiert werden muss, da sonst Informationen &uuml;ber Teile der Messung verloren gehen k&ouml;nnen.
+Es muss zudem auf den G&uuml;ltigkeitsbereich von Variablen geachtet werden. Sind Messungen &uuml;ber
+die Grenzen von Funktionen und Klassen hinweg notwendig muss sichergestellt sein, dass die Variable,
+die die Referenz auf die Instanz des <em>benchmarkTimer</em>s kein Null-Pointer ist. Hier ist es ratsam
+folgenden Code zu verwenden:
+<php:highlight>
+  $T = &Singleton::getInstance('benchmarkTimer');
+  $T->start('MyEvent');
+
+  //
+  // Zu messender PHP-Code
+  //
+
+  $T = &Singleton::getInstance('benchmarkTimer');
+  $T->stop('MyEvent');
+</php:highlight>
+Dieser Fall findet jedoch nur in Ausnahmen Anwendung.
+<br />
+<br />
+<br />
+<a name="2-Reports"></a><h3>2. Generieren eines Reports</h3>
+Da das Framework im <strong>Postback-Modus</strong> arbeitet und es im Allgemeinen nur eine zentrale
+Datei (zumeist <em>index.php</em>) gibt, ist das generieren von Reports durch ein
+<php:highlight>
+  $T = &Singleton::getInstance('benchmarkTimer');
+  echo $T->createReport();
+</php:highlight>
+am Ende der <em>index.php</em> zu bewerkstelligen. M&ouml;chte der Entwickler selbst entscheiden, wann
+der Report angezeigt wird um auch im Live-Betrieb ein Gef&uuml;hl f&uuml;r die Performance der
+Applikation behalten zu k&ouml;nnen kann das durch das Einf&uuml;gen des Codes
+<php:highlight>
+   if(isset($_REQUEST['benchmarkreport'])){
+      if($_REQUEST['benchmarkreport'] == 'true'){
+         $T = &Singleton::getInstance('benchmarkTimer');
+         echo $T->createReport();
+       // end if
+      }
+    // end if
+   }
+</php:highlight>
+am Ende der <em>index.php</em> bewerkstelligt werden. Ein Report der aktuell angezeigten Seite hat
+folgende Gestalt:
+<br />
+<br />
+<center>
+  <img src="/frontend/media/benchmark_report2.png" border="0" alt="Benchmark Report Prozess Baum" />
+</center>
+<br />
+Um einen aktuellen Report anzeigen zu lassen, bitte <a href="./?Seite=004-Benchmark&benchmarkreport=true#bottom" title="Benchmark-Report ausgeben">hier</a> klicken.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_benchmark" />
+<br />
+<a name="bottom" />

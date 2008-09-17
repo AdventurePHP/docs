@@ -1,0 +1,359 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Builtin modules</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+The release package of the adventure php framework contains several full featured modules based on
+the framework's components. The modules come from applications which are already used in web pages
+and are given to the release as an addition or other applications to ease development or to give
+more code examples. These are the modules available:
+<ul>
+  <li>comment function</li>
+  <li>contact form</li>
+  <li>guestbook</li>
+  <li>pager</li>
+  <li>social bookmarking</li>
+</ul>
+<br />
+<a name="1-Comment-function"></a><h3>1. Comment function</h3>
+The comment function modul is a modul that can be configured and included in each web page by adding
+an XML tag:
+<pre class="tagexample">
+  &lt;core:importdesign
+    namespace="modules::comments::pres::templates"
+    template="comment"
+    categorykey="{CAT_KEY}"
+   /&gt;
+</pre>
+The value "<em>{CAT_KEY}</em>" must be changed to something useful. A detailed description on the
+function of this modul can be found in the <strong>tutorials section</strong> under
+<a href="./?Page=032-Comment-function" title="comment function">comment function</a>.
+<br />
+<br />
+<br />
+<a name="2-Contact-form"></a><h3>2. Contact form</h3>
+Contact form is the most often modul found within a web page. This module offers a complete software
+stack, that must be configured to meet the needs. The modul can be added to a website by providing
+the XML tag
+<pre class="tagexample">
+  &lt;core:importdesign
+    namespace="modules::kontakt4::pres::templates"
+    template="kontakt"
+   /&gt;
+</pre>
+A detailed description on the function of this modul can be found in the <strong>tutorials section</strong>
+under <a href="./?Page=035-Contact-form-tutorial" title="contact form">contact form</a>.
+<br />
+<br />
+<br />
+<a name="3-Guestbook"></a><h3>3. Guestbook</h3>
+Similar to the comment function the guestbook module can be added to your site out-of-the-box, too.
+The only thing to do is to set up the database by executing the init script located in the module's
+<em>data</em> directory. To integrate the module into a web page just add the XML tag
+<pre class="tagexample">
+  &lt;core:importdesign
+    namespace="modules::guestbook::pres::templates"
+    template="guestbook"
+    guestbookid="{GB_ID}"
+   /&gt;
+</pre>
+The value of the parameter "<em>{GB_ID}</em>" must be set to the guestbook ID, that wants to be
+displayed on the desired page. A detailed description on the function of this modul can be found in
+the <strong>tutorials section</strong> under <a href="./?Page=057-Guestbook-tutorial" title="guestbook">guestbook</a>.
+<br />
+<br />
+<br />
+<a name="4-Pager"></a><h3>4. Pager</h3>
+The pager component is a backend tool, that can be used to control the loading of database objects.
+To provide paging functionality, the pager is included in the modules <em>comment function</em> and
+<em>guestbook</em>. Below the intent and the functionalities are described in detail.
+<br />
+<br />
+<br />
+<a name="4-1-Usage"></a><h4>4.1. Usage</h4>
+The pager merely consists of a business component (<strong>pagerManager</strong>), a presentation
+layer component that generates the HTML code of the pager widget (DocumentController
+<strong>pager_2_v1_controller.php</strong>) and a data layer module that gathers information that are
+needed in the busines tier. To use the pager, it must be created by using the
+<strong>pagerManagerFabric</strong>.
+<br />
+<br />
+<br />
+<a name="4-2-Configuration"></a><h4>4.2. Configuration</h4>
+To be able to use a pagerManager for loading database objects it must be configured properly. Therefore
+the developer must create one configuration file and at two statement files. The config file envelops
+the following parameters:
+<pre class="tagexample">
+[&lt;SectionName&gt;]
+Pager.EntriesPerPage = "&lt;Objects per page&gt;"
+
+Pager.ParameterStartName = "&lt;URL parameter for the start parameter&gt;"
+Pager.ParameterCountName = "&lt;URL parameter for the count parameter&gt;"
+
+Pager.StatementNamespace = "&lt;Statement namespace&gt;"
+Pager.CountStatement = "&lt;Load-Entries-Count statement&gt;"
+Pager.CountStatement.Params = "&lt;Statement parameter&gt;"
+Pager.EntriesStatement = "&lt;Statement parameter&gt;"
+Pager.EntriesStatement.Params = "&lt;Load-Entry statement&gt;"
+
+Pager.DesignNamespace = "&lt;Namespace of the pres template&gt;"
+Pager.DesignTemplate = "&lt;Template name&gt;"
+</pre>
+Both of the statement files must contain a set of parameters, that can be filled by the pagerManager.
+Within the <em>Load-Entries-Count statements</em> various parameters can be used to delimit the result
+set. These can be defined by the <strong>Pager.CountStatement.Params</strong> directive or while
+creating the <em>pagerManager</em> with the <em>pagerManagerFabric</em>. The result of the query is
+expected in the result offset <strong>EntriesCount</strong>. Hence, the statement must contain a
+<pre class="tagexample">
+  SELECT COUNT(row) AS EntriesCount ...
+</pre>
+The <em>Load-Entry statement</em> must always contain the LIMIT clause
+<pre class="tagexample">
+  LIMIT [Start],[EntriesCount]
+</pre>
+Further, the pager expects the result of the <em>Load-Entry statement</em> to be stored in the offset
+<strong>DB_ID</strong>. Therefore the sql query must contain an alias definition like this:
+<pre class="tagexample">
+  SELECT row AS DB_ID ...
+</pre>
+Other parameters must be configured using the <strong>Pager.EntriesStatement.Params</strong> directive
+or while creating the <em>pagerManager</em> with the <em>pagerManagerFabric</em>.
+<br />
+<br />
+<br />
+<a name="4-3-Example"></a><h4>4.3. Example of use</h4>
+A detailed description on the function of this modul and its usage can be found in the
+<strong>tutorials section</strong> under <a href="./?Page=032-Comment-function" title="comment function">comment function</a>.
+Besides, the API of the PagerManagers is used as follows:
+<br />
+<br />
+<strong>Load the relevant object IDs:</strong>
+<php:highlight>
+   // generate pagerManager
+   $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
+   $pM = &$pMF->getPagerManager('{CONFIG_SECTION}',array('AddParams' => 'Value'));
+
+   // load IDs
+   $IDs = $pM->loadEntries();
+
+   // load data
+   $M = &$this->__getServiceObject('namespace::to::data::component','DataMapper');
+
+   $List = array();
+
+   for($i = 0; $i < count($IDs); $i++){
+      $List[] = $M->loadDomainObjectByID($IDs[$i]);
+    // end for
+   }
+</php:highlight>
+<br />
+<strong>Load the business objects with the pagerManager:</strong>
+<php:highlight>
+   // generate pagerManager
+   $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
+   $pM = &$pMF->getPagerManager('{CONFIG_SECTION}',array('AddParams' => 'Value'));
+
+   // load data
+   $M = &$this->__getServiceObject('namespace::to::data::component','DataMapper');
+   $List = $pM->loadEntriesByAppDataComponent($M,'loadDomainObjectByID');
+</php:highlight>
+<br />
+<a name="5-Socialbookmarking"></a><h3>5. Socialbookmarking</h3>
+The buzzword <strong>Web 2.0</strong> summarizes all functions that improve interaction with the
+website visitor. This includes the division of "Socialbookmarking" offered on sites like
+<em>http://del.icio.us/</em>, <em>http://www.mister-wong.de/</em> or
+<em>http://www.technorati.com/</em> as a free internet service. To make it easy for the website user
+to bookmark your web page the module was created. The output of this module can be seen on the top
+of the page near the printer symbol.
+<br />
+<br />
+<br />
+<a name="5-1-Configuration"></a><h4>5.1. Configuration</h4>
+To use this module shipped with the release package at first no configured must be created. To
+include the module into a web page two configuration files must be adopted:
+<ul>
+  <li>
+    <strong>/apps/config/modules/socialbookmark/actions/sites/demosite/DEFAULT_actionconfig.ini</strong>
+    <br />
+    The configuration file <em>DEFAULT_actionconfig.ini</em> contains the action definition for the
+    actions used to deliver the bookmark images. This action reads the images stored in the folder
+    <em>/apps/modules/socialbookmark/pres/image</em> and sends them to the browser. Please note that
+    this application can only be included in front controller applications due to the fact that the
+    deliverance of the images does not work otherwise.<br />
+    This configuration file must be copied to the folder
+    <em>/apps/config/modules/socialbookmark/actions/{Context}</em>, where <em>{Context}</em> is the
+    context of the present application. If the environment variable is set to a value different to
+    <em>DEFAULT</em> the file must be renamed as well.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>/apps/config/modules/socialbookmark/sites/demosite/DEFAULT_bookmarkservices.ini</strong>
+    <br />
+    The file <em>DEFAULT_bookmarkservices.ini</em> contains the definitions of the bookmark services.
+    Each service is defined in a seperate section that must contain the following values:
+    <pre class="tagexample">[Mr. Wong]
+BookmarkService.BaseURL = "http://www.mister-wong.de/index.php?action=addurl"
+BookmarkService.Param.URL = "bm_url"
+BookmarkService.Param.Title = "bm_description"
+BookmarkService.Display.Title = "Bookmark &#64; Mr. Wong"
+BookmarkService.Display.Image = "bookmark_mister_wong"
+BookmarkService.Display.ImageExt = "png"</pre>
+    This configuration file must be copied to the folder
+    <em>/apps/config/modules/socialbookmark/{Context}</em>, where <em>{Context}</em> is the
+    context of the present application. If the environment variable is set to a value different to
+    <em>DEFAULT</em> the file must be renamed as well.
+  </li>
+</ul>
+More configuration files are not necessary.
+<br />
+<br />
+<br />
+<a name="5-2-Appliance"></a><h4>5.2. Appliance</h4>
+There are two flavours to display the previously configured bookmark services: usage of the
+<strong>socialBookmarkManager</strong> or the taglib. The <em>socialBookmarkManager</em> must be
+created as a service object.
+<php:highlight>
+   //
+   // get socialBookmarkManager
+   //
+   $sBM = &$this->__getServiceObject('modules::socialbookmark::biz','socialBookmarkManager');
+
+
+   //
+   // configure params (optional)
+   //
+   $sBM->set('Width','20'); // Breite der Bookmark-Icons
+   $sBM->set('Height','20'); // H&ouml;he der Bookmark-Icons
+   $sBM->set('URL','http://www.example.com'); // URL der zum Bookmarking angebotenen Seite
+   $sBM->set('Title','Titel der Seite'); // Titel der zum Bookmarking angebotenen Seite
+   $sBM->set('Target','_blank'); // Ziel-Fenster der Bookmarking-Links
+
+
+   //
+   // generate bookmark HTML code
+   //
+   $BookmarkServices = $sBM->getBookmarkCode();
+</php:highlight>
+Dealing with the taglib is more easy. This tag needs to have the attributes <strong>width</strong>
+and <strong>height</strong>. To use the tag it must be announced using the
+<strong>&lt;core:addtaglib /&gt;</strong> directive:
+<pre class="tagexample">
+  &lt;core:addtaglib namespace="modules::socialbookmark::pres::taglib" prefix="social" class="bookmark" /&gt;
+  &lt;social:bookmark [width=""] [height=""] [url=""] [title=""] [target=""] /&gt;
+</pre>
+<br />
+<br />
+<a name="6-CAPTCHA-Taglib"></a><h3>6. CAPTCHA-Taglib - an addition to forms</h3>
+The modul <strong>captcha</strong> enables the developer to easily integrate CAPTCHA functionality
+into existent forms. For this reason, the taglib included in the captcha module must be placed within
+the desired form and the front controller action used to deliver the captcha image needs to be
+configured. Moreover, the taglib implemenation gives you an example of how the
+<strong>&lt;form:addtaglib /&gt;</strong> tag can be used to extend form functionality.
+<br />
+<br />
+The following chapters describe how to include the captcha tag into your form.
+<br />
+<br />
+<br />
+<a name="6-1-Configuration"></a><h4>6.1. Configuration of the front controller action</h4>
+As mentioned above, the delivery of the captcha image is done by a front controller action included
+in the module. To make sure, that the image is served correctly, the project must be configured using
+the front controller. If your project uses the page controller, the bootstrap file must be adapted.
+In case, your <em>index.php</em> contains
+<php:highlight>
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+$Page = new Page('apfdemo');
+$Page->loadDesign('sites::demosite','pres/templates/website');
+echo $Page->transform();
+</php:highlight>
+these lines must be changed to
+<php:highlight>
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller','Frontcontroller');
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->set('Context','sites::demosite');
+$fC->start('sites::demosite::pres::templates','website');
+</php:highlight>
+The context of your application and the path and the name of the initial template must be set as
+desired in your project.
+<br />
+<br />
+After this change is done, the front controller action must be configured. For this reason, the
+front controller expects the configuration file
+<pre class="tagexample">
+/config/modules/captcha/biz/&lt;CONTEXT&gt;/&lt;Environment&gt;_actionconfig.ini
+</pre>
+containing the action configuration when calling the image url
+<pre class="tagexample">
+/?modules_captcha_biz-action:showCaptcha=name:...
+</pre>
+or in case of url rewriting activated the url
+oder im Fall von aktivem URL-Rewriting
+<pre class="tagexample">
+/~/modules_captcha_biz-action/showCaptcha/name/...
+</pre>
+(see source code of the taglib). <strong>Context</strong> and <strong>Environment</strong> must be
+replaced with the correct values from your project. For details on configuration, please refer to
+<a href="./?Page=013-Basics#3-3-Basic-configuration" title="Grundlagen">basics, chapter 3.3</a> bzw.
+<a href="./?Page=033-Configuration#2-Naming-conventions" title="Konfiguration">configuration, chapter 2</a>.
+<br />
+<br />
+The content of the action configuration file can be copied from the template file
+<strong>/config/modules/captcha/biz/actions/EXAMPLE_actionconfig.ini</strong> included in the
+<strong>adventure-configpack-*</strong> release files.
+<br />
+<br />
+<br />
+<a name="6-2-Inclusion"></a><h4>6.2. Inclusion of the tag</h4>
+In order to use the captcha tag, it must be announced within the desired form. This can be achieved
+using the <strong>&lt;form:addtaglib /&gt;</strong> tag, whose functionality is nearly the same as
+the <strong>&lt;core:addtaglib /&gt;</strong>. After that, the tag can be placed within the form.
+The following code box shows a typical example including the commonly used attributes of the tag:
+<pre class="tagexample">
+  &lt;html:form name="MyForm" action="post"&gt;
+    ...
+    &lt;form:addtaglib namespace="modules::captcha::pres::taglib" prefix="form" class="captcha" /&gt;
+    &lt;form:captcha
+              text_class="input_field"
+              text_style="width: 318px;"
+              validate="true"
+              button="CreateGuestbookEntryButton"
+    /&gt;
+    ...
+  &lt;/html:form&gt;
+</pre>
+Looking at the output of the form, the tag creates a captcha image and a text field, that can be used
+to fill in the captcha string. The list displayed afterwards describes the attributes of the captcha
+tag:
+<ul>
+  <li><strong>action_baseurl</strong>: Basic url for the captcha image "service"</li>
+  <li><strong>image_style</strong>: CSS styles of the captcha image</li>
+  <li><strong>image_class</strong>: CSS classes of the captcha image</li>
+  <li><strong>text_style</strong>: CSS styles of the text field</li>
+  <li><strong>text_class</strong>: CSS classes of the text field</li>
+  <li><strong>validate</strong>: Activation of the validation</li>
+  <li><strong>button</strong>: Name of the button of the form</li>
+</ul>
+Note on the <strong>action_baseurl</strong> attribute: this attribute is intended to configure a
+base url, that is used as an image source for the captcha image in case, the bootstrap file of the
+current project is ot configured to use the front controller. Please note, that the image source url
+must be located on the same server (session usage!).
+<br />
+<br />
+<br />
+<a name="6-3-Functionality"></a><h4>6.3. Functionality of the tag</h4>
+By means of directly integrating the captcha tag into a form, the tag can influence the form's
+valiation. If the captcha string was correctly filled in the text field provided, the form's state
+is set to "valid". If not, the tag lib implementation marks the form as "invalid" and the user
+cannot finally submit the form. To ensure, that the form cannot be sent on wrong captcha string input,
+the form must be checked having the <strong>isSent</strong> and <strong>isValid</strong> event in
+the cooresponding controller. For security reasons, the captcha image is regenerated with each request.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_module_en" />

@@ -1,0 +1,360 @@
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="php" class="highlight" />
+<core:addtaglib namespace="sites::demosite::pres::taglib" prefix="doku" class="navigation" />
+<doku:navigation />
+<br />
+<br />
+<font style="font-size: 26px; font weight: bold;">Configuration</font>
+<br />
+<br />
+<core:importdesign namespace="sites::demosite::pres::templates::voting" template="voting" />
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+To be able to implement reusable applications the aid of configuration is used in some places. To
+have a generic "interface" for the loading of configuration files in the Windows INI style the
+<em>configurationManager</em> was integrated into the framework. To improve handling of configuration
+files the additional wrapper method is <em>__getConfiguration()</em> was included in the class
+<em>coreObject</em>. This offers the ability in classes inheriting from <em>coreObject</em> to load
+configurations in that easy way. Because the <em>configurationManager</em> is initialized and
+accessed in the singleton mode each configuration is internally cached by the module. Hence, accessing
+one single configuration file frequently is no bottleneck. As are already mentioned the configuration
+files are build up like Windows INI files and contain sections and key-value-pairs. A typical INI
+file is showed by the following code example:
+<pre class="tagexample">
+  [Section1]
+  Param1 = "Value1"
+  Param2 = "Value2"
+  ...
+
+  [Section2]
+  Param1 = "Value1"
+  Param2 = "Value2"
+  ...
+</pre>
+The sections and key value pairs contained in the configuration file are freely eligible by the
+developer. Merely the structure of the already existing components are given and the used sections
+and configuration keys are well-defined.
+<br />
+<br />
+<br />
+<a name="2-Naming-conventions"></a><h3>2. Naming convention for paths and files</h3>
+With the name of the files and paths some basic conditions are to be followed. To make applications
+or modules (=software parts which can be used in several applications) reusable for different projects
+a configuration file is composed of different "parts":
+<ul>
+  <li>
+    <strong>Namespace:</strong>
+    <br />
+    The namespace is a path to a basic folder that contains all configuration file of a specific
+    module or class. The namespace often corresponds with the namespace of the module or class.
+    All configuration files are located under the folder <strong>apps/config</strong> to separate
+    configuration from the program code.
+  </li>
+  <li>
+    <strong>Context:</strong>
+    <br />
+    To realize reusabity, another differentiating factor is introduced. Each configuration file path
+    is extended by the current context of the application. This introduces the possibility to include
+    module A in website B or C without changing the progranm code but only by adding another
+    configuration file under the current context of project C.
+  </li>
+  <li>
+    <strong>Environment:</strong>
+    <br />
+    The third distinguishing feature is the enviroment the modul is executed in. This patameter
+    renders possible to create configuration files for different environments such as test server or
+    production environment. The environment variable is therefor handled by the registry and can be
+    manipulated in the bootstrap file if desired. For more details, please have a look at the
+    <a href="./?Page=013-Basics" title="basics">basics chapter, section 3.3</a>.
+  </li>
+  <li>
+    <strong>Name:</strong>
+    <br />
+    The name of the configuration file should be self-explanatory. The file must be equipped with the
+    prefix <em>{ENVIRONMENT}</em> und the suffix <em>.ini</em>. If the developer wants to store his
+    configuration params in a file called <strong>myconfig</strong> and the environment variable was
+    not modified, the configurationManager expects the file to be named <strong>DEFAULT_myconfig.ini</strong>.
+  </li>
+</ul>
+The context of an application can be influenced while creating the page controller or front controller
+instances:
+<br />
+<br />
+<br />
+<a name="2-1-Front-controller-context"></a><h4>2.1. Context while using the front controller</h4>
+<php:highlight>
+  $fC = &Singleton::getInstance('Frontcontroller');
+  $fC->set('Context','sites::mysite');
+  $fC->start('sites::mysite::pres::templates','mywebsite');
+</php:highlight>
+Here the internal variable "Context" is supplied by the explicit call of the <em>set()</em> method
+after creating the front controller instance. The context will be "transmitted" to other objects of
+the DOM tree of the presentation layer or to service objects of the business and data layer
+automatically.
+<br />
+<br />
+<br />
+<a name="2-2-Page-controller-context"></a><h4>2.2. Context while using the page controller</h4>
+By the use of the page controller the context is implicitly filled with the first argument of the
+call of the method <em>loadDesign()</em>. Besides, the context can also be set manually by adding
+<php:highlight>
+   $Page->set('Context','sites::myspecialsite');
+</php:highlight>
+to the following code lines:
+<php:highlight>
+  $Page = new Page('mywebsite');
+  $Page->loadDesign('sites::mysite','pres/templates/mywebsite');
+  echo $Page->transform();
+</php:highlight>
+Now the context of the application is "sites::mysite". Setting the context manually it receives the
+value "sites::myspecialsite".
+<br />
+<br />
+Let us assume, that we have the following <em>index.php</em> file:
+<php:highlight>
+  $Page = new Page('mywebsite');
+  $Page->set('Context','sites::myapp');
+  $Page->loadDesign('sites::mysite::pres::templates','mywebsite');
+  echo $Page->transform();
+</php:highlight>
+If in any module <em>configurationManager</em> is called by
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+</php:highlight>
+it would expect the configuration file to reside in the folder
+<pre class="tagexample">
+  /apps/config/<strong>modules/mymodule</strong>/<em>sites</em>/<em>myapp</em>/
+</pre>
+and to be named
+<pre class="tagexample">
+  DEFAULT_<strong>mymoduleconfig</strong>.ini
+</pre>
+In case of non existing configuration files, the developer is noticed by the <em>configurationManager</em>.
+Additionally a error message is printed that contains the expected configuration file so that this
+error can be corrected by the engineer.
+<br />
+<br />
+<br />
+<a name="3-Service-objects"></a><h3>3. Service objects</h3>
+Because configurations are often used in the business and data layer, the context must be confessed
+to these both layers of the application. By the use of the front controller the topical context is
+given to every action and these are thus able to call service objects of the business layer with
+this context. The page controller provides the context to every node of the DOM tree. If a document
+controller likes to generate a business component, or get a reference on this, the methods
+<em>__getServiceObject()</em> or <em>__getAndInitServiceObject()</em> must always be used. Both
+functions ensure that every service object receives the right context. Implementing details and
+documentation of the parameters are found in the API documentation. As a rule it is adequate to create
+a service layer like this:
+<php:highlight>
+  $GuestbookID = '1';
+  $oGuestbookManager = &$this->__getServiceObject('modules::guestbook::biz','guestbookManager');
+  $Guestbook = $oGuestbookManager->loadGuestbook($GuestbookID);
+</php:highlight>
+To get a initialized instance of the desired serice layer please use
+<php:highlight>
+  $GuestbookID = '1';
+  $oGuestbookManager = &$this->__getAndInitServiceObject(
+                                                         'modules::guestbook::biz',
+                                                         'guestbookManager',
+                                                         $GuestbookID
+                                                        );
+  $Guestbook = $oGuestbookManager->loadGuestbook();
+</php:highlight>
+The last example premises, that the <em>guestbookManager</em> has the <em>init()</em> function
+implemented.
+<br />
+<br />
+<br />
+<a name="4-Reading-configuration"></a><h3>4. Reading configuration</h3>
+To read the values of a configuration several methods of the central configuration object are
+available. These are <em>getConfiguration()</em>, <em>getSection()</em> and <em>getValue()</em>.
+With these the complete configuration, a single section or the value of a section can be returned
+either.
+<br />
+<br />
+<strong>Example:</strong>
+<br />
+<br />
+We assume a configuration file with the following content was created:
+<pre class="tagexample">
+  [Section1]
+  Key1 = "Value1"
+  Key2 = "Value2"
+  Key3 = "Value3"
+  [Section2]
+  Key1 = "Value1"
+  Key2 = "Value2"
+  Key3 = "Value3"
+</pre>
+So the developer can fetch the content of the configuration file by placing the code
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+  echo printObject($Config->getConfiguration());
+</php:highlight>
+in any component of the application. The "echo" results in
+<pre class="tagexample">
+Array
+(
+    [Section1] => Array
+        (
+            [Key1] => Value1
+            [Key2] => Value2
+            [Key3] => Value3
+        )
+
+    [Section2] => Array
+        (
+            [Key1] => Value1
+            [Key2] => Value2
+            [Key3] => Value3
+        )
+)
+</pre>
+Withe the use of
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+  echo printObject($Config->getSection('Section2'));
+</php:highlight>
+the array
+<pre class="tagexample">
+Array
+(
+    [Section2] => Array
+        (
+            [Key1] => Value1
+            [Key2] => Value2
+            [Key3] => Value3
+        )
+)
+</pre>
+is printed and
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+  echo $Config->getValue('Section1','Key2');
+</php:highlight>
+displays
+<pre class="tagexample">
+  Value2
+</pre>
+to the screen. The function <em>printObject()</em> is only used for cosmetic reasons. The values can
+be directly used in the application code as desired.
+<br />
+<br />
+<br />
+<a name="5-Multi-language-applications"></a><h3>5. Case study: multi language applications</h3>
+To be able to implement multilanguage applications the language is held in every GUI object of the
+framework. Thus the topically used language is always known and partial trees can also be equipped
+with different languages if desired. The realisation of the multilingual facility in application
+is provided by the tag <strong>&lt;html:getstring /&gt;</strong> and
+<strong>&lt;template:getstring /&gt;</strong>. These read in the language-dependent contents from
+a configuration file specified in the tag attributes and print them to template files or HTML
+templates.
+<br />
+<br />
+To realize this two conditions must be fulfilled::
+<br />
+<br />
+<br />
+<a name="5-1-Creation-of-config-files"></a><h4>5.1. Creation of a config file</h4>
+As described in chapter 2, please take care of the current context of the application when creating
+the configuration file. Under the acceptance, that the topically discussed application is stored
+under the namespace
+<pre class="tagexample">
+<em>/apps/modules/<strong>mymodule</strong>/</em>
+</pre>
+and the current context is <strong>sites::myapp</strong>, the language dependent configuration file
+must be storend under the folder
+<pre class="tagexample">
+<em>/apps/modules/<strong>mymodule</strong>/<strong>sites</strong>/<strong>myapp</strong>/</em>
+</pre>
+The filename should be
+<pre class="tagexample">
+DEFAULT_<strong>mymodule_lang</strong>.ini
+</pre>
+whereas <strong>mymodule</strong> is replaced by the real name of the module. The file's content can
+be filled out freely by the developers. It must be considered that the sections of the configuration
+file must be named with two letter ISO language codes. For details please refer to
+<a href="http://de.wikipedia.org/wiki/ISO-L%C3%A4ndercode" title="ISO-L&auml;ndercodes bei Wikipedia" target="_blank">http://de.wikipedia.org/../ISO-L%C3%A4ndercode</a>
+or to
+<a href="http://www.iso.org/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1.html" title="ISO-L&auml;ndercode-Tabelle" target="_blank">http://www.iso.org/../list-en1.html</a>.
+The following example shows a common example:
+<pre class="tagexample">
+  [de]
+  Form.Name = "Ihr Name"
+  Form.EMail = "Ihre E-Mail-Adresse"
+  Form.Subject = "Betreff"
+  ..
+
+  [en]
+  Form.Name = "Your name"
+  Form.EMail = "Your email adress"
+  Form.Subject = "Subject"
+  ..
+</pre>
+<br />
+<a name="5-2-Display-language-texts"></a><h4>5.2. Display of language-dependent texts</h4>
+To provide language-dependent texts two alternatives exist in the framework design. On the one hand
+the XML tags <strong>&lt;html:getstring /&gt;</strong> and <strong>&lt;template:getstring /&gt;</strong>
+can be used to display language-dependent content in template files or HTML templates. On the other
+hand the method <em>__getConfiguration()</em> of the <em>configurationManager</em> component can be
+uses directly (e.g. setting the display name of a form button). First the integration of the
+configuration file via XML tags described on top should be explained:
+<br />
+<br />
+To provide language dependent areas the template
+<pre class="tagexample">
+  &lt;html:template name="MyTemplate"&gt;
+    [..]
+    Ihr Name: &lt;template:placeholder name="Name" /&gt;
+    &lt;br /&gt;
+    Ihre E-Mail-Adresse: &lt;template:placeholder name="EMail" /&gt;
+    &lt;br /&gt;
+    [..]
+  &lt;/html:template&gt;
+</pre>
+must be changed to
+<pre class="tagexample">
+  &lt;html:template name="MyTemplate"&gt;
+    [..]
+    &lt;template:getstring namespace="modules::mymodule" config="mymodule_lang" entry="Form.Name" /&gt;:
+    &lt;template:placeholder name="Name" /&gt;
+    &lt;br /&gt;
+    &lt;template:getstring namespace="modules::mymodule" config="mymodule_lang" entry="Form.EMail" /&gt;:
+    &lt;template:placeholder name="EMail" /&gt;
+    &lt;br /&gt;
+    [..]
+  &lt;/html:template&gt;
+</pre>
+Here the statical texts are exchanged with XML tags that print the values configuration keys
+"Form.Name" and "Form.EMail". If any language-dependent values are needed within a document controller
+(e.g. for email dipatching) these values can be gathered by placing the following code in your
+controller
+<php:highlight>
+  $Config = &$this->__getConfiguration('modules::mymodule','mymodule_lang');
+  echo '<br />Form.Name: '.$Config->getValue($this->__Language,'Form.Name');
+  echo '<br />Form.EMail: '.$Config->getValue($this->__Language,'Form.EMail');
+  echo '<br />Form.Subject: '.$Config->getValue($this->__Language,'Form.Subject');
+</php:highlight>
+The <em>echo</em> provided here is just placed there to demonstrate the functionality. In real life
+applications, the values printed out are used to fill place holders in templates such as
+<pre class="tagexample">
+  &lt;html:template name="MyTemplate"&gt;
+    &lt;div class="FormHeader"&gt;
+      &lt;template:placeholder name="FormHeader" /&gt;
+    &lt;/div&gt;
+  &lt;/html:template&gt;
+</pre>
+by writing down the code
+<php:highlight>
+  // Read configuration
+  $Config = &$this->__getConfiguration('modules::mymodule','mymodule_lang');
+
+  // Get the reference of the template
+  $Template__MyTemplate = &$this->__getTemplate('MyTemplate');
+
+  // Fill placeholder "FormHeader"
+  $Template__MyTemplate->setPlaceHolder('FormHeader',$Config->getValue($this->__Language,'Form.Name'));
+</php:highlight>
+More examples can be seen in the <a href="./?Page=057-Guestbook-tutorial" title="guestbook tutorial">guestbook tutorial</a>.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="manual_konfiguration_en" />
