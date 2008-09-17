@@ -3,7 +3,7 @@
    ini_set('html_errors','off');
 
    // PageController einbinden (muss initial immer gemacht werden)
-   include_once('D:\Apache2\htdocs\apps\core\pagecontroller\pagecontroller.php5');
+   include_once('./apps/core/pagecontroller/pagecontroller.php');
 
    // Registry ziehen und Standardwerte korrigieren
    $Reg = &Singleton::getInstance('Registry');

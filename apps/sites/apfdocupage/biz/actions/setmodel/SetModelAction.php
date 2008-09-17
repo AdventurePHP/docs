@@ -28,6 +28,7 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 22.08.2008<br />
+      *  Version 0.2, 17.09.2008 (Added functionality to write the content and quicknavi file names to the model)<br />
       */
       function run(){
 
@@ -42,14 +43,18 @@
 
          // check request parameters and set current language
          if($CurrentPageIndicators[$PageIndicatorNameDE] != null){
-            $Model->setAttribute('page.language','de');
-            $this->__ParentObject->set('Language','de');
+            $Language = 'de';
+            $Model->setAttribute('page.language',$Language);
+            $this->__ParentObject->set('Language',$Language);
+            $this->__Language = $Language;
             $Model->setAttribute('perspective.name','content');
           // end if
          }
          elseif($CurrentPageIndicators[$PageIndicatorNameEN] != null){
-            $Model->setAttribute('page.language','en');
-            $this->__ParentObject->set('Language','en');
+            $Language = 'en';
+            $Model->setAttribute('page.language',$Language);
+            $this->__ParentObject->set('Language',$Language);
+            $this->__Language = $Language;
             $Model->setAttribute('perspective.name','content');
           // end if
          }
@@ -72,6 +77,39 @@
          // fill the current title
          $PageTitle = str_replace('-',' ',substr($PageName,4));
          $Model->setAttribute('page.title',$PageTitle);
+
+         // fill the current content and quicknavi file name
+         $ContentFilePath = $Model->getAttribute('content.filepath');
+         $Model->setAttribute('page.contentfilename',$this->__getFileName($ContentFilePath.'/content','c',$Language,$PageID));
+         $Model->setAttribute('page.quicknavifilename',$this->__getFileName($ContentFilePath.'/quicknavi','n',$Language,$PageID));
+
+       // end function
+      }
+
+
+      /**
+      *  @private
+      *
+      *  Returns the file name for the content and quicknavi files.
+      *
+      *  @author Christian Achatz
+      *  @version
+      *  Version 0.1, 17.09.2008<br />
+      */
+      function __getFileName($ContentFilePath,$Prefix,$Language,$PageID){
+
+         // read files from given directory
+         $ContentFiles = glob($ContentFilePath.'/'.$Prefix.'_'.$Language.'_'.$PageID.'*');
+
+         // check, if appropriate file exists
+         if(!isset($ContentFiles[0])){
+            return $Prefix.'_'.$Language.'_404.html';
+          // end if
+         }
+         else{
+            return basename($ContentFiles[0]);
+          // end else
+         }
 
        // end function
       }
