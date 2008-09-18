@@ -9,7 +9,7 @@
    *  @package sites::apfdocupage::pres::documentcontroller::perspectives::content::voting
    *  @class voting_form_v1_controller
    *
-   *  Documentcontroller für die Ausgabe.<br />
+   *  Implements the document controller for the voting result output.
    *
    *  @author Christian Achatz
    *  @version
@@ -23,58 +23,56 @@
 
 
       /**
-      *  @module transformContent()
       *  @public
       *
-      *  Implementiert die abstrakte Methode transformContent().<br />
+      *  Shows the voting result.
       *
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 17.05.2008<br />
+      *  Version 0.2, 18.09.2008 (Changed to new model behaviour)<br />
       */
       function transformContent(){
 
          // get model
          $Model = &Singleton::getInstance('APFModel');
 
-         // Aktuelle Seite holen
-         $PageParams = $Model->getAttribute('ReqParamName');
-         $RequestParameter = $PageParams[$this->__Language];
-         $_LOCALS = variablenHandler::registerLocal(array($RequestParameter));
-         $CurrentPage = $_LOCALS[$RequestParameter];
+         // get the id and language of the current page
+         $PageID = $Model->getAttribute('page.id');
+         $Language = $Model->getAttribute('page.language');
 
-         // Voting-Ergebnis ausgeben
-         $Voting = $this->__getVoting($CurrentPage.$this->__Language);
+         // get voting result for current page
+         $Voting = $this->__getVoting($PageID.$Language);
 
-         // Ausgabe erzeugen
+         // create output
          if($Voting['VotingCount'] == 0){
 
-            // Template holen
+            // get template
             $Template__NoResult = &$this->__getTemplate('NoResult_'.$this->__Language);
 
-            // Bewertungslink einsetzen
+            // insert voting link
             $Link = frontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('voteview' => 'form'));
             $Template__NoResult->setPlaceHolder('RankIt',$Link);
 
-            // Ausgabe erzeugen
+            // create output
             $this->setPlaceHolder('Content',$Template__NoResult->transformTemplate());
 
           // end if
          }
          else{
 
-            // Bild erzeugen
+            // create image template
             $Template__Image = &$this->__getTemplate('Image_'.$this->__Language);
             $Image = $Template__Image->transformTemplate();
 
-            // Bewertungstemplate holen
+            // create voting template
             $Template__Result = &$this->__getTemplate('Result_'.$this->__Language);
 
-            // Bewertungslink einsetzen
+            // insert voting link
             $Link = frontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('voteview' => 'form'));
             $Template__Result->setPlaceHolder('RankLink',$Link);
 
-            // Ausgabe vorbereiten
+            // prepare output
             $VotingResultFull = (int)$Voting['VotingResult'];
             $VotingResultHalf = substr($Voting['VotingResult'],strpos($Voting['VotingResult'],'.'));
             $Template__Result->setPlaceHolder('RankingNumber',$Voting['VotingResult']);
@@ -91,7 +89,7 @@
              // end if
             }
 
-            // Ausgabe erzeugen
+            // display output
             $Template__Result->setPlaceHolder('Ranking',$Ranking);
             $this->setPlaceHolder('Content',$Template__Result->transformTemplate());
 

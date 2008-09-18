@@ -17,7 +17,6 @@
 
 
       /**
-      *  @module __getVoting()
       *  @private
       *
       *  Gibt das aktuelle Ergebnis des Votings zurück.<br />
@@ -54,7 +53,6 @@
 
 
       /**
-      *  @module __saveVoting()
       *  @private
       *
       *  Gibt den Namen des aktuellen Storage-Files für das Voting zurück.<br />
@@ -93,7 +91,6 @@
 
 
       /**
-      *  @module __getVotingFileName()
       *  @private
       *
       *  Gibt den Namen des aktuellen Storage-Files für das Voting zurück.<br />

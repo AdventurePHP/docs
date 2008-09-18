@@ -1,9 +1,8 @@
 <core:addtaglib namespace="sites::apfdocupage::pres::taglib" prefix="file" class="highlight" />
-<core:addtaglib namespace="sites::apfdocupage::pres::taglib" prefix="php" class="highlight" />
 <font style="font-size: 26px; font weight: bold;">User specific taglibs</font>
 <br />
 <br />
-<core:importdesign namespace="sites::apfdocupage::pres::templates::voting" template="voting" />
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
 <br />
 <a name="1-Introduction"></a><h3>1. Introduction</h3>
 The present page controller implementation creates a DOM tree while parsing templates. The
@@ -194,9 +193,54 @@ The implementation of this task is taken over by the class <strong>php_taglib_hi
 For this reason the method <em>transform()</em> is added to the class to modify the content contained
 in the property <strong>$this->__Content</strong> with aid of the <em>highlight_string()</em> PHP
 function. The code box shows how the class must look like:
-<br />
-<br />
-<file:highlight name="php_taglib_highlight.php" />
+<php:highlight>
+   class phpphp_taglib_highlight extends Document
+   {
+
+      function phpphp_taglib_highlight(){
+      }
+
+      function transform(){
+
+         // count lines
+         $LineCount = substr_count($this->__Content,"\n") - 1;
+
+         // highlight source code
+         // - Remove new lines at the beginning
+         // - Remove new lines and blanks at the end
+         // - Remove new lines and blanks around the whole text
+         $HighlightedContent = highlight_string(trim('<?php '.ltrim(rtrim($this->__Content),"\x0A..\x0D").' ?>'),true);
+
+         // replace php start tags
+         $HighlightedContent = str_replace('<font color="#007700">&lt;?</font>','',$HighlightedContent);
+         $HighlightedContent = str_replace('<font color="#0000BB">&lt;?php&nbsp;','<font color="#0000BB">',$HighlightedContent);
+         $HighlightedContent = str_replace('<font color="#0000BB">php','<font color="#0000BB">',$HighlightedContent);
+         $HighlightedContent = str_replace('<font color="#0000BB">&nbsp;</font>','',$HighlightedContent);
+
+         // enhancement to the PHP5 support
+         $HighlightedContent = str_replace('<span style="color: #0000BB">&lt;?php&nbsp;','<span style="color: #0000BB">',$HighlightedContent);
+         $HighlightedContent = str_replace('<span style="color: #0000BB">&lt;?php','<span style="color: #0000BB">',$HighlightedContent);
+         $HighlightedContent = str_replace('<span style="color: #0000BB">?&gt;</span>','',$HighlightedContent);
+
+         // replace php end tags
+         $HighlightedContent = str_replace('<font color="#0000BB">?&gt;</font>','',$HighlightedContent);
+
+         // return div enclodes source code with height limit if necessary
+         if($LineCount > 27){
+            return '<div class="phpcode" style="height: 400px; overflow: auto;">'.$HighlightedContent.'</div>';
+          // end if
+         }
+         else{
+            return '<div class="phpcode">'.$HighlightedContent.'</div>';
+          // end else
+         }
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
 <br />
 <br />
 <a name="3-2-html_taglib_entityencode"></a><h4>3.2. Taglib <em>html_taglib_entityencode</em></h4>
@@ -218,9 +262,23 @@ The source code of the web page delivered may then contain the following HTML co
 </pre>
 Since the core functionality is not included in the taglib class itself this operation can be reused
 in components like guestbook controllers. The code box shows how the class must look like:
-<br />
-<br />
-<file:highlight name="html_taglib_entityencode.php" />
+<php:highlight>
+   import('tools::string','stringAssistant');
+
+   class html_taglib_entityencode extends Document
+   {
+
+      function html_taglib_entityencode(){
+      }
+
+      function transform(){
+         return stringAssistant::encodeCharactersToHTML($this->__Content);
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
 <br />
 <br />
 <a name="3-3-doc_taglib_createobject"></a><h4>3.3. Taglib <em>doc_taglib_createobject</em></h4>

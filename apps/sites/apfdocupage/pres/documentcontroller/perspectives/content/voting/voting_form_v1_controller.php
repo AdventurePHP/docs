@@ -9,7 +9,7 @@
    *  @package sites::apfdocupage::pres::documentcontroller::perspectives::content::voting
    *  @class voting_form_v1_controller
    *
-   *  Documentcontroller für das Voting-Formular.<br />
+   *  Implements the document controller for the voting form.
    *
    *  @author Christian Achatz
    *  @version
@@ -25,50 +25,50 @@
       /**
       *  @public
       *
-      *  Implementiert die abstrakte Methode transformContent().<br />
+      *  Displays and manages the voting form.
       *
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 17.05.2008<br />
+      *  Version 0.2, 18.09.2008 (Changed model behavior)<br />
       */
       function transformContent(){
 
-         // Formular holen
+         // get form
          $Form__Vote = &$this->__getForm('Vote_'.$this->__Language);
 
-         // Link generieren
+         // generate link
          $Link = frontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('voteview' => ''));
 
-         // Speichern
+         // save if form is sent
          if($Form__Vote->get('isSent') == true){
 
-            // Model holen
-            $Model = &$this->__getServiceObject('sites::demosite::biz','DemositeModel');
+            // get model
+            $Model = &Singleton::getInstance('APFModel');
 
-            // Aktuelle Seite holen
-            $PageParams = $Model->getAttribute('ReqParamName');
-            $RequestParameter = $PageParams[$this->__Language];
-            $_LOCALS = variablenHandler::registerLocal(array($RequestParameter,'Vote'));
-            $CurrentPage = $_LOCALS[$RequestParameter];
+            // get the id and language of the current page
+            $PageID = $Model->getAttribute('page.id');
+            $Language = $Model->getAttribute('page.language');
 
-            // Voting speichern
-            $this->__saveVoting($CurrentPage.$this->__Language,$_LOCALS['Vote']);
+            // save voting result
+            $_LOCALS = variablenHandler::registerLocal(array('Vote'));
+            $this->__saveVoting($PageID.$Language,$_LOCALS['Vote']);
 
-            // Auf AnzeigeSeite weiterleiten
+            // refere to result page
             header('Location: '.$Link);
 
           // end if
          }
          else{
 
-            // Formular einsetzen
+            // insert form
             $this->setPlaceHolder('Content',$Form__Vote->transformForm());
 
-            // Preface anzeigen
+            // display preface
             $Template__Preface = &$this->__getTemplate('Preface_'.$this->__Language);
             $this->setPlaceHolder('Preface',$Template__Preface->transformTemplate());
 
-            // Artikellink anzeigen
+            // show article link
             $Template__ArticleLink = &$this->__getTemplate('ArticleLink_'.$this->__Language);
             $Template__ArticleLink->setPlaceHolder('ArticleLink',$Link);
             $this->setPlaceHolder('ArticleLink',$Template__ArticleLink->transformTemplate());

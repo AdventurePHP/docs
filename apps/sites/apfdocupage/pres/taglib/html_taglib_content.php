@@ -1,5 +1,7 @@
 <?php
    import('sites::apfdocupage::biz','APFModel');
+   import('sites::apfdocupage::pres::taglib','php_taglib_highlight');
+   import('sites::apfdocupage::pres::taglib','doku_taglib_link');
 
 
    /**
@@ -27,7 +29,15 @@
       *  Version 0.1, 28.03.2008<br />
       */
       function html_taglib_content(){
+
+         // call the parent constructor
          parent::Document();
+
+         // include the necessary tag libs
+         $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','php','highlight');
+         $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','doku','link');
+         //$this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','html','highlight');
+
        // end function
       }
 
