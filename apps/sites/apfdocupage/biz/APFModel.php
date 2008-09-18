@@ -21,6 +21,7 @@
       *  @version
       *  Version 0.1, 22.08.2008<br />
       *  Version 0.2, 17.09.2008 (Added content and quicknavi file name)<br />
+      *  Version 0.3, 18.09.2008 (Added the page description attribute)<br />
       */
       function APFModel(){
 
@@ -38,6 +39,9 @@
 
          // indicates the current page title
          $this->__Attributes['page.title'] = null;
+
+         // indicates the current page description
+         $this->__Attributes['page.description'] = null;
 
          // indicates the current content file name
          $this->__Attributes['page.contentfilename'] = null;

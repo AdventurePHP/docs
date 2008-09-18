@@ -2,6 +2,7 @@
    import('sites::apfdocupage::biz','APFModel');
    import('sites::apfdocupage::pres::taglib','php_taglib_highlight');
    import('sites::apfdocupage::pres::taglib','doku_taglib_link');
+   import('sites::apfdocupage::pres::taglib','doku_taglib_title');
 
 
    /**
@@ -36,7 +37,7 @@
          // include the necessary tag libs
          $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','php','highlight');
          $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','doku','link');
-         //$this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','html','highlight');
+         $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','doku','title');
 
        // end function
       }
