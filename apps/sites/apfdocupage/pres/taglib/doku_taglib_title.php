@@ -36,12 +36,12 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 18.09.2008<br />
-      *  Version 0.2, 19.09.2008 (Added meta tag handling; changed description output format)<br />
+      *  Version 0.2, 19.09.2008 (Added meta tag and urlname handling; changed description output format)<br />
       */
       function onParseTime(){
 
          // get page title
-         if(!isset($this->__Attributes['title'])){
+         if(!isset($this->__Attributes['title']) || empty($this->__Attributes['title'])){
             trigger_error('[doku_taglib_title::onParseTime()] The attribute "title" is missing. Please provide the page title!',E_USER_ERROR);
             exit(1);
           // end if
@@ -49,12 +49,20 @@
          $this->__Title = $this->__Attributes['title'];
 
          // get page tags
-         if(!isset($this->__Attributes['tags'])){
+         if(!isset($this->__Attributes['tags']) || empty($this->__Attributes['tags'])){
             trigger_error('[doku_taglib_title::onParseTime()] The attribute "tags" is missing. Please provide the page meta tags!',E_USER_ERROR);
             exit(1);
           // end if
          }
          $Tags = $this->__Attributes['tags'];
+
+         // get urlname
+         if(!isset($this->__Attributes['urlname']) || empty($this->__Attributes['urlname'])){
+            trigger_error('[doku_taglib_title::onParseTime()] The attribute "urlname" is missing. Please provide url name of the page!',E_USER_ERROR);
+            exit(1);
+          // end if
+         }
+         $URLName = $this->__Attributes['urlname'];
 
          // get page description
          if(empty($this->__Content)){
@@ -68,6 +76,7 @@
          $Model->setAttribute('page.title',$this->__Title);
          $Model->setAttribute('page.description',str_replace("\r",'',str_replace("\n",'',trim($this->__Content))));
          $Model->setAttribute('page.tags',$Tags);
+         $Model->setAttribute('page.urlname',$URLName);
 
        // end function
       }

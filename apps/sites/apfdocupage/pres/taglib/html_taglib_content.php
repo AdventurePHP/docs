@@ -28,6 +28,7 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 28.03.2008<br />
+      *  Version 0.2, 19.09.2008(Added several taglibs)<br />
       */
       function html_taglib_content(){
 
@@ -36,6 +37,7 @@
 
          // include the necessary tag libs
          $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','php','highlight');
+         $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','html','highlight');
          $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','doku','link');
          $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','doku','title');
 

@@ -22,7 +22,7 @@
       *  Version 0.1, 22.08.2008<br />
       *  Version 0.2, 17.09.2008 (Added content and quicknavi file name)<br />
       *  Version 0.3, 18.09.2008 (Added the page description attribute)<br />
-      *  Version 0.4, 19.09.2008 (Added the pags tags attribute)<br />
+      *  Version 0.4, 19.09.2008 (Added the pags tags and urlname attribute)<br />
       */
       function APFModel(){
 
@@ -40,6 +40,9 @@
 
          // indicates the current page title
          $this->__Attributes['page.title'] = null;
+
+         // indicates the current urlname
+         $this->__Attributes['page.urlname'] = null;
 
          // indicates the current page description
          $this->__Attributes['page.description'] = null;

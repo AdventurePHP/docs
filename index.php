@@ -16,7 +16,7 @@
    // import front controller
    import('core::frontcontroller','Frontcontroller');
 
-   // Frontcontroller erzeugen
+   // create the front controller instance
    $fC = &Singleton::getInstance('Frontcontroller');
 
    // set current context and language

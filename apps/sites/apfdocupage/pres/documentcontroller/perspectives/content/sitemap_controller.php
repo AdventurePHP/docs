@@ -57,9 +57,9 @@
 
          for($i = 0; $i < $count; $i++){
 
-            $Template__Page->setPlaceHolder('Title',$Pages[$i]->get('Title'));
+            $Template__Page->setPlaceHolder('Title',utf8_encode($Pages[$i]->get('Title')));
             $Template__Page->setPlaceHolder('LastMod',$Pages[$i]->get('LastMod'));
-            $Template__Page->setPlaceHolder('Link',linkHandler::generateLink('',array($CurrentPageIndicator => $Pages[$i]->get('Name'))));
+            $Template__Page->setPlaceHolder('Link',linkHandler::generateLink('',array($CurrentPageIndicator => str_replace('_','-',$Pages[$i]->get('Name')))));
             $Buffer .= $Template__Page->transformTemplate();
 
           // end for
