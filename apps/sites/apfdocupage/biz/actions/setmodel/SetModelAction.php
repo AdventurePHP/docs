@@ -29,6 +29,7 @@
       *  @version
       *  Version 0.1, 22.08.2008<br />
       *  Version 0.2, 17.09.2008 (Added functionality to write the content and quicknavi file names to the model)<br />
+      *  Version 0.3, 19.09.2008 (Title is now set by the &lt;doku:title /&gt;-Tag)<br />
       */
       function run(){
 
@@ -69,14 +70,10 @@
           // end else
          }
 
-         // fill current page id and title
+         // fill current page id
          $PageName = $CurrentPageIndicators[$PageIndicatorNames[$Model->getAttribute('page.language')]];
          $PageID = substr($PageName,0,3);
          $Model->setAttribute('page.id',$PageID);
-
-         // fill the current title
-         $PageTitle = str_replace('-',' ',substr($PageName,4));
-         $Model->setAttribute('page.title',$PageTitle);
 
          // fill the current content and quicknavi file name
          $ContentFilePath = $Model->getAttribute('content.filepath');

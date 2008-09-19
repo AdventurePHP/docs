@@ -36,6 +36,7 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 18.09.2008<br />
+      *  Version 0.2, 19.09.2008 (Added meta tag handling; changed description output format)<br />
       */
       function onParseTime(){
 
@@ -47,6 +48,14 @@
          }
          $this->__Title = $this->__Attributes['title'];
 
+         // get page tags
+         if(!isset($this->__Attributes['tags'])){
+            trigger_error('[doku_taglib_title::onParseTime()] The attribute "tags" is missing. Please provide the page meta tags!',E_USER_ERROR);
+            exit(1);
+          // end if
+         }
+         $Tags = $this->__Attributes['tags'];
+
          // get page description
          if(empty($this->__Content)){
             trigger_error('[doku_taglib_title::onParseTime()] No page description given in the tag\'s content area. Please provide the page description!',E_USER_ERROR);
@@ -57,7 +66,8 @@
          // inform model
          $Model = &Singleton::getInstance('APFModel');
          $Model->setAttribute('page.title',$this->__Title);
-         $Model->setAttribute('page.description',trim($this->__Content));
+         $Model->setAttribute('page.description',str_replace("\r",'',str_replace("\n",'',trim($this->__Content))));
+         $Model->setAttribute('page.tags',$Tags);
 
        // end function
       }

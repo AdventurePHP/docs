@@ -4,101 +4,104 @@
 
    /**
    *  @package sites::demosite::pres::documentcontroller
-   *  @module releases_v1_controller
+   *  @class releases_controller
    *
-   *  Implementiert den DocumentController für das Design 'releases.html'. Zeigt die<br />
-   *  Releases des Frameworks an.<br />
+   *  Implements the document controller for the releases view.
    *
-   *  @author Christian Schäfer
+   *  @author Christian Achatz
    *  @version
    *  Version 0.1, 16.08.2007<br />
+   *  Version 0.2, 19.09.2008 (Refactoring for the new documenation page)<br />
    */
-   class releases_v1_controller extends baseController
+   class releases_controller extends baseController
    {
 
       /**
       *  @private
-      *  Definiert den Pfad, in dem die Releases liegen.
+      *  Defines, where the releases reside on the filesystem.
       */
-      var $__ReleasesFolder = null;
+      var $__ReleasesLocalDir = null;
+
+
+      /**
+      *  @private
+      *  Defines the base URL, where the releases can be accessed via the HTTP protocol.
+      */
+      var $__ReleasesBaseURL = null;
 
 
       /**
       *  @public
       *
-      *  Konstruktor der Klasse. Initialisiert den Pfad, in dem die Releases liegen.<br />
+      *  Initializes the filesystem and url location of the downloads.
       *
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 12.06.2008<br />
+      *  Version 0.2, 19.09.2008 (Refactoring for the new documenation page)<br />
       */
-      function releases_v1_controller(){
+      function releases_controller(){
 
-         // Lokaler Pfad unterscheidet sich vom Remote-Pfad
          $Reg = &Singleton::getInstance('Registry');
-         if($Reg->retrieve('sites::apfdocupage','sitemap.env') == 'dev'){
-            $this->__ReleasesFolder = 'D:/Entwicklung/Dokumentation/Build/RELEASES';
-          // end if
-         }
-         else{
-            $this->__ReleasesFolder = './frontend/media/releases';
-          // end else
-         }
+         $this->__ReleasesLocalDir = $Reg->retrieve('sites::apfdocupage','Releases.LocalDir');
+         $this->__ReleasesBaseURL = $Reg->retrieve('sites::apfdocupage','Releases.BaseURL');
 
        // end function
       }
 
 
       /**
-      *  @module transformContent
       *  @public
       *
-      *  Implementiert die abstrakte Methode "transformContent".<br />
+      *  Displays the releases available in the release folder. The directory structure is
+      *  /<release_name>/[downloads|doku]/. The downloads folder contains all files, the doku folder
+      *  includes the online and offlien documentation.
       *
-      *  @author Christian Schäfer
+      *  @author Christian Achatz
       *  @version
       *  Version 0.1, 16.08.2007<br />
-      *  Version 0.2, 18.08.2007 (Release-Dateien werden nun sortiert ausgegeben)<br />
+      *  Version 0.2, 18.08.2007 (Release files are sorted by name now)<br />
+      *  Version 0.3, 19.09.2008 (Refactoring for the new documenation page)<br />
       */
       function transformContent(){
 
-         // Buffer initialisieren
+         // initialize output buffer
          $Buffer_Releases = (string)'';
 
          // Releases auslesen und aufsteigend sortieren
-         if(!is_dir($this->__ReleasesFolder)){
+         if(!is_dir($this->__ReleasesLocalDir)){
             $Template__NoContent = &$this->__getTemplate('NoContent_'.$this->__Language);
             $this->setPlaceHolder('Content',$Template__NoContent->transformTemplate());
-            return true;
+            return;
           // end if
          }
 
-         // FilesystemHandler instanziieren und Verzeichnis auslesen
-         $fH = new filesystemHandler($this->__ReleasesFolder);
+         // take filesystemHandler and read releases
+         $fH = new filesystemHandler($this->__ReleasesLocalDir);
          $Releases = array_reverse($fH->showDirContent());
-         usort($Releases,array('releases_v1_controller','sortReleases'));
+         usort($Releases,array('releases_controller','sortReleases'));
 
-         // Releases ausgeben
+         // display releases
          if(count($Releases) > 0){
 
-            // Referenzen auf die Templates holen
+            // get templates
             $Template__ReleaseHead = &$this->__getTemplate('ReleaseHead_'.$this->__Language);
             $Template__ReleaseFile = &$this->__getTemplate('ReleaseFile');
 
             for($i = 0; $i < count($Releases); $i++){
 
-               // Release-Nummer füllen
+               // fill release number
                $Template__ReleaseHead->setPlaceHolder('ReleaseNumber',$Releases[$i]);
 
-               // Dateien holen
-               $fH->changeWorkDir($this->__ReleasesFolder.'/'.$Releases[$i].'/download');
+               // fetch files
+               $fH->changeWorkDir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download');
                $Files = $fH->showDirContent();
 
-               // Dateien sortieren
+               // sort files
                sort($Files);
 
-               // ReleaseDescription füllen
-               $ReleaseDescriptionFile = $this->__ReleasesFolder.'/'.$Releases[$i].'/'.$this->__Language.'_release_description.html';
+               // fill eleaseDescription
+               $ReleaseDescriptionFile = $this->__ReleasesLocalDir.'/'.$Releases[$i].'/'.$this->__Language.'_release_description.html';
                if(file_exists($ReleaseDescriptionFile)){
                   $Template__ReleaseHead->setPlaceHolder('ReleaseDescription',file_get_contents($ReleaseDescriptionFile));
                 // end if
@@ -109,18 +112,19 @@
                 // end else
                }
 
-               // Documentation füllen
-               $fH->changeWorkDir($this->__ReleasesFolder.'/'.$Releases[$i].'/doku');
+               // fill Documentation
+               $fH->changeWorkDir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/doku');
                $DokuFiles = $fH->showDirContent();
 
                $Template__OfflineDoku = &$this->__getTemplate('OfflineDoku_'.$this->__Language);
                $Template__OfflineDoku->setPlaceHolder('ReleaseVersion',$Releases[$i]);
                $Buffer_OfflineDoku = (string)'';
+
                for($k = 0; $k < count($DokuFiles); $k++){
 
-                  if(!is_dir($this->__ReleasesFolder.'/'.$Releases[$i].'/doku/'.$DokuFiles[$k])){
+                  if(!is_dir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/doku/'.$DokuFiles[$k])){
 
-                     // Datei-Typ erzeugen
+                     // gather file type
                      switch(substr($DokuFiles[$k],strrpos($DokuFiles[$k],'.') + 1)){
 
                         case 'chm':
@@ -133,7 +137,7 @@
                       // end switch
                      }
 
-                     // Doku-Typ erzeugen
+                     // gather docu type
                      if(substr_count($DokuFiles[$k],'-core-') > 0){
 
                         if($this->__Language == 'de'){
@@ -174,7 +178,7 @@
                       // end else
                      }
 
-                     // Build-Datum extrahieren
+                     // extract build date
                      preg_match('/-([0-9]{2}\.[0-9]{2}\.[0-9]{4})-/',$DokuFiles[$k],$Matches);
                      if(isset($Matches[1])){
                        $BuildDate = $Matches[1];
@@ -208,6 +212,7 @@
                      $Template__OfflineDoku->setPlaceHolder('LibType',$LibType);
                      $Template__OfflineDoku->setPlaceHolder('DokuType',$DokuType);
                      $Template__OfflineDoku->setPlaceHolder('DokuFile',$DokuFiles[$k]);
+                     $Template__OfflineDoku->setPlaceHolder('ReleasesBaseURL',$this->__ReleasesBaseURL);
                      $Buffer_OfflineDoku .= $Template__OfflineDoku->transformTemplate();
 
                    // end if
@@ -218,28 +223,34 @@
                $Template__Documentation = &$this->__getTemplate('Documentation_'.$this->__Language);
                $Template__Documentation->setPlaceHolder('ReleaseVersion',$Releases[$i]);
                $Template__Documentation->setPlaceHolder('OfflineDoku',$Buffer_OfflineDoku);
+               $Template__Documentation->setPlaceHolder('ReleasesBaseURL',$this->__ReleasesBaseURL);
                $Template__ReleaseHead->setPlaceHolder('Documentation',$Template__Documentation->transformTemplate());
 
 
-               // Dateien ausgeben
-               $fH->changeWorkDir($this->__ReleasesFolder.'/'.$Releases[$i].'/download');
+               // display SVN link
+               $Template__ReleaseHead->setPlaceHolder('SVNWebURL','http://adventurephpfra.svn.sourceforge.net/viewvc/adventurephpfra/tags/'.$Releases[$i]);
+               $Template__ReleaseHead->setPlaceHolder('SVNURL','https://adventurephpfra.svn.sourceforge.net/svnroot/adventurephpfra/tags/'.$Releases[$i]);
+
+
+               // display release files
+               $fH->changeWorkDir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download');
                $Buffer_Files = (string)'';
 
                for($j = 0; $j < count($Files); $j++){
 
-                  if(!is_link($this->__ReleasesFolder.'/'.$Releases[$i].'/download/'.$Files[$j]) && !is_dir($this->__ReleasesFolder.'/'.$Releases[$i].'/download/'.$Files[$j])){
+                  if(!is_link($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j]) && !is_dir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j])){
 
-                     // Datei-Attribute lesen
-                     $FileAttributes = $fH->showFileAttributes($this->__ReleasesFolder.'/'.$Releases[$i].'/download/'.$Files[$j]);
+                     // gather file attributes
+                     $FileAttributes = $fH->showFileAttributes($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j]);
 
-                     //Template füllen
-                     $Template__ReleaseFile->setPlaceHolder('Link','/frontend/media/releases/'.$Releases[$i].'/download/'.$Files[$j]);
+                     // fill template
+                     $Template__ReleaseFile->setPlaceHolder('Link',$this->__ReleasesBaseURL.'/'.$Releases[$i].'/download/'.$Files[$j]);
                      $Template__ReleaseFile->setPlaceHolder('Name',$Files[$j]);
                      $Template__ReleaseFile->setPlaceHolder('Date',$FileAttributes['ModifyingDate']);
-                     $Template__ReleaseFile->setPlaceHolder('Size',$fH->showFileSize($this->__ReleasesFolder.'/'.$Releases[$i].'/download/'.$Files[$j]));
+                     $Template__ReleaseFile->setPlaceHolder('Size',$fH->showFileSize($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j]));
                      $Template__ReleaseFile->setPlaceHolder('Type',$FileAttributes['Extension']);
 
-                     // Datei zum Puffer hinzufügen
+                     // add file to files buffer
                      $Buffer_Files .= $Template__ReleaseFile->transformTemplate();
 
                    // end if
@@ -248,10 +259,10 @@
                 // end for
                }
 
-               // Datei-Liste in Release einsetzen
+               // generate file list
                $Template__ReleaseHead->setPlaceHolder('ReleaseFiles',$Buffer_Files);
 
-               // Release generieren
+               // generate whole release block
                $Buffer_Releases .= $Template__ReleaseHead->transformTemplate();
 
              // end for
@@ -260,7 +271,7 @@
           // end if
          }
 
-         // Buffer in Inhalt einsetzen
+         // display content
          $this->setPlaceHolder('Content',$Buffer_Releases);
 
        // end function
@@ -268,16 +279,15 @@
 
 
       /**
-      *  @module sortReleases()
       *  @public
       *  @static
       *
-      *  Sortierfunktion für die Ausgabe von Releases.<br />
+      *  Implementation of the release file sort function.
       *
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 23.10.2007<br />
-      *  Version 0.2, 15.01.2008 (Sortierung nochmals korrigiert)<br />
+      *  Version 0.2, 15.01.2008 (Update to the sort algorithm)<br />
       */
       function sortReleases($OffsetOne,$OffsetTwo){
 
@@ -313,7 +323,7 @@
                $return = ($OffsetOneValue < $OffsetTwoValue) ? 1 : -1;
              // end else
             }
-            //echo ' "'.$return.'" (Fall 1)';
+            //echo ' "'.$return.'" (case 1)';
 
           // end if
          }
@@ -348,7 +358,7 @@
                $return = ($OffsetOneValue < $OffsetTwoValue) ? 1 : -1;
              // end else
             }
-            //echo ' "'.$return.'" (Fall 2)';
+            //echo ' "'.$return.'" (case 2)';
 
           // end if
          }
@@ -366,7 +376,7 @@
                $return = ($OffsetOneValue < $OffsetTwoValue) ? 1 : -1;
              // end else
             }
-            //echo ' "'.$return.'" (Fall 3)';
+            //echo ' "'.$return.'" (case 3)';
 
           // end if
          }
@@ -384,12 +394,12 @@
                $return = ($OffsetOneValue < $OffsetTwoValue) ? 1 : -1;
              // end else
             }
-            //echo ' "'.$return.'" (Fall 4)';
+            //echo ' "'.$return.'" (case 4)';
 
           // end if
          }
 
-         // Wert zurückgeben
+         // return sort indicator
          return $return;
 
        // end function
