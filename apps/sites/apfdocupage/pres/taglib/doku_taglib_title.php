@@ -37,6 +37,7 @@
       *  @version
       *  Version 0.1, 18.09.2008<br />
       *  Version 0.2, 19.09.2008 (Added meta tag and urlname handling; changed description output format)<br />
+      *  Version 0.3, 30.09.2008 (Removed double blanks in meta description)<br />
       */
       function onParseTime(){
 
@@ -74,7 +75,7 @@
          // inform model
          $Model = &Singleton::getInstance('APFModel');
          $Model->setAttribute('page.title',$this->__Title);
-         $Model->setAttribute('page.description',str_replace("\r",'',str_replace("\n",'',trim($this->__Content))));
+         $Model->setAttribute('page.description',str_replace('  ',' ',str_replace("\r",'',str_replace("\n",'',trim($this->__Content)))));
          $Model->setAttribute('page.tags',$Tags);
          $Model->setAttribute('page.urlname',$URLName);
 
