@@ -3,7 +3,7 @@
 
 
    /**
-   *  @package sites::demosite::pres::documentcontroller
+   *  @package sites::apfdocupage::pres::documentcontroller::perspectices::content
    *  @class releases_controller
    *
    *  Implements the document controller for the releases view.
@@ -68,7 +68,7 @@
          // initialize output buffer
          $Buffer_Releases = (string)'';
 
-         // Releases auslesen und aufsteigend sortieren
+         // display message, if no release is available
          if(!is_dir($this->__ReleasesLocalDir)){
             $Template__NoContent = &$this->__getTemplate('NoContent_'.$this->__Language);
             $this->setPlaceHolder('Content',$Template__NoContent->transformTemplate());

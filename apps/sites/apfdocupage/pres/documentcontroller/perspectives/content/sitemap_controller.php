@@ -1,5 +1,5 @@
 <?php
-   import('modules::fulltextsearch::biz','fulltextsearchManager');
+   import('sites::apfdocupage::biz','fulltextsearchManager');
    import('tools::link','linkHandler');
    import('sites::apfdocupage::biz','APFModel');
 
@@ -40,7 +40,7 @@
          $Model = &Singleton::getInstance('APFModel');
 
          // get fulltextsearch manager
-         $M = &$this->__getServiceObject('modules::fulltextsearch::biz','fulltextsearchManager');
+         $M = &$this->__getServiceObject('sites::apfdocupage::biz','fulltextsearchManager');
 
          // load pages
          $Pages = $M->loadPages();
@@ -57,9 +57,17 @@
 
          for($i = 0; $i < $count; $i++){
 
+            // set page title
             $Template__Page->setPlaceHolder('Title',utf8_encode($Pages[$i]->get('Title')));
-            $Template__Page->setPlaceHolder('LastMod',$Pages[$i]->get('LastMod'));
+
+            // build link
+            $URLName = $Pages[$i]->get('URLName');
             $Template__Page->setPlaceHolder('Link',linkHandler::generateLink('',array($CurrentPageIndicator => str_replace('_','-',$Pages[$i]->get('Name')))));
+
+            // set last mod
+            $Template__Page->setPlaceHolder('LastMod',$Pages[$i]->get('LastMod'));
+
+            // display current page
             $Buffer .= $Template__Page->transformTemplate();
 
           // end for
