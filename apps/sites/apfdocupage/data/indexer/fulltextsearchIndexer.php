@@ -55,7 +55,7 @@
          $L = &Singleton::getInstance('Logger');
 
          // Konfiguration holen
-         $Config = &$this->__getConfiguration('modules::fulltextsearch','fulltextsearch');
+         $Config = &$this->__getConfiguration('sites::apfdocupage::biz','fulltextsearch');
 
          // Connection holen
          $cM = &$this->__getServiceObject('core::database','connectionManager');
@@ -82,34 +82,55 @@
                // Status-Cache löschen
                clearstatcache();
 
-               // Attribute aus Datei lesen
-               $Lang = substr($File,2,2);
-               $Name = substr($File,5,(strlen($File) - 10));
-               $ModStamp = date('Y-m-d H:i:s',filemtime($this->__ContentFolder.'/'.$File));
-               $Content = file_get_contents($this->__ContentFolder.'/'.$File);
-               preg_match('/<font style="font-size: 26px; font weight: bold;">([A-Za-z0-9-\(\)&;:.<\/>!\s]+)<\/font>/i',$Content,$Matches);
-               unset($Content);
+               // extract attributes from the file name
+               /*echo '<br />$Lang: '.*/$Lang = substr($File,2,2);
+               /*echo '<br />$FileName: '.*/$FileName = substr($File,5,(strlen($File) - 10));
+               /*echo '<br />$PageID: '.*/$PageID = substr($FileName,0,3);
+               /*echo '<br />$ModStamp: '.*/$ModStamp = date('Y-m-d H:i:s',filemtime($this->__ContentFolder.'/'.$File));
 
-               if(isset($Matches[1])){
-                  $Title = $Matches[1];
+               // extract title and urlname
+               $Content = file_get_contents($this->__ContentFolder.'/'.$File);
+
+               preg_match('/title="([A-Za-z0-9\(\) \/\-&;.:]+)"/i',$Content,$TitleMatches);
+
+               if(isset($TitleMatches[1])){
+                  $Title = $TitleMatches[1];
                 // end if
                }
                else{
                   $Title = '---';
-                  $L->logEntry($this->__LogFileName,'- File "'.$File.'" contains no title ...');
+                  $L->logEntry($this->__LogFileName,'- File "'.$FileName.'" contains no title ...');
                 // end else
                }
 
+               //echo '<br />$Title: '.$Title;
+
+               preg_match('/urlname="([A-Za-z0-9\-]+)"/i',$Content,$URLNameMatches);
+
+               if(isset($URLNameMatches[1])){
+                  $URLName = $URLNameMatches[1];
+                // end if
+               }
+               else{
+                  $URLName = '---';
+                  $L->logEntry($this->__LogFileName,'- File "'.$FileName.'" contains no urlname ...');
+                // end else
+               }
+
+               //echo '<br />$URLName: '.$URLName;
+
                // In Artikel-Datenbank einfügen
                $insert = 'INSERT INTO search_articles
-                          (Title,Language,Name,ModificationTimestamp)
+                          (Title,PageID,URLName,Language,FileName,ModificationTimestamp)
                           VALUES
-                          (\''.$Title.'\',\''.$Lang.'\',\''.$Name.'\',\''.$ModStamp.'\')';
+                          (\''.$Title.'\',\''.$PageID.'\',\''.$URLName.'\',\''.$Lang.'\',\''.$FileName.'\',\''.$ModStamp.'\');';
                $SQL->executeTextStatement($insert);
 
                // Log-Eintrag schreiben
                $L->logEntry($this->__LogFileName,'[FINISH] Create article from "'.$File.'" ...');
                $L->flushLogBuffer();
+
+               //echo '<br />---------------------------';
 
              // end if
             }
@@ -427,7 +448,7 @@
          // Stopwords löschen und gegen Leerzeichen ersetzen
          //$T->start('Stopwords ersetzen');
          //$T->start('import()');
-         include(APPS__PATH.'/modules/fulltextsearch/data/indexer/Stopwords.php');
+         include(APPS__PATH.'/sites/apfdocupage/data/indexer/Stopwords.php');
          //$T->stop('import()');
          foreach($Stopwords[$Language] as $Stopword){
             $Content = preg_replace('/ '.$Stopword.' /',' ',$Content);

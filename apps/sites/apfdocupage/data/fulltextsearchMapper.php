@@ -3,8 +3,8 @@
 
 
    /**
-   *  @package modules::fulltextsearch::data
-   *  @module fulltextsearchMapper
+   *  @package sites::apfdocupage::data
+   *  @class fulltextsearchMapper
    *
    *  Implementiert die Datenschicht für die Volltextsuche.<br />
    *
@@ -20,10 +20,9 @@
 
 
       /**
-      *  @module loadSearchResult()
       *  @public
       *
-      *  Läd Ergebnis-Objekte gemäß einem Suchwort.<br />
+      *  Läd Ergebnis-Objekte gemäß einem Suchwort.
       *
       *  @param string $SearchString; Suchwort, oder mehrere Wörter per Space getrennt
       *  @return array $SearchResults; Liste von Such-Ergebnis-Objekten
@@ -39,7 +38,7 @@
          $T->start('fulltextsearchMapper::loadSearchResult()');
 
          // Konfiguration holen
-         $Config = &$this->__getConfiguration('modules::fulltextsearch','fulltextsearch');
+         $Config = &$this->__getConfiguration('sites::apfdocupage::biz','fulltextsearch');
 
          // Connection holen
          $cM = &$this->__getServiceObject('core::database','connectionManager');
@@ -94,10 +93,9 @@
 
 
       /**
-      *  @module loadPages()
       *  @public
       *
-      *  Läd alle Seiten im Index für eine bestimmte Sprache.<br />
+      *  Läd alle Seiten im Index für eine bestimmte Sprache.
       *
       *  @param string $Language; Sprache der zu ladenen Seiten
       *  @return array $Pages; Liste von Seiten-Objekten
@@ -113,7 +111,7 @@
          $T->start('fulltextsearchMapper::loadPages()');
 
          // Konfiguration holen
-         $Config = &$this->__getConfiguration('modules::fulltextsearch','fulltextsearch');
+         $Config = &$this->__getConfiguration('sites::apfdocupage::biz','fulltextsearch');
 
          // Connection holen
          $cM = &$this->__getServiceObject('core::database','connectionManager');
@@ -124,7 +122,7 @@
                     WHERE
                        Language = \''.$Language.'\'
                        AND
-                       Name != \'404\'
+                       FileName != \'404\'
                     ORDER BY Title ASC';
 
          // Abfrage ausführen
@@ -149,67 +147,6 @@
 
 
       /**
-      *  @module getPageTags()
-      *  @public
-      *
-      *  Läd eine Liste der in der Seite vorhandenen Tags.<br />
-      *
-      *  @param string $PageID; ID der aktuellen Seite
-      *  @return array $Tags; Liste von Tags
-      *
-      *  @param string $Language; Sprache der zu ladenen Seiten
-      *  @return array $Pages; Liste von Seiten-Objekten
-      *
-      *  @author Christian Achatz
-      *  @version
-      *  Version 0.1, 24.03.2008<br />
-      */
-      function getPageTags($PageID){
-
-         // Timer starten
-         $T = &Singleton::getInstance('benchmarkTimer');
-         $T->start('fulltextsearchMapper::getPageTags()');
-
-         // Konfiguration holen
-         $Config = &$this->__getConfiguration('modules::fulltextsearch','fulltextsearch');
-
-         // Connection holen
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
-         $SQL = &$cM->getConnection($Config->getValue('Database','ConnectionKey'));
-
-         // Statement erzeugen
-         $select = 'SELECT search_word.Word AS Word, search_index.WordCount as Count FROM search_word
-                    INNER JOIN search_index ON search_word.WordID = search_index.IndexID
-                    INNER JOIN search_articles ON search_index.ArticleID = search_articles.ArticleID
-                    WHERE
-                       search_articles.Name LIKE \''.$PageID.'%\'
-                       AND search_articles.Language = \''.$this->__Language.'\'
-                    ORDER BY search_index.WordCount DESC
-                    LIMIT 20;';
-
-         // Abfrage ausführen
-         $result = $SQL->executeTextStatement($select);
-
-         // Ergebnisse in DomainObjekte mappen
-         $Tags = array();
-
-         while($data = $SQL->fetchData($result)){
-            $Tags[$data['Word']] = $data['Count'];
-          // end while
-         }
-
-         // Timer stoppen
-         $T->stop('fulltextsearchMapper::getPageTags()');
-
-         // Ergebnisse laden
-         return $Tags;
-
-       // end function
-      }
-
-
-      /**
-      *  @module __mapSearchResult2DomainObject()
       *  @private
       *
       *  Mappt ein Result-Array in ein Ergebnis-Objekte.<br />
@@ -220,14 +157,25 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 10.03.2008<br />
+      *  Version 0.2, 02.10.2008 (Added some new domain object attributes)<br />
       */
       function __mapSearchResult2DomainObject($ResultSet){
 
          // Objekt erstellen
          $SearchResult = new searchResult();
 
-         if(isset($ResultSet['Name'])){
-            $SearchResult->set('Name',$ResultSet['Name']);
+         if(isset($ResultSet['FileName'])){
+            $SearchResult->set('FileName',$ResultSet['FileName']);
+          // end if
+         }
+
+         if(isset($ResultSet['URLName'])){
+            $SearchResult->set('URLName',$ResultSet['URLName']);
+          // end if
+         }
+
+         if(isset($ResultSet['PageID'])){
+            $SearchResult->set('PageID',$ResultSet['PageID']);
           // end if
          }
 

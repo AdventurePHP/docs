@@ -45,7 +45,7 @@
          // load pages
          $Pages = $M->loadPages();
 
-         // define current page indicator
+         // gather current page indicator
          $Language = $Model->getAttribute('page.language');
          $PageIndicators = $Model->getAttribute('page.indicator');
          $CurrentPageIndicator = $PageIndicators[$Language];
@@ -62,7 +62,8 @@
 
             // build link
             $URLName = $Pages[$i]->get('URLName');
-            $Template__Page->setPlaceHolder('Link',linkHandler::generateLink('',array($CurrentPageIndicator => str_replace('_','-',$Pages[$i]->get('Name')))));
+            $PageID = $Pages[$i]->get('PageID');
+            $Template__Page->setPlaceHolder('Link',linkHandler::generateLink('',array($CurrentPageIndicator => $PageID.'-'.$URLName)));
 
             // set last mod
             $Template__Page->setPlaceHolder('LastMod',$Pages[$i]->get('LastMod'));

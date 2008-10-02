@@ -1,7 +1,7 @@
 <?php
    /**
-   *  @package modules::fulltextsearch::data
-   *  @file httpindexer.php
+   *  @package sites::apfdocupage::data
+   *  @file indexer.php
    *
    *  Wrapper-Datei für den Indexer.<br />
    *
@@ -18,15 +18,16 @@
    set_time_limit(0);
    ini_set('memory_limit','300M');
 
-   // FrontController einbinden
+   // include front controller
    import('core::frontcontroller','Frontcontroller');
 
-   // Indexer einbinden
-   import('modules::fulltextsearch::data::indexer','fulltextsearchIndexer');
+   // include indexer class
+   import('sites::apfdocupage::data::indexer','fulltextsearchIndexer');
 
-   // Indexer erstellen
+   // create indexer
    $fSI = new fulltextsearchIndexer();
-   $fSI->set('Context','sites::demosite');
+   $fSI->set('Context','sites::apfdocupage');
+   $fSI->set('ContentFolder','./apps/sites/apfdocupage/pres/content');
 
    // Gewünschten Job ausführen
    $nothing2do = false;

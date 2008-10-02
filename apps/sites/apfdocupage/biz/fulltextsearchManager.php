@@ -1,13 +1,13 @@
 <?php
    import('modules::pager::biz','pagerManager');
-   import('modules::fulltextsearch::biz','searchResult');
-   import('modules::fulltextsearch::data','fulltextsearchMapper');
+   import('sites::apfdocupage::biz','searchResult');
+   import('sites::apfdocupage::data','fulltextsearchMapper');
    import('core::logging','Logger');
 
 
    /**
-   *  @package modules::fulltextsearch::biz
-   *  @module fulltextsearchManager
+   *  @package sites::apfdocupage::biz
+   *  @class fulltextsearchManager
    *
    *  Implementiert die Business-Schicht f¸r die Volltextsuche.<br />
    *
@@ -23,7 +23,6 @@
 
 
       /**
-      *  @module loadSearchResult()
       *  @public
       *
       *  L‰d Ergebnis-Objekte gem‰ﬂ einem Suchwort.<br />
@@ -38,7 +37,7 @@
       function loadSearchResult($SearchString){
 
          // Mapper laden
-         $M = &$this->__getServiceObject('modules::fulltextsearch::data','fulltextsearchMapper');
+         $M = &$this->__getServiceObject('sites::apfdocupage::data','fulltextsearchMapper');
 
          // Suchwort protokollieren
          $L = &Singleton::getInstance('Logger');
@@ -52,7 +51,6 @@
 
 
       /**
-      *  @module loadPages()
       *  @public
       *
       *  L‰d eine Liste der in der Seite vorhandenen Seiten.<br />
@@ -66,7 +64,7 @@
       function loadPages(){
 
          // Mapper laden
-         $M = &$this->__getServiceObject('modules::fulltextsearch::data','fulltextsearchMapper');
+         $M = &$this->__getServiceObject('sites::apfdocupage::data','fulltextsearchMapper');
 
          // Suchwort protokollieren
          $L = &Singleton::getInstance('Logger');
@@ -74,40 +72,6 @@
 
          // Ergebnisse laden
          return $M->loadPages($this->__Language);
-
-       // end function
-      }
-
-
-      /**
-      *  @module getPageTags()
-      *  @public
-      *
-      *  L‰d eine Liste der in der Seite vorhandenen Tags.<br />
-      *
-      *  @return array $Tags; Liste von Tags
-      *
-      *  @author Christian Achatz
-      *  @version
-      *  Version 0.1, 05.06.2008<br />
-      */
-      function getPageTags(){
-
-         // Model beziehen
-         $Model = &$this->__getServiceObject('sites::demosite::biz','DemositeModel');
-
-         // Model-Werte auslesen
-         $ReqParamName = $Model->getAttribute('ReqParamName');
-         $DefaultPageName = $Model->getAttribute('DefaultPageName');
-         $RequestParameter = $ReqParamName[$this->__Language];
-         $DefaultValue = $DefaultPageName[$this->__Language];
-         $_LOCALS = variablenHandler::registerLocal(array($RequestParameter,$DefaultValue));
-
-         // Mapper laden
-         $M = &$this->__getServiceObject('modules::fulltextsearch::data','fulltextsearchMapper');
-
-         // Ergebnisse laden
-         return $M->getPageTags($_LOCALS[$RequestParameter]);
 
        // end function
       }
