@@ -45,7 +45,7 @@
       *  @private
       *  url id of the page.
       */
-      var $PageID;
+      var $__PageID;
 
 
       /**

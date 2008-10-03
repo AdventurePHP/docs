@@ -1,6 +1,7 @@
 <?php
    import('sites::apfdocupage::biz','APFModel');
    import('sites::apfdocupage::pres::taglib','php_taglib_highlight');
+   import('sites::apfdocupage::pres::taglib','html_taglib_highlight');
    import('sites::apfdocupage::pres::taglib','doku_taglib_link');
    import('sites::apfdocupage::pres::taglib','doku_taglib_title');
 
