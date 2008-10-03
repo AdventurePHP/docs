@@ -1,17 +1,18 @@
 <?php
    /**
-   *  @package sites::apfdocupage::data
+   *  @package sites::apfdocupage::data::indexer
    *  @file indexer.php
    *
-   *  Wrapper-Datei für den Indexer.<br />
+   *  script wrapper file for the indexer service.
    *
    *  @author Christian Achatz
    *  @version
    *  Version 0.1, 10.03.2008<br />
    *  Version 0.2, 16.03.2008<br />
+   *  Version 0.3, 03.10.2008 (Added some corrections)<br />
    */
 
-   // Fehlermeldung konfigurieren (für Livebetrieb)
+   // configure some php params
    ini_set('html_errors','off');
    error_reporting(E_ALL);
    ini_set('display_errors','On');
@@ -29,7 +30,7 @@
    $fSI->set('Context','sites::apfdocupage');
    $fSI->set('ContentFolder','./apps/sites/apfdocupage/pres/content');
 
-   // Gewünschten Job ausführen
+   // execute desired job
    $nothing2do = false;
 
    if(isset($_REQUEST['job'])){
@@ -55,7 +56,7 @@
    }
 
 
-   // Kein Job angegeben
+   // print usage
    if($nothing2do == true){
       echo 'Parameter "job" not filled, so there\'s nothing to do! Valid jobs are "createindex" and "importarticles".';
     // end if

@@ -93,9 +93,18 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 18.09.2008<br />
+      *  Version 0.2, 03.10.2008 (Introduced the "display" attribute. If present and set to false, the title will not be displayed)<br />
       */
       function transform(){
-         return '<h2>'.$this->__Title.'</h2>';
+         if(isset($this->__Attributes['display']) && $this->__Attributes['display'] == 'false'){
+            return (string)'';
+          // end if
+         }
+         else{
+           return '<h2>'.$this->__Title.'</h2>';
+          // end else
+         }
+
        // end function
       }
 

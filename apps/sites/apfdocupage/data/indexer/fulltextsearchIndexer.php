@@ -46,6 +46,7 @@
       *  @version
       *  Version 0.1, 16.03.2008<br />
       *  Version 0.2, 02.10.2008 (Changed to fit new documentation page)<br />
+      *  Version 0.3, 03.10.2008 (Added some new characters to the title regexp)<br />
       */
       function importArticles(){
 
@@ -62,16 +63,16 @@
          $cM = &$this->__getServiceObject('core::database','connectionManager');
          $SQL = &$cM->getConnection($Config->getValue('Database','ConnectionKey'));
 
-         // Bisherige Artikel löschen
+         // delete old articles
          $L->logEntry($this->__LogFileName,'[DELETE] Delete articles ...');
          $delete = 'TRUNCATE search_articles';
          $SQL->executeTextStatement($delete);
 
-         // Dateien auslesen
+         // list content files
          $fH = new filesystemHandler($this->__ContentFolder);
          $Files = $fH->showDirContent();
 
-         // Dateien importieren
+         // import files
          foreach($Files as $File){
 
             // Auf Datei prüfen
@@ -84,15 +85,15 @@
                clearstatcache();
 
                // extract attributes from the file name
-               /*echo '<br />$Lang: '.*/$Lang = substr($File,2,2);
-               /*echo '<br />$FileName: '.*/$FileName = substr($File,5,(strlen($File) - 10));
-               /*echo '<br />$PageID: '.*/$PageID = substr($FileName,0,3);
-               /*echo '<br />$ModStamp: '.*/$ModStamp = date('Y-m-d H:i:s',filemtime($this->__ContentFolder.'/'.$File));
+               $Lang = substr($File,2,2);
+               $FileName = substr($File,5,(strlen($File) - 10));
+               $PageID = substr($FileName,0,3);
+               $ModStamp = date('Y-m-d H:i:s',filemtime($this->__ContentFolder.'/'.$File));
 
                // extract title and urlname
                $Content = file_get_contents($this->__ContentFolder.'/'.$File);
 
-               preg_match('/title="([A-Za-z0-9\(\) \/\-&;.:]+)"/i',$Content,$TitleMatches);
+               preg_match('/title="([A-Za-z0-9\(\) \/\-&;.:!]+)"/i',$Content,$TitleMatches);
 
                if(isset($TitleMatches[1])){
                   $Title = $TitleMatches[1];
@@ -103,8 +104,6 @@
                   $L->logEntry($this->__LogFileName,'- File "'.$FileName.'" contains no title ...');
                 // end else
                }
-
-               //echo '<br />$Title: '.$Title;
 
                preg_match('/urlname="([A-Za-z0-9\-]+)"/i',$Content,$URLNameMatches);
 
@@ -118,8 +117,6 @@
                 // end else
                }
 
-               //echo '<br />$URLName: '.$URLName;
-
                // In Artikel-Datenbank einfügen
                $insert = 'INSERT INTO search_articles
                           (Title,PageID,URLName,Language,FileName,ModificationTimestamp)
@@ -130,8 +127,6 @@
                // Log-Eintrag schreiben
                $L->logEntry($this->__LogFileName,'[FINISH] Create article from "'.$File.'" ...');
                $L->flushLogBuffer();
-
-               //echo '<br />---------------------------';
 
              // end if
             }
@@ -284,10 +279,6 @@
       */
       function __getWordID($Word){
 
-         // Timer starten
-         //$T = &Singleton::getInstance('benchmarkTimer');
-         //$T->start('fulltextsearchIndexer->__getWordID('.$Word.')');
-
          // Konfiguration holen
          $Config = &$this->__getConfiguration('sites::apfdocupage::biz','fulltextsearch');
 
@@ -311,9 +302,6 @@
             $ID = $data_word['WordID'];
           // end else
          }
-
-         // Timer stoppen
-         //$T->stop('fulltextsearchIndexer->__getWordID('.$Word.')');
 
          // ID zurückgeben
          return $ID;
@@ -376,12 +364,7 @@
       */
       function __normalizeContent($Content,$Language){
 
-         // Timer starten
-         //$T = &Singleton::getInstance('benchmarkTimer');
-         //$T->start('fulltextsearchIndexer->__normalizeContent()');
-
          // Sonderzeichen ersetzen und normalisieren
-         //$T->start('Sonderzeichen ersetzen');
          $locSearch[] = '/ß/i';
          $locSearch[] = '/ä/i';
          $locSearch[] = '/ö/i';
@@ -406,26 +389,16 @@
          $Content = strtolower($Content);
          $Content = trim($Content);
          $Content = preg_replace($locSearch,$locReplace,$Content);
-         //$T->stop('Sonderzeichen ersetzen');
 
          // Stopwords löschen und gegen Leerzeichen ersetzen
-         //$T->start('Stopwords ersetzen');
-         //$T->start('import()');
          include(APPS__PATH.'/sites/apfdocupage/data/indexer/Stopwords.php');
-         //$T->stop('import()');
          foreach($Stopwords[$Language] as $Stopword){
             $Content = preg_replace('/ '.$Stopword.' /',' ',$Content);
           // end foreach
          }
-         //$T->stop('Stopwords ersetzen');
 
          // Wörter mit nur zwei Buchstaben entfernen
-         //$T->start('Wörter mit > 2 Buchstaben ersetzen');
          $Content = preg_replace('/(\s[A-Za-z]{1,2})\s/','',$Content);
-         //$T->stop('Wörter mit > 2 Buchstaben ersetzen');
-
-         // Timer stoppen
-         //$T->stop('fulltextsearchIndexer->__normalizeContent()');
 
          // Inhalt zurückgeben
          return $Content;
