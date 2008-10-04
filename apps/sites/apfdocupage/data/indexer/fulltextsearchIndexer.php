@@ -336,8 +336,9 @@
          $Model->setAttribute('page.contentfilename','c_'.$Language.'_'.$FileName.'.html');
          $Model->setAttribute('page.language',$Language);
 
-         // apply context
+         // apply context and language
          $CurrentPage->set('Context',$this->__Context);
+         $CurrentPage->set('Language',$Language);
 
          // load indexer template
          $CurrentPage->loadDesign('sites::apfdocupage::pres::templates::indexer','createindex');
