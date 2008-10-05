@@ -82,15 +82,13 @@
 
 
          // get comment database connection
-         $SQLComments = &$cM->getConnection('Comments'); // <-- hier evtl. noch ein Bug, da der
-                                                         // MySQLxHandler die Comments-Datenbank
-                                                         // nicht sieht!
+         $SQLComments = &$cM->getConnection('Comments');
 
          // get comment posts template
          $Template__PostsComments = &$this->__getTemplate('PostsComments');
 
          // select the last two comments
-         $select_comments = 'SELECT ArticleCommentID,Comment,Date,Time,CategoryKey
+         $select_comments = 'SELECT Comment,CategoryKey
                              FROM article_comments
                              ORDER BY Date DESC, Time DESC
                              LIMIT 2;';
@@ -102,10 +100,15 @@
 
          while($data = $SQLComments->fetchData($result_comments)){
 
+            // gather page information by the current category key
+            $Lang = substr($data['CategoryKey'],0,2);
+            $PageID = substr($data['CategoryKey'],3,3);
+
             // fill template
-            //$Template__PostsComments->setPlaceHolder('Link',$ForumBaseURL.'/'.$this->__Language.'/viewtopic.php?f='.$data['forum_id'].'&t='.$data['topic_id']);
+            $PageInfo = $this->__getPageInfo($PageID,$Lang);
+            $Template__PostsComments->setPlaceHolder('Link','./?Seite='.$PageID.'-'.$PageInfo['URLName'].'#comments');
             $Template__PostsComments->setPlaceHolder('LinkText',utf8_encode(substr($data['Comment'],0,35).'...'));
-            //$Template__PostsComments->setPlaceHolder('Title',utf8_encode($data['topic_title']));
+            $Template__PostsComments->setPlaceHolder('Title',$PageInfo['Title']);
 
             // add line break if not first post
             if($isFirstPost === true){
@@ -125,6 +128,48 @@
 
          // add post list to content
          $this->setPlaceHolder('Comments',$Buffer);
+
+       // end function
+      }
+
+
+      /**
+      *  @private
+      *
+      *  Returns the comment link using the sitemap index.
+      *
+      *  @param string $PageID desired page id
+      *  @param string $Language language of the desired page
+      *  @return array $PageInfo the offset "URLName" contains the url name of the page, the "Title" offset presents the page's title
+      *
+      *  @author Christian Achatz
+      *  @version
+      *  Version 0.1, 05.10.2008<br />
+      */
+      function __getPageInfo($PageID,$Language){
+
+         // get model
+         $Model = &Singleton::getInstance('APFModel');
+
+         // get appropriate model paramters
+         $Lang = $Model->getAttribute('page.language');
+         $PageIndicators = $Model->getAttribute('page.indicator');
+
+         // get database connection
+         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $SQLFTSearch = &$cM->getConnection('FulltextSearch');
+
+         // select appropriate page
+         $select = 'SELECT Title,URLName FROM search_articles
+                    WHERE Language = \''.$Language.'\' AND PageID = \''.$PageID.'\';';
+         $result = $SQLFTSearch->executeTextStatement($select);
+
+         // fetch data and return link
+         $data = $SQLFTSearch->fetchData($result);
+         return array(
+                      'URLName' => $data['URLName'],
+                      'Title' => $data['Title']
+                     );
 
        // end function
       }
