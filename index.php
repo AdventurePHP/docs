@@ -7,7 +7,12 @@
 
    // get registry to adapt the standard values
    $Reg = &Singleton::getInstance('Registry');
+
+   // define environment for the sitemap
    $Reg->register('sites::apfdocupage','sitemap.env','dev');
+
+   // define forum base url for the home page's forum info box
+   $Reg->register('sites::apfdocupage','ForumBaseURL','http://forum.adventure-php-framework.org');
 
    // define the release location
    $Reg->register('sites::apfdocupage','Releases.LocalDir','D:/Entwicklung/Dokumentation/Build/RELEASES');
