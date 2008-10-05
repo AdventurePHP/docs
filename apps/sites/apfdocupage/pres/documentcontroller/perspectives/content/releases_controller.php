@@ -3,7 +3,7 @@
 
 
    /**
-   *  @package sites::apfdocupage::pres::documentcontroller::perspectices::content
+   *  @package sites::apfdocupage::pres::documentcontroller::perspectives::content
    *  @class releases_controller
    *
    *  Implements the document controller for the releases view.
