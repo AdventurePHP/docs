@@ -26,7 +26,14 @@
 
    // set current context and language
    $fC->set('Context','sites::apfdocupage');
-   $fC->set('Language','de');
+   if(isset($_REQUEST['lang'])){
+      $fC->set('Language',$_REQUEST['lang']);
+    // end if
+   }
+   else{
+      $fC->set('Language','de');
+    // end else
+   }
 
    // register the setModel action
    $fC->registerAction('sites::apfdocupage::biz','setModel');
