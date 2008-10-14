@@ -1,7 +1,6 @@
 <?php
    import('sites::apfdocupage::biz','APFModel');
-   import('core::session','sessionManager');
-   import('3rdparty::webstat::biz','');
+   import('sites::apfdocupage::biz','StatManager');
 
 
    /**
@@ -16,6 +15,13 @@
    */
    class StatAction extends AbstractFrontcontrollerAction
    {
+
+      /**
+      *  @private
+      *  Define this action as a post transform action.
+      */
+      var $__Type = 'posttransform';
+
 
       function StatAction(){
       }
@@ -35,27 +41,24 @@
          // get model
          $Model = &Singleton::getInstance('APFModel');
 
-         // get current URL
-         $RequestURI = $_SERVER['REQUEST_URI'];
+         // get page language and name
+         $PageLang = $Model->getAttribute('page.language');
+         $PageName = $Model->getAttribute('page.title');
+         if($PageName === null){
+            if($PageLang == 'de'){
+               $PageName = 'Startseite';
+             // end if
+            }
+            else{
+               $PageName = 'Home';
+             // end else
+            }
+          // end if
+         }
 
-         // create session and gather session id
-         $Session = new sessionManager('WebStat');
-         $SessionID = $Session->getSessionID();
-
-         // gather referer
-         $Referrer = $wSM->getReferrer();
-
-   $wSM->writeStatistic($StatParam['Seite'],
-                        $StatParam['Benutzer'],
-                        $StatParam['RequestURI'],
-                        $StatParam['SessionID'],
-                        $StatParam['Referrer']
-                       );
-         // insert into statistic database
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
-         $SQL = &$cM->getConnection('Stat');
-
-         $insert = '';
+         // write statistic entry
+         $SM = &$this->__getServiceObject('sites::apfdocupage::biz','StatManager');
+         $SM->writeStatistic($PageName,$PageLang);
 
        // end function
       }

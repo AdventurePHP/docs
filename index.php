@@ -38,6 +38,9 @@
    // register the setModel action
    $fC->registerAction('sites::apfdocupage::biz','setModel');
 
+   // register the stat action
+   $fC->registerAction('sites::apfdocupage::biz','Stat');
+
    // start the front controller
    $fC->start('sites::apfdocupage::pres::templates','apfdocupage');
 
