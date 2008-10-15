@@ -47,6 +47,7 @@
       *  Version 0.1, 16.03.2008<br />
       *  Version 0.2, 02.10.2008 (Changed to fit new documentation page)<br />
       *  Version 0.3, 03.10.2008 (Added some new characters to the title regexp)<br />
+      *  Version 0.4, 15.10.2008 (Added some characters to the urlname)<br />
       */
       function importArticles(){
 
@@ -105,7 +106,7 @@
                 // end else
                }
 
-               preg_match('/urlname="([A-Za-z0-9\-]+)"/i',$Content,$URLNameMatches);
+               preg_match('/urlname="([A-Za-z0-9\-\.]+)"/i',$Content,$URLNameMatches);
 
                if(isset($URLNameMatches[1])){
                   $URLName = $URLNameMatches[1];
