@@ -31,6 +31,7 @@
       *  Version 0.4, 21.08.2007 (Added rudiementary PHP5 support, because highlight_string() is some kind of different there)<br />
       *  Version 0.5, 16.09.2007 (Improved PHP 5 support)<br />
       *  Version 0.6, 02.01.2008 (Limited code box height to 400px)<br />
+      *  Version 0.7, 15.10.2008 (Changed css behavior)<br />
       */
       function transform(){
 
@@ -59,11 +60,11 @@
 
          // return div enclodes source code with height limit if necessary
          if($LineCount > 27){
-            return '<div class="phpcode" style="height: 400px; overflow: auto;">'.$HighlightedContent.'</div>';
+            return '<pre class="phpcode" style="height: 400px;">'.$HighlightedContent.'</pre>';
           // end if
          }
          else{
-            return '<div class="phpcode">'.$HighlightedContent.'</div>';
+            return '<pre class="phpcode">'.$HighlightedContent.'</pre>';
           // end else
          }
 

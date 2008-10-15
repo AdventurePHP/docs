@@ -120,14 +120,14 @@
 
          // read file name attribute
          if(!isset($this->__Attributes['name']) || empty($this->__Attributes['name'])){
-            return (string)'<center><div class="phpsource" style="width: 795px; height: 30px;"><strong>Attribute "name" is not set or empty!</strong></div></center>';
+            return (string)'<pre class="filesource" style="height: 30px;"><strong>Attribute "name" is not set or empty!</strong></pre>';
           // end if
          }
 
          // check, if file is a known file
          if(!isset($this->__Files[$this->__Attributes['name']])){
             trigger_error('[file_taglib_highlight::transform()] File "'.$this->__Attributes['name'].'" is not allowed to be viewed!',E_USER_WARNING);
-            return (string)'<center><div class="phpsource" style="width: 795px; height: 30px;"><strong>File "'.$this->__Attributes['name'].'" is not allowed to view!</strong></div></center>';
+            return (string)'<pre class="filesource" style="height: 30px;"><strong>File "'.$this->__Attributes['name'].'" is not allowed to view!</strong></pre>';
           // end if
          }
 
@@ -138,7 +138,7 @@
          }
          else{
             trigger_error('[file_taglib_highlight::transform()] File "'.$this->__Attributes['name'].'" cannot be found!',E_USER_WARNING);
-            return (string)'<center><div class="phpsource" style="width: 795px; height: 30px;"><strong>File "'.$this->__Files[$this->__Attributes['name']].'" doesn\'t exist!</strong></div></center>';
+            return (string)'<pre class="filesource" style="height: 30px;"><strong>File "'.$this->__Files[$this->__Attributes['name']].'" doesn\'t exist!</strong></pre>';
           // end else
          }
 
@@ -161,15 +161,11 @@
 
          // create tag output
          $Buffer = (string)'';
-         $Buffer .= '<center>';
-         $Buffer .= PHP_EOL;
-         $Buffer .= '<div class="phpsource" style="width: 795px; height: '.$Height.'px;">';
+         $Buffer .= '<pre class="phpcode" style="height: '.$Height.'px;">';
          $Buffer .= PHP_EOL;
          $Buffer .= highlight_string(implode('',$SourceFileContent),true);
          $Buffer .= PHP_EOL;
-         $Buffer .= '</div>';
-         $Buffer .= PHP_EOL;
-         $Buffer .= '</center>';
+         $Buffer .= '</pre>';
 
          // return buffer
          return $Buffer;

@@ -127,10 +127,61 @@ dient eine gemeinsame Konfigurationsdatei
  /config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_language.ini
 </pre>
 Diese wird mit folgenden Werten gef&uuml;llt:
-<br />
-<br />
-<file:highlight name="DEFAULT_language.ini" />
-<br />
+<pre class="tagexample">
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Language file for the contact form module                                                        ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[de]
+; header
+header.title = "Kontakt"
+
+; hints on the form
+formhint.text = "Wenn Sie mit mir in Kontakt treten m&ouml;chten, dann benutzen Sie einfach dieses Formular. Geben Sie Ihre Nachricht ein und schon kann es los gehen. Ich werden mich dann umgehend mit Ihnen in Verbindung setzten. <strong>Bitte f&uuml;llen Sie das Formular vollst&auml;ndig aus!</strong>"
+
+; form labels
+form.person = "Person / Gruppe: "
+form.person.margin = "24"
+form.name = "Ihr Name:"
+form.name.margin = "65"
+form.email = "Ihre E-Mail-Adresse:"
+form.email.margin = "9"
+form.subject = "Ihr Betreff:"
+form.subject.margin = "65"
+form.comment = "Ihre Nachricht:"
+form.button = "Senden"
+form.button.style = "margin-left: 335px;"
+form.captcha = "Bestätigungscode:"
+
+; confirmation text
+message.text = "Vielen Danke f&uuml;r Ihre Anfrage. Ich werde mich umgehend mit Ihnen in Verbindung setzen!"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[en]
+; header
+header.title = "Contact"
+
+; hints on the form
+formhint.text = "If you want to contact me, please use the form provided below. Then I will immediately get in contact with you. <strong>Please fill all required fields!</strong>"
+
+; form labels
+form.person = "Person / group: "
+form.person.margin = "33"
+form.name = "Your name:"
+form.name.margin = "57"
+form.email = "Your email address:"
+form.email.margin = "9"
+form.subject = "Your subject:"
+form.subject.margin = "49"
+form.comment = "Your message:"
+form.button = "Send"
+form.button.style = "margin-left: 350px;"
+form.captcha = "Security code:"
+
+; confirmation text
+message.text = "Many thanks for your message. I will get in contact with you immediately!"
+</pre>
 Die Werte k&ouml;nnen damit z.B. per
 <ul>
   <li><strong>&lt;html:getstring namespace="modules::kontakt4" config="language" entry="form.person" /&gt;</strong>,</li>
@@ -254,10 +305,13 @@ Die Templatedatei <strong>kontakt.html</strong> definiert das Grundger&uuml;st d
 beinhaltet die &Uuml;berschrift, die per <strong>&lt;html:getstring /&gt;</strong>-Tag aus der
 Sprach-Konfigurationsdatei eingebunden wird, und einen <strong>&lt;core:importdesign /&gt;</strong>-
 Tag, der einen View definiert, der entweder das Formular (Standard) oder eine Dankesmeldung anzeigt:
-<br />
-<br />
-<file:highlight name="kontakt.html" />
-<br />
+<pre class="tagexample">
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
+&lt;font style="font-size: 26px; font weight: bold;"&gt;&lt;html:getstring namespace="modules::kontakt4" config="language" entry="header.title" /&gt;&lt;/font&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;core:importdesign namespace="modules::kontakt4::pres::templates" template="[pagepart=formular]" /&gt;
+</pre>
 <strong>Hinweis</strong>: Im Template wird das <strong>&lt;core:importdesign /&gt;</strong>-Tag mit
 der pagepart-Option benutzt. Dies bedeutet, dass je nach URL-Parameter <strong>pagepart</strong> ein
 anderes Template aus den angegebenen Namespace eingebunden wird. Ist kein Parameter in der URL
@@ -298,20 +352,70 @@ Die hier behandelte Templatedatei enth&auml;lt im Wesentlichen vier unterschiedl
     realisiert.
   </li>
 </ul>
-<file:highlight name="formular.html" />
-<br />
-<br />
+<pre class="tagexample">
+&lt;@controller namespace="modules::kontakt4::pres::documentcontroller" file="kontakt_v4_controller" class="kontakt_v4_controller" @&gt;
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
+&lt;html:getstring namespace="modules::kontakt4" config="language" entry="formhint.text" /&gt;
+&lt;br /&gt;
+&lt;div style="text-align: left; padding-left: 80px; font-size: 12px;"&gt;
+  &lt;html:placeholder name="Inhalt" /&gt;
+&lt;/div&gt;
+
+&lt;html:form name="Kontakt" method="post"&gt;
+  &lt;form:valgroup name="FormValGroup"&gt;
+    &lt;br /&gt;
+    &lt;div style="width: 400px; border: 1px solid red; padding: 5px;"&gt;
+      &lt;img src="&lt;valgroup:placeholder name="WarnImage" /&gt;" /&gt;&nbsp;&lt;font style="font-size: 13px; font-weight: bold;"&gt;&lt;valgroup:placeholder name="WarnText" /&gt;:&lt;/font&gt;
+      &lt;br /&gt;
+      &lt;valgroup:validate type="text" field="AbsenderName" button="KontaktSenden" msginputreq="Contact.Sender.InputRequired" /&gt;
+      &lt;valgroup:validate type="text" field="AbsenderAdresse" button="KontaktSenden" msginputreq="Contact.EMail.InputRequired" msginputwrg="Contact.EMail.InputWrong" validator="EMail" /&gt;
+      &lt;valgroup:validate type="text" field="Betreff" button="KontaktSenden" msginputreq="Contact.Subject.InputRequired" /&gt;
+      &lt;valgroup:validate type="text" field="Text" button="KontaktSenden" msginputreq="Contact.Text.InputRequired" /&gt;
+    &lt;/div&gt;
+    &lt;br /&gt;
+  &lt;/form:valgroup&gt;
+  &lt;br /&gt;
+  &lt;span style="margin-right: &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.person.margin" /&gt;px;"&gt;&lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.person" /&gt;&lt;/span&gt;&lt;form:select name="Empfaenger" class="eingabe_feld" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;span style="margin-right: &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.name.margin" /&gt;px;"&gt;&lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.name" /&gt;&lt;/span&gt;&lt;form:text name="AbsenderName" class="eingabe_feld" style="width: 280px;" validate="true" button="KontaktSenden" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;span style="margin-right: &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.email.margin" /&gt;px;"&gt;&lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.email" /&gt;&lt;/span&gt;&lt;form:text name="AbsenderAdresse" class="eingabe_feld" style="width: 280px;" validate="true" validator="EMail" button="KontaktSenden" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;span style="margin-right: &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.subject.margin" /&gt;px;"&gt;&lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.subject" /&gt;&lt;/span&gt;&lt;form:text name="Betreff" class="eingabe_feld" style="width: 280px;" validate="true" button="KontaktSenden" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.comment" /&gt;
+  &lt;br /&gt;
+  &lt;form:area name="Text" class="eingabe_feld" style="height: 200px; width: 400px; overflow: auto;" validate="true" button="KontaktSenden" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.captcha" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:addtaglib namespace="modules::captcha::pres::taglib" prefix="form" class="captcha" /&gt;
+  &lt;form:captcha text_class="eingabe_feld" validate="true" button="KontaktSenden"/&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="KontaktSenden" class="eingabe_feld" /&gt;
+&lt;/html:form&gt;
+</pre>
 <a name="3-3-meldung"></a><h4>3.3. Datei meldung.html</h4>
 In der Datei <em>meldung.html</em> wird die Dankesmeldung definiert, die bei erfolgreichem Absenden
 des Formulars eingeblendet wird. In der Regel ist das ein Satz, der besagt, dass der Kunde baldige
 R&uuml;ckantwort erhalten werden. In diesem Fall wird die Meldung aus einer Konfigurationsdatei gelesen,
 die einen mehrsprachigen, aber statischen Text enth&auml;lt. Aus diesem Grund ist kein weiterer
 DocumentController notwenig.
-<br />
-<br />
-<file:highlight name="meldung.html" />
-<br />
-<br />
+<pre class="tagexample">
+&lt;br /&gt;
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
+&lt;html:getstring namespace="modules::kontakt4" config="language" entry="message.text" /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+</pre>
 <a name="3-4-kontakt_v4_controller"></a><h4>3.4. DocumentController kontakt_v4_controller</h4>
 Der DocumentController <em>kontakt_v4_controller</em> erbt vom abstrakten DocumentController
 <em>baseController</em> (Interface). Auf Grund der Objekt-Struktur muss dies immer gegeben sein, die
@@ -324,11 +428,104 @@ Formular so lange angezeigt wird, bis alle als Pflichtfelder gekennzeichneten Ei
 validen Werten ausgef&uuml;llt sind (siehe Zeile 60). Tritt dieser Fall ein, so wird die Business-Schicht
 instanziert, das Formular abgeschickt und der Best&auml;tigungsview (Templatedatei <em>meldung.html</em>)
 angezeigt.
-<br />
-<br />
-<file:highlight name="kontakt_v4_controller.php" />
-<br />
-<br />
+<php:highlight>
+import('tools::variablen','variablenHandler');
+import('modules::kontakt4::biz','contactManager');
+
+class kontakt_v4_controller extends baseController
+{
+
+   var $_LOCALS;
+
+   function kontakt_v4_controller(){
+
+      $this->_LOCALS = variablenHandler::registerLocal(array('Empfaenger',
+                                                             'AbsenderName',
+                                                             'AbsenderAdresse',
+                                                             'Betreff',
+                                                             'Text'
+                                                            )
+                                                      );
+
+    // end function
+   }
+
+   function transformContent(){
+
+      // Referenz auf die Form holen
+      $Form = &$this->__getForm('Kontakt');
+
+      if($Form->get('isValid') && $Form->get('isSent')){
+
+         // Was wird gesendet?
+         //
+         // - Kontakt-Person-ID (Empf?nger-Person der Mail)
+         // - Name
+         // - E-Mail
+         // - Betreff
+         // - Text
+         $oFD = new oFormData();
+         $oFD->set('RecipientID',$this->_LOCALS['Empfaenger']);
+         $oFD->set('SenderName',$this->_LOCALS['AbsenderName']);
+         $oFD->set('SenderEMail',$this->_LOCALS['AbsenderAdresse']);
+         $oFD->set('Subject',$this->_LOCALS['Betreff']);
+         $oFD->set('Text',$this->_LOCALS['Text']);
+
+         // Formular absenden
+         $cM = &$this->__getServiceObject('modules::kontakt4::biz','contactManager');
+         $cM->sendContactForm($oFD);
+
+       // end if
+      }
+      else{
+         $this->setPlaceHolder('Inhalt',$this->__buildForm());
+       // end else
+      }
+
+    // end function
+   }
+
+   function __buildForm(){
+
+      // Referenz auf die Form holen
+      $Form__Kontakt = &$this->__getForm('Kontakt');
+
+      // Action setzen
+      $Form__Kontakt->setAttribute('action',$_SERVER['REQUEST_URI']);
+
+      // Button beschriften und formatieren
+      $Config = &$this->__getConfiguration('modules::kontakt4','language');
+      $Button = &$Form__Kontakt->getFormElementByName('KontaktSenden');
+      $Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
+      $Button->setAttribute('style',$Config->getValue($this->__Language,'form.button.style'));
+
+      // Bild in der ValidatorGroup setzen (Auslesen der formconfig)
+      $Config = &$this->__getConfiguration('tools::form::taglib','formconfig');
+      $ValGroup = &$Form__Kontakt->getFormElementByName('FormValGroup');
+      $ValGroup->setPlaceHolder('WarnImage',$Config->getValue($this->__Language,'Contact.Warning.Image'));
+      $ValGroup->setPlaceHolder('WarnText',$Config->getValue($this->__Language,'Contact.Warning.Text'));
+
+      // Auswahlfeld Person
+      $Recipients = & $Form__Kontakt->getFormElementByName('Empfaenger');
+
+      // RecipientList laden
+      $cM = &$this->__getServiceObject('modules::kontakt4::biz','contactManager');
+      $RecipientList = $cM->loadRecipients();
+
+      for($i = 0; $i < count($RecipientList); $i++){
+         $Recipients->addOption($RecipientList[$i]->get('Name'),$RecipientList[$i]->get('oID'));
+       // end if
+      }
+
+      // Formular transformieren und zur?ckgeben
+      return $Form__Kontakt->transformForm();
+
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
 Bei n&auml;herer Betrachtung der Klasse <em>kontakt_v4_controller</em> wird deutlich, dass der
 DocumentController die Komponenten <em>variablenHandler</em> und <em>contactManager</em> verwendet.
 Die zuerst genannte Klasse ist eine im Framework integrierte Klasse, die f&uuml;r die Extraktion von
