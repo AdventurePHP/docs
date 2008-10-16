@@ -204,10 +204,24 @@ Da die Business-Schicht die Pager-Komponente nutzt m&uuml;ssen sp&auml;ter weite
 Als erste Klasse legen wir das von allen Schichten genutzte Domain-Objekt <strong>ArticleComment</strong>
 an. Dazu wird die Datei <em>ArticleComment.php</em> im Ordner <strong>/apps/modules/comments/biz</strong>
 erstellt un mit folgenden Inhalt gef&uuml;llt:
-<br />
-<br />
-<file:highlight name="ArticleComment.php"/>
-<br />
+<php:highlight>
+class ArticleComment extends coreObject
+{
+
+   var $__ID = null;
+   var $__Name;
+   var $__EMail;
+   var $__Comment;
+   var $__Date;
+   var $__Time;
+   var $__CategoryKey;
+
+   function ArticleComment(){
+   }
+
+ // end class
+}
+</php:highlight>
 Da die Klasse von <strong>coreObject</strong> erbt m&uuml;ssen keine get()- bzw. set()-Methoden
 implementiert werden, da die Klasse <em>coreObject</em> bereits &uuml;ber abstrakte Methoden f&uuml;r
 das Lesen und Setzen von privaten Klassen-Variablen besitzt, die sp&auml;ter auch daf&uuml;r genutzt
@@ -614,10 +628,54 @@ beschrieben und mit
 anschlie&szlig;end der gerade angefragte View (Liste oder Formular) an Hand des URL-Parameters
 <strong>coview</strong> (coview f&uuml;r CommentView) eingebunden. F&uuml;r die Ausgabe der Liste
 soll nun Template <strong>listing</strong> erstellt werden:
-<br />
-<br />
-<file:highlight name="listing.html" />
-<br />
+<pre class="tagexample">
+&lt;@controller namespace="modules::comments::pres::documentcontroller" file="comment_listing_v1_controller" class="comment_listing_v1_controller" @&gt;
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
+&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.1" /&gt; &lt;a href="&lt;html:placeholder name="Link" /&gt;#comments" title="&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt; &lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.3" /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;html:placeholder name="Pager" /&gt;
+&lt;html:placeholder name="Content" /&gt;
+
+&lt;html:template name="ArticleComment"&gt;
+  &lt;table cellspacing="0" cellpadding="0" style="border: 0px solid black; width: 100%;"&gt;
+    &lt;tr&gt;
+      &lt;td style="width: 60px; text-align: left; padding: 2px;"&gt;
+        &lt;font style="font-size: 36px; color: #777BB4; font-style: italic;"&gt;
+          &lt;template:placeholder name="Number" /&gt;
+        &lt;/font&gt;
+      &lt;/td&gt;
+      &lt;td style="padding: 2px; font-size: 12px; font-family: Arial, Helvetica, sans-serif;"&gt;
+        &lt;strong&gt;&lt;template:placeholder name="Name" /&gt;&lt;/strong&gt;
+        &lt;br /&gt;
+        &lt;em&gt;&lt;template:placeholder name="Date" /&gt;, &lt;template:placeholder name="Time" /&gt;&lt;/em&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+  &lt;div style="background-color: #eeeeee; width: 100%; padding: 2px;"&gt;
+    &lt;template:placeholder name="Comment" /&gt;
+  &lt;/div&gt;
+  &lt;br /&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="NoEntries"&gt;
+  &lt;template:addtaglib namespace="tools::html::taglib" prefix="template" class="getstring" /&gt;
+  &lt;br /&gt;
+  &lt;span style="color: #777BB4; font-style: italic; margin-left: 30px; font-weight: bold;"&gt;&lt;template:getstring namespace="modules::comments" config="language" entry="noentries.text" /&gt;&lt;/span&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="Deactivated"&gt;
+  &lt;template:addtaglib namespace="tools::html::taglib" prefix="template" class="getstring" /&gt;
+  &lt;br /&gt;
+  &lt;span style="color: #777BB4; font-style: italic; margin-left: 30px; font-weight: bold;"&gt;&lt;template:getstring namespace="modules::comments" config="language" entry="deactivated.text" /&gt;&lt;/span&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+&lt;/html:template&gt;
+</pre>
 Dieses sieht die Definition des zu verwendenden Controllers, einen Einleitungstext, Platz f&uuml;r
 die Ausgabe eines Pagers und die Ausgabe der Liste und ein Templates f&uuml;r einen Eintrag und die
 Anzeige der Meldung, dass keine Eintr&auml;ge vorhanden sind. Die Beschreibung der verwendeten Tags
@@ -667,10 +725,83 @@ erhalten diese Funktion nun automatisch dadurch, dass diese vom <em>commentBaseC
 Der konkrete DocumentController <strong>comment_listing_v1_controller</strong> (siehe Template) wird
 nun mit den Aufgaben betraut, die gew&uuml;nschten Eintr&auml;ge und den Pager, bzw. ohne Kommentare
 eine Meldung auszugeben. In Quellcode gegossen kann das so gel&ouml;st werden:
-<br />
-<br />
-<file:highlight name="comment_listing_v1_controller.php" />
-<br />
+<php:highlight>
+import('modules::comments::pres::documentcontroller','commentBaseController');
+import('tools::datetime','dateTimeManager');
+import('tools::string','bbCodeParser');
+import('tools::link','frontcontrollerLinkHandler');
+
+class comment_listing_v1_controller extends commentBaseController
+{
+
+   function comment_listing_v1_controller(){
+   }
+
+   function transformContent(){
+
+      // get category key
+      $this->__loadCategoryKey();
+
+      // get data layer component
+      $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
+
+      // load entries
+      $Entries = $M->loadEntries();
+
+      $Buffer = (string)'';
+      $Template__ArticleComment = &$this->__getTemplate('ArticleComment');
+      $bbCP = &$this->__getServiceObject('tools::string','bbCodeParser');
+
+      for($i = 0; $i < count($Entries); $i++){
+
+         // fill template
+         $Template__ArticleComment->setPlaceHolder('Number',$i + 1);
+         $Template__ArticleComment->setPlaceHolder('Name',$Entries[$i]->get('Name'));
+         $Template__ArticleComment->setPlaceHolder('Date',dateTimeManager::convertDate2Normal($Entries[$i]->get('Date')));
+         $Template__ArticleComment->setPlaceHolder('Time',$Entries[$i]->get('Time'));
+         $Template__ArticleComment->setPlaceHolder('Comment',$bbCP->parseText($Entries[$i]->get('Comment')));
+
+         // add template to list
+         $Buffer .= $Template__ArticleComment->transformTemplate();
+
+       // end for
+      }
+
+      // display hint in cas of no entries
+      if(count($Entries) < 1){
+         $Template__NoEntries = &$this->__getTemplate('NoEntries');
+         $Buffer = $Template__NoEntries->transformTemplate();
+       // end if
+      }
+
+      // display list
+      $this->setPlaceHolder('Content',$Buffer);
+
+      // display pager
+      $this->setPlaceHolder('Pager',$M->getPager('comments'));
+
+      // get pager url params
+      $URLParameter = $M->getURLParameter();
+
+      // generate create entry link
+      $this->setPlaceHolder(
+                            'Link',
+                            frontcontrollerLinkHandler::generateLink(
+                                                                     $_SERVER['REQUEST_URI'],
+                                                                     array(
+                                                                           $URLParameter['StartName'] => '',
+                                                                           $URLParameter['CountName'] => '',
+                                                                           'coview' => 'form'
+                                                                     )
+                            )
+      );
+
+    // end function
+   }
+
+ // end function
+}
+</php:highlight>
 Besonderheiten der Umsetzung sind das Holen des Kategorie-Schl&uuml;ssels zu Beginn der Methode
 <em>transformContent()</em> und die dynamische Generierung des Eintragen-Links, da das Modul selbst
 nicht wei&szlig;, in welchem Bereich der Applikation es eingebunden ist. F&uuml;r letztere Aufgabe
@@ -732,20 +863,149 @@ Mit den Attributen <strong>validate="true"</strong> und <strong>button="Speicher
 die Formular-Validierung f&uuml;r dieses Feld aktiviert und mit <strong>validator="Text"</strong> bzw.
 <strong>validator="EMail"</strong> wird die Art und Weise festgelegt, mit der das Feld validiert werden
 soll. Mit ein wenig Text versehen hat das Template <em>form</em> damit folgenden Inhalt:
-<br />
-<br />
-<file:highlight name="form.html" />
-<br />
+<pre class="tagexample">
+&lt;@controller namespace="modules::comments::pres::documentcontroller" file="comment_form_v1_controller" class="comment_form_v1_controller" @&gt;
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
+&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.1" /&gt; &lt;a href="&lt;html:placeholder name="Zurueck" /&gt;#comments" title="&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.3" /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;html:placeholder name="Form"/&gt;
+
+&lt;html:form name="AddComment" method="post"&gt;
+  &lt;span style="margin-right: 10px;"&gt;&lt;form:getstring namespace="modules::comments" config="language" entry="form.name" /&gt;*&lt;/span&gt;&lt;form:text maxlength="100" name="Name" value="" class="eingabe_feld" style="width: 390px;" validate="true" button="Save" validator="Text" /&gt;
+  &lt;br /&gt;
+  &lt;span style="margin-right: 10px;"&gt;&lt;form:getstring namespace="modules::comments" config="language" entry="form.email" /&gt;*&lt;/span&gt;&lt;form:text maxlength="100" name="EMail" value="" class="eingabe_feld" style="width: 390px;" validate="true" button="Save" validator="EMail" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:getstring namespace="modules::comments" config="language" entry="form.comment" /&gt;
+  &lt;br /&gt;
+  &lt;form:area name="Comment" class="eingabe_feld" style="width: 441px; height: 120px; overflow: auto;" validate="true" button="Save" validator="Text" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;span style="margin-right: 10px;"&gt;&lt;form:getstring namespace="modules::comments" config="language" entry="form.confirm" /&gt;*&lt;/span&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;img src="&lt;form:placeholder name="CaptchaImage" /&gt;" border="0" align="absmiddle" /&gt;
+  &lt;form:text name="CaptchaString" class="eingabe_feld" style="margin-left: 10px; width: 60px;" validate="true" button="Save" validator="Text" maxlength="5" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="Save" class="eingabe_feld" /&gt;
+&lt;/html:form&gt;
+</pre>
 Der zugeh&ouml;rige DocumentController (<strong>comment_form_v1_controller</strong>) hat dabei die
 Aufgabe das Formular in den daf&uuml;r vorgesehenen Platzhalter einzusetzen und im Fall eines
 abgeschickten und validen Formulars den Eintrag mit Hilfe der Business-Komponente zu speichern. Dazu
 implementiert dieser eine neue Methode <strong>saveEntry()</strong>, dem ein Domain-Objekt &uuml;bergeben
 werden muss. Hier der Controller in der &Uuml;bersicht:
-<br />
-<br />
-<file:highlight name="comment_form_v1_controller.php" />
-<br />
-<br />
+<php:highlight>
+import('modules::comments::pres::documentcontroller','commentBaseController');
+import('tools::variablen','variablenHandler');
+import('modules::comments::biz','commentManager');
+import('tools::link','frontcontrollerLinkHandler');
+import('tools::string','stringAssistant');
+
+class comment_form_v1_controller extends commentBaseController
+{
+
+   var $_LOCALS = array();
+
+   function comment_form_v1_controller(){
+      $this->_LOCALS = variablenHandler::registerLocal(array('Name','EMail','Comment','CaptchaString'));
+    // end function
+   }
+
+   function transformContent(){
+
+      // Referenz auf das Formular holen
+      $Form__AddComment = &$this->__getForm('AddComment');
+
+      // Prüfen, ob Formular abgesendet und erforlgreich validiert wurde
+      if($Form__AddComment->get('isSent') == true){
+
+         // Kategorie-Schlüssel laden
+         $this->__loadCategoryKey();
+
+         // Mapper holen
+         $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
+
+         // Validieren des Captchas
+         $CaptchaString = $M->get('CaptchaString');
+
+         if($CaptchaString != $this->_LOCALS['CaptchaString']){
+            $Captcha = &$Form__AddComment->getFormElementByName('CaptchaString');
+            $Captcha->set('isValid',false);
+            $Form__AddComment->set('isValid',false);
+          // end if
+         }
+
+         // Prüfen, ob Formular korrekt ausgefüllt wurde
+         if($Form__AddComment->get('isValid') == true){
+
+            // Eintrag erstellen
+            $ArticleComment = new ArticleComment();
+            $ArticleComment->set('Name',$this->_LOCALS['Name']);
+            $ArticleComment->set('EMail',$this->_LOCALS['EMail']);
+            $ArticleComment->set('Comment',$this->_LOCALS['Comment']);
+
+            // Eintrag speichern
+            $M->saveEntry($ArticleComment);
+
+          // end if
+         }
+         else{
+            $this->__buildForm();
+          // end else
+         }
+
+       // end if
+      }
+      else{
+         $this->__buildForm();
+       // end else
+      }
+
+    // end function
+   }
+
+   function __buildForm(){
+
+      // Referenz auf das Formular holen
+      $Form__AddComment = &$this->__getForm('AddComment');
+
+      // action setzen
+      $Form__AddComment->setAttribute('action',$_SERVER['REQUEST_URI'].'#comments');
+
+      // Button beschriften
+      $Config = &$this->__getConfiguration('modules::comments','language');
+      $Button = &$Form__AddComment->getFormElementByName('Save');
+      $Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
+
+      // CaptchaImage füllen
+      $Reg = &Singleton::getInstance('Registry');
+      $URLRewriting = $Reg->retrieve('apf::core','URLRewriting');
+      if($URLRewriting === true){
+         $Form__AddComment->setPlaceHolder('CaptchaImage','/~/modules_comments-action/showCaptcha');
+       // end if
+      }
+      else{
+         $Form__AddComment->setPlaceHolder('CaptchaImage','./?modules_comments-action:showCaptcha');
+       // end else
+      }
+
+      // Formular darstellen
+      $this->setPlaceHolder('Form',$Form__AddComment->transformForm());
+
+      // Zurücklink darstellen
+      $Link = frontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
+      $this->setPlaceHolder('Zurueck',$Link);
+
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
 <a name="5-2-Businessschicht"></a><h4>5.2. Business-Schicht</h4>
 In diesem Kapitel stellt sich nun die Aufgabe, die zuvor beschriebene Business-Schicht-Methode
 <em>saveEntry()</em> mit Leben zu f&uuml;llen. Im Wesentlichen besteht die Aufgabe darin, den neuen

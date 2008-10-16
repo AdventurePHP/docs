@@ -164,20 +164,140 @@ erl&auml;utert:
 Die Template-Datei <em>adminlogin.html</em> definiert ein Formular und eine HTML-Template das eine
 Meldung enth&auml;lt, die ausgegeben werden soll, wenn die Zugangsdaten nicht mit den in der Datenbank
 gespeicherten Daten &uuml;bereinstimmen. Das Formular enth&auml;lt zwei Elemente und einen Button:
-<br />
-<br />
-<file:highlight name="adminlogin.html" />
-<br />
-<br />
-<br />
+<pre class="tagexample">
+&lt;@controller namespace="modules::guestbook::pres::documentcontroller" class="guestbook_adminlogin_v1_controller" file="guestbook_adminlogin_v1_controller" @&gt;
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;strong&gt;G&auml;stebuch administrieren:&lt;/strong&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+Hier kannst du dich einloggen um das G&auml;stebuch zu administrieren.
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;html:placeholder name="Form" /&gt;
+
+&lt;html:form name="AdminLogin" method="post" action=""&gt;
+  &lt;form:placeholder name="LogInError" /&gt;
+  Benutzer: &lt;form:text name="Username" class="eingabe_feld" style="width: 200px; margin-left: 20px;" validate="true" button="AdminLogin" /&gt;
+  &lt;br /&gt;
+  Passwort: &lt;form:password name="Password" class="eingabe_feld" style="width: 200px; margin-left: 16px;" validate="true" button="AdminLogin" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="AdminLogin" value="Login" class="eingabe_feld" style="margin-left: 227px;"/&gt;
+&lt;/html:form&gt;
+
+&lt;html:template name="LogInError"&gt;
+  &lt;font style="color: red; font-weight: bold;"&gt;Die von Ihnen eingegebenen Zugangsdaten sind falsch!&lt;/font&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+&lt;/html:template&gt;
+</pre>
 <a name="9-3-2-guestbook_adminlogin_v1_controller"></a><h5>9.3.2. Controller-Datei <em>guestbook_adminlogin_v1_controller.php</em></h5>
 Die Datei <em>guestbook_adminlogin_v1_controller.php</em> implementiert den Document-Controler f&uuml;r
 den Login-View.
-<br />
-<br />
-<file:highlight name="guestbook_adminlogin_v1_controller.php" />
-<br />
-<br />
+<php:highlight>
+import('modules::guestbook::biz','guestbookManager');
+import('core::session','sessionManager');
+import('modules::guestbook::pres::documentcontroller','guestbookBaseController');
+
+class guestbook_adminlogin_v1_controller extends guestbookBaseController
+{
+
+   var $_LOCALS;
+
+   function guestbook_adminlogin_v1_controller(){
+
+      $this->_LOCALS = variablenHandler::registerLocal(array(
+                                                             'Username',
+                                                             'Password',
+                                                             'logout'
+                                                            )
+                                                      );
+
+    // end function
+   }
+
+   function transformContent(){
+
+      // Logout
+      if($this->_LOCALS['logout'] == 'true'){
+
+         // Inhalte der Session erstören
+         $oSessMgr = new sessionManager('Module_Guestbook');
+         $oSessMgr->destroySession('Module_Guestbook');
+
+         // Auf Anzeige-Seite weiterleiten
+         $Link = linkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'display','logout' => ''));
+         header('Location: '.$Link);
+
+       // end if
+      }
+
+      // Referenz auf das Formular holen
+      $Form__AdminLogin = &$this->__getForm('AdminLogin');
+
+      if($Form__AdminLogin->get('isValid') && $Form__AdminLogin->get('isSent')){
+
+         // Manager holen
+         $gM = &$this->__getGuestbookManager();
+
+         // Prüfen, ob Zugangsdaten gültig sind
+         if($gM->validateCrendentials($this->_LOCALS['Username'],$this->_LOCALS['Password']) == true){
+
+            // Session starten
+            $oSessMgr = new sessionManager('Module_Guestbook');
+            $oSessMgr->saveSessionData('LoginDate',date('Y-m-d'));
+            $oSessMgr->saveSessionData('LoginTime',date('H:i:s'));
+            $oSessMgr->saveSessionData('AdminView',true);
+
+            // Auf Anzeige-Seite weiterleiten
+            $Link = linkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'display'));
+            header('Location: '.$Link);
+
+          // end if
+         }
+         else{
+            $this->setPlaceHolder('Form',$this->__displayForm(true));
+          // end else
+         }
+
+       // end if
+      }
+      else{
+         $this->setPlaceHolder('Form',$this->__displayForm());
+       // end elseif
+      }
+
+    // end function
+   }
+
+   function __displayForm($ShowLogInError = false){
+
+      // Referenz auf das Formular holen
+      $Form__AdminLogin = &$this->__getForm('AdminLogin');
+
+      // Fehlermeldung ausgeben, falls gewünscht
+      if($ShowLogInError == true){
+
+         // Template mit Meldung holen
+         $Template__LogInError = &$this->__getTemplate('LogInError');
+
+         // Template in Form einsetzen
+         $Form__AdminLogin->setPlaceHolder('LogInError',$Template__LogInError->transformTemplate());
+
+       // end if
+      }
+
+      // Formular transformieren und zurückgeben
+      return $Form__AdminLogin->transformForm();
+
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
 Die Methode <em>transformContent()</em> kapselt dabei die Funktionen f&uuml;r Logout und Login. Um
 einen Benutzer auszuloggen wird die vorhandene Session zerst&ouml;rt und der Benutzer auf den View
 "display" weitergeleitet. Beim Login-Versuch wird zun&auml;chst das Firmular solange gezeigt, bis es
@@ -194,17 +314,17 @@ abgesendet und korrekt ausgef&uuml;llt wurde, &uuml;ber die Attribute <strong>is
 <strong>isSent</strong> zur Verf&uuml;gung. Die beiden Attribute k&ouml;nnen mit der <strong>get()</strong>-
 Methode abgefragt werden. Zum Test kann folgender PHP-Code verwendet werden:
 <php:highlight>
-   $Form__AdminLogin = &$this->__getForm('AdminLogin');
+$Form__AdminLogin = &$this->__getForm('AdminLogin');
 
-   if($Form__AdminLogin->get('isSent')){
-      echo '<br />Formular wurde abgesendet!';
-    // end if
-   }
+if($Form__AdminLogin->get('isSent')){
+   echo '<br />Formular wurde abgesendet!';
+ // end if
+}
 
-   if($Form__AdminLogin->get('isValid')){
-      echo '<br />Formular wurde mit korrekten Werten ausgef&uuml;llt!';
-    // end if
-   }
+if($Form__AdminLogin->get('isValid')){
+   echo '<br />Formular wurde mit korrekten Werten ausgef&uuml;llt!';
+ // end if
+}
 </php:highlight>
 Nach dem erfolgreichen Login ist dann dem <em>display</em>-View ebenfalls bekannt, dass die
 Administrations-Buttons abgezeigt werden sollen.
@@ -222,16 +342,110 @@ Template-Datei (<em>adminaddcomment.html</em>) und eine Document-Controller-Date
 Die Template-Datei definiert ein Formular, mit dem ein Kommentar hinzugef&uuml;gt werden kann. Die
 Formular-Felder <strong>Title</strong> und <strong>Text</strong> verf&uuml;gen &uuml;ber die Attribute
 <strong>validate</strong> und <strong>button</strong> um die Validierung der Felder zu definieren:
-<br />
-<br />
-<file:highlight name="adminaddcomment.html" />
-<br />
-<br />
-<br />
+<pre class="tagexample">
+&lt;@controller namespace="modules::guestbook::pres::documentcontroller" class="guestbook_adminaddcomment_v1_controller" file="guestbook_adminaddcomment_v1_controller" @&gt;
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;strong&gt;Neuen Kommentar verfassen:&lt;/strong&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+Hier kannst du deinen Kommentar zum ausgew&auml;hlen Eintrag verfassen! F&uuml;lle die Pflicht-Felder vollst&auml;ndig aus!
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;html:placeholder name="Form" /&gt;
+
+&lt;html:form name="GuestbookAddComment" method="post" action=""&gt;
+  &lt;table cellpadding="0" cellspacing="0" class="formtable"&gt;
+    &lt;tr&gt;
+      &lt;td class="formtable_row_description"&gt;
+        Ihr Titel: *
+      &lt;/td&gt;
+      &lt;td class="formtable_row_control"&gt;
+        &lt;form:text name="Title" class="eingabe_feld" style="width: 300px;" validate="true" button="CreateCommentButton" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td colspan="2" class="formtable_row_description"&gt;
+        &lt;br /&gt;
+        &lt;strong&gt;Ihr Text:&lt;/strong&gt; *
+        &lt;br /&gt;
+        &lt;br /&gt;
+        &lt;form:area name="Text" class="eingabe_feld" style="height: 200px; width: 480px; overflow: auto;" validate="true" button="CreateCommentButton" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+  &lt;br /&gt;
+  &lt;span style="font-size: 11px;"&gt;
+    &lt;strong&gt;Hinweis:&lt;/strong&gt; Die mit "*" gekennzeichneten Felder sind Pflichtfelder!
+  &lt;/span&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="CreateCommentButton" value="Speichern" class="eingabe_feld" /&gt;
+  &lt;form:hidden name="entryid" value="" /&gt;
+&lt;/html:form&gt;
+</pre>
 <a name="9-4-2-guestbook_adminaddcomment_v1_controller"></a><h5>9.4.2. Controller-Datei <em>guestbook_adminaddcomment_v1_controller.php</em></h5>
-<file:highlight name="guestbook_adminaddcomment_v1_controller.php" />
-<br />
-<br />
+<php:highlight>
+import('modules::guestbook::biz','guestbookManager');
+import('modules::guestbook::pres::documentcontroller','guestbookBaseController');
+
+class guestbook_adminaddcomment_v1_controller extends guestbookBaseController
+{
+
+   var $_LOCALS;
+
+   function guestbook_adminaddcomment_v1_controller(){
+
+      $this->_LOCALS = variablenHandler::registerLocal(array(
+                                                             'Title',
+                                                             'Text',
+                                                             'entryid'
+                                                            )
+                                                      );
+
+    // end function
+   }
+
+   function transformContent(){
+
+      // Referenz auf das Formular holen
+      $Form__GuestbookAddComment = &$this->__getForm('GuestbookAddComment');
+
+      // Aktion für Eintrag
+      if($Form__GuestbookAddComment->get('isSent') == true){
+
+         if($Form__GuestbookAddComment->get('isValid')){
+
+            // Manager holen
+            $gM = &$this->__getGuestbookManager();
+
+            // Eintrag erzeugen
+            $Comment = new Comment();
+            $Comment->set('Title',$this->_LOCALS['Title']);
+            $Comment->set('Text',$this->_LOCALS['Text']);
+
+            // Eintrag speichern
+            $gM->saveComment($this->_LOCALS['entryid'],$Comment);
+
+          // end if
+         }
+
+       // end if
+      }
+
+      // Formular anzeigen
+      $ID = &$Form__GuestbookAddComment->getFormElementByName('entryid');
+      $ID->setAttribute('value',$this->_LOCALS['entryid']);
+      $this->setPlaceHolder('Form',$Form__GuestbookAddComment->transformForm());
+
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
 Die Implementierung des Controllers beschr&auml;nkt sich hier auf die Anzeige des Formulars und die
 Organisation der Kommentar-Speicherung. Hierzu pr&uuml;ft der Controller - wie bereits oben
 erl&auml;tert - ob das Formular abgeschickt und richtig ausgef&uuml;llt wurde und involviert in diesem
@@ -243,17 +457,17 @@ wurde ein weiterer Basis-Controller implementiert (<em>guestbookBaseController</
 Initialisierung in der privaten Methode <em>__getGuestbookManager()</em> erledigt. Leitet ein
 Document-Controller nun von diesem ab, so kann die Business-Komponente einfach durch
 <php:highlight>
-   // Manager holen
-  $gM = &$this->__getGuestbookManager();
+// Manager holen
+$gM = &$this->__getGuestbookManager();
 </php:highlight>
 statt durch
 <php:highlight>
-   // guestbookid vom Vater holen
-  $Parent = &$this->__Document->getByReference('ParentObject');
-  $GuestbookID = $Parent->getAttribute('guestbookid');
+// guestbookid vom Vater holen
+$Parent = &$this->__Document->getByReference('ParentObject');
+$GuestbookID = $Parent->getAttribute('guestbookid');
 
-  // Manager holen
-  $gM = &$this->__getAndInitServiceObject('modules::guestbook::biz','guestbookManager',$GuestbookID);
+// Manager holen
+$gM = &$this->__getAndInitServiceObject('modules::guestbook::biz','guestbookManager',$GuestbookID);
 </php:highlight>
 initialisiert werden. Dieser Ansatz wird innerhalb von Modulen sehr h&auml;ufig verwendet im gemeinsam
 genutzte Funktionen auslagern zu k&ouml;nnen.
@@ -300,7 +514,6 @@ ben&ouml;tigt.
 Das hier aufgef&uuml;hrte Software-Design wurde unter Ber&uuml;cksichtigung der M&ouml;glichkeiten
 des <strong>Adventure-PHP-Framework</strong>s erstellt, beinhaltet aber ausgenommen den Implementierungs-
 Details wichtige Grunds&auml;tze der objektorientierten Programmierung.
-<br />
 <br />
 <br />
 <br />
