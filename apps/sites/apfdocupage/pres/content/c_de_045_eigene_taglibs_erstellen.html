@@ -2,7 +2,6 @@
   Das vorliegende Tutorial beschreibt, wie eigene TagLibs erstellt werden k&ouml;nnen. Neben einem
   theoretischen Beispiel finden sich auch praktische Anwendungen auf der Seite.
 </doku:title>
-<core:addtaglib namespace="sites::apfdocupage::pres::taglib" prefix="file" class="highlight" />
 <core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
 <a name="1-Einfuehrung"></a><h3>1. Einf&uuml;hrung</h3>
 Der hier diskutierte Page-Controller baut beim Parsen der Templates einen internen Objektbaum aus den
@@ -302,10 +301,59 @@ HTML-Datei notiert werden:
   &lt;doc:createobject requestparam="Seite" defaultvalue="Startseite" /&gt;
 </pre>
 Betrachtet man den Quellcode der TagLib-Klasse n&auml;her wird dort folgende Logik gekapselt:
-<br />
-<br />
-<file:highlight name="document_taglib_createcontentobject.php" />
-<br />
+<php:highlight>
+   import('tools::variablen','variablenHandler');
+
+   class doc_taglib_createobject extends Document
+   {
+
+      function doc_taglib_createobject(){
+         parent::Document();
+       // end function
+      }
+
+      function onParseTime(){
+
+         // Attribute auslesen
+         $RequestParameter = $this->__Attributes['requestparam'];
+         $DefaultValue = $this->__Attributes['defaultvalue'];
+
+         // Parameter über variablenHandler initialisieren
+         $_LOCALS = variablenHandler::registerLocal(array($RequestParameter => $DefaultValue));
+
+         // Aktuellen Parameter auslesen
+         $CurrentRequestParameter = $_LOCALS[$RequestParameter];
+
+         // Content des Objekts setzen
+         $this->__Content = $this->__getContent($CurrentRequestParameter);
+
+         // Tags extrahieren
+         $this->__extractTagLibTags();
+
+         // DocumentController extrahieren
+         $this->__extractDocumentController();
+
+       // end function
+      }
+
+
+      function __getContent($Seite){
+
+         $Datei = './frontend/content/c_'.$this->__Language.'_'.strtolower($Seite).'.html';
+
+         if(!file_exists($Datei)){
+            $Datei = './frontend/content/c_'.$this->__Language.'_404.html';
+          // end else
+         }
+
+         return file_get_contents($Datei);
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
 <ul>
   <li>
     Zu Beginn der Datei wird ein weiteres Tool importiert, das sp&auml;ter Verwendung findet.

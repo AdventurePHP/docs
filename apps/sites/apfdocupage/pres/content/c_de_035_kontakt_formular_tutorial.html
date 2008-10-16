@@ -1,4 +1,3 @@
-<core:addtaglib namespace="sites::apfdocupage::pres::taglib" prefix="file" class="highlight" />
 <doku:title tags="tutorials,konktaktformular,wiederverwendbarkeit,mehrsprachigkeit,formulare" title="Kontaktformular-Tutorial" urlname="Kontaktformular-Tutorial">
   Im Kontaktformular-Tutorial wird auf die Formularbehandlung n&auml;her eingegangen. Weiterhin sind
   Mehrsprachigkeit, Konfiguration der Empf&auml;nger, SPAM-Schutz und Wiederverwendbarkeit Thema des
@@ -192,14 +191,14 @@ ausgelesen werden. Die Beschriftung von Formular-Controls stellt eine zweite M&o
 sprachabh&auml;ngige Texte zur Anzeige zu bringen. In diesem Fall muss im DocumentController
 Einfluss auf die Beschriftung genommen werden. Dies kann mit folgenden Code passieren:
 <php:highlight>
-   // Sprachabh&auml;ngige Konfiguration laden
-   $Config = &$this->__getConfiguration('modules::kontakt4','language');
+// Sprachabh&auml;ngige Konfiguration laden
+$Config = &$this->__getConfiguration('modules::kontakt4','language');
 
-   // Referenz auf das Button-Control holen
-   $Button = &$Form->getFormElementByName('KontaktSenden');
+// Referenz auf das Button-Control holen
+$Button = &$Form->getFormElementByName('KontaktSenden');
 
-   // Sprachabh&auml;ngigen Text mit Hilfe von $this->__Language auslesen
-   $Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
+// Sprachabh&auml;ngigen Text mit Hilfe von $this->__Language auslesen
+$Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
 </php:highlight>
 <br />
 <a name="2-3-Struktur-des-Moduls"></a><h4>2.3. Struktur des Moduls</h4>
@@ -617,10 +616,98 @@ Business-Schicht das Formular abgesendet oder Empf&auml;ngerdaten geladen. Dazu 
 Pr&auml;sentations-Schicht zwei &ouml;ffentliche Methoden zur Verf&uuml;gung: <em>sendContactForm()</em> um
 ein Formular abzusenden und <em>loadRecipients()</em> um Empf&auml;nger zu laden. Die Schnittstelle
 zwischen diesen beiden Schichten bilden die Domain-Objekte <em>oFormData</em> und <em>oRecipient</em>.
-<br />
-<br />
-<file:highlight name="contactManager.php" />
-<br />
+<php:highlight>
+import('modules::kontakt4::biz','oFormData');
+import('modules::kontakt4::biz','oRecipient');
+import('modules::kontakt4::data','contactMapper');
+import('tools::mail','mailSender');
+import('tools::link','linkHandler');
+
+class contactManager extends coreObject
+{
+
+   function contactManager(){
+   }
+
+   function sendContactForm($oFD){
+
+      // contactMapper holen
+      $cM = &$this->__getServiceObject('modules::kontakt4::data','contactMapper');
+
+
+      // E-Mail fuer Empfaenger aufsetzen
+      $MAIL = &$this->__getAndInitServiceObject('tools::mail','mailSender','Kontaktformular');
+
+
+      // Empfaenger setzen
+      $Recipient = $cM->loadRecipientPerId($oFD->get('RecipientID'));
+      $MAIL->setRecipient($Recipient->get('Adresse'),$Recipient->get('Name'));
+
+      // Text einsetzen
+      $Text = 'Sehr geehrter Empf?nger, sehr geehrte Empf?ngerin,';
+      $Text .= "\n\n";
+      $Text .= $oFD->get('SenderName').' (E-Mail: '.$oFD->get('SenderEMail').') hat Ihnen folgende Nachricht ?ber das Kontaktformular zukommen lassen:';
+      $Text .= "\n\n\n";
+      $Text .= $oFD->get('Text');
+      $MAIL->setContent($Text);
+
+      // Betreff setzen
+      $MAIL->setSubject($oFD->get('Subject'));
+
+      // Mail senden
+      $MAIL->sendMail();
+
+
+      // E-Mail fuer Absender aufsetzen
+      $MAIL->clearRecipients();
+      $MAIL->clearCCRecipients();
+      $MAIL->clearContent();
+
+      // Empfaenger setzen
+      $MAIL->setRecipient($oFD->get('SenderEMail'),$oFD->get('SenderName'));
+
+      // Text einsetzen
+      $Text = 'Sehr geehrter Empf?nger, sehr geehrte Empf?ngerin,';
+      $Text .= "\n\n";
+      $Text .= 'Ihre Anfrage wurde an die Kontaktperson "'.$Recipient->get('Name').'" weitergeleitet. Wir setzen uns baldm?glich mit Ihnen in Verbindung!';
+      $Text .= "\n\n";
+      $Text .= 'Hier nochmals Ihr Anfragetext:';
+      $Text .= "\n";
+      $Text .= $oFD->get('Text');
+      $MAIL->setContent($Text);
+
+      // Betreff setzen
+      $MAIL->setSubject($oFD->get('Subject'));
+
+      // Mail senden
+      $MAIL->sendMail();
+
+
+      // Bestaetigungsseite anzeigen
+      $Link = linkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'meldung'));
+
+      $Reg = &Singleton::getInstance('Registry');
+      $URLRewriting = $Reg->retrieve('apf::core','URLRewriting');
+
+      if($URLRewriting != true){
+         $Link = str_replace('&amp;','&',$Link);
+       // end if
+      }
+
+      header('Location: '.$Link);
+
+    // end function
+   }
+
+   function loadRecipients(){
+      $cM = & $this->__getServiceObject('modules::kontakt4::data','contactMapper');
+      return $cM->loadRecipients();
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
 In den ersten beiden Zeilen werden wiederum Komponenten aus dem Framework eingebunden, die sp&auml;ter
 f&uuml;r den Mailversand (<strong>mailSender</strong>)und das Generieren von Links
 (<strong>linkHandler</strong>) verwendet werden.
@@ -640,11 +727,83 @@ Business-Schicht um Daten aus der Empf&auml;nger-Konfigurationsdatei in Form von
 Verf&uuml;gung zu stellen. Dazu l&auml;d der Mapper die Daten zun&auml;chst mit Hilfe der Funktion
 <em>__getConfiguration()</em> aus der Konfigurations-Datei und mappt dies anschlie&szlig;end in
 Empf&auml;nger-Dom&auml;nen-Objekte (<em>oRecipient</em>).
-<br />
-<br />
-<file:highlight name="contactMapper.php" />
-<br />
-<br />
+<php:highlight>
+import('modules::kontakt4::biz','oFormData');
+import('modules::kontakt4::biz','oRecipient');
+
+class contactMapper extends coreObject
+{
+
+   function contactMapper(){
+   }
+
+   function loadRecipients(){
+
+      // read config
+      $Config = $this->__getConfiguration('modules::kontakt4','empfaenger');
+
+
+      // read relevant section
+      $Sections = $Config->getConfiguration();
+
+
+      // initialize return array
+      $Recipients = array();
+
+
+      // parse config and generate recipients
+      foreach($Config->getConfiguration() as $Key => $Values){
+
+         $Count = count($Recipients);
+         $Recipients[$Count] = new oRecipient();
+
+         // id
+         preg_match("/Kontakt ([0-9]+)/i",$Key,$Matches);
+         $Recipients[$Count]->set('oID',$Matches[1]);
+
+         // name
+         $Recipients[$Count]->set('Name',$Values['EmpfaengerName']);
+
+         // email
+         $Recipients[$Count]->set('Adresse',$Values['EmpfaengerAdresse']);
+
+       // end foreach
+      }
+
+
+      // return recipient list
+      return $Recipients;
+
+    // end function
+   }
+
+   function loadRecipientPerId($Id){
+
+      $Rec = $this->loadRecipients();
+
+      if(!is_array($Rec)){
+         return array();
+       // end if
+      }
+      else{
+
+         for($i = 0; $i < count($Rec); $i++){
+            if($Rec[$i]->get('oID') == $Id){
+               return $Rec[$i];
+             // end if
+            }
+          // end for
+         }
+
+       // end else
+      }
+
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
 Die Konfigurationsdatei selbst ist mit mehreren Sektionen der Form
 <pre class="tagexample">
 [Kontakt <em>([0-9]+)</em>]

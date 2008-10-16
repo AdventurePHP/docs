@@ -211,16 +211,120 @@ following news files located in <strong>./frontend/news/</strong>:
   news_it_4.txt
 </pre>
 The source code of the data layer class can be seen in the code box below:
-<br />
-<br />
-<file:highlight name="newspagerMapper.php" />
-<br />
+<php:highlight>
+import('modules::newspager::biz','newspagerContent');
+import('core::filesystem','filesystemHandler');
+
+class newspagerMapper extends coreObject
+{
+
+   /**
+   *  @private
+   *  Defines the dir, where the news content is located.
+   */
+   var $__DataDir = null;
+
+
+   function newspagerMapper(){
+   }
+
+   function init($DataDir){
+      $this->__DataDir = $DataDir;
+    // end function
+   }
+
+   function getNewsByPage($PageNumber){
+
+      // create filesystem handler
+      $fM = new filesystemHandler($this->__DataDir);
+
+      // read all files located there
+      $RawFiles = $fM->showDirContent();
+
+      // get files, that match the current language
+      $Files = array();
+      $count = count($RawFiles);
+
+      for($i = 0; $i < $count; $i++){
+
+         if(substr_count($RawFiles[$i],'news_'.$this->__Language.'_') > 0){
+            $Files[] = $RawFiles[$i];
+          // end if
+         }
+
+       // end for
+      }
+
+      // throw error when page count is zero!
+      $NewsCount = count($Files);
+
+      if($NewsCount == 0){
+         trigger_error('[newspagerMapper::getNewsByPage()] No news files are given for language '.$this->__Language,E_USER_ERROR);
+         exit;
+       // end if
+      }
+
+      // if page number is lower then zero, correct it!
+      if($PageNumber <= 0){
+         $PageNumber = 1;
+       // end if
+      }
+
+      // if page number is higher then max, correct it!
+      if($PageNumber > $NewsCount){
+         $PageNumber = $NewsCount;
+       // end if
+      }
+
+      // read content of file
+      $NewsArray = file($this->__DataDir.'/'.$Files[$PageNumber - 1]);
+
+      // initialize a new news content object
+      $N = new newspagerContent();
+
+      // fill headline
+      if(isset($NewsArray[0])){
+         $N->set('Headline',trim($NewsArray[0]));
+       // end if
+      }
+
+      // fill subheadline
+      if(isset($NewsArray[1])){
+         $N->set('Subheadline',trim($NewsArray[1]));
+       // end if
+      }
+
+      // fill content
+      $count = count($NewsArray);
+      if($count >= 3){
+         $Content = (string)'';
+         for($i = 2; $i < $count; $i++){
+            $Content .= $NewsArray[$i];
+          // end for
+         }
+         $N->set('Content',trim($Content));
+
+       // end if
+      }
+
+      // set news count
+      $N->set('NewsCount',$NewsCount);
+
+      // return object
+      return $N;
+
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
 Calling the mapper class like
 <php:highlight>
-  $M = new newspagerMapper();
-  $M->set('Context','sites::apfdocupage');
-  $M->set('Language','en');
-  echo printObject($M->getNewsByPage(1));
+   $M = new newspagerMapper();
+   $M->set('Context','sites::apfdocupage');
+   $M->set('Language','en');
+   echo printObject($M->getNewsByPage(1));
 </php:highlight>
 is will return an <strong>newspagerContent</strong> object, that contains the information of the
 first news page residing in the <strong>news_en_1.txt</strong> file. This object can later on be
@@ -236,10 +340,44 @@ the data layer component. This class is a simple data storage class, that contai
 of a certain news page. Due to the fact, that this class inherits from <strong>coreObject</strong>
 no more <strong>get()</strong> and <strong>set()</strong> methods must be implemented. The source
 code looks like this:
-<br />
-<br />
-<file:highlight name="newspagerContent.php" />
-<br />
+<php:highlight>
+class newspagerContent extends coreObject
+{
+
+   /**
+   *  @private
+   *  Headline of a news page.
+   */
+   var $__Headline;
+
+
+   /**
+   *  @private
+   *  Subheadline of a news page.
+   */
+   var $__Subheadline;
+
+
+   /**
+   *  @private
+   *  Content of a news page.
+   */
+   var $__Content;
+
+
+   /**
+   *  @private
+   *  Number of news pages.
+   */
+   var $__NewsCount;
+
+
+   function newspagerContent(){
+   }
+
+ // end class
+}
+</php:highlight>
 The attribute <strong>$__NewsCount</strong> was introduced to control the pager widgets.
 <br />
 <br />
@@ -250,10 +388,51 @@ we introduce a business component, that contains the business logic of the appli
 the business layer component (often called <em>manager</em>) only contains of one singe method:
 <strong>getNewsByPage()</strong>. The implementation is quite easy and so the php code looks as
 follows:
-<br />
-<br />
-<file:highlight name="newspagerManager.php" />
-<br />
+<php:highlight>
+import('modules::newspager::data','newspagerMapper');
+
+class newspagerManager extends coreObject
+{
+
+   /**
+   *  @private
+   *  Defines the dir, where the news content is located.
+   */
+   var $__DataDir = null;
+
+
+   function newspagerManager(){
+   }
+
+   function init($DataDir){
+
+      // cut trailing slash if necessary
+      if(substr($DataDir,strlen($DataDir) - 1) == '/'){
+         $this->__DataDir = substr($DataDir,0,strlen($DataDir) -1);
+       // end if
+      }
+      else{
+         $this->__DataDir = $DataDir;
+       // end else
+      }
+
+    // end function
+   }
+
+   function getNewsByPage($PageNumber = 1){
+
+      // get mapper
+      $nM = &$this->__getAndInitServiceObject('modules::newspager::data','newspagerMapper',$this->__DataDir);
+
+      // load and return news object
+      return $nM->getNewsByPage($PageNumber);
+
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
 A unit test for the class and the underlaying data layer may look like this:
 <php:highlight>
   $M = new newspagerManager();
@@ -282,19 +461,69 @@ example has no special requirements, the implementation is straight forward.
 First of all, we have to implement the input object, that is filled with the url parameters present
 in the url string when requesting the action. The class must inherit from the
 <strong>FrontcontrollerInput</strong> class and the file only contains the following body:
-<br />
-<br />
-<file:highlight name="newspagerInput.php" />
-<br />
+<php:highlight>
+class newspagerInput extends FrontcontrollerInput
+{
+
+   function newspagerInput(){
+   }
+
+ // end class
+}
+</php:highlight>
 The action class definition encapsulates the functionality described a few lines above. As described
 on the <a href="./?Page=012-Frontcontroller" title="front controller">front controller page</a>, each
 action must implement the interface method <strong>run()</strong>, that is called during action
 execution by the front controller. This function includes the main capacity and delivers the xml
 string to the requestor. The source code may look like follows:
-<br />
-<br />
-<file:highlight name="newspagerAction.php" />
-<br />
+<php:highlight>
+import('modules::newspager::biz','newspagerManager');
+
+class newspagerAction extends AbstractFrontcontrollerAction
+{
+
+   function newspagerAction(){
+   }
+
+   function run(){
+
+      // get desired page number, language and data dir
+      $Page = $this->__Input->getAttribute('page');
+      $Language = $this->__Input->getAttribute('lang');
+      $DataDir = base64_decode($this->__Input->getAttribute('datadir'));
+
+      // get manager
+      $nM = &$this->__getAndInitServiceObject('modules::newspager::data','newspagerManager',$DataDir);
+
+      // set language
+      $nM->set('Language',$Language);
+
+      // load news object
+      $N = $nM->getNewsByPage($Page);
+
+      // create xml
+      $XML = (string)'';
+      $XML .= '<?xml version="1.0" encoding="utf-8" ?>';
+      $XML .= '<news>';
+      $XML .= '<headline>'.$N->get('Headline').'</headline>';
+      $XML .= '<subheadline>'.$N->get('Subheadline').'</subheadline>';
+      $XML .= '<content>'.$N->get('Content').'</content>';
+      $XML .= '<newscount>'.$N->get('NewsCount').'</newscount>';
+      $XML .= '</news>';
+
+      // send xml
+      header('Content-Type: text/xml; charset=iso-8859-1');
+      echo $XML;
+
+      // close application
+      exit(0);
+
+    // end function
+   }
+
+ // end class
+}
+</php:highlight>
 To be able to write a unit test, or to call the action, the third part of an APF style front
 controller action must be added: the configuration. To create this file, we must define, under which
 namespace the action should be callable. For this example, we assume, that the action can be executed
@@ -317,14 +546,19 @@ full path must be
 </pre>
 The config file itself must be named
 <pre class="tagexample">
- TESTSERVER_actionconfig.ini
+ DEFAULT_actionconfig.ini
 </pre>
-because the current environment variable is set to <strong>TESTSERVER</strong>. In common, the action
+because the current environment variable is set to <strong>DEFAULT</strong>. In common, the action
 definition file contains the following lines:
-<br />
-<br />
-<file:highlight name="TESTSERVER_actionconfig.ini" />
-<br />
+<pre class="tagexample">
+[Pager]
+FC.ActionNamespace = "modules::newspager::biz::actions"
+FC.ActionFile = "newspagerAction"
+FC.ActionClass = "newspagerAction"
+FC.InputFile = "newspagerInput"
+FC.InputClass = "newspagerInput"
+FC.InputParams = ""
+</pre>
 As described on the
 <a href="./?Page=012-Frontcontroller" title="front controller">front controller page</a>, the section
 name corresponds to the action name, the section itself defines which files contain the action and
@@ -401,34 +635,34 @@ place holders to be filled with the content of the domain object.
 The corresponding document controller loads the <strong>newspagerContent</strong> object and filles
 the place holders:
 <php:highlight>
-   import('modules::newspager::biz','newspagerManager');
+import('modules::newspager::biz','newspagerManager');
 
 
-   class newspager_v1_controller extends baseController
-   {
+class newspager_v1_controller extends baseController
+{
 
-      function newspager_v1_controller(){
-      }
-
-
-      function transformContent(){
-
-         // get manager
-         $nM = &$this->__getServiceObject('modules::newspager::data','newspagerManager');
-
-         // load default news page
-         $N = $nM->getNewsByPage();
-
-         // fill place holders
-         $this->setPlaceHolder('Headline',$N->get('Headline'));
-         $this->setPlaceHolder('Subheadline',$N->get('Subheadline'));
-         $this->setPlaceHolder('Content',$N->get('Content'));
-
-       // end function
-      }
-
-    // end class
+   function newspager_v1_controller(){
    }
+
+
+   function transformContent(){
+
+      // get manager
+      $nM = &$this->__getServiceObject('modules::newspager::data','newspagerManager');
+
+      // load default news page
+      $N = $nM->getNewsByPage();
+
+      // fill place holders
+      $this->setPlaceHolder('Headline',$N->get('Headline'));
+      $this->setPlaceHolder('Subheadline',$N->get('Subheadline'));
+      $this->setPlaceHolder('Content',$N->get('Content'));
+
+    // end function
+   }
+
+ // end class
+}
 </php:highlight>
 <br />
 <a name="4-3-3-JavaScript-code"></a><h5>4.3.3. The AJAX java script code</h5>

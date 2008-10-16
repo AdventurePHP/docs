@@ -1,4 +1,3 @@
-<core:addtaglib namespace="sites::apfdocupage::pres::taglib" prefix="file" class="highlight" />
 <doku:title tags="taglibs,specific,user" title="User specific taglibs" urlname="User-specific-taglibs">
   The present tutorial describes how user specific taglibs can be created. Beneath some theoretical
   description, real world examples are presented.
@@ -296,10 +295,59 @@ After that (directly after) the taglib can be used as follows:
   &lt;doc:createobject requestparam="Seite" defaultvalue="Startseite" /&gt;
 </pre>
 Taking a closer look into the source code the following logic is encapsulated there:
-<br />
-<br />
-<file:highlight name="document_taglib_createcontentobject.php" />
-<br />
+<php:highlight>
+   import('tools::variablen','variablenHandler');
+
+   class doc_taglib_createobject extends Document
+   {
+
+      function doc_taglib_createobject(){
+         parent::Document();
+       // end function
+      }
+
+      function onParseTime(){
+
+         // get tag attributes
+         $RequestParameter = $this->__Attributes['requestparam'];
+         $DefaultValue = $this->__Attributes['defaultvalue'];
+
+         // initialize request params
+         $_LOCALS = variablenHandler::registerLocal(array($RequestParameter => $DefaultValue));
+
+         // gather current param value
+         $CurrentRequestParameter = $_LOCALS[$RequestParameter];
+
+         // fill the content of the tag
+         $this->__Content = $this->__getContent($CurrentRequestParameter);
+
+         // extract tags
+         $this->__extractTagLibTags();
+
+         // check for document controller
+         $this->__extractDocumentController();
+
+       // end function
+      }
+
+
+      function __getContent($Page){
+
+         $File = './frontend/content/c_'.$this->__Language.'_'.strtolower($Page).'.html';
+
+         if(!file_exists($File)){
+            $File = './frontend/content/c_'.$this->__Language.'_404.html';
+          // end else
+         }
+
+         return file_get_contents($File);
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
 <ul>
   <li>
     At the beginning of the file the <em>variablenHandler</em> is imported to be used later on.
