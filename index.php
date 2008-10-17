@@ -7,6 +7,7 @@
 
    // get registry to adapt the standard values
    $Reg = &Singleton::getInstance('Registry');
+   $Reg->register('apf::core','URLBasePath','http://apfdocupage/');
 
    // define environment for the sitemap
    $Reg->register('sites::apfdocupage','sitemap.env','dev');

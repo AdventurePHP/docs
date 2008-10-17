@@ -1,5 +1,6 @@
 <?php
    import('core::database','connectionManager');
+   import('sites::apfdocupage::biz','APFModel');
 
 
    /**
@@ -28,6 +29,7 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 05.10.2008<br />
+      *  Version 0.2, 17.10.2008 (Added multilanguage support)<br />
       */
       function transformContent(){
 
@@ -90,9 +92,15 @@
          // select the last two comments
          $select_comments = 'SELECT Comment,CategoryKey
                              FROM article_comments
+                             WHERE CategoryKey LIKE \''.$this->__Language.'%\'
                              ORDER BY Date DESC, Time DESC
                              LIMIT 2;';
          $result_comments = $SQLComments->executeTextStatement($select_comments);
+
+         // fetch the page indicator from the model
+         $Model = &Singleton::getInstance('APFModel');
+         $PageIndicators = $Model->getAttribute('page.indicator');
+         $CurrentPageIndicator = $PageIndicators[$Model->getAttribute('page.language')];
 
          // create comment list
          $Buffer = (string)'';
@@ -106,7 +114,7 @@
 
             // fill template
             $PageInfo = $this->__getPageInfo($PageID,$Lang);
-            $Template__PostsComments->setPlaceHolder('Link','./?Seite='.$PageID.'-'.$PageInfo['URLName'].'#comments');
+            $Template__PostsComments->setPlaceHolder('Link','./?'.$CurrentPageIndicator.'='.$PageID.'-'.$PageInfo['URLName'].'#comments');
             $Template__PostsComments->setPlaceHolder('LinkText',utf8_encode(substr($data['Comment'],0,35).'...'));
             $Template__PostsComments->setPlaceHolder('Title',$PageInfo['Title']);
 

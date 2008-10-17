@@ -1,16 +1,18 @@
 <?php
    import('modules::socialbookmark::pres::taglib','social_taglib_bookmark');
+   import('sites::apfdocupage::biz','APFModel');
 
 
    /**
-   *  @package sites::demosite::pres::taglib
+   *  @package sites::apfdocupage::pres::taglib
    *  @module apf_taglib_socialbookmark
    *
-   *  Implementiert die Tag-Library für das Erzeugen der Socialbookmark-Ausgabe.<br />
+   *  Implements a wrapper taglib for the social bookmark module.
    *
    *  @author Christian Achatz
    *  @version
    *  Version 0.1, 25.05.2008<br />
+   *  Version 0.2, 17.10.2008 (Addapted to new documentation page)<br />
    */
    class apf_taglib_socialbookmark extends social_taglib_bookmark
    {
@@ -22,33 +24,31 @@
 
 
       /**
-      *  @module transform
       *  @public
       *
-      *  Erzeugt die Ausgabe mit Hilfe des BookmarkManager. Wrapper des Tags im Modul.<br />
+      *  Creates the bookmark symbols with use of the social bookmark manager.
       *
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 25.05.2008<br />
+      *  Version 0.2, 17.10.2008 (Addapted to new documentation page)<br />
       */
       function transform(){
 
-         // Model beziehen
-         $Model = &$this->__getServiceObject('sites::demosite::biz','DemositeModel');
+         // get model
+         $Model = &$this->__getServiceObject('sites::demosite::biz','APFModel');
 
-         // Model-Werte auslesen
-         $ReqParamName = $Model->getAttribute('ReqParamName');
-         $DefaultPageName = $Model->getAttribute('DefaultPageName');
-         $RequestParameter = $ReqParamName[$this->__Language];
-         $DefaultValue = $DefaultPageName[$this->__Language];
+         // get model attributes
+         $PageIndicators = $Model->getAttribute('page.indicator');
+         $CurrentPageIndicator = $PageIndicators[$Model->getAttribute('page.language')];
 
-         // Werte lokal registrieren
-         $_LOCALS = variablenHandler::registerLocal(array($RequestParameter => $DefaultValue));
+         // register current url name
+         $_LOCALS = variablenHandler::registerLocal(array($CurrentPageIndicator));
 
-         // Title setzen
-         $this->__Attributes['title'] = 'Adventure PHP Framework - '.str_replace('-',' ',substr($_LOCALS[$RequestParameter],strpos($_LOCALS[$RequestParameter],'-') + 1));
+         // set title
+         $this->__Attributes['title'] = 'Adventure PHP Framework - '.$Model->getAttribute('page.title');
 
-         // Ausgabe erzeugen
+         // create bookmark list
          return parent::transform();
 
        // end function
