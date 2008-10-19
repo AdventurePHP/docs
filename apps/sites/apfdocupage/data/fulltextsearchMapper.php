@@ -22,30 +22,42 @@
       /**
       *  @public
       *
-      *  Läd Ergebnis-Objekte gemäß einem Suchwort.
+      *  Loads a list of search result objects according to the given search string.
       *
-      *  @param string $SearchString; Suchwort, oder mehrere Wörter per Space getrennt
-      *  @return array $SearchResults; Liste von Such-Ergebnis-Objekten
+      *  @param string $SearchString one or more search strings
+      *  @return array $SearchResults list of search result objects
       *
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 10.03.2008<br />
+      *  Version 0.2, 19.10.2008 (Introduced synonym mapping)<br />
       */
       function loadSearchResult($SearchString){
 
-         // Timer starten
+         // start timer
          $T = &Singleton::getInstance('benchmarkTimer');
          $T->start('fulltextsearchMapper::loadSearchResult()');
 
-         // Konfiguration holen
+         // get configuration
          $Config = &$this->__getConfiguration('sites::apfdocupage::biz','fulltextsearch');
 
-         // Connection holen
+         // get database connection
          $cM = &$this->__getServiceObject('core::database','connectionManager');
          $SQL = &$cM->getConnection($Config->getValue('Database','ConnectionKey'));
 
-         // WHERE-Bedingung erzeugen
+         // do synonym mapping
+         $synonyms = &$this->__getConfiguration('sites::apfdocupage::biz','fulltextsearch_synonyms');
+         $section = $synonyms->getSection($this->__Language);
+
+         foreach($section as $key => $value){
+            $SearchString = str_replace($key,$value,$SearchString);
+          // end foreach
+         }
+
+         // split search strings
          $SearchStringArray = split(' ',$SearchString);
+
+         // create where statement
          $count = count($SearchStringArray);
          $WHERE = array();
          if($count > 1){
@@ -62,7 +74,7 @@
           // end else
          }
 
-         // Statement erzeugen
+         // create search statement
          $select = 'SELECT search_articles.*, search_index.*, search_word.* FROM search_articles
                     INNER JOIN search_index ON search_articles.ArticleID = search_index.ArticleID
                     INNER JOIN search_word ON search_index.WordID = search_word.WordID
@@ -71,10 +83,10 @@
                     ORDER BY search_index.WordCount DESC, search_articles.ModificationTimestamp DESC
                     LIMIT 20';
 
-         // Abfrage ausführen
+         // execute search statement
          $result = $SQL->executeTextStatement($select);
 
-         // Ergebnisse in DomainObjekte mappen
+         // map results to domain objects
          $Results = array();
 
          while($data = $SQL->fetchData($result)){
@@ -82,10 +94,10 @@
           // end while
          }
 
-         // Timer stoppen
+         // stop timer
          $T->stop('fulltextsearchMapper::loadSearchResult()');
 
-         // Ergebnisse laden
+         // return results
          return $Results;
 
        // end function
