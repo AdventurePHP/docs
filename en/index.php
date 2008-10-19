@@ -3,11 +3,11 @@
    ini_set('html_errors','off');
 
    // include the page controller file (this is necessary to include the APF core layer)
-   include_once('./apps/core/pagecontroller/pagecontroller.php');
+   include_once('../apps/core/pagecontroller/pagecontroller.php');
 
    // get registry to adapt the standard values
    $Reg = &Singleton::getInstance('Registry');
-   $Reg->register('apf::core','URLBasePath','http://apfdocupage/');
+   $Reg->register('apf::core','URLBasePath','http://en.adventure-php-framework.org');
 
    // define environment for the sitemap
    $Reg->register('sites::apfdocupage','sitemap.env','dev');
@@ -17,7 +17,7 @@
 
    // define the release location
    $Reg->register('sites::apfdocupage','Releases.LocalDir','D:/Entwicklung/Dokumentation/Build/RELEASES');
-   $Reg->register('sites::apfdocupage','Releases.BaseURL','http://dev.adventure-php-framework.org/frontend/media/releases');
+   $Reg->register('sites::apfdocupage','Releases.BaseURL','http://files.adventure-php-framework.org');
 
    // import front controller
    import('core::frontcontroller','Frontcontroller');
@@ -27,14 +27,7 @@
 
    // set current context and language
    $fC->set('Context','sites::apfdocupage');
-   if(isset($_REQUEST['lang'])){
-      $fC->set('Language',$_REQUEST['lang']);
-    // end if
-   }
-   else{
-      $fC->set('Language','de');
-    // end else
-   }
+   $fC->set('Language','en');
 
    // register the setModel action
    $fC->registerAction('sites::apfdocupage::biz','setModel');

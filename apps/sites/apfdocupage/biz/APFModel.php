@@ -23,11 +23,12 @@
       *  Version 0.2, 17.09.2008 (Added content and quicknavi file name)<br />
       *  Version 0.3, 18.09.2008 (Added the page description attribute)<br />
       *  Version 0.4, 19.09.2008 (Added the pags tags and urlname attribute)<br />
+      *  Version 0.5, 19.10.2008 (Changed content file path to new directory)<br />
       */
       function APFModel(){
 
          // indicates the path to the content and quicknavi files
-         $this->__Attributes['content.filepath'] = './apps/sites/apfdocupage/pres';
+         $this->__Attributes['content.filepath'] = '../apps/sites/apfdocupage/pres';
 
          // indicates the current perspective
          $this->__Attributes['perspective.name'] = 'start';
