@@ -62,7 +62,7 @@
          // extract document controller statements
          $this->__extractDocumentController();
 
-       // end if
+       // end function
       }
 
     // end class

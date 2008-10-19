@@ -8,6 +8,7 @@
    // get registry to adapt the standard values
    $Reg = &Singleton::getInstance('Registry');
    $Reg->register('apf::core','URLBasePath','http://en.adventure-php-framework.org');
+   $Reg->register('apf::core','URLRewriting',true);
 
    // define environment for the sitemap
    $Reg->register('sites::apfdocupage','sitemap.env','dev');
