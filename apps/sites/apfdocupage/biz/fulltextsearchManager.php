@@ -60,6 +60,7 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 24.03.2008<br />
+      *  Version 0.2, 20.10.2008 (Removed sitemap logging)<br />
       */
       function loadPages(){
 
@@ -67,8 +68,8 @@
          $M = &$this->__getServiceObject('sites::apfdocupage::data','fulltextsearchMapper');
 
          // Suchwort protokollieren
-         $L = &Singleton::getInstance('Logger');
-         $L->logEntry('sitemap','Sitemap in language '.$this->__Language.' displayed!','LOG');
+         //$L = &Singleton::getInstance('Logger');
+         //$L->logEntry('sitemap','Sitemap in language '.$this->__Language.' displayed!','LOG');
 
          // Ergebnisse laden
          return $M->loadPages($this->__Language);
