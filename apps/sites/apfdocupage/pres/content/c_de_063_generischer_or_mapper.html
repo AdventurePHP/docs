@@ -334,7 +334,7 @@ CREATE TABLE IF NOT EXISTS `cmp_application2role` (
 In phpMyAdmin sollte ungef&auml;hr folgende Ansicht erscheinen:
 <br />
 <br />
-<center><img src="http://media.adventure-php-framework.org/content/ormapper_phpmyadmin.png" border="0" style="width: 700px;"/></center>
+<center><img src="http://media.adventure-php-framework.org/content/ormapper_phpmyadmin.png" border="0" style="width: 560px;"/></center>
 <br />
 Damit ist die Konfiguration des Mappers abgeschlossen und dieser kann in der Anwendung verwendet
 werden. &Auml;nderungen am Datenmodell k&ouml;nnen (noch) nicht automatisiert abgeglichen werden.
@@ -367,6 +367,13 @@ Hier ein &Uuml;berblick &uuml;ber die Methoden, deren Parameter und Bedeutung:
      <strong>loadRelatedObjects()</strong>:
      L&auml;d eine Liste von Objekten, die mit diesem &uuml;ber eine definierte Beziehung
      verkn&uuml;pft sind.
+     <br />
+     <br />
+  </li>
+  <li>
+     <strong>loadNotRelatedObjects()</strong>:
+     L&auml;d eine Liste von Objekten, die mit diesem &uuml;ber nicht &uuml;ber eine definierte
+     Beziehung verkn&uuml;pft sind.
      <br />
      <br />
   </li>
@@ -507,7 +514,7 @@ f&uuml;r Beispiele dienen. Das Diagramm enth&auml;lt die Definition der Business
 Die im Kapitel 4.2. verwendeten Code-Beispiele sind dabei dem genannten Modul entnommen.
 <br />
 <br />
-<center><img src="http://media.adventure-php-framework.org/content/usermanagement_domain_model.png" border="0" /></center>
+<img src="http://media.adventure-php-framework.org/content/usermanagement_domain_model.png" border="0" style="width: 560px;"/>
 <br />
 <br />
 <a name="4-2-1-Laden-von-Objekten"></a><h5>4.2.1. Laden von Objekten</h5>
@@ -594,45 +601,45 @@ SELECT * FROM ent_user WHERE DisplayName LIKE 'a%';
 <a name="4-2-3-Nachladen-von-Beziehungsobjekten"></a><h5>4.2.3. Nachladen von Beziehungsobjektlisten</h5>
 Besteht die Notwendigkeit, bei der Auflistung der Benutzer, deren zugeordnete Gruppen mit
 aufzuf&uuml;hren, k&ouml;nnen die Gruppen an Hand der Beziehung nachgeladen werden. F&uuml;r das
-Nachladen von zu einem Objekt in Beziehung stehende Objekte kann die Methode
+Nachladen von zu einem Objekt in Beziehung stehenden Objekten kann die Methode
 <ul>
   <li><strong>loadRelatedObjects()</strong></li>
 </ul>
 eingesetzt werden. Das folgende Beispiel zeigt, wie die einem Benutzer zugeordneten Gruppen
 geladen werden k&ouml;nnen:
 <php:highlight>
-   // Factory erstellen
-   $ORMFactory = $this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+// Factory erstellen
+$ORMFactory = $this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
-   // Mapper von der Factory beziehen
-   $ORM = &$ORMFactory->getGenericORMapper('modules::usermanagement','umgt1','umgt');
+// Mapper von der Factory beziehen
+$ORM = &$ORMFactory->getGenericORMapper('modules::usermanagement','umgt1','umgt');
 
-   // Benutzer-Liste laden
-   $Crit = new GenericCriterionObject();
-   $Crit->addOrderIndicator('DisplayName','ASC');
-   $UserList = $ORM->loadObjectListByCriterion('User',$Crit);
+// Benutzer-Liste laden
+$Crit = new GenericCriterionObject();
+$Crit->addOrderIndicator('DisplayName','ASC');
+$UserList = $ORM->loadObjectListByCriterion('User',$Crit);
 
-   // Ausgeben der Liste inkl. Gruppen des Benutzers
-   for($i = 0; $ < count($UserList); $i++){
+// Ausgeben der Liste inkl. Gruppen des Benutzers
+for($i = 0; $ < count($UserList); $i++){
 
-      // Name des Benutzers ausgeben
-      echo '<br />'.$UserList[$i]->getProperty('DisplayName');
+   // Name des Benutzers ausgeben
+   echo '<br />'.$UserList[$i]->getProperty('DisplayName');
 
-      // Gruppen nachladen
-      $GroupList = $ORM->loadRelatedObjects($UserList[$i],'Group2User');
+   // Gruppen nachladen
+   $GroupList = $ORM->loadRelatedObjects($UserList[$i],'Group2User');
 
-      // Gruppen ausgeben
-      echo ' ,Gruppen: ';
-      for($j = 0; $j < count($GroupList); $j++){
-         echo $GroupList[$j]->getProperty('DisplayName').' ';
-       // end for
-      }
-
-      // Neue Zeile ausgeben
-      echo '<br />';
-
+   // Gruppen ausgeben
+   echo ' ,Gruppen: ';
+   for($j = 0; $j < count($GroupList); $j++){
+      echo $GroupList[$j]->getProperty('DisplayName').' ';
     // end for
    }
+
+   // Neue Zeile ausgeben
+   echo '<br />';
+
+ // end for
+}
 </php:highlight>
 Zur Vereinfachung des Nachladens besitzt auch das Objekt <strong>GenericDomainObject</strong> die
 Methode <strong>loadRelatedObjects()</strong>. Damit ist es m&ouml;glich in der Pr&auml;sentationsschicht,
@@ -660,6 +667,72 @@ $GroupList = $UserList[$i]->loadRelatedObjects('Group2User',$Crit);
 
 // Laden der Liste direkt ueber den OR-Mapper
 $GroupList = $ORM->loadRelatedObjects($UserList[$i],'Group2User',$Crit);
+</php:highlight>
+<br />
+<a name="4-2-4-Nachladen-von-Nichtbeziehungsobjekten"></a><h5>4.2.4. Nachladen von "Nichtbeziehungsobjekten"</h5>
+Oft besteht die Notwendigkeit, Objekte zu selektieren, die zu einem bestimmten Objekt (noch) nicht
+in Beziehung stehen, f&uuml;r die jedoch eine Beziehung definiert ist. Ein konkreter Anwendungsfall
+bezogen auf das oben gezeigte UML-Diagramm ist die Selektion aller Gruppen, zu denen ein Benutzer
+noch keine Assoziation hat um diesen zur Gruppe hinzuf&uuml;gen zu k&ouml;nnen. Zu diesem Zweck
+kann die Methode
+<ul>
+  <li><strong>loadNotRelatedObjects()</strong></li>
+</ul>
+eingesetzt werden. Das folgende Beispiel zeigt, wie alle Gruppen selektiert werden k&ouml;nnen, zu
+denen der genannte Benutzer noch keine Beziehung besitzt:
+<php:highlight>
+// Factory erstellen
+$ORMFactory = $this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+
+// Mapper von der Factory beziehen
+$ORM = &$ORMFactory->getGenericORMapper('modules::usermanagement','umgt1','umgt');
+
+// Benutzer selektieren
+$Crit = new GenericCriterionObject();
+$Crit->addpropertyIndicator('DisplayName','Mustermann, Max');
+$User = $ORM->loadObjectByCriterion('User',$Crit);
+
+// Selektieren der nicht assoziierten Gruppen
+$GroupList = $ORM->loadNotRelatedObjects($User,'Group2User');
+
+// Ausgeben der Liste der noch nicht assoziierten Gruppen
+for($i = 0; $ < count($GroupList); $i++){
+   echo '<br />'.$GroupList[$i]->getProperty('DisplayName');
+ // end for
+}
+</php:highlight>
+<strong>Hinweis:</strong> Auch hier kann die Menge der nachgeladenen Objekte mit Hilfe des
+<strong>GenericCriterionObject</strong> eingeschr&auml;nkt werden. H&auml;figer Anwendungsfall ist
+hier die Einschr&auml;nkung &uuml;ber weitere Beziehungen der gew&uuml;nschten Objekte zu anderen.
+Im folgenden Beispiel sollen nur diejenigen Gruppen selektiert werden, zu denen der gew&uuml;hlte
+Benutzer noch keine Beziehung besitzt, die jedoch unterhalb eines definierten
+<em>Application</em>-Objekts komponiert sind:
+<php:highlight>
+// Factory erstellen
+$ORMFactory = $this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+
+// Mapper von der Factory beziehen
+$ORM = &$ORMFactory->getGenericORMapper('modules::usermanagement','umgt1','umgt');
+
+// Benutzer selektieren
+$Crit = new GenericCriterionObject();
+$Crit->addpropertyIndicator('DisplayName','Mustermann, Max');
+$User = $ORM->loadObjectByCriterion('User',$Crit);
+
+// Additived Beziehungskriterium definieren
+$Crit = new GenericCriterionObject();
+$App = new GenericDomainObject('Application');
+$App->setProperty('ApplicationID',1);
+$Crit->addRelationIndicator('Application2Group',$App);
+
+// Selektieren der nicht assoziierten Gruppen
+$GroupList = $ORM->loadNotRelatedObjects($User,'Group2User',$Crit);
+
+// Ausgeben der Liste der noch nicht assoziierten Gruppen
+for($i = 0; $ < count($GroupList); $i++){
+   echo '<br />'.$GroupList[$i]->getProperty('DisplayName');
+ // end for
+}
 </php:highlight>
 <br />
 <a name="4-3-Speichern-von-Objekten"></a><h4>4.3. Speichern von Objekten</h4>
