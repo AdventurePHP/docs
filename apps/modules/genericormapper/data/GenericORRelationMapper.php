@@ -1,6 +1,5 @@
 <?php
    import('modules::genericormapper::data','GenericORMapper');
-   import('core::logging','Logger');
 
 
    /**
@@ -13,6 +12,8 @@
    *  @version
    *  Version 0.1, 14.05.2008<br />
    *  Version 0.2, 15.06.2008 (Added ` to the statements due to relation saving bug)<br />
+   *  Version 0.3, 21.10.2008 (Improved some of the error messages)<br />
+   *  Version 0.4, 25.10.2008 (Added the loadNotRelatedObjects() method)<br />
    */
    class GenericORRelationMapper extends GenericORMapper
    {
@@ -308,10 +309,10 @@
       *
       *  Loads a list of related objects by an object and an relation name.<br />
       *
-      *  @param object $Object; current object
-      *  @param string $AssociationName; name of the desired association
-      *  @param GenericCriterionObject $Criterion; criterion object
-      *  @return array $RelatedObjects; list of the releated objects
+      *  @param object $object current object
+      *  @param string $relationName name of the desired relation
+      *  @param GenericCriterionObject $criterion criterion object
+      *  @return array $relatedObjects list of the releated objects
       *
       *  @author Christian Achatz
       *  @version
@@ -320,50 +321,167 @@
       *  Version 0.3, 08.06.2008 (Bugfix to the statement)<br />
       *  Version 0.4, 25.06.2008 (Added a third parameter to have influence on the loaded list)<br />
       *  Version 0.4, 26.06.2008 (Some changes to the statement creation)<br />
+      *  Version 0.5, 25.10.2008 (Added the additional relation option via the criterion object)<br />
       */
-      function loadRelatedObjects(&$Object,$RelationName,$Criterion = null){
+      function loadRelatedObjects(&$object,$relationName,$criterion = null){
 
          // Gather information about the objects related to each other
-         $ObjectName = $Object->get('ObjectName');
-         $SourceObject = $this->__MappingTable[$ObjectName];
-         $TargetObjectName = $this->__getRelatedObjectNameByRelationName($ObjectName,$RelationName);
-         $TargetObject = $this->__MappingTable[$TargetObjectName];
+         $objectName = $object->get('ObjectName');
+         $sourceObject = $this->__MappingTable[$objectName];
+         $targetObjectName = $this->__getRelatedObjectNameByRelationName($objectName,$relationName);
+         $targetObject = $this->__MappingTable[$targetObjectName];
 
-         // Add the relation to the criterion
-         if($Criterion === null){
-            $Criterion = new GenericCriterionObject();
+         // create an empty criterion if the argument was null
+         if($criterion === null){
+            $criterion = new GenericCriterionObject();
           // end if
          }
 
          // build statement
-         $select = 'SELECT '.($this->__buildProperties($TargetObjectName,$Criterion)).' FROM `'.$TargetObject['Table'].'`';
+         $select = 'SELECT '.($this->__buildProperties($targetObjectName,$criterion)).' FROM `'.$targetObject['Table'].'`';
 
          // JOIN
-         $select .= 'INNER JOIN `'.$this->__RelationTable[$RelationName]['Table'].'` ON `'.$TargetObject['Table'].'`.`'.$TargetObject['ID'].'` = `'.$this->__RelationTable[$RelationName]['Table'].'`.`'.$TargetObject['ID'].'`
-                     INNER JOIN `'.$SourceObject['Table'].'` ON `'.$this->__RelationTable[$RelationName]['Table'].'`.`'.$SourceObject['ID'].'` = `'.$SourceObject['Table'].'`.`'.$SourceObject['ID'].'`';
+         $select .= 'INNER JOIN `'.$this->__RelationTable[$relationName]['Table'].'` ON `'.$targetObject['Table'].'`.`'.$targetObject['ID'].'` = `'.$this->__RelationTable[$relationName]['Table'].'`.`'.$targetObject['ID'].'`
+                     INNER JOIN `'.$sourceObject['Table'].'` ON `'.$this->__RelationTable[$relationName]['Table'].'`.`'.$sourceObject['ID'].'` = `'.$sourceObject['Table'].'`.`'.$sourceObject['ID'].'`';
 
-         // WHERE
-         $WHERE = $this->__buildWhere($TargetObjectName,$Criterion);
-         $WHERE[] = '`'.$SourceObject['Table'].'`.`'.$SourceObject['ID'].'` = \''.$Object->getProperty($SourceObject['ID']).'\'';
-         $select .= ' WHERE '.implode(' AND ',$WHERE);
+         // - add relation joins
+         $where = array();
+         $joins = (string)'';
+         $relations = $criterion->get('Relations');
+         foreach($relations as $innerRelationName => $DUMMY){
 
+            // gather relation params
+            $relationObjectName = $relations[$innerRelationName]->get('ObjectName');
+            $relationSourceObject = $this->__MappingTable[$relationObjectName];
+            $relationTargetObjectName = $this->__getRelatedObjectNameByRelationName($relations[$innerRelationName]->get('ObjectName'),$innerRelationName);
+            $relationTargetObject = $this->__MappingTable[$relationTargetObjectName];
 
-         // ORDER
-         $ORDER = $this->__buildOrder($TargetObjectName,$Criterion);
-         if(count($ORDER) > 0){
-            $select .= ' ORDER BY '.implode(', ',$ORDER);
+            // finally build join
+            $joins .= ' INNER JOIN `'.$this->__RelationTable[$innerRelationName]['Table'].'` ON `'.$relationTargetObject['Table'].'`.`'.$relationTargetObject['ID'].'` = `'.$this->__RelationTable[$innerRelationName]['Table'].'`.`'.$relationTargetObject['ID'].'`
+                        INNER JOIN `'.$relationSourceObject['Table'].'` ON `'.$this->__RelationTable[$innerRelationName]['Table'].'`.`'.$relationSourceObject['ID'].'` = `'.$relationSourceObject['Table'].'`.`'.$relationSourceObject['ID'].'`';
+
+            // add a where for each join
+            $where[] = '`'.$relationSourceObject['Table'].'`.`'.$relationSourceObject['ID'].'` = \''.$relations[$innerRelationName]->getProperty($relationSourceObject['ID']).'\'';
+
+          // end foreach
+         }
+         $select .= $joins;
+
+         // add where statement
+         $where = array_merge($where,$this->__buildWhere($targetObjectName,$criterion));
+         $where[] = '`'.$sourceObject['Table'].'`.`'.$sourceObject['ID'].'` = \''.$object->getProperty($sourceObject['ID']).'\'';
+         $select .= ' WHERE '.implode(' AND ',$where);
+
+         // add order clause
+         $order = $this->__buildOrder($targetObjectName,$criterion);
+         if(count($order) > 0){
+            $select .= ' ORDER BY '.implode(', ',$order);
           // end if
          }
 
-         // LIMIT
-         $Limit = $Criterion->get('Limit');
-         if(count($Limit) > 0){
-            $select .= ' LIMIT '.implode(',',$Limit);
+         // add limit expression
+         $limit = $criterion->get('Limit');
+         if(count($limit) > 0){
+            $select .= ' LIMIT '.implode(',',$limit);
           // end if
          }
 
-         // Load target object
-         return $this->loadObjectListByTextStatement($TargetObjectName,$select);
+         // load target object list
+         return $this->loadObjectListByTextStatement($targetObjectName,$select);
+
+       // end function
+      }
+
+
+      /**
+      *  @public
+      *
+      *  Loads a list of *not* related objects by an object and an relation name.
+      *
+      *  @param object $object current object
+      *  @param string $relationName name of the desired relation
+      *  @param GenericCriterionObject $criterion criterion object
+      *  @return array $notRelatedObjects list of the *not* releated objects
+      *
+      *  @author Christian Achatz
+      *  @version
+      *  Version 0.1, 23.10.2008<br />
+      *  Version 0.2, 25.10.2008 (Added additional where and relation clauses. Bugfix to the inner relation statement.)<br />
+      */
+      function loadNotRelatedObjects(&$object,$relationName,$criterion = null){
+
+         // gather information about the objects *not* related to each other
+         $objectName = $object->get('ObjectName');
+         $sourceObject = $this->__MappingTable[$objectName];
+         $targetObjectName = $this->__getRelatedObjectNameByRelationName($objectName,$relationName);
+         $targetObject = $this->__MappingTable[$targetObjectName];
+
+         // create an empty criterion if the argument was null
+         if($criterion === null){
+            $criterion = new GenericCriterionObject();
+          // end if
+         }
+
+         // build statement
+         $select = 'SELECT '.($this->__buildProperties($targetObjectName,$criterion)).' FROM `'.$targetObject['Table'].'`';
+
+         // add relation joins
+         $where = array();
+         $joins = (string)'';
+         $relations = $criterion->get('Relations');
+         foreach($relations as $innerRelationName => $DUMMY){
+
+            // gather relation params
+            $relationObjectName = $relations[$innerRelationName]->get('ObjectName');
+            $relationSourceObject = $this->__MappingTable[$relationObjectName];
+            $relationTargetObjectName = $this->__getRelatedObjectNameByRelationName($relations[$innerRelationName]->get('ObjectName'),$innerRelationName);
+            $relationTargetObject = $this->__MappingTable[$relationTargetObjectName];
+
+            // finally build join
+            $joins .= ' INNER JOIN `'.$this->__RelationTable[$innerRelationName]['Table'].'` ON `'.$relationTargetObject['Table'].'`.`'.$relationTargetObject['ID'].'` = `'.$this->__RelationTable[$innerRelationName]['Table'].'`.`'.$relationTargetObject['ID'].'`
+                        INNER JOIN `'.$relationSourceObject['Table'].'` ON `'.$this->__RelationTable[$innerRelationName]['Table'].'`.`'.$relationSourceObject['ID'].'` = `'.$relationSourceObject['Table'].'`.`'.$relationSourceObject['ID'].'`';
+
+            // add a where for each join
+            $where[] = '`'.$relationSourceObject['Table'].'`.`'.$relationSourceObject['ID'].'` = \''.$relations[$innerRelationName]->getProperty($relationSourceObject['ID']).'\'';
+
+          // end foreach
+         }
+         $select .= $joins;
+
+         // add where clause
+         $where = array_merge($where,$this->__buildWhere($targetObjectName,$criterion));
+         $where[] = '`'.$targetObject['Table'].'`.`'.$targetObject['ID'].'` NOT IN ( ';
+         $select .= ' WHERE '.implode(' AND ',$where);
+
+         // inner select
+         $select .= ' SELECT `'.$targetObject['Table'].'`.`'.$targetObject['ID'].'` FROM `'.$targetObject['Table'].'`';
+
+         // inner inner join to the target object
+         $select .= ' INNER JOIN `'.$this->__RelationTable[$relationName]['Table'].'` ON `'.$targetObject['Table'].'`.`'.$targetObject['ID'].'` = `'.$this->__RelationTable[$relationName]['Table'].'`.`'.$targetObject['ID'].'`
+                      INNER JOIN `'.$sourceObject['Table'].'` ON `'.$this->__RelationTable[$relationName]['Table'].'`.`'.$sourceObject['ID'].'` = `'.$sourceObject['Table'].'`.`'.$sourceObject['ID'].'`';
+
+         // add inner where
+         $select .= ' WHERE `'.$sourceObject['Table'].'`.`'.$sourceObject['ID'].'` = \''.$object->getProperty($sourceObject['ID']).'\'';
+
+         // indicate end of inner statement
+         $select .= ' )';
+
+         // add order clause
+         $order = $this->__buildOrder($targetObjectName,$criterion);
+         if(count($order) > 0){
+            $select .= ' ORDER BY '.implode(', ',$order);
+          // end if
+         }
+
+         // add limit definition
+         $limit = $criterion->get('Limit');
+         if(count($limit) > 0){
+            $select .= ' LIMIT '.implode(',',$limit);
+          // end if
+         }
+
+         // load target object list
+         return $this->loadObjectListByTextStatement($targetObjectName,$select);
 
        // end function
       }
@@ -383,6 +501,7 @@
       *  Version 0.2, 18.05.2008 (Function completed)<br />
       *  Version 0.3, 15.06.2008 (Fixed bug that lead to wrong association saving)<br />
       *  Version 0.4, 15.06.2008 (Fixed bug that relation was not found due to twisted columns)<br />
+      *  Version 0.5, 26.10.2008 (Added a check for the object/relation to exist in the object/relation table)<br />
       */
       function saveObject($Object){
 
@@ -405,8 +524,21 @@
                   // gather information about the current relation
                   //echo 'Related object id: '.$RelatedObjectID;
                   $ObjectID = $this->__MappingTable[$Object->get('ObjectName')]['ID'];
+                  if(!isset($this->__MappingTable[$RelatedObjects[$RelationKey][$i]->get('ObjectName')]['ID'])){
+                     trigger_error('[GenericORRelationMapper::saveObject()] The object name "'.$RelatedObjects[$RelationKey][$i]->get('ObjectName').'" does not exist in the mapping table! Hence, your object cannot be saved! Please check your object configuration.');
+                     break;
+                   // end if
+                  }
                   $RelObjectID = $this->__MappingTable[$RelatedObjects[$RelationKey][$i]->get('ObjectName')]['ID'];
 
+                  // check for relation
+                  if(!isset($this->__RelationTable[$RelationKey]['Table'])){
+                     trigger_error('[GenericORRelationMapper::saveObject()] Relation "'.$RelationKey.'" does not exist in the relation table! Hence, your related object cannot be saved! Please check your relation configuration.');
+                     break;
+                   // end if
+                  }
+
+                  // create statement
                   $select = 'SELECT *
                              FROM `'.$this->__RelationTable[$RelationKey]['Table'].'`
                              WHERE `'.$ObjectID.'` = \''.$ID.'\'
@@ -448,10 +580,10 @@
       /**
       *  @public
       *
-      *  Overwrites the deleteObject() method of the parent class. Resolves relations.<br />
+      *  Overwrites the deleteObject() method of the parent class. Resolves relations.
       *
-      *  @param object $Object; the object to delete
-      *  @return int $ID; database id of the object or null
+      *  @param object $Object the object to delete
+      *  @return int $ID database id of the object or null
       *
       *  @author Christian Achatz
       *  @version
@@ -482,7 +614,7 @@
                           WHERE `'.$ObjectID.'` = \''.$Object->getProperty($ObjectID).'\';';
                $result = $this->__DBDriver->executeTextStatement($select);
                if($this->__DBDriver->getNumRows($result) > 0){
-                  trigger_error('[AbstractORRelationMapper::deleteObject()] Domain object "'.$ObjectName.'" with id "'.$Object->getProperty($ObjectID).'" cannot be deleted, because it still has composed child objects!',E_USER_WARNING);
+                  trigger_error('[GenericORRelationMapper::deleteObject()] Domain object "'.$ObjectName.'" with id "'.$Object->getProperty($ObjectID).'" cannot be deleted, because it still has composed child objects!',E_USER_WARNING);
                   return null;
                 // end if
                }
@@ -553,14 +685,14 @@
 
          // test, if relation exists in relation table
          if(!isset($this->__RelationTable[$RelationName])){
-            trigger_error('[AbstractORRelationMapper::createAssociation()] Relation with name "'.$RelationName.'" is not defined in the mapping table! Please check your relation configuration.',E_USER_WARNING);
+            trigger_error('[GenericORRelationMapper::createAssociation()] Relation with name "'.$RelationName.'" is not defined in the mapping table! Please check your relation configuration.',E_USER_WARNING);
             return false;
           // end
          }
 
          // if relation is a composition, return with error
          if($this->__RelationTable[$RelationName]['Type'] == 'COMPOSITION'){
-            trigger_error('[AbstractORRelationMapper::createAssociation()] Compositions cannot be created with this method! Use saveObject() on the target object to create a composition!',E_USER_WARNING);
+            trigger_error('[GenericORRelationMapper::createAssociation()] Compositions cannot be created with this method! Use saveObject() on the target object to create a composition!',E_USER_WARNING);
             return false;
           // end if
          }
@@ -605,14 +737,14 @@
 
          // test, if relation exists in relation table
          if(!isset($this->__RelationTable[$RelationName])){
-            trigger_error('[AbstractORRelationMapper::deleteAssociation()] Relation with name "'.$RelationName.'" is not defined in the mapping table! Please check your relation configuration.',E_USER_WARNING);
+            trigger_error('[GenericORRelationMapper::deleteAssociation()] Relation with name "'.$RelationName.'" is not defined in the mapping table! Please check your relation configuration.',E_USER_WARNING);
             return false;
           // end
          }
 
          // if relation is a composition, return with error
          if($this->__RelationTable[$RelationName]['Type'] == 'COMPOSITION'){
-            trigger_error('[AbstractORRelationMapper::deleteAssociation()] Compositions cannot be deleted! Use deleteObject() on the target object instead!',E_USER_WARNING);
+            trigger_error('[GenericORRelationMapper::deleteAssociation()] Compositions cannot be deleted! Use deleteObject() on the target object instead!',E_USER_WARNING);
             return false;
           // end if
          }
@@ -656,14 +788,14 @@
 
          // test, if relation exists in relation table
          if(!isset($this->__RelationTable[$RelationName])){
-            trigger_error('[AbstractORRelationMapper::isAssociated()] Relation with name "'.$RelationName.'" is not defined in the mapping table! Please check your relation configuration.',E_USER_WARNING);
+            trigger_error('[GenericORRelationMapper::isAssociated()] Relation with name "'.$RelationName.'" is not defined in the relation table! Please check your relation configuration.',E_USER_WARNING);
             return false;
           // end
          }
 
          // if relation is a composition, return with error
          if($this->__RelationTable[$RelationName]['Type'] == 'COMPOSITION'){
-            trigger_error('[AbstractORRelationMapper::isAssociated()] Given relation is not an association!',E_USER_WARNING);
+            trigger_error('[GenericORRelationMapper::isAssociated()] The given relation ("'.$RelationName.'") is not an association! Please check your relation configuration.',E_USER_WARNING);
             return false;
           // end if
          }
@@ -835,9 +967,10 @@
       *  @version
       *  Version 0.1, 14.05.2008<br />
       *  Version 0.2, 25.06.2008 (Removed "ApplicationID" from sleep list)<br />
+      *  Version 0.3, 26.10.2008 (Added "__importedConfigCache")<br />
       */
       function __sleep(){
-         return array('__MappingTable','__RelationTable','__Context','__Language');
+         return array('__MappingTable','__RelationTable','__Context','__Language','__importedConfigCache');
        // end function
       }
 
