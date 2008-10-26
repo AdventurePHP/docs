@@ -28,7 +28,7 @@
    // create indexer
    $fSI = new fulltextsearchIndexer();
    $fSI->set('Context','sites::apfdocupage');
-   $fSI->set('ContentFolder','./apps/sites/apfdocupage/pres/content');
+   $fSI->set('ContentFolder','../apps/sites/apfdocupage/pres/content');
 
    // execute desired job
    $nothing2do = false;
