@@ -2,29 +2,26 @@
   The AdvancedBBCodeParser provides a generic implementation for parsing BBCode style formating tags
   within strings.
 </doku:title>
-<a name="1-Einfuehrung"></a><h3>1. Einf&uuml;hrung</h3>
-Der <strong>AdvancedBBCodeParser</strong> ist eine generische Implementierung eines BBCode-Formatierers.
-Im Gegensatz zum herk&ouml;mmlichen BBCodeParser ist dieser leichgewichtig und mit der verwendeten
-Provider-Logik einfach anpassbar. Der Parser bringt standardm&auml;&szlig;ig vier Provider mit, die
-Schrift-Stile (fett, kursiv, unterstrichen), Schriftgr&ouml;&szlig;e (je nach Konfiguration),
-Schrift-Farbe (je nach Konfiguration) und Zeilenumbr&uuml;che im &uuml;bergebenen Text entsprechend
-formatiert.
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+The <strong>AdvancedBBCodeParser</strong> is a generic implementation of a bbcode formatter. In contrast
+to the previous implementation, this component is much more lightweight and the parser logic is
+highly extensible. The parser itself contains a set of four output provider, that can handle font
+styles (bold, italic, underlined), font sizes and colors (depending on the corresponding
+configuration files) and new lines.
 <br />
 <br />
 <br />
-<a name="2-Aufbau"></a><h3>2. Aufbau</h3>
-Der Parser besteht aus aus insgesamt drei Klassendefinitionen: einer
-<strong>BBCodeParserDefinition</strong>, die einen Output-Provider (zust&auml;ndig f&uuml;r die
-Formatierung) beschreibt, einem Interface f&uuml;r den Provider (<strong>BBCodeParserProvider</strong>)
-und dem Parser selbst (<strong>AdvancedBBCodeParser</strong>). Da Provider grunds&auml;tzlich in der
-Lage sein m&uuml;ssen an Hand des aktuellen Kontextes der Applikation Konfigurationsdateien zu
-laden sollte der <strong>AdvancedBBCodeParser</strong> m&ouml;glichst als <em>ServiceObject</em>
-erzeugt werden, damit dieser &uuml;ber den aktuellen Kontext verf&uuml;gt.
+<a name="2-Class-design"></a><h3>2. Class design</h3>
+The bbcode parser consists of three classes: the <strong>BBCodeParserDefinition</strong>, that represent
+an output provider, a provider implementation interface class (<strong>BBCodeParserProvider</strong>)
+and the parser itself (<strong>AdvancedBBCodeParser</strong>). Due to the fact, that each provider
+must be able to load a configuration file depending on the current context of the application, the
+<strong>AdvancedBBCodeParser</strong> must be created via the service manager.
 <br />
 <br />
-Soll ein weiterer Provider hinzugef&uuml;gt oder einbestehender ersetzt werden, so muss die
-Implementierung des Providers stets von der Klasse <strong>BBCodeParserProvider</strong> erben. Eine
-einfache Provider-Definition kann dem folgenden Quellcode-Kasten entnommen werden:
+In case of extending the list of providers or replacing a particular one, the newly implemented
+class must inherit from the <strong>BBCodeParserProvider</strong> class. The follwing code box
+presents a simple provider implementation:
 <php:highlight>
 class NewLineProvider extends BBCodeParserProvider
 {
@@ -38,21 +35,21 @@ class NewLineProvider extends BBCodeParserProvider
 
 }
 </php:highlight>
-Der <strong>AdvancedBBCodeParser</strong> kann dabei beliebig viele Provider ausf&uuml;hren.
+Thanks to the generic implementation, the <strong>AdvancedBBCodeParser</strong> can execute as many
+providers as you like.
 <br />
 <br />
 <br />
-<a name="3-Anwendung"></a><h3>3. Anwendung</h3>
-Soll der <strong>AdvancedBBCodeParser</strong> mit der Standard-Einstellung verwendet werden, muss
-sichergestellt sein, dass je eine Konfigurationsdatei f&uuml;r die Schriftgr&ouml;&szlig;en und
-Schriftfarben existiert. Diese werden unter den Namespace <strong>config::tools::string::bbcpprovider</strong>
-unddem jeweiligen Kontext der Applikation erwartet. Die Definition der Schriftgr&ouml;&szlig;en muss
-in der Datei
+<a name="3-Application"></a><h3>3. Application</h3>
+In case of standard application, you need to provide the necessary configuration files, that contain
+the font size and color definitions used by the default provider. These configuration files are
+expected to reside in the <strong>config::tools::string::bbcpprovider</strong> namespace and the
+current context path. Thereby, the font size definition must be included in the
 <pre class="tagexample">{Environment}_fontsize.ini</pre>
-enthalten sein, die Farben in der Datei
+file and the color definition must be stored in the file
 <pre class="tagexample">{Environment}_fontcolor.ini</pre>
-Die Konfigurationen bestehen dabei aus einer festen Sektion und einer variablen Anzahl von Gr&ouml;&szlig;en-
-und Farb-Definitionen:
+The two configuration files do consist of a fixed section and a mutable amount of size or color
+directives:
 <br />
 <br />
 <strong>DEFAULT_fontsize.ini:</strong>
@@ -76,46 +73,47 @@ orange = "rgb(233 142 31)"
 gray = "#666666"
 red = "red"
 </pre>
-Anschlie&szlig;end kann der Parser wie folgt angewendet werden:
+After providing these configuration files, the parser can be used like described in the following
+code box:
 <php:highlight>
 $bP = &$this->__getServiceObject('tools::string','AdvancedBBCodeParser');
 echo $bP->parseCode($string);
 </php:highlight>
 <br />
 <br />
-<a name="4-Erweiterte-Konfiguration"></a><h3>4. Erweiterte Konfiguration</h3>
-Um die bestehenden Provider zu erg&uuml;nzen oder auszutauschen oder neue hinzuzuf&uuml;gen, stehen die
-Methoden <strong>addProvider()</strong> und <strong>removeProvider()</strong> zur Verf&uuml;gung. Die
-standardm&auml;&szlig;ig beinhalteten Provider k&ouml;nnen unter folgendem Alias angesprochen werden:
+<a name="4-Enhanced-configuration"></a><h3>4. Enhanced configuration</h3>
+In order to add further provider or replace existing ones, the <strong>addProvider()</strong> and
+<strong>removeProvider()</strong> functions can be used. Please use the following alias names to
+address the existing providers:
 <ul>
   <li>
-    <strong>standard.font.style</strong>: Formatierung von Schrift-Varianten (fett, kursiv, unterstrichen)
+    <strong>standard.font.style</strong>: Formats the font variants (bold, italic, underlined)
   </li>
   <li>
-    <strong>standard.font.size</strong>: Formatierung von Schrift-Gr&ouml;&szlig;en
+    <strong>standard.font.size</strong>: Formats the font size declarations
   </li>
   <li>
-    <strong>standard.font.color</strong>: Formatierung von Schrift-Farben
+    <strong>standard.font.color</strong>: Formats the font color tags
   </li>
 
   <li>
-    <strong>standard.newline</strong>: Formatierung von Zeilenumbr&uuml;chen
+    <strong>standard.newline</strong>: Replaces newlines by HTML linebreaks
   </li>
 </ul>
-Weitere Aliases k&ouml;nnen frei definiert werden. Das folgende Beispiel zeigt, wie die bestehende
-Provider ersetzt und neue hinzugef&uuml;gt werden k&ouml;nnen:
+When adding new output provider, the aliases can be choosen as desired. The following code sample
+explains, how to replace existing provider and how to add new output formatter:
 <php:highlight>
 $bP = &$this->__getServiceObject('tools::string','AdvancedBBCodeParser');
 
-// Bestehenden Provider ersetzten
+// replace an existing provider
 $fontProv = new BBCodeParserDefinition('my::namespace::bbcp','MyFontParser');
 $bP->addProvider('standard.font.style',$fontProv);
 
-// Neuen Provider hinzufuegen
+// add a new provider
 $specProv = new BBCodeParserDefinition('my::namespace::bbcp','MySpecialParser');
 $bP->addProvider('special_provider',$specProv);
 
-// Bestehenden Provider entfernen
+// remove an existing provider
 $bP->removeProvider('standard.newline');
 
 echo $bP->parseCode($string);
