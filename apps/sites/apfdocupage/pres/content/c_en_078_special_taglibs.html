@@ -1,0 +1,257 @@
+<doku:title tags="documentation,taglibs,front controller" title="Special-taglibs" urlname="Special-taglibs">
+  This pages gives you an overview of the available documentation.
+</doku:title>
+This documentation page describes advanced functions of the framework, that are designed for special
+application cases of more complex software designs.
+<br />
+<br />
+<br />
+<a name="1-Iterator"></a><h2>1. Iterator</h2>
+The iterator tag was introduced in version 1.6 (final) to simplify the display mechanism of objects
+or associative arrays. For this reason an iterator tag defined within a template file must be filled
+by the document controller with the desired data. The definition of the tag looks as follows:
+<pre class="tagexample">
+  &lt;html:iterator name=""&gt;
+    &lt;iterator:item [getter=""]&gt;
+      &lt;item:placeholder name="" /&gt;
+    &lt;/iterator:item&gt;
+  &lt;/html:iterator&gt;
+</pre>
+The <strong>&lt;html:iterator /&gt;</strong> tag defines the iterator and the
+<strong>&lt;iterator:item /&gt;</strong> tag contains the graphical description of how a data element
+should be displayed. Inside the data element a various number of placeholders
+(<strong>&lt;item:placeholder /&gt;</strong>) can be defined. The name of the placeholder is equal to
+the name of the class attribute or array offset at the same time. In order to change the name of the
+get method, the optional tag attribut <strong>getter</strong> must be added to the
+<strong>&lt;iterator:item /&gt;</strong> tag definition. Please note, that the tag implementation
+uses the <strong>get()</strong> function as the default getter.
+<br />
+<br />
+<strong>Description of the attributes:</strong>
+<ul>
+  <li>
+    <strong>name</strong> (1): Name of the iterators.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9]</code>)
+  </li>
+  <li>
+    <strong>getter</strong>: Name of the mathod that is used to retrieve an object's attribute.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>name</strong> (2): Name of the place holder.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9]</code>)
+  </li>
+</ul>
+To use the tag it must be announced using the
+<pre class="tagexample">
+  &lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="iterator" /&gt;
+</pre>
+directive. Further, the document controller of the <em>Document</em> in which the iterator is defined
+must inherit from the <strong>iteratorBaseController</strong> class located in the namespace
+<strong>tools::html::taglib::documentcontroller</strong>. The following code fragment shows, how to
+use the iterator tag:
+<php:highlight>
+   import('tools::html::taglib::documentcontroller','iteratorBaseController');
+
+   class list_controller extends iteratorBaseController
+   {
+
+      function list_controller(){
+      }
+
+      function transformContent(){
+
+         ...
+
+         // Get a reference om the iterator tag
+         $Iterator = &$this->__getIterator('...');
+
+         // Fill the data container with a list of objects or associative arrays
+         $Iterator->fillDataContainer(...);
+
+         // Display on the place of definition ...
+         $Iterator->transformOnPlace();
+         // ... or insert the content of the tag into a place holder
+         $this->setPlaceHolder('...',$Iterator->transformIterator());
+
+         ...
+
+       // end function
+      }
+
+    // end class
+   }
+</php:highlight>
+<br />
+<a name="2-Mediastream"></a><h3>2. Media stream tags</h3>
+The media stream tags enable the developer to store and deliver GUI ressources directly from the
+namespace of a specific module. For this reason, the framework contains an abstract implementation
+of a streaming taglib and several dedicated taglibs, that generate a media url. Further, a generic
+front controller action is included, that streams the media files, that are requested by the tags.
+<br />
+<br />
+In order to use the tags you must be sure, that the front controller action, that is intended to
+deliver the desired files, has a valid configuration for the current context. The action config is
+expected to be contained in the
+<pre class="tagexample">/config/tools/media/actions/{Context}/{Environment}_actionconfig.ini</pre>
+file. The content of the file can be taken from the following code box:
+<pre class="tagexample">
+[streamMedia]
+FC.ActionNamespace = "tools::media::actions"
+FC.ActionFile = "StreamMediaAction"
+FC.ActionClass = "StreamMediaAction"
+FC.InputFile = "StreamMediaInput"
+FC.InputClass = "StreamMediaInput"
+FC.InputParams = ""
+</pre>
+A example configuration file is also included in the <strong>adventure-configpack-*</strong> release
+file under <strong>tools/media/actions/</strong>.
+<br />
+<br />
+In order to generate dynamic media urls, the following taglibs are included in the framework:
+<ul>
+  <li><strong>form_taglib_mediastream:</strong> To be used within the html:form tag</li>
+  <li><strong>html_taglib_mediastream:</strong> To be used within a template file</li>
+  <li><strong>template_taglib_mediastream:</strong> To be used within the html:template tag</li>
+</ul>
+To be able to use one of the taglibs, the tag must be introduced to the desired scope using the
+<strong>&lt;*:importdesign /&gt;</strong> tags. The following code box shows an real life application
+example:
+<pre class="tagexample">
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;html:form name="TestFormular"&gt;
+  &lt;form:addtaglib namespace="tools::media::taglib" prefix="form" class="mediastream" /&gt;
+  &lt;img src="&lt;form:mediastream namespace="modules::mymodule::pres::images" filename="phone_icon.png" /&gt;" alt="" /&t;
+  &lt;form:text name="phonenumber" /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="send" value="Absenden" /&gt;
+&lt;/html:form&gt;
+</pre>
+As you can take from the example above, the <strong>&lt;*:mediastream /&gt;</strong> tags expect the
+following attributes to be filled:
+<ul>
+  <li>
+    <strong>namespace</strong>: Namespace to the desired media file.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9:]</code>)
+  </li>
+  <li>
+    <strong>filename</strong>: Name of the media file.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_.-]</code>)
+  </li>
+</ul>
+<br />
+<strong>Hint:</strong>
+<br />
+If you intend to manipulate the namespace of the file, that should be delivered, because you want to
+store the image files in the config namespace - using the context to give the application an individual
+touch - you have to acte like this:
+<br />
+<br />
+<ol>
+  <li>
+    Add an id attribute to the desired tag:
+<pre class="tagexample">
+&lt;core:addtaglib namespace="tools::media::taglib" prefix="form" class="mediastream" /&gt;
+&lt;img src="&lt;html:mediastream
+                     namespace="config::modules::mymodule::pres::images"
+                     filename="phone_icon.png"
+                     id="PhoneIcon"
+             /&gt;"
+        alt=""
+/&gt;
+</pre>
+  </li>
+  <li>
+    Manipulate the namespaces within the responsible document controller:
+<php:highlight>
+class example_controller extends baseController
+{
+   function transformContent(){
+      $mediaStreamTag = &$this->__getMediaStreamTagByID('PhoneIcon');
+      $mediaStreamTag->setAttribute($mediaStreamTag->getAttribute().'::'.$this->__Context);
+   }
+
+   function &__getMediaStreamTagByID($id){
+      $children = &$this->__Document->getByReference('Children');
+      foreach($children as $objectId => $DUMMY){
+         if(get_class($children[$objectId]) == 'html_taglib_mediastream'){
+            return $children[$objectId];
+         }
+      }
+      $null = null;
+      return $null;
+   }
+}
+</php:highlight>
+  </li>
+</ol>
+<a name="3-Generic-importdesign-tag"></a><h3>3. Generic importdesign tag</h3>
+In komplexeren Applikationen ist es of notwendig, die durch <strong>&lt;*:importdesign /&gt;</strong>-Tags
+definierten Views dynamisch f&uuml;llen zu k&ouml;nnen. Vielfach m&ouml;chte der Entwickler in
+aufw&auml;ndigeren Strukturen die Informationen des Applikationsmodels verwenden. Um dies
+uneingeschr&auml;nkt zu erm&ouml;glichen und eine Applikationssteuerung aus der Business-Schicht zu
+erm&ouml;glichen, wurde das Framework mit einem generischen importdesign-Tag ausgestattet, der es
+erlaubt sowohl den Namen des Templates aus auch den Namespace desselben dynamisch aus einem
+Model-Objekt zu beziehen.
+<br />
+<br />
+Die Signatur des generischen Tags gestaltet sich dabei wie folgt:
+<pre class="tagexample">
+&lt;generic:importdesign
+   modelnamespace=""
+   modelfile=""
+   modelclass=""
+   modelmode=""
+   namespaceparam=""
+   templateparam=""
+   [getmethod=""]
+&gt;
+</pre>
+Den Attributen kommt dabei folgende Bedeutung zu:
+<ul>
+  <li>
+    <strong>modelnamespace</strong>: Namespace der Model-Klasse.
+    (<strong>Zeichen:</strong>: <code>[A-Za-z0-9:]</code>)
+  </li>
+  <li>
+    <strong>modelfile</strong>: Name der Model-Datei.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>modelclass</strong>: Name der Model-Klasse.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>modelmode</strong>: Instanzierungsmodus des Models.
+    (<strong>Erlaubte Werte</strong>: <code>NORMAL|SINGLETON|SESSIONSINGLETON</code>)
+  </li>
+  <li>
+    <strong>namespaceparam</strong>: Name des Model-Parameters f&uuml;r den Template-Namespace.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_.-]</code>)
+  </li>
+  <li>
+    <strong>templateparam</strong>: Name des Model-Parameters f&uuml;r den Template-Namen.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_.-]</code>)
+  </li>
+  <li>
+    <strong>getmethod</strong>: Name der Mode-Methode mit dem die Parameter abgefragt werden
+    k&ouml;nnen. Standardm&auml;&szlig;ig wird die Funktion <strong>getAttribute()</strong> verwendet.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+</ul>
+<br />
+Um das Tag anwenden zu k&ouml;nen, muss dieses zun&auml;chst via
+<pre class="tagexample">
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="generic" class="importdesign" /&gt;
+</pre>
+im aktuellen G&uuml;ltigkeitsbereich bekannt gemacht werden.
+<br />
+<br />
+<strong>Hinweis:</strong> Als Anwendungsbeispiel kann der Artikel
+<a href="http://en.adventure-php-framework.org/Page/079-Behind-the-site">behind the site</a>
+(englisch) herangezogen werden. Dieser beschreibt, wie die vorliegende Dokuentationswebseite
+aufgebaut ist und welche Mittel des Frameworks sie nutzt.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_078" />

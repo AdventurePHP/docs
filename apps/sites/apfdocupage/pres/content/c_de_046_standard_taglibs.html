@@ -981,13 +981,14 @@ weitergeben.
       modelfile=""
       modelclass=""
       modelparam=""
+      [sessionsingleton=""]
   /&gt;
 </pre>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
   <li>
     <strong>templatenamespace</strong>: Namespace zum Template-Ordner.
-    (<strong>Allowed characters:</strong>: <code>[A-Za-z0-9:]</code>)
+    (<strong>Zeichen:</strong>: <code>[A-Za-z0-9:]</code>)
   </li>
   <li>
     <strong>modelnamespace</strong>: Namespace zur Model Klasse.
@@ -1005,84 +1006,12 @@ weitergeben.
     <strong>modelparam</strong>: Model-Parameter, der f&uuml;r die Einbindung des Templates verwendet werden soll.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
   </li>
-</ul>
-<br />
-<a name="6-Iterator"></a><h2>6. Iterator</h2>
-Das Iterator-Tag wurde in Version 1.6 (final) eingef&uuml;hrt um die Ausgabe von Listen von Objekten
-oder assoziativen Arrays zu erleichtern. Dazu muss in einer Template-Datei ein Iterator definiert und
-in einem Controller mit den gew&uuml;nschten Daten best&uuml;ckt werden. Die Definition des Tags
-gestaltet sich wie folgt:
-<pre class="tagexample">
-  &lt;html:iterator name=""&gt;
-    &lt;iterator:item [getter=""]&gt;
-      &lt;item:placeholder name="" /&gt;
-    &lt;/iterator:item&gt;
-  &lt;/html:iterator&gt;
-</pre>
-Dabei ist der Tag <strong>&lt;html:iterator /&gt;</strong> die Definition des Iterators und
-<strong>&lt;iterator:item /&gt;</strong> enth&auml;lt die optische Beschreibung eines Daten-Elementes.
-Innerhalb eines Daten-Elementes k&ouml;nnen beliebig viele Platzhalter (<strong>&lt;item:placeholder /&gt;</strong>)
-definiert werden. Der Name des Platzhalters repr&auml;sentiert dabei ebenso den Namen des auszugebenden
-Attributes einer Klasse, bzw. den Namen des Offset eines assoziativen Arrays. Das optionale Attribut
-<strong>getter</strong> des <strong>&lt;iterator:item /&gt;</strong>-Tags definiert den Namen
-derjenigen Methode, mit deren Hilfe das Attribut aus einem Daten-Objekt ausgelesen werden kann. Im
-Standard-Fall wird die Methode <strong>get()</strong> als "Getter" verwendet.
-<br />
-<br />
-<strong>Beschreibung der Attribute:</strong>
-<ul>
   <li>
-    <strong>name</strong> (1): Name des Iterators.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9]</code>)
-  </li>
-  <li>
-    <strong>getter</strong>: Name der Methode, mit der Attribute eines Objekts abgerufen werden k&ouml;nnen.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
-  </li>
-  <li>
-    <strong>name</strong> (2): Name des Platzhalters.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9]</code>)
+    <strong>sessionsingleton</strong>: Definiert, ob das Model-Objekt im SINGLETON oder SESSIONSINGLETON
+    Modus vom ServiceManager bezogen werden soll. Ist das Attribut nicht vorhanden oder enth&auml;lt
+    es einen anderen Wert als <strong>true</strong>, so wird der SINGLETON Modus verwendet.
+    (<strong>Werte</strong>: <code>true|false</code>)
   </li>
 </ul>
-Um den Iterator verwenden zu k&ouml;nnen muss das Tag zuerst per
-<pre class="tagexample">
-  &lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="iterator" /&gt;
-</pre>
-im aktuellen <em>Document</em> bekannt gemacht werden. Weiterhin muss der im <em>Document</em>
-definierte DocumentController von der Klasse <strong>iteratorBaseController</strong>, die im Namespace
-<strong>tools::html::taglib::documentcontroller</strong> abgelegt ist, erben. Innerhalb des
-DocumentControllers, kann der Iterator dann wie folgt verwendet werden:
-<php:highlight>
-   import('tools::html::taglib::documentcontroller','iteratorBaseController');
-
-   class list_controller extends iteratorBaseController
-   {
-
-      function list_controller(){
-      }
-
-      function transformContent(){
-
-         ...
-
-         // Referenz auf den Iterator holen
-         $Iterator = &$this->__getIterator('...');
-
-         // Datencontainer mit einer Liste von Objekten oder assoziativen Arrays fuellen
-         $Iterator->fillDataContainer(...);
-
-         // Am Ort der Definition ausgeben ...
-         $Iterator->transformOnPlace();
-         // ... oder den Inhalt in einen Platzhalter einsetzen
-         $this->setPlaceHolder('...',$Iterator->transformIterator());
-
-         ...
-
-       // end function
-      }
-
-    // end class
-   }
-</php:highlight>
 <br />
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_046" />
