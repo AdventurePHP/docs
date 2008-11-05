@@ -64,14 +64,7 @@
       */
       function loadPages(){
 
-         // Mapper laden
          $M = &$this->__getServiceObject('sites::apfdocupage::data','fulltextsearchMapper');
-
-         // Suchwort protokollieren
-         //$L = &Singleton::getInstance('Logger');
-         //$L->logEntry('sitemap','Sitemap in language '.$this->__Language.' displayed!','LOG');
-
-         // Ergebnisse laden
          return $M->loadPages($this->__Language);
 
        // end function

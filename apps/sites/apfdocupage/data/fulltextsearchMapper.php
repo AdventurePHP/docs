@@ -31,6 +31,7 @@
       *  @version
       *  Version 0.1, 10.03.2008<br />
       *  Version 0.2, 19.10.2008 (Introduced synonym mapping)<br />
+      *  Version 0.3, 05.11.2008 (Added value escaping for the search string to avoid sql injections)<br />
       */
       function loadSearchResult($SearchString){
 
@@ -44,6 +45,9 @@
          // get database connection
          $cM = &$this->__getServiceObject('core::database','connectionManager');
          $SQL = &$cM->getConnection($Config->getValue('Database','ConnectionKey'));
+
+         // make search string save (sql injection)
+         $SearchString = $SQL->escapeValue($SearchString);
 
          // do synonym mapping
          $synonyms = &$this->__getConfiguration('sites::apfdocupage::biz','fulltextsearch_synonyms');
