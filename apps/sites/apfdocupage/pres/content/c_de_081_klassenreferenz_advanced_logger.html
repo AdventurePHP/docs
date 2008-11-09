@@ -1,0 +1,131 @@
+<doku:title tags="dokumentation,klassen referenz,klassen,referenz,singleton,advanced logger" title="Klassen-Referenz - AdvancedLogger" urlname="Klassenreferenz-AdvancedLogger">
+  Da der Framework enthaltene Standard-Logger in seinen Konfigurationsm&ouml;glichkeiten
+  eingeschr&auml;nkt ist, wurde mit der 1.8er Serie ein erweiterter Logger eingef&uuml;hrt. Dieser
+  kann unterschiedliche Ausgabe-Formen (Datei, Datenbank, Standard-Out) bedienen und unterst&uuml;tzt
+  unterschiedliche Log-Formate.
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+Da der Framework enthaltene <a href="./?Seite=023-Klassenreferenz-Logger" title="Standard-Logger">Standard-Logger</a>
+in seinen Konfigurationsm&ouml;glichkeiten eingeschr&auml;nkt ist, wurde mit der 1.8er Serie ein
+erweiterter Logger eingef&uuml;hrt. Dieser kann unterschiedliche Ausgabe-Formen (Datei, Datenbank,
+Standard-Out) bedienen und unterst&uuml;tzt unterschiedliche Log-Formate.
+<br />
+<br />
+<br />
+<a name="1-Konfiguration"></a><h3>1. Konfiguration</h3>
+Zur Verwendung des Loggers muss dieser zun&auml;chst konfiguriert werden. Hierzu erwartet die
+Komponente die Konfigurationsdatei
+<pre class="tagexample">
+/config/core/logging/{Context}/{Environment}_logconfig.ini
+</pre>
+Jede Sektion der Konfigurationsdatei beinhaltet die Definition f&uuml;r eine konkrete Instanz des
+<strong>AdvancedLoggers</strong>.
+<br />
+<br />
+<br />
+<a name="1-1-Datei-Logging"></a><h4>1.1. Datei-Logging</h4>
+Im Falle der Ausgabe in eine Log-Datei sind folgende Parameter in der entsprechenden Sektion
+vorzuhalten:
+<pre class="tagexample">
+[FileLogger]
+LogTarget = "file"
+LogDir = "/path/to/log/dir"
+LogFileName = "log_file_name"
+LogType = "true|false"
+LogTimestamp = "true|false"
+</pre>
+Das <strong>LogTarget</strong> definiert, dass die Ausgabe des Loggers in eine Datei umgeleitet werden
+soll. In den Direktiven <strong>LogDir</strong> und <strong>LogFileName</strong> wird der Pfad und
+der Name der Log-Datei definiert. Hierbei ist zu beachten, dass das Verzeichnis bereits angelegt sein
+muss. Ist <strong>LogType</strong> mit <strong>true</strong> belegt, so wird in der Log-Datei der Typ
+der Meldung (severity) angezeigt, der Parameter <strong>LogTimestamp</strong> entscheidet in gleicher
+Weise &uuml;ber die Anzeige eines Timestamps.
+<br />
+<br />
+<br />
+<a name="1-2-Datenbank-Logging"></a><h4>1.2. Datenbank-Logging</h4>
+Im Falle der Ausgabe in eine Datenbank sind folgende Parameter relevant:
+<pre class="tagexample">
+[DatabaseLogger]
+LogTarget = "database"
+LogDatabase = "connection_key"
+LogTable = "log_table_name"
+</pre>
+Das <strong>LogTarget</strong> definiert, dass die Ausgabe des Loggers in eine Datenbank umgeleitet
+werden soll. In den Direktiven <strong>LogDatabase</strong> und <strong>LogTable</strong> wird dabei
+das Ziel der Umleitung beschrieben. <strong>LogDatabase</strong> ist dabei eine Referenz auf die
+Datenbank-Verbindungskonfiguration (siehe
+<a href="./?Seite=031-Klassenreferenz-connectionManager" title="Klassenreferenz - connectionManager">connectionManager</a>
+f&uuml;r weitere Details), <strong>LogTable</strong> enth&auml;lt den Namen der Log-Tabelle.
+Um den Logger betreiben zu k&ouml;nnen, muss in der konfigurierten Datenbank die benannte Tabelle
+mit folgendem Statement angelegt werden:
+<pre class="tagexample">
+CREATE TABLE IF NOT EXISTS `&lt;log_table_name&gt;` (
+  `&lt;primary_key_name&gt;` int(5) NOT NULL auto_increment,
+  `Timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP,
+  `Type` varchar(100) NOT NULL default '',
+  `Message` text NOT NULL,
+  PRIMARY KEY  (`&lt;primary_key_name&gt;`)
+);
+</pre>
+<br />
+<a name="1-3-Stdout-Logging"></a><h4>1.3. Stdout-Logging</h4>
+Um den Logger zur Ausgabe nach Stdout zu konfigurieren, ist folgender Eintrag in der Konfigurationsdatei
+notwendig:
+[StdoutLogger]
+LogTarget = "stdout"
+LogType = "true|false"
+LogTimestamp = "true|false"
+</pre>
+<strong>LogTarget</strong> definiert dabei die Ausgabe der Log-Informationen auf die Standard-Ausgabe
+(in der Regel per HTTP zum Client).  Ist <strong>LogType</strong> mit <strong>true</strong> belegt,
+so wird in der Log-Datei der Typ der Meldung (severity) angezeigt, der Parameter
+<strong>LogTimestamp</strong> entscheidet in gleicher Weise &uuml;ber die Anzeige eines Timestamps.
+<br />
+<br />
+<br />
+<a name="2-Anwendung"></a><h3>2. Anwendung</h3>
+Um mehrere singleton Logger pro Request zu erlauben muss ein konkreter <strong>AdvancedLogger</strong>
+immer mit Hilfe der <strong>AdvancedLoggerFactory</strong> bezogen werden, die das Erstellen und
+verwalten eines <strong>AdvancedLogger</strong>s vornimmt.
+<br />
+<br />
+Im konkreten Anwendungsbeispiel sollen innerhalb einer Applikation mehrere Typen von Loggern zum
+Einsatz kommen. Dazu wurde folgende Konfigurationsdatei angelegt:
+<pre class="tagexample">
+[FileLogger]
+LogTarget = "file"
+LogDir = "/path/to/my/advanced/logger/log/dir"
+LogFileName = "special_log"
+LogType = "false"
+LogTimestamp = "true"
+
+[StdoutLogger]
+LogTarget = "stdout"
+LogType = "false"
+LogTimestamp = "false"
+
+[DatabaseLogger]
+LogTarget = "database"
+LogDatabase = "AdvancedLogger"
+LogTable = "log"
+</pre>
+Innerhalb einer Applikation k&ouml;nnen die damit konfigurierten Logger wie folgt verwendet werden:
+<php:highlight>
+// get logger factory
+$logFactory = &$this->__getServiceObject('core::logging','AdvancedLoggerFactory');
+
+// create file logger and append message
+$log1 = &$logFactory->getAdvancedLogger('FileLogger');
+$log1->logEntry('user typed studpid things into the given text area!');
+
+// create stdout logger and append message
+$log2 = &$logFactory->getAdvancedLogger('StdoutLogger');
+$log2->logEntry('the remote server didn\'t answer within the timout!');
+
+// create database logger and append message
+$log3 = &$logFactory->getAdvancedLogger('DatabaseLogger');
+$log3->logEntry('current application is doing nonsense!');
+</php:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_081" />
