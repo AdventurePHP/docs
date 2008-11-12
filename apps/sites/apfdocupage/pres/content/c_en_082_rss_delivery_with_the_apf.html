@@ -1,0 +1,232 @@
+<doku:title tags="rss,delivery,page controller,front controller" title="RSS delivery with the APF" urlname="RSS-delivery-with-the-APF">
+  Article
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+This article deals with RSS streams and the APF tools, that help you to publish your own streams.
+For this reason, this page contains two main sections: the first section describes, how the page
+controller can be used to generate XML using a document controller and the second part demonstrates
+the front controller's capability of delivering RSS streams dynamically.
+<br />
+<br />
+<br />
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+By default, RSS streams are just simple xml documents, that follow the RSS specification. A common
+RSS may contain the following content <em>(taken from http://www.weather.com/weather/rss/subscription):</em>
+<pre class="tagexample">
+&lt;?xml version="1.0" encoding="ISO-8859-1" ?&gt;
+&lt;rss version="2.0"&gt;
+  &lt;channel&gt;
+    &lt;title&gt;The Weather Channel: National Weather Outlook&lt;/title&gt;
+    &lt;link&gt;&lt;![CDATA[http://www.weather.com/newscenter/fcstsummary.html?cm_ven=NWF&cm_pla=news&cm_ite=fcstsummary&site=news&cm_cat=rss&par=NWF_rss]]&gt;&lt;/link&gt;
+    &lt;description&gt;
+      Since 1982, The Weather Channel has brought timely weather information to the world. Now via our National Weather Outlook RSS feed we can keep you up-to-date on the latest weather affecting the nation, including severe weather alerts and video forecasts with expert commentary, delivered right to your desktop.  The Weather Channel...Bringing Weather To Life
+    &lt;/description&gt;
+    &lt;language&gt;en-us&lt;/language&gt;
+    &lt;copyright&gt;Copyright &copy; 2006, The Weather Channel Interactive, Inc.&lt;/copyright&gt;
+    &lt;pubDate&gt;Tue, 11 Nov 2008 16:44:01 EST&lt;/pubDate&gt;
+    &lt;docs&gt;http://blogs.law.harvard.edi/tech/rss&lt;/docs&gt;
+    &lt;ttl&gt;60&lt;/ttl&gt;
+    &lt;image&gt;
+      &lt;title&gt;The Weather Channel:  National Weather Outlook&lt;/title&gt;
+      &lt;url&gt;&lt;![CDATA[http://image.weather.com/web/common/logos/twci_logo_110x104.jpg?cm_ven=NWF&site=logo&cm_pla=logo&cm_ite=homepage&cm_cat=rss&par=NWF_rss]]&gt;&lt;/url&gt;
+      &lt;link&gt;&lt;![CDATA[http://www.weather.com?cm_ven=NWF&site=logo&cm_pla=logo&cm_ite=homepage&cm_cat=rss&par=NWF_rss]]&gt;&lt;/link&gt;
+      &lt;description&gt;National Weather Outlook from The Weather Channel&lt;/description&gt;
+    &lt;/image&gt;
+    &lt;item&gt;
+	   &lt;title&gt;&lt;![CDATA[ Current Weather Conditions Across The 48 Contiguous United States ]]&gt;&lt;/title&gt;
+	   &lt;link&gt;&lt;![CDATA[ http://www.weather.com/maps/maptype/currentweatherusnational/index_large.html?cm_ven=NWF&cm_cat=rss&cm_pla=map&cm_ite=cc_us&par=NWF_rss&site=map  ]]&gt;&lt;/link&gt;
+      &lt;description&gt;&lt;![CDATA[ Northwest Flood; Central Storm. For more details...  ]]&gt;&lt;/description&gt;
+      &lt;pubDate&gt;Tue, 11 Nov 2008 16:44:01 EST&lt;/pubDate&gt;
+    &lt;/item&gt;
+    ...
+  &lt;/channel&gt;
+&lt;/rss&gt;
+</pre>
+Analyzing the document's structure, the weather forecast channel presented here, contains some static
+and some dynamic sections. The latter ones have to be filled dynamically to guarantee best actuality.
+<br />
+<br />
+To be compatible with most of the readers, please have a look at
+<ul>
+  <li><doku:link>http://cyber.law.harvard.edu/rss/rss.html</doku:link></li>
+  <li><doku:link>http://www.rss-specifications.com/rss-specifications.htm</doku:link></li>
+</ul>
+to get a detailed idea about the content presented via rss.
+<br />
+<br />
+<br />
+<a name="2-Dynamic-rss-generation"></a><h3>2. Dynamic rss generation</h3>
+Due to the fact, that XML documents are similar to HTML files, the page controller and it's
+mechanisms can also be used to generate XML output. As we have seen above, the rss content can be
+devided into two main sections: the header including the channel definition and the channel's items.
+This seems to be like a web page with a design template and a content area created by an included
+template.
+<br />
+<br />
+<br />
+<a name="2-1-Definition-of-the-base-document"></a><h4>2.1. Definition of the base document</h4>
+So let us first of all define the base document. To do so, we create a rss base template and fill it
+with the necessary structural elements mentioned in the of rss specification:
+<pre class="tagexample">
+&lt;?xml version="1.0"?&gt;
+&lt;rss version="2.0"&gt;
+   &lt;channel&gt;
+      &lt;title&gt;&lt;/title&gt;
+      &lt;link&gt;&lt;/link&gt;
+      &lt;description&gt;&lt;/description&gt;
+      &lt;language&gt;&lt;/language&gt;
+      &lt;pubDate&gt;&lt;/pubDate&gt;
+
+      &lt;lastBuildDate&gt;&lt;/lastBuildDate&gt;
+      &lt;docs&gt;http://blogs.law.harvard.edu/tech/rss&lt;/docs&gt;
+      &lt;generator&gt;The adventure php framework's page controller&lt;/generator&gt;
+      &lt;managingEditor&gt;&lt;/managingEditor&gt;
+      &lt;webMaster&gt;&lt;/webMaster&gt;
+      ...
+   &lt;/channel&gt;
+&lt;/rss&gt;
+</pre>
+<br />
+<a name="2-2-Dynamic-content-generation"></a><h4>2.2. Dynamic content generation</h4>
+To be flexible with the values presented in the stream we add some place holders and a document
+controller, that is instructed to fill them as desired. The template now looks like this:
+<pre class="tagexample">
+&lt;@controller namespace="..." file="rss_controller" class="rss_controller" @&gt;
+&lt;?xml version="1.0"?&gt;
+&lt;rss version="2.0"&gt;
+   &lt;channel&gt;
+      &lt;title&gt;&lt;html:placeholder name="title" /&gt;&lt;/title&gt;
+      &lt;link&gt;&lt;html:placeholder name="link" /&gt;&lt;/link&gt;
+      &lt;description&gt;&lt;html:placeholder name="description" /&gt;&lt;/description&gt;
+      &lt;language&gt;&lt;html:placeholder name="language" /&gt;&lt;/language&gt;
+      &lt;pubDate&gt;&lt;html:placeholder name="pubdate" /&gt;&lt;/pubDate&gt;
+
+      &lt;lastBuildDate&gt;&lt;html:placeholder name="lastbuilddate" /&gt;&lt;/lastBuildDate&gt;
+      &lt;docs&gt;http://blogs.law.harvard.edu/tech/rss&lt;/docs&gt;
+      &lt;generator&gt;The adventure php framework's page controller&lt;/generator&gt;
+      &lt;managingEditor&gt;&lt;html:placeholder name="editor" /&gt;&lt;/managingEditor&gt;
+      &lt;webMaster&gt;The name of the great webmaster&lt;/webMaster&gt;
+      ...
+   &lt;/channel&gt;
+&lt;/rss&gt;
+</pre>
+Before we are going to create the document controller, let me talk about application design in common.
+Typically, your application design features a three layer architecture, where the data layer is
+intended to care about persistent data, the business layer, that controls the application and the
+presentation tier to generate the user interface. In case of good designs, the presentation layer
+is convertible with other implementations or output formats. Despite the powerful HTML and XML
+implementation of the adventure php framework you are free to choose and deploy tools for generating
+other output formats such as PDF. In this case, we can use the built-in mechanisms to generate
+dynamical rss streams.
+<br />
+<br />
+Let us now define the document controller's functionality. As mentioned before, the items of the
+channel are going to be presented by a sub template, that we are discussing later on. So the
+controller's logic filling the place holder looks quite simple:
+<php:highlight>
+import('namespace::of:my::business::component','BusinessComp');
+
+class rss_controller extends baseController
+{
+
+   function rss_controller(){
+   }
+
+   function transformContent(){
+
+      // create / get the business layer as a service object
+      $bC = &$this->__getServiceObject('namespace::of:my::business::component','BusinessComp');
+
+      // read the channel information
+      $channel = $bC->getChannelInformation('desired_channel');
+
+      // fill the place holders
+      $this->setPlaceHolder('title',$channel->getAttribute('...'));
+      $this->setPlaceHolder('link',$channel->getAttribute('...'));
+      $this->setPlaceHolder('description',$channel->getAttribute('...'));
+      $this->setPlaceHolder('language',$channel->getAttribute('...'));
+      $this->setPlaceHolder('pubdate',$channel->getAttribute('...'));
+      $this->setPlaceHolder('lastbuilddate',$channel->getAttribute('...'));
+      $this->setPlaceHolder('editor',$channel->getAttribute('...'));
+
+   }
+
+}
+</php:highlight>
+As you can see in the code box, our current application features a business layer, that we use to
+gather the desired data. Please note, that we will use this component for the items as well.
+<br />
+<br />
+<br />
+<a name="2-3-Loading-the-items"></a><h4>2.3. Loading the items</h4>
+Next, we care about the channel's items. As already mentioned before, we can use the business layer
+to load the items for the desired channel and we can use subtemplates to include the item list
+into the main template.
+<br />
+<br />
+For this reason, we update the template definition above like this:
+<pre class="tagexample">
+&lt;@controller namespace="..." file="rss_controller" class="rss_controller" @&gt;
+&lt;?xml version="1.0"?&gt;
+&lt;rss version="2.0"&gt;
+   &lt;channel&gt;
+      &lt;title&gt;&lt;html:placeholder name="title" /&gt;&lt;/title&gt;
+      &lt;link&gt;&lt;html:placeholder name="link" /&gt;&lt;/link&gt;
+      &lt;description&gt;&lt;html:placeholder name="description" /&gt;&lt;/description&gt;
+      &lt;language&gt;&lt;html:placeholder name="language" /&gt;&lt;/language&gt;
+      &lt;pubDate&gt;&lt;html:placeholder name="pubdate" /&gt;&lt;/pubDate&gt;
+
+      &lt;lastBuildDate&gt;&lt;html:placeholder name="lastbuilddate" /&gt;&lt;/lastBuildDate&gt;
+      &lt;docs&gt;http://blogs.law.harvard.edu/tech/rss&lt;/docs&gt;
+      &lt;generator&gt;The adventure php framework's page controller&lt;/generator&gt;
+      &lt;managingEditor&gt;&lt;html:placeholder name="editor" /&gt;&lt;/managingEditor&gt;
+      &lt;webMaster&gt;The name of the great webmaster&lt;/webMaster&gt;
+
+      <strong>&lt;core:importdesign namespace="..." template="items" /&gt;</strong>
+
+   &lt;/channel&gt;
+&lt;/rss&gt;
+</pre>
+The <strong>items</strong> template then contains an iterator tag, that is intended to display the
+list of available items. Do fill the iterator's data container a second document controller is defined
+at the top of the template:
+<pre class="tagexample">
+&lt;@controller namespace="..." file="rss_controller" class="rss_items_controller" @&gt;
+
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br />
+<br />
+<br />
+<a name="3-Rss-delivery"></a><h3>3. Rss delivery</h3>
+
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_082" />
