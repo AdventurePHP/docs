@@ -192,40 +192,187 @@ list of available items. Do fill the iterator's data container a second document
 at the top of the template:
 <pre class="tagexample">
 &lt;@controller namespace="..." file="rss_controller" class="rss_items_controller" @&gt;
-
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="iterator" /&gt;
+&lt;html:iterator name="items"&gt;
+  &lt;iterator:item getter="getAttribute"&gt;
+    &lt;item&gt;
+       &lt;title&gt;&lt;item:placeholder name="title" /&gt;&lt;/title&gt;
+       &lt;link&gt;&lt;item:placeholder name="link" /&gt;&lt;/link&gt;
+       &lt;description&gt;&lt;item:placeholder name="content" /&gt;&lt;/description&gt;
+       &lt;author&gt;&lt;item:placeholder name="author" /&gt;&lt;/author&gt;
+       &lt;pubDate&gt;&lt;item:placeholder name="date" /&gt;&lt;/pubDate&gt;
+    &lt;/item&gt;
+  &lt;/iterator:item&gt;
+&lt;/html:iterator&gt;
 </pre>
+The content of the document controller class looks like this:
+<php:highlight>
+import('namespace::of:my::business::component','BusinessComp');
+import('tools::html::taglib::documentcontroller','iteratorBaseController');
 
+class rss_items_controller extends iteratorBaseController
+{
 
+   function rss_items_controller(){
+   }
 
+   function transformContent(){
 
+      // create / get the business layer as a service object
+      $bC = &$this->__getServiceObject('namespace::of:my::business::component','BusinessComp');
 
+      // read the channel information
+      $channel = $bC->getChannelInformation('desired_channel');
 
+      // get the channel's items
+      $items = $channel->getItems();
 
+      // reference the iterator template
+      $iterator = &$this->__getIterator('items');
 
+      // fill the data container
+      $iterator->fillDataContainer($items);
 
+      // display the item list
+      $iterator->transformOnPlace();
 
+   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
+</php:highlight>
+<br />
+<a name="2-4-Conclusion"></a><h4>2.4. Conclusion</h4>
+To sum things up, the page controller's functionality can also be used to generate XML output instead
+of HTML content. Second, the framework contains various tools, that can help to generate an rss
+stream out of existing content and with help of an application's business component. But please be
+aware, that good software design is a central condition to be able to exchange the presentation! To
+be a bit more explicitly: good software design should be independent of tools or frameworks. :)
 <br />
 <br />
 <br />
 <a name="3-Rss-delivery"></a><h3>3. Rss delivery</h3>
+Chapter 3 now describes, how the rss stream generated through the APF page controller can be
+presented to the user in a convenient way. For this reason, each content page should get a rss tag.
+When the user clicks on that tag, the content should be presented as an rss stream in a new window.
+<br />
+<br />
+To achieve this, a front controller action can be used to deliver the rss document generated in
+chapter 2. To keep things simple, the action definition contains no input parameters, but reads the
+page id from the "normal" GET params. As an example, the rss stream URL may then look like this:
+<pre class="tagexample">
+http://en.adventure-php-framework.org/Page/082-RSS-delivery-with-the-APF/~/my_namespace-action/deliverRSS
+</pre>
+In order to execute the action described before, we have to ensure, that the bootstrap file uses the
+front controller to create the page output. If this is not the case, please take a look at the
+<a href="./?Page=012-Frontcontroller#2-3-Bootstrapping" title="front controller documentation">front controller documentation</a>.
+After having done that, we can define the action configuration for the current context of our
+application and the action implementation. If you are not yet familiar with the implementation of
+front controller actions, take a short break and read about this topic on the
+<a href="./?Page=012-Frontcontroller#2-Implementation" title="Front controller implementation">appropriate page</a>.
+<br />
+<br />
+As we have already implemented the major part of the functionality of the action and the action has
+not input params by definition, the implementation of the action is quite easy. The only thing it
+has to do is to extract the page id from the url, create the page and flush the output to the user.
+<br />
+<br />
+You might expect, that this job is not as easy as it sounds. :) This is because the implementation
+above does not contain a page configuration parameter, that is applied to the business component.
+But don't be afraid, there's a very elegant way of injecting this parameter into the DOM tree. To
+get a better understanding, let me say a few words about the DOM tree, the page controller creates:
+<br />
+<br />
+Every template file is searched for known tags. Every tag is then extracted, the taglib implementation
+is executet and the object created in this way is stored as a child node of the current DOM node.
+Due to the fact, that the <em>importdesign</em> tags include functionality to include another template
+file as a new DOM node and parse the tags within that template in the same way, a tree containing
+objects derived from the <strong>Document</strong> class. After the <strong>loadDesign()</strong>
+method is called in the bootstrap file, the complete DOM tree exists in memory and can be manipulated
+using the API functions of the <strong>Page</strong> and <strong>Document</strong> classes. This fact
+enables the developer to subsequently "inject" attributes into the DOM document objects as desired.
+In this simple case, we exactly know the structure of the DOM tree. I consists of the <strong>Page</strong>
+object, the root <strong>Document</strong> and it's child - the items template.
+<br />
+<br />
+<br />
+<a name="3-1-Param-injection"></a><h5>3.1. Parameter injection</h5>
+Now, that we know about the characteristics of the DOM tree created by the templates described in
+chapter 2, the parameter injection can be done by the following code snippet:
+<php:highlight>
+// declare page id
+$id = '001';
 
+// create the DOM tree
+$page = new Page();
+$page->loadDesign('namespace::to::the::desired::template','template_name');
+
+// get the root node of the tree and add attribute
+$doc = &$page->getByReference('Document');
+$doc->setAttribute('page_id',$id);
+</php:highlight>
+<br />
+<a name="3-2-Adaption-of-the-rss_controller"></a><h5>3.2. Adaption of the rss_controller</h5>
+Now the <em>rss_controller</em> must be adapted to use the <em>Document</em>'s attribute instead of
+the static channel name. This can be achieved by changing
+<php:highlight>
+$channel = $bC->getChannelInformation('desired_channel');
+</php:highlight>
+to
+<php:highlight>
+$channel = $bC->getChannelInformation($this->__Document->getAttribute('page_id'));
+</php:highlight>
+<br />
+<a name="3-3-Adaption-of-the-rss_items_controller"></a><h5>3.3. Adaption of the rss_items_controller</h5>
+In case of the item controller, the parent document must be asked for the page id. Here,
+<php:highlight>
+$channel = $bC->getChannelInformation('desired_channel');
+</php:highlight>
+must be changed to
+<php:highlight>
+$parent = &$this->__Document->getByReference('ParentObject');
+$channel = $bC->getChannelInformation($parent->getAttribute('page_id'));
+</php:highlight>
+because the document referenced within the items controller is the child of the document node we
+added the secondary attribute to.
+<br />
+<br />
+<br />
+<a name="3-4-Action-definition"></a><h5>3.4. Action definition</h5>
+The action implementation now contains to following code:
+<php:highlight>
+class DeliverRSSAction extends AbstractFrontcontrollerAction
+{
+
+   function run(){
+
+      // get page id (to keep it simple)
+      $id = $_REQUEST['id'];
+
+      // create the DOM tree
+      $page = new Page();
+      $page->loadDesign('namespace::to::the::desired::template','template_name');
+
+      // get the root node of the tree and add attribute
+      $doc = &$page->getByReference('Document');
+      $doc->setAttribute('page_id',$id);
+
+      // transform and display rss stream
+      header('Content-Type: text/xml');
+      echo $page->transform();
+
+      // exit execution, because we're done
+      exit(0);
+
+   }
+
+}
+</php:highlight>
+<br />
+<a name="3-5-Conclusion"></a><h4>3.5. Conclusion</h4>
+Thanks to the clean DOM structure and the capabilities of the front controller it is easy to create
+an rss stream within an exosting application. Moreover, the developer is - also thanks to the front
+controller - not forced to create and maintain several bootstrap or <em>rss.php</em> files to deliver
+the rss content.
 <br />
 <br />
 <br />
