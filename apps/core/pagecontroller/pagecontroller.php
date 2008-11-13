@@ -102,18 +102,19 @@
    *  @version
    *  Version 0.1, 03.12.2005<br />
    *  Version 0.2, 14.04.2006<br />
-   *  Version 0.3, 14.01.2007 (Proprietären Support für PHP 5 implementiert)<br />
-   *  Version 0.4, 03.03.2007 (Schönheitskorrekturen am Code)<br />
-   *  Version 0.5, 03.03.2007 (Support für den Betrieb unter PHP 4 und PHP 5 hinzugefügt)<br />
-   *  Version 0.6, 24.03.2008 (Aus Performance-Gründen Cache für bereits inportierte Dateien eingeführt)<br />
-   *  Version 0.7, 20.06.2008 (Wegen Einführung Registry in den pagecontroller verlagert)<br />
+   *  Version 0.3, 14.01.2007 (Implemented proprietary support for PHP 5)<br />
+   *  Version 0.4, 03.03.2007 (Did some cosmetics)<br />
+   *  Version 0.5, 03.03.2007 (Added support for mixed operation under PHP 4 and PHP 5)<br />
+   *  Version 0.6, 24.03.2008 (Improved Performance due to include cache introduction)<br />
+   *  Version 0.7, 20.06.2008 (Moved to pagecontroller.php due to the Registry introduction)<br />
+   *  Version 0.8, 13.11.2008 (Replaced the include_once() calls with include()s to gain performance)<br />
    */
    function import($Namespace,$File,$ActivatePHP5Support = true){
 
-      // Dateinamen zusammenbauen
+      // create the complete and absolute file name
       $File = APPS__PATH.'/'.str_replace('::','/',$Namespace).'/'.$File;
 
-      // Prüfen, ob Datei bereits inkludiert ist
+      // check if the file is already included, if yes, return
       if(isset($GLOBALS['IMPORT_CACHE'][$File])){
          return true;
        // end if
@@ -123,16 +124,15 @@
        // end else
       }
 
-      // Datei importieren
+      // import file
       if(intval(phpversion()) == 5 && $ActivatePHP5Support == true){
 
-         // Dateiendung anhängen
+         // add the php 5 extension
          $ImportFile = $File.'.php5';
 
-         // Datei importieren
          if(!file_exists($ImportFile)){
 
-            // php5-File annehmen
+            // if not, assume the fallback extension
             $ImportFile = $File.'.php';
 
             if(!file_exists($ImportFile)){
@@ -141,14 +141,14 @@
              // end if
             }
             else{
-               include_once($ImportFile);
+               include($ImportFile);
              // end else
             }
 
           // end if
          }
          else{
-            include_once($ImportFile);
+            include($ImportFile);
           // end else
          }
 
@@ -156,17 +156,16 @@
       }
       else{
 
-         // Dateiendung anhängen
+         // add the default file extension
          $ImportFile = $File.'.php';
 
-         // Datei importieren
          if(!file_exists($ImportFile)){
             trigger_error('[import()] The given module ('.$ImportFile.') cannot be loaded!');
             exit();
           // end if
          }
          else{
-            include_once($ImportFile);
+            include($ImportFile);
           // end else
          }
 
@@ -761,11 +760,11 @@
 
 
       /**
-      *  @public
-      *  @abstract
-      *
       *  Interface definition of the transform() method. This function is used to transform a
       *  DOM node within the page controller. It must be implemented by derived classes.
+      *
+      *  @public
+      *  @abstract
       *
       *  @author Christian Schäfer
       *  @version
@@ -776,11 +775,11 @@
 
 
       /**
-      *  @public
-      *  @abstract
-      *
       *  Interface definition of the init() method. This function is used to initialize a service
       *  object with the service manager. It must be implemented by derived classes.
+      *
+      *  @public
+      *  @abstract
       *
       *  @author Christian Schäfer
       *  @version
@@ -791,11 +790,11 @@
 
 
       /**
-      *  @public
-      *  @abstract
-      *
       *  Interface definition of the onParseTime() method. This function is called after the creation
       *  of a new DOM node. It must be implemented by derived classes.
+      *
+      *  @public
+      *  @abstract
       *
       *  @author Christian Schäfer
       *  @version
@@ -806,11 +805,12 @@
 
 
       /**
+      *  Interface definition of the onAfterAppend() method. This function is called after the DOM
+      *  node is appended to the DOM tree. It must be implemented by derived classes.
+      *
       *  @public
       *  @abstract
       *
-      *  Interface definition of the onAfterAppend() method. This function is called after the DOM
-      *  node is appended to the DOM tree. It must be implemented by derived classes.
       *
       *  @author Christian Schäfer
       *  @version
@@ -821,12 +821,12 @@
 
 
       /**
-      *  @public
-      *  @abstract
-      *
       *  Interface definition of the transformContent() method. This function is applied to a
       *  document controller during the transformation of a DOM node. It must be implemented by
       *  each document controller to influence content generation.
+      *
+      *  @public
+      *  @abstract
       *
       *  @author Christian Schäfer
       *  @version
@@ -1855,10 +1855,11 @@
    *  @package core::pagecontroller
    *  @class core_taglib_addtaglib
    *
-   *  Repräsentiert die Funktion des core::addtaglib-Tags. Bindet eine weitere TagLib in den<br />
-   *  Gültigkeitsbereich eines "Document"s ein.<br />
+   *  Represents the functionality of the core:addtaglib tag. Adds a further taglib to the known
+   *  taglibs of the tag's parent object. This can be used to enhance the known tag list if a
+   *  desired APF DOM node.
    *
-   *  @author Christian Schäfer
+   *  @author Christian Achatz
    *  @version
    *  Version 0.1, 28.12.2006<br />
    */
@@ -1872,22 +1873,16 @@
       /**
       *  @public
       *
-      *  Implementierung der abstrakten Methode aus "coreObject". Bindet eine TagLib ein.<br />
+      *  Implements the onParseTime() method of the Document class. Adds the desired taglib to the
+      *  parent object.
       *
       *  @author Christian Schäfer
       *  @version
       *  Version 0.1, 28.12.2006<br />
+      *  Version 0.2, 10.11.2008 (Changed implementation. We now use getAttribute() instead of direct internal attribute addressing)<br />
       */
       function onParseTime(){
-
-         // Attribute auslesen
-         $Namespace = $this->__Attributes['namespace'];
-         $Prefix = $this->__Attributes['prefix'];
-         $Class = $this->__Attributes['class'];
-
-         // Neue TagLib in das Eltern-Objekt einhängen
-         $this->__ParentObject->addTagLib($Namespace,$Prefix,$Class);
-
+         $this->__ParentObject->addTagLib($this->getAttribute('namespace'),$this->getAttribute('prefix'),$this->getAttribute('class'));
        // end function
       }
 
@@ -1895,7 +1890,8 @@
       /**
       *  @public
       *
-      *  Implementierung der abstrakten Methode aus "coreObject".<br />
+      *  Implements the Document's transform() method. Returns an empty string, because the addtaglib
+      * tag should not generate output.
       *
       *  @author Christian Schäfer
       *  @version
@@ -1914,11 +1910,10 @@
    *  @package core::pagecontroller
    *  @class html_taglib_placeholder
    *
-   *  Repräsentiert einen HTML-Platzhalter innerhalb eines Objekts, das von "Document" erbt und<br />
-   *  dort als Children-Objekt eingehangen ist. Dieser kann mit der Methode setPlaceHolder() <br />
-   *  innerhalb eines DocumentControllers gesetzt werden, der von "baseController" ableitet.<br />
+   *  Represents a place holder within a template file. Can be filled within a documen controller
+   *  using the setPlaceHolder() method.
    *
-   *  @author Christian Schäfer
+   *  @author Christian Achatz
    *  @version
    *  Version 0.1, 28.12.2006<br />
    */
@@ -1932,8 +1927,8 @@
       /**
       *  @public
       *
-      *  Gibt bei der Transformierung des Platzhalters den Inhalt des Objekts zurück, damit dieser <br />
-      *  mit dem entsprechenden Inhalt, der im DocumentController gesetzt worden ist, ersetzt wird.<br />
+      *  Implements the transform() method. Returns the content of the tag, that is set by a
+      *  document controller using the baseController's setPlaceHolder() method.
       *
       *  @author Christian Schäfer
       *  @version
@@ -1952,27 +1947,21 @@
    *  @package core::pagecontroller
    *  @class html_taglib_template
    *
-   *  Repräsentiert einen HTML-Template innerhalb eines Objekts, das von "Document" erbt und dort als Children-<br />
-   *  Objekt eingehangen ist. Dieser kann mit der Methode setPlaceHolder() innerhalb eines DocumentControllers gesetzt<br />
-   *  werden, der von "baseController" ableitet.<br />
+   *  Represents a reusable html fragment (template) within a template file. The tag's functionality
+   *  can be extended by the &lt;template:addtaglib /&gt; tag. Use setPlaceHolder() to set a place
+   *  holder's value and transformOnPlace() or transformTemplate() to generate the output.
    *
-   *  @author Christian Schäfer
+   *  @author Christian Achatz
    *  @version
    *  Version 0.1, 28.12.2006<br />
+   *  Version 0.2, 10.11.2008 (Removed the IncludedTagLib behavior, because this lead to errors when including new taglibs with template:addtaglib.)<br />
    */
    class html_taglib_template extends Document
    {
 
       /**
       *  @private
-      *  Enthält die TagLibModule, die beim Transformieren eingezogen werden
-      */
-      var $__IncludedTagLibModules;
-
-
-      /**
-      *  @private
-      *  Indiziert, ob das Template an der Definitionsstelle transformiert und ausgegeben werden soll.
+      *  Indicates, if the template should be transformed on the place of definition. Default is false.
       */
       var $__TransformOnPlace = false;
 
@@ -1980,17 +1969,17 @@
       /**
       *  @public
       *
-      *  Konstruktor der Klasse. Fügt verschiedene TagLibs hinzu.<br />
+      *  Constructor of the class. Inituializes the known taglibs.
       *
       *  @author Christian Schäfer
       *  @version
       *  Version 0.1, 29.12.2006<br />
-      *  Version 0.2, 30.12.2006 (Config-TagLib hinzugefügt)<br />
-      *  Version 0.3, 05.01.2007 (template:addTagLib-TagLib hinzugefügt)<br />
-      *  Version 0.4, 12.01.2007 (template:addTagLib-TagLib weggenommen)<br />
-      *  Version 0.5, 03.03.2007 ("&" vor "new" entfernt)<br />
-      *  Version 0.6, 21.04.2007 (template:addtaglib hinzugefügt)<br />
-      *  Version 0.7, 02.05.2007 (template:config entfernt)<br />
+      *  Version 0.2, 30.12.2006 (Added the template:config tag)<br />
+      *  Version 0.3, 05.01.2007 (Added the template:addtaglib tag)<br />
+      *  Version 0.4, 12.01.2007 (Removed the template:addtaglib tag)<br />
+      *  Version 0.5, 03.03.2007 (Removed the "&" before the "new" operator)<br />
+      *  Version 0.6, 21.04.2007 (Added the template:addtaglib tag again)<br />
+      *  Version 0.7, 02.05.2007 (Removed the template:config tag)<br />
       */
       function html_taglib_template(){
          $this->__TagLibs[] = new TagLib('core::pagecontroller','template','placeholder');
@@ -2002,13 +1991,13 @@
       /**
       *  @public
       *
-      *  Implementierung der abstrakten Methode onParseTime(). Extrahiert die "template:placeHolder"- und <br />
-      *  "template:config"-Tags aus einem Template.<br />
+      *  Implements the onParseTime() method from the coreObject class. Uses the __extractTagLibTags()
+      *  function to parse the known taglibs.
       *
-      *  @author Christian Schäfer
+      *  @author Christian Achatz
       *  @version
       *  Version 0.1, 29.12.2006<br />
-      *  Version 0.2, 31.12.2006 (XML-Merker-Tag aus dem Eltern-Objekt löschen -> onAfterAppend())<br />
+      *  Version 0.2, 31.12.2006<br />
       */
       function onParseTime(){
          $this->__extractTagLibTags();
@@ -2019,64 +2008,37 @@
       /**
       *  @public
       *
-      *  Registriert eine TagLib bei einem Template zur Transformation.<br />
+      *  API method to set a place holder's content within a document controller.
       *
-      *  @param string $Module; Name des Moduls
+      *  @param string $Name name of the place holder
+      *  @param string $Value value of the place holder
       *
-      *  @author Christian Schäfer
-      *  @version
-      *  Version 0.1, 05.01.2007<br />
-      */
-      function registerTagLibModule($Module){
-         $this->__IncludedTagLibModules[] = $Module;
-       // end function
-      }
-
-
-      /**
-      *  @public
-      *
-      *  Ermöglicht einem DocumentController bei einem Zugriff auf ein Template, dort Platzhalter zu füllen.<br />
-      *
-      *  @param string $Name; Name des Platzhalters
-      *  @param string $Value; Wert des Platzhalters
-      *
-      *  @author Christian Schäfer
+      *  @author Christian Achatz
       *  @version
       *  Version 0.1, 29.12.2006<br />
+      *  Version 0.2, 10.11.2008 (Removed check, if taglib class exists)<br />
       */
       function setPlaceHolder($Name,$Value){
 
-         // Deklariert das notwendige TagLib-Modul
+         // declare the name of the place holder taglib to be flexible to future changes
          $TagLibModule = 'template_taglib_placeholder';
 
-
-         // Falls TagLib-Modul nicht vorhanden -> Fehler!
-         if(!class_exists($TagLibModule)){
-            trigger_error('[html_taglib_template::setPlaceHolder()] TagLib module '.$TagLibModule.' is not loaded!',E_USER_ERROR);
-            exit();
-          // end if
-         }
-
-
-         // Anzahl der Platzhalter zählen
+         // initialize place holder count
          $PlaceHolderCount = 0;
 
-
-         // Prüfen, ob Kinder vorhanden
+         // check, if tag has children
          if(count($this->__Children) > 0){
 
-            // Nachsehen, ob es Kinder der Klasse 'template_taglib_placeholder' gibt
+            // check, if template place holder exists within the children list
             foreach($this->__Children as $ObjectID => $Child){
 
-               // Prüfen, ob Kind ein
+               // check, if current child is a plece holder
                if(get_class($Child) == $TagLibModule){
 
-                  // Prüfen, ob das Attribut 'name' dem angegebenen Namen entspricht
-                  // und Content einsetzen
-                  //if($Child->__Attributes['name'] == $Name){
+                  // check, if current child is the desired place holder
                   if($Child->getAttribute('name') == $Name){
 
+                     // set content of the placeholder
                      $this->__Children[$ObjectID]->set('Content',$Value);
                      $PlaceHolderCount++;
 
@@ -2093,15 +2055,14 @@
          }
          else{
 
-            // Falls keine Kinder existieren -> Fehler!
+            // trow error, if no place holder with the desired name was found
             trigger_error('[html_taglib_template::setPlaceHolder()] No placeholder object with name "'.$Name.'" composed in current template for document controller "'.($this->__ParentObject->__DocumentController).'"! Perhaps tag library template:placeHolder is not loaded in template "'.$this->__Attributes['name'].'"!',E_USER_ERROR);
             exit();
 
           // end else
          }
 
-
-         // Warnen, falls kein Platzhalter gefunden wurde
+         // thorw error, if no children are composed under the current tag
          if($PlaceHolderCount < 1){
             trigger_error('[html_taglib_template::setPlaceHolder()] There are no placeholders found for name "'.$Name.'" in template "'.($this->__Attributes['name']).'" in document controller "'.($this->__ParentObject->__DocumentController).'"!',E_USER_WARNING);
           // end if
@@ -2114,51 +2075,41 @@
       /**
       *  @public
       *
-      *  Gibt bei der Transformierung den Inhalt des Objekts zurück, damit dieser mit dem entsprechenden<br />
-      *  Inhalt, der im DocumentController gesetzt worden ist, ersetzt wird. Inhalt eines Template muss immer<br />
-      *  mit transform() zurückgeholt werden. Beispiel aus einem DocumentController:
+      *  Returns the content of the template. Can be used ti generate the template output within a
+      *  document controller. Usage:
       *  <pre>
-      *     $Template = & $this->__getContentTemplate('MyTemplate');
-      *     $Template->setPlaceHolder('Google','http://www.google.de');
-      *     $this->__Content = $Template->transformTemplate();
+      *  $Template = &$this->__getTemplate('MyTemplate');
+      *  $Template->setPlaceHolder('URL','http://adventure-php-framework.org');
+      *  echo = $Template->transformTemplate();
       *  </pre>
       *
-      *  @author Christian Schäfer
+      *  @author Christian Achatz
       *  @version
       *  Version 0.1, 29.12.2006<br />
-      *  Version 0.2, 31.12.2006 ($this->__isVisible wird nicht mehr abgefragt, da XML-Merker-Tag aus dem Eltern-Objekt gelöscht wurde; TEST!!!)<br />
-      *  Version 0.3, 02.02.2007 (Methode in transformTemplate() umgenannt; visible-Markierung aus Klasse entfernt)<br />
-      *  Version 0.4, 05.01.2007 (template:addTagLib-TagLib hinzugefügt)<br />
+      *  Version 0.2, 31.12.2006 (Removed parameter $this->__isVisible, because the parent object automatically removes the XML positioning tag on ransformation now)<br />
+      *  Version 0.3, 02.02.2007 (Renamed method to transformTemplate() umgenannt. Removed visible marking finally from the class)<br />
+      *  Version 0.4, 05.01.2007 (Added the template:addtaglib tag)<br />
       */
       function transformTemplate(){
 
-         // Puffer für transformierten Puffer erzeugen
+         // create buffer for transformation
          $Content = (string)'';
 
-
-         // Kopie des Contents holen
+         // create copy of the tag's content
          $Content = $this->__Content;
 
-
-         // Kinder durchiterieren und Objekte von registrierten Klasse (z.B. 'template_taglib_placeholder')
-         // transformieren
+         // transform children
          if(count($this->__Children) > 0){
 
             foreach($this->__Children as $ObjectID => $Child){
-
-               // XML-Merker-Tags durch die Inhalte der Kinder ersetzen
-               if(in_array(get_class($Child),$this->__IncludedTagLibModules)){
-                  $Content = str_replace('<'.$ObjectID.' />',$Child->transform(),$Content);
-                // end if
-               }
-
+               $Content = str_replace('<'.$ObjectID.' />',$Child->transform(),$Content);
              // end foreach
             }
 
           // end if
          }
 
-         // Fertigen Inhalt zurückgeben
+         // return transformed content
          return $Content;
 
        // end function
@@ -2168,8 +2119,7 @@
       /**
       *  @public
       *
-      *  Definiert, dass das Template an der exakten Definitionsstelle transformiert und<br />
-      *  ausgegeben werden soll.<br />
+      *  Indicates, that the template should be displayed on the place of definition.
       *
       *  @author Christian Achatz
       *  @version
@@ -2184,28 +2134,27 @@
       /**
       *  @public
       *
-      *  Bei der Transformierung des Templates wird keine Aktion ausgeführt, da ein Template<br />
-      *  bereits mit transformTemplate() innerhalb eines DocumentControllers transformiert wird /<br />
-      *  werden kann. Falls zuvor transformOnPlace() auf das Template ausgeführt wurde, wird der<br />
-      *  Inhalt des Templates an der exakten Definitionsstelle transformiert uns ausgegeben.<br />
+      *  By default, the content of the template is returned as an empty string. This is because the
+      *  html:template tag normally is used as a reusable fragment. If the transformOnPlace() function
+      *  is called before, the content of the template is returned instead.
       *
-      *  @return string $Content; Leer-String oder Inhalt des Tags
+      *  @return string $Content empty string or content of the tag
       *
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 02.01.2007<br />
-      *  Version 0.2, 12.01.2007 (Es wird nun ein Leer-String zurückgegeben)<br />
-      *  Version 0.3, 19.05.2008 (transformOnPlace()-Feature implementiert)<br />
+      *  Version 0.2, 12.01.2007 (An empty string is now returned)<br />
+      *  Version 0.3, 19.05.2008 (Implemented the transformOnPlace() feature)<br />
       */
       function transform(){
 
-         // Prüfen, ob Template ausgegeben werden soll
+         // checks, if transformOnPlace is activated
          if($this->__TransformOnPlace === true){
             return $this->transformTemplate();
           // end if
          }
 
-         // Leerstring zurückgeben
+         // return empty string
          return (string)'';
 
        // end function
@@ -2219,10 +2168,9 @@
    *  @package core::pagecontroller
    *  @class template_taglib_placeholder
    *
-   *  Ermöglicht Platzhalter in einem Template. Wird unter einem "html_taglib_template"-Objekt komponiert.<br />
-   *  Hat keine weiteren Kinder.<br />
+   *  Implements the place holder tag with in a html:template tag. The tag does not hav further children.
    *
-   *  @author Christian Schäfer
+   *  @author Christian Achatz
    *  @version
    *  Version 0.1, 29.12.2006<br />
    */
@@ -2236,25 +2184,10 @@
       /**
       *  @public
       *
-      *  Implementierung der abstrakten Methode aus "coreObject". Bindet eine TagLib ein.<br />
+      *  Implements the transform() method. Returns the content of the tag, that is set by a
+      *  document controller using the html_taglib_template's setPlaceHolder() method.
       *
-      *  @author Christian Schäfer
-      *  @version
-      *  Version 0.1, 05.01.2007<br />
-      */
-      function onParseTime(){
-         $this->__ParentObject->registerTagLibModule(get_class($this));
-       // end function
-      }
-
-
-      /**
-      *  @public
-      *
-      *  Gibt bei der Transformierung des Platzhalters den Inhalt des Objekts zurück, damit dieser mit dem entsprechenden<br />
-      *  Inhalt, der im DocumentController gesetzt worden ist, ersetzt wird.<br />
-      *
-      *  @author Christian Schäfer
+      *  @author Christian Achatz
       *  @version
       *  Version 0.1, 29.12.2006<br />
       */
@@ -2271,44 +2204,18 @@
    *  @package core::pagecontroller
    *  @class template_taglib_addtaglib
    *
-   *  Repräsentiert die Funktion des template::addtaglib-Tags. Bindet eine weitere TagLib in den Gültigkeitsbereich<br />
-   *  eines "Template"s ein.<br />
+   *  Represents the core:addtaglib functionality for the html:template tag. Includes further
+   *  tag libs into the scope. Please see class core_taglib_addtaglib for more details.
    *
-   *  @author Christian Schäfer
+   *  @author Christian Achatz
    *  @version
    *  Version 0.1, 21.04.2007<br />
+   *  Version 0.2, 10.11.2008 (Removed the registerTagLibModule() logic of the templates. Now the functionality is the same as core_taglib_addtaglib)<br />
    */
-
-   class template_taglib_addtaglib extends Document
+   class template_taglib_addtaglib extends core_taglib_addtaglib
    {
 
       function template_taglib_addtaglib(){
-      }
-
-
-      /**
-      *  @public
-      *
-      *  Implementierung der abstrakten Methode aus "coreObject". Bindet eine TagLib ein.<br />
-      *
-      *  @author Christian Schäfer
-      *  @version
-      *  Version 0.1, 21.04.2007<br />
-      */
-      function onParseTime(){
-
-         // Beim Template registrieren, damit das Objekt transformiert wird
-         $this->__ParentObject->registerTagLibModule(get_class($this));
-
-         // Attribute auslesen
-         $Namespace = $this->__Attributes['namespace'];
-         $Prefix = $this->__Attributes['prefix'];
-         $Class = $this->__Attributes['class'];
-
-         // Neue TagLib in das Eltern-Objekt einhängen
-         $this->__ParentObject->addTagLib($Namespace,$Prefix,$Class);
-
-       // end function
       }
 
     // end class

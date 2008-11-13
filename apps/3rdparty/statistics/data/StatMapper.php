@@ -136,6 +136,150 @@
        // end function
       }
 
+      /**
+      *  @module getStatData4Overview()
+      *  @public
+      *
+      *  Implementiert die um Caching erweiterte __getStatData4Overview() Methode.<br />
+      *
+      *  @author Christian Schäfer
+      *  @version
+      *  Version 0.1, 05.06.2006<br />
+      */
+      function getStatData4Overview(){
+
+         $oCM = &$this->__getStatCacheManager();
+
+         if($oCM->cacheFileExists() == true){
+            return $oCM->readFromCache();
+          // end if
+         }
+         else{
+            $List = $this->__getStatData4Overview();
+            $oCM->writeToCache($List);
+            return $List;
+          // end else
+         }
+
+       // end function
+      }
+
+
+      /**
+      *  @module getStatData4Year()
+      *  @public
+      *
+      *  Implementiert die um Caching erweiterte __getStatData4Year() Methode.<br />
+      *
+      *  @author Christian Schäfer
+      *  @version
+      *  Version 0.1, 05.06.2006<br />
+      */
+      function getStatData4Year(){
+
+         $oCM = &$this->__getStatCacheManager();
+
+         if($oCM->cacheFileExists() == true){
+            return $oCM->readFromCache();
+          // end if
+         }
+         else{
+            $List = $this->__getStatData4Year();
+            $oCM->writeToCache($List);
+            return $List;
+          // end else
+         }
+
+       // end function
+      }
+
+
+      /**
+      *  @module getStatData4Month()
+      *  @public
+      *
+      *  Implementiert die um Caching erweiterte __getStatData4Month() Methode.<br />
+      *
+      *  @author Christian Schäfer
+      *  @version
+      *  Version 0.1, 05.06.2006<br />
+      */
+      function getStatData4Month(){
+
+         $oCM = &$this->__getStatCacheManager();
+
+         if($oCM->cacheFileExists() == true){
+            return $oCM->readFromCache();
+          // end if
+         }
+         else{
+            $List = $this->__getStatData4Month();
+            $oCM->writeToCache($List);
+            return $List;
+          // end else
+         }
+
+       // end function
+      }
+
+
+      /**
+      *  @module getStatData4Day()
+      *  @public
+      *
+      *  Implementiert die um Caching erweiterte __getStatData4Day() Methode.<br />
+      *
+      *  @author Christian Schäfer
+      *  @version
+      *  Version 0.1, 05.06.2006<br />
+      */
+      function getStatData4Day(){
+
+         $oCM = &$this->__getStatCacheManager();
+
+         if($oCM->cacheFileExists() == true){
+            return $oCM->readFromCache();
+          // end if
+         }
+         else{
+            $List = $this->__getStatData4Day();
+            $oCM->writeToCache($List);
+            return $List;
+          // end else
+         }
+
+       // end function
+      }
+
+
+      /**
+      *  @module getStatData4Hour()
+      *  @public
+      *
+      *  Implementiert die um Caching erweiterte __getStatData4Hour() Methode.<br />
+      *
+      *  @author Christian Schäfer
+      *  @version
+      *  Version 0.1, 05.06.2006<br />
+      */
+      function getStatData4Hour(){
+
+         $oCM = &$this->__getStatCacheManager();
+
+         if($oCM->cacheFileExists() == true){
+            return $oCM->readFromCache();
+          // end if
+         }
+         else{
+            $List = $this->__getStatData4Hour();
+            $oCM->writeToCache($List);
+            return $List;
+          // end else
+         }
+
+       // end function
+      }
+
     // end class
    }
 ?>

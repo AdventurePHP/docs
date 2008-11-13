@@ -1,22 +1,81 @@
 <?php
-   import('sites::apfdocupage::data','StatMapper');
+   import('3rdparty::statistics::data','StatMapper');
    import('core::session','sessionManager');
 
 
    /**
-   *  @package sites::apfdocupage::biz
+   *  @package 3rdparty::statistics::biz
    *  @class StatManager
    *
    *  Implements the statistic business layer.
    *
-   *  @author Christian Schäfer
+   *  @author Christian Achatz
    *  @version
    *  Version 0.1, 21.12.2005<br />
+   *  Version 0.2, 12.11.2008 (Combined different classes to one business class)<br />
    */
    class StatManager extends coreObject
    {
 
       function StatManager(){
+      }
+
+
+      /**
+      *  @public
+      *
+      *  Returns the statistic data for the given period.
+      *
+      *  @param string $period desired period
+      *  @return array $statData list of stat entries for the desired period
+      *
+      *  @author Christian Achatz
+      *  @version
+      *  Version 0.1, 12.11.2008<br />
+      */
+      function getStatData($period = 'overview'){
+
+         // create data layer component
+         $wSM = &$this->__getAndInitServiceObject('sites::apfdocupage::data','StatMapper','Stat');
+
+         // invoke benchmarker
+         $T = &Singleton::getInstance('benchmarkTimer');
+         $T->start('getStatData('.$period.')');
+
+         // Statistik-Daten laden
+         $sM = &$this->__getServiceObject('sites::adminpanel::data::statistikpanel','cacheStatMapper');
+
+         switch($period){
+
+            case 'year':
+               $list = $sM->getStatData4Year();
+               break;
+            case 'month':
+               $list = $sM->getStatData4Month();
+               break;
+            case 'day':
+               $list = $sM->getStatData4Day();
+               break;
+            case 'hour':
+               $list = $sM->getStatData4Hour();
+               break;
+            default:
+               $list = $sM->getStatData4Overview();
+               break;
+
+          // end switch
+         }
+
+         // calculate average and sum
+         $list = $this->__calculateAverageAndSum($list);
+
+         // stop benchmarker
+         $T->stop('getStatData('.$period.')');
+
+         // return items
+         return $list;
+
+       // end function
       }
 
 
@@ -321,6 +380,54 @@
          }
 
          return $Browser;
+
+       // end function
+      }
+
+
+      /**
+      *  @private
+      *
+      *  Calculates the average and sums of certain stat items.
+      *
+      *  @author Christian Achatz
+      *  @version
+      *  Version 0.1, 05.06.2006<br />
+      */
+      function __calculateAverageAndSum($statList){
+
+         $T = &Singleton::getInstance('benchmarkTimer');
+         $T->start('__calculateAverageAndSum');
+
+         for($i = 0; $i < count($statList); $i++){
+
+            if(get_class($statList[$i]) == strtolower('linkTabellenStatSektion')){
+
+               $Eintraege = $statList[$i]->zeigeEintraege();
+
+               $Summe = (int)0;
+               $Anzahl = (int)0;
+
+               for($j = 0; $j < count($Eintraege); $j++){
+
+                  $Summe = $Summe + intval($Eintraege[$j]->zeigeWert());
+                  $Anzahl++;
+
+                // end for
+               }
+
+               $statList[$i]->setzeSumme($Summe);
+               $statList[$i]->setzeDurchschnitt(intval($Summe / $Anzahl));
+
+             // end if
+            }
+
+          // end for
+         }
+
+         $T->stop('__calculateAverageAndSum');
+
+         return $statList;
 
        // end function
       }
