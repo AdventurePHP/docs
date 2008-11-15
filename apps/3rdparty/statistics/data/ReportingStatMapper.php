@@ -1,9 +1,10 @@
 <?php
    import('tools::datetime','dateTimeManager');
-   import('sites::adminpanel::biz::statistikpanel','einfacheStatSektion');
-   import('sites::adminpanel::biz::statistikpanel','tabellenStatSektion');
-   import('sites::adminpanel::biz::statistikpanel','linkTabellenStatSektion');
-   import('sites::adminpanel::biz::statistikpanel','statEintrag');
+   import('core::database','connectionManager');
+   import('3rdparty::statistics::biz','SimpleStatSection');
+   import('3rdparty::statistics::biz','TableStatSection');
+   import('3rdparty::statistics::biz','LinkTableStatSection');
+   import('3rdparty::statistics::biz','StatEntry');
 
 
    /**
@@ -22,6 +23,13 @@
 
       /**
       *  @private
+      *  Connection key.
+      */
+      var $__ConnectionKey = 'Stat';
+
+
+      /**
+      *  @private
       *  Container für lokal verwendete Variablen.
       */
       var $_LOCALS;
@@ -34,10 +42,252 @@
       var $__MaxBreite = 420;
 
 
-      function ReportingStatMapper(){
-         $this->_LOCALS = variablenHandler::registerLocal(array('pagepart','Jahr','Monat','Tag','Stunde'));
+      /**
+      *  @public
+      *
+      *  Initializes the mapper.
+      *
+      *  @param string $ConnectionKey the desired database connection key
+      *
+      *  @author Christian Achatz
+      *  @version
+      *  Version 0.1, 14.10.2008<br />
+      */
+      function init($ConnectionKey){
+         $this->__ConnectionKey = $ConnectionKey;
        // end function
       }
+
+
+      function ReportingStatMapper(){
+         //$this->_LOCALS = variablenHandler::registerLocal(array('pagepart','Jahr','Monat','Tag','Stunde'));
+       // end function
+      }
+
+
+      /**
+      *  first try to implement a generic data selector
+      */
+      function __genericGetStatData($attribute,$where = null,$group = null,$order = null,$limit = null){
+
+         // get database connection
+         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $SQL = &$cM->getConnection($this->__ConnectionKey);
+
+         // initialize return list
+         $statSections = array();
+
+         // create array with all available periode values (years, months, ...
+         $select_period = 'SELECT '.$attribute.' FROM statistics ';
+
+         if($where !== null){
+            $select_period .= 'WHERE '.$where.' ';
+          // end if
+         }
+
+         if($group !== null){
+            $select_period .= 'GROUP BY '.$group.' ';
+          // end if
+         }
+
+         if($order !== null){
+            $select_period .= 'ORDER BY '.$order.' ';
+          // end if
+         }
+
+         if($limit !== null){
+            $select_period .= 'LIMIT '.$limit.' ';
+          // end if
+         }
+
+         $select_period = $select_period.';';
+         $result_period = $SQL->executeTextStatement($select_period);
+
+         $available_period_values = array();
+         while($data_period = $SQL->fetchData($result_period)){
+            $available_period_values[] = $data_period[$attribute];
+          // end while
+         }
+
+
+         // 1. select count of visited pages per available period values
+         $sect = new LinkTableStatSection();
+         $sect->setAttribute('Title','Anzahl besuchte Seiten');
+
+         $select_pages = 'SELECT '.$attribute.', COUNT('.$attribute.') AS count FROM statistics ';
+
+         if($group !== null){
+            $select_pages .= 'GROUP BY '.$group.' ';
+          // end if
+         }
+
+         if($order !== null){
+            $select_pages .= 'ORDER BY '.$order.' ';
+          // end if
+         }
+
+         $select_pages = $select_pages.';';
+         $result_pages = $SQL->executeTextStatement($select_pages);
+
+         $pagesPerPeriod = array();
+         $offset = 0;
+         $max = 0;
+         $entries = array();
+         while($data_pages = $SQL->fetchData($result_pages)){
+
+            $entry = new StatEntry();
+            $entry->setAttribute('DisplayText',$data_pages[$attribute]);
+            $entry->setAttribute('Value',$data_pages['count']);
+            $entry->setAttribute('Link','./?pagepart=year&'.$attribute.'='.$data_pages[$attribute]);
+
+            $pagesPerPeriod[$offset][$attribute] = $data_pages[$attribute];
+            $pagesPerPeriod[$offset]['pages'] = $data_pages['count'];
+            $offset++;
+
+            $max = max($data_pages['count'],$max);
+            $entries[] = $entry;
+
+          // end while
+         }
+
+         $sect->setAttribute('Entries',$entries);
+         $sect->setAttribute('Divisor',$this->__calculateDivisor($max));
+         $statSections[] = $sect;
+
+
+         // 2. select count of visitors per available period values
+         $sect = new LinkTableStatSection();
+         $sect->setAttribute('Title','Anzahl Besucher');
+
+         // Maximalzahl der Besuche ermitteln
+         $visitorsPerPeriod = array();
+         $max = 0;
+         $entries = array();
+         for($i = 0; $i < count($available_period_values); $i++){
+
+            $select_max = 'SELECT SessionID, '.$attribute.' FROM statistics
+                           WHERE
+                             '.$attribute.' = \''.$available_period_values[$i].'\'
+                           GROUP BY SessionID
+                           ORDER BY '.$attribute.' DESC;';
+            $result_max =  $SQL->executeTextStatement($select_max);
+            $visitor_count = $SQL->getNumRows($result_max);
+
+            $entry = new StatEntry();
+            $entry->setAttribute('DisplayText',$available_period_values[$i]);
+            $entry->setAttribute('Value',$visitor_count);
+            $entry->setAttribute('Link','./?pagepart='.$attribute.'&'.$attribute.'='.$available_period_values[$i]);
+
+            $pagesPerVisitor[$i][$attribute] = $available_period_values[$i];
+            $pagesPerVisitor[$i]['count'] = round($pagesPerPeriod[$i]['pages'] / $visitor_count,0);
+
+            $max = max($max,$pagesPerVisitor[$i]['count']);
+            $entries[] = $entry;
+
+          // end for
+         }
+
+         $sect->setAttribute('Entries',$entries);
+         $sect->setAttribute('Divisor',$this->__calculateDivisor($max));
+         $statSections[] = $sect;
+
+
+         // 3. select / create pages per visitor (from the first two lists)
+         $sect = new LinkTableStatSection();
+         $sect->setAttribute('Title','Anzahl Seiten/Besucher');
+
+         $max = 0;
+         $entries = array();
+         for($i = 0; $i < count($pagesPerVisitor); $i++){
+
+            $entry = new StatEntry();
+            $entry->setAttribute('DisplayText',$pagesPerVisitor[$i][$attribute]);
+            $entry->setAttribute('Value',$pagesPerVisitor[$i]['count']);
+            $entry->setAttribute('Link','./?pagepart='.$attribute.'&'.$attribute.'='.$pagesPerVisitor[$i][$attribute]);
+
+            $max = max($max,$pagesPerVisitor[$i]['count']);
+            $entries[] = $entry;
+          // end for
+         }
+
+         $sect->setAttribute('Entries',$entries);
+         $sect->setAttribute('Divisor',$this->__calculateDivisor($max));
+         $statSections[] = $sect;
+
+
+         // 4. select TOP 10 requested sites / media files
+         $sect = new SimpleStatSection();
+         $sect->setAttribute('Title','Aufgerufene Seiten / Medien (TOP 10)');
+
+         $select_pages = 'SELECT PageName, COUNT(PageName) AS count FROM statistics
+                          GROUP BY PageName
+                          ORDER BY count DESC, PageName ASC
+                          LIMIT 10;';
+         $result_pages = $SQL->executeTextStatement($select_pages);
+
+         $max = 0;
+         $entries = array();
+
+         while($data_pages = $SQL->fetchData($result_pages)){
+
+            $entry = new StatEntry();
+            $entry->setAttribute('DisplayText',$data_pages['PageName']);
+            $entry->setAttribute('Value',$data_pages['count']);
+
+            $max = max($max,$data_pages['count']);
+            $entries[] = $entry;
+
+          // end while
+         }
+
+         $sect->setAttribute('Entries',$entries);
+         $sect->setAttribute('Divisor',$this->__calculateDivisor($max));
+         $statSections[] = $sect;
+
+
+
+         // 5. select TOP 10 bots
+
+         // 6. select TOP 10 browsers
+
+         // 7. select TOP 10 languages
+
+         // 8. select TOP 10 OSes
+
+         // 9. select TOP 10 referer
+
+         // 10. select TOP 10 IP addresses
+
+         // 11. select TOP 10 DNS addresses
+
+         // 12. select TOP 10 users
+
+
+         // return generated sections
+         return $statSections;
+
+       // end function
+      }
+
+
+      function testReportingStatManager(){
+         return $this->__genericGetStatData(
+                                     'Year',
+                                     null,
+                                     'Year',
+                                     'Year DESC'
+                                    );
+/*
+         $this->__genericGetStatData(
+                                     'Month',
+                                     'Year = \'2008\'',
+                                     'Month',
+                                     'Month DESC'
+                                    );
+*/
+       // end function
+      }
+
 
 
       /**
@@ -47,7 +297,7 @@
       *  Christian Schäfer<br />
       *  Version 0.1, 05.06.2006<br />
       */
-      function getStatData4Overview(){
+      function __getStatData4Overview(){
 
          $SQL = &$this->__getServiceObject('core::database','MySQLHandler');
          $T = &Singleton::getInstance('benchmarkTimer');

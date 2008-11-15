@@ -33,17 +33,14 @@
       *  @version
       *  Version 0.1, 12.11.2008<br />
       */
-      function getStatData($period = 'overview'){
-
-         // create data layer component
-         $wSM = &$this->__getAndInitServiceObject('sites::apfdocupage::data','StatMapper','Stat');
+      function readStatistic($period = 'overview'){
 
          // invoke benchmarker
          $T = &Singleton::getInstance('benchmarkTimer');
          $T->start('getStatData('.$period.')');
 
          // Statistik-Daten laden
-         $sM = &$this->__getServiceObject('sites::adminpanel::data::statistikpanel','cacheStatMapper');
+         $sM = &$this->__getServiceObject('3rdparty::statistics::data','StatMapper');
 
          switch($period){
 

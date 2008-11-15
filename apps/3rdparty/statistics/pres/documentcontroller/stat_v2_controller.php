@@ -5,20 +5,21 @@
 
 
    /**
-   *  @package sites::adminpanel::pres::statistikpanel
-   *  @module stat_v2_controller
+   *  @package 3rdparty::statistics::pres
+   *  @class stat_v2_controller
    *
    *  Implementiert den DocumentController für die Templates:<br />
-   *  - uebersicht.html<br />
-   *  - jahr.html<br />
-   *  - monat.html<br />
-   *  - tag.html<br />
-   *  - stunde.html<br />
+   *  - overview.html<br />
+   *  - year.html<br />
+   *  - month.html<br />
+   *  - day.html<br />
+   *  - hour.html<br />
    *
-   *  @author Christian Schäfer
+   *  @author Christian Achatz
    *  @versio
    *  Version 0.1, 04.06.2006<br />
    *  Version 0.2, 05.06.2006<br />
+   *  Version 0.3, 15.11.2008 (Adapted to new business objects)<br />
    */
    class stat_v2_controller extends baseController
    {
@@ -32,7 +33,7 @@
 
 
       function stat_v2_controller(){
-         $this->__registerLocal(array('pagepart','Jahr','Monat','Tag','Stunde'));
+         $this->__registerLocal(array('pagepart','year','month','day','hour'));
        // end function
       }
 
@@ -41,34 +42,34 @@
 
          // Allgemeine Template-Inhalte setzen
          if($this->__placeholderExists('Jahr')){
-            $this->setPlaceHolder('Jahr',$this->_LOCALS['Jahr']);
+            $this->setPlaceHolder('Jahr',$this->_LOCALS['year']);
           // end if
          }
 
          if($this->__placeholderExists('Monat')){
-            $this->setPlaceHolder('Monat',dateTimeManager::showMonthLabel($this->_LOCALS['Monat']));
+            $this->setPlaceHolder('Monat',dateTimeManager::showMonthLabel($this->_LOCALS['month']));
           // end if
          }
 
          if($this->__placeholderExists('MonatZahl')){
-            $this->setPlaceHolder('MonatZahl',$this->_LOCALS['Monat']);
+            $this->setPlaceHolder('MonatZahl',$this->_LOCALS['month']);
           // end if
          }
 
          if($this->__placeholderExists('Tag')){
-            $this->setPlaceHolder('Tag',dateTimeManager::addLeadingZero($this->_LOCALS['Tag']));
+            $this->setPlaceHolder('Tag',dateTimeManager::addLeadingZero($this->_LOCALS['day']));
           // end if
          }
 
          if($this->__placeholderExists('Zeit')){
-            $this->setPlaceHolder('Zeit',dateTimeManager::addLeadingZero($this->_LOCALS['Stunde']).':00 - '.dateTimeManager::addLeadingZero($this->_LOCALS['Stunde'] + 1).':00');
+            $this->setPlaceHolder('Zeit',dateTimeManager::addLeadingZero($this->_LOCALS['hour']).':00 - '.dateTimeManager::addLeadingZero($this->_LOCALS['hour'] + 1).':00');
           // end if
          }
 
 
          // Statistik-Daten ausgeben
          $sM = &$this->__getServiceObject('sites::apfdocupage::biz','StatManager');
-         $Liste = $sM->getStatData($this->_LOCALS['pagepart']);
+         $Liste = $sM->readStatistic($this->_LOCALS['pagepart']);
 
          $T = &Singleton::getInstance('benchmarkTimer');
          $T->start('Ausgabe');
@@ -78,7 +79,7 @@
          for($i = 0; $i < count($Liste); $i++){
 
             // Sektion initialisieren
-            if(get_class($Liste[$i]) == strtolower('linkTabellenStatSektion')){
+            if(get_class($Liste[$i]) == strtolower('LinkTableStatSection')){
                $Sektion = &$this->__getTemplate('linkTabellenStatSektion');
              // end if
             }
@@ -88,20 +89,20 @@
             }
 
 
-            $Sektion->setPlaceHolder('Titel',$Liste[$i]->zeigeTitel());
+            $Sektion->setPlaceHolder('Titel',$Liste[$i]->getAttribute('Title'));
 
             if($this->__templatePlaceholderExists($Sektion,'Summe')){
-               $Sektion->setPlaceHolder('Summe',$Liste[$i]->zeigeSumme());
+               $Sektion->setPlaceHolder('Summe',$Liste[$i]->getAttribute('Sum'));
              // end if
             }
 
             if($this->__templatePlaceholderExists($Sektion,'Durchschnitt')){
-               $Sektion->setPlaceHolder('Durchschnitt',$Liste[$i]->zeigeDurchschnitt());
+               $Sektion->setPlaceHolder('Durchschnitt',$Liste[$i]->getAttribute('Average'));
              // end if
             }
 
             // Template für Eintrag initialisieren
-            $E = $Liste[$i]->zeigeEintraege();
+            $E = $Liste[$i]->getAttribute('Entries');
 
             // Puffer für Einträge initialisieren
             $EintragsPuffer = (string)'';
@@ -109,27 +110,29 @@
             // Template holen
             $Eintrag = &$this->__getTemplate('Eintrag_LinkTabellen');
 
+            //echo printObject($Liste[$i]);
+
             for($j = 0; $j < count($E); $j++){
 
                // Sektions-Typ über Klasse abfragen
-               if(get_class($Liste[$i]) == strtolower('linkTabellenStatSektion')){
+               if(get_class($Liste[$i]) == strtolower('LinkTableStatSection')){
 
-                  $Eintrag->setPlaceHolder('Link',$E[$j]->zeigeLink());
+                  $Eintrag->setPlaceHolder('Link',$E[$j]->getAttribute('Link'));
                   $Eintrag->setPlaceHolder('Tooltip','');
-                  $Eintrag->setPlaceHolder('LinkText',$E[$j]->zeigeAnzeigeText());
+                  $Eintrag->setPlaceHolder('LinkText',$E[$j]->getAttribute('DisplayText'));
                   $Eintrag->setPlaceHolder('Text','');
-                  $Eintrag->setPlaceHolder('Breite',$E[$j]->zeigeWert()/$Liste[$i]->zeigeTeiler());
-                  $Eintrag->setPlaceHolder('Anzahl',$E[$j]->zeigeWert());
+                  $Eintrag->setPlaceHolder('Breite',$E[$j]->getAttribute('Value')/$Liste[$i]->getAttribute('Divisor'));
+                  $Eintrag->setPlaceHolder('Anzahl',$E[$j]->getAttribute('Value'));
 
                 // end if
                }
-               elseif(get_class($Liste[$i]) == strtolower('tabellenStatSektion')){
+               elseif(get_class($Liste[$i]) == strtolower('TableStatSection')){
 
                   $Eintrag = &$this->__getTemplate('Eintrag_Tabellen');
 
-                  $Eintrag->setPlaceHolder('Text',$E[$j]->zeigeAnzeigeText());
-                  $Eintrag->setPlaceHolder('Breite',$E[$j]->zeigeWert()/$Liste[$i]->zeigeTeiler());
-                  $Eintrag->setPlaceHolder('Anzahl',$E[$j]->zeigeWert());
+                  $Eintrag->setPlaceHolder('Text',$E[$j]->getAttribute('DisplayText'));
+                  $Eintrag->setPlaceHolder('Breite',$E[$j]->getAttribute('Value')/$Liste[$i]->getAttribute('Divisor'));
+                  $Eintrag->setPlaceHolder('Anzahl',$E[$j]->getAttribute('Value'));
 
                 // end if
                }
@@ -137,9 +140,9 @@
 
                   $Eintrag = &$this->__getTemplate('Eintrag_Standard');
 
-                  $Eintrag->setPlaceHolder('Text',$E[$j]->zeigeAnzeigeText());
-                  $Eintrag->setPlaceHolder('Breite',$E[$j]->zeigeWert()/$Liste[$i]->zeigeTeiler());
-                  $Eintrag->setPlaceHolder('Anzahl',$E[$j]->zeigeWert());
+                  $Eintrag->setPlaceHolder('Text',$E[$j]->getAttribute('DisplayText'));
+                  $Eintrag->setPlaceHolder('Breite',$E[$j]->getAttribute('Value')/$Liste[$i]->getAttribute('Divisor'));
+                  $Eintrag->setPlaceHolder('Anzahl',$E[$j]->getAttribute('Value'));
 
                 // end if
                }
@@ -157,9 +160,7 @@
          }
 
          $this->setPlaceHolder('Inhalt',$SektionsPuffer);
-
          $T->stop('Ausgabe');
-         //echo $T->zeigeZeiten();
 
        // end function
       }

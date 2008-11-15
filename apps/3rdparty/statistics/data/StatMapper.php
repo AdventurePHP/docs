@@ -1,9 +1,10 @@
 <?php
    import('core::database','connectionManager');
+   import('3rdparty::statistics::data','ReportingStatMapper');
 
 
    /**
-   *  @package sites::apfdocupage::data
+   *  @package 3rdparty::statistics::data
    *  @class StatMapper
    *
    *  Implements the data layer for the web statistics.
@@ -78,8 +79,8 @@
       *  Version 0.3, 19.01.2005<br />
       *  Version 0.4, 05.04.2005<br />
       *  Version 0.5, 22.12.2005<br />
-      *  Version 0.6, 23.02.2006 (Anlegen der Tabelle wird nicht mehr geprüft)<br />
-      *  Version 0.7, 05.06.2006 (MySQLHandler wird nun singleton instanziert)<br />
+      *  Version 0.6, 23.02.2006 (Doesn't create table, if it does not exist)<br />
+      *  Version 0.7, 05.06.2006 (Database layer is created singlton now)<br />
       *  Version 0.8, 14.10.2008 (Adapted to the apfdocupage and the new technologies)<br />
       */
       function createStatEntry($PageName,$PageLang,$RequestURI,$Day,$Month,$Year,$Hour,$Minute,$Second,$UserName,$SessionID,$Browser,$ClientLanguage,$OS,$IPAddress,$DNSAddress,$Referer,$UserAgent){
@@ -136,8 +137,8 @@
        // end function
       }
 
+
       /**
-      *  @module getStatData4Overview()
       *  @public
       *
       *  Implementiert die um Caching erweiterte __getStatData4Overview() Methode.<br />
@@ -148,6 +149,9 @@
       */
       function getStatData4Overview(){
 
+         $rSM = &$this->__getAndInitServiceObject('3rdparty::statistics::data','ReportingStatMapper',$this->__ConnectionKey);
+         return $rSM->testReportingStatManager();
+/*
          $oCM = &$this->__getStatCacheManager();
 
          if($oCM->cacheFileExists() == true){
@@ -160,13 +164,12 @@
             return $List;
           // end else
          }
-
+*/
        // end function
       }
 
 
       /**
-      *  @module getStatData4Year()
       *  @public
       *
       *  Implementiert die um Caching erweiterte __getStatData4Year() Methode.<br />
@@ -176,7 +179,7 @@
       *  Version 0.1, 05.06.2006<br />
       */
       function getStatData4Year(){
-
+         return array();
          $oCM = &$this->__getStatCacheManager();
 
          if($oCM->cacheFileExists() == true){
@@ -195,7 +198,6 @@
 
 
       /**
-      *  @module getStatData4Month()
       *  @public
       *
       *  Implementiert die um Caching erweiterte __getStatData4Month() Methode.<br />
@@ -205,7 +207,7 @@
       *  Version 0.1, 05.06.2006<br />
       */
       function getStatData4Month(){
-
+         return array();
          $oCM = &$this->__getStatCacheManager();
 
          if($oCM->cacheFileExists() == true){
@@ -224,7 +226,6 @@
 
 
       /**
-      *  @module getStatData4Day()
       *  @public
       *
       *  Implementiert die um Caching erweiterte __getStatData4Day() Methode.<br />
@@ -234,7 +235,7 @@
       *  Version 0.1, 05.06.2006<br />
       */
       function getStatData4Day(){
-
+         return array();
          $oCM = &$this->__getStatCacheManager();
 
          if($oCM->cacheFileExists() == true){
@@ -253,7 +254,6 @@
 
 
       /**
-      *  @module getStatData4Hour()
       *  @public
       *
       *  Implementiert die um Caching erweiterte __getStatData4Hour() Methode.<br />
@@ -264,6 +264,7 @@
       */
       function getStatData4Hour(){
 
+         return array();
          $oCM = &$this->__getStatCacheManager();
 
          if($oCM->cacheFileExists() == true){
