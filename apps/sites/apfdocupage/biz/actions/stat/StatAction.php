@@ -1,6 +1,6 @@
 <?php
    import('sites::apfdocupage::biz','APFModel');
-   import('sites::apfdocupage::biz','StatManager');
+   import('3rdparty::statistics::biz','StatManager');
 
 
    /**
@@ -35,6 +35,7 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 14.10.2008<br />
+      *  Version 0.2, 15.12.2008 (Introduced new StatManager)<br />
       */
       function run(){
 
@@ -57,7 +58,7 @@
          }
 
          // write statistic entry
-         $SM = &$this->__getServiceObject('sites::apfdocupage::biz','StatManager');
+         $SM = &$this->__getServiceObject('3rdparty::statistics::biz','StatManager');
          $SM->writeStatistic($PageName,$PageLang);
 
        // end function
