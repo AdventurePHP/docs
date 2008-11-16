@@ -33,7 +33,7 @@
       *  @version
       *  Version 0.1, 12.11.2008<br />
       */
-      function readStatistic($period = 'overview'){
+      function readStatistic($period = 'overview',$year = null,$month = null,$day = null,$hour = null){
 
          // invoke benchmarker
          $T = &Singleton::getInstance('benchmarkTimer');
@@ -45,16 +45,16 @@
          switch($period){
 
             case 'year':
-               $list = $sM->getStatData4Year();
+               $list = $sM->getStatData4Year($year);
                break;
             case 'month':
-               $list = $sM->getStatData4Month();
+               $list = $sM->getStatData4Month($year,$month);
                break;
             case 'day':
-               $list = $sM->getStatData4Day();
+               $list = $sM->getStatData4Day($year,$month,$day);
                break;
             case 'hour':
-               $list = $sM->getStatData4Hour();
+               $list = $sM->getStatData4Hour($year,$month,$day,$hour);
                break;
             default:
                $list = $sM->getStatData4Overview();
@@ -261,15 +261,21 @@
          $OSTable = array(
                           'Windows 98' => 'Windows 98',
                           'Win98' => 'Windows 98',
-                          'Windows NT 3' => 'Windows NT',
+                          'Windows NT' => 'Windows NT',
                           'Windows NT 4.0' => 'Windows NT SP6a',
                           'Windows NT 5.0' => 'Windows 2000',
                           'Windows NT 5.1' => 'Windows XP',
                           'Windows NT 5.2' => 'Windows XP SP2',
                           'Windows NT 5.3' => 'Windows XP SP3',
+                          'Windows NT 6.0' => 'Windows Vista',
+                          'Mac OS X' => 'Mac OS X',
                           'Mac' => 'Macintosh',
-                          'Linux' => 'Linux',
-                          'Googlebot' => 'Google-Crawler-Server'
+                          'Ubuntu' => 'Ubuntu Linux',
+                          'SUSE' => 'SUSE Linux',
+                          'Debian' => 'Debian Linux',
+                          'Fedora' => 'Fedora Linux',
+                          'Mandriva' => 'Mandriva Linux',
+                          'Linux' => 'Linux'
                          );
 
          foreach($OSTable as $Key => $Value){
@@ -309,49 +315,60 @@
                                'Konqueror' => '[BROWSER] Konqueror',
                                'Konqueror/3.4' => '[BROWSER] Konqueror 3.4',
                                'Konqueror/3.3' => '[BROWSER] Konqueror 3.3',
+                               'MSIE 7' => '[BROWSER] Internet Explorer 7',
                                'MSIE 5' => '[BROWSER] Internet Explorer 5',
                                'MSIE 5.5' => '[BROWSER] Internet Explorer 5.5',
                                'MSIE 6' => '[BROWSER] Internet Explorer 6',
                                'MSIE 3' => '[BROWSER] Internet Explorer 3',
                                'MSIE 4' => '[BROWSER] Internet Explorer 4',
-                               'Opera' => '[BROWSER] Opera',
-                               'Firefox' => '[BROWSER] Firefox',
-                               'iCab' => '[BROWSER] iCab'
+                               'Opera/8' => '[BROWSER] Opera 8',
+                               'Opera/9' => '[BROWSER] Opera 9',
+                               'Firefox/3' => '[BROWSER] Firefox 3',
+                               'Firefox/2' => '[BROWSER] Firefox 2',
+                               'iCab' => '[BROWSER] iCab',
+                               'w3m/' => '[BROWSER] w3m',
+                               'Safari' => '[BROWSER] Safari'
                               );
 
          //
          //   This select can be used to analyze spider and bot access:
-         //   SELECT UserAgent, COUNT(UserAgent) AS Anzahl FROM statistiken_live WHERE NOT INSTR(UserAgent,'Mozilla') GROUP BY UserAgent
+         //   SELECT UserAgent, COUNT(UserAgent) AS count FROM statistics WHERE NOT INSTR(UserAgent,'Mozilla') GROUP BY UserAgent
          //
 
          $BotTable = array(
-                           'Yahoo! Slurp' => '[BOT] Yahoo!-Spider Browseransicht',
+                           'Yahoo! Slurp' => '[BOT] Yahoo! spider',
                            'appie 1.1 (www.walhello.com)' => '[BOT] walhello.com',
-                           'contype' => '[BOT] ConType Spider',
-                           'curl/7.9.2' => '[BOT] Linux Spider',
-                           'findlinks/0.87' => '[BOT] Wortschatzspider Uni Leipzig',
+                           'contype' => '[BOT] ConType spider',
+                           'findlinks/0.87' => '[BOT] Wordspider Uni Leipzig',
                            'getRAX' => '[BOT] getRAX Spider',
                            'Gigabot/2.0' => '[BOT] Gibagot',
                            'Googlebot/2.1' => '[BOT] Google.de',
                            'HeinrichderMiragoRobot' => '[BOT] MiragoRobot',
-                           'ia_archiver' => '[BOT] Alexa Websearch',
-                           'iCab' => '[BOT] Macintosh',
+                           'ia_archiver' => '[BOT] Alexa websearch',
                            'Jetbot/1.0' => '[BOT] JetBot',
-                           'larbin-mb' => '[BOT] Larbin Webspider',
+                           'larbin-mb' => '[BOT] Larbin webspider',
                            'libwww-perl' => '[BOT] libperl www-client',
                            'LinkWalker' => '[BOT] LinkWalker',
-                           'lwp-trivial/1.36' => '[BOT] LWP-Trivial Web Crawler',
+                           'lwp-trivial/1.36' => '[BOT] LWP-Trivial web crawler',
                            'MJ12bot/v0.9.0' => '[BOT] majestic12.co.uk',
-                           'msnbot/0.3' => '[BOT] MSNBot',
-                           'msnbot/1.0' => '[BOT] MSNBot',
-                           'psbot/0.1' => '[BOT] PicSearch Crawler',
+                           'msnbot/0.3' => '[BOT] MSN bot 0.3',
+                           'msnbot/1.0' => '[BOT] MSN bot 1.0',
+                           'psbot/0.1' => '[BOT] PicSearch crawler',
                            'Seekbot/1.0' => '[BOT] seekbot.net',
                            'suchbaer.de' => '[BOT] suchbaer.de',
-                           'SVN/1.1.0' => '[BOT] SVN/1.1.0',
                            'TurnitinBot/2.0' => '[BOT] turnitin.com',
-                           'Wildsoft Surfer' => '[BOT] Wildsoft Surfer / dlman Crawler',
+                           'Wildsoft Surfer' => '[BOT] Wildsoft surfer / dlman crawler',
                            'WMP/1.0' => '[BOT] webmasterplan.de CrawlTool',
-                           'Zao-Crawler' => '[BOT] kototoi.org/zao'
+                           'Zao-Crawler' => '[BOT] kototoi.org/zao',
+                           'ia_archiver' => '[BOT] Alexa crawler',
+                           'Baiduspider' => '[BOT] baidu.com spider',
+                           'Twiceler-0.9' => '[BOT] Twicler Spider',
+                           'msnbot-media/1.0' => '[BOT] MSN media bot',
+                           'msnbot-media/1.1' => '[BOT] MSN media bot',
+                           'msnbot/1.1' => '[BOT] MSN bot 1.1',
+                           'Yandex' => '[BOT] Yandex spider',
+                           'vBSEO' => '[BOT] vBSEO link checker',
+                           'freshmeat.net URI validator' => '[BOT] freshmeat link checker'
                           );
 
          $Browser = (string)'';
@@ -390,39 +407,35 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 05.06.2006<br />
+      *  Version 0.2, 16.11.2008 (Adapted to the new domain objects)<br />
       */
       function __calculateAverageAndSum($statList){
 
-         $T = &Singleton::getInstance('benchmarkTimer');
-         $T->start('__calculateAverageAndSum');
-
          for($i = 0; $i < count($statList); $i++){
 
-            if(get_class($statList[$i]) == strtolower('linkTabellenStatSektion')){
+            if(get_class($statList[$i]) == strtolower('LinkTableStatSection')){
 
-               $Eintraege = $statList[$i]->zeigeEintraege();
+               $entries = $statList[$i]->getAttribute('Entries');
 
-               $Summe = (int)0;
-               $Anzahl = (int)0;
+               $sum = (int)0;
+               $count = (int)0;
 
-               for($j = 0; $j < count($Eintraege); $j++){
+               for($j = 0; $j < count($entries); $j++){
 
-                  $Summe = $Summe + intval($Eintraege[$j]->zeigeWert());
-                  $Anzahl++;
+                  $sum = $sum + intval($entries[$j]->getAttribute('Value'));
+                  $count++;
 
                 // end for
                }
 
-               $statList[$i]->setzeSumme($Summe);
-               $statList[$i]->setzeDurchschnitt(intval($Summe / $Anzahl));
+               $statList[$i]->setAttribute('Sum',$sum);
+               $statList[$i]->setAttribute('Average',intval($sum / $count));
 
              // end if
             }
 
           // end for
          }
-
-         $T->stop('__calculateAverageAndSum');
 
          return $statList;
 

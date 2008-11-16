@@ -143,28 +143,15 @@
       *
       *  Implementiert die um Caching erweiterte __getStatData4Overview() Methode.<br />
       *
-      *  @author Christian Schäfer
+      *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 05.06.2006<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Overview(){
 
          $rSM = &$this->__getAndInitServiceObject('3rdparty::statistics::data','ReportingStatMapper',$this->__ConnectionKey);
-         return $rSM->testReportingStatManager();
-/*
-         $oCM = &$this->__getStatCacheManager();
+         return $rSM->getStatData4Overview();
 
-         if($oCM->cacheFileExists() == true){
-            return $oCM->readFromCache();
-          // end if
-         }
-         else{
-            $List = $this->__getStatData4Overview();
-            $oCM->writeToCache($List);
-            return $List;
-          // end else
-         }
-*/
        // end function
       }
 
@@ -178,20 +165,10 @@
       *  @version
       *  Version 0.1, 05.06.2006<br />
       */
-      function getStatData4Year(){
-         return array();
-         $oCM = &$this->__getStatCacheManager();
+      function getStatData4Year($year){
 
-         if($oCM->cacheFileExists() == true){
-            return $oCM->readFromCache();
-          // end if
-         }
-         else{
-            $List = $this->__getStatData4Year();
-            $oCM->writeToCache($List);
-            return $List;
-          // end else
-         }
+         $rSM = &$this->__getAndInitServiceObject('3rdparty::statistics::data','ReportingStatMapper',$this->__ConnectionKey);
+         return $rSM->getStatData4Year($year);
 
        // end function
       }
@@ -206,20 +183,10 @@
       *  @version
       *  Version 0.1, 05.06.2006<br />
       */
-      function getStatData4Month(){
-         return array();
-         $oCM = &$this->__getStatCacheManager();
+      function getStatData4Month($year,$month){
 
-         if($oCM->cacheFileExists() == true){
-            return $oCM->readFromCache();
-          // end if
-         }
-         else{
-            $List = $this->__getStatData4Month();
-            $oCM->writeToCache($List);
-            return $List;
-          // end else
-         }
+         $rSM = &$this->__getAndInitServiceObject('3rdparty::statistics::data','ReportingStatMapper',$this->__ConnectionKey);
+         return $rSM->getStatData4Month($year,$month);
 
        // end function
       }
@@ -234,20 +201,10 @@
       *  @version
       *  Version 0.1, 05.06.2006<br />
       */
-      function getStatData4Day(){
-         return array();
-         $oCM = &$this->__getStatCacheManager();
+      function getStatData4Day($year,$month,$day){
 
-         if($oCM->cacheFileExists() == true){
-            return $oCM->readFromCache();
-          // end if
-         }
-         else{
-            $List = $this->__getStatData4Day();
-            $oCM->writeToCache($List);
-            return $List;
-          // end else
-         }
+         $rSM = &$this->__getAndInitServiceObject('3rdparty::statistics::data','ReportingStatMapper',$this->__ConnectionKey);
+         return $rSM->getStatData4Day($year,$month,$day);
 
        // end function
       }
@@ -262,21 +219,10 @@
       *  @version
       *  Version 0.1, 05.06.2006<br />
       */
-      function getStatData4Hour(){
+      function getStatData4Hour($year,$month,$day,$hour){
 
-         return array();
-         $oCM = &$this->__getStatCacheManager();
-
-         if($oCM->cacheFileExists() == true){
-            return $oCM->readFromCache();
-          // end if
-         }
-         else{
-            $List = $this->__getStatData4Hour();
-            $oCM->writeToCache($List);
-            return $List;
-          // end else
-         }
+         $rSM = &$this->__getAndInitServiceObject('3rdparty::statistics::data','ReportingStatMapper',$this->__ConnectionKey);
+         return $rSM->getStatData4Hour($year,$month,$day,$hour);
 
        // end function
       }
