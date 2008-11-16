@@ -253,4 +253,65 @@ this documentation page is implemented and which tools of the framework are used
 <br />
 <br />
 <br />
+<a name="4-Core-appendnode"></a><h3>4. core:appendnode tag</h3>
+Within a discussion about reusable template fragments (e.g. forms), the idea occured to design a
+taglib, that can import various content to the scope of the current document. Thanks to the generic
+DOM structure of the GUI elements of the framework, this task is quite easy.
+<br />
+<br />
+In order to provide a generic and reusable function, the 1.8 branch now features the
+<strong>&lt;core:appendnode /&gt;</strong> tag, that can import any content from a defined template.
+To use the tag, you must provide two attributes similar to the importdesign tag:
+<strong>namespace</strong> and <strong>template</strong>.
+<br />
+<br />
+<br />
+<a name="4-1-Inclusion-of-templates"></a><h4>4.1. Inclusion of templates</h4>
+To include reusable fragments, the following code must be placed within the desired template:
+<pre class="tagexample">
+&lt;core:addtaglib namespace="core::pagecontroller" prefix="core" class="appendnode" /&gt;
+&lt;core:appendnode namespace="..." template="..." /&gt;
+</pre>
+If you want to reuse a special template, that is ised to display a domain object of your application,
+it is suitable to define this tag within a seperate template file (namespace:
+<em>sites::testsite::pres::templates::generic</em>; template: <em>generic_templates</em>). The tag
+definition my look like this:
+<pre class="tagexample">
+&lt;html:template name="ReusableTemplate"&gt;
+  ...
+  &lt;template:placeholder name="DisplayName"&gt;
+  ...
+&lt;/html:template&gt;
+</pre>
+In order to use the html template within another template file, the fragment can be included
+using the following tag definitions:
+<pre class="tagexample">
+&lt;core:addtaglib namespace="core::pagecontroller" prefix="core" class="appendnode" /&gt;
+&lt;core:appendnode namespace="sites::testsite::pres::templates::generic" template="generic_templates" /&gt;
+</pre>
+<br />
+<a name="4-2-Usage-of-the-imported-elements"></a><h4>4.2. Usage of the imported elements</h4>
+The usage of the elements imported by the <strong>&lt;core:appendnode /&gt;</strong> tag is identical
+to the previous approach. This is because the elements are directly appended to the current children
+list within the DOM tree. Especially, the document controller's methods (e.g. <em>__getTemplate()</em>)
+can be used as well.
+<br />
+<br />
+To address the template printed in chapter 4.1, the following code snippet can be used:
+<php:highlight>
+$tmpl = &$this->__getTemplate('ReusableTemplate');
+</php:highlight>
+<br />
+<a name="4-3-Important-notes"></a><h4>4.3. Important notes</h4>
+Due to the fact, that template oarsing is done identically to the importdesign tag, the developer
+must care of the tags included in the special template. If necessary, tags have to be anounced using
+the adequate <strong>core:addtaglib</strong> statements.
+<br />
+<br />
+Further, the tag creates transformation marker tags within the origin template, to enable the
+<strong>transformOnPlace()</strong> feature of the included tags supporting this. Please be aware,
+that the sequence of definition is equal to the marker tag order!
+<br />
+<br />
+<br />
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_078" />

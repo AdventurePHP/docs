@@ -141,7 +141,9 @@
       /**
       *  @public
       *
-      *  Implementiert die um Caching erweiterte __getStatData4Overview() Methode.<br />
+      *  Returns the list of stat sections for the overview.
+      *
+      *  @return array $statSections list of stat sections
       *
       *  @author Christian Achatz
       *  @version
@@ -159,11 +161,14 @@
       /**
       *  @public
       *
-      *  Implementiert die um Caching erweiterte __getStatData4Year() Methode.<br />
+      *  Returns the list of stat sections for the year period.
       *
-      *  @author Christian Schäfer
+      *  @param string $year desired year
+      *  @return array $statSections list of stat sections
+      *
+      *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 05.06.2006<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Year($year){
 
@@ -177,11 +182,15 @@
       /**
       *  @public
       *
-      *  Implementiert die um Caching erweiterte __getStatData4Month() Methode.<br />
+      *  Returns the list of stat sections for the month period.
       *
-      *  @author Christian Schäfer
+      *  @param string $year desired year
+      *  @param string $month desired month
+      *  @return array $statSections list of stat sections
+      *
+      *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 05.06.2006<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Month($year,$month){
 
@@ -195,11 +204,16 @@
       /**
       *  @public
       *
-      *  Implementiert die um Caching erweiterte __getStatData4Day() Methode.<br />
+      *  Returns the list of stat sections for the day period.
       *
-      *  @author Christian Schäfer
+      *  @param string $year desired year
+      *  @param string $month desired month
+      *  @param string $day desired day
+      *  @return array $statSections list of stat sections
+      *
+      *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 05.06.2006<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Day($year,$month,$day){
 
@@ -213,11 +227,17 @@
       /**
       *  @public
       *
-      *  Implementiert die um Caching erweiterte __getStatData4Hour() Methode.<br />
+      *  Returns the list of stat sections for the hour period.
       *
-      *  @author Christian Schäfer
+      *  @param string $year desired year
+      *  @param string $month desired month
+      *  @param string $day desired day
+      *  @param string $hour desired hour
+      *  @return array $statSections list of stat sections
+      *
+      *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 05.06.2006<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Hour($year,$month,$day,$hour){
 

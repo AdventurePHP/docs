@@ -27,7 +27,11 @@
       *  Returns the statistic data for the given period.
       *
       *  @param string $period desired period
-      *  @return array $statData list of stat entries for the desired period
+      *  @param string $year desired year or null
+      *  @param string $month desired month or null
+      *  @param string $day desired day or null
+      *  @param string $hour desired hour or null
+      *  @return array $statSections list of the desired stat sections
       *
       *  @author Christian Achatz
       *  @version
@@ -227,7 +231,7 @@
 
          $DNSIP = trim($_SERVER['REMOTE_ADDR']);
 
-         if(ereg("[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}",$DNSIP)){
+         if(ereg('[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}',$DNSIP)){
             $Return['DNS'] = gethostbyaddr($DNSIP);
             $Return['IP'] = $DNSIP;
           // end if
@@ -403,6 +407,9 @@
       *  @private
       *
       *  Calculates the average and sums of certain stat items.
+      *
+      *  @param array $statList list of stat sections
+      *  @return array $statList manipulated list of stat sections
       *
       *  @author Christian Achatz
       *  @version

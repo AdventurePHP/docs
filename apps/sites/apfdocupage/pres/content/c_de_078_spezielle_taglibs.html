@@ -258,4 +258,72 @@ aufgebaut ist und welche Mittel des Frameworks sie nutzt.
 <br />
 <br />
 <br />
+<a name="4-Core-appendnode"></a><h3>4. core:appendnode-Tag</h3>
+Aus einer Diskussion &uuml;ber wiederverwendbare Template-Fragmente (z.B. Formulare) entstand die
+Idee, eine TagLib zu entwerfen, die Inhalte aus einem beliebigen Template in den aktuellen
+G&uuml;ltigkeitsbereich zu importieren. Durch die generische DOM-Struktur der GUI-Elemente des
+Frameworks ist dies auf sehr einfache Weise m&ouml;glich.
+<br />
+<br />
+Um die Funktion allgemeing&uuml;ltig zur Verf&uuml;gung zu stellen, wurde im 1.8er-Zweig der
+<strong>&lt;core:appendnode /&gt;</strong>-Tag hinzugef&uuml;gt, der beliebige Templates
+"importieren" kann. Der Tag erwartet - &auml;hnlich dem importdesign-Tag - die statischen Attribute
+<strong>namespace</strong> und <strong>template</strong>.
+<br />
+<br />
+<br />
+<a name="4-1-Einbindung-von-Templates"></a><h4>4.1. Einbindung von Templates</h4>
+Um ein wiederverwendbares Template einbinden zu k&ouml;nnen, muss das Tag im gew&uuml;nschten
+Template wir folgt platziert werden:
+<pre class="tagexample">
+&lt;core:addtaglib namespace="core::pagecontroller" prefix="core" class="appendnode" /&gt;
+&lt;core:appendnode namespace="..." template="..." /&gt;
+</pre>
+Soll beispielweise ein Template zur Ausgabe eines Dom&auml;nen-Objekts in mehreren View-Templates
+eingesetzt werden, so schickt es sich, dieses in einem eigenen Template (Namespace:
+<em>sites::testsite::pres::templates::generic</em>; Template: <em>generic_templates</em>) zu definieren.
+Die Definition kann dabei folgende Gestalt haben:
+<pre class="tagexample">
+&lt;html:template name="ReusableTemplate"&gt;
+  ...
+  &lt;template:placeholder name="DisplayName"&gt;
+  ...
+&lt;/html:template&gt;
+</pre>
+Um das Template in einem anderen verwenden zu k&ouml;nnen, muss die Template-Datei wie folgt in die
+bestehende eingebunden werden:
+<pre class="tagexample">
+&lt;core:addtaglib namespace="core::pagecontroller" prefix="core" class="appendnode" /&gt;
+&lt;core:appendnode namespace="sites::testsite::pres::templates::generic" template="generic_templates" /&gt;
+</pre>
+<br />
+<a name="4-2-Verwendung-der-Elemente"></a><h4>4.2. Verwendung der Elemente</h4>
+Die Verwendung der durch das <strong>&lt;core:appendnode /&gt;</strong>-Tag eingebundenen Elements
+gestaltet sich identisch zur bisherigen Vorgehensweise, da die Elemente in den G&uuml;ltigkeitsbereich
+des gew&uuml;nschten Templates importiert werden. Damit k&ouml;nnen weiterhin die im
+DocumentController zur Verf&uuml;gung stehenden Methoden (z.B. <em>__getTemplate()</em>) verwendet
+werden.
+<br />
+<br />
+Das im Kapitel 4.1 aufgezeigte Template k&ouml;nn wie auch bisher mit
+<php:highlight>
+$tmpl = &$this->__getTemplate('ReusableTemplate');
+</php:highlight>
+adressiert werden.
+<br />
+<br />
+<br />
+<a name="4-3-Wichtige-Hinweise"></a><h4>4.3. Wichtige Hinweise</h4>
+Das Parsen des eingebundenen Templates erfolgt identisch zu den per importdesign-Tag eingebundenen
+Template-Dateien. Das bedeutet, dass der Entwickler daf&uuml;r Sorge tragen muss, dass die
+gew&uuml;nschten Tags im eingebundenen Template auch erkannt werden.
+<br />
+<br />
+Die <strong>&lt;core:appendnode /&gt;</strong>-TagLib legt im Ursprungstemplate Marker-Tags an, damit
+die <strong>transformOnPlace()</strong>-Methoden genutzt werden k&ouml;nnen. Bitte beachten Sie, dass
+die eingebundenen Kinder in der Reihenfolge der Definition im zus&auml;tzlichen Template eingebunden
+werden!
+<br />
+<br />
+<br />
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_078" />

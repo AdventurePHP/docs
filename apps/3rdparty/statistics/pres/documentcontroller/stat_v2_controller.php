@@ -9,12 +9,14 @@
    *  @package 3rdparty::statistics::pres
    *  @class stat_v2_controller
    *
-   *  Implementiert den DocumentController für die Templates:<br />
-   *  - overview.html<br />
-   *  - year.html<br />
-   *  - month.html<br />
-   *  - day.html<br />
-   *  - hour.html<br />
+   *  Implements the document controller for the following templates:
+   *  <ul>
+   *   <li>overview.html</li>
+   *   <li>year.html</li>
+   *   <li>month.html</li>
+   *   <li>day.html</li>
+   *   <li>hour.html</li>
+   *  </ul>
    *
    *  @author Christian Achatz
    *  @versio
@@ -33,12 +35,34 @@
       var $_LOCALS = array();
 
 
+      /**
+      *  @public
+      *
+      *  Initializes the local params.
+      *
+      *  @author Christian Achatz
+      *  @version
+      *  Version 0.1, 04.06.2006<br />
+      *  Version 0.4, 16.11.2008 (Removed the __registerLocal() method)<br />
+      */
       function stat_v2_controller(){
          $this->_LOCALS = variablenHandler::registerLocal(array('pagepart' => 'overview','Year' => null,'Month' => null,'Day' => null,'Hour' => null));
        // end function
       }
 
 
+      /**
+      *  @public
+      *
+      *  Display the statistic data for the desired periods.
+      *
+      *  @author Christian Achatz
+      *  @version
+      *  Version 0.1, 04.06.2006<br />
+      *  Version 0.2, 05.06.2006<br />
+      *  Version 0.3, 15.11.2008 (Adapted to new business objects)<br />
+      *  Version 0.4, 16.11.2008 (Optimize some parts of the code)<br />
+      */
       function transformContent(){
 
          // fill backlinks
@@ -86,9 +110,9 @@
          }
 
 
-         // Statistik-Daten ausgeben
+         // get the business component and read the statistic data
          $sM = &$this->__getServiceObject('sites::apfdocupage::biz','StatManager');
-         $Liste = $sM->readStatistic(
+         $list = $sM->readStatistic(
                                      $this->_LOCALS['pagepart'],
                                      $this->_LOCALS['Year'],
                                      $this->_LOCALS['Month'],
@@ -96,115 +120,107 @@
                                      $this->_LOCALS['Hour']
                                     );
 
-         $T = &Singleton::getInstance('benchmarkTimer');
-         $T->start('Ausgabe');
+         // generate the output
+         $sectionBuffer = (string)'';
 
-         $SektionsPuffer = (string)'';
+         for($i = 0; $i < count($list); $i++){
 
-         for($i = 0; $i < count($Liste); $i++){
-
-            // Sektion initialisieren
-            if(get_class($Liste[$i]) == strtolower('LinkTableStatSection')){
-               $Sektion = &$this->__getTemplate('linkTabellenStatSektion');
+            // initialize section
+            if(get_class($list[$i]) == strtolower('LinkTableStatSection')){
+               $section = &$this->__getTemplate('LinkTableStatSection');
              // end if
             }
             else{
-               $Sektion = &$this->__getTemplate('statSektion');
+               $section = &$this->__getTemplate('StatSection');
              // end else
             }
 
-            $Sektion->setPlaceHolder('Titel',$Liste[$i]->getAttribute('Title'));
+            $section->setPlaceHolder('Title',$list[$i]->getAttribute('Title'));
 
-            if($this->__templatePlaceholderExists($Sektion,'Summe')){
-               $Sektion->setPlaceHolder('Summe',$Liste[$i]->getAttribute('Sum'));
+            if($this->__templatePlaceholderExists($section,'Sum')){
+               $section->setPlaceHolder('Sum',$list[$i]->getAttribute('Sum'));
              // end if
             }
 
-            if($this->__templatePlaceholderExists($Sektion,'Durchschnitt')){
-               $Sektion->setPlaceHolder('Durchschnitt',$Liste[$i]->getAttribute('Average'));
+            if($this->__templatePlaceholderExists($section,'Average')){
+               $section->setPlaceHolder('Average',$list[$i]->getAttribute('Average'));
              // end if
             }
 
-            // Template für Eintrag initialisieren
-            $E = $Liste[$i]->getAttribute('Entries');
+            // initialize entries template
+            $entries = $list[$i]->getAttribute('Entries');
 
-            // Puffer für Einträge initialisieren
-            $EintragsPuffer = (string)'';
+            // create entries buffer
+            $entriesBuffer = (string)'';
 
-            // Template holen
-            $Eintrag = &$this->__getTemplate('Eintrag_LinkTabellen');
+            // get template
+            $entriesTmpl = &$this->__getTemplate('Entry_LinkTableStatSection');
 
-            for($j = 0; $j < count($E); $j++){
+            for($j = 0; $j < count($entries); $j++){
 
-               // Sektions-Typ über Klasse abfragen
-               if(get_class($Liste[$i]) == strtolower('LinkTableStatSection')){
+               if(get_class($list[$i]) == strtolower('LinkTableStatSection')){
 
-                  $Eintrag->setPlaceHolder('Link',$this->__generateLink($E[$j]->getAttribute('DisplayText')));
-                  $Eintrag->setPlaceHolder('Tooltip','');
+                  $entriesTmpl->setPlaceHolder('Link',$this->__generateLink($entries[$j]->getAttribute('DisplayText')));
+                  $entriesTmpl->setPlaceHolder('Tooltip','');
 
                   // format the link text
                   if(!empty($this->_LOCALS['Year']) && empty($this->_LOCALS['Month'])){
-                     $linktext = dateTimeManager::showMonthLabel($E[$j]->getAttribute('DisplayText'));
+                     $linkText = dateTimeManager::showMonthLabel($entries[$j]->getAttribute('DisplayText'));
                    // end elseif
                   }
                   elseif(!empty($this->_LOCALS['Month']) && empty($this->_LOCALS['Day'])){
-                     $linktext = dateTimeManager::addLeadingZero($E[$j]->getAttribute('DisplayText')).'.'.dateTimeManager::addLeadingZero($this->_LOCALS['Month']).'.'.$this->_LOCALS['Year'];
+                     $linkText = dateTimeManager::addLeadingZero($entries[$j]->getAttribute('DisplayText')).'.'.dateTimeManager::addLeadingZero($this->_LOCALS['Month']).'.'.$this->_LOCALS['Year'];
                    // end elseif
                   }
                   elseif(!empty($this->_LOCALS['Day']) && empty($this->_LOCALS['Hour'])){
-                     $linktext = dateTimeManager::addLeadingZero($E[$j]->getAttribute('DisplayText')).':00 - '.dateTimeManager::addLeadingZero(intval($E[$j]->getAttribute('DisplayText') + 1)).':00';
+                     $linkText = dateTimeManager::addLeadingZero($entries[$j]->getAttribute('DisplayText')).':00 - '.dateTimeManager::addLeadingZero(intval($entries[$j]->getAttribute('DisplayText') + 1)).':00';
                    // end else
                   }
                   elseif(!empty($this->_LOCALS['Hour'])){
-                     $linktext = dateTimeManager::addLeadingZero($this->_LOCALS['Hour']).':'.dateTimeManager::addLeadingZero($E[$j]->getAttribute('DisplayText'));
+                     $linkText = dateTimeManager::addLeadingZero($this->_LOCALS['Hour']).':'.dateTimeManager::addLeadingZero($entries[$j]->getAttribute('DisplayText'));
                    // end elseif
                   }
                   else{
-                     $linktext = $E[$j]->getAttribute('DisplayText');
+                     $linkText = $entries[$j]->getAttribute('DisplayText');
                    // end else
                   }
-                  $Eintrag->setPlaceHolder('LinkText',$linktext);
-
-                  $Eintrag->setPlaceHolder('Breite',$E[$j]->getAttribute('Value')/$Liste[$i]->getAttribute('Divisor'));
-                  $Eintrag->setPlaceHolder('Anzahl',$E[$j]->getAttribute('Value'));
+                  $entriesTmpl->setPlaceHolder('LinkText',$linkText);
+                  $entriesTmpl->setPlaceHolder('Width',$entries[$j]->getAttribute('Value')/$list[$i]->getAttribute('Divisor'));
+                  $entriesTmpl->setPlaceHolder('Count',$entries[$j]->getAttribute('Value'));
 
                 // end if
                }
-               elseif(get_class($Liste[$i]) == strtolower('TableStatSection')){
+               elseif(get_class($list[$i]) == strtolower('TableStatSection')){
 
-                  $Eintrag = &$this->__getTemplate('Eintrag_Tabellen');
-
-                  $Eintrag->setPlaceHolder('Text',$E[$j]->getAttribute('DisplayText'));
-                  $Eintrag->setPlaceHolder('Breite',$E[$j]->getAttribute('Value')/$Liste[$i]->getAttribute('Divisor'));
-                  $Eintrag->setPlaceHolder('Anzahl',$E[$j]->getAttribute('Value'));
+                  $entriesTmpl = &$this->__getTemplate('Entry_TableStatSection');
+                  $entriesTmpl->setPlaceHolder('Text',$entries[$j]->getAttribute('DisplayText'));
+                  $entriesTmpl->setPlaceHolder('Width',$entries[$j]->getAttribute('Value')/$list[$i]->getAttribute('Divisor'));
+                  $entriesTmpl->setPlaceHolder('Count',$entries[$j]->getAttribute('Value'));
 
                 // end if
                }
                else{
 
-                  $Eintrag = &$this->__getTemplate('Eintrag_Standard');
-
-                  $Eintrag->setPlaceHolder('Text',$E[$j]->getAttribute('DisplayText'));
-                  $Eintrag->setPlaceHolder('Breite',$E[$j]->getAttribute('Value')/$Liste[$i]->getAttribute('Divisor'));
-                  $Eintrag->setPlaceHolder('Anzahl',$E[$j]->getAttribute('Value'));
+                  $entriesTmpl = &$this->__getTemplate('Entry_SimpleStatSection');
+                  $entriesTmpl->setPlaceHolder('Text',$entries[$j]->getAttribute('DisplayText'));
+                  $entriesTmpl->setPlaceHolder('Width',$entries[$j]->getAttribute('Value')/$list[$i]->getAttribute('Divisor'));
+                  $entriesTmpl->setPlaceHolder('Count',$entries[$j]->getAttribute('Value'));
 
                 // end if
                }
 
-               $EintragsPuffer .= $Eintrag->transformTemplate();
+               $entriesBuffer .= $entriesTmpl->transformTemplate();
 
              // end for
             }
 
-            $Sektion->setPlaceHolder('Inhalt',$EintragsPuffer);
-
-            $SektionsPuffer .= $Sektion->transformTemplate();
+            $section->setPlaceHolder('Content',$entriesBuffer);
+            $sectionBuffer .= $section->transformTemplate();
 
           // end for
          }
 
-         $this->setPlaceHolder('Inhalt',$SektionsPuffer);
-         $T->stop('Ausgabe');
+         $this->setPlaceHolder('Content',$sectionBuffer);
 
        // end function
       }

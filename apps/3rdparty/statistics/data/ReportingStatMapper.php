@@ -11,7 +11,7 @@
    *  @package 3rdparty::statistics::data
    *  @module ReportingStatMapper
    *
-   *  Implementiert den Statistik-Tool-Mapper.<br />
+   *  Implements the statistic data loader.
    *
    *  @author Christian Achatz
    *  @version
@@ -64,15 +64,15 @@
 
 
       /**
-      *  @private
+      *  @public
       *
-      *  Reads the statistics overview.
+      *  Returns the list of stat sections for the overview.
       *
-      *  @return array $sections the resulting stat sections
+      *  @return array $statSections list of stat sections
       *
       *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 16.11.2008<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Overview(){
          return $this->__genericGetStatData(
@@ -85,15 +85,16 @@
 
 
       /**
-      *  @private
+      *  @public
       *
-      *  Reads the statistics for one year.
+      *  Returns the list of stat sections for the year period.
       *
-      *  @return array $sections the resulting stat sections
+      *  @param string $year desired year
+      *  @return array $statSections list of stat sections
       *
       *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 16.11.2008<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Year($year){
          return $this->__genericGetStatData(
@@ -106,15 +107,17 @@
 
 
       /**
-      *  @private
+      *  @public
       *
-      *  Reads the statistics for one month.
+      *  Returns the list of stat sections for the month period.
       *
-      *  @return array $sections the resulting stat sections
+      *  @param string $year desired year
+      *  @param string $month desired month
+      *  @return array $statSections list of stat sections
       *
       *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 16.11.2008<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Month($year,$month){
          return $this->__genericGetStatData(
@@ -127,15 +130,18 @@
 
 
       /**
-      *  @private
+      *  @public
       *
-      *  Reads the statistics for one day.
+      *  Returns the list of stat sections for the day period.
       *
-      *  @return array $sections the resulting stat sections
+      *  @param string $year desired year
+      *  @param string $month desired month
+      *  @param string $day desired day
+      *  @return array $statSections list of stat sections
       *
       *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 16.11.2008<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Day($year,$month,$day){
          return $this->__genericGetStatData(
@@ -148,15 +154,19 @@
 
 
       /**
-      *  @private
+      *  @public
       *
-      *  Reads the statistics for one hour.
+      *  Returns the list of stat sections for the hour period.
       *
-      *  @return array $sections the resulting stat sections
+      *  @param string $year desired year
+      *  @param string $month desired month
+      *  @param string $day desired day
+      *  @param string $hour desired hour
+      *  @return array $statSections list of stat sections
       *
       *  @author Christian Achatz
       *  @version
-      *  Version 0.1, 16.11.2008<br />
+      *  Version 0.1, 15.11.2008<br />
       */
       function getStatData4Hour($year,$month,$day,$hour){
          return $this->__genericGetStatData(
@@ -511,6 +521,9 @@
       *  @private
       *
       *  Calculates the current divisor to get the maximum lenth of one value. For display purpose only.
+      *
+      *  @param string $value current maximum value
+      *  qreturn string $divisor calculate divisor for te current stat section
       *
       *  @author Christian Achatz
       *  @version
