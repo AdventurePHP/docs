@@ -24,6 +24,7 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 31.08.2008<br />
+      *  Version 0.2, 22.11.2008 (Link to current page is now generated from the model information)<br />
       */
       function transformContent(){
 
@@ -41,6 +42,13 @@
 
          // insert title of the current page
          $this->setPlaceHolder('CurrentTitle',$PageTitle);
+
+         // insert link to the current page
+         $lang = $Model->getAttribute('page.language');
+         $pageIndicators = $Model->getAttribute('page.indicator');
+         $pageID = $Model->getAttribute('page.id');
+         $urlName = $Model->getAttribute('page.urlname');
+         $this->setPlaceHolder('CurrentURL','./?'.$pageIndicators[$lang].'='.$pageID.'-'.$urlName);
 
        // end function
       }
