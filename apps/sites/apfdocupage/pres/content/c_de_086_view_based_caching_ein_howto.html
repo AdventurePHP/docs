@@ -1,0 +1,274 @@
+<doku:title tags="view,based,caching,performance,importdesign,extension" title="View based caching - ein HOWTO" urlname="View-based-caching-ein-HOWTO">
+  Dieser Artikel beschreibt, wie view based caching mit dem Adventure PHP Framework implementiert
+  werden kann.
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+<a name="1-Einfuehrung"></a><h3>1. Einf&uuml;hrung</h3>
+W&auml;hrend einer Diskussion im
+<a href="http://www.developers-guide.net/forums/7173,alles-zum-zend-framework-1-7-a,page2#post65410" title="developers-guide.net" target="_blank" linkrewrite="false">developers-guide.net Forum</a> wurde die Idee des
+view based caching geboren. Ausgel&ouml;st durch einen Einwurf von <em>Alberto</em> begannen wir
+&uuml;ber Performance-Optimierungen und verschiedene Caching-Methoden zu sprechen. Am Ende der
+Diskussion kamen die Beteiligten dar&uuml;ber ein, dass das Caching von einzelnen Teilen einer
+Applikation ein effektives Mittel f&uuml;r die Steigerung der Performance ist.
+<br />
+<br />
+Dies kann durch eine auf cURL basierende L&ouml;sung, die von <em>Alberto</em> vorgestellt wurde oder
+durch view based caching erreicht werden. Der Vorteil von view based caching ist, dass die Applikation
+selbst nicht an die Cache-Strategie angepasst werden muss. Dieser Artikel beschreibt die technische
+Idee und die Umsetzung mit den Mitteln des Adventure PHP Framework.
+<br />
+<br />
+<br />
+<a name="2-Views"></a><h3>2. Views?</h3>
+Um die Idee besser verdeutlichen zu k&ouml;nnen, zun&auml;chst ein paar Worte zum Thema <em>Views</em>.
+In APF-Terminologie sind Views nichts anderes als Templates, die von anderen eingebunden werden. Ein
+Webseiten-Layout, das importdesign-Tags beinhaltet definiert bereits Views. Wie im Kapitel
+<a href="./?Seite=016-Klassen#2-DOM-Model-der-GUI" title="Klassen">Klassen</a>
+beschrieben wird, erzeugt die PageController-Implementierung einen Objektbaum aus den bekannten Tags
+in einem Template.
+<br />
+<br />
+Jeder Tag besteht dabei aus seiner Definition - etwa
+<pre class="tagexample">
+&lt;my:tag attr1="value1" attr2="value2" /&gt;
+</pre>
+- und der Implementierung der Funktion des Tags, sog. TagLibs. Jede TagLib muss das folgende Interface
+implementieren:
+<php:highlight>
+class my_taglib_tag extends Document
+{
+   function my_taglib_tag(){
+   }
+
+   function onParseTime(){
+   }
+
+   function onAfterAppend(){
+   }
+
+   function transform(){
+   }
+
+}
+</php:highlight>
+Details zur Implementierung von TagLibs und welche Funktionalit&auml;t sich hinter den einzelnen
+Methoden versteckt bzw. verstecken m&uuml;ssen, kann im Tutorial
+<a href="./?Seite=045-TagLibs-erstellen#2-2-Klassen-Methoden" title="TagLibs erstellen">TagLibs erstellen</a>
+nachgelesen werden.
+<br />
+<br />
+Wie kann diese Information nun genutzt werden um view based caching zu implementieren? Ganz einfach:
+dank der generischen PageController-Implementierung kann der Entwickler eigene Taglibs erzeugen, die
+die bisherige Funktion einer Taglib erweitern. Das bedeutet, dass der bisherige Template-Include-Mechanismus
+einfach um eine Caching-Funktion erg&auml;nzt werden muss - die Basis von view based
+caching!
+<br />
+<br />
+<br />
+<a name="3-Implementierung"></a><h3>3. Implementierung</h3>
+<a name="3-1-Lets-get-started"></a><h4>3.1. Let's get started</h4>
+Wie im Kapitel
+<a href="./?Seite=046-Standard-TagLibs#1-2-Importdesign" title="Standard-Taglibs">Standard-Taglibs</a>
+beschrieben ist, kann der <strong>&lt;core:importdesign /&gt;</strong>-Tag dazu verwendet werden,
+ein Template als Kind des aktuellen DOM-Knoten einzubinden. Hierzu muss lediglich der Namespace des
+Templates und dessen Namen in den Attributen des Tags spezifiziert werden. Wie bereits weiter oben
+bemerkt, kann dieser Tag dazu verwendet werden, um einen View innerhalb eines Layout-Templates zu
+definieren. Ein View kann dabei z.B. den Header, Footer oder die Navigation einer Seite beinhalten.
+Da wir nur den Inhalt von speziellen Views einer Seite cachebar gestalten wollen, kann diese TagLib
+als Basis genutzt werden.
+<br />
+<br />
+Um das zu verdeutlichen, ist in der folgenden Codebox die Implementierung der Taglib dargestellt:
+<php:highlight>
+class core_taglib_importdesign extends Document
+{
+
+   function core_taglib_importdesign(){
+      parent::Document();
+   }
+
+
+   function onParseTime(){
+
+      $Namespace = trim($this->__Attributes['namespace']);
+      $Template = trim($this->__Attributes['template']);
+
+      if(isset($this->__Attributes['context'])){
+         $this->__Context = trim($this->__Attributes['context']);
+      }
+
+      if(isset($this->__Attributes['incparam'])){
+         $IncParam = $this->__Attributes['incparam'];
+      }
+      else{
+         $IncParam = 'pagepart';
+      }
+
+      ...
+
+      $this->__loadContentFromFile($Namespace,$Template);
+      $this->__extractDocumentController();
+      $this->__extractTagLibTags();
+
+   }
+
+}
+</php:highlight>
+Die eigentliche Funktion des Tags besteht darin, die Attribute des Tags zu analysieren, den Inhalt
+des gew&uuml;nschten Templates zu laden und den Inhalt zu analysieren. Hierzu werden die Methoden
+<strong>__extractDocumentController()</strong> und <strong>__extractTagLibTags()</strong> genutzt,
+die bereits im der Klasse <em>Document</em> definiert sind. Es fehlt also nur noch der Caching-Part!
+<br />
+<br />
+<br />
+<a name="3-2-Der-CacheManager"></a><h4>3.2. Der CacheManager</h4>
+Das Framework beinhaltet mit dem CacheManager eine flexible Caching-Komponente mit verschiedenen
+Backends. In diesem Fall ist jedoch ein einfacher Text-Cache-Mechanismus ausreichend, der im Kapitel
+<a href="./?Seite=084-Klassenreferenz-CacheManager#3-1-Text-Cache-Provider" title="Text-Cache-Provider">Text-Cache-Provider</a>
+der CacheManager-Dokumentation beschrieben ist. Um diesen verwenden zu k&ouml;nnen, ist es notwendig,
+eine Konfiguration anzulegen. Diese hat gem&auml;&szlig; der Dokumentation die folgende Gestalt:
+<pre class="tagexample">
+[view_based_cache]
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "TextCacheProvider"
+Cache.Active = "true"
+Cache.BaseFolder = "/path/to/my/cache/base/folder"
+Cache.Namespace = "view::one"
+</pre>
+Zum Schreiben und Lesen des Caches kann der folgende Code verwendet werden:
+<php:highlight>
+// get the cache manager
+$cM = &$this->__getServiceObject('tools::cache','CacheManager');
+$cM = &$cMF->getCacheManager('view_based_cache');
+
+// calculate cache key
+$cacheKey = /* ... */;
+
+// read the cache
+$cacheContent = $cM->getFromCache($cacheKey);
+
+// write to the cache
+if($cacheContent === null){
+   $cacheContent = /* generate content */;
+   $cM->writeToCache($cacheKey,$cacheContent);
+}
+</php:highlight>
+<br />
+<a name="3-3-Endmontage"></a><h4>3.3. Endmontage</h4>
+Um den Inhalt eines Views cachen zu k&ouml;nnen, werden nun die beiden Teile aus Kapitel 3.1 und
+3.2 zusammengef&uuml;gt:
+<php:highlight>
+class cache_taglib_importdesign extends core_taglib_importdesign
+{
+
+   var $__CacheContent = null;
+
+   function cache_taglib_importdesign(){
+
+      // call the parent's constructor to fill the known taglib list
+      parent::core_taglib_importdesign();
+
+   }
+
+   function onParseTime(){
+
+      // get the cache manager
+      $cMF = &$this->__getServiceObject('tools::cache','CacheManagerFabric');
+      $cM = &$cMF->getCacheManager('view_based_cache');
+
+      // calculate the cache key
+      $cacheKey = md5(
+                      $this->getAttribute('namespace').
+                      $this->getAttribute('template').
+                      get_class($this->__ParentObject)
+                     );
+
+      // try to read from the cache
+      $this->__CacheContent = $cM->getFromCache($cacheKey);
+
+      // check if the document was cached before. If not
+      // execute the parent's onParseTime()
+      if($this->__CacheContent === null){
+         parent::onParseTime();
+      }
+
+   }
+
+   function transform(){
+
+      // generate the node's output or return the cached content
+      if($this->__CacheContent === null){
+
+         // get the cache manager
+         $cM = &$this->__getServiceObject('tools::cache','CacheManager');
+         $cM = &$cMF->getCacheManager('view_based_cache');
+
+         // calculate the cache key
+         $cacheKey = md5(
+                         $this->getAttribute('namespace').
+                         $this->getAttribute('template').
+                         get_class($this->__ParentObject)
+                        );
+
+         // generate output and cache it
+         $output = parent::transform();
+         $cM->writeToCache($cacheKey,$output);
+
+         // return the tag's output
+         return $output;
+      }
+      else{
+         return $this->__CacheContent;
+      }
+
+   }
+
+}
+</php:highlight>
+Wie im Code-Block zu sehen ist, wurden die Methoden <em>onParseTime()</em> und <em>transform()</em>
+um das Cache-Handling erg&auml;nzt. Um innerhalb der Klasse erkennen zu k&ouml;nnen, ob der Inhalt
+aus dem Cache gelesen werden kann, wurde die private Variable <em>__CacheContent</em> eingef&uuml;hrt.
+Bitte beachten Sie, dass der Code teilweise redundant vorhanden ist. Diese wurde jedoch nur zu
+Demonstrationszwecken so gew&auml;hlt.
+<br />
+<br />
+<br />
+<a name="4-Anwendung"></a><h3>4. Anwendung</h3>
+Die Anwendung der Caching-TagLib unterscheidet sich kaum von der Verwendung des
+<em>&lt;core:importdesign /&gt;</em> Tags. Der einzige Unterschied ist, dass eine Konfigurationssektion
+f&uuml;r den CacheManager existieren muss:
+<pre class="tagexample">
+&lt;core:addtaglib namespace="" prefix="cache" class="importdesign" /&gt;
+&lt;cache:importdesign namespace="my::namespace" template="my_template" /&gt;
+</pre>
+<br />
+<a name="5-Zusammenfassung-und-Ausblick"></a><h3>5. Zusammenfassung und Ausblick</h3>
+Dank der PageController-Implementierung des APF ist es sehr einfach, view based caching auf Basis
+von TagLibs zu implementieren. Um eine wiederverwendbare und in allen Bereichen einsetzbare TagLib
+zu erhalten, sollte die in Kapitel 3.3 abgedruckte Klasse noch um ein oder zwei weitere Attribute
+erweitert werden, die die Cache-Konfiguration und den Cache-Schl&uuml;ssel &uuml;bergeben. Das stellt
+sicher, dass die TagLib innerhalb der Applikation einfacher an unterschiedlichen Stellen gleichzeitig
+genutzt werden kann.
+<br />
+<br />
+Beim Thema Cache-Verwaltung hat der Entwickler zwei M&ouml;glichkeiten: manuelles Leeren des Caches
+oder der Einsatz eines Caching-Backends, das Cache-Lebenszeit unterst&uuml;tzt. Falls die Notwendigkeit
+besteht, sich selbst erneuernden Cache zu haben, so kann der CacheManager wie im Kapitel
+<a href="./?Seite=084-Klassenreferenz-CacheManager#4-Erweiterung" title="Erweiterung">Erweiterung</a>
+aufgezeigt erweitert werden.
+<br />
+<br />
+<br />
+<a name="6-Download"></a><h3>6. Download</h3>
+Um das oben gezeigte Konzept lokal ausprobieren zu k&ouml;nnen, habe ich eine Beispiel-Implementierung
+f&uuml;r PHP 5 erstellt, die die in Kapitel 5 besprochenen Optimierungen bereits enthalten. Um das
+Beispiel lokal auszuf&uuml;hren, bitte die Datei
+<a href="http://media.adventure-php-framework.org/content/view-based-caching-1.8-RC1-2008-11-29-2257-php5.zip" title="view-based-caching-1.8-RC1-2008-11-29-2257-php5.zip" target="_blank">view-based-caching-...-php5.zip</a>
+herunterladen und im DOCUMENT_ROOT des Webservers entpacken. Bitte beachten Sie dabei, dass der
+Benutzer, unter dem der Webserver ausgef&uuml;hrt wird, Schreibrechte auf das aktuelle Verzeichnis
+besitzt. Falls ein anderer Ordner als Cache-Basis-Ordner verwendet werden soll, einfach die Datei
+<em>/apps/config/tools/cache/sites/vbc/DEFAULT_cacheconfig.ini</em> anpassen.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_086" />
