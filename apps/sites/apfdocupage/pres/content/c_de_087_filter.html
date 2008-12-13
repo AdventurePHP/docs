@@ -1,0 +1,210 @@
+<doku:title tags="dokumentation,filter,security" title="Filter" urlname="Filter">
+  In diesem Dokumentationskapitel werden die im APF enthaltenen Filter-Mechanismen erkl&auml;rt. Es
+  wird auf den Aufbau von Filter, der Verwendung und der Konfiguration der In- und Output-Filter
+  &uuml;ber die Registry eingegangen.
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+<a name="1-Einfuehrung"></a><h3>1. Einf&uuml;hrung</h3>
+Das Thema &quot;Filter&quot; spielt im Adventure PHP Framework eine zentrale Rolle. In den Releases
+inkl. 1.8 wurden diese bereits versteckt f&uuml;r die Sicherung der Ein- und Ausgaben genutzt, ab
+dem 1.9er-Zweig k&ouml;nnen diese vom Benutzer direkt beeinflusst und &uuml;ber die Registry verwaltet
+werden. Weiterhin stehen nun Filter f&uuml;r Formularfelder zur Verf&uuml;gung, die zus&auml;tzlich
+zu den Ein- und Ausgabe-Filtern zur Sicherung der Benutzereingaben verwendet werden k&ouml;nnen.
+<br />
+<br />
+<br />
+<a name="2-Eingabe-Filter"></a><h3>2. Eingabe-Filter</h3>
+Die Klasse der Eingabe-Filter k&uuml;mmern sich um die Auswertung der Benutzereingaben der in der
+URL und der im HTTP-Protokoll eingebetteten Inhalte (aka POST-Daten). Dazu sind im Framework bereits
+vier allgemeing&uuml;ltige Filter-Typen enthalten, die sich um die Verarbeitung von Benutzer-Eingaben
+mit und ohne Rewrite-URLs k&uuml;mmern.
+<br />
+<br />
+Da der Kern des Frameworks selbst keine Kenntnis vom URL-Layout hat, sondern ausschlie&szlig;lich
+mit dem <em>$_REQUEST</em>-Array arbeitet, erm&ouml;glichen erst die Filter ein so generisches
+Rewrite-URL-Layout.
+<br />
+<br />
+Die Filter gliedern sich in die folgenden Bereiche:
+<br />
+<br />
+<br />
+<a name="2-1-Pagecontroller-Standard-URLs"></a><h4>2.1. PageController mit Standard-URLs</h4>
+Der einfachste Typ wird beim Einsatz des PageControllers im normalen URL-Modus verwendet. Der
+<strong>StandardRequestFilter</strong> aus dem Namespace <strong>core::filter::input</strong>
+ersetzt die eingegebenen Werte durch ihre HTML-codierten Entsprechungen (siehe
+<a href="http://php.net/htmlspecialchars" title="htmlspecialchars()" target="_blank">htmlspecialchars()</a>)
+und f&uuml;hrt ein
+<a href="http://php.net/stripcslashes" title="stripcslashes()" target="_blank">stripcslashes()</a>
+aus, falls die Option <em>magic_quotes_gpc</em> auf den Wert <em>1</em> gesetzt wurde um Inhalte in
+Formularen korrekt darstellen zu k&ouml;nnen.
+<br />
+<br />
+<br />
+<a name="2-2-Pagecontroller-Rewrite-URLs"></a><h4>2.2. PageController mit Rewrite-URLs</h4>
+Die Entgegennahme der Benutzer-Eingaben im Fall von Rewrite-URLs &uuml;bernimmt der Filter
+<strong>PagecontrollerRewriteRequestFilter</strong> aus dem Namespace <strong>core::filter::input</strong>.
+Dieser zerlegt die Rewrite-URL in seine Bestandteile und generiert aus diesen die Inhalte des
+<em>$_REQUEST</em>-Arrays neu. Der Filter geht dabei davon aus, dass die umgeschriebenen URLs eine
+Folge von durch &quot;/&quot; getrennte Parameter-Wert-Paare enthalten. Anschlie&szlig;end wird der
+<strong>StandardRequestFilter</strong> ausgef&uuml;hrt um die Eingaben zu sichern.
+<br />
+<br />
+<br />
+<a name="2-3-Frontcontroller-Standard-URLs"></a><h4>2.3. FrontController mit Standard-URLs</h4>
+Der FrontController-Filter f&uuml;r Standard-URLs analysiert den Request, extrahiert die
+FrontController-Anweisungen und registriert die Actions beim FrontController. Normale Parameter
+werden identisch zu den beiden vorangegangenen Filtern mit den <strong>StandardRequestFilter</strong>
+behandelt. Hierf&uuml;r zeichnet sich der <strong>FrontcontrollerRequestFilter</strong> aus dem
+Namespace <strong>core::filter::input</strong> verantwortlich.
+<br />
+<br />
+<br />
+<a name="2-4-Frontcontroller-Rewrite-URLs"></a><h4>2.4. FrontController mit Rewrite-URLs</h4>
+&Auml;hnlich dem <strong>PagecontrollerRewriteRequestFilter</strong> filtert der
+<strong>FrontcontrollerRewriteRequestFilter</strong> aus dem Namespace <strong>core::filter::input</strong>
+die Eingaben bei Nutzung des Frontcontrollers in Verbindung mit Rewrite-URLs. Dabei werden ebenfalls
+die umgeschriebenen Action-Anweisungen und die normalen Parameter aus der URL extrahiert, in das
+<em>$_REQUEST</em>-Array gespeichert und die Actions an den Frontcontroller &uuml;bergeben.
+<br />
+<br />
+<br />
+<a name="3-Ausgabe-Filter"></a><h3>3. Ausgabe-Filter</h3>
+Die Ausgabe-Filter k&uuml;mmern sich um die Formatierung des erzeugten HTML-Codes. Da hier keine
+Unterscheidung zwischen Front- und PageController notwendig ist, beinhaltet das APF nur einen
+Ausgabe-Filter, der sich im Fall von aktiviertem URL-Rewriting um das Umschreiben der Links und
+Formular-Actions k&uuml;mmert. Diese Aufgabe &uuml;bernimmt der <strong>HtmlLinkRewriteFilter</strong>
+aus dem Namespace <strong>core::filter::output</strong>.
+<br />
+<br />
+<br />
+<a name="4-Aufbau-und-Funktion"></a><h3>4. Aufbau und Funktion</h3>
+Ein Filter im Adventure PHP Framework wird durch eine Klasse, die von <strong>AbstractFilter</strong>
+ableitet, repr&auml;sentiert. Diese muss die Methode <strong>filter()</strong> implementieren, die
+zwei Argumente tr&auml;gt: die Filter-Anweisung und den <em>Input</em>. Am Ende der Funktion muss
+der <em>Output</em> zur&uuml;ckgegeben werden.
+<br />
+<br />
+Um einen Filter nutzen zu k&ouml;nnen, muss dieser &uuml;ber die <strong>FilterFactory</strong>
+erzeugt werden. Die Methode <strong>getFilter()</strong> erwartet ein
+<strong>FilterDefinition</strong>-Objekt als Parameter. Die <strong>FilterDefinition</strong>
+beinhaltet dabei den Namespace und den (Klassen- bzw. Datei-)Namen des Filters.
+<br />
+<br />
+Das folgende Beispiel zeigt die Verwendung eines Filters:
+<php:highlight>
+// define the filter
+$filterDef = new FilterDefinition('my::filter::namespace','FilterClassName');
+
+// create the filter
+$filter = FilterFactory::getFilter($filterDef);
+
+// gather the input
+$input = /* ... */
+
+// apply the filter
+$output = $filter->filter('MyFilterInstruction',$input);
+</php:highlight>
+Der interne Aufbau eines Filters ist dabei komplett dem Entwickler &uuml;berlassen.
+<br />
+<br />
+Details zu den enthaltenen Standard-Filtern kann der API-Dokumentation der jeweiligen Version unter
+<a href="./?Seite=008-Downloads" title="Downloads">Downloads</a> entnommen werden.
+<br />
+<br />
+<br />
+<a name="5-Konfiguration"></a><h3>5. Konfiguration</h3>
+Die Konfiguration der Ein- und Ausgabe-Filter wird &uuml;ber die Registry gesteuert. Hierzu existieren
+folgende Registry-Eintr&auml;ge im Namespace <strong>apf::core::filter</strong>:
+<ul>
+  <li>
+    <strong>PageControllerInputFilter</strong>: wird bei Verwendung des PageControllers beim
+    Erstellen des <em>Page</em>-Objekts ausgef&uuml;hrt.
+  </li>
+  <li>
+    <strong>FrontControllerInputFilter</strong>: wird bei Verwendung des FrontControllers beim
+    Starten ausgef&uuml;hrt. Inkludiert die Funktionen des <em>PageControllerInputFilter</em>
+    hinsichtlich URL-Rewriting.
+  </li>
+  <li>
+    <strong>OutputFilter</strong>: Wird bei der Transformation der PageController-Seite auf den
+    generierten Quelltest angewendet.
+  </li>
+</ul>
+M&ouml;chte der Entwickler sein eigenes URL-Layout definieren, so kann dies durch einen eigenen Filter
+abgebildet werden, der als Page- oder FrontController-Input-Filter definiert wird. Da die Konfiguration
+&uuml;ber die Registry erfolgt, kann dies in der Bootstrap-Datei vorgenommen werden. Die folgende
+Code-Box zeigt, wie die Konfiguration vorgenommen f&uuml;r den PageController werden kann:
+<php:highlight>
+// include page controller
+include('./apps/core/pagecontroller/pagecontroller.php');
+
+// configure registry
+$reg = &Singleton::getInstance('Registry');
+$reg->register(
+   'apf::core::filter',
+   'PageControllerInputFilter',
+   new FilterDefinition('my::filter::namespace','MyPageControllerInputFilter')
+);
+
+// create page and display page
+$page = new Page();
+$page->loadDesign('namespace::of::my::webpage','mytemplate');
+echo $page->transform();
+</php:highlight>
+Im Fall des FrontControllers erfolgt die Anpassung wie folgt:
+<php:highlight>
+// include page controller
+include('./apps/core/pagecontroller/pagecontroller.php');
+
+// include front controller
+import('core::frontcontroller','Frontcontroller');
+
+// configure registry
+$reg = &Singleton::getInstance('Registry');
+$reg->register(
+   'apf::core::filter',
+   'FrontControllerInputFilter',
+   new FilterDefinition('my::filter::namespace','MyFrontControllerInputFilter')
+);
+
+// create front controller and start it
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->start('namespace::of::my::webpage','mytemplate');
+</php:highlight>
+<strong>Wichig:</strong> die Konfiguration muss <u>vor</u> dem Erzeugen des Page- bzw. FrontControllers
+erfolgen!
+<br />
+<br />
+Die Manipulation des Ausgabe-Filters gestaltet sich identisch zu den beiden vorherigen Beispielen.
+Hier muss jedoch der Registry-Eintrag <strong>OutputFilter</strong> mit einer neuen <em>FilterDefinition</em>
+belegt werden.
+<br />
+<br />
+Falls keine Filterung erw&uuml;nscht ist, k&ouml;nnen die oben aufgezeigten Konfigurationsdirektiven
+mit <em>null</em> belegt werden:
+<php:highlight>
+// include page controller
+include('./apps/core/pagecontroller/pagecontroller.php');
+
+// include front controller
+import('core::frontcontroller','Frontcontroller');
+
+// disable all filters (or just parts of it)
+$reg = &Singleton::getInstance('Registry');
+$reg->register('apf::core::filter','PageControllerInputFilter',null);
+$reg->register('apf::core::filter','FrontControllerInputFilter',null);
+$reg->register('apf::core::filter','OutputFilter',null);
+
+...
+</php:highlight>
+<br />
+<a name="6-Formular-Filter"></a><h3>6. Formular-Filter</h3>
+Aufbauend auf der oben gezeigten Definition von Filtern existieren Seit dem 1.9er-Branch auch Filter
+f&uuml;r Formular-Felder. Die Verwendung und Anpassung der Filter wird im Kapitel
+<a href="./?Seite=011-Formulare#5-Formular-Filter" title="Verwendung von Formular-Filtern">Verwendung von Formular-Filtern</a>
+erl&auml;utert.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_087" />
