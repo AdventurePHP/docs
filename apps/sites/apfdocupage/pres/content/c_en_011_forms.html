@@ -524,4 +524,187 @@ methods.
 <br />
 <br />
 <br />
+<a name="5-Usage-of-form-filters"></a><h3>5. Usage of form filters</h3>
+Since the 1.9 branch, the form elements support filtering. The form filters are based on the APF
+filter from the core namespace. Details on the design and the usage of filters can be read about
+in the <a href="./?Page=087-Filter#4-Design-and-function" title="Filter">filter chapter</a>.
+<br />
+<br />
+The form filters are aimed to enhance the generic input filter (see
+<a href="./?Page=087-Filter#5-Configuration" title="configuration of filters">configuration of filters</a>)
+to only accept dedicated user input within user input fields. A typical application sample is the
+filtering of an email field, that only allows characters, that match the regular expression
+&quot;<strong>[a-z0-9-_@.]</strong>&quot;.
+<br />
+<br />
+<br />
+<a name="5-1-Built-in-filters"></a><h4>5.1. Built-in filters</h4>
+To ease working with user input in forms, a set of default filters is included in the release. The
+following filter tasks are presented by the filter class <strong>FormFilter</strong> from the
+<strong>tools::form::filter</strong> namespace (filter instructions):
+<ul>
+  <li><strong>string2Lower</strong>: Changes all capital letters to lower letters.</li>
+  <li><strong>string2Upper</strong>: Changes all lower letters to capital letters.</li>
+  <li><strong>stripTags</strong>: Trips HTML or script tags.</li>
+  <li><strong>noSpecialCharacters</strong>: Filters special characters.</li>
+  <li><strong>onlyNumbers</strong>: Only supports digits.</li>
+  <li><strong>onlyInteger</strong>: Only supports integer values.</li>
+  <li><strong>onlyLetters</strong>: Only supports letters.</li>
+  <li><strong>onlyHTMLEntities</strong>: Encodes all HTML signs.</li>
+</ul>
+<br />
+<a name="5-2-Usage"></a><h4>5.2. Usage</h4>
+The application of filters is similar to validators. If the attribute <strong>filter</strong> is
+present, the filter described by the value is applied to the content of the form element. By default,
+the built-in filter is used as described in chapter 5.1.
+<br />
+<br />
+The code box below shows you how to apply a form filter:
+<pre class="tagexample">
+&lt;html:form name="get_phone_number"&gt;
+  Your phone number:
+  &lt;form:text
+          name="phone"
+          filter="onlyNumbers"
+  /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="send" value="send" /&gt;
+&lt;/html:form&gt;
+</pre>
+On parse time of the form, the content of the <strong>phone</strong> field is filtered with the
+<em>onlyNumbers</em> filter instruction. If you retrieve the content of the text field, you can be
+sure, that it contains no not allowed characters. Due to the fact, that filtering is done <u>before</u>
+validation, the validator is not able to give positiv response due to wrong user input.
+<br />
+<br />
+<strong>Important:</strong>
+<ul>
+  <li>
+    Please note, that filters are only available for text input fields at the moment!
+  </li>
+  <li>
+    To apply more that one filter, please have a look at chapter
+    <a href="#5-4-Filter-chaining" title="5.4. Filter chaining">5.4. Filter chaining</a>.
+  </li>
+</ul>
+<br />
+<a name="5-3-Enhancement"></a><h4>5.3. Enhancement</h4>
+If the built-in filters do not satisfy your requirements, the <strong>filterclass</strong> attribute
+can be used to specify another filter. The definition (=value) must have the following look:
+<pre class="tagexample">
+filterclass="path::to::my::filter::class|MyFilterClassName"
+</pre>
+The first part corresponds to the namespace of the filter, the second part ist the name of the
+class or the file, respectivly. The <strong>filter</strong> attribute does also contain the filter
+instruction.
+<br />
+<br />
+As described in chapter
+<a href="./?Page=087-Filter#4-Design-and-function" title="Design and function">design and function of filters</a>,
+each filter class must inherit from the <strong>AbstractFilter</strong> definition and must implement
+the <strong>filter()</strong> function. The next code box points out, how a filter replacing all
+occurrences from &quot;cm^2&quot; to &quot;cm&sup2;&quot; must be implemented:
+<php:highlight>
+class DefinitionFilter extends AbstractFilter
+{
+
+   function filter($instruction,$input){
+      return str_replace('cm^2','cm&sup2;',$input);
+   }
+
+}
+</php:highlight>
+As you can take from the example, the filter instruction must not be used within simple application
+cases. In this case, you have to ensure, that the <strong>filter</strong> attribute contains a
+non-empty (dummy) value.
+<br />
+<br />
+In order to make a filter reusable, it is well to group similar filter instructions into one filter.
+The following example demonstrates a filter, that filters body quantities:
+<php:highlight>
+class MeasureFilter extends AbstractFilter
+{
+
+   function filter($instruction,$input){
+
+      switch($instruction){
+
+         case 'weight':
+            $output = preg_replace('/[^0-9,.]/i','',$input);
+         case 'size':
+            $output = preg_replace('/[^0-9]/i','',$input);
+         default:
+            $output = $input;
+
+      }
+
+      return $output;
+
+   }
+
+}
+</php:highlight>
+In order to apply the filter, the form must be adapted as follows:
+<pre class="tagexample">
+&lt;html:form name="test" method="post"&gt;
+  Name:
+  &lt;form:text
+          name="name"
+          filter="noSpecialCharacters"
+  /&gt;
+  &lt;br /&gt;
+  Weight:
+  &lt;form:text
+          name="weight"
+          filterclass="my::special::filter|MeasureFilter"
+          filter="weight"
+  /&gt;
+  kg
+  &lt;br /&gt;
+  Body size:
+  &lt;form:area
+          name="bodysize"
+          filterclass="my::special::filter|MeasureFilter"
+          filter="size"
+  /&gt;
+  cm
+  &lt;br /&gt;
+&lt;/html:form&gt;
+</pre>
+<br />
+<a name="5-4-Filter-chaining"></a><h4>5.4. Filter chaining</h4>
+Filter chaining can be done by an extra filter class. In order to apply more than one filter, the
+<strong>MultiplexFormFilter</strong> class (also included in the release) can be used:
+<php:highlight>
+class MultiplexFormFilter extends FormFilter
+{
+   function filter($instruction,$input){
+
+      $instructionSet = explode('|',$instruction);
+      $output = $input;
+
+      foreach($instructionSet as $filterInstruction){
+         $output = $this->{'__'.trim($filterInstruction)}($output);
+      }
+
+      return $output;
+
+   }
+
+}
+</php:highlight>
+In order to apply the a filter chain, the form must be adapted as follows:
+<pre class="tagexample">
+&lt;html:form name="get_phone_number"&gt;
+  Your phone number:
+  &lt;form:text
+          name="specialfield"
+          filterclass="tools::form::filter|MultiplexFormFilter"
+          filter="noSpecialCharacters|string2Upper"
+  /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="send" value="send" /&gt;
+&lt;/html:form&gt;
+</pre>
+<br />
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_011" />

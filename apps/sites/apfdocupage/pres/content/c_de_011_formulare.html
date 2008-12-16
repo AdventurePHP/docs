@@ -531,4 +531,191 @@ Adressierung der Objekte &uuml;ber die Methoden <em>getFormElementByName()</em> 
 <br />
 <br />
 <br />
+<a name="5-Formular-Filter"></a><h3>5. Verwendung von Formular-Filtern</h3>
+Seit dem 1.9er Zweig unterst&uuml;tzen die Formular-Elemente Filter. Als Basis f&uuml;r die Filterung
+dienen die APF-Filter aus dem core-Namespace. Details zu den Filtern k&ouml;nnen dem Kapitel
+<a href="./?Seite=087-Filter#4-Aufbau-und-Funktion" title="Filter">Filter</a> entnommen werden.
+<br />
+<br />
+Die Formular-Filter dienen dazu, die allgemeinen Eingabe-Filter (siehe
+<a href="./?Seite=087-Filter#5-Konfiguration" title="Konfiguration von Filtern">Konfiguration von Filtern</a>)
+zu erweitern um in definierten Eingabefeldern nur gew&uuml;nschte Werte zu akzeptieren. Typisches
+Anwendungsbeispiel ist die Filterung eines E-Mail-Eingabefeldes, das nur Zeichen, die dem regul&auml;ren
+Ausdruck &quot;<strong>[a-z0-9-_@.]</strong>&quot; gen&uuml;gen, enthalten darf.
+<br />
+<br />
+<br />
+<a name="5-1-Mitgelieferte-Filter"></a><h4>5.1. Mitgelieferte Filter</h4>
+Um die Arbeit mit Formular-Filtern zu erleichtern, wird bereits ein Satz an Filterm&ouml;glichkeiten
+mitgeliefert. Die folgenden Filter-Aufgaben k&ouml;nnen von der Klasse <strong>FormFilter</strong>
+aus dem Namespace <strong>tools::form::filter</strong> erledigt werden (Filter-Instructions):
+<ul>
+  <li><strong>string2Lower</strong>: Wandelt alle Gro&szlig;buchstaben in Kleinbuchstaben um.</li>
+  <li><strong>string2Upper</strong>: Wandelt alle Kleinbuchstaben in Gro&szlig;buchstaben um.</li>
+  <li><strong>stripTags</strong>: Verwirft Code-Tags</li>
+  <li><strong>noSpecialCharacters</strong>: L&auml;sst keine Sonderzeichen zu.</li>
+  <li><strong>onlyNumbers</strong>: L&auml;sst nur Zahlen zu.</li>
+  <li><strong>onlyInteger</strong>: L&auml;sst nur Integer-Werte zu.</li>
+  <li><strong>onlyLetters</strong>: L&auml;sst nur Buchstaben zu.</li>
+  <li><strong>onlyHTMLEntities</strong>: Codiert alle HTML-Steuer-Zeichen.</li>
+</ul>
+<br />
+<a name="5-2-Anwendung"></a><h4>5.2. Anwendung</h4>
+Die Anwendung der Filter gestaltet sich &auml;hnlich den Validatoren. Ist das Attribut
+<strong>filter</strong> vorhanden, wird eine Filterung nach der im Wert des Attributs angegebenen
+Filterinstruktion ausgef&uuml;hrt. Hierzu wird der Standard-Filter, wie im Kapitel 5.1. beschrieben,
+verwendet.
+<br />
+<br />
+Die folgende Code-Box zeigt die Anwendung von Filtern:
+<pre class="tagexample">
+&lt;html:form name="get_phone_number"&gt;
+  Your phone number:
+  &lt;form:text
+          name="phone"
+          filter="onlyNumbers"
+  /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="send" value="send" /&gt;
+&lt;/html:form&gt;
+</pre>
+Beim Aufbau des Formulars wird der Inhalt des Feldes <strong>phone</strong> mit der Instruktion
+<em>onlyNumbers</em> gefiltert. Beim Auslesen des Feldes kann der Entwickler nun sicher gehen, dass
+sich keine unerlaubten Inhalte im Formularfeld befinden. Da die Filterung <u>vor</u> der Validierung
+stattfindet, kann es nicht f&auml;lschlicherweise zu einer korrekten Validierung kommen.
+<br />
+<br />
+<strong>Wichtig:</strong>
+<ul>
+  <li>
+    Bitte beachten Sie, dass die Filter bisher nur auf Text-Eingabefelder angewendet werden
+    k&ouml;nnen!
+  </li>
+  <li>
+    Die Verkettung von Filtern wird in Kapitel
+    <a href="#5-4-Verkettung-von-Filtern" title="5.4. Verkettung von Filtern">5.4. Verkettung von Filtern</a>
+    besprochen.
+  </li>
+</ul>
+<br />
+<a name="5-3-Erweiterung"></a><h4>5.3. Erweiterung</h4>
+Gen&uuml;gen die mitgelieferten Filter nicht, kann mit Hilfe des Attributes <strong>filterclass</strong>
+eine andere Filter-Klasse f&uuml;r das Feld spezifiziert werden. Die Definition muss dabei in der
+Form
+<pre class="tagexample">
+filterclass="path::to::my::filter::class|MyFilterClassName"
+</pre>
+vorgenommen werden. Der erste Teil entspricht dem Namespace des Filters, der zweite dem Klasse- bzw.
+Datei-Namens des Filters. Das Attribut <strong>filter</strong> beinhaltet auch bei Angabe einer
+eigenen Filter-Klasse die Filter-Instruktion.
+<br />
+<br />
+Wie im Kapitel
+<a href="./?Seite=087-Filter#4-Aufbau-und-Funktion" title="Aufbau und Funktion von Filtern">Aufbau und Funktion von Filtern</a>
+beschrieben, muss eine Filter-Klasse immer von <strong>AbstractFilter</strong> erben und die Methode
+<strong>filter()</strong> implementieren. Die folgende Code-Box zeigt einen Filter, der alle Vorkommen
+von &quot;cm^2&quot; durch &quot;cm&sup2;&quot; ersetzt:
+<php:highlight>
+class DefinitionFilter extends AbstractFilter
+{
+
+   function filter($instruction,$input){
+      return str_replace('cm^2','cm&sup2;',$input);
+   }
+
+}
+</php:highlight>
+Wie dem Beispiel zu entnehmen ist, kann in einfachen Anwendungsf&auml;llen, die Verwendung der
+Filter-Instruktion zur Ablaufsteuerung entfallen. Dabei muss jedoch sichergestellt werden, dass das
+Attribut <strong>filter</strong> einen nichtleeren (Dummy-)Werte enth&auml;lt.
+<br />
+<br />
+Um einen Filter wiederverwendbar zu gestalten, ist es jedoch ratsam, gleichartige Filter-Funktionen
+zusammenzufassen. Das folgende Beispiel zeigt einen Filter, der K&ouml;rperma&szlig;e filtert:
+<php:highlight>
+class MeasureFilter extends AbstractFilter
+{
+
+   function filter($instruction,$input){
+
+      switch($instruction){
+
+         case 'weight':
+            $output = preg_replace('/[^0-9,.]/i','',$input);
+         case 'size':
+            $output = preg_replace('/[^0-9]/i','',$input);
+         default:
+            $output = $input;
+
+      }
+
+      return $output;
+
+   }
+
+}
+</php:highlight>
+Die Anwendung des Filters gestaltet sich wie folgt:
+<pre class="tagexample">
+&lt;html:form name="test" method="post"&gt;
+  Name:
+  &lt;form:text
+          name="name"
+          filter="noSpecialCharacters"
+  /&gt;
+  &lt;br /&gt;
+  Weight:
+  &lt;form:text
+          name="weight"
+          filterclass="my::special::filter|MeasureFilter"
+          filter="weight"
+  /&gt;
+  kg
+  &lt;br /&gt;
+  Body size:
+  &lt;form:area
+          name="bodysize"
+          filterclass="my::special::filter|MeasureFilter"
+          filter="size"
+  /&gt;
+  cm
+  &lt;br /&gt;
+&lt;/html:form&gt;
+</pre>
+<br />
+<a name="5-4-Verkettung-von-Filtern"></a><h4>5.4. Verkettung von Filtern</h4>
+Die Verkettung von Filtern kann &uuml;ber einen eigenen Filter abgebildet werden. Folgende Klasse,
+die auch im Release enthalten ist, kann zur Bildung von Filterketten verwendet werden:
+<php:highlight>
+class MultiplexFormFilter extends FormFilter
+{
+   function filter($instruction,$input){
+
+      $instructionSet = explode('|',$instruction);
+      $output = $input;
+
+      foreach($instructionSet as $filterInstruction){
+         $output = $this->{'__'.trim($filterInstruction)}($output);
+      }
+
+      return $output;
+
+   }
+
+}
+</php:highlight>
+Die Verwendung gestaltet sich wie folgt:
+<pre class="tagexample">
+&lt;html:form name="get_phone_number"&gt;
+  Your phone number:
+  &lt;form:text
+          name="specialfield"
+          filterclass="tools::form::filter|MultiplexFormFilter"
+          filter="noSpecialCharacters|string2Upper"
+  /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="send" value="send" /&gt;
+&lt;/html:form&gt;
+</pre>
+<br />
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_011" />

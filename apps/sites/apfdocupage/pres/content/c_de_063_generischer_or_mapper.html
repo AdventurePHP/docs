@@ -28,11 +28,11 @@ direkt verwendet oder nochmals innerhalb der Datenschicht der Applikation in die
 der Anwendung &uuml;bersetzt werden.
 <br />
 <br />
-Die folgenden Kapitel zeigen, wie der OR-Mapper konfiguriert und eingesetzt werden kann. Das im
+Die folgenden Kapitel zeigen, wie der OR-Mapper konfiguriert und eingesetzt werden kann. <!--Das im
 APF-Release enthaltene Modul <strong>usermanagement</strong> basiert auf dem OR-Mapper und kann als
 weiterf&uuml;hrendes Beispiel herangezogen werden. Das usermanagement-Modul wird unter
 <a href="./?Seite=039-Mitgelieferte-Module" title="Mitgelieferte Module">Mitgelieferte Module</a>
-n&auml;her beschrieben.
+n&auml;her beschrieben.-->
 <br />
 <br />
 <br />
@@ -374,6 +374,12 @@ Hier ein &Uuml;berblick &uuml;ber die Methoden, deren Parameter und Bedeutung:
      <strong>loadNotRelatedObjects()</strong>:
      L&auml;d eine Liste von Objekten, die mit diesem &uuml;ber nicht &uuml;ber eine definierte
      Beziehung verkn&uuml;pft sind.
+     <br />
+     <br />
+  </li>
+  <li>
+     <strong>loadRelationMultiplicity()</strong>:
+     L&auml;d die Anzahl der zu einem Objekt verk&uuml;pften Objekte unter Angabe der Beziehungskennung.
      <br />
      <br />
   </li>
@@ -733,6 +739,29 @@ for($i = 0; $ < count($GroupList); $i++){
    echo '<br />'.$GroupList[$i]->getProperty('DisplayName');
  // end for
 }
+</php:highlight>
+<br />
+<a name="4-2-5-Laden-der-Beziehungsmultiplizitaet"></a><h4>4.2.5 Laden der Beziehungsmultiplizit&auml;t</h4>
+Um herauszufinden, wie viele Objekte in Beziehung zu einem anderen gesetzt wurden, steht dem
+Entwickler die Methode
+<ul>
+  <li><strong>loadRelationMultiplicity()</strong></li>
+</ul>
+zur Verf&uuml;gung. Diese gibt die erfragte Anzahl an Hand eines Objekts und eines
+Beziehungsschl&uuml;ssels zur&uuml;ck. Soll die Anzahl der Benutzer einer Gruppe abgefragt werden,
+so kann dies mit folgendem Code bewerkstelligt werden:
+<php:highlight>
+// Fabric instanziieren
+$ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+
+// Mapper mit Basis-Konfiguration laden
+$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt_1','umgt');
+
+// Gruppe selektieren
+$Group = $ORM->loadObjectByID('Group',1);
+
+// Selektieren und Ausgeben der Anzahl der Benutzer einer Gruppe
+echo $ORM->loadRelationMultiplicity($Group,'Group2User');
 </php:highlight>
 <br />
 <a name="4-3-Speichern-von-Objekten"></a><h4>4.3. Speichern von Objekten</h4>
