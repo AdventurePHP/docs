@@ -128,7 +128,7 @@ Release 1.8:
 
 - [OK] AdvancedLogger implementieren, den man konfigurieren kann.
 
-- [3/4] Artikel über "view based caching"
+- [OK] Artikel über "view based caching"
 
 - [OK] Artikel für RSS-Ausgabe.
 
@@ -145,14 +145,25 @@ Release 1.8:
 
 - [OK] Tutorial für die RSS-Ausgabe von bestehenden Seiten.
 
+- Rollout mit dem selben FeatureSet / derselben Ankündigung. Aber: Bugfixes des GenericORMappers
+  inkludieren.
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Release 1.9:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+- Doku-Updates:
+  - form_taglib_select: setOption2Selected() erklären
+  - GenericDomainObject: getRelatedObjects() erklären
+  - FrontController: getInput() / $this->__Input aufzeigen
+
 - [OK] Request- und Response-Filter über die Registry konfigurierbar machen.
 
 - [OK] Filter für Form-Felder einführen.
+
+- [OK] Erweiterung des <generic:importdesign />-Tags, so dass dieser eine abhängige Action registrieren
+  kann.
 
 - Mehrfache Validierung für Formularfelder einführen. Validatoren können dann in der Form
 
@@ -177,6 +188,9 @@ Release 1.9:
 - Redesign dateTimeManager (evlt. auch canceln!)
 
 - Dokumentation für das UserManagement-Modul bauen. Änderungen von fliegermichl einbauen.
+  -> [OK] Usermanagement überarbeiten (ZIP von Fliegermichl ansehen)
+  -> Business-Komponente dokumentieren
+  -> Beispiel basteln, das den Einsatz zeigt
 
 - Artikel über Baumstrukturen mit ParentID-Beziehung schreiben und evtl. eine Komponente bereitstellen
 
@@ -184,3 +198,27 @@ Release 1.9:
 
 - GenericORMapper-Beispiel-Applikation implementieren und dokumentieren (Blog-Beispiel in mehreren Akten)
   -> http://www.symfony-project.org/tutorial/1_2/my-first-project
+
+- [OK] Typische Fehlermeldungen aufzeigen (Forum-FAQs):
+  - "#1109 - Unknown table 'ent_xyz' in on clause": Beziehung in einem Criterion-Objekt ist falsch
+    definiert worden. Beispiel:
+
+         $crit->addRelationIndicator('Application2Role',$app);
+         return $oRM->loadNotRelatedObjects($role,'Role2User',$crit);
+
+    Hier sollte eigentlich _Benutzer_ geladen werden, deren Rolle der aktuellen Applikation angehört,
+    also:
+
+         $crit->addRelationIndicator('Application2User',$app);
+         return $oRM->loadNotRelatedObjects($role,'Role2User',$crit);
+
+  - "Undefined index: " in Kombination mit "Undefined index: Role2PermissionSet" und einem Statement-Fehler
+    tritt dann auf, wenn der Mapper SessionSingleton erzeugt wurde und in den Konfigurationsdateien
+    eine Änderung während der Session auftritt. Hier hilft einfach ein Löschen bzw. Neuanlegen der
+    Session.
+
+
+- Neue Features für den OR-Mapper
+  - Wenn bei saveObject() ein weiterer Parameter gesetzt ist, werden nicht im Baum abgebildete
+    Assoziationen gelöscht. So kann man eine saubere Bearbeitung machen. Wichtig beim Editieren
+    eines PermissionSet's!

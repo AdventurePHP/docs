@@ -1,9 +1,29 @@
 <?php
    /**
-   *  @package tools::form::taglib
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
+   /**
+   *  @namespace tools::form::taglib
    *  @class form_taglib_password
    *
-   *  Repräsentiert ein Passwort-Feld-Objekt (HTML-Form).<br />
+   *  Represents a APF password field.
    *
    *  @author Christian Schäfer
    *  @version
@@ -20,18 +40,22 @@
       /**
       *  @public
       *
-      *  Implementiert die abstrakte Methode "onAfterAppend".<br />
+      *  Executes presetting, validation and filtering.
       *
       *  @author Christian Schäfer
       *  @version
       *  Version 0.1, 11.02.2007<br />
+      *  Version 0.2, 07.11.2008 (Added filtering)<br />
       */
       function onAfterAppend(){
 
-         // Inhalt übertragen
+         // Preset the content of the field
          $this->__presetValue();
 
-         // Validierung durchführen
+         // Execute filter, if desired
+         $this->__filter();
+
+         // Execute validation
          $this->__validate();
 
        // end function
@@ -41,20 +65,17 @@
       /**
       *  @public
       *
-      *  Implementiert die abstrakte Methode "transform".<br />
+      *  Returns the HTML source code of the text field.
       *
-      *  @return string $PasswordField; HTML-Code des Passwort-Felds
+      *  @return string $passwordField HTML code of the password field
       *
       *  @author Christian Schäfer
       *  @version
       *  Version 0.1, 12.01.2007<br />
-      *  Version 0.2, 11.02.2007 (Presetting und Validierung nach onAfterAppend() verschoben)<br />
+      *  Version 0.2, 11.02.2007 (Presetting and validation was moved to the onAfterAppend() method)<br />
       */
       function transform(){
-
-         // HTML-Tag zurückgeben
          return  '<input type="password" '.$this->__getAttributesAsString($this->__Attributes,$this->__ExclusionArray).' />';
-
        // end function
       }
 

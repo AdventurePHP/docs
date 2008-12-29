@@ -1,6 +1,32 @@
 <?php
    /**
-   *  @package core::frontcontroller
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
+   // setup the front controller input filter and disable the page controller filter
+   $reg = &Singleton::getInstance('Registry');
+   $reg->register('apf::core::filter','FrontControllerInputFilter',new FilterDefinition('core::filter','FrontControllerInputFilter'));
+   $reg->register('apf::core::filter','PageControllerInputFilter',null);
+
+
+   /**
+   *  @namespace core::frontcontroller
    *  @class AbstractFrontcontrollerAction
    *  @abstract
    *
@@ -17,42 +43,42 @@
 
       /**
       *  @private
-      *  Namespace der Action.
+      *  Namespace of the action.
       */
       var $__ActionNamespace;
 
 
       /**
       *  @private
-      *  Name der Action.
+      *  Name of the action.
       */
       var $__ActionName;
 
 
       /**
       *  @private
-      *  Input-Objekt der Action.
+      *  Input object of the action.
       */
       var $__Input;
 
 
       /**
       *  @private
-      *  Speichert den Typ der Action. Mögliche Werte:<br />
+      *  Defines the type of the action. Allowed values
       *  <ul>
-      *    <li>prepagecreate: vor dem Erzeugen der PageController-Seite</li>
-      *    <li>postpagecreate: nach dem Erzeugen der PageController-Seite</li>
-      *    <li>pretransform: vor der Transformation der PageController-Seite</li>
-      *    <li>posttransform: nach der Transformation der PageController-Seite</li>
+      *    <li>prepagecreate: executed before the page controller page is created</li>
+      *    <li>postpagecreate: executed after the page controller page is created</li>
+      *    <li>pretransform: executed before transformation of the page</li>
+      *    <li>posttransform: executed after transformation of the page</li>
       *  </ul>
-      *  Standard ist prepagecreate.
+      *  The default value is "prepagecreate".
       */
       var $__Type = 'prepagecreate';
 
 
       /**
       *  @private
-      *  Speichert, ob die Action in der URL beibehalten werden soll. Werte: true | false.
+      *  Indicates, if the action should be included in the URL. Values: true | false.
       */
       var $__KeepInURL = false;
 
@@ -64,7 +90,7 @@
       /**
       *  @public
       *
-      *  Liefert das Input-Objekt (Model) zurück.<br />
+      *  Returns the input object of the action.
       *
       *  @author Christian Achatz
       *  @version
@@ -80,7 +106,8 @@
       *  @module run()
       *  @abstract
       *
-      *  Abstrakte Methode, die vom FrontController zum Ausführen einer Action aufgerufen wird.<br />
+      *  Defines the interface method, that must be implemented by each concrete action. The method
+      *  is called by the front controller, when the action is executed.
       *
       *  @author Christian Achatz
       *  @version
@@ -94,7 +121,7 @@
 
 
    /**
-   *  @package core::frontcontroller
+   *  @namespace core::frontcontroller
    *  @class FrontcontrollerInput
    *
    *  Implementiert das Input-Interface für einen Frontcontroller-Input.<br />
@@ -178,7 +205,7 @@
 
 
    /**
-   *  @package core::frontcontroller
+   *  @namespace core::frontcontroller
    *  @class Frontcontroller
    *
    *  Implementiert den Frontcontroller.<br />
@@ -293,31 +320,38 @@
       *  Version 0.7, 29.09.2007 (Aufrufzeiten der Actions erweitert / geändert)<br />
       *  Version 0.8, 21.06.2008 (Introduced Registry to retrieve URLRewrite configuration)<br />
       *  Version 0.9, 13.10.2008 (Removed $URLRewriting parameter, because URL rewriting must be configured in the registry)<br />
+      *  Version 1.0, 11.12.2008 (Switched to the new input filter concept)<br />
       */
-      function start($Namespace,$Template){
+      function start($namespace,$template){
 
          // set URLRewrite
-         $Reg = &Singleton::getInstance('Registry');
-         $URLRewriting = $Reg->retrieve('apf::core','URLRewriting');
+         $reg = &Singleton::getInstance('Registry');
+         $URLRewriting = $reg->retrieve('apf::core','URLRewriting');
 
          // check if the context is set. If not, use the current namespace
          if(empty($this->__Context)){
-            $this->__Context = $Namespace;
+            $this->__Context = $namespace;
           // end if
          }
 
-         // initialize URI filter
-         if($URLRewriting == true){
-            $fCRF = filterFactory::getFilter('core::filter','frontcontrollerRewriteRequestFilter');
-          // end if
-         }
-         else{
-            $fCRF = filterFactory::getFilter('core::filter','frontcontrollerRequestFilter');
-          // end if
-         }
+         // apply front controller input filter
+         $filterDef = $reg->retrieve('apf::core::filter','FrontControllerInputFilter');
 
-         // filter GET URIand parse action instructions
-         $fCRF->filter();
+         if($filterDef !== null){
+
+            $inputFilter = FilterFactory::getFilter($filterDef);
+
+            if($URLRewriting == true){
+               $inputFilter->filter('URLRewriting',null);
+             // end if
+            }
+            else{
+               $inputFilter->filter('Normal',null);
+             // end if
+            }
+
+          // end if
+         }
 
          // execute pre page create actions (see timing model)
          $this->__runActions('prepagecreate');
@@ -332,7 +366,7 @@
          $Page->set('Language',$this->__Language);
 
          // load desired design
-         $Page->loadDesign($Namespace,$Template);
+         $Page->loadDesign($namespace,$template);
 
          // execute actions after page creation (see timing model)
          $this->__runActions('postpagecreate');
@@ -341,13 +375,13 @@
          $this->__runActions('pretransform');
 
          // transform page
-         $PageContent = $Page->transform();
+         $pageContent = $Page->transform();
 
-         // execute actions after page transformation
+         // execute actions after page transformation (see timing model)
          $this->__runActions('posttransform');
 
          // display page content
-         echo $PageContent;
+         echo $pageContent;
 
        // end function
       }

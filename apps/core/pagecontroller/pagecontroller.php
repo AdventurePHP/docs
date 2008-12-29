@@ -1,5 +1,25 @@
 <?php
    /**
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
+   /**
    *  @file pagecontroller.php
    *
    *  Setups the framework's core environment. Initializes the Registry, that stores parameters,
@@ -13,6 +33,12 @@
    *                       to adress files with in the lib path directly (e.g. images or other ressources)
    *  - CurrentRequestURL: the fully qualified request url
    *
+   *  Further, the built-in input and output filters are initialized. For this reason, the following
+   *  registry entries are created within the "apf::core::filter" namespace:
+   *
+   *  - PageControllerInputFilter:
+   *  - OutputFilter             :
+   *
    *  The file also contains the pagecontroller core implementation with the classes Page,
    *  Document, TagLib, coreObject, xmlParser and baseController (the basic MVC document controller).
    *
@@ -24,6 +50,7 @@
    *  Version 0.4, 13.08.2008 (Fixed some timing problems with the registry initialisation)<br />
    *  Version 0.5, 14.08.2008 (Changed LogDir initialisation to absolute paths)<br />
    *  Version 0.6, 05.11.2008 (Added the 'CurrentRequestURL' attribute to the 'apf::core' namespace of the registry)<br />
+   *  Version 0.7, 11.12.2008 (Added the input and output filter initialization)<br />
    */
 
    /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,12 +89,12 @@
 
 
    // define base parameters of the framework's core and tools layer
-   $Reg = &Singleton::getInstance('Registry');
-   $Reg->register('apf::core','Environment','DEFAULT');
-   $Reg->register('apf::core','URLRewriting',false);
-   $Reg->register('apf::core','LogDir',str_replace('\\','/',getcwd()).'/logs');
-   $Reg->register('apf::core','URLBasePath',$_SERVER['HTTP_HOST']);
-   $Reg->register('apf::core','LibPath',APPS__PATH,true);
+   $reg = &Singleton::getInstance('Registry');
+   $reg->register('apf::core','Environment','DEFAULT');
+   $reg->register('apf::core','URLRewriting',false);
+   $reg->register('apf::core','LogDir',str_replace('\\','/',getcwd()).'/logs');
+   $reg->register('apf::core','URLBasePath',$_SERVER['HTTP_HOST']);
+   $reg->register('apf::core','LibPath',APPS__PATH,true);
 
 
    // define current request url entry
@@ -79,7 +106,7 @@
       $protocol = 'http://';
     // end else
    }
-   $Reg->register('apf::core','CurrentRequestURL',$protocol.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],true);
+   $reg->register('apf::core','CurrentRequestURL',$protocol.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],true);
 
 
    // include necessary core libraries for the pagecontroller
@@ -87,11 +114,16 @@
    import('core::service','serviceManager');
    import('core::configuration','configurationManager');
    import('core::benchmark','benchmarkTimer');
-   import('core::filter','filterFactory');
+   import('core::filter','FilterFactory');
+
+
+   // set up the input and output filter
+   $reg->register('apf::core::filter','PageControllerInputFilter',new FilterDefinition('core::filter','PageControllerInputFilter'));
+   $reg->register('apf::core::filter','OutputFilter',new FilterDefinition('core::filter','GenericOutputFilter'));
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *
    *  Imports classes or modules from a given namespace. If the php5 support is enabled, files with
    *  the extension ".php5" are included. If no php5 file is present, the ".php" file is included
@@ -177,7 +209,7 @@
 
 
    /**
-   *  @package core::applicationmanager
+   *  @namespace core::applicationmanager
    *  @see http://php.net/print_r
    *
    *  Creates a print_r() output of the given object, array, string or integer.
@@ -220,7 +252,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class xmlParser
    *  @static
    *
@@ -462,7 +494,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class coreObject
    *  @abstract
    *
@@ -985,7 +1017,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class TagLib
    *
    *  Repräsentiert eine Tag-Library.<br />
@@ -1040,7 +1072,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class Page
    *
    *  Repräsentiert eine Webseite. Bildet den root-Knoten derselben.<br />
@@ -1069,13 +1101,6 @@
 
 
       /**
-      *  @private
-      *  Speichert, ob URL-Rewriting aktiviert ist.
-      */
-      var $__URLRewrite;
-
-
-      /**
       *  @public
       *
       *  Constructor of the page class. The class is the root node of the APF DOM tree..
@@ -1089,27 +1114,35 @@
       *  Version 0.3, 08.06.2007 (URL-Rewriting in Filter ausgelagert)<br />
       *  Version 0.4, 20.06.2008 (Registry für "APPS__URL_REWRITING" eingeführt)<br />
       *  Version 0.5, 20.10.2008 (Removed second parameter due to registry introduction in 1.7-beta)<br />
+      *  Version 0.6, 11.12.2008 (Switched to the new input filter concept)<br />
       */
-      function Page($Name = ''){
+      function Page($name = ''){
 
-         // get URLRewrite option{
-         $Reg = &Singleton::getInstance('Registry');
-         $this->__URLRewrite = $Reg->retrieve('apf::core','URLRewriting');
+         // retrieve url rewrite option
+         $reg = &Singleton::getInstance('Registry');
+         $URLRewrite = $reg->retrieve('apf::core','URLRewriting');
 
-         // Attribute setzen
-         $this->__Name = $Name;
+         // set internal attributes
+         $this->__Name = $name;
          $this->__ObjectID = xmlParser::generateUniqID();
 
-         // GET-URI rewriten, wenn erwünscht
-         if($this->__URLRewrite == true){
-            $pCF = filterFactory::getFilter('core::filter','pagecontrollerRewriteRequestFilter');
-            $pCF->filter();
+         // apply input filter if desired (e.g. front controller is not used)
+         $filterDef = $reg->retrieve('apf::core::filter','PageControllerInputFilter');
+
+         if($filterDef !== null){
+
+            $inputFilter = FilterFactory::getFilter($filterDef);
+
+            if($URLRewrite == true){
+               $inputFilter->filter('URLRewriting',null);
+             // end if
+            }
+            else{
+               $inputFilter->filter('Normal',null);
+             // end if
+            }
+
           // end if
-         }
-         else{
-            $sRF = filterFactory::getFilter('core::filter','standardRequestFilter');
-            $sRF->filter();
-          // end else
          }
 
        // end function
@@ -1162,28 +1195,48 @@
       *
       *  Transforms the APF DOM tree of the current page. Returns the content of the transformed document.
       *
-      *  @return string $Content the content of the transformed page
+      *  @return string $content the content of the transformed page
       *
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 28.12.2006<br />
-      *  Version 0.2, 03.01.2007 (URL-Rewriting eingeführt)<br />
-      *  Version 0.3, 08.06.2007 (URL-Rewriting in Filter ausgelagert)<br />
+      *  Version 0.2, 03.01.2007 (Introduced URL rewriting)<br />
+      *  Version 0.3, 08.06.2007 (Moved the URL rewriting into a filter)<br />
+      *  Version 0.4, 11.12.2008 (Switched to the new input filter concept)<br />
       */
       function transform(){
 
-         // Dokument transformieren
-         $Content = $this->__Document->transform();
+         // transform the current document
+         $content = $this->__Document->transform();
 
-         // Links rewriten, wenn erwünscht
-         if($this->__URLRewrite == true){
-            $hURF = filterFactory::getFilter('core::filter','htmlLinkRewriteFilter');
-            $Content = $hURF->filter($Content);
+         // apply output filter if desired
+         $reg = &Singleton::getInstance('Registry');
+         $filterDef = $reg->retrieve('apf::core::filter','OutputFilter');
+
+         if($filterDef !== null){
+
+            $outputFilter = FilterFactory::getFilter($filterDef);
+            $URLRewriting = $reg->retrieve('apf::core','URLRewriting');
+
+            if($outputFilter !== null){
+
+               if($URLRewriting == true){
+                  $content = $outputFilter->filter('URLRewriting',$content);
+                // end if
+               }
+               else{
+                  $content = $outputFilter->filter('Normal',$content);
+                // end if
+               }
+
+             // end if
+            }
+
           // end if
          }
 
-         // HTML-Quelltext zurückgeben
-         return $Content;
+         // return the HTML source code
+         return $content;
 
        // end function
       }
@@ -1193,7 +1246,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class Document
    *
    *  Repräsentiert ein Dokument innerhalb einer HTML-Seite oder eines Dokuments.<br />
@@ -1741,7 +1794,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class core_taglib_importdesign
    *
    *  This class implements the functionality of the core::importdesign tag. It generates a sub node
@@ -1852,7 +1905,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class core_taglib_addtaglib
    *
    *  Represents the functionality of the core:addtaglib tag. Adds a further taglib to the known
@@ -1907,7 +1960,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class html_taglib_placeholder
    *
    *  Represents a place holder within a template file. Can be filled within a documen controller
@@ -1944,7 +1997,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class html_taglib_template
    *
    *  Represents a reusable html fragment (template) within a template file. The tag's functionality
@@ -2165,7 +2218,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class template_taglib_placeholder
    *
    *  Implements the place holder tag with in a html:template tag. The tag does not hav further children.
@@ -2201,7 +2254,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class template_taglib_addtaglib
    *
    *  Represents the core:addtaglib functionality for the html:template tag. Includes further
@@ -2223,7 +2276,7 @@
 
 
    /**
-   *  @package core::pagecontroller
+   *  @namespace core::pagecontroller
    *  @class baseController
    *  @abstract
    *

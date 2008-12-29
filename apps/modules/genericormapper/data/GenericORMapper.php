@@ -1,11 +1,31 @@
 <?php
+   /**
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
    import('modules::genericormapper::data','BaseMapper');
    import('modules::genericormapper::data','GenericDomainObject');
    import('modules::genericormapper::data','GenericCriterionObject');
 
 
    /**
-   *  @package modules::genericormapper::data
+   *  @namespace modules::genericormapper::data
    *  @class GenericORMapper
    *
    *  Implements an abstract OR mapper, that can map any objects defined in the object <br />
@@ -227,6 +247,7 @@
       *  @version
       *  Version 0.1, 11.05.2008<br />
       *  Version 0.2, 26.10.2008 (Added a check, if the desired object name exists in the mapping table.)<br />
+      *  Version 0.3, 27.12.2008 (Update is now done, if params are located in the params array)<br />
       */
       function saveObject($Object){
 
@@ -296,13 +317,16 @@
             $update .= ' SET '.implode(', ',$QueryParams).', ModificationTimestamp = NOW()';
             $update .= ' WHERE '.$IDName. '= \''.$ID.'\';';
 
-            // Execute update
-            $this->__DBDriver->executeTextStatement($update);
+            // execute update, only if the update is necessary
+            if(count($QueryParams) > 0){
+               $this->__DBDriver->executeTextStatement($update);
+             // end if
+            }
 
           // end else
          }
 
-         // Return the database ID of the object
+         // return the database ID of the object
          return $ID;
 
        // end function
@@ -369,9 +393,9 @@
 
 
       /**
-      *  @privat
+      *  @private
       *
-      *  Creates an domain object by name and properties.<br />
+      *  Creates an domain object by name and properties.
       *
       *  @param string $ObjectName name of the object in mapping table
       *  @param array $Properties properties of the object
@@ -383,31 +407,31 @@
       *  Version 0.2, 30.05.2008 (Now returns null, if no properties are available)<br />
       *  Version 0.3, 15.06.2008 (Now uses the constructor of GenericDomainObject to set the object name)<br />
       */
-      function __mapResult2DomainObject($ObjectName,$Properties){
+      function __mapResult2DomainObject($objectName,$properties){
 
-         if($Properties !== false){
+         if($properties !== false){
 
             // create object
-            $Object = new GenericDomainObject($ObjectName);
+            $object = new GenericDomainObject($objectName);
 
             // set data component and object name
-            $Object->setByReference('DataComponent',$this);
+            $object->setByReference('DataComponent',$this);
 
             // map properties into object
-            foreach($Properties as $PropertyName => $PropertyValue){
-               $Object->setProperty($PropertyName,$PropertyValue);
+            foreach($properties as $propertyName => $propertyValue){
+               $object->setProperty($propertyName,$propertyValue);
              // end foreach
             }
 
           // end if
          }
          else{
-            $Object = null;
+            $object = null;
           // end else
          }
 
          // return object
-         return $Object;
+         return $object;
 
        // end function
       }

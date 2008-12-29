@@ -1,10 +1,30 @@
 <?php
+   /**
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
    import('tools::form::taglib','valgroup_taglib_validate');
    import('tools::form::taglib','valgroup_taglib_placeholder');
 
 
    /**
-   *  @package tools::form::taglib
+   *  @namespace tools::form::taglib
    *  @class form_taglib_valgroup
    *
    *  Repräsentiert eine Validatoren-Gruppe (HTML-Form).<br />
@@ -37,10 +57,8 @@
       *  Version 0.2, 28.03.2007<br />
       */
       function form_taglib_valgroup(){
-
          $this->__TagLibs[] = new TagLib('tools::form::taglib','valgroup','validate');
          $this->__TagLibs[] = new TagLib('tools::form::taglib','valgroup','placeholder');
-
        // end function
       }
 
@@ -124,7 +142,6 @@
 
           // end else
          }
-
 
          // Warnen, falls kein Platzhalter gefunden wurde
          if($PlaceHolderCount < 1){

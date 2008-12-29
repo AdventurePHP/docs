@@ -1,10 +1,30 @@
 <?php
-   import('core::logging','Logger');
+   /**
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
 
+   import('core::logging','Logger');
    register_shutdown_function('mysqlTerminateConnection');
 
+
    /**
-   *  @package core::database
+   *  @namespace core::database
    *
    *  Wrapper-Funktion zum Schließen einer DB-Verbindung.<br />
    *
@@ -20,7 +40,7 @@
 
 
    /**
-   *  @package core::database
+   *  @namespace core::database
    *  @class MySQLHandler
    *
    *  Dienst zur Abstraktion einer MySQL-Datenbank. Beinhaltet<br />
@@ -381,17 +401,19 @@
       /**
       *  @public
       *
-      *  Quotiert Daten für den Eintrag in die Datenbank.<br />
+      *  Quotes data for use in mysql statements.
       *
-      *  @param string $Value; String, der quotiert werden soll
-      *  @return string $EscapedValue; Quotierter String
+      *  @param string $Value string to quote
+      *  @return string $escapedValue quoted string
       *
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 07.01.2008<br />
+      *  Version 0.2, 17.11.2008 (Bugfix: if the method is called before any other, the connection is null)<br />
       */
-      function escapeValue($Value){
-         return mysql_real_escape_string($Value,$this->__dbConn);
+      function escapeValue($value){
+         $this->__initMySQLHandler();
+         return mysql_real_escape_string($value,$this->__dbConn);
        // end function
       }
 

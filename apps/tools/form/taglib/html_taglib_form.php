@@ -1,4 +1,24 @@
 <?php
+   /**
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
    import('tools::form::taglib','ui_element');
    import('tools::form::taglib','form_taglib_button');
    import('tools::form::taglib','form_taglib_text');
@@ -21,23 +41,23 @@
 
 
    /**
-   *  @package tools::form::taglib
+   *  @namespace tools::form::taglib
    *  @class html_taglib_form
    *
-   *  Repräsentiert ein Form-Objekt (HTML-Form).<br />
+   *  Represents a APF form.
    *
    *  @author Christian Schäfer
    *  @version
    *  Version 0.1, 05.01.2007<br />
-   *  Version 0.2, 12.01.2007 (Form wird jetzt wie ein Template behandelt)<br />
-   *  Version 0.3, 13.01.2007 (Weitere TagLibs hinzugefügt)
-   *  Version 0.4, 15.01.2007 (Weitere TagLib "form:multiselect" hinzugefügt)<br />
-   *  Version 0.5, 11.02.2007 (Weitere TagLib "form:validate" hinzugefügt)<br />
-   *  Version 0.6, 25.06.2007 (TagLib "form:validate" entfernt und durch "form:valgroup" ersetzt)<br />
-   *  Version 0.7, 14.04.2007 (Attribut "isSent" hinzugefügt)<br />
-   *  Version 0.8, 22.09.2007 (Generischen Vaidator hinzugefügt)<br />
-   *  Version 0.9, 01.06.2008 (Methode getFormElementsByType() hinzugefügt)<br />
-   *  Version 1.0, 16.06.2008 (API-Änderung: getFormElementsByTagName() hinzugefügt)<br />
+   *  Version 0.2, 12.01.2007 (Form is now handled as a template)<br />
+   *  Version 0.3, 13.01.2007 (Added mode taglibs)
+   *  Version 0.4, 15.01.2007 (Added the "form:multiselect" taglib)<br />
+   *  Version 0.5, 11.02.2007 (Added the "form:validate" taglib)<br />
+   *  Version 0.6, 25.06.2007 (Replaced "form:validate" with "form:valgroup")<br />
+   *  Version 0.7, 14.04.2007 (Added "isSent" attribute)<br />
+   *  Version 0.8, 22.09.2007 (Added the generic validator)<br />
+   *  Version 0.9, 01.06.2008 (Added the getFormElementsByType() method)<br />
+   *  Version 1.0, 16.06.2008 (API change: added getFormElementsByTagName())<br />
    */
    class html_taglib_form extends ui_element
    {
@@ -375,6 +395,7 @@
       *  @version
       *  Version 0.1, 06.09.2008<br />
       *  Version 0.2, 10.09.2008 (Added the $ElementAttributes param)<br />
+      *  Version 0.3, 12.11.2008 (Bugfix: language and context initialisation were wrong)<br />
       */
       function __createFormElement($ElementType,$ElementAttributes = array()){
 
@@ -392,8 +413,8 @@
 
             // add standard and user defined attributes
             $FormObject->set('ObjectID',$ObjectID);
-            $FormObject->set('Context',$this->__Language);
-            $FormObject->set('Language',$this->__Context);
+            $FormObject->set('Language',$this->__Language);
+            $FormObject->set('Context',$this->__Context);
 
             foreach($ElementAttributes as $Key => $Value){
                $FormObject->setAttribute($Key,$Value);
@@ -556,7 +577,6 @@
 
        // end function
       }
-
 
 
       /**
@@ -761,7 +781,6 @@
           // end if
          }
 
-
          // Form transformieren
          $HTML_Form = (string)'';
          $HTML_Form .= '<form '.$this->__getAttributesAsString($this->__Attributes).'>';
@@ -780,9 +799,6 @@
 
          $HTML_Form .= $Content;
          $HTML_Form .= '</form>';
-
-
-         // Form zurückgeben
          return $HTML_Form;
 
        // end function
@@ -825,7 +841,6 @@
           // end if
          }
 
-         // Leerstring zurückgeben
          return (string)'';
 
        // end function

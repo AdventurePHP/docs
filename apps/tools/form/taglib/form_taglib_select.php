@@ -1,17 +1,37 @@
 <?php
+   /**
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
    import('tools::form::taglib','select_taglib_option');
 
 
    /**
-   *  @package tools::form::taglib
+   *  @namespace tools::form::taglib
    *  @class form_taglib_select
    *
-   *  Repräsentiert ein Select-Feld-Objekt (HTML-Form).<br />
+   *  Represents an APF select field.
    *
    *  @author Christian Schäfer
    *  @version
    *  Version 0.1, 07.01.2007<br />
-   *  Version 0.2, 12.01.2007 (Umbenannt in "form_taglib_select")<br />
+   *  Version 0.2, 12.01.2007 (Renamed to "form_taglib_select")<br />
    */
    class form_taglib_select extends ui_element
    {
@@ -27,13 +47,8 @@
       *  Version 0.2, 03.03.2007 ("&" vor "new" entfernt)<br />
       */
       function form_taglib_select(){
-
-         // Taglib für Optionen hinzufügen
          $this->__TagLibs[] = new TagLib('tools::form::taglib','select','option');
-
-         // Validator-Style setzen
          $this->__ValidatorStyle = 'background-color: red;';
-
        // end function
       }
 

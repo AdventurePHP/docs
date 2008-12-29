@@ -205,11 +205,14 @@ The tag's signature looks like this:
    modelnamespace=""
    modelfile=""
    modelclass=""
-   modelmode=""
+   modelmode="NORMAL|SINGLETON|SESSIONSINGLETON"
    namespaceparam=""
    templateparam=""
    [getmethod=""]
-&gt;
+   [dependentactionnamespace=""
+   dependentactionname=""
+   [dependentactionparams=""]]
+/&gt;
 </pre>
 The attributes have the following meaning:
 <ul>
@@ -239,9 +242,24 @@ The attributes have the following meaning:
   </li>
   <li>
     <strong>getmethod</strong>: Name of the model method, that should be used to query the template
-    name and namespace of the template to include. By default, the <strong>getAttribute()</strong>
-    function is used.
-    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
+    name and namespace of the template to include. Please note, that the method must expect one param
+    that is given the value of the <em>namespaceparam</em> or <em>templateparam</em> attributes
+    respectively and the tag expects that the function returns the value of the two parameters. By
+    default, the <strong>getAttribute()</strong> function is used. (<strong>Allowed characters</strong>:
+    <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>dependentactionnamespace</strong> / <strong>dependentactionname</strong> /
+    <strong>dependentactionparams</strong>: These three options are intended to automatically register
+    an action with the front controller. This functionality is helpful, if a module is included by
+    the tag and a front controller action is used for navigation purposes.
+    <br />
+    <br />
+    The attribute <strong>dependentactionnamespace</strong> defines the namespace of the action
+    (e.g. <em>sites::mysite::biz</em>) and <strong>dependentactionname</strong> the name or the alias
+    of the action (e.g. <em>Navigate</em>). <strong>dependentactionparams</strong> contains the
+    params of the action like <strong>param1:value1|param2:value2</strong>. This format ist already
+    known from the action configuration file layout.
   </li>
 </ul>
 <br />
@@ -252,11 +270,26 @@ In order to use the tag, you must first add the tag to the current scope by plac
 before the tag definition.
 <br />
 <br />
-<strong>Note:</strong> As an real life application example the
-<a href="./?Page=079-Behind-the-site">behind the site</a> can be used. This article describes, how
-this documentation page is implemented and which tools of the framework are used.
-<br />
-<br />
+<strong>Notes:</strong>
+<ul>
+  <li>
+    As an real life application example the <a href="./?Page=079-Behind-the-site">behind the site</a>
+    can be used. This article describes, how this documentation page is implemented and which tools
+    of the framework are used.
+  </li>
+  <li>
+    If a front controller action is used for navigation purposes, the action class must set the
+    class variable <strong>$__KeepInURL</strong> to <strong>true</strong>. This causes the
+    <a href="./?Page=012-Frontcontroller#2-4-Link-generation" title="frontcontrollerLinkHandler">frontcontrollerLinkHandler</a>
+    to include the action and it's params to be included while url generation.
+  </li>
+  <li>
+    The registration of the action is only done, if the
+    <strong>dependentactionnamespace</strong> and <strong>dependentactionname</strong> attributes
+    are present in the tag definition and the action was not registered before. The action params
+    attribute is optional.
+  </li>
+</ul>
 <br />
 <a name="4-Core-appendnode"></a><h3>4. core:appendnode tag</h3>
 Within a discussion about reusable template fragments (e.g. forms), the idea occured to design a

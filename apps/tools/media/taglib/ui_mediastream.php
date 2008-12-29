@@ -1,5 +1,28 @@
 <?php
    /**
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
+   import('tools::link','frontcontrollerLinkHandler');
+
+
+   /**
    *  @class ui_mediastream
    *
    *  Implements the base class for the <*:mediastream /> tag implementations. Generates a
@@ -73,6 +96,7 @@
       *  Version 0.1, 29.10.2008<br />
       *  Version 0.2, 01.11.2008<br />
       *  Version 0.3, 05.11.2008 (Changed action base url generation)<br />
+      *  Version 0.4, 07.11.2008 (Refactored the url generation due to some addressing bugs)<br />
       */
       function transform(){
 
@@ -81,18 +105,25 @@
             // get infos from the registry
             $reg = &Singleton::getInstance('Registry');
             $urlrewrite = $reg->retrieve('apf::core','URLRewriting');
-            $actionurl = $Reg->retrieve('apf::core','CurrentRequestURL');
+            $actionurl = $reg->retrieve('apf::core','CurrentRequestURL');
 
-            // return desired media url
+            // build action statement
             $this->__Attributes['namespace'] = str_replace('::','_',$this->__Attributes['namespace']);
             if($urlrewrite === true){
-               return $actionurl.'/~/tools_media-action/streamMedia/namespace/'.$this->__Attributes['namespace'].'/filebody/'.$this->__Attributes['filebody'].'/extension/'.$this->__Attributes['extension'];
+               $actionParam = array(
+                                 'tools_media-action/streamMedia' => 'namespace/'.$this->__Attributes['namespace'].'/filebody/'.$this->__Attributes['filebody'].'/extension/'.$this->__Attributes['extension']
+                              );
              // end if
             }
             else{
-               return $actionurl.'?tools_media-action:streamMedia=namespace:'.$this->__Attributes['namespace'].'|filebody:'.$this->__Attributes['filebody'].'|extension:'.$this->__Attributes['extension'];
+               $actionParam = array(
+                                 'tools_media-action:streamMedia' => 'namespace:'.$this->__Attributes['namespace'].'|filebody:'.$this->__Attributes['filebody'].'|extension:'.$this->__Attributes['extension']
+                              );
              // end else
             }
+
+            // return desired media url
+            return frontcontrollerLinkHandler::generateLink($actionurl,$actionParam);
 
           // end if
          }

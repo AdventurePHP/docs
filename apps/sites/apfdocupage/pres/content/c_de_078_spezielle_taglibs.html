@@ -210,11 +210,14 @@ Die Signatur des generischen Tags gestaltet sich dabei wie folgt:
    modelnamespace=""
    modelfile=""
    modelclass=""
-   modelmode=""
+   modelmode="NORMAL|SINGLETON|SESSIONSINGLETON"
    namespaceparam=""
    templateparam=""
    [getmethod=""]
-&gt;
+   [dependentactionnamespace=""
+   dependentactionname=""
+   [dependentactionparams=""]]
+/&gt;
 </pre>
 Den Attributen kommt dabei folgende Bedeutung zu:
 <ul>
@@ -244,8 +247,24 @@ Den Attributen kommt dabei folgende Bedeutung zu:
   </li>
   <li>
     <strong>getmethod</strong>: Name der Mode-Methode mit dem die Parameter abgefragt werden
-    k&ouml;nnen. Standardm&auml;&szlig;ig wird die Funktion <strong>getAttribute()</strong> verwendet.
+    k&ouml;nnen. Dieser wird der Wert des <em>namespaceparam</em> bzw. <em>templateparam</em> als
+    Parameter &uuml;bergeben und erwartet den zugeh&ouml;rigen R&uuml;ckgabewert.
+    Standardm&auml;&szlig;ig wird die Funktion <strong>getAttribute()</strong> verwendet.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>dependentactionnamespace</strong> / <strong>dependentactionname</strong> /
+    <strong>dependentactionparams</strong>: Die drei Optionen dienen dazu, eine abh&auml;ngige Action
+    automatisch beim Frontcontroller zu registrieren. Dies ist vor Allem dann hilfreich, wenn ein
+    Modul &uuml;ber das Tag eingebunden wird und eine Frontcontroller-Action zur Steuerung der
+    Navigation verwendet wird.
+    <br />
+    <br />
+    Das Attribut <strong>dependentactionnamespace</strong> definiert den Namespace der Action (z.B.
+    <em>sites::mysite::biz</em>) und <strong>dependentactionname</strong> den Namen/Alias der Action
+    (z.B. <em>Navigate</em>). <strong>dependentactionparams</strong> beinhaltet die Parameter der
+    Action in der Form <strong>param1:value1|param2:value2</strong>, wie aus dem URL-Layout des
+    Frontcontrollers bekannt.
   </li>
 </ul>
 <br />
@@ -256,12 +275,27 @@ Um das Tag anwenden zu k&ouml;nen, muss dieses zun&auml;chst via
 im aktuellen G&uuml;ltigkeitsbereich bekannt gemacht werden.
 <br />
 <br />
-<strong>Hinweis:</strong> Als Anwendungsbeispiel kann der Artikel
-<a href="http://en.adventure-php-framework.org/Page/079-Behind-the-site">behind the site</a>
-(englisch) herangezogen werden. Dieser beschreibt, wie die vorliegende Dokuentationswebseite
-aufgebaut ist und welche Mittel des Frameworks sie nutzt.
-<br />
-<br />
+<strong>Hinweise:</strong>
+<ul>
+  <li>
+    Als Anwendungsbeispiel kann der Artikel
+    <a href="http://en.adventure-php-framework.org/Page/079-Behind-the-site">behind the site</a>
+    (englisch) herangezogen werden. Dieser beschreibt, wie die vorliegende Dokuentationswebseite
+    aufgebaut ist und welche Mittel des Frameworks sie nutzt.
+  </li>
+  <li>
+    Soll eine Frontcontroller-Action zu Navigationszwecken verwendet werden, so muss bei der
+    Klassendefinition die Variable <strong>$__KeepInURL</strong> mit <strong>true</strong>
+    initialisiert werden. Dies bewirkt, dass die Action bei der Link-Generierung mit dem
+    <a href="./?Seite=012-Frontcontroller#2-4-Generierung-von-Links" title="frontcontrollerLinkHandler">frontcontrollerLinkHandler</a>
+    erfasst wird.
+  </li>
+  <li>
+    Die Registrierung der Action wird nur dann durchgef&uuml;hrt, wenn die Attribute
+    <strong>dependentactionnamespace</strong> und <strong>dependentactionname</strong> gef&uuml;llt
+    sind und die Action noch nicht gegistriert ist. Die Angabe von Parametern ist optional.
+  </li>
+</ul>
 <br />
 <a name="4-Core-appendnode"></a><h3>4. core:appendnode-Tag</h3>
 Aus einer Diskussion &uuml;ber wiederverwendbare Template-Fragmente (z.B. Formulare) entstand die

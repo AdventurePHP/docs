@@ -1,42 +1,56 @@
 <?php
+   /**
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
    import('tools::validator','myValidator');
    import('core::configuration','configurationManager');
    import('core::singleton','Singleton');
 
 
    /**
-   *  @package tools::form::taglib
+   *  @namespace tools::form::taglib
    *  @class ui_validate
    *
-   *  Repräsentiert ein abstraktes Validate-Objekt (HTML-Form).<br />
-   *  <br />
-   *  Tag erwartet folgende Attribute:<br />
-   *   - type: Validierungstyp. Werte: text | css. Standard: css<br />
-   *   - field: Name des Feldes, das validiert werden soll<br />
-   *   - validator: Name der Validator-Methode. Standard: Text<br />
-   *   - button: Name des Buttons der Form<br />
-   *   - style: CSS-Style, falls type="css"<br />
-   *   - lang: Sprachkürzel, falls tyle=text. Standard: de<br />
-   *   - msginputreq: Konfigurations-Schlüssel für eine angepasste Fehlermeldung (Eingabe erforderlich)<br />
-   *   - msginputwrg: onfigurations-Schlüssel für eine angepasste Fehlermeldung (Eingabe fehlerhaft)<br />
-   *  <br />
-   *  Setzt eine Konfigurations-Datei 'formconfig' im Namespace "tools::form::taglib"<br />
-   *  und dem aktuellen Context der Applikation in der Form<br />
-   *  <br />
-   *  [de]<br />
-   *  InputRequired = "[..]"<br />
-   *  InputWrong = "[..]"<br />
-   *  [..]<br />
-   *  <br />
-   *  [en]<br />
-   *  [..]
-   *  <br />
-   *  voraus.<br />
+   *  Represents an abstract validation tag. It expectes the following attributes:
+   *  <ul>
+   *    <li>type: validation type. Values: text | css. Default: css.</li>
+   *    <li>field: Name of the field to validate.</li>
+   *    <li>validator: Name der Validator-Methode. Standard: Text</li>
+   *    <li>button: Name of the button to validate on.</li>
+   *    <li>style: css style, in case of type="css".</li>
+   *    <li>lang: Language sign, in case of type=text. Default: de.</li>
+   *    <li>msginputreq: Configuration key for own error messages on required input fields.</li>
+   *    <li>msginputwrg: Configuration key for own error messages on wrong input.</li>
+   *  Requires a configuration file with name "formconfig" within the "tools::form::taglib"
+   *  namespace. The configuration file should contain the following:
+   *  <pre>[de]
+   *  InputRequired = "[..]"
+   *  InputWrong = "[..]"
+   *  [en]
+   *  InputRequired = "[..]"
+   *  InputWrong = "[..]"</pre>
    *
    *  @author Christian Schäfer
    *  @version
    *  Version 0.1, 11.02.2007<br />
-   *  Version 0.2, 25.03.2007 (Weitere Attribute "msginputreq" und "msginputwrg" hinzugefügt)<br />
+   *  Version 0.2, 25.03.2007 (Added the "msginputreq" and "msginputwrg" attributes)<br />
    */
    class ui_validate extends ui_element
    {
@@ -48,13 +62,13 @@
       /**
       *  @public
       *
-      *  Implementiert die abstrakte Methode "onAfterAppend".<br />
+      *  Reimplements the onAfterAppend(). Includes the validation functionality.
       *
       *  @author Christian Schäfer
       *  @version
       *  Version 0.1, 11.02.2007<br />
-      *  Version 0.2, 25.03.2007 (Weitere Attribute "msginputreq" und "msginputwrg" hinzugefügt)<br />
-      *  Version 0.3, 29.03.2007 (isValid der Form wird nun auch auf false gesetzt)<br />
+      *  Version 0.2, 25.03.2007 (Added the "msginputreq" and "msginputwrg" attributes)<br />
+      *  Version 0.3, 29.03.2007 (The isValid property of the parent object (form) is now set, as well)<br />
       */
       function onAfterAppend(){
 
@@ -244,9 +258,9 @@
       /**
       *  @public
       *
-      *  Implementiert die abstrakte Methode "transform".<br />
+      *  Returns the content of the validator.
       *
-      *  @return string $ValidatorResult; Rückgabe-Wert des Validators
+      *  @return string $validatorResult result of the validator
       *
       *  @author Christian Schäfer
       *  @version
