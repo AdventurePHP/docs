@@ -1,0 +1,100 @@
+<doku:title tags="documentation,modul,captcha,guestbook,pager,comment,social bookmarking,usermanagement" title="Modul - pager" urlname="Modul-pager">
+  The pager component is a backend tool, that can be used to control the loading of database objects.
+  To provide paging functionality, the pager is included in the modules comment function and
+  guestbook.
+</doku:title>
+The pager component is a backend tool, that can be used to control the loading of database objects.
+To provide paging functionality, the pager is included in the modules <em>comment function</em> and
+<em>guestbook</em>. Below the intent and the functionalities are described in detail.
+<br />
+<br />
+<br />
+<a name="1-Usage"></a><h3>1. Usage</h3>
+The pager merely consists of a business component (<strong>pagerManager</strong>), a presentation
+layer component that generates the HTML code of the pager widget (DocumentController
+<strong>pager_2_v1_controller.php</strong>) and a data layer module that gathers information that are
+needed in the busines tier. To use the pager, it must be created by using the
+<strong>pagerManagerFabric</strong>.
+<br />
+<br />
+<br />
+<a name="2-Configuration"></a><h3>2. Configuration</h3>
+To be able to use a pagerManager for loading database objects it must be configured properly. Therefore
+the developer must create one configuration file and at two statement files. The config file envelops
+the following parameters:
+<pre class="tagexample">
+[&lt;SectionName&gt;]
+Pager.EntriesPerPage = "&lt;Objects per page&gt;"
+
+Pager.ParameterStartName = "&lt;URL parameter for the start parameter&gt;"
+Pager.ParameterCountName = "&lt;URL parameter for the count parameter&gt;"
+
+Pager.StatementNamespace = "&lt;Statement namespace&gt;"
+Pager.CountStatement = "&lt;Load-Entries-Count statement&gt;"
+Pager.CountStatement.Params = "&lt;Statement parameter&gt;"
+Pager.EntriesStatement = "&lt;Statement parameter&gt;"
+Pager.EntriesStatement.Params = "&lt;Load-Entry statement&gt;"
+
+Pager.DesignNamespace = "&lt;Namespace of the pres template&gt;"
+Pager.DesignTemplate = "&lt;Template name&gt;"
+</pre>
+Both of the statement files must contain a set of parameters, that can be filled by the pagerManager.
+Within the <em>Load-Entries-Count statements</em> various parameters can be used to delimit the result
+set. These can be defined by the <strong>Pager.CountStatement.Params</strong> directive or while
+creating the <em>pagerManager</em> with the <em>pagerManagerFabric</em>. The result of the query is
+expected in the result offset <strong>EntriesCount</strong>. Hence, the statement must contain a
+<pre class="tagexample">
+  SELECT COUNT(row) AS EntriesCount ...
+</pre>
+The <em>Load-Entry statement</em> must always contain the LIMIT clause
+<pre class="tagexample">
+  LIMIT [Start],[EntriesCount]
+</pre>
+Further, the pager expects the result of the <em>Load-Entry statement</em> to be stored in the offset
+<strong>DB_ID</strong>. Therefore the sql query must contain an alias definition like this:
+<pre class="tagexample">
+  SELECT row AS DB_ID ...
+</pre>
+Other parameters must be configured using the <strong>Pager.EntriesStatement.Params</strong> directive
+or while creating the <em>pagerManager</em> with the <em>pagerManagerFabric</em>.
+<br />
+<br />
+<br />
+<a name="3-Example"></a><h3>3. Example of use</h3>
+A detailed description on the function of this modul and its usage can be found in the
+<strong>tutorials section</strong> under <a href="./?Page=032-Comment-function" title="comment function">comment function</a>.
+Besides, the API of the PagerManagers is used as follows:
+<br />
+<br />
+<strong>Load the relevant object IDs:</strong>
+<php:highlight>
+   // generate pagerManager
+   $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
+   $pM = &$pMF->getPagerManager('{CONFIG_SECTION}',array('AddParams' => 'Value'));
+
+   // load IDs
+   $IDs = $pM->loadEntries();
+
+   // load data
+   $M = &$this->__getServiceObject('namespace::to::data::component','DataMapper');
+
+   $List = array();
+
+   for($i = 0; $i < count($IDs); $i++){
+      $List[] = $M->loadDomainObjectByID($IDs[$i]);
+    // end for
+   }
+</php:highlight>
+<br />
+<strong>Load the business objects with the pagerManager:</strong>
+<php:highlight>
+   // generate pagerManager
+   $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
+   $pM = &$pMF->getPagerManager('{CONFIG_SECTION}',array('AddParams' => 'Value'));
+
+   // load data
+   $M = &$this->__getServiceObject('namespace::to::data::component','DataMapper');
+   $List = $pM->loadEntriesByAppDataComponent($M,'loadDomainObjectByID');
+</php:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_092" />

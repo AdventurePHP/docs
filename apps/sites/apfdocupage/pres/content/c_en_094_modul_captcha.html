@@ -1,0 +1,112 @@
+<doku:title tags="documentation,modul,captcha,guestbook,pager,comment,social bookmarking,usermanagement" title="Modul - CAPTCHA taglib (for forms)" urlname="Modul-CAPTCHA-taglib">
+  The modul captcha enables the developer to easily integrate CAPTCHA functionality into existent
+  forms. For this reason, the taglib included in the captcha module must be placed within the
+  desired form and the front controller action used to deliver the captcha image needs to be
+  configured.
+</doku:title>
+The modul <strong>captcha</strong> enables the developer to easily integrate CAPTCHA functionality
+into existent forms. For this reason, the taglib included in the captcha module must be placed within
+the desired form and the front controller action used to deliver the captcha image needs to be
+configured. Moreover, the taglib implemenation gives you an example of how the
+<strong>&lt;form:addtaglib /&gt;</strong> tag can be used to extend form functionality.
+<br />
+<br />
+The following chapters describe how to include the captcha tag into your form.
+<br />
+<br />
+<br />
+<a name="1-Configuration"></a><h3>1. Configuration of the front controller action</h3>
+As mentioned above, the delivery of the captcha image is done by a front controller action included
+in the module. To make sure, that the image is served correctly, the project must be configured using
+the front controller. If your project uses the page controller, the bootstrap file must be adapted.
+In case, your <em>index.php</em> contains
+<php:highlight>
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+$Page = new Page('apfdemo');
+$Page->loadDesign('sites::demosite','pres/templates/website');
+echo $Page->transform();
+</php:highlight>
+these lines must be changed to
+<php:highlight>
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller','Frontcontroller');
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->set('Context','sites::demosite');
+$fC->start('sites::demosite::pres::templates','website');
+</php:highlight>
+The context of your application and the path and the name of the initial template must be set as
+desired in your project.
+<br />
+<br />
+After this change is done, the front controller action must be configured. For this reason, the
+front controller expects the configuration file
+<pre class="tagexample">
+/config/modules/captcha/biz/&lt;CONTEXT&gt;/&lt;Environment&gt;_actionconfig.ini
+</pre>
+containing the action configuration when calling the image url
+<pre class="tagexample">
+/?modules_captcha_biz-action:showCaptcha=name:...
+</pre>
+or in case of url rewriting activated, the url
+<pre class="tagexample">
+/~/modules_captcha_biz-action/showCaptcha/name/...
+</pre>
+(see source code of the taglib). <strong>Context</strong> and <strong>Environment</strong> must be
+replaced with the correct values from your project. For details on configuration, please refer to
+<a href="./?Page=013-Basics#3-3-Basic-configuration" title="Grundlagen">basics, chapter 3.3</a> bzw.
+<a href="./?Page=033-Configuration#2-Naming-conventions" title="Konfiguration">configuration, chapter 2</a>.
+<br />
+<br />
+The content of the action configuration file can be copied from the template file
+<strong>/config/modules/captcha/biz/actions/EXAMPLE_actionconfig.ini</strong> included in the
+<strong>adventure-configpack-*</strong> release files.
+<br />
+<br />
+<br />
+<a name="2-Inclusion"></a><h3>2. Inclusion of the tag</h3>
+In order to use the captcha tag, it must be announced within the desired form. This can be achieved
+using the <strong>&lt;form:addtaglib /&gt;</strong> tag, whose functionality is nearly the same as
+the <strong>&lt;core:addtaglib /&gt;</strong>. After that, the tag can be placed within the form.
+The following code box shows a typical example including the commonly used attributes of the tag:
+<pre class="tagexample">
+  &lt;html:form name="MyForm" action="post"&gt;
+    ...
+    &lt;form:addtaglib namespace="modules::captcha::pres::taglib" prefix="form" class="captcha" /&gt;
+    &lt;form:captcha
+              text_class="input_field"
+              text_style="width: 318px;"
+              validate="true"
+              button="CreateGuestbookEntryButton"
+              clearonerror="true"
+    /&gt;
+    ...
+  &lt;/html:form&gt;
+</pre>
+Looking at the output of the form, the tag creates a captcha image and a text field, that can be used
+to fill in the captcha string. The list displayed afterwards describes the attributes of the captcha
+tag:
+<ul>
+  <li><strong>image_style</strong>: CSS styles of the captcha image</li>
+  <li><strong>image_class</strong>: CSS classes of the captcha image</li>
+  <li><strong>text_style</strong>: CSS styles of the text field</li>
+  <li><strong>text_class</strong>: CSS classes of the text field</li>
+  <li><strong>validate</strong>: Activation of the validation</li>
+  <li><strong>button</strong>: Name of the button of the form</li>
+  <li>
+    <strong>clearonerror</strong>: This optional attribute indicates, if the content of the field
+    should be cleared on wrong user input. If the field contains an other value than "true" or is
+    not present, the field is prefilled as usual.
+  </li>
+</ul>
+<br />
+<a name="3-Functionality"></a><h3>3. Functionality of the tag</h3>
+By means of directly integrating the captcha tag into a form, the tag can influence the form's
+valiation. If the captcha string was correctly filled in the text field provided, the form's state
+is set to "valid". If not, the tag lib implementation marks the form as "invalid" and the user
+cannot finally submit the form. To ensure, that the form cannot be sent on wrong captcha string input,
+the form must be checked having the <strong>isSent</strong> and <strong>isValid</strong> event in
+the cooresponding controller. For security reasons, the captcha image is regenerated with each request.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_094" />
