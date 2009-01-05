@@ -183,7 +183,7 @@ mit eingebunden.
 Da das Backend auf dem Frontcontroller basiert (Anzeige der Icons wird &uuml;ber die
 <a href="./?Seite=078-Spezielle-TagLibs#2-Mediastream" title="Mediastream-Tags">&lt;*:mediastream /&gt;</a>-Tags
 realisiert), kann folgende <em>index.php</em> eingesetzt werden:
-<php:highlight>
+<php:highlight testing="true">
 include('./apps/core/pagecontroller/pagecontroller.php');
 import('core::frontcontroller','Frontcontroller');
 $fC = &Singleton::getInstance('Frontcontroller');
@@ -230,7 +230,7 @@ erwartet werden. Als R&uuml;ckgabewerte dienen ebenfalls Instanzen der Klasse
 <a name="3-2-1-Login-Benutzer"></a><h5>3.2.1. Login via Benutzer und Passwort</h5>
 Das folgende Beispiel zeigt, wie eine einfache Authentifizierung mit Hilfe von URL-Werten
 durchgef&uuml;hrt werden kann:
-<php:highlight>
+<php:highlight testing="true">
 // get the business object
 $uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','umgtManager','Default');
 
@@ -253,11 +253,11 @@ else{
 <a name="3-2-2-Login-E-Mail"></a><h5>3.2.2. Login via E-Mail und Passwort</h5>
 Um einen Benutzer nicht &uuml;ber seinen Benutzernamen sondern seiner E-Mail-Adresse und seinem
 Passwort zu authentifizieren, muss der Methodenaufruf
-<php:highlight>
+<php:highlight testing="true">
 $user = $uM->loadUserByUsernameAndPassword($username,$password);
 </php:highlight>
 durch
-<php:highlight>
+<php:highlight testing="true">
 $user = $uM->loadUserByEMailAndPassword($email,$password);
 </php:highlight>
 ersetzt werden.
@@ -267,7 +267,7 @@ ersetzt werden.
 <a name="3-2-3-Gruppen-und-Rollen"></a><h5>3.2.3. Laden von Gruppen und Rollen</h5>
 Wurde ein Benutzer erfolgreich &uuml;ber die in 3.2.1 und 3.2.1 geschilderte Methoden geladen, so
 kann wie folgt auf dessen Gruppen und Rollen zugegriffen werden:
-<php:highlight>
+<php:highlight testing="true">
 // load groups
 $groups = $uM->loadGroupsWithUser($user);
 
@@ -279,7 +279,7 @@ $roles = $uM->loadRolesWithUser($user);
 M&ouml;chte der Entwickler nun auf die dem Benutzer zugeordneten Funktionsberechtigungen
 (<em>Permissions</em>) zugreifen, kann das &uuml;ber die Rollen, oder direkt &uuml;ber eine daf&uuml;r
 vorgesehene API-Methode erledigt werden:
-<php:highlight>
+<php:highlight testing="true">
 // load permissions via the relevant relations
 $roles = $uM->loadRolesWithUser($user);
 
@@ -305,13 +305,177 @@ Berechtigungsschemen und Rollen zu Benutzern. Die API-Methode ber&uuml;cksicht d
 <br />
 <br />
 <a name="3-2-5-Manipulation-Objekte"></a><h5>3.2.5. Manipulieren von Objekten</h5>
-<pre>- Manipulieren von verschiedenen Objekten</pre>
-<br />
-<br />
+F&uuml;r die Manipulation von Objekten gibt es eine Reihe von API-Funktionen. Das folgende Code-Beispiel
+zeigt, wie Benutzer, Gruppen und Rollen angelegt, bearbeitet und gel&ouml;scht werden k&ouml;nnen.
+Da als Business-Objekt jeweils eine Instanz der Klasse <strong>GenericDomainObject</strong> verwendet
+wird, muss darauf geachtet werden, dass der Namen eines Objektes, der bei der Instanzierung mitgegeben
+wird, auch mit den Objekt-Namen in der Konfiguration &uuml;bereinstimmen. Gleiches gilt f&uuml;r die
+Bezeichnungen der Attribute. Auch diese m&uuml;ssen mit den Attribut-Namen der Objekt-Konfiguration
+&uuml;bereinstimmen. Details k&ouml;nnen dem Kapitel
+<a href="./?Seite=063-Generischer-OR-Mapper#2-3-1-Objektdefinition" title="Generischer-OR-Mapper - Objektdefinition">Objektdefinition</a>
+entnommen werden.
+<php:highlight testing="true">
+// get the business object
+$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','umgtManager','Default');
+
+// create new user
+$user = new GenericDomainObject('User');
+$user->setProperty('FirstName','John');
+$user->setProperty('LastName','Doe');
+$user->setProperty('Username','jdoe');
+$uM->saveUser($user);
+
+// create new group
+$group = new GenericDomainObject('Group');
+$user->setProperty('DisplayName','Users');
+$uM->saveGroup($group);
+
+// load a user and change username
+$user = $uM->loadUserByID(1);
+$user->setProperty('Username','johndoe');
+$uM->saveUser($user);
+
+// load a group and change display name
+$group = $uM->loadGroupByID(2);
+$group->setProperty('DisplayName','Forum users');
+$uM->saveGroup($group);
+
+// delete a user
+$users = $uM->getPagedUserList();
+for($i = 0; $i < count($users); $i++){
+   if($users[$i]->getProperty('Username') === 'johndoe'){
+      $user = $users[$i];
+   }
+}
+$uM->deleteUser($user);
+
+// delete a group
+$groups = $uM->getPagedGroupList();
+for($i = 0; $i < count($groups); $i++){
+   if($groups[$i]->getProperty('DisplayName') === 'Forum users'){
+      $group = $groups[$i];
+   }
+}
+$uM->deleteGroup($group);
+</php:highlight>
 <br />
 <a name="3-2-6-Manipulation-Beziehungen"></a><h5>3.2.6. Manipulieren von Beziehungen</h5>
-<pre>- Manipulieren von verschiedenen Beziehungen</pre>
+F&uuml;r die Erstellung, Manipulation und L&ouml;schung von Beziehungen zwischen den Objekten des
+Usermanagements (siehe <a href="#1-1-Datenmodell" title="UML-Diagram">UML</a>) stehen dem Entwickler
+zahlreiche Methoden zur Verf&uuml;gung. Diese sind auf den konkreten Anwendungsfall des Moduls
+zugeschnitten und erwarten jeweils Objekte des Type <strong>GenericDomainObject</strong>. Die folgende
+Codebox zeigt einige typische Anwendungsf&auml;lle f&uuml;r das "Bearbeiten" von Beziehungen:
+<php:highlight testing="true">
+// get the business object
+$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','umgtManager','Default');
 
+// add user to group
+$user = $uM->loadUserByID(1);
+$group = $uM->loadGroupByID(2);
+$uM->assignUser2Groups($user,array($group));
+
+// assign a dedicated role to a user
+$role = $uM->loadRoleByID(3);
+$uM->assignRole2Users($role,array($user));
+
+// remove user from group
+$uM->detachUserFromGroups($user,array($group));
+
+// detatch role from user
+$uM->detachUserFromRole($user,$role);
+</php:highlight>
+<br />
+<a name="3-2-Direkter-Zugriff"></a><h4>3.2. Direkter Zugriff</h4>
+Sollte die API des <strong>UmgtManager</strong> nicht ausreichen, so kann der
+<strong>GenericORMapper</strong> direkt verwendet werden. Wichtig dabei ist, dass der gleiche Satz
+an Konfigurationsdateien benutzt werden. Die folgende Codebox zeigt, wie die Businesskomponente des
+Usermanagement-Moduls den OR-Mapper erzeugt:
+<php:highlight testing="true">
+$oRMFact = &$this->__getServiceObject(
+                       'modules::genericormapper::data',
+                       'GenericORMapperFactory'
+                                     );
+$oRM = &$oRMFact->getGenericORMapper(
+                       'modules::usermanagement',
+                       'umgt',
+                       $connectionKey,
+                       $serviceMode
+                                    );
+</php:highlight>
+Die Variablen <strong>$connectionKey</strong> und <strong>$serviceMode</strong> m&uuml;ssen jeweils
+mit den Inhalten der
+<a href="#2-1-Konfiguration-Modul" title="Konfiguration des Moduls">Konfiguration des Moduls</a>
+ersetzt werden. Der <em>ServiceMode</em> ist dabei optional.
+<br />
+<br />
+Nach dem Erzeugen des Mappers kann dieser gem&auml;&szlig; den Konfigurationsdateien des Moduls
+eingesetzt werden. Die folgende Code-Box zeigt, wie der OR-Mapper dazu genutzt werden kann um die
+Benutzer einer Gruppe zu z&auml;hlen. Die Variable <strong>$oRM</strong> wurde dabei wie oben
+erl&auml;utert erstellt.
+<php:highlight testing="true">
+$group = $oRM->loadObjectByID('Group',1);
+$count = $oRM->loadRelationMultiplicity($group,'Group2User');
+</php:highlight>
+Um zu pr&uuml;fen, ob ein Benutzer einer bestimmten Gruppe angeh&ouml;rt oder ihm eine definierte
+Rolle zugeordnet ist, kann folgender Code dienen:
+<php:highlight testing="true">
+// test, if user is within group
+$group = $oRM->loadObjectByID('Group',1);
+$user = $oRM->loadObjectByID('User',2);
+if($oRM->isAssociated('Group2User',$group,$user)){
+   echo 'user is in group';
+}
+else{
+   echo 'user is *not* in group';
+}
+
+// test, if user is associated with the desired role
+$role = $oRM->loadObjectByID('Role',3);
+if($oRM->isAssociated('Role2User',$role,$user)){
+   echo 'user is associated the desired role';
+}
+else{
+   echo 'user is *not* associated the desired role';
+}
+</php:highlight>
+Um andere Ladekriterien als die in der API der Businesskomponente enthaltenen Methoden zu nutzen,
+k&ouml;nnen die Methoden
+<ul>
+  <li>loadObjectByStatement()</li>
+  <li>loadObjectByTextStatement()</li>
+  <li>loadObjectByCriterion()</li>
+  <li>loadObjectListByStatement()</li>
+  <li>loadObjectListByTextStatement()</li>
+  <li>loadObjectListByCriterion()</li>
+</ul>
+verwendet werden. Diese erwarten jeweils ein SQL-Statement oder ein
+<a href="./?Seite=063-Generischer-OR-Mapper#5-GenericCriterionObject" title="GenericCriterionObject">GenericCriterionObject</a>.
+Die folgende Codebox zeigt das Laden von Funktionsberechtigungen, die mit einer bestimmten Rolle
+verkn&uuml;pft sind:
+<php:highlight testing="true">
+// define statement
+$select = 'SELECT `ent_permission`.* FROM `ent_permission`
+           INNER JOIN ass_permissionset2permission ON ent_permission.PermissionID = ass_permissionset2permission.PermissionID
+           INNER JOIN ent_permissionset ON ass_permissionset2permission.PermissionSetID = ent_permissionset.PermissionSetID
+           INNER JOIN ass_role2permissionset ON ent_permissionset.PermissionSetID = ass_role2permissionset.PermissionSetID
+           INNER JOIN ent_role ON ass_role2permissionset.RoleID = ent_role.RoleID
+           WHERE ent_role.RoleID = '1'
+           GROUP BY ent_permission.PermissionID;';
+
+// load permission list
+$permissions = $oRM->loadObjectListByTextStatement('Permission',$select);
+</php:highlight>
+Um eine Liste von vorhandenen Applikationscontainern zu selektieren, kann folgender Code eingesetzt
+werden:
+<php:highlight testing="true">
+$apps = $oRM->loadObjectListByCriterion('Application');
+</php:highlight>
+Details zu den im Modul enthalten Objekten, Attributen und Beziehungen, k&ouml;nnen den
+<a href="#2-1-Konfiguration-Modul" title="Konfiguration des Moduls">Konfigurationsdateien</a> oder
+dem obigen <a href="#1-1-Datenmodell" title="Datenmodell">UML-Diagramm</a> entnommen werden. Die
+Verwendung des OR-Mappers wird im Kapitel
+<a href="./?Seite=063-Generischer-OR-Mapper#1-Einleitung" title="GenericORMapper - Einleitung">GenericORMapper</a>
+genauer beschrieben.
 <br />
 <br />
 <br />

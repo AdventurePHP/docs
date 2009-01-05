@@ -32,8 +32,15 @@
       *  Version 0.5, 16.09.2007 (Improved PHP 5 support)<br />
       *  Version 0.6, 02.01.2008 (Limited code box height to 400px)<br />
       *  Version 0.7, 15.10.2008 (Changed css behavior)<br />
+      *  Version 0.8, 05.01.2009 (Introduced the dp.SyntaxHighlighter js highlighter (testing only))<br />
       */
       function transform(){
+
+         // return new code, if desired
+         if($this->getAttribute('testing') === 'true'){
+            return '<pre name="code" class="php:nogutter:nocontrols"">'.$this->__Content.'</pre>';
+          // end if
+         }
 
          // count lines
          $LineCount = substr_count($this->__Content,"\n") - 1;
