@@ -37,7 +37,7 @@
          $cM = &$this->__getServiceObject('core::database','connectionManager');
          $SQLForum = &$cM->getConnection('Forum');
 
-         // read last three forum topics
+         // read last two forum topics
          $select_posts = 'SELECT forum_id,topic_id,topic_title
                           FROM '.$this->__Language.'_phpbb3_topics
                           WHERE topic_type = 0 AND topic_moved_id = 0

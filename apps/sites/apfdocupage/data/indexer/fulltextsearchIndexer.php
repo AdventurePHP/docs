@@ -48,6 +48,7 @@
       *  Version 0.2, 02.10.2008 (Changed to fit new documentation page)<br />
       *  Version 0.3, 03.10.2008 (Added some new characters to the title regexp)<br />
       *  Version 0.4, 15.10.2008 (Added some characters to the urlname)<br />
+      *  Version 0.5, 10.01.2009 (Added the ? to the allowed characters of the title)<br />
       */
       function importArticles(){
 
@@ -94,7 +95,7 @@
                // extract title and urlname
                $Content = file_get_contents($this->__ContentFolder.'/'.$File);
 
-               preg_match('/title="([A-Za-z0-9\(\) \/\-&;.:!]+)"/i',$Content,$TitleMatches);
+               preg_match('/title="([A-Za-z0-9\(\) \/\-&;.:!\?]+)"/i',$Content,$TitleMatches);
 
                if(isset($TitleMatches[1])){
                   $Title = $TitleMatches[1];

@@ -298,6 +298,30 @@ Der folgende PHP-Code bef&uuml;llt das Formular:
 
    ...
 </php:highlight>
+<strong>Hinweis:</strong> Sollen beim Bef&uuml;llen eines Multiselect-Feldes bestimmte Optionen
+bereits vorausgew&auml;hlt sein, so kann die Methode <strong>setOption2Selected()</strong> verwendet
+werden. Der folgende Code zeigt, wie ein Multiselect-Feld zun&auml;chst mit Berechtigungen gef&uuml;llt
+und anschlie&szlig;end gem&auml;&szlig; den Applikationsinformationen vorselektiert wird. Das Beispiel
+ist aus dem im Release mitgelieferten
+<a href="./?Seite=095-Module-Usermanagement" title="Usermanagement-Modul">Usermanagement-Modul</a>
+entnommen.
+<php:highlight>
+// reference the form
+$form = &$this->__getForm('PermissionSetEdit');
+
+// load permissions and fill the select field
+$allPermissions = $uM->loadPermissionList();
+$permField = &$form->getFormElementByName('Permission[]');
+for($i = 0; $i < count($allPermissions); $i++){
+   $permField->addOption($allPermissions[$i]->getProperty('DisplayName'),$allPermissions[$i]->getProperty('PermissionID'));
+}
+
+// preselect the options
+$selectedPermissions = $uM->loadPermissionsOfPermissionSet($permSet);
+for($i = 0; $i < count($selectedPermissions); $i++){
+   $permField->setOption2Selected($selectedPermissions[$i]->getProperty('PermissionID'));
+}
+</php:highlight>
 <br />
 <a name="3-3-Auslesen-von-Formular-Elementen"></a><h4>3.3. Auslesen von Formular-Elementen</h4>
 Das Auslesen von Formular-Elementen gestaltet sich &auml;hnlich wie das Bef&uuml;llen. Eine

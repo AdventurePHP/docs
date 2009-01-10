@@ -295,6 +295,28 @@ Der folgende PHP-Code bef&uuml;llt das Formular:
 
    ...
 </php:highlight>
+<strong>Note:</strong> If several options should be preselected using multi select fields, the
+<strong>setOption2Selected()</strong> method could be used. The following code depicts how to prefill
+a permission list and afterwards preselect the desired options. This example is taken from the
+<a href="./?Page=095-Modul-usermanagement" title="Usermanagement module">usermanagement module</a>
+delivered with the APF release.
+<php:highlight>
+// reference the form
+$form = &$this->__getForm('PermissionSetEdit');
+
+// load permissions and fill the select field
+$allPermissions = $uM->loadPermissionList();
+$permField = &$form->getFormElementByName('Permission[]');
+for($i = 0; $i < count($allPermissions); $i++){
+   $permField->addOption($allPermissions[$i]->getProperty('DisplayName'),$allPermissions[$i]->getProperty('PermissionID'));
+}
+
+// preselect the options
+$selectedPermissions = $uM->loadPermissionsOfPermissionSet($permSet);
+for($i = 0; $i < count($selectedPermissions); $i++){
+   $permField->setOption2Selected($selectedPermissions[$i]->getProperty('PermissionID'));
+}
+</php:highlight>
 <br />
 <a name="3-3-Readout-of-form-elements"></a><h4>3.3. Readout form element values</h4>
 Readout of form elements is similar to the filling of form elements. In both situations, the
