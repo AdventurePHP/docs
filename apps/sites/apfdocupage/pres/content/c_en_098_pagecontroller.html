@@ -1,0 +1,144 @@
+<doku:title tags="documentation,pagecontroller,class reference table,controller,templates,mvc,hmvc,apfmvc,basics" title="Pagecontroller" urlname="Pagecontroller">
+  Die Funktion des Pagecontrollers besteht darin, einen allgemeing&uuml;ltigen Rahmen f&uuml;r
+  Applikationen zu bieten, die nach dem MVC Muster implementiert werden. Er verf&uuml;gt daher
+  &uuml;ber Mechanismen zum Laden und Verarbeiten von Templates mit Hilfe der Funktionen von TagLibs,
+  zur Ausf&uuml;hrung von Controllern und zum Handling des MVC-Baumes, der mit Hilfe der TagLibs
+  erzeugt wird.
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+The page controller is the heart of the adventure php framework. This component consists of different
+base classes, that are described in the <a href="./?Page=016-Classes" title="Classes ">classes chapter</a>.
+The functionality of the page controller is to provide a reusable environment for applications, that
+are implemented following the <strong>MVC</strong> pattern. It features a unique mechnaism to load
+and handle <a href="./?Page=047-Templates" title="Templates">templates</a> with aid of the
+functionality contained in <a href="./?Page=045-User-specific-taglibs" title="User specific taglibs">taglibs</a>,
+to execute <a href="./?Page=006-Controller" title="Controller">controllers</a> and to manage the MVC
+tree, that was build by the taglib's functionality.
+<br />
+<br />
+Because of the DOM tree structure, the page controller is a HMVC controller. This pattern describes,
+that a hierarchical DOM tree consists of any count of MVC cells, that are managed by a generic
+component (here: the APF page controller). Applying the HMVC pattern, you assume, that a model is
+not bound to one MVC cell strictly, but is available for more than one DOM nodes. This makes it
+possible to easily and flexibly develop modules and applications.
+<br />
+<br />
+<br />
+<a name="2-Functionality"></a><h3>2. Functionality</h3>
+Due to the fact, that the page controller does only provide a framework, or is responsible to operate
+it's workflow respectively, the application logic can directly be influenced by
+<a href="./?Page=045-User-specific-taglibs" title="User specific taglibs">taglibs</a> and
+<a href="./?Page=006-Controller" title="Controller">controllers</a>. This means, that the page
+controller is application logic independent. For this reason it is possible to create tage with
+different functions (e.g. forms, taglibs to onclude further templates, place holders, ...). The
+workflow diagram describes the actions, that are passed through, and the points, the developer can
+influence to apply the requirements of his application to. Click on the image to enlarge it!
+<br />
+<br />
+<br />
+<a name="2-1-Activity-diagram"></a><h4>2.1. Activity diagram</h4>
+<br />
+<a href="http://media.adventure-php-framework.org/content/pagecontroller_timing_model.png" title="Pagecontroller timing model (Zum Vergr&ouml;&szlig;ern klicken!)" target="_blank">
+  <img src="http://media.adventure-php-framework.org/content/pagecontroller_timing_model.png" alt="Pagecontroller timing model (APF)" style="width: 560px;"/>
+</a>
+<br />
+<br />
+<br />
+<a name="2-2-Description"></a><h4>2.2. Description</h4>
+The following list describes the workflow again in textual form:
+<br />
+<br />
+<ul>
+  <li>
+    At the beginning of a request the
+    <a href="./?Page=013-Basics#3-1-Bootstrap-file" title="Bootstrap file">bootstrap file</a>
+    (typically: index.php) is called.
+    <br /><br />
+  </li>
+  <li>
+    With this file the page controller's Page object is instanciated. Inside the constructor, the
+    <a href="./?Page=087-Filter#2-Input-filter" title="Input filter">input filter</a> configures
+    in the <a href="./?Page=067-Class-reference-table-Registry" title="Registry">Registry</a> is
+    executed. The filter preprocesses the user input (keyword:
+    <a href="./?Page=069-URL-Rewriting" title="URL rewriting">URL rewriting</a>) and checks the
+    parameters for potential security problems.
+    <br /><br />
+  </li>
+  <li>
+    As of the <strong>loadDesign()</strong>, the initial
+    <a href="./?Page=047-Templates" title="Templates">template</a> is loaded and parsed.
+    <br /><br />
+  </li>
+  <li>
+    During the parse operation, the page controller looks up, if the
+    <a href="./?Page=047-Templates" title="Templates">template</a> contains
+    <a href="./?Page=006-Controller" title="Controller">document controller</a> declarations and
+    further <a href="./?Page=046-Standard-taglibs" title="Standard taglibs">known tags</a>.
+    <br /><br />
+  </li>
+  <li>
+    If a <a href="./?Page=006-Controller" title="Controller">document controller</a> tag is included,
+    this information is extracted from the content and prepared for the transformation.
+    <br /><br />
+  </li>
+  <li>
+    If <a href="./?Page=046-Standard-taglibs" title="Standard taglibs">known tags</a> are included,
+    they are analyzed and linked as child objects into the current DOM node.
+    <br /><br />
+  </li>
+  <li>
+    During the parse operation of the current tag, the corresponding tag lib class (PHP class) is
+    created and the attributes and the content is applied to that instance. After that, the
+    <strong>onParseTime()</strong> method is called (see
+    <a href="./?Page=045-User-specific-taglibs" title="User specific taglibs">Create own taglibs</a>).
+    The implementation of this function affects the proceeding of the content of the tag, that can
+    possibly contain futher tags. Thus, the content is typically processed for known tags and so on...
+    <br /><br />
+  </li>
+  <li>
+    After parsing a node, it is linked to the DOM tree as a child of the current node. Then, the
+    <strong>onAfterAppend()</strong> method is called on each of the children. As of this moment,
+    the single nodes "know" their neighbours through the <em>$this->__ParentObject</em> and
+    <em>$this->__Children</em> references. Hence, the <strong>onAfterAppend()</strong> contains
+    tag functionality, that needs to know it's related DOM nodes.
+    <br /><br />
+  </li>
+  <li>
+    If the <strong>loadDesign()</strong> method has finished, a complete APF DOM tree is available,
+    that consists of a number of nodes, that are directly influenced by the template and tag definition
+    the developer created.
+    <br /><br />
+  </li>
+  <li>
+    On the <em>$Page->transform()</em> call, the DOM tree is traversed recursively and each element
+    is transformed. Thereby, each node is responsible for it's transformation itself. Because most
+    of the nodes typically extend the <strong>Document</strong> class, tha workflow is as follows:
+    at first, the method checks, if a document controller was defined. If yes, the class is created
+    and applied with the references, attributes and contents necessary for transformation. After that
+    the <strong>transformContent()</strong> is called.
+    <br /><br />
+  </li>
+  <li>
+    After the <a href="./?Page=006-Controller" title="Controller">document controller</a> execution
+    the list of child nodes of the current DOM node is walked through and transformed by calling
+    the <strong>transform()</strong> method on each of the children. Each node is responsible for
+    it's transformation itself. The only thing, that is important is, that the function call must
+    return the transformed content of the node, because the calling node has to continue processing it.
+    <br /><br />
+  </li>
+  <li>
+    After all nodes are transformed, the HTML code of the page exists. This content is then applied
+    to the <a href="./?Page=087-Filter#3-Output-filter" title="Output filter">output filter</a> -
+    if desired - and then sent to the client.
+  </li>
+</ul>
+<br />
+<br />
+<a name="3-Note"></a><h3>3. Note on the forum</h3>
+Further information can be found in the german language forum thread
+&quot;<a linkrewrite="false" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=4&t=62" title="Ein Einfaches Formular erstellen." target="_blank">Ein Einfaches Formular erstellen.</a>&quot;.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_098" />
