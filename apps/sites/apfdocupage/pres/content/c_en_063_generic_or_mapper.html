@@ -1,104 +1,98 @@
-<doku:title tags="object,relational,mapping,or,mapper,generisch,beziehungen,objekte,objektb&auml;ume,objekt strukturen,konfiguration,verwendung" title="Generischer OR-Mapper" urlname="Generischer-OR-Mapper">
-  Das Modul genericormapper bietet einen generischen OR-Mapper, der voll in das APF integriert ist
-  uns dessen Mechanismen - z.B. Konfiguration - nutzt um die gew&uuml;nschten Objekte und deren
-  Beziehungen zu konfigurieren.
+<doku:title tags="object,relational,mapping,or,mapper,generic,relations,objects,object tree,object structures,configuration,usage" title="Generic OR mapper" urlname="Generic-OR-mapper">
+  The genericormapper module provides a generic data mapper, that is fully integrated into the APF.
+  It enables the developer to dynamically handle objects and their reations, that are defined within
+  configuration files.
 </doku:title>
 <core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
-<a name="1-Einleitung"></a><h3>1. Einleitung</h3>
-In der objektorientierten Welt wird der Anspruch erhoben, Applikationen m&ouml;glichst komplett
-objektorientiert entwerfen und entwickeln zu k&ouml;nnen. Um dieser Forderung gerecht zu werden,
-st&ouml;&szlig;t jeder Entwickler unweigerlich auf das Problem, dass Daten in relationalen
-Datenbanken gehalten werden (m&uuml;ssen). Steht kein Hilfsmittel zur Verf&uuml;gung, muss der
-<em>DataMapper</em> in jeder Applikation neu geschrieben werden. Das kostet nicht nur Zeit und Geld,
-sondern ist gegen den Ansatz "<strong>don't repeat yourself</strong>", denn diese Vorgehensweise
-produziert redundaten Quellcode.
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+Designing object oriented applications, you typically claim, that the complete design can be created
+on OO style - without break of media. In order to achieve this goal, each developer was yet faced
+with the problem of data storage in relation databases. If there is no tool, a <em>DataMapper</em>
+has to be implemented newly for each application. This does not only result in higher costs and lack
+of time, but is also not compatible with the <strong>DRY</strong> (<em>don't repeat yourself</em>)
+paradigma. You still are forced to produce redundant code.
 <br />
 <br />
-Das APF-Modul <strong>genericormapper</strong> stellt eine Abstraktionsschicht zur Verf&uuml;gung,
-die dem Entwickler einen Gro&szlig;teil der Mapping-Arbeit abnimmt. Der Mapper &uuml;bernimmt dabei
+The APF module <strong>genericormapper</strong> now provides an abstraction layer, that is intended
+to do most of the work a data mapper has to do. The functionality thereby can
 <ul>
-  <li>Verwaltung von Objekten,</li>
-  <li>Verwaltung von Beziehungen zwischen Objekten (Komposition und Assoziation) und</li>
-  <li>CRUD-Funktionen auf Objekte und Objektstrukturen.</li>
+  <li>manage objects,</li>
+  <li>manage relations between objects (compositions and assoziations) and</li>
+  <li>features CRUD functionality for objects and object structures (aka. trees).</li>
 </ul>
-F&uuml;r diese Aufgaben stehen eine Reihe von API-Funktionen zur Verf&uuml;gung, die das Laden,
-Manipulieren und L&ouml;schen von definierten Objekten in der Datenbank abbilden. Das
-allgemeing&uuml;ltige Dom&auml;nen-Objekt <strong>GenericDomainObject</strong> kann dabei entweder
-direkt verwendet oder nochmals innerhalb der Datenschicht der Applikation in die Dom&auml;nen-Objekte
-der Anwendung &uuml;bersetzt werden.
+For this tasks, the API features a couple of methods, that support loading, manipulation and deletion
+of objects within the database. The generic domain object (<strong>GenericDomainObject</strong>)
+returned by the API functions can on the one hand be used directly within your applications or your
+application features a simple data layer, that mapps the data mapper domain objects into your
+application's domain objects and vice versa.
 <br />
 <br />
-Die folgenden Kapitel zeigen, wie der OR-Mapper konfiguriert und eingesetzt werden kann. <!--Das im
-APF-Release enthaltene Modul <strong>usermanagement</strong> basiert auf dem OR-Mapper und kann als
-weiterf&uuml;hrendes Beispiel herangezogen werden. Das usermanagement-Modul wird unter
-<a href="./?Seite=039-Mitgelieferte-Module" title="Mitgelieferte Module">Mitgelieferte Module</a>
-n&auml;her beschrieben.-->
+The following chapters show how the OR mapper has to be configured and how you can use it. The
+module <strong>usermanagement</strong> shipped with the APF release is completely based on the
+GenericORMapper and thus can be used as an extended implementation example. Details on the module
+can be seen on the
+<a href="./?Page=095-Modul-usermanagement" title="Usermanagement">usermanagement page</a>.
 <br />
 <br />
 <br />
-<a name="2-Konfiguration"></a><h3>2. Konfiguration des OR-Mappers</h3>
+<a name="2-Configuration"></a><h3>2. Configuration of the OR mapper</h3>
 <br />
-<a name="2-1-Grundlagen"></a><h4>2.1. Grundlagen</h4>
-Um den OR-Mapper verwenden zu k&ouml;nnen, m&uuml;ssen zwei Konfigurationsdateien angelegt werden:
+<a name="2-1-Basics"></a><h4>2.1. Basics</h4>
+To be able to user the OR mapper, two configuration files must be present:
 <ul>
   <li>{ENVIRONMENT}_{NAMEAFFIX}_objects.ini</li>
   <li>{ENVIRONMENT}_{NAMEAFFIX}_relations.ini</li>
 </ul>
-Dabei definiert die erste Datei die Objekte und deren Attribute, die zweite Konfigurationsdatei die
-Beziehungen zwischen den Objekten aus der ersten. Da der <strong>GenericORRelationMapper</strong> den
-<a href="./?Seite=031-Klassenreferenz-connectionManager" title="Klassenreferenz connectionManager">connectionManager</a>
-zum Aufbau der Datenbankverbindung nutzt, muss gegebenenfalls noch eine Sektion in der
-Datenbank-Verbindungskonfiguration angelegt werden.
+The first file defines the objects and attributes, the second one is intended to define the relations
+between the objects from the first file. Due to the fact, that the <strong>GenericORRelationMapper</strong>
+uses the <a href="./?Page=031-Class-reference-table-connectionManager" title="Class reference table - connectionManager">connectionManager</a>
+for database access, a database connection configuration must be created if not done yet.
 <br />
 <br />
-Der Abschnitt <strong>{ENVIRONMENT}</strong> im Namen der beiden Konfigurationsdateien wird dabei
-dem Registry-Wert <strong>Environment</strong> aus dem Namespace <strong>apf::core</strong> entnommen,
-der Abschnitt <strong>{NAMEAFFIX}</strong> kann frei gew&auml;hlt werden. Er dient als weiteres
-Unterscheidungsmerkmal und erm&ouml;glicht, dass unterschiedliche Mapper-Konfigurationen pro
-Applikation verwendet werden k&ouml;nnen. Letzeres ist vor allem dann interessant, wenn eine
-Applikation mehrere Datenquellen bedienen m&ouml;chte/muss.
+The <strong>{ENVIRONMENT}</strong> part of the configuration file names is taken from the registry
+directive <strong>Environment</strong> from the <strong>apf::core</strong> namespace. The
+<strong>{NAMEAFFIX}</strong> can be defined freely by the developer. This part of the name is inteded
+to provide the possibility of different mapper configurations for one context and one environment.
+This enables you to create applications, that are able to use multiple data sources.
 <br />
 <br />
 <br />
-<a name="2-2-Konfigurationsbeispiel"></a><h4>2.2. Konfigurationsbeispiel</h4>
-Ein Entwickler m&ouml;chte ein G&auml;stebuch entwickeln. Die
-Quellcode-Dateien sind dabei im Namespace <strong>modules::myguestbook</strong> abgelegt und das
-G&auml;stebuch ben&ouml;tigt nur einen OR-Mapper. Weiterhin wurde der globale Registry-Wert
-<strong>Environment</strong> nicht manipuliert, die aktuelle Anwendung wird im Context
-<strong>sites::mysite</strong> ausgef&uuml;hrt und der Namenszusatz (NAMEAFFIX) lautet
-<strong>guestbook</strong>. In diesem Fall tragen die beiden Konfigurationsdateien den Namen
+<a name="2-2-Configuration-examples"></a><h4>2.2. Configuration examples</h4>
+Imagine, that a developer wants to create a guestbook. The source code files are located in the
+<strong>modules::myguestbook</strong> namespace and the guestbook's data layer should us the OR mapper.
+Further, the registry value <strong>Environment</strong> is not touched (so it is still the default
+value) and the current application context is <strong>sites::mysite</strong>. Moreover, he decides,
+that the name affix should be identical to <strong>guestbook</strong>. In this case, the object
+configuration file must be named
 <pre class="tagexample">
 DEFAULT_guestbook_objects.ini
 </pre>
-sowie
+and the relation configuration file
 <pre class="tagexample">
 DEFAULT_guestbook_relations.ini
 </pre>
-und m&uuml;ssen im Ordner
+These must reside within the folder
 <pre class="tagexample">
 /apps/config/modules/myguestbook/sites/mysite
 </pre>
-abgelegt sein. Weitere Details zu Konfigurationsdateien, Namespaces und Kontext k&ouml;nnen im
-Kapitel <a href="./?Seite=033-Konfiguration" title="Konfiguration">Konfiguration</a> nachgelesen
-werden.
+Further details on configuration, namespaces and contexts can be taken from the
+<a href="./?Page=033-Configuration#2-Naming-conventions" title="Configuration">configuration section</a>.
 <br />
 <br />
 <br />
-<a name="2-3-Objekt-und-Beziehungsdefinition"></a><h4>2.3. Aufbau der Objekt- und Beziehungsdefinition</h4>
-Die Syntax der Objekt- und Beziehungsdefinition gestaltet sich wie folgt:
+<a name="2-3-Object-and-relation-definition"></a><h4>2.3. Object and relation definition</h4>
+The way of object and relation definition is described in the next two chapters:
 <br />
 <br />
-<a name="2-3-1-Objektdefinition"></a><h5>2.3.1. Objektdefinition</h5>
-Der <strong>GenericORRelationMapper</strong> stellt, wie bereits in der Einleitung angesprochen, ein
-allgemeing&uuml;ltiges Dom&auml;nen-Objekt zur Verf&uuml;gung (<strong>GenericDomainObject</strong>),
-das ein Objekt in der Datenhaltung repr&auml;sentiert. Der Typ des Objekts beschreibt sich dabei
-nicht durch den Klassennamen, sondern durch das Attribut <strong>ObjectName</strong> der Klasse.
+<a name="2-3-1-Object-definition"></a><h5>2.3.1. Object definition</h5>
+The <strong>GenericORRelationMapper</strong> provides a generic domain object (<strong>GenericDomainObject</strong>)
+that represents a persistence object. The type of the concrete object is classified by the domain
+object's <strong>ObjectName</strong> property.
 <br />
 <br />
-Die Definition der Objekte beinhaltet daher lediglich den Namen des Objekts (=Name der Sektion) und
-die Attribute (=Properties der Klasse <strong>GenericDomainObject</strong>). Die folgende Codebox
-zeigt den Aufbau einer typischen Objektdefinition:
-<br />
+The object definition thus contains the name of the object (=name of the section) and the attributes
+(=properties of the <strong>GenericDomainObject</strong> class). The following codebox shows a
+typical object configuration:
 <pre class="tagexample">
 [Application]
 DisplayName = "VARCHAR(100)"
@@ -117,54 +111,50 @@ DisplayName = "VARCHAR(100)"
 [Role]
 DisplayName = "VARCHAR(100)"
 </pre>
-Die Werte der Attribute bestimmen dabei die Auslegung der Felder in der Datenbank. Der Mapper kennt
-dabei die allgemeing&uuml;ltigen Werte
+The values of the attributes represent the database data types of the object's properties. The
+mapper knows the following values and translates them into the right create table statements:
 <ul>
   <li>VARCHAR(<strong>{LENGTH}</strong>)</li>
   <li>TEXT</li>
   <li>DATE</li>
 </ul>
-die eigenst&auml;ndig in die entsprechenden SQL-Anweisungen "&uuml;bersetzt" werden. Der Platzhalter
-<strong>{LENGTH}</strong> kann dabei durch eine beliebige Zeichenkettenl&auml;nge ersetzt werden.
-Alle dar&uuml;ber hinaus gehenden Feldtypen m&uuml;ssen &auml;hnlich der Feldbeschreibung bei einer
-<em>CREATE TABLE</em>-Anweisung formuliert werden. Mit den hier aufgef&uuml;hrten Werten lassen sich
-jedoch die meisten Anwendungsf&auml;lle abbilden.
+The <strong>{LENGTH}</strong> place holder must be replaced by any number. All other values are
+directly used for the data type of a property. These must be valid data type definitions. Otherwise,
+the <em>CREATE TABLE</em> statements will fail. The values presented above should be suitable for
+most application cases.
 <br />
 <br />
-Die Attribute eines beliebigen Objekts k&ouml;nnen dann wie folgt adressiert werden:
-<php:highlight>
-   ...
-   $User = new GenericDomainObject('User');
-   $User->setProperty('FirstName','Christian');
-   $User->setProperty('LastName','Achatz');
-   ...
-   echo 'Vorname: '.$User->getProperty('FirstName');
-   echo 'Name: '.$User->getProperty('LastName');
-   ...
+The attributes of a domain object can then be addressed as follows:
+<php:highlight testing="true">
+...
+$User = new GenericDomainObject('User');
+$User->setProperty('FirstName','Christian');
+$User->setProperty('LastName','Achatz');
+...
+echo 'Surename: '.$User->getProperty('FirstName');
+echo 'Name: '.$User->getProperty('LastName');
+...
 </php:highlight>
 <br />
-<a name="2-3-2-Beziehungsdefinition"></a><h5>2.3.2. Beziehungsdefinition</h5>
-Die Datei <strong>*_relations.ini</strong> definiert die Beziehungen zwischen den im vorherigen
-Kapitel beschriebenen Objekten. Der Mapper kennt dabei zwei Arten von Beziehungen: Komposition und
-Assoziation. Da Kompositionen im Gegensatz zu Assoziationen starke Bindungen sind, k&ouml;nnen Objekte,
-die weitere Objekte komponieren, nicht gel&ouml;scht werden, da sonst den komponierten Objekten die
-Existenzberechtigung entzogen werden w&uuml;rde. Dieser Fall wird vom Mapper deshalb mit einer
-entsprechenden Meldung quittiert.
+<a name="2-3-2-Relation-definition"></a><h5>2.3.2. Relation definition</h5>
+The file <strong>*_relations.ini</strong> defines the relations between the objects defined in the
+previous chapter. The mapper knows two types of relations: compositions and associations. Due to the
+fact, that compositions are strong relations, objects, that compose other objects, cannot be deleted
+due to data consistency. This case is checked by the mapper and it throws an error, if a object
+is tried to be deleted, that must not.
 <br />
 <br />
-<strong>Hinweis:</strong>
-Die Datenhaltungstheorie spricht bei der Auslegung der Beziehungen davon, dass jedes Objekt genau
-einmal komponiert sein soll, da es in der Realit&auml;t nur eine starke Zugeh&ouml;rigkeit eines
-Objekts zu einem anderen geben kann. Weiterhin definiert eine Komposition eine Abh&auml;ngigkeit
-oder auch Existenzberechtigung eines Objekts. Bei der Definition der Beziehungen muss daher darauf
-geachtet werden, dass abh&auml;ngige Objekte entsprechend komponiert sind. Ein G&auml;stebucheintrag
-kann beispielsweise nicht ohne ein G&auml;stebuch existieren, der Benutzer, dem der Eintrag zugeordnet
-ist, dageben sehr wohl. In diesem Fall muss die Beziehung zwischen G&auml;stebuch und
-G&auml;stebucheintrag von der Qualit&auml;t "Komposition" sein, die Beziehung zwischen
-G&auml;stebucheintrag und dem Benutzer vom Typ "Assoziation".
+<strong>Note:</strong>
+The persistancy theory contains the rule, that each object should be composed exactly one time. This
+is because an object cannot have more than one strong binding to another object in real life, too.
+Futhermore, a composition relation defines the object's right to exist. Hence, be aware that your
+objects are composed concerning this rule. For example, a guestbook entry cannot exist without the
+guestbook object. Instead, a user can exist without the guestbook. This means, that the relation
+between a guestbook and an entry must be a composition, the relation of the entry to the user must
+be an association.
 <br />
 <br />
-Die folgende Codebox zeigt den Aufbau einer typischen Relationsdefinition:
+The following codebox shows a typical relation configuration:
 <pre class="tagexample">
 [Application2Group]
 Type = "COMPOSITION"
@@ -1017,15 +1007,15 @@ SourceObject = "Project"
 TargetObject = "News"
 </pre>
 <br />
-<a name="7-Anmerkungen"></a><h3>7. Anmerkungen</h3>
-Hinweise zur Performance k&ouml;nnen unter
-<a href="./?Seite=065-Generischer-OR-Mapper-Performance-Hacks" title="Generischer OR-Mapper - Performance-Hacks">Performance-Hacks</a>
-nachgelesen werden, das manuelle Setup der Datenbank ist unter
-<a href="./?Seite=064-Generischer-OR-Mapper-Manuelles-Setup-der-Datenbank" title="Generischer OR-Mapper - Manuelles Setup der Datenbank">Manuelles Setup der Datenbank</a>
-erkl&auml;rt. Die Quellcode-Dateien des
-<a href="./?Seite=095-Module-Usermanagement" title="Usermanagement-Modul">usermanagement-Moduls</a>
-k&ouml;nnen als weiterf&uuml;hrende Beispiele herangezogen werden.
+<a name="7-Notes"></a><h3>7. Notes</h3>
+Hints on performance relevant issues can be found in the
+<a href="./?Page=065-Generic-OR-mapper-performance-hacks" title="Performance hacks">performance hacks</a>
+chapter, the manual database setup is discussed in the
+<a href="./?Page=064-Generic-OR-mapper-manual-database-setup" title="Manual database setup">manual database setup</a>
+section. The source files of the
+<a href="./?Page=095-Modul-usermanagement" title="Usermanagement module">usermanagement module</a>
+can be used as an extended example.
 <br />
 <br />
 <br />
-<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_063" />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_063" />
