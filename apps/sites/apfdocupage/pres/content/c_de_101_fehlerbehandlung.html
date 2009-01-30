@@ -1,0 +1,96 @@
+<doku:title tags="fehler,behandlung,fehlerbehandlung,registry,core,errorhandler" title="Fehlerbehandlung" urlname="Fehlerbehandlung">
+  Das Kapitel Fehlerbehandlung beschreibt das im Framework enthaltene Fehlerhandling-Konzept und
+  zeigt die Verwendung sowie die Erweiterung auf.
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+<a name="1-Einleitung"></a><h3>1. Einleitung</h3>
+Zur globalen Fehlerbehandlung nutzt das Framework die Funktion <strong>errorHandler</strong>. Diese
+hat die Aufgabe, alle auftretenden Fehler abzufangen und an zentraler Stelle zu behandeln. Zu diesem
+Zweck nutzt die Funktion eine <strong>ErrorHandler</strong>-Komponente, die &uuml;ber die Registry
+konfigurierbar ist. Letztere ist dann f&uuml;r die eigentliche Behandlung eines Fehlers verantwortlich.
+<br />
+<br />
+Die im APF vorkonfigurierte Fehlerbehandlung beinhaltet dabei die Speicherung der Meldung in einer
+Log-Datei und die Ausgabe des Fehlers inklusive des Stacktraces. Details k&ouml;nnen der
+<a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a> der Klasse
+<strong>APFErrorHandler</strong> entnommen werden.
+<br />
+<br />
+<br />
+<a name="2-Konfiguration"></a><h3>2. Konfiguration</h3>
+Um den vorkonfigurierten <strong>APFErrorHandler</strong> durch einen eigenen zu ersetzen muss der
+Registry-Offset <strong>ErrorHandler</strong> im Namespace <strong>apf::core</strong> mit der
+gew&uuml;nschten <strong>ErrorHandlerDefinition</strong> ersetzt werden. Die Konfiguration einer
+eigenen Fehlerbehandlungsroutine muss dabei in der Bootstrap-Datei nach dem Einbinden der
+<em>pagecontroller.php</em> erfolgen.
+<br />
+<br />
+Die Definition einer eigenen Fehler-Behandlungskomponente gestaltet sich wie folgt:
+<php:highlight testing="true">
+$reg = &Singleton::getInstance('Registry');
+$reg->register(
+   'apf::core',
+   'ErrorHandler',
+   new ErrorHandlerDefinition(
+      'my::errorhandler::namespace',
+      'MyErrorHandler'
+   )
+);
+</php:highlight>
+Wie aus dem Code-Beispiel zu erkennen ist, wird ein <em>ErrorHandler</em> durch seinen Namespace und
+seinen Klassennamen referenziert.
+<br />
+<br />
+<strong>Hinweis:</strong> enth&auml;lt der Registry-Offset keine g&uuml;ltige Definition, werden
+auftretende Fehler in Text-Form ausgegeben. Der Fallback-Modus ist daran zu erkennen, dass die Meldung
+mit
+<pre class="tagexample">
+APF catchable error:
+</pre>
+beginnt. In diesem Fall muss die Definition oder die Implementierung der ErrorHandler-Klasse
+&uuml;berpr&uuml;ft werden.
+<br />
+<br />
+<br />
+<a name="3-Erweiterung"></a><h3>3. Erweiterung</h3>
+Um eine eigene Fehlerbehandlung einzuf&uuml;hren, muss die Klasse <strong>AbstractErrorHandler</strong>
+implementiert werden. Diese definiert folgendes Interface:
+<php:highlight testing="true">
+class AbstractErrorHandler extends coreObject
+{
+
+   function handleError($errorNumber,$errorMessage,$errorFile,$errorLine){
+   }
+
+}
+</php:highlight>
+Bei Auftreten eines Fehlers werden der Methode <strong>handleError</strong> die Parameter
+<ul>
+  <li>Fehler-Nummer</li>
+  <li>Fehler-Meldung</li>
+  <li>Datei, in der der Fehler auftritt</li>
+  <li>Zeile, in der der Fehler auftritt</li>
+</ul>
+&uuml;bergeben. Da die Fehlerbehandlung in einer eigenen Klasse stattfindet, die nicht mit dem
+ServiceManager erzeugt wurde, steht der Zugriff auf den aktuellen <strong>Context</strong> und die
+aktuelle <strong>Sprache</strong> <u>nicht</u> zur Verf&uuml;gung!
+<br />
+<br />
+Sollten diese Informationen f&uuml;r die Behandlung des Fehlers notwendig sein, m&uuml;ssen diese
+&uuml;ber in einer Applikation verf&uuml;gbaren Informationscontainer (z.B. Model-Klasse eines Modules)
+bezogen werden. Der Umgebungsparameter steht wie in der Dokumentation beschrieben &uuml;ber die
+Registry zur Verf&uuml;gung.
+<br />
+<br />
+<br />
+<a name="4-Anwendung"></a><h3>4. Anwendung</h3>
+Der globale Fehler-Behandlungsmechanismus kann einfach durch Aufrufen der PHP-Funktion
+<php:highlight testing="true">
+trigger_error();
+</php:highlight>
+genutzt werden. Details k&ouml;nnen der Online-Dokumentation unter
+<doku:link>http://php.net/trigger_error</doku:link> entnommen werden.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_101" />
