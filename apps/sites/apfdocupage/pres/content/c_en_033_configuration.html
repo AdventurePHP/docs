@@ -43,9 +43,12 @@ a configuration file is composed of different "parts":
     <strong>Namespace:</strong>
     <br />
     The namespace is a path to a basic folder that contains all configuration file of a specific
-    module or class. The namespace often corresponds with the namespace of the module or class.
-    All configuration files are located under the folder <strong>apps/config</strong> to separate
-    configuration from the program code.
+    module or class. The namespace often corresponds with the namespace of the module or class. Due
+    to the fact, that the APF features the paradigm of seperatinf configuration from code, the
+    <strong>configurationManager</strong> expects all configuration files to pe placed in the
+    <strong>config</strong> folder. This means, that the real folder path of the configuration is
+    consists of the namespace, that is used to address the config within an application and the
+    prefix <em>config</em>.
   </li>
   <li>
     <strong>Context:</strong>
@@ -140,8 +143,9 @@ this context. The page controller provides the context to every node of the DOM 
 controller likes to generate a business component, or get a reference on this, the methods
 <em>__getServiceObject()</em> or <em>__getAndInitServiceObject()</em> must always be used. Both
 functions ensure that every service object receives the right context. Implementing details and
-documentation of the parameters are found in the API documentation. As a rule it is adequate to create
-a service layer like this:
+documentation of the parameters are found in the
+<a href="./?Page=002-API-documentation" title="API documentation">API documentation</a>. As a rule
+it is adequate to create a service layer like this:
 <php:highlight>
   $GuestbookID = '1';
   $oGuestbookManager = &$this->__getServiceObject('modules::guestbook::biz','guestbookManager');
@@ -174,19 +178,19 @@ either.
 <br />
 We assume a configuration file with the following content was created:
 <pre class="tagexample">
-  [Section1]
-  Key1 = "Value1"
-  Key2 = "Value2"
-  Key3 = "Value3"
-  [Section2]
-  Key1 = "Value1"
-  Key2 = "Value2"
-  Key3 = "Value3"
+[Section1]
+Key1 = "Value1"
+Key2 = "Value2"
+Key3 = "Value3"
+[Section2]
+Key1 = "Value1"
+Key2 = "Value2"
+Key3 = "Value3"
 </pre>
 So the developer can fetch the content of the configuration file by placing the code
 <php:highlight>
-  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
-  echo printObject($Config->getConfiguration());
+$Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+echo printObject($Config->getConfiguration());
 </php:highlight>
 in any component of the application. The "echo" results in
 <pre class="tagexample">
@@ -207,31 +211,28 @@ Array
         )
 )
 </pre>
-Withe the use of
+With the use of
 <php:highlight>
-  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
-  echo printObject($Config->getSection('Section2'));
+$Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+echo printObject($Config->getSection('Section2'));
 </php:highlight>
 the array
 <pre class="tagexample">
 Array
 (
-    [Section2] => Array
-        (
-            [Key1] => Value1
-            [Key2] => Value2
-            [Key3] => Value3
-        )
+    [Key1] => Value1
+    [Key2] => Value2
+    [Key3] => Value3
 )
 </pre>
 is printed and
 <php:highlight>
-  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
-  echo $Config->getValue('Section1','Key2');
+$Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+echo $Config->getValue('Section1','Key2');
 </php:highlight>
 displays
 <pre class="tagexample">
-  Value2
+Value2
 </pre>
 to the screen. The function <em>printObject()</em> is only used for cosmetic reasons. The values can
 be directly used in the application code as desired.

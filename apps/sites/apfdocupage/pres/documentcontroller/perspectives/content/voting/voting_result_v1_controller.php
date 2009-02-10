@@ -1,5 +1,4 @@
 <?php
-   import('tools::variablen','variablenHandler');
    import('sites::apfdocupage::biz','APFModel');
    import('tools::link','frontcontrollerLinkHandler');
    import('sites::apfdocupage::pres::documentcontroller::perspectives::content::voting','voting_base_controller');

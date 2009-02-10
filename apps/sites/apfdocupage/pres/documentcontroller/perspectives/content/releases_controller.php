@@ -1,5 +1,5 @@
 <?php
-   import('core::filesystem','filesystemHandler');
+   import('tools::filesystem','FilesystemManager');
 
 
    /**
@@ -76,9 +76,8 @@
           // end if
          }
 
-         // take filesystemHandler and read releases
-         $fH = new filesystemHandler($this->__ReleasesLocalDir);
-         $Releases = array_reverse($fH->showDirContent());
+         // read releases
+         $Releases = array_reverse(FilesystemManager::getFolderContent($this->__ReleasesLocalDir));
          usort($Releases,array('releases_controller','sortReleases'));
 
          // display releases
@@ -94,8 +93,7 @@
                $Template__ReleaseHead->setPlaceHolder('ReleaseNumber',$Releases[$i]);
 
                // fetch files
-               $fH->changeWorkDir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download');
-               $Files = $fH->showDirContent();
+               $Files = FilesystemManager::getFolderContent($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download');
 
                // sort files
                sort($Files);
@@ -113,9 +111,7 @@
                }
 
                // fill Documentation
-               $fH->changeWorkDir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/doku');
-               $DokuFiles = $fH->showDirContent();
-
+               $DokuFiles = FilesystemManager::getFolderContent($this->__ReleasesLocalDir.'/'.$Releases[$i].'/doku');
                $Template__OfflineDoku = &$this->__getTemplate('OfflineDoku_'.$this->__Language);
                $Template__OfflineDoku->setPlaceHolder('ReleaseVersion',$Releases[$i]);
                $Buffer_OfflineDoku = (string)'';
@@ -233,7 +229,6 @@
 
 
                // display release files
-               $fH->changeWorkDir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download');
                $Buffer_Files = (string)'';
 
                for($j = 0; $j < count($Files); $j++){
@@ -241,14 +236,15 @@
                   if(!is_link($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j]) && !is_dir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j])){
 
                      // gather file attributes
-                     $FileAttributes = $fH->showFileAttributes($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j]);
+                     $FileAttributes = FilesystemManager::getFileAttributes($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j]);
+                     //echo printObject($FileAttributes);
 
                      // fill template
                      $Template__ReleaseFile->setPlaceHolder('Link',$this->__ReleasesBaseURL.'/'.$Releases[$i].'/download/'.$Files[$j]);
                      $Template__ReleaseFile->setPlaceHolder('Name',$Files[$j]);
-                     $Template__ReleaseFile->setPlaceHolder('Date',$FileAttributes['ModifyingDate']);
-                     $Template__ReleaseFile->setPlaceHolder('Size',$fH->showFileSize($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j]));
-                     $Template__ReleaseFile->setPlaceHolder('Type',$FileAttributes['Extension']);
+                     $Template__ReleaseFile->setPlaceHolder('Date',$FileAttributes['modificationdate']);
+                     $Template__ReleaseFile->setPlaceHolder('Size',round((int)$FileAttributes['size'] / 1000,1));
+                     $Template__ReleaseFile->setPlaceHolder('Type',$FileAttributes['extension']);
 
                      // add file to files buffer
                      $Buffer_Files .= $Template__ReleaseFile->transformTemplate();

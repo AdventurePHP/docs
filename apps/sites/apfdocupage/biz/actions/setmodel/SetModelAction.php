@@ -1,6 +1,6 @@
 <?php
    import('sites::apfdocupage::biz','APFModel');
-   import('tools::variablen','variablenHandler');
+   import('tools::request','RequestHandler');
 
 
    /**
@@ -30,6 +30,7 @@
       *  Version 0.1, 22.08.2008<br />
       *  Version 0.2, 17.09.2008 (Added functionality to write the content and quicknavi file names to the model)<br />
       *  Version 0.3, 19.09.2008 (Title is now set by the &lt;doku:title /&gt;-Tag)<br />
+      *  Version 0.4, 31.01.2009 (Removed the variablenHandler)<br />
       */
       function run(){
 
@@ -40,7 +41,7 @@
          $PageIndicatorNames = $Model->getAttribute('page.indicator');
          $PageIndicatorNameDE = $PageIndicatorNames['de'];
          $PageIndicatorNameEN = $PageIndicatorNames['en'];
-         $CurrentPageIndicators = variablenHandler::registerLocal(array($PageIndicatorNameDE => null,$PageIndicatorNameEN => null));
+         $CurrentPageIndicators = RequestHandler::getValues(array($PageIndicatorNameDE => null,$PageIndicatorNameEN => null));
 
          // check request parameters and set current language
          if($CurrentPageIndicators[$PageIndicatorNameDE] != null){

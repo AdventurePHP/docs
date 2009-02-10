@@ -7,14 +7,14 @@
 </doku:title>
 <core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
 <a name="1-Einfuehrung"></a><h3>1. Einf&uuml;hrung</h3>
-Um wiederverwendbare Anwendungen implementieren zu k&ouml;nnen wird an ein einigen Stellen das
+Um wiederverwendbare Anwendungen implementieren zu k&ouml;nnen wird an einigen Stellen das
 Hilfsmittel Konfiguration eingesetzt. Um auch hier eine generische Schnittstelle f&uuml;r das Laden
 und das Auslesen f&uuml;r Konfigurationen im Windows-INI-Stil zur Verf&uuml;gung zu haben wurde
 der <em>configurationManager</em> in das Framework integriert. Eine zus&auml;tzliche Wrapper-Methode
 in der Klasse <em>coreObject</em> bietet in jeder von <em>coreObject</em> erbenden Klasse die
 M&ouml;glichkeit die Methode <em>__getConfiguration()</em> aufzurufen und mit dieser eine
 Konfiguration zu laden. Da der <em>configurationManager</em> im Singleton-Modus initialisiert wird,
-kann ohne Performance-Einbu&szlig;en beliebig oft auf diesen zugegriffen werden - die Konfigurationen
+kann ohne Performance-Einbu&szlig;e beliebig oft auf diesen zugegriffen werden - die Konfigurationen
 werden intern gecached. Wie bereits erw&auml;hnt sind die Konfigurations-Dateien wie INI-Dateien
 aufgebaut, haben somit Sektionen- und Werte-Bereiche. Eine typische INI-Datei zeigt folgendes
 Code-Beispiel:
@@ -39,15 +39,18 @@ und die verwendeten Sektionen und Konfigurationsschl&uuml;ssel stehen fest.
 Bei der Bezeichnung der Dateien und Pfade sind einige Rahmenbedingungen zu beachten. Um Anwendungen
 oder Module (=Software-Teile, die in mehreren Applikationen eingesetzt werden k&ouml;nnen) in
 verschiedenen Applikationen (=Webseiten oder Anwendungen) wiederverwendbar zu machen ist eine
-Konfigurationsdatei aus viel unterschiedlichen Teilen zusammengesetzt:
+Konfigurationsdatei aus vier unterschiedlichen Teilen zusammengesetzt:
 <ul>
   <li>
     <strong>Namespace:</strong>
     <br />
-    Der Namespace ist der Pfad zum Basis-Ordner, in der alle Konfiguration einer Core-Klasse oder
+    Der Namespace ist der Pfad zum Basis-Ordner, in der alle Konfigurationen einer Core-Klasse oder
     eines Moduls residieren. Der Namespace ist oft &uuml;bereinstimmend mit dem Namespace des Moduls,
-    in dem die Konfiguration ben&ouml;tigt wird. Grunds&auml;tzlich sind alle Konfigurationen unter
-    dem Ordner <strong>config</strong> abgelegt um Konfigurationen vom Code zu separieren.
+    in dem die Konfiguration ben&ouml;tigt wird. Da das APF dem Anspruch gerecht werden m&ouml;chte,
+    Konfigurationen von Code zu separieren muss erwartet der <strong>configurationManager</strong>,
+    dass alle Konfigurationen unter <strong>config</strong> abgelegt sind. Das bedeutet, dass sich
+    der eigentliche Aufenthaltsort einer Konfiguration aus dem Namespace, der in der Applikation zur
+    Adressierung der Konfiguration genutzt wird, und dem Pr&auml;fix <em>config</em> zusammen setzt.
   </li>
   <li>
     <strong>Context:</strong>
@@ -145,8 +148,9 @@ neu erstellten Objekt mitgegeben. M&ouml;chte nun ein DocumentController eine Bu
 erzeugen, oder eine Referenz auf diese holen, so m&uuml;ssen immer die Methoden
 <em>__getServiceObject()</em> oder <em>__getAndInitServiceObject</em> verwendet werden. Die beiden
 Funktionen stellen sicher, dass jedes Service-Objekt den richtigen Context erh&auml;lt. Implementierungs-
-Details und Dokumentation der Parameter finden sich in der API-Dokumentation. In der Regel reicht es
-aus eine Service-Schicht mit dem PHP-Code
+Details und Dokumentation der Parameter finden sich in der
+<a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>. In der Regel
+reicht es aus eine Service-Schicht mit dem PHP-Code
 <php:highlight>
   $GuestbookID = '1';
   $oGuestbookManager = &$this->__getServiceObject('modules::guestbook::biz','guestbookManager');
@@ -179,19 +183,19 @@ einer Sektion zur&uuml;ckgegeben werden.
 <br />
 Wurde die verwendete Konfigurations-Datei mit den Werten
 <pre class="tagexample">
-  [Section1]
-  Key1 = "Value1"
-  Key2 = "Value2"
-  Key3 = "Value3"
-  [Section2]
-  Key1 = "Value1"
-  Key2 = "Value2"
-  Key3 = "Value3"
+[Section1]
+Key1 = "Value1"
+Key2 = "Value2"
+Key3 = "Value3"
+[Section2]
+Key1 = "Value1"
+Key2 = "Value2"
+Key3 = "Value3"
 </pre>
 gef&uuml;llt, so kann mit dem PHP-Code
 <php:highlight>
-  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
-  echo printObject($Config->getConfiguration());
+$Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+echo printObject($Config->getConfiguration());
 </php:highlight>
 das komplette Konfigurations-Array
 <pre class="tagexample">
@@ -214,32 +218,29 @@ Array
 </pre>
 ausgegeben werden, mit
 <php:highlight>
-  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
-  echo printObject($Config->getSection('Section2'));
+$Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+echo printObject($Config->getSection('Section2'));
 </php:highlight>
-das Array
+das Sektions-Array
 <pre class="tagexample">
 Array
 (
-    [Section2] => Array
-        (
-            [Key1] => Value1
-            [Key2] => Value2
-            [Key3] => Value3
-        )
+    [Key1] => Value1
+    [Key2] => Value2
+    [Key3] => Value3
 )
 </pre>
 und mit
 <php:highlight>
-  $Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
-  echo $Config->getValue('Section1','Key2');
+$Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+echo $Config->getValue('Section1','Key2');
 </php:highlight>
 der Wert
 <pre class="tagexample">
-  Value2
+Value2
 </pre>
-. Die Funktion <em>printObject()</em> wurde in den Code-Beispielen lediglich zur "Versch&ouml;nerung"
-der Ausgabe eingesetzt und ist in der Realit&auml;t nicht erforderlich.
+ausgegeben werden. Die Funktion <em>printObject()</em> wurde in den Code-Beispielen lediglich zur
+"Versch&ouml;nerung" der Ausgabe eingesetzt und ist in der Realit&auml;t nicht erforderlich.
 <br />
 <br />
 <br />
@@ -253,7 +254,7 @@ spezifizierten Konfigurations-Datei die sprachabh&auml;ngigen Inhalte aus und st
 Template-Dateien oder HTML-Templates dar.
 <br />
 <br />
-F&uuml;r die Realisierung sind zwei Schritte notwenig:
+F&uuml;r die Realisierung sind zwei Schritte notwendig:
 <br />
 <br />
 <br />

@@ -42,9 +42,8 @@
       */
       function transformContent(){
 
-         // take filesystemHandler and read releases
-         $fH = new filesystemHandler($this->__ReleasesLocalDir);
-         $Releases = array_reverse($fH->showDirContent());
+         // ead releases
+         $Releases = array_reverse(FilesystemManager::getFolderContent($this->__ReleasesLocalDir));
          usort($Releases,array('releases_quicknavi_controller','sortReleases'));
 
          // generate release list

@@ -1,6 +1,7 @@
 <?php
    import('modules::socialbookmark::pres::taglib','social_taglib_bookmark');
    import('sites::apfdocupage::biz','APFModel');
+   import('tools::request','RequestHandler');
 
 
    /**
@@ -43,7 +44,7 @@
          $CurrentPageIndicator = $PageIndicators[$Model->getAttribute('page.language')];
 
          // register current url name
-         $_LOCALS = variablenHandler::registerLocal(array($CurrentPageIndicator));
+         $_LOCALS = RequestHandler::getValues(array($CurrentPageIndicator));
 
          // set title
          $this->__Attributes['title'] = 'Adventure PHP Framework - '.$Model->getAttribute('page.title');
