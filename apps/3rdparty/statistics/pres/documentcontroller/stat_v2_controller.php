@@ -1,7 +1,7 @@
 <?php
    import('3rdparty::statistics::biz','StatManager');
    import('tools::datetime','dateTimeManager');
-   import('tools::variablen','variablenHandler');
+   import('tools::request','RequestHandler');
    import('tools::link','linkHandler');
 
 
@@ -46,7 +46,7 @@
       *  Version 0.4, 16.11.2008 (Removed the __registerLocal() method)<br />
       */
       function stat_v2_controller(){
-         $this->_LOCALS = variablenHandler::registerLocal(array('pagepart' => 'overview','Year' => null,'Month' => null,'Day' => null,'Hour' => null));
+         $this->_LOCALS = RequestHandler::getValues(array('pagepart' => 'overview','Year' => null,'Month' => null,'Day' => null,'Hour' => null));
        // end function
       }
 
