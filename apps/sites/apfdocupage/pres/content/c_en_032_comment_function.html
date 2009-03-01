@@ -412,15 +412,15 @@ component features the following functions concerning the <a href="./?Page=002-A
   <li><strong>getPagerURLParameters()</strong> (load the URL parameters used by the pager manager)</li>
 </ul>
 To use the pager manager a reference on a specific <strong>pagerManagery</strong> must be obtained by
-use of the <strong>pagerManagerFabric</strong>. While getting a pager manager the fabric must be told
+use of the <strong>PagerManagerFabric</strong>. While getting a pager manager the fabric must be told
 the configuration section to use to initialize the pager manager. The PHP code therefore looks as
 follows:
 <php:highlight>
    // get a singleton instance of the pager manager fabric
-   $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
+   $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
 
    // get an instance of the pagerManager
-   $pM = &$pMF->getPagerManager('ArticleComments',array('CategoryKey' => $this->__CategoryKey));
+   $pM = &$pMF->getPagerManager('ArticleComments');
 </php:highlight>
 With this code a pager manager is created and initialized with the configuration keys located in the
 configuration section <strong>ArticleComments</strong>. Moreover, the pager manager is initialized
@@ -441,6 +441,9 @@ the following content:
 ; ArticleComments                                                                                  ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [ArticleComments]
+; database connection key
+Pager.DatabaseConnection = "..."
+
 ; number of entries per page
 Pager.EntriesPerPage = "5"
 
@@ -515,12 +518,12 @@ looks as follows:
    function loadEntries(){
 
       // get pagerManager
-      $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
-      $pM = &$pMF->getPagerManager('ArticleComments',array('CategoryKey' => $this->__CategoryKey));
+      $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+      $pM = &$pMF->getPagerManager('ArticleComments');
 
       // load comments
       $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
-      return $pM->loadEntriesByAppDataComponent($M,'loadArticleCommentByID');
+      return $pM->loadEntriesByAppDataComponent($M,'loadArticleCommentByID',array('CategoryKey' => $this->__CategoryKey));
 
     // end function
    }
@@ -534,11 +537,11 @@ using a for loop. The corresponding PHP code looks as follows:
    function loadEntries(){
 
       // get pagerManager
-      $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
-      $pM = &$pMF->getPagerManager('ArticleComments',array('CategoryKey' => $this->__CategoryKey));
+      $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+      $pM = &$pMF->getPagerManager('ArticleComments');
 
       // load IDs
-      $EntryIDs = $pM->loadEntries();
+      $EntryIDs = $pM->loadEntries(array('CategoryKey' => $this->__CategoryKey));
 
       // load comments
       $M = &$this->__getServiceObject('modules::comments::data','commentMapper');

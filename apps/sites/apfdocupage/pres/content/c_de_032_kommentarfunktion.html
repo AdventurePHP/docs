@@ -426,15 +426,15 @@ gem&auml;&szlig; <a href="Seite=002-API-Dokumentation" title="API-Dokumentation"
   <li><strong>getPager()</strong> (HTML-Ausgabe des Pagers erzeugen)</li>
   <li><strong>getPagerURLParameters()</strong> (Ausgabe der URL-Parameter der aktuellen Pager-Konfiguration)</li>
 </ul>
-und eine Referenz auf einen Pager wird mit Hilfe der <strong>pagerManagerFabric</strong> bezogen. Der
+und eine Referenz auf einen Pager wird mit Hilfe der <strong>PagerManagerFabric</strong> bezogen. Der
 Fabric muss dazu der Abschnitt der zu verwendenden Konfiguration und ein Initialisierungs-Parameter
 mitgegeben werden. In PHP-Code funktioniert das wie folgt:
 <php:highlight>
    // Beziehen einer Singleton-Instanz der Fabric
-   $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
+   $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
 
    // Beziehen und initialisieren des PagerManagers
-   $pM = &$pMF->getPagerManager('ArticleComments',array('CategoryKey' => $this->__CategoryKey));
+   $pM = &$pMF->getPagerManager('ArticleComments');
 </php:highlight>
 Damit wird ein PagerManager erzeugt, die Konfiguration aus dem Abschnitt <strong>ArticleComments</strong>
 geladen und dieser mit dem Parameter <strong>CategoryKey</strong> und dem Wert aus der lokalen
@@ -453,6 +453,9 @@ Inhalt:
 ; ArticleComments                                                                                  ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [ArticleComments]
+; Datenbank ConnectionKey
+Pager.DatabaseConnection = "..."
+
 ; Anzahl Einträge pro Seite
 Pager.EntriesPerPage = "5"
 
@@ -533,12 +536,12 @@ Kommen wir nun nach der Konfiguration des Pagers zu dessen Verwendung. Die Metho
    function loadEntries(){
 
       // pagerManager holen
-      $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
-      $pM = &$pMF->getPagerManager('ArticleComments',array('CategoryKey' => $this->__CategoryKey));
+      $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+      $pM = &$pMF->getPagerManager('ArticleComments');
 
       // Kommentare laden
       $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
-      return $pM->loadEntriesByAppDataComponent($M,'loadArticleCommentByID');
+      return $pM->loadEntriesByAppDataComponent($M,'loadArticleCommentByID',array('CategoryKey' => $this->__CategoryKey));
 
     // end function
    }
@@ -553,11 +556,11 @@ die Objekte per Schleife mit Hilfe des Mappers zu laden. Das sieht in PHP-Code w
    function loadEntries(){
 
       // pagerManager holen
-      $pMF = &$this->__getServiceObject('modules::pager::biz','pagerManagerFabric');
-      $pM = &$pMF->getPagerManager('ArticleComments',array('CategoryKey' => $this->__CategoryKey));
+      $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+      $pM = &$pMF->getPagerManager('ArticleComments');
 
       // Ids laden
-      $EntryIDs = $pM->loadEntries();
+      $EntryIDs = $pM->loadEntries(array('CategoryKey' => $this->__CategoryKey));
 
       // Kommentare laden
       $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
