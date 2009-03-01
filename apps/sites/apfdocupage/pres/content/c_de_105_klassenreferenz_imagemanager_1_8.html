@@ -1,0 +1,135 @@
+<doku:title tags="dokumentation,klassen referenz,klassen,referenz,imagemanager" title="Klassen-Referenz - ImageManager (bis 1.8)" urlname="Klassenreferenz-ImageManager-bis-1-8">
+  Der ImageManager implementiert Methoden zur Bearbeitung von Bildern. Hierbei werden sowohl JPG und
+  GIF als auch PNG-Bilder unterst&uuml;tzt, sofern die PHP-GD-Library in den entsprechenden Version
+  verf&uuml;gbar ist.
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+Der <strong>ImageManager</strong> implementiert Methoden zur Bearbeitung von Bildern. Hierbei werden
+sowohl JPG und GIF als auch PNG-Bilder unterst&uuml;tzt, sofern die PHP-GD-Library in den entsprechenden
+Version verf&uuml;gbar ist. Der <strong>ImageManager</strong> muss vor der Verwendung per
+<php:highlight>
+  import('tools::image','ImageManager');
+</php:highlight>
+eingebunden werden. Um die Klasse verwenden zu k&ouml;nnen muss diese instanziiert werden. Lediglich
+die Methode <strong>getImageAttributes()</strong> kann statisch benutzt werden. F&uuml;r
+die Bearbeitung von Bildern stehen folgende Methoden zur Verf&uuml;gung:
+<ul>
+  <li>
+    <strong>setImageSize()</strong>:
+    <br />
+    Setzt die Ziel-Ma&szlig;e f&uuml;r das Bearbeiten von Bildern mit <em>resizeImage()</em>.
+  </li>
+  <li>
+    <strong>generateThumbnail()</strong>:
+    <br />
+    Erzeugt ein Thumbnail nach der Nameskonvention <em>{Bisherige Dateiname minus Endung}_thumb.{Endung}</em>
+    in einem &uuml;bergebenen Ordner.
+  </li>
+  <li>
+    <strong>showImageAttributes()</strong> (statisch):
+    <br />
+    Zeigt Bild-Attribute wie Breite, H&ouml;he, Type u.s.w. an.
+  </li>
+  <li>
+    <strong>resizeImage()</strong>:
+    <br />
+    Vergr&ouml;&szlig;ert oder verkleinert ein gegebenes Bild unter Ber&uuml;cksichtigung eines
+    Zieldateinamens.
+  </li>
+  <li>
+    <strong>setJPGQuality()</strong>:
+    <br />
+    Konfiguriert die Qualit&auml;t eines JPG-Bildes w&auml;hrend einer JPG-Komprimierung.
+    Standard-Qualit&auml;t ist 80%.
+  </li>
+</ul>
+Ein typischer Anwendungsfall ist das Ausliefern von Bildern &uuml;ber eine PHP-Datei unter Angabe von
+Bildma&szlig;en. Im folgenden Skript wird davon ausgegeben, dass dieses immer mit korrekten und
+vollst&auml;ndigen Parametern aufgerufen wird. Weitergehende Pr&uuml;fungen sind nicht enthalten.
+<php:highlight>
+  // Einbinden des ImageManagers
+  import('tools::image','ImageManager');
+
+  // Gemeinsamen Bild-Basis-Pfad definieren
+  $imageBasePath = '../pics';
+
+  // Cache-Ordner definieren
+  $imageCacheFolder = '../pics_cache';
+
+  // Parameter 'image' lokal verfuegbar machen
+  $image = (string)$_REQUEST['image'];
+
+  // Pruefen, ob Datei existiert
+  if(file_exists($imageBasePath.'/'.$image)){
+
+     // Bildmasse holen
+     $ImageInfo = ImageManager::showImageAttributes($imageBasePath.'/'.$image);
+
+     // Breite setzen
+     $width = (int)$_REQUEST['width'];
+
+     // Hoehe setzen
+     $height = (int)$_REQUEST['hight'];
+
+   // end if
+  }
+  else{
+     trigger_error('The file specified with the parameter \'image\' does not exist in the image
+                    path \''.$imageBasePath.'\'!',E_USER,ERROR);
+     exit(1);
+   // end else
+  }
+
+  // Cache-Key erzeugen
+  $cacheKey = md5($image).'.'.$ImageInfo['Extension'];
+
+  // Cache pr&uuml;fen
+  if(file_exists($imageCacheFolder.'/'.$cacheKey)){
+
+     // ImageManager erzeugen
+     $iM = new ImageManager($width,$height);
+
+     // Bild resizen und cachen
+     $cachedImage = $iM->resizeImage($imageBasePath.'/'.$image,$imageCacheFolder,$cacheKey);
+
+   // end if
+  }
+
+
+  // ContentType zusammensetzen
+  switch($ImageInfo['Extension']){
+
+     case 'gif':
+        $ContentType = 'image/gif';
+        break;
+     case 'jpg':
+        $ContentType = 'image/jpg';
+        break;
+     case 'jpeg':
+        $ContentType = 'image/jpg';
+        break;
+     case 'png':
+        $ContentType = 'image/png';
+        break;
+     default:
+        $ContentType = 'application/octet-stream';
+        break;
+
+   // end switch
+  }
+
+  // Header ausgeben
+  header('Content-Type: '.$ContentType);
+  header('Content-disposition: inline; filename="'.$image.'"');
+  header('Content-Transfer-Encoding: binary');
+  header('Content-Length: '.filesize($imageCacheFolder.'/'.$cacheKey));
+
+  // Bild ausgeben
+  @readfile($imageCacheFolder.'/'.$cacheKey);
+
+  // Ausgabe beenden
+  exit();
+
+</php:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_105" />

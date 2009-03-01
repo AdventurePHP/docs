@@ -1,0 +1,130 @@
+<doku:title tags="documentation,class reference,classes,reference,imagemanager" title="Class reference table - ImageManager (until 1.8)" urlname="Class-reference-table-ImageManager-until-1-8">
+  The ImageManager component implements methods to edit pictures. Here JPEG and GIF are as well
+  supported as PNG images if the PHP GDLib is available in the correct version.
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+The <strong>ImageManager</strong> component implements methods to edit pictures. Here JPEG and GIF
+are as well supported as PNG images if the PHP GDLib is available in the correct version. To use the
+<strong>ImageManager</strong> it must be included into the current application using
+<php:highlight>
+  import('tools::image','ImageManager');
+</php:highlight>
+before instanciating it. The method <strong>showImageAttributes()</strong> can be used statically if
+desired. For the manupulation of pictured the following functions ara available:
+<ul>
+  <li>
+    <strong>setImageSize()</strong>:
+    <br />
+    Sets the target dimensions of a picture treated by <em>resizeImage()</em>.
+  </li>
+  <li>
+    <strong>generateThumbnail()</strong>:
+    <br />
+    Creates a thumbnail in a folder specified in the arguments of the function. The picture is named
+    <em>{current file name minus extension}_thumb.{extension}</em>.
+  </li>
+  <li>
+    <strong>showImageAttributes()</strong> (statisch):
+    <br />
+    Shows immage attributes such as width, height, type and so on.
+  </li>
+  <li>
+    <strong>resizeImage()</strong>:
+    <br />
+    Extends or scale down a given image and store it to a defined folder.
+  </li>
+  <li>
+    <strong>setJPGQuality()</strong>:
+    <br />
+    Configures the compression quality used during JPEG compression. Default value is 80%.
+  </li>
+</ul>
+A typical application case is delivering pictures via a PHP file that is called with several parameters
+such as picture dimensions. In the following script it is given the fact that this is always called
+with correct and entire parameters. Further check is not included.
+<php:highlight>
+  // inclusion of the ImageManagers
+  import('tools::image','ImageManager');
+
+  // definition of the picture base path
+  $imageBasePath = '../pics';
+
+  // definition of the cache folder
+  $imageCacheFolder = '../pics_cache';
+
+  // make REQUEST parameter 'image' available locally
+  $image = (string)$_REQUEST['image'];
+
+  // check whether file exists
+  if(file_exists($imageBasePath.'/'.$image)){
+
+     // gather image dimensions
+     $ImageInfo = ImageManager::showImageAttributes($imageBasePath.'/'.$image);
+
+     // set width
+     $width = (int)$_REQUEST['width'];
+
+     // set height
+     $height = (int)$_REQUEST['hight'];
+
+   // end if
+  }
+  else{
+     trigger_error('The file specified with the parameter \'image\' does not exist in the image
+                    path \''.$imageBasePath.'\'!',E_USER,ERROR);
+     exit(1);
+   // end else
+  }
+
+  // create cache key
+  $cacheKey = md5($image).'.'.$ImageInfo['Extension'];
+
+  // check cache
+  if(file_exists($imageCacheFolder.'/'.$cacheKey)){
+
+     // create ImageManager
+     $iM = new ImageManager($width,$height);
+
+     // resize image and cache it
+     $cachedImage = $iM->resizeImage($imageBasePath.'/'.$image,$imageCacheFolder,$cacheKey);
+
+   // end if
+  }
+
+
+  // set ContentType
+  switch($ImageInfo['Extension']){
+
+     case 'gif':
+        $ContentType = 'image/gif';
+        break;
+     case 'jpg':
+        $ContentType = 'image/jpg';
+        break;
+     case 'jpeg':
+        $ContentType = 'image/jpg';
+        break;
+     case 'png':
+        $ContentType = 'image/png';
+        break;
+     default:
+        $ContentType = 'application/octet-stream';
+        break;
+
+   // end switch
+  }
+
+  // send header
+  header('Content-Type: '.$ContentType);
+  header('Content-disposition: inline; filename="'.$image.'"');
+  header('Content-Transfer-Encoding: binary');
+  header('Content-Length: '.filesize($imageCacheFolder.'/'.$cacheKey));
+
+  // flush image
+  @readfile($imageCacheFolder.'/'.$cacheKey);
+
+  // return from script
+  exit();
+</php:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_105" />
