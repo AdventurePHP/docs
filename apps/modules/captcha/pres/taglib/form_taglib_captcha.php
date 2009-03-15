@@ -1,12 +1,33 @@
 <?php
+   /**
+   *  <!--
+   *  This file is part of the adventure php framework (APF) published under
+   *  http://adventure-php-framework.org.
+   *
+   *  The APF is free software: you can redistribute it and/or modify
+   *  it under the terms of the GNU Lesser General Public License as published
+   *  by the Free Software Foundation, either version 3 of the License, or
+   *  (at your option) any later version.
+   *
+   *  The APF is distributed in the hope that it will be useful,
+   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   *  GNU Lesser General Public License for more details.
+   *
+   *  You should have received a copy of the GNU Lesser General Public License
+   *  along with the APF. If not, see http://www.gnu.org/licenses/lgpl-3.0.txt.
+   *  -->
+   */
+
    import('tools::form::taglib','ui_element');
-   import('tools::variablen','variablenHandler');
+   import('tools::request','RequestHandler');
    import('tools::string','stringAssistant');
    import('core::session','sessionManager');
+   import('tools::link','frontcontrollerLinkHandler');
 
 
    /**
-   *  @package modules::captcha::pres::taglib
+   *  @namespace modules::captcha::pres::taglib
    *  @module form_taglib_captcha
    *
    *  Implements a CAPTCHA-Taglib to extend a form's features. Inherits from ui_element in order to
@@ -46,6 +67,7 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 20.06.2008<br />
+      *  Version 0.2, 10.11.2008 (Added the "clearonerror" attribute. If set to "true", the field is cleared on error.)<br />
       */
       function onAfterAppend(){
 
@@ -90,12 +112,19 @@
          if($this->__ParentObject->get('isSent') == true && isset($this->__Attributes['validate']) && $this->__Attributes['validate'] == 'true'){
 
             // register field name from the request
-            $_LOCALS = variablenHandler::registerLocal(array($this->__TextFieldName => null));
+            $_LOCALS = RequestHandler::getValues(array($this->__TextFieldName => null));
 
             // validate field
             if($_LOCALS[$this->__TextFieldName] != $CaptchaString){
                $this->__TextField->setAttribute('style',$this->__TextField->getAttribute('style').'; '.$this->__ValidatorStyle);
                $this->__ParentObject->set('isValid',false);
+
+               // clear captcha field, if desired
+               if($this->getAttribute('clearonerror') === 'true'){
+                  $this->__TextField->setAttribute('value','');
+                // end if
+               }
+
              // end if
             }
 
@@ -114,45 +143,48 @@
       *  @author Christian Achatz
       *  @version
       *  Version 0.1, 20.06.2008<br />
+      *  Version 0.2, 05.11.2008 (Changed action base url generation)<br />
+      *  Version 0.3, 07.11.2008 (Fixed the action URL generation. See class ui_mediastream for more details.)<br />
       */
       function transform(){
 
          // get url rewrite information from the registry
-         $Registry = &Singleton::getInstance('Registry');
-         $URLRewrite = $Registry->retrieve('apf::core','URLRewriting');
+         $reg = &Singleton::getInstance('Registry');
+         $urlrewrite = $reg->retrieve('apf::core','URLRewriting');
+         $actionurl = $reg->retrieve('apf::core','CurrentRequestURL');
 
-         // initialize base url
-         if(isset($this->__Attributes['action_baseurl'])){
-            $ActionBaseURL = $this->__Attributes['action_baseurl'];
+         // build action statement
+         if($urlrewrite === true){
+            $actionParam = array(
+                                 'modules_captcha_biz-action/showCaptcha' => 'name/'.$this->__TextFieldName
+                                );
           // end if
          }
          else{
-            $ActionBaseURL = (string)'';
+            $actionParam = array(
+                                 'modules_captcha_biz-action:showCaptcha' => 'name:'.$this->__TextFieldName
+                                );
           // end else
          }
+
+         // create desired media url
+         $actionURL = frontcontrollerLinkHandler::generateLink($actionurl,$actionParam);
 
          // initialize captcha source
-         if($URLRewrite == true){
-            $CaptchaCode = '<img src="'.$ActionBaseURL.'/~/modules_captcha_biz-action/showCaptcha/name/'.$this->__TextFieldName.'" alt="CAPTCHA" align="absmiddle" ';
-          // end if
-         }
-         else{
-            $CaptchaCode = '<img src="'.$ActionBaseURL.'/?modules_captcha_biz-action:showCaptcha=name:'.$this->__TextFieldName.'" alt="CAPTCHA" align="absmiddle" ';
-          // end else
-         }
+         $captchaCode = '<img src="'.$actionURL.'" alt="CAPTCHA" align="absmiddle" ';
 
          // add class and style attributes if desired
          if(isset($this->__Attributes['image_class'])){
-            $CaptchaCode .= 'class="'.$this->__Attributes['image_class'].'" ';
+            $captchaCode .= 'class="'.$this->__Attributes['image_class'].'" ';
           // end if
          }
          if(isset($this->__Attributes['image_style'])){
-            $CaptchaCode .= 'style="'.$this->__Attributes['image_style'].'" ';
+            $captchaCode .= 'style="'.$this->__Attributes['image_style'].'" ';
           // end if
          }
 
          // concatinate the html code and return it
-         return $CaptchaCode.'/> '.$this->__TextField->transform();
+         return $captchaCode.'/> '.$this->__TextField->transform();
 
        // end function
       }

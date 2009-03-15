@@ -1,0 +1,259 @@
+<doku:title tags="migration,1.8,1.9,api,changes,new features" title="Migration from 1.8 to 1.9" urlname="Migration-from-1-8-to-1-9">
+  The present article describes the changes, that have to be applied to your applications when
+  updating the framework classes from revision 1.8 to revision 1.9.
+</doku:title>
+<a name="1-Introduction"></a><h3>1. Introduction</h3>
+Revision 1.9 contains changes, that introduce a new API to some of the components. For this reason,
+it is necessary to adapt your applications. The following chapters describe the necessary updates
+and they contains hints on the new features.
+<br />
+<br />
+<br />
+<a name="2-Remove-variablenHandler"></a><h3>2. Remove variablenHandler</h3>
+As you can take from the release notes, the deprected class <strong>variablenHandler</strong> was
+removed. As a replacement, the
+<a href="./?Page=096-Class-reference-table-RequestHandler" title="Class-reference-table - RequestHandler">RequestHandler</a>
+was introduced in 1.8 and it provides similar functionality.
+<br />
+<br />
+The migration from <strong>variablenHandler</strong> to the <strong>RequestHandler</strong> is quite
+easy regarding the nearly identical API. To do so, each statement of the type
+<php:highlight testing="true">
+$myVar = variablenHandler::registerLocal(...);
+</php:highlight>
+must be replaced with
+<php:highlight testing="true">
+$myVar = RequestHandler::getValues(...);
+</php:highlight>
+Further, the import statement, must be changed from
+<php:highlight testing="true">
+import('tools::variablen','variablenHandler');
+</php:highlight>
+to
+<php:highlight testing="true">
+import('tools::request','RequestHandler');
+</php:highlight>
+The changes thus can be dony by &quot;<em>search&replace</em>&quot;.
+<br />
+<br />
+<br />
+<a name="3-Switch-to-FilesystemManager"></a><h3>3. Switch to FilesystemManager</h3>
+The switch from the deprecated component <strong>filesystemHandler</strong> to the brand new
+<strong>FilesystemManager</strong> is a little bit more challenging. Not only the name of the class
+is different, but also the methods and their signature have changed.
+<br />
+<br />
+The following table depicts the changes of the methods:
+<br />
+<br />
+<style type="text/css">
+.api_changes
+{
+   width: 99%;
+   position: relative;
+   font-size: 11px;
+}
+
+.api_changes td
+{
+   padding: 5px;
+   border-bottom: 1px dashed gray;
+}
+
+.filled
+{
+   background-color: lightgray;
+   font-weight: bold;
+}
+</style>
+<table cellpadding="0" cellspacing="0" class="api_changes">
+  <tr>
+    <td class="filled">Method of the filesystemHandler (old)</td>
+    <td class="filled">Method of the FilesystemManager (new)</td>
+  </tr>
+  <tr>
+    <td>deleteFolderRecursive(<em>$folder = ''</em>)</td>
+    <td>deleteFolder(<em>$folder</em>[,<em>$recursive = true</em>])</td>
+  </tr>
+  <tr>
+    <td>deleteWorkDir()</td>
+    <td>deleteFolder(<em>$folder</em>[,<em>$recursive = false</em>])</td>
+  </tr>
+  <tr>
+    <td>changeWorkDir([<em>$folder = '.'</em>])</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>renameFile(<em>$fileName</em>,<em>$newFileName</em>)</td>
+    <td>renameFile(<em>$sourceFile</em>,<em>$targetFile</em>[,<em>$force = false</em>])</td>
+  </tr>
+  <tr>
+    <td>getAffectedFiles()</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>deleteFiles(<em>$files = array()</em>)</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>-</td>
+    <td>removeFile(<em>$file<em>)</td>
+  </tr>
+  <tr>
+    <td>copyFile(<em>$sourceFile</em>,<em>$targetFile</em>)</td>
+    <td>copyFile(<em>$sourceFile</em>,<em>$targetFile</em>[,<em>$force = false</em>])</td>
+  </tr>
+  <tr>
+    <td>showFileSize($<em>$file<em>)</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>showDirContent()</td>
+    <td>getFolderContent(<em>$folder</em>[,<em>$fullpath = false</em>])</td>
+  </tr>
+  <tr>
+    <td>showDirSize()</td>
+    <td>showFolderSize(<em>$folder</em>)</td>
+  </tr>
+  <tr>
+    <td>showDirContentCount()</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>showFileAttributes(<em>$file<em>)</td>
+    <td>getFileAttributes(<em>$file<em>[,<em>$attributeName = null</em>)]</td>
+  </tr>
+  <tr>
+    <td>deleteWorkDir()</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>isFileNameUnique(<em>$folder</em>,<em>$fileName</em>)</td>
+    <td>-</td>
+  </tr>
+</table>
+<br />
+<br />
+<strong>Notes:</strong>
+<ul>
+  <li>
+    <strong>renameFile()</strong>: <em>$sourceFile</em> and <em>$sourceFile</em> must contain qualified
+    path names. If the third param, is set to <em>true</em>, the existing target file will be overwritten.
+  </li>
+  <li>
+    <strong>removeFile()</strong>: <em>$file</em> must contain a qualified path name.
+  </li>
+  <li>
+    <strong>copyFile()</strong>: <em>$sourceFile</em> and <em>$sourceFile</em> must contain qualified
+    path names. If the third param, is set to <em>true</em>, the existing target file will be overwritten.
+  </li>
+  <li>
+    The <strong>uploadFile()</strong> method has still the same signature, but the target name of the
+    uploaded file must be checked by the developer (e.g. for allowed characters). Further, the function
+    returns <em>true</em> in case of success and <em>false</em> in case of an error but not the name
+    of the uploaded file as of revision 1.8 or earlier.
+  </li>
+  <li>
+    The <strong>getFileAttributes()</strong> function returns a associative array of file attributes.
+    If the second param is set to the name of an attribute, the value is returned instead of the
+    whole list.
+  </li>
+  <li>
+    The <strong>FilesystemManager</strong> component only contains static methods.
+  </li>
+</ul>
+<br />
+The usage of the new class can be taken from the
+<a href="./?Page=002-API-documentation" title="API documentation">API documentation</a> or the
+<a href="./?Page=085-Class-reference-table-FilesystemManager" title="Class reference table">class reference table</a>
+<br />
+<br />
+<br />
+<a name="4-Changes-pager"></a><h3>4. Changes to the pager</h3>
+Release 1.9 contains several compatibility changes to the pager module.
+<br />
+<br />
+<br />
+<a name="4-1-Configuration-changes"></a><h4>4.1. Configuration changes</h4>
+In order to use the pager with the <em>GenericORMapper</em>, the database access is now done by the
+<em>ConnectionManager</em>. Further, the <em>SessionManager</em> was introduced to cache the results
+of the pager in order to gain performance.
+<br />
+<br />
+To use these extensions, the existing configuration files must be adde two new parameters. These are:
+<pre class="tagexample">
+Pager.DatabaseConnection = "&lt;ConnectionKey&gt;"
+Pager.CacheInSession = "true|false"
+</pre>
+The first directive indicates the database connection to use (see
+<a href="./?Page=031-Class-reference-table-connectionManager" title="Class reference table - connectionManager">connectionManager</a>
+for details), the second one defines, if the pager results should be stored in the session.
+<br />
+<br />
+<br />
+<a name="4-2-API-changes"></a><h4>4.2. API changes</h4>
+The refactoring includes changes to the API as well. The following table gives an overview of the
+the modifications:
+<br />
+<br />
+<table cellpadding="0" cellspacing="0" class="api_changes">
+  <tr>
+    <td class="filled">Method of the pagerManager (old)</td>
+    <td class="filled">Method of the PagerManager (new)</td>
+  </tr>
+  <tr>
+    <td>loadEntries()</td>
+    <td>loadEntries([<em>$addStmtParams=array()</em>])</td>
+  </tr>
+  <tr>
+    <td>
+      loadEntriesByAppDataComponent(
+      <em>&$DataComponent</em>,
+      <em>$LoadMethod</em>)
+    </td>
+    <td>
+      loadEntriesByAppDataComponent(
+      <em>&$dataComponent</em>,
+      <em>$loadMethod</em>[,
+      <em>$addStmtParams=array()</em>])
+    </td>
+  </tr>
+  <tr>
+    <td>getPager()</td>
+    <td>getPager([<em>$addStmtParams=array()</em>])</td>
+  </tr>
+</table>
+<br />
+<br />
+<strong>Notes:</strong>
+<ul>
+  <li>
+    The mos important change is, that the additional params applied to the pager must now be present
+    as an argument with all load methods.
+  </li>
+  <li>
+    Another important change is, that the fabric class was renamed from <strong>pagerManagerFabric</strong>
+    to <strong>PagerManagerFabric</strong>. This means, thet the creation of the pager can be
+    achieved with the following code snippet:
+<php:highlight testing="true">
+$pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+$pM = &$pMF->getPagerManager('{CONFIG_SECTION}');
+</php:highlight>
+  </li>
+</ul>
+<br />
+<a name="5-Changes-ImageManager"></a><h3>5. Changes ImageManager</h3>
+The new API of the <strong>ImageManager</strong> included exactly two static methods. In order to
+migrate to the new version of the class, the two old methods <em>generateThumbnail()</em> and
+<em>resizeImage()</em> have to be replaced by the new <strong>resizeImage()</strong> function. Second,
+all calles to the <em>showImageAttributes()</em> method must be exchanged with
+<strong>getImageAttributes()</strong>.
+<br />
+<br />
+Please note, thet the <em>getImageAttributes()</em> now uses different keys for the image attributes.
+Details can be taken from the
+<a href="./?Page=025-Class-reference-table-ImageManager" title="Class reference table - ImageManager">class reference table</a>.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_106" />

@@ -1,6 +1,8 @@
 <?php
    // set error messages to text only
    ini_set('html_errors','off');
+   error_reporting(E_ALL);
+   ini_set('display_errors','On');
 
    // include the page controller file (this is necessary to include the APF core layer)
    include_once('../apps/core/pagecontroller/pagecontroller.php');

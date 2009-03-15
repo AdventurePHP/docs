@@ -1,7 +1,7 @@
 <?php
    import('core::logging','Logger');
    import('core::database','connectionManager');
-   import('core::filesystem','filesystemHandler');
+   import('tools::filesystem','FilesystemManager');
    import('sites::apfdocupage::biz','APFModel');
 
 
@@ -34,6 +34,13 @@
 
 
       function fulltextsearchIndexer(){
+      }
+
+
+      function debugPage(){
+         //echo $this->__createPageOutput('9','011_formulare','de');
+         echo $this->__createPageOutput('10','012_frontcontroller','en');
+       // end function
       }
 
 
@@ -71,8 +78,7 @@
          $SQL->executeTextStatement($delete);
 
          // list content files
-         $fH = new filesystemHandler($this->__ContentFolder);
-         $Files = $fH->showDirContent();
+         $Files = FilesystemManager::getFolderContent($this->__ContentFolder);
 
          // import files
          foreach($Files as $File){
@@ -174,6 +180,7 @@
 
             // gather article id
             $ArticleID = $data_articles['ArticleID'];
+            echo '<br /><br />ArticleID: '.$ArticleID.' (file: '.$data_articles['FileName'].')<br />';
 
             // log index run
             $L->logEntry($this->__LogFileName,'[START] Indexing article "'.$data_articles['FileName'].'" (ID: '.$ArticleID.') ...');
@@ -329,14 +336,14 @@
       */
       function __createPageOutput($PageID,$FileName,$Language){
 
-         // create a page
-         $CurrentPage = new Page('SearchIndex',false);
-
          // fill the model
          $Model = &Singleton::getInstance('APFModel');
          $Model->setAttribute('page.id',$PageID);
          $Model->setAttribute('page.contentfilename','c_'.$Language.'_'.$FileName.'.html');
          $Model->setAttribute('page.language',$Language);
+
+         // create a page
+         $CurrentPage = new Page('SearchIndex',false);
 
          // apply context and language
          $CurrentPage->set('Context',$this->__Context);

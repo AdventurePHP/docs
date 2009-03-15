@@ -1,5 +1,5 @@
 <?php
-   import('tools::variablen','variablenHandler');
+   import('tools::request','RequestHandler');
    import('tools::datetime','dateTimeManager');
    import('tools::link','linkHandler');
    import('sites::apfdocupage::biz','fulltextsearchManager');
@@ -41,7 +41,7 @@
       function transformContent(){
 
          // register search content
-         $_LOCALS = variablenHandler::registerLocal(array('search' => ''));
+         $_LOCALS = RequestHandler::getValues(array('search' => ''));
 
          // get registry and gather url mode
          $Reg = &Singleton::getInstance('Registry');

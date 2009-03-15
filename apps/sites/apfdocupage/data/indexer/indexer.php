@@ -43,6 +43,10 @@
          $fSI->importArticles();
        // end if
       }
+      elseif($_REQUEST['job'] == 'debugpage'){
+         $fSI->debugPage();
+       // end if
+      }
       else{
          $nothing2do = true;
        // end else
