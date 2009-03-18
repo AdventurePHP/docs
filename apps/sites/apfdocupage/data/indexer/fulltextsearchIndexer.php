@@ -37,13 +37,6 @@
       }
 
 
-      function debugPage(){
-         //echo $this->__createPageOutput('9','011_formulare','de');
-         echo $this->__createPageOutput('10','012_frontcontroller','en');
-       // end function
-      }
-
-
       /**
       *  @public
       *
@@ -173,7 +166,7 @@
          $SQL->executeTextStatement($delete);
 
          // select articles
-         $select_articles = 'SELECT * FROM search_articles LIMIT 20;';
+         $select_articles = 'SELECT * FROM search_articles';
          $result_articles = $SQL->executeTextStatement($select_articles);
 
          while($data_articles = $SQL->fetchData($result_articles)){
