@@ -173,17 +173,17 @@
          $SQL->executeTextStatement($delete);
 
          // select articles
-         $select_articles = 'SELECT * FROM search_articles';
+         $select_articles = 'SELECT * FROM search_articles LIMIT 20;';
          $result_articles = $SQL->executeTextStatement($select_articles);
 
          while($data_articles = $SQL->fetchData($result_articles)){
 
             // gather article id
             $ArticleID = $data_articles['ArticleID'];
-            echo '<br /><br />ArticleID: '.$ArticleID.' (file: '.$data_articles['FileName'].')<br />';
+            //echo '<br /><br />ArticleID: '.$ArticleID.' (file: '.$data_articles['FileName'].')<br />';
 
             // log index run
-            $L->logEntry($this->__LogFileName,'[START] Indexing article "'.$data_articles['FileName'].'" (ID: '.$ArticleID.') ...');
+            $L->logEntry($this->__LogFileName,'[START] Indexing article "'.$data_articles['FileName'].'" (ID: '.$ArticleID.', Lang: '.$data_articles['Language'].') ...');
 
             // generate html code of the current content
             $Content = $this->__createPageOutput($data_articles['PageID'],$data_articles['FileName'],$data_articles['Language']);
