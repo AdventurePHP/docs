@@ -315,6 +315,13 @@
       */
       function getBrowser(){
 
+         // return unknown, if user agent is not sent along
+         if(!isset($_SERVER['HTTP_USER_AGENT'])){
+            return 'n/a';
+          // end if
+         }
+
+         // define known browsers
          $BrowserTable = array(
                                'Konqueror' => '[BROWSER] Konqueror',
                                'Konqueror/3.4' => '[BROWSER] Konqueror 3.4',
@@ -339,6 +346,7 @@
          //   SELECT UserAgent, COUNT(UserAgent) AS count FROM statistics WHERE NOT INSTR(UserAgent,'Mozilla') GROUP BY UserAgent
          //
 
+         // define known bots
          $BotTable = array(
                            'Yahoo! Slurp' => '[BOT] Yahoo! spider',
                            'appie 1.1 (www.walhello.com)' => '[BOT] walhello.com',
