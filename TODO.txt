@@ -260,17 +260,23 @@ Release 1.10:
 
 - abstract einführen (coreObject, ...)
 
-- Gästebuch auf ConnectionManager umstellen, damit keine Konflikte in der Konfiguration entstehen.
+- [OK] Gästebuch auf ConnectionManager umstellen, damit keine Konflikte in der Konfiguration entstehen.
+
+- Doku-Update für neue Gästebuch-Implementierung!
 
 - [OK] Statistik-Tool (FC-Action der neuen Seite) in die alte integrieren
 
 - [OK] Sprachumschalter der alten Seite von der Language-Action befreien - geht nun auch so!
+
+- PHP-4-Backport-Script schreiben um die Pflege nur noch im PHP-5-Zweig betreiben zu müssen.
 
 - [CD] Evaluieren, wie man mit doxygen saubere Namespace Dokus bekommt! -> Stichwort: Auslagerung der
   Package-Informationen + Update der Doku.
   -> Zur Hälfte abgeschlossen: Man muss diese auslagern, sauber dokumentieren und als erste zu
      parsende Datei in der config einbinden.
   -> Namespaces wurden aus der Doku entfernt.
+
+- Formular-Dokumentation erweitern: Beispiel für Validator-Gruppen-Tags.
 
 - Erweiterung des HeaderManagers, dass dieser wie die phpCube-Komponente die richtigen Cache-Header
   sendet. Stichwort: session_cache_limiter('none')!
@@ -283,6 +289,29 @@ Release 1.10:
 - Neue Komponente DIServiceManager, der dependency injection abbilden kann (config-files). Zusätzlich
   soll dieser eine DI-Komponente noch mit weiteren Komponenten initialisieren können (z.B.
   Datenbank-Verbindungen und weiteren Service-Objekten)
+
+  Aufbau:
+
+     1. Konfigurationsdateien für Initializer (method injection):
+        [dbconn]
+        method = "initDBConnection"
+        serviceobject = "ServiceObjectB" ; may eventually not have an initializer
+                                         ; to avoid circular dependencies
+
+
+     2. Konfiguration für Service-Objekte
+        [ServiceObjectA]
+        servicetype = "SINGLETON|SESSIONSINGLETON|NORMAL"
+        namespace = "path::to::my::service::layer::component"
+        class = "SampleServiceLayer"
+        initializer = "dbconn;foo"
+        initparam = "" ; optional static init param, that can be applied to the initDefault() method
+
+
+     3. DIServiceManager
+        // wird wie üblich mit context + environment addressiert
+        $serviceObject = &$this->__getDIServiceObject('namespace::to::configuration','config_name');
+
 
 - Artikel über Baumstrukturen mit ParentID-Beziehung schreiben und evtl. eine Komponente bereitstellen
   - Methoden vorhalten wie
@@ -322,8 +351,6 @@ Release 1.10:
 - Redesign dateTimeManager (evlt. auch canceln!) -> mit Alex besprechen. Vielleicht ist das für sein
   Projekt interessant und man kann da was zusammen machen (Stichwort: Internationalisierung von Datum
   und Währung)
-
-- Formular-Dokumentation erweitern: Beispiel für Validator-Gruppen-Tags.
 
 - http://www.sitepoint.com/blogs/2008/08/29/rasmus-lerdorf-php-frameworks-think-again/ verlinken
 

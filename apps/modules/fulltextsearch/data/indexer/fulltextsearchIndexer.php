@@ -106,7 +106,7 @@
                $Name = substr($File,5,(strlen($File) - 10));
                $ModStamp = date('Y-m-d H:i:s',filemtime($this->__ContentFolder.'/'.$File));
                $Content = file_get_contents($this->__ContentFolder.'/'.$File);
-               preg_match('/<font style="font-size: 26px; font weight: bold;">([A-Za-z0-9-\(\)&;:.<\/>!\s]+)<\/font>/i',$Content,$Matches);
+               preg_match('/<font style="font-size: 26px; font-weight: bold;">([A-Za-z0-9-\(\)&;:.<\/>!\s]+)<\/font>/i',$Content,$Matches);
                unset($Content);
 
                if(isset($Matches[1])){
