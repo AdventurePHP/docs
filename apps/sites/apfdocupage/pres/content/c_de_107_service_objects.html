@@ -1,0 +1,362 @@
+<doku:title tags="service,object,dependency,injection,di,framework,factory,service manager,manager,business services" title="Services" urlname="Services">
+   Services
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+<a name="1-Einleitung"></a><h3>1. Einleitung</h3>
+Die Kapselung von Funktionalit&auml;t in diverse eigenst&auml;ndige Komponenten ist eine in der
+objektorientierten Welt sehr verbreitete Methodik. Der Vorteil dieser Aufteilung wird im
+<strong>Mehrschicht-Architektur-Pattern</strong> beschrieben. Dabei geht der Entwickler beim Erstellen
+des Designs der Software davon aus, dass unterschiedliche Schichten der Software jeweils typischen
+Aufgaben &uuml;bernehmen.
+<br />
+<br />
+Da <em>Schichten</em> oder <em>Services</em> &uuml;blicherweise durch ein oder mehrere Klassen
+repr&auml;sentiert werden, leitet sich daraus unmittelbar die Aufgabe ab, Objekte der jeweiligen
+Schichten zu erstellen. Gleicherma&szlig;en ist der Entwickler beim Entwurf von wiederverwendbaren
+Schichten - <strong>Services</strong> - gefordert, diese mit einer klaren und einfach zu
+konfigurierenden API auszustatten. Die Datenschicht einer Anwendung ben&ouml;tigt beispielsweise
+eine Komponente zur Anbindung an eine externe Datenquelle, eine Business-Komponente ben&ouml;tigt
+Kenntnis &uuml;ber das Umfeld, in dem die Applikation eingesetzt ist.
+<br />
+<br />
+<br />
+<a name="2-Grundlagen"></a><h3>2. Grundlagen</h3>
+Wie bereits im Kapitel
+<a href="./?Seite=098-Pagecontroller#2-1-Ablaufdiagramm" title="Pagecontroller - Ablaufdiagramm">Pagecontroller</a>
+beschrieben wurde, besitzt das APF eine spezielle Art der Erstellung von Objekten, die zur Erzeugung
+von GUI-Elementen eingesetzt werden. Da auch die Objekte der Business- und Datenschicht das Umfeld,
+in dem sie eingesetzt sind, kennen m&uuml;ssen (siehe Kapitel
+<a href="./?Seite=033-Konfiguration#2-Bennenung-Pfade-und-Dateien" title="Konfiguration - Benennung Pfade und Dateien">Konfiguration</a>),
+ist es notwendig, dass diese mit einem &auml;hnlichen Mechanismus erzeugt werden.
+<br />
+<br />
+Hierzu stellt das Framework zwei Komponenten zur Verf&uuml;gung, die es erlauben, Objekte innerhalb
+einer Anwendung zu erzeugen, die bereits &uuml;ber die relevanten Informationen verf&uuml;gen. Nur so gelingt
+es, eine einheitliche Konfigurationsschnittstelle bereitzustellen, um wiederverwendbare und
+generische Applikationen zu entwickeln.
+<br />
+<br />
+Die folgenden Kapitel beschreiben die genannten Komponenten und deren Bedeutung f&uuml;r die
+Entwicklung.
+<br />
+<br />
+<br />
+<a name="3-Erstellung-von-Objekten"></a><h3>3. Erstellung von Objekten</h3>
+Das Adventure PHP Framework kennt mehrere Mechanismen zur Erstellung und Initialisierung von
+Objekten. Um die oben genannten Informationen an jedes neu erstellte Objekt zu &uuml;bermittel, wird
+das Prinzip der <strong>dependency injection</strong> eingesetzt.
+<br />
+<br />
+Da das Framework eine generische M&ouml;glichkeit bietet, ein beliebige Klasse als Singleton oder
+Session-Singleton zu erzeugen, verzichtet die hierf&uuml;r bereitgestellte Implementierung zu
+Gunsten des generischen Ansatzes auf Konstruktor-Argumente. Aus diesem Grund wird bei der
+Initialisierung ausschlie&szlig;lich auf <strong>method injection</strong> bzw.
+<strong>setter injection</strong> gesetzt.
+<br />
+<br />
+<br />
+<a name="3-1-GUI-Objekte"></a><h4>3.1. GUI-Objekte</h4>
+Die Erstellung von Objekten der Pr&auml;sentationsschicht wird dabei von den Factory-Methoden des
+<a href="./?Seite=098-Pagecontroller#2-2-Beschreibung" title="Pagecontroller - Beschreibung">Pagecontroller</a>
+&uuml;bernommen. Jedem Objekt wird nach der Erstellung &uuml;ber definierte Methoden der aktuelle
+Context, die aktuelle Sprache und die Attribute des APF-DOM-Elements &uuml;bergeben.
+<br />
+<br />
+Sofern ausschlie&szlig;lich im Release enthaltene TagLibs oder Parser-Methoden verwendet werden, muss
+dieser Mechanismus nicht n&auml;her betrachtet werden. Hinweise zur Erstellung eigener TagLibs k&ouml;nnen
+dem Kapitel <a href="./?Seite=045-TagLibs-erstellen" title="TagLibs erstellen">TagLibs erstellen</a>
+entnommen werden.
+<br />
+<br />
+<br />
+<a name="3-2-Service-Objekte"></a><h4>3.2. Service-Objekte</h4>
+Damit sich der Entwickler bei der Erstellung von Services bzw. weiteren Schichten seiner Applikation
+nicht um die Interna des Frameworks k&uuml;mmern muss, stehen ihm drei M&ouml;glichkeiten bereit,
+vorkonfigurierte Objekte zu erzeugen. Dazu stellt die Klasse <strong>coreObject</strong> nachfolgend
+beschriebene Methoden bereit, die auf die Funktionalit&auml;t des <strong>ServiceManager</strong> und
+<strong>DIServiceManager</strong> zur&uuml;ckgreifen.
+<br />
+<br />
+<br />
+<a name="3-2-1-__getServiceObject"></a><h5>3.2.1. __getServiceObject()</h5>
+Die Methode liefert ein mit dem aktuellen Context und der aktuellen Sprache initialisiertes Objekt
+zur&uuml;ck. Sie nutzt dabei die Funktionalit&auml;t des <strong>ServiceManager</strong>s (siehe
+<a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>). Da die
+Funktion auf den Context und die Sprache des aktuellen Objektes zur&uuml;ckgreift, ist es sogar
+innerhalb von Modulen m&ouml;glich, zur Applikation differente Contexte - etwa f&uuml;r einzelne
+Module - zu vergeben.
+<br />
+<br />
+<br />
+<a name="3-2-2-__getAndInitServiceObject"></a><h5>3.2.2. __getAndInitServiceObject()</h5>
+Die Methode erweitert die Initialisierung aus Kapitel 3.2.1 um einen dynamischen 
+Initialisierungsparameter. Der als drittes Argument &uuml;bergebene Parameter wird der
+<strong>init()</strong>-Methode des Objektes nach der Erstellung &uuml;bergeben und kann dort zur
+Konfiguration genutzt werden. Der Parameter ist typ-unabh&auml;ngig. Das bedeutet, dass zur Initialisierung
+nicht nur einfache Datentypen sondern auch beliebige Objekte genutzt werden k&ouml;nnen.
+<br />
+<br />
+Nachteil dieser Methode ist jedoch, dass die zur Initialisierung der Komponente genutzten Parameter
+der Anwendung bekannt sein m&uuml;ssen. Aus diesem Grund eignet sich diese Variante vor allem f&uuml;r
+die Konfiguration eines Services mit Applikations-spezifischen Inhalten (z.B. Kennung einer Applikation
+bei dynamischer 
+<a href="./?Seite=032-Kommentar-Funktion-Tutorial#4-5-Praesentationsschicht" title="Kommentar-Funktion-Tutorial">Einbindung &uuml;ber eine TagLib</a>).
+<br />
+<br />
+<br />
+<a name="3-2-3-__getDIServiceObject"></a><h5>3.2.3. __getDiServiceObject()</h5>
+Die Methode nutzt die Funktion des <strong>DIServiceManager</strong>, der einen
+<strong>dependency injection container</strong> f&uuml;r das APF zur Verf&uuml;gung stellt. Services
+k&ouml;nnen dabei sowohl durch wiederum andere Services als auch durch statische Konfigurationsparameter
+f&uuml;r den Einsatz vorbereitet werden.
+<br />
+<br />
+Die Nutzung des <strong>DIServiceManager</strong>s bietet zudem den Vorteil, dass der Code deutlich
+besser von der Konfiguration der Applikation getrennt werden kann. Parameter werden dem Service von
+aussen bei der Erzeugung eingeimpft und m&uuml;ssen nicht mehr Teil der Applikationslogik sein. Gut
+gekapselte Services sind zudem auf sehr einfache Weise wiederverwendbar und die zus&auml;tzliche Kapselung
+einer Komponente erh&ouml;ht sich die Testbarkeit. Dies wirkt sich insbesondere f&uuml;r Unit-Tests
+positiv aus.
+<br />
+<br />
+<br />
+<a name="4-Praktischer-Einsatz"></a><h3>4. Praktischer Einsatz</h3>
+Der praktische Einsatz gestaltet sich im Gegensatz zu den theoretischen Grundlagen denkbar einfach.
+Die folgenden Kapitel zeigen dabei jeweils die Verwendung der genannten Methoden an einem Beispiel.
+<br />
+<br />
+<br />
+<a name="4-1-__getServiceObject"></a><h4>4.1. __getServiceObject()</h4>
+Wie im Kapitel 3.2.1 beschrieben, erzeugt die Methode <em>__getServiceObjekt()</em> ein einfaches
+Service-Objekt. Die Verwendung gestaltet sich wie folgt:
+<php:highlight testing="true">
+import('namespace::of::my::service','ServiceName');
+
+class MyObject extends coreObject
+{
+   function doSomething(){
+      $myService =
+         &$this->__getServiceObject(
+            'namespace::of::my::service',
+            'ServiceName'
+         );
+      $myService->doSomething();
+}
+</php:highlight>
+<strong>Anmerkungen:</strong>
+<ul>
+   <li>Das Service-Objekt muss vor der Erstellung per <strong>import()</strong> eingebunden werden.</li>
+   <li>Der Name des Service-Objektes ist gleich dem Namen der Klasse. Selbiges gilt f&uuml;r den Namespace.</li>
+</ul>
+<br />
+<br />
+<a name="4-2-__getAndInitServiceObject"></a><h4>4.2. __getAndInitServiceObject</h4>
+Die Erstellung eines vorkonfigurierten Service-Objekts gestaltet sich wie folgt:
+<php:highlight testing="true">
+import('namespace::of::my::service','ServiceName');
+
+class MyObject extends coreObject
+{
+   function doSomething(){
+      $initParam = 'foo';
+      $myService =
+         &$this->__getAndInitServiceObject(
+            'namespace::of::my::service',
+            'ServiceName',
+            $initParam
+         );
+      $myService->doSomething();
+}
+</php:highlight>
+<strong>Anmerkungen:</strong>
+<ul>
+   <li>Das Service-Objekt muss vor der Erstellung per <strong>import()</strong> eingebunden werden.</li>
+   <li>Der Name des Service-Objektes ist gleich dem Namen der Klasse. Selbiges gilt f&uuml;r den Namespace.</li>
+   <li>
+      Der Service muss die <strong>init()</strong>-Methode implementieren bzw. von der Klasse
+      <strong>coreObject</strong> ableiten.
+   </li>
+</ul>
+<br />
+<br />
+<a name="4-3-__getDIServiceObject"></a><h4>4.3. __getDiServiceObject()</h4>
+Die Erstellung eines Services mit Hilfe des <em>dependency injection</em>-Containers unterscheidet
+sich von den zuvor aufgezeigten Varianten. Jedes DI-Service-Objekt muss durch eine Konfiguration
+beschrieben werden, da ein Service nicht nur f&uuml;r sich steht, sondern auch zur Initialisierung eines
+anderen dienen kann.
+<br />
+<br />
+<br />
+<a name="4-3-1-Konfiguration"></a><h5>4.3.1. Konfiguration</h5>
+F&uuml;r die Beschriebung eines Services mit dem Namen <strong>MyService</strong> und dem Namespace
+<strong>modules::mymodule::services</strong> muss die Konfigurationsdatei
+<php:highlight testing="true">
+/config/modules/mymodule/services/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
+</php:highlight>
+angelegt werden. Die Definition des Services delbst erfolgt &uuml;ber das folgende Schema:
+<php:highlight testing="true">
+[{ServiceName}]
+servicetype = ""
+namespace = ""
+class = ""
+[init.{INITKEY}.method = ""
+init.{INITKEY}.namespace = ""
+init.{INITKEY}.name = ""]
+[conf.{INITKEY}.method = ""
+conf.{INITKEY}.value = ""]
+</php:highlight>
+<strong>Definition:</strong>
+<ul>
+   <li>
+      Die Direktive <strong>servicetype</strong> definiert die Art des Services. G&uuml;ltige Werte
+      sind <em>SINGLETON</em>, <em>SESSIONSINGLETON</em>, <em>NORMAL</em>. Details k&ouml;nnen dem
+      Kapitel
+      <a href="./?Seite=030-Klassenreferenz-Singleton-SessionSingleton#3-Verwendung-ServiceManager" title="Verwendung-ServiceManager">Verwendung des ServiceManager</a>
+      entnommen werden.
+   </li>
+   <li><strong>namespace</strong> definiert den Namespace der Service-Implementierung.</li>
+   <li><strong>class</strong> beschreibt den Namen der Service-Klasse.</li>
+   <li>
+      Die <strong>init</strong>-Sektion definiert eine Initialisierung per <em>dependency
+      injection</em>, <strong>conf</strong> eine Konfiguration mit statischen Daten.
+   </li>
+   <li>
+      Da Attribut <strong>method</strong> einer <em>init</em>-Subsektion definiert die Method, mit
+      der die Initialisierung vorgenommen werden soll, <strong>namespace</strong> und
+      <strong>name</strong> referenzieren das dabei zu verwendende Service-Objekt. F&uuml;r das
+      definierte Objekt muss eine Konfiguration gem&auml;&szlig; dem oben beschriebenen Schema
+      existieren.
+   </li>
+   <li>
+      Da Attribut <strong>method</strong> in der <em>conf</em>-Subsektion definiert die Method, mit
+      der die "statische" Initialisierung vorgenommen werden soll. Dabei wird der Wert, der im
+      Attribut <strong>value</strong> definiert ist, der zuvor beschriebenen Methode als Parameter
+      mitgegeben.
+   </li>
+</ul>
+<br />
+<a name="4-3-2-Beispiel"></a><h5>4.3.2. Beispiel</h5>
+Im folgenden Beispiel soll eine Business-Schicht-Komponente mit statischen Konfigurationsparametern,
+dem zur Applikation geh&ouml;renden Daten-Schicht-Service und einem Provider, der sich um die
+Bereitstellung von Konfigurationsparametern k&uuml;mmert initialisiert werden. Der Name des Services
+soll <strong>GuestbookService</strong> lauten, der Namespace der Komponente ist
+<strong>modules::guestbook</strong>. Die Implementierung des Services &uuml;bernimmt die Klasse
+<strong>GuestbookManager</strong> aus dem Namespace <strong>modules::guestbook::biz</strong>.
+<br />
+<br />
+Um den <em>dependency injection</em>-Container nutzen zu k&ouml;nnen, muss zun&auml;chst eine
+Konfiguration f&uuml;r den <em>GuestbookService</em> angelegt werden. Die Datei
+<php:highlight testing="true">
+/config/modules/guestbook/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
+</php:highlight>
+angelegt und mit der Definition des Services gef&uuml;llt werden:
+<php:highlight testing="true">
+[GuestbookService]
+class = "GuestbookManager"
+namespace = "modules::guestbook::biz"
+servicetype = "SINGLETON"
+</php:highlight>
+F&uuml;r die Datenschicht-Komponente und den Provider muss ebenso eine Konfiguration extistieren.
+Der Namespace der Datenschicht-Komponente <strong>DataService</strong> lautet dabei
+<strong>modules::guestbook</strong>, der Provider mit dem Namen <strong>ExtendedConfigProvider</strong>
+residiert im Namespace <strong>modules::guestbook::provider</strong>. Da der Namespace der
+Datenschicht-Komponente mit der ds <strong>GuestbookService</strong> identisch ist, kann die
+Konfiguration desselben in der oben erstellten Konfigurationsdatei vorgenommen werden. Der Provider
+hingegen muss in einer eigenen Konfigurationsdatei definiert werden. Diese lautet:
+<php:highlight testing="true">
+/config/modules/guestbook/provider/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
+</php:highlight>
+Der Inhalt der Datei <em>{ENVIRONMENT}_serviceobjects.ini</em> unter dem Namespace
+<em>modules::guestbook</em> tr&auml;gt damit den folgende Inhalt:
+<php:highlight testing="true">
+[GuestbookService]
+namespace = "modules::guestbook::biz"
+class = "GuestbookManager"
+servicetype = "..."
+
+[DataService]
+namespace = "modules::guestbook::biz"
+class = "GuestbookMapper"
+servicetype = "..."
+</php:highlight>
+Die Datei <em>{ENVIRONMENT}_serviceobjects.ini</em> aus dem Namespace
+<em>modules::guestbook::provider</em> beinhaltet die Konfiguration des Konfigurationsservice:
+<php:highlight testing="true">
+[ExtendedConfigProvider]
+namespace = "modules::guestbook::biz::provider"
+class = "SpecialConfigProvider"
+servicetype = "..."
+</php:highlight>
+Um dem <strong>DIServiceManager</strong> mitzuteilen, dass dieser mit den beiden genannten
+Komponenten und zwei statischen Parametern initialisiert werden soll, muss die Sektion
+<strong>GuestbookService</strong> um die Initialisierungsanweisungen erweitert werden. Diese haben
+die folgende Gestalt:
+<php:highlight testing="true">
+init.database.method = "setDBService"
+init.database.name = "modules::guestbook"
+init.database.namespace = "DataService"
+
+init.exconf.method = "setConfigProvider"
+init.exconf.name = "modules::guestbook::provider"
+init.exconf.namespace = "ExtendedConfigProvider"
+
+conf.appname.method = "setAppId"
+conf.appname.value = "123"
+
+conf.cache.method = "setCacheActive"
+conf.cache.value = "false"
+</php:highlight>
+Wie dem Kasten zu entnehmen ist, k&ouml;nnen beliebig viele Initialisierungen definiert werden. Hierzu
+ist es lediglich notwendig Schl&uuml;ssel f&uuml;r die Sub-Sektionen zu vergeben.
+<br />
+<br />
+Die Nutzung des <strong>GuestbookService</strong> gestaltet sich dann wie folgt:
+<php:highlight testing="true">
+class ServiceConsumer extends coreObject {
+
+   function doSomething(){
+      $service =
+         &$this->__getDIServiceObject(
+            'modules::guestbook',
+            'GuestbookService'
+         );
+      $service->doSomething();
+}
+</php:highlight>
+Die Implementierung des Services (Klasse: <em>GuestbookManager</em>) hat dabei folgende Gestalt:
+<php:highlight testing="true">
+class GuestbookManager extends coreObject {
+
+   ...
+
+   function setDBService($dbService){
+      $this->dbService = $dbService;
+   }
+
+   function setConfigProvider($provider){
+      $this->configProvider = $provider;
+   }
+
+   function setAppId($appId){
+      $this->appId = $appId;
+   }
+
+   function setCacheActive($cacheActive){
+      $this->cacheActive = $cacheActive;
+   }
+
+   ...
+
+   function doSomething(){
+   }
+
+   ...
+
+}
+</php:highlight>
+Innerhalb der Methode <strong>doSomething()</strong> stehen dann alle injizierten Parameter zur
+Nutzung bereit.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_107" />
