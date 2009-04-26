@@ -64,17 +64,17 @@ Further, the registry value <strong>Environment</strong> is not touched (so it i
 value) and the current application context is <strong>sites::mysite</strong>. Moreover, he decides,
 that the name affix should be identical to <strong>guestbook</strong>. In this case, the object
 configuration file must be named
-<pre class="tagexample">
+<code:highlight>
 DEFAULT_guestbook_objects.ini
-</pre>
+</code:highlight>
 and the relation configuration file
-<pre class="tagexample">
+<code:highlight>
 DEFAULT_guestbook_relations.ini
-</pre>
+</code:highlight>
 These must reside within the folder
-<pre class="tagexample">
+<code:highlight>
 /apps/config/modules/myguestbook/sites/mysite
-</pre>
+</code:highlight>
 Further details on configuration, namespaces and contexts can be taken from the
 <a href="./?Page=033-Configuration#2-Naming-conventions" title="Configuration">configuration section</a>.
 <br />
@@ -93,7 +93,7 @@ object's <strong>ObjectName</strong> property.
 The object definition thus contains the name of the object (=name of the section) and the attributes
 (=properties of the <strong>GenericDomainObject</strong> class). The following codebox shows a
 typical object configuration:
-<pre class="tagexample">
+<code:highlight>
 [Application]
 DisplayName = "VARCHAR(100)"
 
@@ -110,7 +110,7 @@ DisplayName = "VARCHAR(100)"
 
 [Role]
 DisplayName = "VARCHAR(100)"
-</pre>
+</code:highlight>
 The values of the attributes represent the database data types of the object's properties. The
 mapper knows the following values and translates them into the right create table statements:
 <ul>
@@ -125,7 +125,7 @@ most application cases.
 <br />
 <br />
 The attributes of a domain object can then be addressed as follows:
-<php:highlight testing="true">
+<php:highlight>
 ...
 $User = new GenericDomainObject('User');
 $User->setProperty('FirstName','Christian');
@@ -155,7 +155,7 @@ be an association.
 <br />
 <br />
 The following codebox shows a typical relation configuration:
-<pre class="tagexample">
+<code:highlight>
 [Application2Group]
 Type = "COMPOSITION"
 SourceObject = "Application"
@@ -180,7 +180,7 @@ TargetObject = "User"
 Type = "COMPOSITION"
 SourceObject = "Application"
 TargetObject = "Role"
-</pre>
+</code:highlight>
 The section name (e.g. <strong>Group2User</strong>) should be named self-explanatory, because this
 relation key can be used to load objects, that are related to others and to create a relation between
 two or more objects. The type attribute contains the quality of relation, the
@@ -220,7 +220,7 @@ release. The file is named <em>setup.php</em>.
 Dieses muss
 gem&auml;&szlig; den Bemerkungen unterhalb der Codebox f&uuml;r den entstprechenden Anwendungsfall
 angepasst werden. Hier das Setup-Skript im &Uuml;berblick:
-<php:highlight testing="true">
+<php:highlight>
 // include pagecontroller
 require('../../apps/core/pagecontroller/pagecontroller.php');
 
@@ -289,7 +289,7 @@ successfully. The result can be checked by using phpMyAdmin or a MySQLAdmin tool
 <br />
 <br />
 Executing the script to display the create statements only, the output should look like this:
-<pre class="tagexample">
+<code:highlight>
 CREATE TABLE IF NOT EXISTS `ent_application` (
   `ApplicationID` TINYINT(5) NOT NULL auto_increment,
   `DisplayName` VARCHAR(100) character set utf8 NOT NULL default '',
@@ -328,7 +328,7 @@ CREATE TABLE IF NOT EXISTS `cmp_application2role` (
   PRIMARY KEY  (`CMPID`),
   KEY `JOININDEX` (`ApplicationID`,`RoleID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-</pre>
+</code:highlight>
 Using phpMyAdmin you will get the following screen:
 <br />
 <br />
@@ -463,7 +463,7 @@ applications, but in complexe environments this may be a knock-out criteria.
 <br />
 <br />
 The next code box shows a typical call of the mapper:
-<php:highlight testing="true">
+<php:highlight>
 // include the factory
 import('modules::genericormapper::data','GenericORMapperFactory');
 
@@ -553,9 +553,9 @@ $User = $ORM->loadObjectByStatement('User','modules::usermanagement','load_user_
 $User = $ORM->loadObjectByID('User',1);
 </php:highlight>
 The content of the statement file <strong>load_user_by_id</strong> is:
-<pre class="tagexample">
+<code:highlight>
 SELECT * FROM ent_user WHERE UserID = '1';
-</pre>
+</code:highlight>
 Details on the statement execution can be taken from the
 <a href="./?Page=018-Class-reference-table-MySQLHandler" title="Class reference table - MySQLHandler">class reference table of the MySQLHandler</a>.
 <br />
@@ -570,7 +570,7 @@ For loading lists, the OR mapper features the following methods:
   <li><strong>loadObjectListByIDs()</strong></li>
 </ul>
 If you like to display a list of users (see UML) you can use these methods as presented below:
-<php:highlight testing="true">
+<php:highlight>
 // create fabric
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
@@ -593,9 +593,9 @@ $UserList = $ORM->loadObjectListByStatement('User','modules::usermanagement','lo
 $UserList = $ORM->loadObjectListByIDs('User',array(1,2,3,4,5,6));
 </php:highlight>
 The content of the statement file <strong>load_user_list</strong> looks like this:
-<pre class="tagexample">
+<code:highlight>
 SELECT * FROM ent_user WHERE DisplayName LIKE 'a%';
-</pre>
+</code:highlight>
 <br />
 <a name="4-2-3-Loading-related-objects"></a><h5>4.2.3. Loading related objects</h5>
 If you have to display the corresponding groups while listing the user details, you can use the
@@ -604,7 +604,7 @@ If you have to display the corresponding groups while listing the user details, 
 </ul>
 function. This method returns the objects related to a dedicated object by the desired relation key.
 The next example shows, how to load the groups associated to a user:
-<php:highlight testing="true">
+<php:highlight>
 // create fabric
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
@@ -642,13 +642,13 @@ To ease the handling of loading related objects, the <strong>GenericDomainObject
 the <strong>loadRelatedObjects()</strong> function. This enables you to load the related objects using
 a relation key, where no instance of the mapper is available. To apply this to the example above,
 the user's groups could be loaded using
-<php:highlight testing="true">
+<php:highlight>
 $GroupList = $UserList[$i]->loadRelatedObjects('Group2User');
 </php:highlight>
 <strong>Note:</strong> The amount of objects loaded, can be limited using the
 <strong>GenericCriterionObject</strong>. So if you like to load the first 10 groups only, include the
 following code in your application:
-<php:highlight testing="true">
+<php:highlight>
 // define the limit
 $Crit = new GenericCriterionObject();
 $Crit->addOrderIndicator('DisplayName','ASC');
@@ -671,7 +671,7 @@ user has not been added yet. For this purpose, the
 </ul>
 function could be used. The next example shows, how groups not associated with desired user can be
 selected:
-<php:highlight testing="true">
+<php:highlight>
 // create fabric
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
@@ -696,7 +696,7 @@ for($i = 0; $ < count($GroupList); $i++){
 <strong>GenericCriterionObject</strong>. A typical application case is to limit the list by relations
 to other objects. The following example explains, how to load all groups, that are not associated to
 the desired user but are composed under a <em>Application</em> object:
-<php:highlight testing="true">
+<php:highlight>
 // create fabric
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
@@ -731,7 +731,7 @@ To be able to find out, how much objects are related to a certain one, the
 </ul>
 method can be used. It returns the multiplicity by a given object and a relation key. In order to
 count the users within a group, add the follwing code to your business layer:
-<php:highlight testing="true">
+<php:highlight>
 // create fabric
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
@@ -751,7 +751,7 @@ Saving objects is quite easy. Regardless you save objects or object trees, the
   <li><strong>saveObject()</strong></li>
 </ul>
 function can be used. The next code box shows how to save a user:
-<php:highlight testing="true">
+<php:highlight>
 // create fabric
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
@@ -780,7 +780,7 @@ The latter one is used to ensure multi-client capability for the user management
 <strong>Solution:</strong> To create the relation between these two objects (<em>Application</em>
 and <em>User</em>), the <strong>addRelatedObject()</strong> method of the <strong>GenericDomainObject</strong>
 can be used. The following code box shows, how the implementation is like:
-<php:highlight testing="true">
+<php:highlight>
 // create fabric
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
@@ -803,7 +803,7 @@ $ORM->saveObject($App);
 </php:highlight>
 If you intend to add a group and a role at the same time, the php code above must be added the
 following lines:
-<php:highlight testing="true">
+<php:highlight>
 ...
 
 // load application
@@ -841,7 +841,7 @@ methods and while loading relation objects on existing domain objects or domain 
 The code box below presents an application use case of the <strong>GenericCriterionObject</strong>,
 where a list of users should be loaded. The users should be assigned to a special group and must be
 composed under a certain application object:
-<php:highlight testing="true">
+<php:highlight>
 class UsermanagementManager extends coreObject
 {
 
@@ -937,7 +937,7 @@ management</em>) and use the
 to extend the configuration for the special use cas. With these functions, any object and relation
 configuration files can be added. The following example shows to you, how the functions can be used
 to upgrade the scope of the mapper:
-<php:highlight testing="true">
+<php:highlight>
 // create fabric
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
@@ -953,7 +953,7 @@ $oRM->addRelationConfiguration('modules::usermanagement','umgt_2');
 The syntax of the object and relation configuration is the same as the default configuration described
 in the chapter <a href="#2-3-Object-and-relation-definition" title="2.3. Object and relation definition">2.3. Object and relation definition</a>.
 The additional object configuration file contains the following objects:
-<pre class="tagexample">
+<code:highlight>
 [Project]
 DisplayName = "VARCHAR(100)"
 Description = "TEXT"
@@ -962,9 +962,9 @@ Description = "TEXT"
 DisplayName = "VARCHAR(100)"
 Title = "VARCHAR(100)"
 Content = "TEXT"
-</pre>
+</code:highlight>
 and the newly added relations are
-<pre class="tagexample">
+<code:highlight>
 [Application2Project]
 Type = "COMPOSITION"
 SourceObject = "Application"
@@ -974,7 +974,7 @@ TargetObject = "Project"
 Type = "COMPOSITION"
 SourceObject = "Project"
 TargetObject = "News"
-</pre>
+</code:highlight>
 <br />
 <a name="7-Notes"></a><h3>7. Notes</h3>
 Hints on performance relevant issues can be found in the

@@ -1,5 +1,7 @@
 <doku:title tags="service,object,dependency,injection,di,framework,factory,service manager,manager,business services" title="Services" urlname="Services">
-   Services
+  Das vorliegende Kapitel zeigt die im Framework enthaltenen Mechanismen zur Erzeugung von Objekten
+  auf. Es geht dabei besonders auf den in Version 1.10 hinzugekommenen dependency injection container
+  ein, der es erm&ouml;glicht, via dependency injection vorkonfigurierte Objekte zu nutzen.
 </doku:title>
 <core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
 <a name="1-Einleitung"></a><h3>1. Einleitung</h3>
@@ -129,7 +131,7 @@ Die folgenden Kapitel zeigen dabei jeweils die Verwendung der genannten Methoden
 <a name="4-1-__getServiceObject"></a><h4>4.1. __getServiceObject()</h4>
 Wie im Kapitel 3.2.1 beschrieben, erzeugt die Methode <em>__getServiceObjekt()</em> ein einfaches
 Service-Objekt. Die Verwendung gestaltet sich wie folgt:
-<php:highlight testing="true">
+<php:highlight>
 import('namespace::of::my::service','ServiceName');
 
 class MyObject extends coreObject
@@ -152,7 +154,7 @@ class MyObject extends coreObject
 <br />
 <a name="4-2-__getAndInitServiceObject"></a><h4>4.2. __getAndInitServiceObject</h4>
 Die Erstellung eines vorkonfigurierten Service-Objekts gestaltet sich wie folgt:
-<php:highlight testing="true">
+<php:highlight>
 import('namespace::of::my::service','ServiceName');
 
 class MyObject extends coreObject
@@ -190,11 +192,11 @@ anderen dienen kann.
 <a name="4-3-1-Konfiguration"></a><h5>4.3.1. Konfiguration</h5>
 F&uuml;r die Beschriebung eines Services mit dem Namen <strong>MyService</strong> und dem Namespace
 <strong>modules::mymodule::services</strong> muss die Konfigurationsdatei
-<php:highlight testing="true">
+<code:highlight testing="true">
 /config/modules/mymodule/services/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
-</php:highlight>
+</code:highlight>
 angelegt werden. Die Definition des Services delbst erfolgt &uuml;ber das folgende Schema:
-<php:highlight testing="true">
+<code:highlight>
 [{ServiceName}]
 servicetype = ""
 namespace = ""
@@ -204,7 +206,7 @@ init.{INITKEY}.namespace = ""
 init.{INITKEY}.name = ""]
 [conf.{INITKEY}.method = ""
 conf.{INITKEY}.value = ""]
-</php:highlight>
+</code:highlight>
 <strong>Definition:</strong>
 <ul>
    <li>
@@ -246,16 +248,16 @@ soll <strong>GuestbookService</strong> lauten, der Namespace der Komponente ist
 <br />
 Um den <em>dependency injection</em>-Container nutzen zu k&ouml;nnen, muss zun&auml;chst eine
 Konfiguration f&uuml;r den <em>GuestbookService</em> angelegt werden. Die Datei
-<php:highlight testing="true">
+<code:highlight>
 /config/modules/guestbook/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
-</php:highlight>
+</code:highlight>
 angelegt und mit der Definition des Services gef&uuml;llt werden:
-<php:highlight testing="true">
+<code:highlight>
 [GuestbookService]
 class = "GuestbookManager"
 namespace = "modules::guestbook::biz"
 servicetype = "SINGLETON"
-</php:highlight>
+</code:highlight>
 F&uuml;r die Datenschicht-Komponente und den Provider muss ebenso eine Konfiguration extistieren.
 Der Namespace der Datenschicht-Komponente <strong>DataService</strong> lautet dabei
 <strong>modules::guestbook</strong>, der Provider mit dem Namen <strong>ExtendedConfigProvider</strong>
@@ -263,12 +265,12 @@ residiert im Namespace <strong>modules::guestbook::provider</strong>. Da der Nam
 Datenschicht-Komponente mit der ds <strong>GuestbookService</strong> identisch ist, kann die
 Konfiguration desselben in der oben erstellten Konfigurationsdatei vorgenommen werden. Der Provider
 hingegen muss in einer eigenen Konfigurationsdatei definiert werden. Diese lautet:
-<php:highlight testing="true">
+<code:highlight>
 /config/modules/guestbook/provider/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
-</php:highlight>
+</code:highlight>
 Der Inhalt der Datei <em>{ENVIRONMENT}_serviceobjects.ini</em> unter dem Namespace
 <em>modules::guestbook</em> tr&auml;gt damit den folgende Inhalt:
-<php:highlight testing="true">
+<code:highlight>
 [GuestbookService]
 namespace = "modules::guestbook::biz"
 class = "GuestbookManager"
@@ -278,20 +280,20 @@ servicetype = "..."
 namespace = "modules::guestbook::biz"
 class = "GuestbookMapper"
 servicetype = "..."
-</php:highlight>
+</code:highlight>
 Die Datei <em>{ENVIRONMENT}_serviceobjects.ini</em> aus dem Namespace
 <em>modules::guestbook::provider</em> beinhaltet die Konfiguration des Konfigurationsservice:
-<php:highlight testing="true">
+<code:highlight>
 [ExtendedConfigProvider]
 namespace = "modules::guestbook::biz::provider"
 class = "SpecialConfigProvider"
 servicetype = "..."
-</php:highlight>
+</code:highlight>
 Um dem <strong>DIServiceManager</strong> mitzuteilen, dass dieser mit den beiden genannten
 Komponenten und zwei statischen Parametern initialisiert werden soll, muss die Sektion
 <strong>GuestbookService</strong> um die Initialisierungsanweisungen erweitert werden. Diese haben
 die folgende Gestalt:
-<php:highlight testing="true">
+<code:highlight>
 init.database.method = "setDBService"
 init.database.name = "modules::guestbook"
 init.database.namespace = "DataService"
@@ -305,13 +307,13 @@ conf.appname.value = "123"
 
 conf.cache.method = "setCacheActive"
 conf.cache.value = "false"
-</php:highlight>
+</code:highlight>
 Wie dem Kasten zu entnehmen ist, k&ouml;nnen beliebig viele Initialisierungen definiert werden. Hierzu
 ist es lediglich notwendig Schl&uuml;ssel f&uuml;r die Sub-Sektionen zu vergeben.
 <br />
 <br />
 Die Nutzung des <strong>GuestbookService</strong> gestaltet sich dann wie folgt:
-<php:highlight testing="true">
+<php:highlight>
 class ServiceConsumer extends coreObject {
 
    function doSomething(){
@@ -324,7 +326,7 @@ class ServiceConsumer extends coreObject {
 }
 </php:highlight>
 Die Implementierung des Services (Klasse: <em>GuestbookManager</em>) hat dabei folgende Gestalt:
-<php:highlight testing="true">
+<php:highlight>
 class GuestbookManager extends coreObject {
 
    ...

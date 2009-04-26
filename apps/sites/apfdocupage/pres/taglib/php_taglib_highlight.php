@@ -16,12 +16,10 @@
       function php_taglib_highlight(){
       }
 
-
       /**
-      *  @module transform()
       *  @public
       *
-      *  Implements the transform() method. Displays the colorized source code.
+      *  Displays the colorized source code.
       *
       *  @author Christian Achatz
       *  @version
@@ -33,48 +31,10 @@
       *  Version 0.6, 02.01.2008 (Limited code box height to 400px)<br />
       *  Version 0.7, 15.10.2008 (Changed css behavior)<br />
       *  Version 0.8, 05.01.2009 (Introduced the dp.SyntaxHighlighter js highlighter (testing only))<br />
+      *  Version 0.9, 24.04.2009 (Finalized js code highlighting)<br />
       */
       function transform(){
-
-         // return new code, if desired
-         if($this->getAttribute('testing') === 'true'){
-            return '<pre name="code" class="php:nogutter:nocontrols"">'.$this->__Content.'</pre>';
-          // end if
-         }
-
-         // count lines
-         $LineCount = substr_count($this->__Content,"\n") - 1;
-
-         // highlight source code
-         // - Remove new lines at the beginning
-         // - Remove new lines and blanks at the end
-         // - Remove new lines and blanks around the whole text
-         $HighlightedContent = highlight_string(trim('<?php '.ltrim(rtrim($this->__Content),"\x0A..\x0D").' ?>'),true);
-
-         // replace php start tags
-         $HighlightedContent = str_replace('<font color="#007700">&lt;?</font>','',$HighlightedContent);
-         $HighlightedContent = str_replace('<font color="#0000BB">&lt;?php&nbsp;','<font color="#0000BB">',$HighlightedContent);
-         $HighlightedContent = str_replace('<font color="#0000BB">php','<font color="#0000BB">',$HighlightedContent);
-         $HighlightedContent = str_replace('<font color="#0000BB">&nbsp;</font>','',$HighlightedContent);
-
-         // enhancement to the PHP5 support
-         $HighlightedContent = str_replace('<span style="color: #0000BB">&lt;?php&nbsp;','<span style="color: #0000BB">',$HighlightedContent);
-         $HighlightedContent = str_replace('<span style="color: #0000BB">&lt;?php','<span style="color: #0000BB">',$HighlightedContent);
-         $HighlightedContent = str_replace('<span style="color: #0000BB">?&gt;</span>','',$HighlightedContent);
-
-         // replace php end tags
-         $HighlightedContent = str_replace('<font color="#0000BB">?&gt;</font>','',$HighlightedContent);
-
-         // return div enclodes source code with height limit if necessary
-         if($LineCount > 27){
-            return '<pre class="phpcode" style="height: 400px;">'.$HighlightedContent.'</pre>';
-          // end if
-         }
-         else{
-            return '<pre class="phpcode">'.$HighlightedContent.'</pre>';
-          // end else
-         }
-
+         return '<pre name="code" class="php">'.$this->__Content.'</pre>';
        // end function
       }
 
