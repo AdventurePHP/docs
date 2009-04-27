@@ -282,9 +282,9 @@
                           'Linux' => 'Linux'
                          );
 
-         foreach($OSTable as $Key => $Value){
-            if(substr_count($_SERVER['HTTP_USER_AGENT'],$Key) > 0){
-               $OS = $Value;
+         foreach($OSTable as $key => $value){
+            if(substr_count(@$_SERVER['HTTP_USER_AGENT'],$key) > 0){
+               $OS = $value;
              // end if
             }
           // end foreach

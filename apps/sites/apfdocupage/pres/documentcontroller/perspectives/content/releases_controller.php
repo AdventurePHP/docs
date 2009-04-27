@@ -285,7 +285,7 @@
       *  Version 0.1, 23.10.2007<br />
       *  Version 0.2, 15.01.2008 (Update to the sort algorithm)<br />
       */
-      static function sortReleases($OffsetOne,$OffsetTwo){
+      function sortReleases($OffsetOne,$OffsetTwo){
 
          //echo '<br />"'.$OffsetOne.'" | "'.$OffsetTwo.'" | Ergebnis:';
 
