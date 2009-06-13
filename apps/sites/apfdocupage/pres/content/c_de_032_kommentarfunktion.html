@@ -204,21 +204,16 @@ Als erste Klasse legen wir das von allen Schichten genutzte Domain-Objekt <stron
 an. Dazu wird die Datei <em>ArticleComment.php</em> im Ordner <strong>/apps/modules/comments/biz</strong>
 erstellt un mit folgenden Inhalt gef&uuml;llt:
 <php:highlight>
-class ArticleComment extends coreObject
-{
+class ArticleComment extends coreObject {
 
-   var $__ID = null;
-   var $__Name;
-   var $__EMail;
-   var $__Comment;
-   var $__Date;
-   var $__Time;
-   var $__CategoryKey;
+   protected $__ID = null;
+   protected $__Name;
+   protected $__EMail;
+   protected $__Comment;
+   protected $__Date;
+   protected $__Time;
+   protected $__CategoryKey;
 
-   function ArticleComment(){
-   }
-
- // end class
 }
 </php:highlight>
 Da die Klasse von <strong>coreObject</strong> erbt m&uuml;ssen keine get()- bzw. set()-Methoden
@@ -229,9 +224,9 @@ werden, die besagt, dass jede private und durch die Methoden get()- bzw. set() m
 Klassen-Variablen mit <strong>$__{Name}</strong> benannt sein m&uuml;ssen, wobei <em>{Name}</em>
 durch den jeweils erw&uuml;nschten Namen ersetzt werden muss. Anschlie&szlig;end kann per
 <php:highlight>
-   $AC = new ArticleComment();
-   $AC->set('Name','Max Mustermann');
-   echo $AC->get('Name');
+$AC = new ArticleComment();
+$AC->set('Name','Max Mustermann');
+echo $AC->get('Name');
 </php:highlight>
 die Ausgabe
 <code:highlight>
@@ -252,20 +247,14 @@ Dom&auml;nen-Objekte l&auml;d. Dazu erstellen wir eine Datei mit dem Namen der K
 zun&auml;chst folgenden Inhalt:
 <php:highlight>
    import('modules::comments::biz','ArticleComment');
-   import('core::database','MySQLHandler');
+   import('core::database','connectionManager');
 
+   class commentMapper extends coreObject {
 
-   class commentMapper extends coreObject
-   {
+      function loadArticleCommentByID($articleCommentID){
 
-      function commentMapper(){
-      }
-
-
-      function loadArticleCommentByID($ArticleCommentID){
-
-         // SQL-Handler holen
-         $SQL = &$this->__getServiceObject('core::database','MySQLHandler');
+         // Datenbank-Verbindung aufbauen
+         $SQL = &$this->__getConnection();
 
          // Eintrag selektieren
          $select = 'SELECT ArticleCommentID, Name, EMail, Comment, Date, Time
@@ -273,61 +262,56 @@ zun&auml;chst folgenden Inhalt:
                     WHERE ArticleCommentID = \''.$ArticleCommentID.'\';';
          $result = $SQL->executeTextStatement($select);
 
-         // Objekt zurückgeben
+         // Ergebnis in ein Domain-Objekt mappen
          return $this->__mapArticleComment2DomainObject($SQL->fetchData($result));
 
        // end function
       }
 
-
       function __mapArticleComment2DomainObject($ResultSet){
 
-         // Neues Objekt erstellen
          $ArticleComment = new ArticleComment();
 
-         // ArticleCommentID
          if(isset($ResultSet['ArticleCommentID'])){
             $ArticleComment->set('ID',$ResultSet['ArticleCommentID']);
           // end if
          }
-
-         // Name
          if(isset($ResultSet['Name'])){
             $ArticleComment->set('Name',$ResultSet['Name']);
           // end if
          }
-
-         // EMail
          if(isset($ResultSet['EMail'])){
             $ArticleComment->set('EMail',$ResultSet['EMail']);
           // end if
          }
-
-         // Comment
          if(isset($ResultSet['Comment'])){
             $ArticleComment->set('Comment',$ResultSet['Comment']);
           // end if
          }
-
-         // Date
          if(isset($ResultSet['Date'])){
             $ArticleComment->set('Date',$ResultSet['Date']);
           // end if
          }
-
-         // Time
          if(isset($ResultSet['Time'])){
             $ArticleComment->set('Time',$ResultSet['Time']);
           // end if
          }
-
-         // Gefülltes Objekt zurückgeben
          return $ArticleComment;
 
        // end function
       }
 
     // end class
+   }
+
+   private function &__getConnection(){
+
+      $cM = &$this->__getServiceObject('core::database','connectionManager');
+      $config = $this->__getConfiguration('modules::comments','comments');
+      $connectionKey = $config->getValue('Default','Database.ConnectionKey');
+      return $cM->getConnection($connectionKey);
+
+    // end function
    }
 </php:highlight>
 Der Quellcode hat dabei folgende Bedeutung:
@@ -350,12 +334,23 @@ Der Quellcode hat dabei folgende Bedeutung:
      <em>__mapArticleComment2DomainObject()</em> ist die unter Kapitel 2 angesprochene Implementierung
      einer Mapper-Methode, die ein Array in ein Domain-Objekt mappt.
   </li>
+  <li>
+     Die Funktion <em>__getConnection()</em> liefert die f&uuml;r das Modul konfigurierte
+     Datenbank-Verbindung zur&uuml;ck.
+  </li>
 </ul>
 Um die f&uuml;r dieses Modul notwenige Datenbank-Layout anlegen zu k&ouml;nnen, muss das im Ordner
 <strong>/apps/modules/comments/data/scripts</strong> vorhandene SQL-Script <strong>init_comments.sql</strong>
 ausgef&uuml;hrt werden. F&uuml;r weitere, von Ihnen erstellte Anwendungen schickt es sich ebenso,
 die notwenigen Datenbank-Initialisations-Skripte direkt in einem Ordner der Datenschicht abzulegen
 um sp&auml;ter nachvollziehen zu k&ouml;nnen, welche Anwendung, welche Tabellen der Datenbank nutzt.
+<br />
+<br />
+Die Konfigurationsdatei <em>{ENVIRONMENT}_comments.ini</em> beinhaltet eine Referenz auf eine
+Datenbank-Verbindung. Letztere findet sich in der globalen Datenbank-Konfiguration im Namespace
+<em>core::database</em>. Details zur Konfiguration von Datenbank-Verbindungen k&ouml;nnen dem Kapitel
+<a href="./?Seite=031-Klassenreferenz-connectionManager#1-Konfiguration" title="Klassenreferenz-connectionManager">connectionManager</a>
+entnommen werden.
 <br />
 <br />
 <br />
@@ -369,30 +364,18 @@ den Pager entsprechend zu konfigurieren. Das Grundger&uuml;st der Klasse sieht j
 <php:highlight>
    import('modules::pager::biz','pagerManager');
    import('modules::comments::data','commentMapper');
-   import('modules::pager::biz','pagerManager');
-   import('tools::link','frontcontrollerLinkHandler');
 
+   class commentManager extends coreObject {
 
-   class commentManager extends coreObject
-   {
-
-      var $__CategoryKey;
-
-
-      function commentManager(){
-      }
-
+      private $__CategoryKey;
 
       function init($CategoryKey){
          $this->__CategoryKey = $CategoryKey;
-       // end function
       }
-
 
       function loadEntries(){
       }
 
-    // end class
    }
 </php:highlight>
 Der Quellcode hat dabei folgende Bedeutung:
@@ -456,14 +439,14 @@ Inhalt:
 ; Datenbank ConnectionKey
 Pager.DatabaseConnection = "..."
 
-; Anzahl Einträge pro Seite
+; Anzahl Eintr&auml;ge pro Seite
 Pager.EntriesPerPage = "5"
 
-; Namen der URI-Parameter für Startpunkt und Anzahl/Seite
+; Namen der URI-Parameter f&uuml;r Startpunkt und Anzahl/Seite
 Pager.ParameterStartName = "PgrStr"
 Pager.ParameterCountName = "PgrAnz"
 
-; Namespace und Statements für Selektionen inkl. Konfiguration der Statements
+; Namespace und Statements f&uuml;r Selektionen inkl. Konfiguration der Statements
 Pager.StatementNamespace = "modules::comments"
 Pager.CountStatement = "load_entries_count"
 Pager.CountStatement.Params = "CategoryKey:standard"
@@ -572,7 +555,6 @@ die Objekte per Schleife mit Hilfe des Mappers zu laden. Das sieht in PHP-Code w
        // end for
       }
 
-      // Liste zurückgeben
       return $Entries;
 
     // end function
@@ -631,66 +613,38 @@ anschlie&szlig;end der gerade angefragte View (Liste oder Formular) an Hand des 
 <strong>coview</strong> (coview f&uuml;r CommentView) eingebunden. F&uuml;r die Ausgabe der Liste
 soll nun Template <strong>listing</strong> erstellt werden:
 <code:highlight>
-&lt;@controller 
-   namespace="modules::comments::pres::documentcontroller"
-   file="comment_listing_v1_controller"
-   class="comment_listing_v1_controller"
-@&gt;
+&lt;@controller namespace="modules::comments::pres::documentcontroller" file="comment_listing_v1_controller" class="comment_listing_v1_controller" @&gt;
 &lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
-&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.1" /&gt;
-&lt;a href="&lt;html:placeholder name="Link" /&gt;#comments" 
-      title="&lt;html:getstring
-                     namespace="modules::comments"
-                     config="language"
-                     entry="listing.text.2.title" /&gt;"&gt;
-&lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.2" /&gt;&lt;/strong&gt;
-&lt;/a&gt; &lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.3" /&gt;
-&lt;br /&gt;
-&lt;br /&gt;
-&lt;html:placeholder name="Pager" /&gt;
-&lt;html:placeholder name="Content" /&gt;
-
+&lt;div class="cm--list"&gt;
+   &lt;div class="cm--list-head"&gt;
+      &lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.1" /&gt; &lt;a href="&lt;html:placeholder name="Link" /&gt;#comments" title="&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt; &lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.3" /&gt;
+   &lt;/div&gt;
+   &lt;div class="cm--list-pager"&gt;
+      &lt;html:placeholder name="Pager" /&gt;
+   &lt;/div&gt;
+   &lt;div class="cm--list-items"&gt;
+      &lt;html:placeholder name="Content" /&gt;
+   &lt;/div&gt;
+&lt;/div&gt;
 &lt;html:template name="ArticleComment"&gt;
-  &lt;table cellspacing="0" cellpadding="0" style="border: 0px solid black; width: 100%;"&gt;
-    &lt;tr&gt;
-      &lt;td style="width: 60px; text-align: left; padding: 2px;"&gt;
-        &lt;font style="font-size: 36px; color: #777BB4; font-style: italic;"&gt;
-          &lt;template:placeholder name="Number" /&gt;
-        &lt;/font&gt;
-      &lt;/td&gt;
-      &lt;td style="padding: 2px; font-size: 12px; font-family: Arial, Helvetica, sans-serif;"&gt;
-        &lt;strong&gt;&lt;template:placeholder name="Name" /&gt;&lt;/strong&gt;
-        &lt;br /&gt;
-        &lt;em&gt;&lt;template:placeholder name="Date" /&gt;, &lt;template:placeholder name="Time" /&gt;&lt;/em&gt;
-      &lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/table&gt;
-  &lt;div style="background-color: #eeeeee; width: 100%; padding: 2px;"&gt;
-    &lt;template:placeholder name="Comment" /&gt;
-  &lt;/div&gt;
-  &lt;br /&gt;
+   &lt;div class="cm--list-item"&gt;
+      &lt;div class="cm--list-item-head"&gt;
+         &lt;div class="cm--list-item-head-num"&gt;&lt;template:placeholder name="Number" /&gt;&lt;/div&gt;
+         &lt;div class="cm--list-item-head-date"&gt;
+            &lt;span&gt;&lt;template:placeholder name="Name" /&gt;&lt;/span&gt;
+            &lt;em&gt;&lt;template:placeholder name="Date" /&gt;, &lt;template:placeholder name="Time" /&gt;&lt;/em&gt;
+         &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class="cm--list-item-body"&gt;
+         &lt;template:placeholder name="Comment" /&gt;
+      &lt;/div&gt;
+   &lt;/div&gt;
 &lt;/html:template&gt;
-
 &lt;html:template name="NoEntries"&gt;
-  &lt;template:addtaglib namespace="tools::html::taglib" prefix="template" class="getstring" /&gt;
-  &lt;br /&gt;
-  &lt;span style="color: #777BB4; font-style: italic; margin-left: 30px; font-weight: bold;"&gt;
-     &lt;template:getstring namespace="modules::comments" config="language" entry="noentries.text" /&gt;
-  &lt;/span&gt;
-  &lt;br /&gt;
-  &lt;br /&gt;
-  &lt;br /&gt;
-&lt;/html:template&gt;
-
-&lt;html:template name="Deactivated"&gt;
-  &lt;template:addtaglib namespace="tools::html::taglib" prefix="template" class="getstring" /&gt;
-  &lt;br /&gt;
-  &lt;span style="color: #777BB4; font-style: italic; margin-left: 30px; font-weight: bold;"&gt;
-     &lt;template:getstring namespace="modules::comments" config="language" entry="deactivated.text" /&gt;
-  &lt;/span&gt;
-  &lt;br /&gt;
-  &lt;br /&gt;
-  &lt;br /&gt;
+   &lt;template:addtaglib namespace="tools::html::taglib" prefix="template" class="getstring" /&gt;
+   &lt;div class="cm--list-noentries"&gt;
+      &lt;template:getstring namespace="modules::comments" config="language" entry="noentries.text" /&gt;
+   &lt;/div&gt;
 &lt;/html:template&gt;
 </code:highlight>
 Dieses sieht die Definition des zu verwendenden Controllers, einen Einleitungstext, Platz f&uuml;r
@@ -743,80 +697,69 @@ Der konkrete DocumentController <strong>comment_listing_v1_controller</strong> (
 nun mit den Aufgaben betraut, die gew&uuml;nschten Eintr&auml;ge und den Pager, bzw. ohne Kommentare
 eine Meldung auszugeben. In Quellcode gegossen kann das so gel&ouml;st werden:
 <php:highlight>
-import('modules::comments::pres::documentcontroller','commentBaseController');
-import('tools::datetime','dateTimeManager');
-import('tools::string','bbCodeParser');
-import('tools::link','frontcontrollerLinkHandler');
-
-class comment_listing_v1_controller extends commentBaseController
-{
-
-   function comment_listing_v1_controller(){
-   }
+class comment_listing_v1_controller extends commentBaseController {
 
    function transformContent(){
 
-      // get category key
       $this->__loadCategoryKey();
-
-      // get data layer component
       $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
 
-      // load entries
-      $Entries = $M->loadEntries();
+      // load the entries using the business component
+      $entries = $M->loadEntries();
 
-      $Buffer = (string)'';
-      $Template__ArticleComment = &$this->__getTemplate('ArticleComment');
-      $bbCP = &$this->__getServiceObject('tools::string','bbCodeParser');
+      $buffer = (string)'';
+      $template = &$this->__getTemplate('ArticleComment');
 
-      for($i = 0; $i < count($Entries); $i++){
+      // init bb code parser (remove some provider, that we don't need configuration files)
+      $bP = &$this->__getServiceObject('tools::string','AdvancedBBCodeParser');
+      $bP->removeProvider('standard.font.color');
+      $bP->removeProvider('standard.font.size');
 
-         // fill template
-         $Template__ArticleComment->setPlaceHolder('Number',$i + 1);
-         $Template__ArticleComment->setPlaceHolder('Name',$Entries[$i]->get('Name'));
-         $Template__ArticleComment->setPlaceHolder('Date',dateTimeManager::convertDate2Normal($Entries[$i]->get('Date')));
-         $Template__ArticleComment->setPlaceHolder('Time',$Entries[$i]->get('Time'));
-         $Template__ArticleComment->setPlaceHolder('Comment',$bbCP->parseText($Entries[$i]->get('Comment')));
+      for($i = 0; $i < count($entries); $i++){
 
-         // add template to list
-         $Buffer .= $Template__ArticleComment->transformTemplate();
+         $template->setPlaceHolder('Number',$i + 1);
+         $template->setPlaceHolder('Name',$entries[$i]->get('Name'));
+         $template->setPlaceHolder('Date',dateTimeManager::convertDate2Normal($entries[$i]->get('Date')));
+         $template->setPlaceHolder('Time',$entries[$i]->get('Time'));
+         $template->setPlaceHolder('Comment',$bP->parseCode($entries[$i]->get('Comment')));
+
+         $buffer .= $template->transformTemplate();
 
        // end for
       }
 
-      // display hint in cas of no entries
-      if(count($Entries) < 1){
+      // display hint, if no entries are to display
+      if(count($entries) < 1){
          $Template__NoEntries = &$this->__getTemplate('NoEntries');
-         $Buffer = $Template__NoEntries->transformTemplate();
+         $buffer = $Template__NoEntries->transformTemplate();
        // end if
       }
 
-      // display list
-      $this->setPlaceHolder('Content',$Buffer);
+      // display the list
+      $this->setPlaceHolder('Content',$buffer);
 
-      // display pager
+      // display the pager
       $this->setPlaceHolder('Pager',$M->getPager('comments'));
 
-      // get pager url params
-      $URLParameter = $M->getURLParameter();
+      // get the pager url params from the business component
+      // to be able to delete them from the url.
+      $urlParams = $M->getURLParameter();
 
-      // generate create entry link
+      // generate the add comment link
       $this->setPlaceHolder(
-                            'Link',
-                            frontcontrollerLinkHandler::generateLink(
-                                                                     $_SERVER['REQUEST_URI'],
-                                                                     array(
-                                                                           $URLParameter['StartName'] => '',
-                                                                           $URLParameter['CountName'] => '',
-                                                                           'coview' => 'form'
-                                                                     )
-                            )
+             'Link',
+             frontcontrollerLinkHandler::generateLink(
+                                       $_SERVER['REQUEST_URI'],
+                                       array(
+                                             $urlParams['StartName'] => '',
+                                             $urlParams['CountName'] => '',
+                                             'coview' => 'form'
+                                       )
+             )
       );
 
-    // end function
    }
 
- // end function
 }
 </php:highlight>
 Besonderheiten der Umsetzung sind das Holen des Kategorie-Schl&uuml;ssels zu Beginn der Methode
@@ -857,24 +800,59 @@ Benutzer die Eingaben
 </ul>
 abgefragt werden. Das Formular gestaltet sich dann in XML-Tags ausgedr&uuml;ckt wie folgt:
 <code:highlight>
-  &lt;html:form name="AddComment" method="post"&gt;
-    &lt;span style="margin-right: 10px;"&gt;Name:&lt;/span&gt;&lt;form:text maxlength="100"
-      name="Name" value="" class="eingabe_feld" style="width: 390px;" validate="true"
-      button="Speichern" validator="Text" /&gt;
-    &lt;br /&gt;
-    &lt;span style="margin-right: 10px;"&gt;E-Mail:&lt;/span&gt;&lt;form:text maxlength="100"
-      name="EMail" value="" class="eingabe_feld" style="width: 390px;" validate="true"
-      button="Speichern" validator="EMail" /&gt;
-    &lt;br /&gt;
-    &lt;br /&gt;
-    Kommentar:
-    &lt;br /&gt;
-    &lt;form:area name="Comment" class="eingabe_feld" style="width: 438px; height: 120px; overflow: auto;"
-      validate="true" button="Speichern" validator="Text" /&gt;
-    &lt;br /&gt;
-    &lt;br /&gt;
-    &lt;form:button name="Speichern" value="Speichern" class="eingabe_feld" /&gt;
-  &lt;/html:form&gt;
+&lt;html:form name="AddComment" method="post"&gt;
+   &lt;span&gt;
+      &lt;form:getstring namespace="modules::comments" config="language" entry="form.name" /&gt;*
+   &lt;/span&gt;
+   &lt;form:text
+      maxlength="100"
+      name="Name"
+      class="cm--create-element-name"
+      validate="true"
+      button="Save"
+      validator="Text"
+   /&gt;
+   &lt;br /&gt;
+   &lt;span&gt;
+      &lt;form:getstring namespace="modules::comments" config="language" entry="form.email" /&gt;*
+   &lt;/span&gt;
+   &lt;form:text
+      maxlength="100"
+      name="EMail"
+      class="cm--create-element-email"
+      validate="true"
+      button="Save"
+      validator="EMail"
+   /&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;form:getstring namespace="modules::comments" config="language" entry="form.comment" /&gt;
+   &lt;br /&gt;
+   &lt;form:area
+      name="Comment"
+      class="cm--create-element-comment"
+      validate="true"
+      button="Save"
+      validator="Text"
+   /&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;span&gt;
+      &lt;form:getstring namespace="modules::comments" config="language" entry="form.confirm" /&gt;*
+   &lt;/span&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;form:addtaglib namespace="modules::captcha::pres::taglib" prefix="form" class="captcha" /&gt;
+   &lt;form:captcha
+       text_class="cm--create-element-captcha"
+       validate="true"
+       button="Save"
+       clearonerror="true"
+   /&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;form:button name="Save" class="cm--create-element-button" /&gt;
+&lt;/html:form&gt;
 </code:highlight>
 Mit den Attributen <strong>validate="true"</strong> und <strong>button="Speichern"</strong> wird
 die Formular-Validierung f&uuml;r dieses Feld aktiviert und mit <strong>validator="Text"</strong> bzw.
@@ -884,31 +862,66 @@ soll. Mit ein wenig Text versehen hat das Template <em>form</em> damit folgenden
 &lt;@controller namespace="modules::comments::pres::documentcontroller" file="comment_form_v1_controller" class="comment_form_v1_controller" @&gt;
 &lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
 &lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
-&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.1" /&gt; &lt;a href="&lt;html:placeholder name="Zurueck" /&gt;#comments" title="&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.3" /&gt;
-&lt;br /&gt;
-&lt;br /&gt;
-&lt;html:placeholder name="Form"/&gt;
-
-&lt;html:form name="AddComment" method="post"&gt;
-  &lt;span style="margin-right: 10px;"&gt;&lt;form:getstring namespace="modules::comments" config="language" entry="form.name" /&gt;*&lt;/span&gt;&lt;form:text maxlength="100" name="Name" value="" class="eingabe_feld" style="width: 390px;" validate="true" button="Save" validator="Text" /&gt;
-  &lt;br /&gt;
-  &lt;span style="margin-right: 10px;"&gt;&lt;form:getstring namespace="modules::comments" config="language" entry="form.email" /&gt;*&lt;/span&gt;&lt;form:text maxlength="100" name="EMail" value="" class="eingabe_feld" style="width: 390px;" validate="true" button="Save" validator="EMail" /&gt;
-  &lt;br /&gt;
-  &lt;br /&gt;
-  &lt;form:getstring namespace="modules::comments" config="language" entry="form.comment" /&gt;
-  &lt;br /&gt;
-  &lt;form:area name="Comment" class="eingabe_feld" style="width: 441px; height: 120px; overflow: auto;" validate="true" button="Save" validator="Text" /&gt;
-  &lt;br /&gt;
-  &lt;br /&gt;
-  &lt;span style="margin-right: 10px;"&gt;&lt;form:getstring namespace="modules::comments" config="language" entry="form.confirm" /&gt;*&lt;/span&gt;
-  &lt;br /&gt;
-  &lt;br /&gt;
-  &lt;img src="&lt;form:placeholder name="CaptchaImage" /&gt;" border="0" align="absmiddle" /&gt;
-  &lt;form:text name="CaptchaString" class="eingabe_feld" style="margin-left: 10px; width: 60px;" validate="true" button="Save" validator="Text" maxlength="5" /&gt;
-  &lt;br /&gt;
-  &lt;br /&gt;
-  &lt;form:button name="Save" class="eingabe_feld" /&gt;
-&lt;/html:form&gt;
+&lt;div class="cm--create"&gt;
+   &lt;div class="cm--create-head"&gt;
+      &lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.1" /&gt; &lt;a href="&lt;html:placeholder name="back" /&gt;#comments" title="&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.3" /&gt;
+   &lt;/div&gt;
+   &lt;div class="cm--create-form"&gt;
+      &lt;html:form name="AddComment" method="post"&gt;
+         &lt;span&gt;
+            &lt;form:getstring namespace="modules::comments" config="language" entry="form.name" /&gt;*
+         &lt;/span&gt;
+         &lt;form:text
+            maxlength="100"
+            name="Name"
+            class="cm--create-element-name"
+            validate="true"
+            button="Save"
+            validator="Text"
+         /&gt;
+         &lt;br /&gt;
+         &lt;span&gt;
+            &lt;form:getstring namespace="modules::comments" config="language" entry="form.email" /&gt;*
+         &lt;/span&gt;
+         &lt;form:text
+            maxlength="100"
+            name="EMail"
+            class="cm--create-element-email"
+            validate="true"
+            button="Save"
+            validator="EMail"
+         /&gt;
+         &lt;br /&gt;
+         &lt;br /&gt;
+         &lt;form:getstring namespace="modules::comments" config="language" entry="form.comment" /&gt;
+         &lt;br /&gt;
+         &lt;form:area
+            name="Comment"
+            class="cm--create-element-comment"
+            validate="true"
+            button="Save"
+            validator="Text"
+         /&gt;
+         &lt;br /&gt;
+         &lt;br /&gt;
+         &lt;span&gt;
+            &lt;form:getstring namespace="modules::comments" config="language" entry="form.confirm" /&gt;*
+         &lt;/span&gt;
+         &lt;br /&gt;
+         &lt;br /&gt;
+         &lt;form:addtaglib namespace="modules::captcha::pres::taglib" prefix="form" class="captcha" /&gt;
+         &lt;form:captcha
+             text_class="cm--create-element-captcha"
+             validate="true"
+             button="Save"
+             clearonerror="true"
+         /&gt;
+         &lt;br /&gt;
+         &lt;br /&gt;
+         &lt;form:button name="Save" class="cm--create-element-button" /&gt;
+      &lt;/html:form&gt;
+   &lt;/div&gt;
+&lt;/div&gt;
 </code:highlight>
 Der zugeh&ouml;rige DocumentController (<strong>comment_form_v1_controller</strong>) hat dabei die
 Aufgabe das Formular in den daf&uuml;r vorgesehenen Platzhalter einzusetzen und im Fall eines
@@ -916,112 +929,60 @@ abgeschickten und validen Formulars den Eintrag mit Hilfe der Business-Komponent
 implementiert dieser eine neue Methode <strong>saveEntry()</strong>, dem ein Domain-Objekt &uuml;bergeben
 werden muss. Hier der Controller in der &Uuml;bersicht:
 <php:highlight>
-import('modules::comments::pres::documentcontroller','commentBaseController');
-import('tools::request','RequestHandler'); 
-import('modules::comments::biz','commentManager');
-import('tools::link','frontcontrollerLinkHandler');
-import('tools::string','stringAssistant');
+class comment_form_v1_controller extends commentBaseController {
 
-class comment_form_v1_controller extends commentBaseController
-{
+      function transformContent(){
 
-   var $_LOCALS = array();
+         $form = &$this->__getForm('AddComment');
 
-   function comment_form_v1_controller(){
-      $this->_LOCALS = RequestHandler::getValues(array('Name','EMail','Comment','CaptchaString'));
-    // end function
-   }
+         if($form->get('isSent') == true){
 
-   function transformContent(){
+            $this->__loadCategoryKey();
+            $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
 
-      // Referenz auf das Formular holen
-      $Form__AddComment = &$this->__getForm('AddComment');
+            if($form->get('isValid') == true){
 
-      // Prüfen, ob Formular abgesendet und erforlgreich validiert wurde
-      if($Form__AddComment->get('isSent') == true){
+               $articleComment = new ArticleComment();
+               $name = &$form->getFormElementByName('Name');
+               $articleComment->set('Name',$name->getAttribute('value'));
 
-         // Kategorie-Schlüssel laden
-         $this->__loadCategoryKey();
+               $email = &$form->getFormElementByName('EMail');
+               $articleComment->set('EMail',$email->getAttribute('value'));
 
-         // Mapper holen
-         $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
+               $comment = &$form->getFormElementByName('Comment');
+               $articleComment->set('Comment',$comment->get('Content'));
 
-         // Validieren des Captchas
-         $CaptchaString = $M->get('CaptchaString');
+               $M->saveEntry($articleComment);
 
-         if($CaptchaString != $this->_LOCALS['CaptchaString']){
-            $Captcha = &$Form__AddComment->getFormElementByName('CaptchaString');
-            $Captcha->set('isValid',false);
-            $Form__AddComment->set('isValid',false);
-          // end if
-         }
+            }
+            else{
+               $this->__buildForm();
+            }
 
-         // Prüfen, ob Formular korrekt ausgefüllt wurde
-         if($Form__AddComment->get('isValid') == true){
-
-            // Eintrag erstellen
-            $ArticleComment = new ArticleComment();
-            $ArticleComment->set('Name',$this->_LOCALS['Name']);
-            $ArticleComment->set('EMail',$this->_LOCALS['EMail']);
-            $ArticleComment->set('Comment',$this->_LOCALS['Comment']);
-
-            // Eintrag speichern
-            $M->saveEntry($ArticleComment);
-
-          // end if
          }
          else{
             $this->__buildForm();
-          // end else
          }
 
-       // end if
-      }
-      else{
-         $this->__buildForm();
-       // end else
       }
 
-    // end function
+      private function __buildForm(){
+
+         $form = &$this->__getForm('AddComment');
+         $form->setAttribute('action',$_SERVER['REQUEST_URI'].'#comments');
+
+         $config = &$this->__getConfiguration('modules::comments','language');
+         $button = &$form->getFormElementByName('Save');
+         $button->setAttribute('value',$config->getValue($this->__Language,'form.button'));
+
+         $form->transformOnPlace();
+
+         $link = frontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
+         $this->setPlaceHolder('back',$link);
+
+      }
+
    }
-
-   function __buildForm(){
-
-      // Referenz auf das Formular holen
-      $Form__AddComment = &$this->__getForm('AddComment');
-
-      // action setzen
-      $Form__AddComment->setAttribute('action',$_SERVER['REQUEST_URI'].'#comments');
-
-      // Button beschriften
-      $Config = &$this->__getConfiguration('modules::comments','language');
-      $Button = &$Form__AddComment->getFormElementByName('Save');
-      $Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
-
-      // CaptchaImage füllen
-      $Reg = &Singleton::getInstance('Registry');
-      $URLRewriting = $Reg->retrieve('apf::core','URLRewriting');
-      if($URLRewriting === true){
-         $Form__AddComment->setPlaceHolder('CaptchaImage','/~/modules_comments-action/showCaptcha');
-       // end if
-      }
-      else{
-         $Form__AddComment->setPlaceHolder('CaptchaImage','./?modules_comments-action:showCaptcha');
-       // end else
-      }
-
-      // Formular darstellen
-      $this->setPlaceHolder('Form',$Form__AddComment->transformForm());
-
-      // Zurücklink darstellen
-      $Link = frontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
-      $this->setPlaceHolder('Zurueck',$Link);
-
-    // end function
-   }
-
- // end class
-}
 </php:highlight>
 <a name="5-2-Businessschicht"></a><h4>5.2. Business-Schicht</h4>
 In diesem Kapitel stellt sich nun die Aufgabe, die zuvor beschriebene Business-Schicht-Methode
@@ -1061,8 +1022,7 @@ Die Datenschicht muss nun noch die Methode <strong>saveArticleComment()</strong>
 <php:highlight>
    function saveArticleComment($ArticleComment){
 
-      // SQL-Handler holen
-      $SQL = &$this->__getServiceObject('core::database','MySQLHandler');
+      $SQL = &$this->__getConnection();
 
       // Prüfen, ob Artikel bereits existiert
       if($ArticleComment->get('ID') == null){
