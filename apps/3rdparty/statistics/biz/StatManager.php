@@ -1,6 +1,6 @@
 <?php
    import('3rdparty::statistics::data','StatMapper');
-   import('core::session','sessionManager');
+   import('core::session','SessionManager');
 
 
    /**
@@ -40,7 +40,7 @@
       function readStatistic($period = 'overview',$year = null,$month = null,$day = null,$hour = null){
 
          // invoke benchmarker
-         $T = &Singleton::getInstance('benchmarkTimer');
+         $T = &Singleton::getInstance('BenchmarkTimer');
          $T->start('getStatData('.$period.')');
 
          // Statistik-Daten laden
@@ -104,7 +104,7 @@
          $wSM = &$this->__getAndInitServiceObject('sites::apfdocupage::data','StatMapper','Stat');
 
          // create session manager
-         $Session = new sessionManager('Stat');
+         $Session = new SessionManager('Stat');
 
          // create stat entry
          $wSM->createStatEntry(

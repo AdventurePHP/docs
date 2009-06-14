@@ -1,5 +1,5 @@
 <?php
-   import('modules::pager::biz','pagerManager');
+   import('modules::pager::biz','PagerManagerFabric');
    import('sites::apfdocupage::biz','searchResult');
    import('sites::apfdocupage::data','fulltextsearchMapper');
    import('core::logging','Logger');

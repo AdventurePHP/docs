@@ -36,7 +36,7 @@
       function loadSearchResult($SearchString){
 
          // start timer
-         $T = &Singleton::getInstance('benchmarkTimer');
+         $T = &Singleton::getInstance('BenchmarkTimer');
          $T->start('fulltextsearchMapper::loadSearchResult()');
 
          // get configuration
@@ -123,7 +123,7 @@
       function loadPages($Language = 'de'){
 
          // Timer starten
-         $T = &Singleton::getInstance('benchmarkTimer');
+         $T = &Singleton::getInstance('BenchmarkTimer');
          $T->start('fulltextsearchMapper::loadPages()');
 
          // Konfiguration holen

@@ -53,7 +53,7 @@
       function importArticles(){
 
          // Timer holen
-         $T = &Singleton::getInstance('benchmarkTimer');
+         $T = &Singleton::getInstance('BenchmarkTimer');
 
          // Logger erzeugen
          $L = &Singleton::getInstance('Logger');
