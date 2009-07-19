@@ -83,10 +83,24 @@ das Link-Attribut <strong>linkrewrite</strong> auf den Wert <strong>false</stron
 <a name="4-Aufbau-und-Funktion"></a><h3>4. Aufbau und Funktion</h3>
 Ein Filter im Adventure PHP Framework wird durch eine Klasse, die von <strong>AbstractFilter</strong>
 ableitet, repr&auml;sentiert. Diese muss die Methode <strong>filter()</strong> implementieren, die
-zwei Argumente tr&auml;gt: die Filter-Anweisung und den <em>Input</em>. Am Ende der Funktion muss
+ein Argument tr&auml;gt: den <em>Input</em>. Am Ende der Funktion muss
 der <em>Output</em> zur&uuml;ckgegeben werden.
 <br />
 <br />
+In der folgenden Code-Box wird ein Beispiel beschrieben:
+<php:highlight>
+class MySpecialFilter extends AbstractFilter {
+
+   public function filter($input){
+      return $this->__replaceAWithB($input);
+   }
+
+   private function __replaceAWithB($string){
+      return str_replace('a','b',$input);
+   }
+
+}
+</php:highlight>
 Um einen Filter nutzen zu k&ouml;nnen, muss dieser &uuml;ber die <strong>FilterFactory</strong>
 erzeugt werden. Die Methode <strong>getFilter()</strong> erwartet ein
 <strong>FilterDefinition</strong>-Objekt als Parameter. Die <strong>FilterDefinition</strong>
@@ -96,7 +110,7 @@ beinhaltet dabei den Namespace und den (Klassen- bzw. Datei-)Namen des Filters.
 Das folgende Beispiel zeigt die Verwendung eines Filters:
 <php:highlight>
 // define the filter
-$filterDef = new FilterDefinition('my::filter::namespace','FilterClassName');
+$filterDef = new FilterDefinition('my::filter::namespace','MySpecialFilter');
 
 // create the filter
 $filter = FilterFactory::getFilter($filterDef);
@@ -105,7 +119,7 @@ $filter = FilterFactory::getFilter($filterDef);
 $input = /* ... */
 
 // apply the filter
-$output = $filter->filter('MyFilterInstruction',$input);
+$output = $filter->filter($input);
 </php:highlight>
 Der interne Aufbau eines Filters ist dabei komplett dem Entwickler &uuml;berlassen.
 <br />
@@ -174,7 +188,7 @@ $reg->register(
 $fC = &Singleton::getInstance('Frontcontroller');
 $fC->start('namespace::of::my::webpage','mytemplate');
 </php:highlight>
-<strong>Wichig:</strong> die Konfiguration muss <u>vor</u> dem Erzeugen des Page- bzw. FrontControllers
+<strong>Wichtig:</strong> die Konfiguration muss <u>vor</u> dem Erzeugen des Page- bzw. FrontControllers
 erfolgen!
 <br />
 <br />

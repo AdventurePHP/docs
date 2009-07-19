@@ -642,19 +642,27 @@ eigenen Filter-Klasse die Filter-Instruktion.
 <br />
 Wie im Kapitel
 <a href="./?Seite=087-Filter#4-Aufbau-und-Funktion" title="Aufbau und Funktion von Filtern">Aufbau und Funktion von Filtern</a>
-beschrieben, muss eine Filter-Klasse immer von <strong>AbstractFilter</strong> erben und die Methode
-<strong>filter()</strong> implementieren. Die folgende Code-Box zeigt einen Filter, der alle Vorkommen
-von &quot;cm^2&quot; durch &quot;cm&sup2;&quot; ersetzt:
+beschrieben, muss eine Filter-Klasse immer (direkt oder indirekt) von <strong>AbstractFilter</strong>
+erben und die Methode <strong>filter()</strong> implementieren. Die folgende Code-Box zeigt einen
+Filter, der alle Vorkommen von &quot;cm^2&quot; durch &quot;cm&sup2;&quot; ersetzt:
 <php:highlight>
-class DefinitionFilter extends AbstractFilter
-{
+class DefinitionFilter extends AbstractFormFilter {
 
-   function filter($instruction,$input){
+   function filter($input){
       return str_replace('cm^2','cm&sup2;',$input);
    }
 
 }
 </php:highlight>
+<div class="hint">
+   Im Fall von "normalen" Filtern (Ein- und Ausgabe-Filter) muss die Klasse <strong>AbstractFilter</strong>
+   erweitert werden. F&uuml;r die Formular-Filter wurde nochmals eine weitere Basis-Klasse geschaffen,
+   die sich um die Handhabung der Filter-Anweisungen k&uuml;mmert, die im Formular-Feld-Attribut
+   <strong>filter</strong> mitgegeben wird. Dieser Wert wird in die interne Variable
+   <em>$this->__Instruction</em> injiziert und steht beim Ausf&uuml;hren der Methode <em>filter()</em>
+   zur Verf&uuml;gung.
+</div>
+<br />
 Wie dem Beispiel zu entnehmen ist, kann in einfachen Anwendungsf&auml;llen, die Verwendung der
 Filter-Instruktion zur Ablaufsteuerung entfallen. Dabei muss jedoch sichergestellt werden, dass das
 Attribut <strong>filter</strong> einen nichtleeren (Dummy-)Werte enth&auml;lt.
@@ -663,12 +671,11 @@ Attribut <strong>filter</strong> einen nichtleeren (Dummy-)Werte enth&auml;lt.
 Um einen Filter wiederverwendbar zu gestalten, ist es jedoch ratsam, gleichartige Filter-Funktionen
 zusammenzufassen. Das folgende Beispiel zeigt einen Filter, der K&ouml;rperma&szlig;e filtert:
 <php:highlight>
-class MeasureFilter extends AbstractFilter
-{
+class MeasureFilter extends AbstractFormFilter {
 
-   function filter($instruction,$input){
+   function filter($input){
 
-      switch($instruction){
+      switch($this->__Instruction){
 
          case 'weight':
             $output = preg_replace('/[^0-9,.]/i','',$input);
@@ -719,9 +726,9 @@ die auch im Release enthalten ist, kann zur Bildung von Filterketten verwendet w
 <php:highlight>
 class MultiplexFormFilter extends FormFilter
 {
-   function filter($instruction,$input){
+   function filter($input){
 
-      $instructionSet = explode('|',$instruction);
+      $instructionSet = explode('|',$this->__Instruction);
       $output = $input;
 
       foreach($instructionSet as $filterInstruction){

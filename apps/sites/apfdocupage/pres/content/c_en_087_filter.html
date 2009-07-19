@@ -77,10 +77,24 @@ This task is done by the <strong>HtmlLinkRewriteFilter</strong> class, that resi
 <br />
 <a name="4-Design-and-function"></a><h3>4. Design and function</h3>
 An APF filter is represented by a class, that is derived from the <strong>AbstractFilter</strong>
-class. It must also implement the <strong>filter()</strong> method, that takes two arguments:
-the filter instruction and the <em>input</em>. The function must return the <em>output</em> at the end.
+class. It must also implement the <strong>filter()</strong> method, that takes one argument:
+the <em>input</em>. The function must return the <em>output</em> at the end.
 <br />
 <br />
+A sample implementation is shown in the subsequent code box:
+<php:highlight>
+class MySpecialFilter extends AbstractFilter {
+
+   public function filter($input){
+      return $this->__replaceAWithB($input);
+   }
+
+   private function __replaceAWithB($string){
+      return str_replace('a','b',$input);
+   }
+
+}
+</php:highlight>
 In order to use the filter, it must be created using the <strong>FilterFactory</strong>. The static
 <strong>getFilter()</strong> method expects one argument, that represents the filter definition. This
 parameter must be an instance of the <strong>FilterDefinition</strong> including the namespace and
@@ -90,7 +104,7 @@ the filter's (class- and file-)name.
 The following example explains the usage of a filter:
 <php:highlight>
 // define the filter
-$filterDef = new FilterDefinition('my::filter::namespace','FilterClassName');
+$filterDef = new FilterDefinition('my::filter::namespace','MySpecialFilter');
 
 // create the filter
 $filter = FilterFactory::getFilter($filterDef);
@@ -99,7 +113,7 @@ $filter = FilterFactory::getFilter($filterDef);
 $input = /* ... */
 
 // apply the filter
-$output = $filter->filter('MyFilterInstruction',$input);
+$output = $filter->filter($input);
 </php:highlight>
 The internal structure of a filter is completely delegated to the developer's responsibility.
 <br />

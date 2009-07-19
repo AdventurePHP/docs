@@ -629,19 +629,28 @@ instruction.
 <br />
 As described in chapter
 <a href="./?Page=087-Filter#4-Design-and-function" title="Design and function">design and function of filters</a>,
-each filter class must inherit from the <strong>AbstractFilter</strong> definition and must implement
-the <strong>filter()</strong> function. The next code box points out, how a filter replacing all
-occurrences from &quot;cm^2&quot; to &quot;cm&sup2;&quot; must be implemented:
+each filter class must inherit (directly or via other subclasses) from the <strong>AbstractFilter</strong>
+definition and must implement the <strong>filter()</strong> function. The next code box points out,
+how a filter replacing all occurrences from &quot;cm^2&quot; to &quot;cm&sup2;&quot; must be
+implemented:
 <php:highlight>
-class DefinitionFilter extends AbstractFilter
-{
+class DefinitionFilter extends AbstractFormFilter {
 
-   function filter($instruction,$input){
+   function filter($input){
       return str_replace('cm^2','cm&sup2;',$input);
    }
 
 }
 </php:highlight>
+<div class="hint">
+   In case of "normal" filters (input and output filter) your custom filter must derive from the
+   <strong>AbstractFilter</strong> class. To ease implementation of separate form filters, a new
+   base class is introduced to handle the filter instructions, that are applied to the filter using
+   the form field attribute <strong>filter</strong>. The value of this attribute is injeced into the
+   internal variable <em>$this->__Instruction</em>, that can be used executing the <em>filter()</em>
+   method.
+</div>
+<br />
 As you can take from the example, the filter instruction must not be used within simple application
 cases. In this case, you have to ensure, that the <strong>filter</strong> attribute contains a
 non-empty (dummy) value.
@@ -650,12 +659,11 @@ non-empty (dummy) value.
 In order to make a filter reusable, it is well to group similar filter instructions into one filter.
 The following example demonstrates a filter, that filters body quantities:
 <php:highlight>
-class MeasureFilter extends AbstractFilter
-{
+class MeasureFilter extends AbstractFormFilter {
 
-   function filter($instruction,$input){
+   function filter($input){
 
-      switch($instruction){
+      switch($this->__Instruction){
 
          case 'weight':
             $output = preg_replace('/[^0-9,.]/i','',$input);
@@ -706,9 +714,9 @@ Filter chaining can be done by an extra filter class. In order to apply more tha
 <php:highlight>
 class MultiplexFormFilter extends FormFilter
 {
-   function filter($instruction,$input){
+   function filter($input){
 
-      $instructionSet = explode('|',$instruction);
+      $instructionSet = explode('|',$this->__Instruction);
       $output = $input;
 
       foreach($instructionSet as $filterInstruction){
