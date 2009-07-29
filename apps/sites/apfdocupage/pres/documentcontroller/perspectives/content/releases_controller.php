@@ -77,29 +77,30 @@
          }
 
          // read releases
-         $Releases = array_reverse(FilesystemManager::getFolderContent($this->__ReleasesLocalDir));
-         usort($Releases,array('releases_controller','sortReleases'));
+         $releases = array_reverse(FilesystemManager::getFolderContent($this->__ReleasesLocalDir));
+         usort($releases,array('releases_controller','sortReleases'));
+         //echo printObject($releases);
 
          // display releases
-         if(count($Releases) > 0){
+         if(count($releases) > 0){
 
             // get templates
             $Template__ReleaseHead = &$this->__getTemplate('ReleaseHead_'.$this->__Language);
             $Template__ReleaseFile = &$this->__getTemplate('ReleaseFile');
 
-            for($i = 0; $i < count($Releases); $i++){
+            for($i = 0; $i < count($releases); $i++){
 
                // fill release number
-               $Template__ReleaseHead->setPlaceHolder('ReleaseNumber',$Releases[$i]);
+               $Template__ReleaseHead->setPlaceHolder('ReleaseNumber',$releases[$i]);
 
                // fetch files
-               $Files = FilesystemManager::getFolderContent($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download');
+               $Files = FilesystemManager::getFolderContent($this->__ReleasesLocalDir.'/'.$releases[$i].'/download');
 
                // sort files
                sort($Files);
 
-               // fill eleaseDescription
-               $ReleaseDescriptionFile = $this->__ReleasesLocalDir.'/'.$Releases[$i].'/'.$this->__Language.'_release_description.html';
+               // fill release description
+               $ReleaseDescriptionFile = $this->__ReleasesLocalDir.'/'.$releases[$i].'/'.$this->__Language.'_release_description.html';
                if(file_exists($ReleaseDescriptionFile)){
                   $Template__ReleaseHead->setPlaceHolder('ReleaseDescription',file_get_contents($ReleaseDescriptionFile));
                 // end if
@@ -110,15 +111,15 @@
                 // end else
                }
 
-               // fill Documentation
-               $DokuFiles = FilesystemManager::getFolderContent($this->__ReleasesLocalDir.'/'.$Releases[$i].'/doku');
+               // fill offline documentation
+               $DokuFiles = FilesystemManager::getFolderContent($this->__ReleasesLocalDir.'/'.$releases[$i].'/doku');
                $Template__OfflineDoku = &$this->__getTemplate('OfflineDoku_'.$this->__Language);
-               $Template__OfflineDoku->setPlaceHolder('ReleaseVersion',$Releases[$i]);
+               $Template__OfflineDoku->setPlaceHolder('ReleaseVersion',$releases[$i]);
                $Buffer_OfflineDoku = (string)'';
 
                for($k = 0; $k < count($DokuFiles); $k++){
 
-                  if(!is_dir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/doku/'.$DokuFiles[$k])){
+                  if(!is_dir($this->__ReleasesLocalDir.'/'.$releases[$i].'/doku/'.$DokuFiles[$k])){
 
                      // gather file type
                      switch(substr($DokuFiles[$k],strrpos($DokuFiles[$k],'.') + 1)){
@@ -216,16 +217,31 @@
 
                 // end for
                }
-               $Template__Documentation = &$this->__getTemplate('Documentation_'.$this->__Language);
-               $Template__Documentation->setPlaceHolder('ReleaseVersion',$Releases[$i]);
+
+               // -- check version to be greater than 1.10, than display only one online api doku
+               $dashOffset = strpos($releases[$i],'-');
+               if($dashOffset !== null){
+                  $rawVersion = substr($releases[$i],0,$dashOffset);
+               }
+               else{
+                  $rawVersion = $releases[$i];
+               }
+               $version = releases_controller::normalizeVersionNumber($rawVersion);
+               if($version >= 110){
+                  $Template__Documentation = &$this->__getTemplate('Documentation_new_'.$this->__Language);
+               }
+               else{
+                  $Template__Documentation = &$this->__getTemplate('Documentation_'.$this->__Language);
+               }
+               $Template__Documentation->setPlaceHolder('ReleaseVersion',$releases[$i]);
                $Template__Documentation->setPlaceHolder('OfflineDoku',$Buffer_OfflineDoku);
                $Template__Documentation->setPlaceHolder('ReleasesBaseURL',$this->__ReleasesBaseURL);
                $Template__ReleaseHead->setPlaceHolder('Documentation',$Template__Documentation->transformTemplate());
 
 
                // display SVN link
-               $Template__ReleaseHead->setPlaceHolder('SVNWebURL','http://adventurephpfra.svn.sourceforge.net/viewvc/adventurephpfra/tags/'.$Releases[$i]);
-               $Template__ReleaseHead->setPlaceHolder('SVNURL','https://adventurephpfra.svn.sourceforge.net/svnroot/adventurephpfra/tags/'.$Releases[$i]);
+               $Template__ReleaseHead->setPlaceHolder('SVNWebURL','http://adventurephpfra.svn.sourceforge.net/viewvc/adventurephpfra/tags/'.$releases[$i]);
+               $Template__ReleaseHead->setPlaceHolder('SVNURL','https://adventurephpfra.svn.sourceforge.net/svnroot/adventurephpfra/tags/'.$releases[$i]);
 
 
                // display release files
@@ -233,14 +249,14 @@
 
                for($j = 0; $j < count($Files); $j++){
 
-                  if(!is_link($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j]) && !is_dir($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j])){
+                  if(!is_link($this->__ReleasesLocalDir.'/'.$releases[$i].'/download/'.$Files[$j]) && !is_dir($this->__ReleasesLocalDir.'/'.$releases[$i].'/download/'.$Files[$j])){
 
                      // gather file attributes
-                     $FileAttributes = FilesystemManager::getFileAttributes($this->__ReleasesLocalDir.'/'.$Releases[$i].'/download/'.$Files[$j]);
+                     $FileAttributes = FilesystemManager::getFileAttributes($this->__ReleasesLocalDir.'/'.$releases[$i].'/download/'.$Files[$j]);
                      //echo printObject($FileAttributes);
 
                      // fill template
-                     $Template__ReleaseFile->setPlaceHolder('Link',$this->__ReleasesBaseURL.'/'.$Releases[$i].'/download/'.$Files[$j]);
+                     $Template__ReleaseFile->setPlaceHolder('Link',$this->__ReleasesBaseURL.'/'.$releases[$i].'/download/'.$Files[$j]);
                      $Template__ReleaseFile->setPlaceHolder('Name',$Files[$j]);
                      $Template__ReleaseFile->setPlaceHolder('Date',$FileAttributes['modificationdate']);
                      $Template__ReleaseFile->setPlaceHolder('Size',round((int)$FileAttributes['size'] / 1000,1));
@@ -291,20 +307,23 @@
 
          if(substr_count($OffsetOne,'-') > 0 && substr_count($OffsetTwo,'-') > 0){
 
-            $OffsetOneValue = (float) substr($OffsetOne,0,3);
-            $OffsetTwoValue = (float) substr($OffsetTwo,0,3);
+            $dashPosOneValue = strpos($OffsetOne,'-');
+            $dashPosTwoValue = strpos($OffsetTwo,'-');
+            $offsetOneValue = releases_controller::normalizeVersionNumber(substr($OffsetOne,0,$dashPosOneValue));
+            $offsetTwoValue = releases_controller::normalizeVersionNumber(substr($OffsetTwo,0,$dashPosTwoValue));
 
-            if($OffsetOneValue == $OffsetTwoValue){
+            if($offsetOneValue == $offsetTwoValue){
 
-               /*echo */$OffsetOneSecondValue = substr($OffsetOne,4);
-               /*echo ':'.*/$OffsetTwoSecondValue = substr($OffsetTwo,4);
+               /*echo */$OffsetOneSecondValue = substr($OffsetOne,$dashPosOneValue + 1);
+               /*echo ':'.*/$OffsetTwoSecondValue = substr($OffsetTwo,$dashPosTwoValue + 1);
 
                $IdenticalValuesArray = array();
                $IdenticalValuesArray[] = $OffsetOneSecondValue;
                $IdenticalValuesArray[] = $OffsetTwoSecondValue;
                natsort($IdenticalValuesArray);
+               $IdenticalValuesArray = array_reverse($IdenticalValuesArray);
 
-               if($IdenticalValuesArray[0] === $OffsetOneSecondValue){
+               if($IdenticalValuesArray[1] === $OffsetOneSecondValue){
                   $return = 1;
                 // end if
                }
@@ -316,7 +335,7 @@
              // end if
             }
             else{
-               $return = ($OffsetOneValue < $OffsetTwoValue) ? 1 : -1;
+               $return = ($offsetOneValue < $offsetTwoValue) ? 1 : -1;
              // end else
             }
             //echo ' "'.$return.'" (case 1)';
@@ -326,12 +345,13 @@
 
          if(substr_count($OffsetOne,'-') > 0 && substr_count($OffsetTwo,'-') == 0){
 
-            $OffsetOneValue = (float) substr($OffsetOne,0,3);
-            $OffsetTwoValue = (float) $OffsetTwo;
+            $dashPosOneValue = strpos($OffsetOne,'-');
+            $offsetOneValue = releases_controller::normalizeVersionNumber(substr($OffsetOne,0,$dashPosOneValue));
+            $offsetTwoValue = releases_controller::normalizeVersionNumber($OffsetTwo);
 
-            if($OffsetOneValue == $OffsetTwoValue){
+            if($offsetOneValue == $offsetTwoValue){
 
-               /*echo */$OffsetOneSecondValue = substr($OffsetOne,4);
+               /*echo */$OffsetOneSecondValue = substr($OffsetOne,$dashPosOneValue + 1);
                /*echo ':'.*/$OffsetTwoSecondValue = $OffsetTwo;
 
                $IdenticalValuesArray = array();
@@ -351,7 +371,7 @@
              // end if
             }
             else{
-               $return = ($OffsetOneValue < $OffsetTwoValue) ? 1 : -1;
+               $return = ($offsetOneValue < $offsetTwoValue) ? 1 : -1;
              // end else
             }
             //echo ' "'.$return.'" (case 2)';
@@ -361,15 +381,16 @@
 
          if(substr_count($OffsetOne,'-') == 0 && substr_count($OffsetTwo,'-') > 0){
 
-            $OffsetOneValue = (float) $OffsetOne;
-            $OffsetTwoValue = (float) substr($OffsetTwo,0,3);
+            $dashPosTwoValue = strpos($OffsetTwo,'-');
+            $offsetOneValue = releases_controller::normalizeVersionNumber($OffsetOne);
+            $offsetTwoValue = releases_controller::normalizeVersionNumber(substr($OffsetTwo,0,$dashPosTwoValue));
 
-            if($OffsetOneValue == $OffsetTwoValue){
+            if($offsetOneValue == $offsetTwoValue){
                $return = 0;
              // end if
             }
             else{
-               $return = ($OffsetOneValue < $OffsetTwoValue) ? 1 : -1;
+               $return = ($offsetOneValue < $offsetTwoValue) ? 1 : -1;
              // end else
             }
             //echo ' "'.$return.'" (case 3)';
@@ -379,15 +400,15 @@
 
          if(substr_count($OffsetOne,'-') == 0 && substr_count($OffsetTwo,'-') == 0){
 
-            $OffsetOneValue = (float) $OffsetOne;
-            $OffsetTwoValue = (float) $OffsetTwo;
+            $offsetOneValue = releases_controller::normalizeVersionNumber($OffsetOne);
+            $offsetTwoValue = releases_controller::normalizeVersionNumber($OffsetTwo);
 
-            if($OffsetOneValue == $OffsetTwoValue){
+            if($offsetOneValue == $offsetTwoValue){
                $return = 0;
              // end if
             }
             else{
-               $return = ($OffsetOneValue < $OffsetTwoValue) ? 1 : -1;
+               $return = ($offsetOneValue < $offsetTwoValue) ? 1 : -1;
              // end else
             }
             //echo ' "'.$return.'" (case 4)';
@@ -395,10 +416,20 @@
           // end if
          }
 
-         // return sort indicator
          return $return;
 
        // end function
+      }
+
+      /**
+       * @private
+       * @static 
+       * @param string $version The version number extracted by the folder.
+       * @return int The normalized version number.
+       */
+      function normalizeVersionNumber($version){
+         $version = str_replace('.', '',$version);
+         return (int)$version;
       }
 
     // end class

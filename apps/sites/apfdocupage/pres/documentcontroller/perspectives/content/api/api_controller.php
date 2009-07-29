@@ -56,12 +56,42 @@
          $tmpl_linktitle = &$this->__getTemplate('LinkTitle_'.$this->__Language);
          $tmpl->setPlaceHolder('LinkTitle',$tmpl_linktitle->transformTemplate());
 
+         // prefill new template
+         $tmpl_new = &$this->__getTemplate('Release_1.10');
+         $tmpl_new->setPlaceHolder('ReleaseURL',$releaseUrl);
+         $tmpl_new->setPlaceHolder('Version',$tmpl_version->transformTemplate());
+
+         $tmpl_linkname = &$this->__getTemplate('LinkName_'.$this->__Language);
+         $tmpl_new->setPlaceHolder('LinkName',$tmpl_linkname->transformTemplate());
+
+         $tmpl_new->setPlaceHolder('LinkTitle',$tmpl_linktitle->transformTemplate());
+
          // display available API documentations
          $buffer = (string)'';
 
          for($i = 0; $i < count($releases); $i++){
-            $tmpl->setPlaceHolder('ReleaseName',$releases[$i]);
-            $buffer .= $tmpl->transformTemplate();
+
+            // -- check version to be greater than 1.10, than display only one online api doku
+            $dashOffset = strpos($releases[$i],'-');
+            if($dashOffset !== null){
+               $rawVersion = substr($releases[$i],0,$dashOffset);
+            }
+            else{
+               $rawVersion = $releases[$i];
+            }
+            
+            $version = api_controller::normalizeVersionNumber($rawVersion);
+            if($version >= 110){
+               $tmpl_new->setPlaceHolder('ReleaseName',$releases[$i]);
+               $buffer .= $tmpl_new->transformTemplate();
+             // end if
+            }
+            else {
+               $tmpl->setPlaceHolder('ReleaseName',$releases[$i]);
+               $buffer .= $tmpl->transformTemplate();
+             // end else
+            }
+
           // end for
          }
 
