@@ -279,7 +279,7 @@ muss die daf&uuml;r verantwortliche Template-Datei wie folgt abge&auml;ndert wer
 <strong>content.html</strong>
 <code:highlight>
 &lt;core:addtaglib namespace="tools::html::taglib" prefix="doc" class="createobject" /&gt;
-&lt;doc:createobject requestparam="Page" defaultvalue="Startseite" /&gt;
+&lt;doc:createobject requestparam="Seite" defaultvalue="Startseite" /&gt;
 </code:highlight>
 <br />
 <strong>Hinweis:</strong>
@@ -340,8 +340,7 @@ soll mit folgendem Inhalt gef&uuml;llt werden:
    import('core::database','MySQLHandler');
 
    // Controller-Klasse
-   class content_v1_controller extends baseController
-   {
+   class content_v1_controller extends baseController {
 
       function content_v1_controller(){
       }
@@ -351,17 +350,11 @@ soll mit folgendem Inhalt gef&uuml;llt werden:
          // Instanz der Datenbank-Abstraktionsklasse holen
          $SQL = $this->__getServiceObject('core::database','MySQLHandler');
 
+         // URL-Parameter beziehen
+         $Page = RequestHandler::getValue('Seite','Startseite');
 
-         // URL-Parameter definieren
-         if(isset($_REQUEST['Page']) && !empty($_REQUEST['Page'])){
-            $Page = $_REQUEST['Page'];
-          // end if
-         }
-         else{
-            $Page = 'Startseite';
-          // end else
-         }
-
+         // Parameter gegen SQL-Injections absichern
+         $Page = $SQL->escapeValue($Page);
 
          // Inhalt der Seite auslesen
          $select = 'SELECT PageContent
@@ -370,7 +363,6 @@ soll mit folgendem Inhalt gef&uuml;llt werden:
                     LIMIT 1';
          $result = $SQL->executeTextStatement($select);
          $data = $SQL->fetchData($result);
-
 
          // Inhalt der Seite ausgeben
          $this->__Content = $data['PageContent'];

@@ -334,8 +334,7 @@ must then be filled with the following content:
    import('core::database','MySQLHandler');
 
    // define the controller class
-   class content_v1_controller extends baseController
-   {
+   class content_v1_controller extends baseController {
 
       function content_v1_controller(){
       }
@@ -345,17 +344,11 @@ must then be filled with the following content:
          // create an instance of the database abstraction layer
          $SQL = $this->__getServiceObject('core::database','MySQLHandler');
 
+         // define the URL parameter
+         $Page = RequestHandler::getValue('Page','Home');
 
-         // Define the URL parameter
-         if(isset($_REQUEST['Page']) && !empty($_REQUEST['Page'])){
-            $Page = $_REQUEST['Page'];
-          // end if
-         }
-         else{
-            $Page = 'Home';
-          // end else
-         }
-
+         // escape value to avoid SQL injections
+         $Page = $SQL->escapeValue($Page);
 
          // select content from the desired table
          $select = 'SELECT PageContent
@@ -364,7 +357,6 @@ must then be filled with the following content:
                     LIMIT 1';
          $result = $SQL->executeTextStatement($select);
          $data = $SQL->fetchData($result);
-
 
          // insert content to the currend node
          $this->__Content = $data['PageContent'];

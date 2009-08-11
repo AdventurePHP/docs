@@ -37,7 +37,7 @@
       function transform(){
 
          // get model
-         $Model = &$this->__getServiceObject('sites::demosite::biz','APFModel');
+         $Model = &$this->__getServiceObject('sites::apfdocupage::biz','APFModel');
 
          // get model attributes
          $PageIndicators = $Model->getAttribute('page.indicator');

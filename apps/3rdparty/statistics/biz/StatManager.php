@@ -101,7 +101,7 @@
          $DNSName = $DNSIP['DNS'];
 
          // create data layer component
-         $wSM = &$this->__getAndInitServiceObject('sites::apfdocupage::data','StatMapper','Stat');
+         $wSM = &$this->__getAndInitServiceObject('3rdparty::statistics::data','StatMapper','Stat');
 
          // create session manager
          $Session = new SessionManager('Stat');
