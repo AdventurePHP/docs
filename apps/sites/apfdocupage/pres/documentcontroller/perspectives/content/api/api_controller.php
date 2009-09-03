@@ -71,16 +71,17 @@
 
          for($i = 0; $i < count($releases); $i++){
 
-            // -- check version to be greater than 1.10, than display only one online api doku
+            // gather version -------------------------------------------------------------------
             $dashOffset = strpos($releases[$i],'-');
-            if($dashOffset !== null){
+            if($dashOffset !== false){
                $rawVersion = substr($releases[$i],0,$dashOffset);
             }
             else{
                $rawVersion = $releases[$i];
             }
+            $version = releases_controller::normalizeVersionNumber($rawVersion);
+            // ----------------------------------------------------------------------------------
             
-            $version = api_controller::normalizeVersionNumber($rawVersion);
             if($version >= 110){
                $tmpl_new->setPlaceHolder('ReleaseName',$releases[$i]);
                $buffer .= $tmpl_new->transformTemplate();

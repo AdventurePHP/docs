@@ -6,18 +6,18 @@
 
 
    /**
-   *  @package modules::fulltextsearch::data
-   *  @class fulltextsearchIndexer
-   *
-   *  Implementierts the indexer for the full text search.
-   *
-   *  @author Christian Achatz
-   *  @version
-   *  Version 0.1, 06.03.2008<br />
-   *  Version 0.2, 07.06.2008 (removed timer due to performance leaks)<br />
-   */
-   class fulltextsearchIndexer extends coreObject
-   {
+    * @package modules::fulltextsearch::data
+    * @class fulltextsearchIndexer
+    *
+    * Implements an indexer for the full text search.
+    * Details on the concept can be seen on http://www.phpbar.de/w/Volltextsuche.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 06.03.2008<br />
+    * Version 0.2, 07.06.2008 (removed timer due to performance leaks)<br />
+    */
+   class fulltextsearchIndexer extends coreObject {
 
       /**
       *  @private
@@ -25,13 +25,11 @@
       */
       var $__LogFileName = 'fulltextsearchindexer';
 
-
       /**
       *  @private
       *  content dir.
       */
       var $__ContentFolder = './apps/sites/apfdocupage/pres/content';
-
 
       function fulltextsearchIndexer(){
       }

@@ -90,6 +90,17 @@
 
             for($i = 0; $i < count($releases); $i++){
 
+               // gather version -------------------------------------------------------------------
+               $dashOffset = strpos($releases[$i],'-');
+               if($dashOffset !== false){
+                  $rawVersion = substr($releases[$i],0,$dashOffset);
+               }
+               else{
+                  $rawVersion = $releases[$i];
+               }
+               $version = releases_controller::normalizeVersionNumber($rawVersion);
+               // ----------------------------------------------------------------------------------
+
                // fill release number
                $Template__ReleaseHead->setPlaceHolder('ReleaseNumber',$releases[$i]);
 
@@ -112,65 +123,102 @@
                }
 
                // fill offline documentation
-               $DokuFiles = FilesystemManager::getFolderContent($this->__ReleasesLocalDir.'/'.$releases[$i].'/doku');
+               //echo '<br />$version: '.$version.', raw: '.$rawVersion.', $releases[$i]: '.$releases[$i];
+               if($version >= 110 && substr_count($releases[$i],'RC') == 0){
+                  $docsFolder = 'docs';
+               }
+               else {
+                  $docsFolder = 'doku';
+               }
+               $DokuFiles = FilesystemManager::getFolderContent($this->__ReleasesLocalDir.'/'.$releases[$i].'/'.$docsFolder);
+
+               // choose new template for versions > 1.10
+               if($version >= 110){
+                  $Template__OfflineDoku = &$this->__getTemplate('OfflineDoku_110_'.$this->__Language);
+                // end if
+               }
+               else {
                $Template__OfflineDoku = &$this->__getTemplate('OfflineDoku_'.$this->__Language);
+                // end else
+               }
+
                $Template__OfflineDoku->setPlaceHolder('ReleaseVersion',$releases[$i]);
                $Buffer_OfflineDoku = (string)'';
 
                for($k = 0; $k < count($DokuFiles); $k++){
 
-                  if(!is_dir($this->__ReleasesLocalDir.'/'.$releases[$i].'/doku/'.$DokuFiles[$k])){
+                  if(!is_dir($this->__ReleasesLocalDir.'/'.$releases[$i].'/'.$docsFolder.'/'.$DokuFiles[$k])){
 
-                     // gather file type
-                     switch(substr($DokuFiles[$k],strrpos($DokuFiles[$k],'.') + 1)){
-
-                        case 'chm':
-                           $LibType = 'chm';
-                           break;
-                        default:
-                           $LibType = 'html + zip';
-                           break;
-
-                      // end switch
-                     }
-
-                     // gather docu type
-                     if(substr_count($DokuFiles[$k],'-core-') > 0){
+                     if($version >= 110){
 
                         if($this->__Language == 'de'){
-                              $DokuType = 'Core';
-                            // end if
-                           }
-                           else{
-                              $DokuType = 'core';
-                            // end else
-                           }
+                           $LibType = 'Gepackte HTML-Seiten';
+                           $DokuType = 'Komplette Dokumentation';
+                         // end if
+                        }
+                        else {
+                           $LibType = 'Packed html files';
+                           $DokuType = 'Complete docs';
+                         // end else
+                        }
 
                       // end if
                      }
-                     elseif(substr_count($DokuFiles[$k],'-modules-') > 0){
+                     else {
 
-                        if($this->__Language == 'de'){
-                              $DokuType = 'Modules';
-                            // end if
-                           }
-                           else{
-                              $DokuType = 'module';
-                            // end else
-                           }
+                        // gather file type
+                        switch(substr($DokuFiles[$k],strrpos($DokuFiles[$k],'.') + 1)){
 
-                      // end elseif
-                     }
-                     else{
+                           case 'chm':
+                              $LibType = 'chm';
+                              break;
+                           default:
+                              $LibType = 'html + zip';
+                              break;
 
-                        if($this->__Language == 'de'){
-                              $DokuType = 'Tools';
-                            // end if
-                           }
-                           else{
-                              $DokuType = 'tool';
-                            // end else
-                           }
+                         // end switch
+                        }
+
+                        // gather docu type
+                        if(substr_count($DokuFiles[$k],'-core-') > 0){
+
+                           if($this->__Language == 'de'){
+                                 $DokuType = 'Core';
+                               // end if
+                              }
+                              else{
+                                 $DokuType = 'core';
+                               // end else
+                              }
+
+                         // end if
+                        }
+                        elseif(substr_count($DokuFiles[$k],'-modules-') > 0){
+
+                           if($this->__Language == 'de'){
+                                 $DokuType = 'Modules';
+                               // end if
+                              }
+                              else{
+                                 $DokuType = 'module';
+                               // end else
+                              }
+
+                         // end elseif
+                        }
+                        else{
+
+                           if($this->__Language == 'de'){
+                                 $DokuType = 'Tools';
+                               // end if
+                              }
+                              else{
+                                 $DokuType = 'tool';
+                               // end else
+                              }
+
+                         // end else
+                        }
 
                       // end else
                      }
@@ -205,9 +253,12 @@
                       // end else
                      }
 
-                     $Template__OfflineDoku->setPlaceHolder('BuildDate',$BuildDate);
+                     if($version < 110){
                      $Template__OfflineDoku->setPlaceHolder('LibType',$LibType);
                      $Template__OfflineDoku->setPlaceHolder('DokuType',$DokuType);
+                      // end if
+                     }
+                     $Template__OfflineDoku->setPlaceHolder('BuildDate',$BuildDate);
                      $Template__OfflineDoku->setPlaceHolder('DokuFile',$DokuFiles[$k]);
                      $Template__OfflineDoku->setPlaceHolder('ReleasesBaseURL',$this->__ReleasesBaseURL);
                      $Buffer_OfflineDoku .= $Template__OfflineDoku->transformTemplate();
@@ -219,30 +270,23 @@
                }
 
                // -- check version to be greater than 1.10, than display only one online api doku
-               $dashOffset = strpos($releases[$i],'-');
-               if($dashOffset !== null){
-                  $rawVersion = substr($releases[$i],0,$dashOffset);
-               }
-               else{
-                  $rawVersion = $releases[$i];
-               }
-               $version = releases_controller::normalizeVersionNumber($rawVersion);
                if($version >= 110){
                   $Template__Documentation = &$this->__getTemplate('Documentation_new_'.$this->__Language);
+                  $Template__Documentation->setPlaceHolder('DocsFolder',$docsFolder);
+                // end if
                }
                else{
                   $Template__Documentation = &$this->__getTemplate('Documentation_'.$this->__Language);
+                // end else
                }
                $Template__Documentation->setPlaceHolder('ReleaseVersion',$releases[$i]);
                $Template__Documentation->setPlaceHolder('OfflineDoku',$Buffer_OfflineDoku);
                $Template__Documentation->setPlaceHolder('ReleasesBaseURL',$this->__ReleasesBaseURL);
                $Template__ReleaseHead->setPlaceHolder('Documentation',$Template__Documentation->transformTemplate());
 
-
                // display SVN link
                $Template__ReleaseHead->setPlaceHolder('SVNWebURL','http://adventurephpfra.svn.sourceforge.net/viewvc/adventurephpfra/tags/'.$releases[$i]);
                $Template__ReleaseHead->setPlaceHolder('SVNURL','https://adventurephpfra.svn.sourceforge.net/svnroot/adventurephpfra/tags/'.$releases[$i]);
-
 
                // display release files
                $Buffer_Files = (string)'';
