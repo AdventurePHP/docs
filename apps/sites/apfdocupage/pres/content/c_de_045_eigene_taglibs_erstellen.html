@@ -151,13 +151,24 @@ Methoden erweitern. Bindend bzw. vorgegeben sind jedoch folgende Bereiche:
     genutzt werden.
     <br />
     <br />
-    <strong>Tipp:</strong>
+    <div class="hint">
+      Die Methode eignet sich jedoch um weitere Sub-Tags im Inhalt des aktuellen
+      Objekts zu parsen oder etwaig angegebene DocumentController zu extrahieren. Hier stehen die
+      privaten Methoden <em>__extractTagLibTags()</em> und <em>__extractDocumentController()</em>
+      (siehe <a href="Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>)
+      zur Verf&uuml;gung.
+    </div>
     <br />
-    Die Methode eignet sich jedoch um weitere Sub-Tags im Inhalt des aktuellen
-    Objekts zu parsen oder etwaig angegebene DocumentController zu extrahieren. Hier stehen die
-    privaten Methoden <em>__extractTagLibTags()</em> und <em>__extractDocumentController()</em>
-    (siehe <a href="Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>) zur
-    Verf&uuml;gung.
+    <br />
+    <div class="hint">
+       Damit bei der Transformation die Inhalte einer Taglib an der korrekten Stelle ausgegeben werden,
+       erzeugt die Methode <em>__extractTagLibTags()</em> Platzhalter-Tags der Form
+       <code:highlight>&lt;{OBJECT_ID} /&gt;</code:highlight> Dabei entspricht <em>{OBJECT_ID}</em>
+       dem Wert der Klassen-Variable <em>$this->__ObjectID</em> und dem Array-Offset, in dem die
+       Kind-Tags gespeichert werden (<em>$this->__Children</em>). Dieser Wert kann dann bei der
+       Implementierung von eigenen <em>transform()</em>-Methoden f&uuml;r die Ersetzung des Inhalts
+       genutzt werden.
+    </div>
     <br />
     <br />
   </li>
@@ -185,6 +196,27 @@ Methoden erweitern. Bindend bzw. vorgegeben sind jedoch folgende Bereiche:
     eine weitere private Helper-Methode: <strong>__getAttributesAsString()</strong>.
   </li>
 </ul>
+<br />
+<div class="hint">
+   Sofern die Methode <em>transform()</em> in eigenen TagLibs &uuml;berschrieben wird, muss
+   sich der Entwickler selbst um die Transformation der Kind-Knoten k&uuml;mmern. Dies kann im
+   einfachsten Fall durch
+<php:highlight>
+foreach($this->__Children as $objectId => $DUMMY){
+   $this->__Content = str_replace(
+         '<'.$objectId.' />',
+         $this->__Children[$objectId]->transform(),
+         $this->__Content
+   );
+}
+</php:highlight>
+   erreicht werden, wenn in den Methoden <em>onParseTime()</em> oder <em>onAfterAppend()</em> die
+   Parser-Funktion <em>__extractTagLibTags()</em> aufgerufen wurde. Weitere Hinweise k&ouml;nnen dem
+   Foren-Beitrag
+   <a href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=191" title="transform() von eigenem taglib nicht ausgef&uuml;hrt" target="_blank">transform() von eigenem taglib nicht ausgef&uuml;hrt</a>
+   entnommen werden.
+</div>
+<br />
 <br />
 <a name="3-Anwendungsbeispiele"></a><h3>3. Anwendungsbeispiele</h3>
 <a name="3-1-php_taglib_hightlight"></a><h4>3.1. Taglib <em>php_taglib_hightlight</em></h4>
@@ -304,12 +336,10 @@ Betrachtet man den Quellcode der TagLib-Klasse n&auml;her wird dort folgende Log
 <php:highlight>
    import('tools::request','RequestHandler'); 
 
-   class doc_taglib_createobject extends Document
-   {
+   class doc_taglib_createobject extends Document {
 
       function doc_taglib_createobject(){
          parent::Document();
-       // end function
       }
 
       function onParseTime(){
@@ -318,7 +348,7 @@ Betrachtet man den Quellcode der TagLib-Klasse n&auml;her wird dort folgende Log
          $RequestParameter = $this->__Attributes['requestparam'];
          $DefaultValue = $this->__Attributes['defaultvalue'];
 
-         // Parameter über RequestHandler initialisieren
+         // Parameter &uuml;ber RequestHandler initialisieren
          $_LOCALS = RequestHandler::getValues(array($RequestParameter => $DefaultValue));
 
          // Aktuellen Parameter auslesen
@@ -333,25 +363,16 @@ Betrachtet man den Quellcode der TagLib-Klasse n&auml;her wird dort folgende Log
          // DocumentController extrahieren
          $this->__extractDocumentController();
 
-       // end function
       }
-
 
       function __getContent($Seite){
-
          $Datei = './frontend/content/c_'.$this->__Language.'_'.strtolower($Seite).'.html';
-
          if(!file_exists($Datei)){
             $Datei = './frontend/content/c_'.$this->__Language.'_404.html';
-          // end else
          }
-
          return file_get_contents($Datei);
-
-       // end function
       }
 
-    // end class
    }
 </php:highlight>
 <ul>

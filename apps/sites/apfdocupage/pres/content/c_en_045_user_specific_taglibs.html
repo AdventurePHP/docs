@@ -146,13 +146,24 @@ to the following points:
     function <em>onAfterAppend()</em> should be taken instead.
     <br />
     <br />
-    <strong>Note:</strong>
+    <div class="hint">
+       This method is ideal for extracting subtags or extracting document controller definitions. Therefore
+       the private methods <em>__extractTagLibTags()</em> and <em>__extractDocumentController()</em>
+       are present due to the fact, that each taglib inherits from the <em>Document</em> class. For
+       details on this two methods please refer to the
+       <a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>.
+    </div>
     <br />
-    This method is ideal for extracting subtags or extracting document controller definitions. Therefore
-    the private methods <em>__extractTagLibTags()</em> and <em>__extractDocumentController()</em>
-    are present due to the fact, that each taglib inherits from the <em>Document</em> class. For
-    details on this two methods please refer to the
-    <a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>.
+    <br />
+    <div class="hint">
+       To preserve the position, a taglib was defined at and to ensure, that the transformed content
+       is displayed at the correct position, the <em>__extractTagLibTags()</em> method creates
+       place holer tags within the content of a taglib. The pattern of the place holders is:
+       <code:highlight>&lt;{OBJECT_ID} /&gt;</code:highlight> Thereby, <em>{OBJECT_ID}</em> is
+       equal to the content of the class member <em>$this->__ObjectID</em> and the array offset
+       where the child nodes are stored (<em>$this->__Children</em>). The place holders can be used
+       during transformation and content placement of the transformed child tags.
+    </div>
     <br />
     <br />
   </li>
@@ -178,6 +189,24 @@ to the following points:
     <strong>__getAttributesAsString()</strong> can be taken.
   </li>
 </ul>
+<br />
+<div class="hint">
+   In case, the <em>transform()</em> method is overridden within your custom taglib, the developer
+   is himself responsible to transformation of the child nodes. This can possibly done by adding
+<php:highlight>
+foreach($this->__Children as $objectId => $DUMMY){
+   $this->__Content = str_replace(
+         '<'.$objectId.' />',
+         $this->__Children[$objectId]->transform(),
+         $this->__Content
+   );
+}
+</php:highlight>
+   to your <em>transform()</em> method. Please note, that this does only work, of you have called
+   the <em>__extractTagLibTags()</em> function in either the <em>onParseTime()</em> or the
+   <em>onAfterAppend()</em>.
+</div>
+<br />
 <br />
 <a name="3-Examples"></a><h3>3. Examples</h3>
 <a name="3-1-php_taglib_hightlight"></a><h4>3.1. Taglib <em>php_taglib_hightlight</em></h4>

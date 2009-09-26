@@ -1,0 +1,141 @@
+<doku:title tags="rpm,yum,centos,red hat,rhel,fedora,rottmann,rottmann.it,reiner rottmann,reiner,atix" title="RPM Installation HOWTO" urlname="RPM-Installation-HOWTO">
+   This HOWTO describes the installation of the APF using RPM packages maintained by Reiner Rottmann.
+   These packages ease upgrades and software distribution on RedHat based LINUX distributions and
+   those, who support YUM.
+</doku:title>
+<core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+Reiner Rottmann, specialist for LINUX cluster systemes at
+<a href="http://www.atix.de" title="Ma&szlig;geschneiderte Cluster- und Speichertechnologien auf Linux-Basis">ATIX AG</a>,
+has created RPM (RedHat package format) packages of the APF to ease installation on RedHat based
+LINUX distributions. They are available since version 1.10 and are hosted at a newly created YUM
+channel. Hence, installation and software distribution is quite easy on RedHat boxes.
+<br />
+<br />
+<br />
+<a name="1-Configuration"></a><h3>1. Configuration</h3>
+In order to have access to the APF packages, a new <a href="http://yum.baseurl.org/wiki/Guides" title="Guides to operate YUM">YUM</a>
+repository must be created. This can be achived downloading the provided <strong>*.repo</strong> file:
+<code:highlight>
+[root@centos53 ~]# cd /etc/yum.repos.d/
+[root@centos53 yum.repos.d]# wget http://www.rottmann.it/apf/apf.repo
+</code:highlight>
+If you prefer to create the repository at your own, here's the content of the repo file, that must
+be located within the
+oder durch manuelles Anlegen einer <strong>*.repo</strong>-Datei im Verzeichnis
+be located within the <strong>/etc/yum.repos.d</strong> folder:
+<code:highlight>
+[root@centos53 yum.repos.d]# cat /etc/yum.repos.d/apf.repo
+# Name: Adventure PHP Framework Repository for Red Hat Enterprise 5
+# URL: http://www.adventure-php-framework.org
+# Maintainer: Reiner Rottmann ( reiner [at] rottmann . it )
+#
+[apf]
+name = Adventure PHP Framework
+baseurl = http://www.rottmann.it/apf/
+enabled = 1
+protect = 1
+gpgkey = http://www.rottmann.it/apf/RPM-GPG-KEY.key
+gpgcheck = 0
+</code:highlight>
+<br />
+<a name="2-Installation"></a><h3>2. Installation</h3>
+To get a list of the available packages, use the following command:
+<code:highlight>
+[root@centos53 yum.repos.d]# yum search apf
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: ftp-stud.fht-esslingen.de
+ * updates: centos.intergenia.de
+ * addons: ftp-stud.fht-esslingen.de
+ * extras: ftp-stud.fht-esslingen.de
+=============================== Matched: apf ===============================
+nmap-frontend.i386 : Gtk+ frontend for nmap
+apf-codepack.noarch : Adventure PHP Framework (apf) apf-codepack
+apf-configpack.noarch : Adventure PHP Framework (apf) apf-configpack
+apf-demopack.noarch : Adventure PHP Framework (apf) apf-demopack
+apf-docs.noarch : Adventure PHP Framework (apf) apf-docs
+</code:highlight>
+To install one of above listed packages invoke the <strong>yum install</strong> command. The
+subsequent box shows an example installation:
+<code:highlight>
+[root@centos53 yum.repos.d]# yum install apf-demopack.noarch
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: ftp-stud.fht-esslingen.de
+ * updates: centos.intergenia.de
+ * addons: ftp-stud.fht-esslingen.de
+ * extras: ftp-stud.fht-esslingen.de
+Setting up Install Process
+Parsing package install arguments
+Resolving Dependencies
+--> Running transaction check
+---> Package apf-demopack.noarch 0:1.10-200909041048 set to be updated
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+============================================================================
+ Package            Arch         Version                    Repository
+                                                                       Size
+============================================================================
+Installing:
+ apf-demopack       noarch       1.10-200909041048          apf       621 k
+
+Transaction Summary
+============================================================================
+Install      1 Package(s)
+Update       0 Package(s)
+Remove       0 Package(s)
+
+Total download size: 621 k
+Is this ok [y/N]: y
+Downloading Packages:
+apf-demopack-1.10-200909041048.noarch.rpm            | 621 kB     00:01
+Running rpm_check_debug
+Running Transaction Test
+Finished Transaction Test
+Transaction Test Succeeded
+Running Transaction
+  Installing     : apf-demopack                                      [1/1]
+
+Installed: apf-demopack.noarch 0:1.10-200909041048
+Complete!
+</code:highlight>
+To un-install a package, do the following:
+<code:highlight>
+[root@centos53 yum.repos.d]# yum remove apf-demopack.noarch
+Loaded plugins: fastestmirror
+Setting up Remove Process
+Resolving Dependencies
+--> Running transaction check
+---> Package apf-demopack.noarch 0:1.10-200909041048 set to be erased
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+============================================================================
+ Package           Arch        Version                 Repository      Size
+============================================================================
+Removing:
+ apf-demopack      noarch      1.10-200909041048       installed      1.8 M
+
+Transaction Summary
+============================================================================
+Install      0 Package(s)
+Update       0 Package(s)
+Remove       1 Package(s)
+
+Is this ok [y/N]: y
+Downloading Packages:
+Running rpm_check_debug
+Running Transaction Test
+Finished Transaction Test
+Transaction Test Succeeded
+Running Transaction
+  Erasing        : apf-demopack                                      [1/1]
+
+Removed: apf-demopack.noarch 0:1.10-200909041048
+Complete!
+</code:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_110" />
