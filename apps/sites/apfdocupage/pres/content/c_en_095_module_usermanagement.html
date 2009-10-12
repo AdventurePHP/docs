@@ -497,6 +497,13 @@ chapter.
 <br />
 <a name="4-Extension"></a><h3>4. Extension</h3>
 <a name="4-1-Password-encryption"></a><h4>4.1. Password encryption</h4>
+<a name="4-1-1-Enhancement-of-the-manager"></a><h5>4.1.1. Enhancement-of-the-manager</h5>
+<div class="hint">
+   This section describes the implementation up to version 1.10. This is true for greater versions,
+   but there, the prefered method is to implement a custom password hash provider as describes in
+   the next chapter.
+</div>
+<br />
 The business component uses the <strong>MD5</strong> algorithm to create a password hash. If you
 intend to change this behaviour (e.g. to <em>SHA1</em>), this goal can be achieved by extending the
 <strong>umgtManager</strong> class and overwrite the <strong>__createPasswordHash()</strong> method.
@@ -506,16 +513,42 @@ Please be aware, that the new class does not overwrite the <strong>init()</stron
 The new class can be used exactly as the old one. The following example shows, how you can change the
 hashing algo:
 <php:highlight>
-class MyUmgtManager extends umgtManager
-{
+class MyUmgtManager extends umgtManager {
    function __createPasswordHash($password){
       return sha1($password);
    }
 }
-
 $umgt = &$this->__getAndInitServiceObject('my::namespace','MyUmgtManager','Default');
 $user = $umgt->loadUserByID(5);
 </php:highlight>
+<a name="4-1-2-Implementation-of-the-PasswordHashProvider"></a><h5>4.1.2. Implementation of the PasswordHashProvider</h5>
+Since version <strong>Version 1.11</strong>, you can define your own <strong>PasswordHashProvider</strong>
+within the configuration file of the usermanagement module. This component is responsible for creating
+a password hash for the <strong>umgtManager</strong>. In default case, <strong>md5</strong> is used
+so far.
+<br />
+<br />
+In order to provide a custom password hash component, a new PHP class must be created implementing
+the <em>PasswordHashProvider</em> interface. It defines a method, that calculates a hash key out of
+a given clear text password. Going along with the above example, the class is as follows:
+<php:highlight>
+import('modules::usermanagement::biz','PasswordHashProvider');
+class Sha1PasswordHashProvider implements PasswordHashProvider {
+   public function createPasswordHash($password){
+      return sha1($password);
+   }
+}
+</php:highlight>
+To activate this provider, the configuration must be added the two directies, that specify the
+namespace and (class) name of the component:
+<code:highlight>
+PasswordHashProvider.Namespace = "my::namespace"
+PasswordHashProvider.Class = "Sha1PasswordHashProvider"
+</code:highlight>
+Complete usermanagement sample configuration files can be found in the
+<strong>apf-configpack-*</strong> release packages.
+<br />
+<br />
 <br />
 <a name="4-2-Display-name-manipulation"></a><h4>4.2. Display name manipulation</h4>
 The display name of a user is generated as

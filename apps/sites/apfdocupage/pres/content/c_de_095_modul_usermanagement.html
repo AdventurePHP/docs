@@ -515,6 +515,13 @@ genauer beschrieben.
 <br />
 <a name="4-Erweiterung"></a><h3>4. Erweiterung</h3>
 <a name="4-1-Passwort-Verschluesselung"></a><h4>4.1. Passwort-Verschl&uuml;sselung</h4>
+<a name="4-1-1-Erweiterung-des-Managers"></a><h5>4.1.1. Erweiterung des Managers</h5>
+<div class="hint">
+   Dieser Absatz spiegelt die Vorgehensweise bis einschlie&szlig;lich Version 1.10 wieder. Diese
+   M&ouml;glichkeit besteht jedoch auch in h&ouml;heren Versionen, die pr&auml;ferierte Methode
+   wird jedoch im n&auml;chsten Kapitel besprochen.
+</div>
+<br />
 Die Business-Komponente nutzt aktuell das <strong>MD5</strong>-Verfahren um Passwort-Hashes zu
 erzeugen. Soll dieses Verhalten ge&auml;ndert werden (z.B. auf <em>SHA1</em>), so kann dies durch
 ableiten von der Klasse <strong>umgtManager</strong> und &Uuml;berschreiben der privaten Methode
@@ -525,16 +532,44 @@ Klasse die <strong>init()</strong>-Methode nicht &uuml;berschreibt.
 Die neue Klasse kann nach der &Uuml;berladung exakt gleich verwendet werden. Das folgende Beispiel
 zeigt eine &Auml;nderung des Passwort-Hash-Verfahrens:
 <php:highlight>
-class MyUmgtManager extends umgtManager
-{
+class MyUmgtManager extends umgtManager {
    function __createPasswordHash($password){
       return sha1($password);
    }
 }
-
 $umgt = &$this->__getAndInitServiceObject('my::namespace','MyUmgtManager','Default');
 $user = $umgt->loadUserByID(5);
 </php:highlight>
+<br />
+<a name="4-1-2-Implementierung-PasswordHashProvider"></a><h5>4.1.2. Implementierung PasswordHashProvider</h5>
+Die ab <strong>Version 1.11</strong> implementierte &Auml;ndeurung erm&ouml;glicht es, einen eigenen
+<strong>PasswordHashProvider</strong> in der Konfiguration des Moduls zu definieren. Dieser ist
+daf&uuml;r zust&auml;ndig, dem <strong>umgtManager</strong> bei der Erstellung des Password
+Hash-Wertes behilflich zu sein. Im Standard-Fall wird weiterhin <strong>md5</strong> eingesetzt.
+<br />
+<br />
+Um eine eigene Komponente zur Verf&uuml;gung zu stellen, muss zun&auml;chst eine PHP-Klasse erstellt
+werden, die das <em>PasswordHashProvider</em> Interface implemeniert. Dieses definiert eine Methode,
+die f&uuml;r ein &uuml;bergebenes Password einen Hash berechnet. F&uuml;hren wir obiges Beispiel
+weiter, so hat die Klasse folgende Gestalt:
+<php:highlight>
+import('modules::usermanagement::biz','PasswordHashProvider');
+class Sha1PasswordHashProvider implements PasswordHashProvider {
+   public function createPasswordHash($password){
+      return sha1($password);
+   }
+}
+</php:highlight>
+Die Konfiguration muss dann um die zwei Direktiven erweitert werden, die den Namespace und den
+(Klassen-)Namen der Komponente definieren:
+<code:highlight>
+PasswordHashProvider.Namespace = "my::namespace"
+PasswordHashProvider.Class = "Sha1PasswordHashProvider"
+</code:highlight>
+Vollst&auml;ndige Beispiel-Konfigurationen f&uuml;r das Usermanagement finden sich in den
+<strong>apf-configpack-*</strong>-Paketen.
+<br />
+<br />
 <br />
 <a name="4-2-Anzeige-Name-Benutzer"></a><h4>4.2. Anzeige-Name des Benutzers</h4>
 Der Anzeige-Name eines Benutzers wird aktuell aus
