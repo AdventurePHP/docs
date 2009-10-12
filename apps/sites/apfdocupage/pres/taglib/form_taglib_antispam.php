@@ -1,9 +1,9 @@
 <?php
-   import('tools::form::taglib','ui_element');
+   import('tools::form::taglib','form_control');
 
 
    /**
-   *  @package sites::demosite::prea::taglib
+   *  @namespace sites::demosite::prea::taglib
    *  @class form_taglib_antispam
    *
    *  Implements an anti spam function, that marks a form as invalid, when it is posted within
@@ -13,7 +13,7 @@
    *  @version
    *  Version 0.1, 17.07.2008<br />
    */
-   class form_taglib_antispam extends ui_element
+   class form_taglib_antispam extends form_control
    {
 
       function form_taglib_antispam(){

@@ -345,7 +345,7 @@
       *  Version 0.1, 23.10.2007<br />
       *  Version 0.2, 15.01.2008 (Update to the sort algorithm)<br />
       */
-      function sortReleases($OffsetOne,$OffsetTwo){
+      public static function sortReleases($OffsetOne,$OffsetTwo){
 
          //echo '<br />"'.$OffsetOne.'" | "'.$OffsetTwo.'" | Ergebnis:';
 
@@ -471,7 +471,7 @@
        * @param string $version The version number extracted by the folder.
        * @return int The normalized version number.
        */
-      function normalizeVersionNumber($version){
+      public static function normalizeVersionNumber($version){
          $version = str_replace('.', '',$version);
          return (int)$version;
       }
