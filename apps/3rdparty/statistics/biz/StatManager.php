@@ -125,7 +125,7 @@
                                $IPAddress,
                                $DNSName,
                                $this->getReferrer(),
-                               $_SERVER['HTTP_USER_AGENT']
+                               @$_SERVER['HTTP_USER_AGENT']
                               );
 
        // end function
