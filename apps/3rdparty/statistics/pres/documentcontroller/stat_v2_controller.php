@@ -2,7 +2,7 @@
    import('3rdparty::statistics::biz','StatManager');
    import('tools::datetime','dateTimeManager');
    import('tools::request','RequestHandler');
-   import('tools::link','linkHandler');
+   import('tools::link','LinkHandler');
 
 
    /**
@@ -24,16 +24,13 @@
    *  Version 0.2, 05.06.2006<br />
    *  Version 0.3, 15.11.2008 (Adapted to new business objects)<br />
    */
-   class stat_v2_controller extends baseController
-   {
-
+   class stat_v2_controller extends baseController {
 
       /**
       *  @private
       *  Contains the parameters that are used by the GUI.
       */
       var $_LOCALS = array();
-
 
       /**
       *  @public
@@ -49,7 +46,6 @@
          $this->_LOCALS = RequestHandler::getValues(array('pagepart' => 'overview','Year' => null,'Month' => null,'Day' => null,'Hour' => null));
        // end function
       }
-
 
       /**
       *  @public
@@ -67,19 +63,19 @@
 
          // fill backlinks
          if($this->_LOCALS['pagepart'] == 'year'){
-            $this->setPlaceHolder('Backlink',linkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'overview','Year' => '')));
+            $this->setPlaceHolder('Backlink',LinkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'overview','Year' => '')));
           // end if
          }
          elseif($this->_LOCALS['pagepart'] == 'month'){
-            $this->setPlaceHolder('Backlink',linkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'year','Year' => $this->_LOCALS['Year'],'Month' => '')));
+            $this->setPlaceHolder('Backlink',LinkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'year','Year' => $this->_LOCALS['Year'],'Month' => '')));
           // end elseif
          }
          elseif($this->_LOCALS['pagepart'] == 'day'){
-            $this->setPlaceHolder('Backlink',linkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'month','Year' => $this->_LOCALS['Year'],'Month' => $this->_LOCALS['Month'],'Day' => '')));
+            $this->setPlaceHolder('Backlink',LinkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'month','Year' => $this->_LOCALS['Year'],'Month' => $this->_LOCALS['Month'],'Day' => '')));
           // end elseif
          }
          elseif($this->_LOCALS['pagepart'] == 'hour'){
-            $this->setPlaceHolder('Backlink',linkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'day','Year' => $this->_LOCALS['Year'],'Month' => $this->_LOCALS['Month'],'Day' => $this->_LOCALS['Day'],'Hour' => '')));
+            $this->setPlaceHolder('Backlink',LinkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'day','Year' => $this->_LOCALS['Year'],'Month' => $this->_LOCALS['Month'],'Day' => $this->_LOCALS['Day'],'Hour' => '')));
           // end elseif
          }
 
@@ -288,7 +284,7 @@
           // end if
          }
 
-         return linkHandler::generateLink($_SERVER['REQUEST_URI'],$params);
+         return LinkHandler::generateLink($_SERVER['REQUEST_URI'],$params);
 
        // end function
       }
