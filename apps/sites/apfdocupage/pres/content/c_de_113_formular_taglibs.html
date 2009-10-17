@@ -1,0 +1,1242 @@
+<doku:title tags="form,taglib,validatoren,validator,filter,auto,ausfuellen,presetting,1.11" title="Formulare (ab Version 1.11)" urlname="Formulare">
+   Das APF bietet auf Basis von Taglibs eine komplette Abstraktion von Formularen und
+   Formular-Elementen. Diese beherrschen out-of-the-box Presetting (Auto-Ausf&uuml;llen), Validierung und
+   Filterung. Im Document-Controller steht ein Formular als eigenst&auml;ndiges Objekt mit diversen
+   Funktionen zur Verf&uuml;gung.
+</doku:title>
+<a name="1-Einleitung"></a><h3>1. Einleitung</h3>
+Auf Grund der Tatsache, dass der
+<a href="./?Seite=098-Pagecontroller" title="Page-Controller">Page-Controller</a> des APF einen
+generischen Rahmen f&uuml;r das Verarbeiten von beliebigen Taglibs bereitstellt, ist es auf dieser
+Basis m&ouml;glich, Formulare mit verschiedenen Taglibs - wie z.B. Templates - zu abstrahieren.
+<br />
+<br />
+Das Release des Adventure PHP Framework beinhaltet daher einen Satz von Taglibs, mit denen
+HTML-Formulare vollst&auml;ndig abstarhiert sind und die gleichzeitig Features, wie Filterung,
+Validierung und Presetting out-of-the box beherrschen. Mit den in der Version 1.11 &uuml;beraarbeiteten
+Taglibs k&ouml;nnen Formular-Felder mit beliebigen Filter und Validatoren belegt und eigene Taglibs
+integriert werden.
+<br />
+<br />
+Die folgenden Kapitel beschreiben den grunds&auml;tzlichen Aufbau und die Verarbeitung von Formularen,
+sowie die vorhandenen Tags und deren Bedeutung und Funktion. Parallel dazu ist es ratsam, die
+<a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a> bei der
+Implementierung zu Hilfe nehmen. Diese zeigt - insbesondere bei der Klasse
+<strong>html_taglib_form</strong> - auf, welche M&ouml;glichkeiten die APF-Formulare bieten.
+<br />
+<br />
+<br />
+<a name="2-Aufbau"></a><h3>2. Aufbau von Formularen</h3>
+Wie in der Einleitung kurz beschrieben, werden Formulare im APF durch Taglibs abgebildet. Die
+Basis-Taglib bildet dabei <strong>&lt;html:form /&gt;</strong>, die alle weiteren Tags kapselt
+und so ein Formular in einem Document-Controller als <u>ein</u> Objekt zur Verf&uuml;gung stellt. Dieses
+kann weitere Tags beinhalten, die entweder konkrete Elemente wie ein Text-Feld oder einen Button
+repr&auml;sentieren, oder funktionale Tags wie Platzhalter, Listener oder Tags, die eigene
+Formular-Elemente hinzuf&uuml;gen.
+<br />
+<br />
+Formulare werden - wie auch andere Elemente der GUI - in Template-Dateien definiert. Ein einfaches
+Formular f&uuml;r eine Suche mit einem Eingabe-Feld und einem Button hat folgende Gestalt:
+<code:highlight>
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;html:form name="Search"&gt;
+   &lt;form:text name="searchterm" /&gt; &lt;form:button name="search" value="GO" /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+Um das Formular anzuzeigen, muss ein Document-Controller f&uuml;r das betreffende Template vorhanden sein.
+Dies hat den Grund, dass ein Formular - im Gegensatz zu anderen Taglibs - immer an eine Verarbeitung
+durch den Entwickler gebunden ist. Sei es das Auslesen des Suchwort und Ausf&uuml;hren der Suche oder das
+Speichern von Nutzerdaten.
+<br />
+<br />
+Zur Anzeige des Formulars ist folgender Code im Controller erforderlich:
+<php:highlight>
+class search_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('Search');
+      $form->transfromOnPlace();
+   }
+}
+</php:highlight>
+Die folgenden Kapitel beschreiben nun die vorhandenen Formular-Elemente und deren Einsatzgebiet.
+<br />
+<br />
+<br />
+<a name="3-Mitgelieferte-Tags"></a><h3>3. Mitgelieferte Tags</h3>
+Das APF beinhaltet bereits einen umfangreichen Satz and Formular-Elementen, die nach Bedarf
+konfiguriert werden k&ouml;nnen. Sollten diese nicht ausreichen, k&ouml;nnen jederzeit eigene Formular-Elemente
+hinzugef&uuml;gt werden. Siehe hierzu Kapitel XYZ.
+<br />
+<br />
+Da das APF einen generischen Tag-Parser beinhaltet, k&ouml;nnen Formular-Tags mit beliebigen Attributen
+ausgestattet werden. Zu diesen z&auml;hlen insbesondere
+<ul>
+   <li>id="..."</li>
+   <li>class="..."</li>
+   <li>style="..."</li>
+</ul>
+zur Formatierung der Elemente. Aus diesem Grund werden diese in den Beschreibungen der Taglibs
+nicht weiter erw&auml;hnt, sondern es wird lediglich auf die f&uuml;r die Funktion des Tags relevanten
+Attribute eingegangen.
+<br />
+<br />
+<div class="hint">
+   Attribute, die mit "[" und "]" geklammert dargestellt sind, haben optionalen Charakter, die
+   &uuml;brigen m&uuml;ssen verpflichtend angegeben werden.
+</div>
+<br />
+Das Formular-Tag selbst besitzt drei funktionale Attribute, die zur Definition und Konfiguration
+dienen:
+<code:highlight>
+&lt;html:form name="" [method=""] [action=""]&gt;
+  ...
+&lt;/html:form&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Formulars. &Uuml;ber den Namen kann auf das Element zugegriffen
+    werden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>method</strong>: Versand-Methode des Formulars. Standardm&auml;&szlig;ig wird 
+    <strong>post</strong> verwendet.
+    (<strong>Zeichen</strong>: <code>[get|post]</code>)
+  </li>
+  <li>
+    <strong>action</strong>: URL, die bei Klick auf den Button aufgerufen werden soll.
+  </li>
+</ul>
+<br />
+<a name="3-1-Button"></a><h4>3.1. Button</h4>
+Diese Taglib repr&auml;sentiert einen Submit-Button. Da APF-Formular-Elemente Event-basiert
+validiert und gefiltert werden, muss ein Button dieser Art definiert sein, sobald Validierung und
+Filterung erw&uuml;nscht sind. Hierbei kann es sich auch um einen Image-Button handeln (siehe unten).
+<code:highlight>
+&lt;form:button name="" value="" /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Buttons. &Uuml;ber den Namen kann auf das Element zugegriffen 
+    werden. Dies ist insbesondere f&uuml;r die Validatoren und Filter notwendig.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>value</strong>: Wert des Buttons. Dieser dient der Beschriftung.
+  </li>
+</ul>
+<br />
+<a name="3-2-Image-Button"></a><h4>3.2. Image-Button</h4>
+Der Image-Button erzeugt einen Button, der als Beschriftung ein Bild nutzt. Die Funktion ist 
+identisch zum einfachen Button.
+<code:highlight>
+&lt;form:imagebutton name="" src="" /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Buttons. &Uuml;ber den Namen kann auf das Element zugegriffen
+    werden.  Dies ist insbesondere f&uuml;r die Validatoren und Filter notwendig.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>src</strong>: Bild-Quelle des Buttons.
+  </li>
+</ul>
+<br />
+<a name="3-3-Reset"></a><h4>3.3. Reset-Button</h4>
+Seit dem Release 1.10 beinhalten die Formular-TagLibs einen Tag f&uuml;r Reset-Buttons. Diese
+repr&auml;sentieren einen HTML-Reset-Button und k&ouml;nnen wie "normale" Buttons im
+Document-Controller adressiert und konfiguriert werden.
+<br />
+<br />
+<div class="hint">Mit einem Reset-Button ist keine Validierung bzwl. Filterung m&ouml;glich!</div>
+<code:highlight>
+&lt;form:reset value="" /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>value</strong>: Wert (Beschriftung) des Rest-Buttons.
+  </li>
+</ul>
+<br />
+<a name="3-4-Hidden"></a><h4>3.4. Hidden-Feld</h4>
+<code:highlight>
+&lt;form:hidden name="" value="" /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Hidden-Felds. &Uuml;ber den Namen kann auf das Element
+    zugegriffen werden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>value</strong>: Wert des Hidden-Feldes.
+  </li>
+</ul>
+<br />
+<a name="3-5-Text"></a><h4>3.5. Text-Feld</h4>
+<code:highlight>
+&lt;form:text name="" [value=""] /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Text-Felds. &Uuml;ber den Namen kann auf das Element
+    zugegriffen werden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>value</strong>: Wert des Text-Feldes.
+  </li>
+</ul>
+<br />
+<a name="3-6-Textarea"></a><h4>3.6. Textarea</h4>
+Eine APF-Text-Area existiert in zwei Auspr&auml;gungen: ohne Inhalt als selbstschlie&szlig;ender Tag oder mit
+Inhalt, der im Template definiert wurde.
+<code:highlight>
+&lt;form:area name="" /&gt;
+&lt;form:area name=""&gt;...&lt;/form:area&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Textarea. &Uuml;ber den Namen kann auf das Element zugegriffen
+    werden. (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+</ul>
+<br />
+<a name="3-7-Passwort"></a><h4>3.7. Passwort-Feld</h4>
+<code:highlight>
+&lt;form:password name="" [value=""]/&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Passwort-Felds. &Uuml;ber den Namen kann auf das Element 
+    zugegriffen werden. (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>value</strong>: Wert des Passwort-Feldes.
+  </li>
+</ul>
+<br />
+<a name="3-8-Dateiupload"></a><h4>3.8. Dateiupload-Feld</h4>
+<code:highlight>
+&lt;form:file name="" /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Dateiupload-Felds. &Uuml;ber den Namen kann auf das Element
+    zugegriffen werden. (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+</ul>
+<br />
+<a name="3-9-Checkbox"></a><h4>3.9. Checkbox</h4>
+Die Checkbox-Taglib implementierung nicht nur einen Wrapper f&uuml;r eine HTML-Checkbox, sondern
+inkludiert auch die Logik, die zum anhaken und abhaken einer Checkbox notwendig ist. Hierbei wird
+die Schw&auml;che ausgeb&uuml;gelt, dass nicht angehakte Checkboxen speziell gepr&uuml;ft werden m&uuml;ssen.
+<code:highlight>
+&lt;form:checkbox name="" value="" [checked="checked"] /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name der Checkbox. &Uuml;ber den Namen kann auf das Element
+    zugegriffen werden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>value</strong>: Wert der Checkbox.
+  </li>
+  <li>
+    <strong>checked</strong>: Definiert, ob die Checkbox vorselektiert ist.
+  </li>
+</ul>
+<br />
+<a name="3-10-Radio-Button"></a><h4>3.10. Radio-Button</h4>
+Die Radio-Button-Taglib implementierung nicht nur einen Wrapper f&uuml;r einen HTML-Radio-Button,
+sondern inkludiert auch die Logik, die zum anhaken und abhaken eines Radio-Buttons notwendig ist.
+Hierbei wird die Schw&auml;che ausgeb&uuml;gelt, dass nicht selektierte Radio-Buttons speziell gepr&uuml;ft werden
+m&uuml;ssen.
+<code:highlight>
+&lt;form:radio name="" value="" [checked="checked"]/&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Radio-Buttons. &Uuml;ber den Namen kann auf das Element
+    zugegriffen werden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>value</strong>: Wert des Radio-Buttons bzw. der aktuellen Option.
+  </li>
+  <li>
+    <strong>checked</strong>: Zeigt an, ob der Radio-Button vorselektiert ist.
+  </li>
+</ul>
+<br />
+<a name="3-11-Select"></a><h4>3.11. Select-Feld</h4>
+Ein Select-Feld kann in zwei unterschiedlichen Arte definiert werden. Variante 1 ist ein Feld,
+das dynamisch &uuml;ber einen Controller gef&uuml;llt wird und keine statischen Optionen beinhaltet, Variante
+2 beinhaltet Optionen, die wahlweise vorselektiert sein k&ouml;nnen oder nicht.
+<code:highlight>
+&lt;form:select name="" /&gt;
+&lt;form:select name=""&gt;
+  &lt;select:option value="" [selected="selected"]&gt;...&lt;/select:option&gt;
+&lt;/form:select&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Select-Felds. &Uuml;ber den Namen kann auf das Element
+    zugegriffen werden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>value</strong>: Wert der Optionen.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>  
+  <li>
+    <strong>selected</strong>: Soll eine Option vorausgew&auml;hlt dargestellt werden, so muss das
+    Attribut <em>selected</em> mit dem gleichnamigen Wert gef&uuml;llt sein.
+  </li>
+</ul>
+<br />
+<a name="3-12-Multiselect"></a><h4>3.12. Multiselect-Feld</h4>
+Wie auch das einfache Selekt-Feld, so ist es auch beim Multiselect-Feld m&ouml;glich, dieses auf zwei
+Arten zu definieren: mit und ohne statische Optionen.
+<code:highlight>
+&lt;form:multiselect name="" /&gt;
+&lt;form:multiselect name=""&gt;
+  &lt;select:option value="" [selected="selected"]&gt;&lt;/select:option&gt;
+&lt;/form:multiselect&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Multiselect-Felds. &Uuml;ber den Namen kann auf das Element
+    zugegriffen werden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>value</strong>: Wert der Optionen.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>selected</strong>: Soll eine Option vorausgew&auml;hlt dargestellt werden, so muss das
+    Attribut <em>selected</em> mit dem gleichnamigen Wert gef&uuml;llt sein.
+  </li>
+</ul>
+<br />
+<div class="hint">
+   Der Name des Formular-Feldes darf am Schluss kein "[]" enthalten, da es sonst zu Fehlern bei der
+   &Uuml;bertragung der Optionen kommt.
+</div>
+<br />
+<br />
+<a name="3-13-Platzhalter"></a><h4>3.13. Platzhalter</h4>
+Der Platzhalter dieht dazu, dynamische Inhalte in das Formular einzubringen.
+<code:highlight>
+&lt;form:placeholder name="" /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Platzhalters. &Uuml;ber den Namen kann auf das Element
+    zugegriffen werden. (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+</ul>
+Um einen Platzhalter eines Formulars zu f&uuml;llen, besitzt die Klasse <strong>html_taglib_form</strong>
+die Methode <strong>setPlaceHolder()</strong>:
+<php:highlight>
+$form = &$this->__getForm('MyForm');
+$form->setPlaceHolder('NameOfThePlaceHolder','...Value...');
+</php:highlight>
+<br />
+<a name="3-14-Datum-Control"></a><h4>3.14. Datums-Control</h4>
+Um die Erstellung von Datum-Auswahl-Men&uuml;s zu erleichtern, enth&auml;lt das APF ein Date-Control. Dieses
+kann entsprechend den Anforderungen konfiguriert werden.
+<code:highlight>
+&lt;form:date name="" [yearrange=""] [offsetnames=""]/&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Datum-Controls. &Uuml;ber den Namen kann auf das Element 
+    zugegriffen werden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>yearrange</strong>: Range des Jahres-Feldes. Beispiel: <code>1990-2007</code>.
+    (<strong>Zeichen</strong>: <code>[0-9-]</code>)
+  </li>
+  <li>
+    <strong>offsetnames</strong>: Namen der Felder f&uuml;r Tag, Monat und Jahr. Einzelne Felder
+    m&uuml;ssen durch ";" getrennt werden. Beispiel: <code>Tag;Monat;Jahr</code>.
+    (<strong>Zeichen</strong>: <code>[A-Za-z]</code>)
+  </li>
+</ul>
+<br />
+<a name="3-15-Marker"></a><h4>3.15. Marker</h4>
+Wie im Kapitel
+<a href="./?Seite=011-Formulare#4-Dynamische-Formulare" title="Dynamische Formulare">Dynamische Formulare</a>
+beschrieben, kann der Tag <strong>&lt;form:marker /&gt;</strong>-Tag zur Positionierung von
+dynamischen Formular-Elementen genutz werden. Der Tag selbst erzeugt dabei keine Ausgabe.
+<code:highlight>
+&lt;form:marker name="" /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Markers. Dieser dient zur Adressierung desselben.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-]</code>)
+  </li>
+</ul>
+<br />
+<a name="3-16-Addtaglib"></a><h4>3.16. Addtaglib</h4>
+Die Taglib "form:addtaglib" bildet das Pendant zur Taglib "core:addtaglib" und bietet die
+M&ouml;glichkeit, die bestehende Funktionalit&auml;t der Formular-Tags zu erweitern. Die
+Implementierung des Tags erlaubt es beliebige weitere Formular-Tags einzubinden und zu verwenden.
+<code:highlight>
+&lt;form:addtaglib namespace="" prefix="" class="" /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>namespace</strong>: Ein mit "::" getrennter Namespace-Pfad.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-:]</code>)
+  </li>
+  <li>
+    <strong>prefix</strong>: XML-Prefix
+    (<strong>Zeichen</strong>: <code>[a-z]</code>)
+  </li>
+  <li>
+    <strong>class</strong>: XML-Klasse
+    (<strong>Zeichen</strong>: <code>[a-z]</code>)
+  </li>
+</ul>
+<div class="hint">
+   Die mit der Taglib hinzugef&uuml;gten Tags m&uuml;ssen von der Klasse <strong>form_control</strong>
+   erben, damit sichergestellt ist, dass diese den Status isSent() und isValid() korrekt an das
+   Formular zur&uuml;ckmelden.
+</div>
+<br />
+<a name="3-17-Getstring"></a><h4>3.17. Getstring</h4>
+Der Tag "form:getstring" dient dazu einen Konfigurations-String aus einer sprachabh&auml;ngigen
+Konfigurations-Datei auszulesen und anzuzeigen. So k&ouml;nnen auf einfache Weise mehrsprachige
+Formulare aufgebaut werden. Details zur Definition der Konfigurations-Dateien k&ouml;nnen der Definition
+des Tags
+<a href="./?Seite=046-Standard-TagLibs#2-2-Getstring" title="html:getstring">&lt;html:getstring /&gt;</a>
+entnommen werden.
+<code:highlight>
+&lt;form:getstring namespace="" config="" entry="" /&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>namespace</strong>: Namespace der Konfiguration des Attributes.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-:]</code>)
+  </li>
+  <li>
+    <strong>config</strong>: Name der Konfiguration.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>entry</strong>: Name des Konfigurations-Offsets.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_.]</code>)
+  </li>
+</ul>
+<br />
+<a name="3-18-Listener"></a><h4>3.18. Listener</h4>
+Der Listener-Tag ist Teil des Validierungs-Konzeptes. Er h&ouml;rt auf das Event eines Validators und
+zeigt seinen Inhalt an, sofern das referenzierte Formular-Element nicht erfolgreich validiert werden
+kann. Im Tag selbst k&ouml;nnen beliebiger Text und weitere Tags definiert werden, die zur
+Ausgabe-Formatierung heran gezogen werden k&ouml;nnen. Details zur Validierung, k&ouml;nnen dem Kapitel 4
+entnommen werden.
+<code:highlight>
+&lt;form:listener [name=""] control="..."&gt;
+  ...
+  [&lt;listener:getstring namespace="" config="" key="" /&gt;]
+  [&lt;listener:placeholder name="" /&gt;]
+  ...
+&lt;/form:listener&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>control</strong>: Name des Formular-Elements auf dessen fehlgeschlagene Validierung 
+    der Inhalt angezeigt werden soll.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-]</code>)
+  </li>
+  <li>
+    <strong>name</strong>: Name des Listeners. Dient zur Adressierung des Elements innerhalb des
+    Formulars.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-]</code>)
+  </li>
+</ul>
+Der Platzhalter-Tag <strong>&lt;listener:placeholder /&gt;</strong> gleicht in seiner Funktion
+dem <a href="./?Seite=046-Standard-TagLibs#2-1-Placeholder" title="html:placeholder-Tag">&lt;html:placeholder /&gt;</a>,
+der <strong>&lt;listener:getstring /&gt;</strong>-Tag
+<a href="./?Seite=046-Standard-TagLibs#2-2-Getstring" title="html:getstring-Tag">&lt;html:getstring /&gt;</a>.
+Zur Bef&uuml;llung eines Platzhalters in einem Document-Controller kann folgender Code verwendet werden:
+<br />
+<br />
+<u>Template:</u>
+<code:highlight>
+&lt;html:form name="name_form" method="post"&gt;
+   &lt;form:listener name="name-listener" control="name"&gt;
+      Please fill in the &lt;listener:placeholder name="field-name" /&gt; field!
+   &lt;/form:listener&gt;
+   &lt;form:text name="name" /&gt;
+   &lt;form:addvalidator 
+      class="TextLengthValidator"
+      control="name"
+      button="send"
+   /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<u>Controller:</u>
+<php:highlight>
+class form_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('name-form');
+      $listener = &$form->getFormElementByName('name-listener');
+      $listener->setPlaceHolder('field-name','name');
+   }
+}
+</php:highlight>
+<br />
+<a name="3-19-Error"></a><h4>3.19. Anzeige von Formular-Fehlern</h4>
+Der in Kapitel 3.18 beschriebene Tag kann dazu benutzt werden, automatisiert Fehlermeldungen eines
+definierten Formular-Feldes zu erzeugen. Der <nobr><strong>&lt;form:error /&gt;</strong></nobr>-Tag
+ist f&uuml;r Fehlermeldungen vorbehalten, die das gesamte Formular betreffen. Wird eines der Felder als
+nicht valide markiert, so wird der Inhalt des Tags - sofern in der Formular-Definition vorhanden -
+ausgegeben.
+<code:highlight>
+&lt;form:error [name=""]&gt;
+  ...
+  [&lt;error:getstring namespace="" config="" key="" /&gt;]
+  [&lt;error:placeholder name="" /&gt;]
+  ...
+&lt;/form:error&gt;
+</code:highlight>
+Der Platzhalter-Tag <strong>&lt;error:placeholder /&gt;</strong> gleicht in seiner Funktion
+dem <a href="./?Seite=046-Standard-TagLibs#2-1-Placeholder" title="html:placeholder-Tag">&lt;html:placeholder /&gt;</a>,
+der <strong>&lt;error:getstring /&gt;</strong>-Tag
+<a href="./?Seite=046-Standard-TagLibs#2-2-Getstring" title="html:getstring-Tag">&lt;html:getstring /&gt;</a>.
+Die Bef&uuml;llung des Platzhalters kann identisch zur Vorgehensweise des vorangegangenen Kapitels
+erledigt werden.
+<br />
+<br />
+<br />
+<a name="4-Validierung"></a><h3>4. Validierung</h3>
+In den bisherigen Versionen des APF wurde die Validierung direkt mit einem Formular-Element
+verkn&uuml;pft und diese auch im
+<a href="./?Seite=098-Pagecontroller#2-1-Ablaufdiagramm" title="Taglib-Lifecycle des Page-Controllers">Lifecycle einer Taglib</a>
+ausgef&uuml;hrt. Das hat zum Nachteil, dass ein Element mit nur einem Validator belegt werden kann und
+sich h&auml;ufig redundanter Code durch Definition der Validatoren pro Feld ergibt. Weiterhin war es
+nicht ohne Weiteres m&ouml;glich eigene Validatoren einzuh&auml;ngen.
+<br />
+<br />
+Ab Version 1.11 wurden diese Umst&auml;nde ber&uuml;cksichtigt und die Formular-Taglibs auf eine neue
+Variante der Validierung umgestellt. Ab dieser Version werden Validatoren &uuml;ber ein eigenes
+Tag, das nach dem
+<a href="http://de.wikipedia.org/wiki/Observer_%28Entwurfsmuster%29" title="Observer-Pattern " target="_blank">Observer-Pattern</a>
+implementiert ist, an das einzelne Element gebunden. So ist es m&ouml;glich, mehrere Validatoren auf ein
+Feld anzusetzen, eigene Validatoren zu schreiben und mit einer Observer-Definition mehrere Felder
+zu gleicherma&szlig;en zu validieren.
+<br />
+<br />
+Die Definition einer Validierung eines Formular-Feldes gestaltet sich dabei wie folgt:
+<code:highlight>
+&lt;form:addvalidator
+   namespace=""
+   class=""
+   button=""
+   control=""
+/&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>namespace</strong>: Namespace der Validator-Implementierung.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9:]</code>)
+  </li>
+  <li>
+    <strong>class</strong>: Name der Validator-Implementierung (Name = Klassen-Name!)
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>button</strong>: Name des Buttons, der die Validierung ausl&ouml;sen soll. Die Validierung
+    ist immer an das Event <em>isSent</em> eines Buttons oder Image-Buttons gebunden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>control</strong>: Name des Formular-Controls auf das die Validierung Anwendung finden
+    soll. Sollen mehrere Controls mit der im Tag definierten Validierung belegt werden, so enth&auml;lt
+    das Attribut alle mit Pipe getrennte Feld-Namen (z.B. <em>sender|recipient|subject</em>).
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_|]</code>)
+  </li>
+</ul>
+<div class="hint">
+   F&uuml;r mitgelieferte Validatoren muss das Attribut <strong>namespace</strong> nicht definiert
+   werden. Hier verwendet die Taglib automatisch <strong>tools::form::validator</strong> als Wert.
+   Unter diesem Namespace finden sich alle enthaltenen Validatoren, die im Kapitel 4.1. aufgef&uuml;hrt
+   sind.
+</div>
+<br />
+<br />
+<a name="4-1-Verfuegbare-Validatoren"></a><h4>4.1. Verf&uuml;gbare Validatoren</h4>
+Wie auch in den Releases < 1.11 werden eine Reihe von Validatoren mitgeliefert. Diese decken
+&uuml;blicherweise den Gro&szlig;teil der Anforderungen ab. Sollten diese nicht gen&uuml;gen, k&ouml;nnen eigene
+Validatoren implementiert werden. Dies ist im n&auml;chsten Kapitel beschrieben.
+<br />
+<br />
+Aktuell sind folgende Validatoren im Release verf&uuml;gbar:
+<br />
+<br />
+<br />
+<a name="4-1-1-TextLengthValidator"></a><h5>4.1.1. TextLengthValidator</h5>
+Der <strong>TextLengthValidator</strong> &uuml;berpr&uuml;ft ein Text-Formular-Feld (Text-Feld,
+Passwort-Feld, Text-Area), ob der enthaltene Text eine Mindestl&auml;nge aufweist. Standardm&auml;&szlig;ig
+wird von einer L&auml;nge von 3 Zeichen ausgegangen, die vom Benutzer eingegeben werden m&uuml;ssen,
+ehe das Feld als g&uuml;ltig markiert wird. Sofern eine andere Text-L&auml;nge erw&uuml;nscht ist,
+muss dem referenzierten Text-Feld das Attribut <strong>minlength</strong> mitgegeben werden:
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="firstname" /&gt;
+   &lt;form:text name="lastname" minlength="5" /&gt;
+   &lt;form:password name="pass" /&gt;
+   &lt;form:area name="comment" minlength="20" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="TextLengthValidator"
+      button="send"
+      control="firstname|lastname|pass|comment"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+Im abgebildeten Code-Block wird das Formular-Control <strong>firstname</strong> auf einen Text
+mit einer Zeichenl&auml;nge &gt;=3 validiert, im Feld <strong>lastname</strong> m&uuml;ssen mindestens 5
+Zeichen enthalten sein.
+<br />
+<br />
+<br />
+<a name="4-1-2-NumberValidator"></a><h5>4.1.2. NumberValidator</h5>
+Der <strong>NumberValidator</strong> pr&uuml;ft, ob ein Text-Feld eine g&uuml;ltige Nummer enth&auml;lt. Hierzu
+wird die PHP-Funktion <em>is_numeric()</em> genutzt.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="number" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="NumberValidator"
+      button="send"
+      control="number"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-3-EMailValidator"></a><h5>4.1.3. EMailValidator</h5>
+Der <strong>EMailValidator</strong> pr&uuml;ft, ob im referenzierten ein Form-Control eine g&uuml;ltige
+E-Mail-Addresse steht. Hierzu wird der Inhalt des Text-Feldes gegen einen regul&auml;ren Ausdruck
+gepr&uuml;ft.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="email" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="EMailValidator"
+      button="send"
+      control="email"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-4-PhoneAndFaxValidator"></a><h5>4.1.4. PhoneAndFaxValidator</h5>
+Der <strong>PhoneAndFaxValidator</strong> pr&uuml;ft, ob ein Formular-Feld eine g&uuml;ltige Telefon-
+oder Fax-Nummer enth&auml;lt. Hierzu wird der Inhalt des Text-Feldes gegen einen regul&auml;ren Ausdruck
+gepr&uuml;ft.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="phone" /&gt;
+   &lt;form:text name="fax" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="PhoneAndFaxValidator"
+      button="send"
+      control="phone|fax"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-5-FieldCompareValidator"></a><h5>4.1.5. FieldCompareValidator</h5>
+Mit dem <strong>FieldCompareValidator</strong> ist es m&ouml;glich, den Inhalt zweiter Felder mit
+einander zu vergleichen. Stimmen sie nicht &uuml;berein, werden die beiden Felder auf <em>invalid</em>
+gesetzt.
+<br />
+<br />
+Da ein Validator immer auf ein konkretes Control gesetzt wird, muss das Haupt-Feld definieren,
+welches Formular-Element als Referenz-Feld genutzt wird. Hierzu definiert dieses das Attribut
+<strong>ref</strong>, das den Namen des Referenz-Feldes enth&auml;lt.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:password name="pass" ref="pass2" /&gt;
+   &lt;form:password name="pass2" /&gt;
+   &lt;form:addvalidator
+      class="FieldCompareValidator"
+      control="pass"
+      button="login"
+   /&gt;
+   &lt;form:button name="login" value="login" /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-6-FolderValidator"></a><h5>4.1.6. FolderValidator</h5>
+Der <strong>FolderValidator</strong> geh&ouml;rt ebenso zur Klasse der Text-Feld-Validatoren. Er pr&uuml;ft,
+ob ein Text-Feld einen korrekten Ordner-Pfad enth&auml;lt.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="rootfolder" /&gt;
+   &lt;form:text name="fax" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="FolderValidator"
+      button="send"
+      control="rootfolder"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-7-SimpleBirthdayValidator"></a><h5>4.1.7. SimpleBirthdayValidator</h5>
+Der <strong>SimpleBirthdayValidator</strong> pr&uuml;ft ein Text-Feld auf ein korrektes Datum der Form
+<strong>dd.MM.YYYY</strong>.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="birthday" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="SimpleBirthdayValidator"
+      button="send"
+      control="birthday"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-8-DefaultSelectFieldValidator"></a><h5>4.1.8. DefaultSelectFieldValidator</h5>
+Der <strong>DefaultSelectFieldValidator</strong> pr&uuml;ft ein Select-Feld, ob der ausgew&auml;hlte Inhalt
+nicht leer ist. Dieser kann nur bei statisch definierten Select-Feldern genutzt werden. F&uuml;r
+dynamische Formulare ist der <strong>SimpleSelectControlValidator</strong> besser geeignet.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:select name="color"&gt;
+      &lt;select:option value=""&gt;&lt;/select:option&gt;
+      &lt;select:option value="red"&gt;Red color&lt;/select:option&gt;
+      &lt;select:option value="green"&gt;Green color&lt;/select:option&gt;
+   &lt;/form:select&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="DefaultSelectFieldValidator"
+      button="send"
+      control="color"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-9-SimpleSelectControlValidator"></a><h5>4.1.9. SimpleSelectControlValidator</h5>
+Der <strong>SimpleSelectControlValidator</strong> ist f&uuml;r die Pr&uuml;fung von statischen und
+dynanischen Select-Formular-Feldern geeignet. Er pr&uuml;ft ein Select-Feld, ob der ausgew&auml;hlte Inhalt
+nicht leer ist.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:select name="color"&gt;
+      &lt;select:option value=""&gt;&lt;/select:option&gt;
+      &lt;select:option value="red"&gt;Red color&lt;/select:option&gt;
+      &lt;select:option value="green"&gt;Green color&lt;/select:option&gt;
+   &lt;/form:select&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="SimpleSelectControlValidator"
+      button="send"
+      control="color"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-10-MultiSelectFieldValidator"></a><h5>4.1.10. MultiSelectFieldValidator</h5>
+Der <strong>MultiSelectFieldValidator</strong> ist das Pendant zum
+<strong>SimpleSelectControlValidator</strong>. Er pr&uuml;ft Multi-Select-Felder auf eine nicht leere
+Auswahl.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:multiselect name="colors"&gt;
+      &lt;select:option value="red"&gt;Red color&lt;/select:option&gt;
+      &lt;select:option value="green"&gt;Green color&lt;/select:option&gt;
+   &lt;/form:multiselect&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="MultiSelectFieldValidator"
+      button="send"
+      control="color"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-11-SimpleRadioControlValidator"></a><h5>4.1.11. SimpleRadioControlValidator</h5>
+Mit dem <strong>SimpleRadioControlValidator</strong> kann ein Radio-Button, bzw. eine ganze Gruppe
+validiert werden. Anforderung des Validators ist, das eine Option der Gruppe ausgew&auml;hlt ist. Der
+Validator ist sowohl f&uuml;r dynamische als auch f&uuml;r statische Formular-Definitionen geeignet.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:radio id="red" name="color" /&gt; Red color
+   &lt;form:radio id="green" name="color" /&gt; Green color
+   &lt;form:radio id="blue" name="color" /&gt; Blue color
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="SimpleRadioControlValidator"
+      button="send"
+      control="color"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-1-11-SimpleDateControlValidator"></a><h5>4.1.11. SimpleDateControlValidator</h5>
+Der <strong>SimpleDateControlValidator</strong> validiert ein Date-Control (siehe Kapitel 3.14.).
+Er erwartet, dass das dort ausgew&auml;hlte Datum gr&ouml;&szlig;er als das heutige ist.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:date name="birthday" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="SimpleDateControlValidator"
+      button="send"
+      control="birthday"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="4-2-Aufbau-von-Validatoren"></a><h4>4.2. Aufbau von Validatoren</h4>
+Validatoren sind Klassen, die von <strong>AbstractFormValidator</strong> erben. Diese definiert das
+Interface aller Formular-Validatoren. Das ist notwendig, damit diese als Observer an alle
+Formular-Elemente geheftet werden k&ouml;nnen.
+<br />
+<br />
+Das Interface eines Validators hat folgende gestalt:
+<php:highlight>
+abstract class AbstractFormValidator extends coreObject {
+
+   protected $__Control;
+   protected $__Button;
+
+   public function AbstractFormValidator(form_control &$control,form_control &$button){
+      $this->__Control = &$control;
+      $this->__Button = &$button;
+   }
+
+   public abstract function validate($input);
+
+   public abstract function notify();
+
+   public function isActive(){
+      return $this->__Button->isSent();
+   }
+
+}
+</php:highlight>
+&Uuml;ber den Konstruktor werden das zu validierende Form-Control und der Button, der als Trigger
+fungiert injiziert. Die Methode <strong>validate()</strong> wird vom Formular-Element mit dem zu
+validierenden Inhalt versorgt und muss den Validierungs-Code enthalten. Als R&uuml;ckgabe wird
+<em>true</em> im Erfolgsfall und <em>false</em> im Fehlerfall erwartet.
+<br />
+<br />
+Die Methode <strong>notify()</strong> wird aufgerufen, wenn ein Formular-Element nicht erfolgreich
+validiert werden konnte. Dieses kann dazu dienen, die Formular-Elemente mit weiteren
+CSS-Formatierungen zu versehen, Platzhalter zu f&uuml;llen oder &Auml;nderungen am DOM-Baum vorzunehmen.
+Die &uuml;bliche Vorgehensweise ist, das Feld entsprechen zu markieren und die registrierten Listener
+zu benachrichtigen.
+<br />
+<br />
+Die Klassen-Variablen <strong>$__Control</strong> und <strong>$__Button</strong> enthalten jeweils
+die Instanz des zu validieren Formular-Elements und den Button, der als Trigger verwendet wird.
+<br />
+<br />
+Voraussetzung f&uuml;r die Funktion von Validatoren ist, dass ein Formular-Element die Validierung
+unterst&uuml;tzt. Hierzu muss in jedem Formular-Control die Methode <strong>addValidator()</strong>
+implementiert sein. Diese in der Klasse <strong>form_control</strong> definierte Methode hat
+folgende Signatur:
+<php:highlight>
+public function addValidator(AbstractFormValidator &$validator){
+   if($validator->isActive()){
+      if(!$validator->validate($this->getAttribute('value'))){
+         $validator->notify();
+      }
+   }
+}
+</php:highlight>
+Wie im Code-Snippet zu sehen ist, nimmt die Methode eine Instanz eines Validators entgegen, f&uuml;hrt
+diesen - falls als aktiv gekennzeichnet - aus und involviert die <strong>notify()</strong>-Methode
+bei nicht erfolgreicher Validierung.
+<br />
+<br />
+Wie ebenfalls zu erkennen ist, wird dem Validator <em>by default</em> das Tag-Attribut
+<strong>value</strong> &uuml;bergeben, was nur f&uuml;r Text-Felder g&uuml;ltig ist. Aus diesem Grund
+&uuml;berschreiben Nicht-Text-Felder diese Methode und &uuml;bergeben dem Validator den relevanten
+Inhalt.
+<br />
+<br />
+<br />
+<a name="4-3-Implementierung-von-Validatoren"></a><h4>4.3. Implementierung von Validatoren</h4>
+Wie bereits im letzten Kapitel angesprochen, muss ein Validator von der Klasse
+<strong>AbstractFormValidator</strong> erben. Das APF enth&auml;lt daneben noch einige weitere
+Basis-Klassen, die f&uuml;r die Implementierung von Validatoren verwendet werden k&ouml;nnen. Diese sind:
+<ul>
+   <li><strong>TextFieldValidator:</strong> Basis f&uuml;r alle Text-Feld Validatoren</li>
+   <li><strong>SelectFieldValidator:</strong> Basis f&uuml;r alle Select-Feld Validatoren</li>
+</ul>
+Diese sehen bereits vor, welche &Auml;nderungen am Formular-Element im Fehlerfall vorgenommen werden
+und welche Listener zu benachrichtigen sind.
+<br />
+<br />
+F&uuml;r die Implementierung eines eigenen Validators muss folgendes beachtet werden:
+<ul>
+   <li>Der Validator muss von von der Klasse <strong>AbstractFormValidator</strong> erben.</li>
+   <li>
+      Mit Hilfe der Methode <strong>markAsInvalid()</strong> kann ein Formular-Element als
+      invalide gekennzeichnet werden.
+   </li>
+   <li>
+      Mit Hilfe der Methode <strong>notifyValidationListeners()</strong> k&ouml;nnen die Listener eines
+      Elements benachrichtigt werden.
+   </li>
+   <li>
+      &Uuml;ber den Button (Methode: <strong>isSent()</strong>)kann der Entwickler abfragen, ob das
+      Formular mit Klick auf diesen abgesendet wurde.
+   </li>
+</ul>
+<br />
+<a name="5-Filter"></a><h3>5. Filter</h3>
+In den bisherigen Versionen des APF wurde die Filterung von Formular-Element-Werten ebenfalls direkt
+mit einem Formular-Element verkn&uuml;pft und im
+<a href="./?Seite=098-Pagecontroller#2-1-Ablaufdiagramm" title="Taglib-Lifecycle des Page-Controllers">Lifecycle einer Taglib</a>
+ausgef&uuml;hrt. Hieraus ergeben sich &auml;hnliche Nachteile wie es bei der Validierung der Fall ist.
+Deshalb wurde auch die Filterung in der Version 1.11 nach dem Konzept der Validierung angepasst.
+Ab Version 1.11 k&ouml;nnen Filter gleicherma&szlig;en als Observer auf ein Formular-Element angewendet werden.
+<br />
+<br />
+<div class="hint">
+   Die Filterung von Formular-Felder wird <strong>vor</strong> der Validierung ausgef&uuml;hrt um zu
+   verhindern, dass Eingaben, die durch einen Filter entfernt werden, eine positive Validierung
+   erzeugen. Dies ist insbesondere beim <strong>TextLengthValidator</strong> relevant.
+</div>
+<br />
+Die Definition der Filterung eines Formular-Feldes gestaltet sich dabei wie folgt:
+<code:highlight>
+&lt;form:addfilter
+   namespace=""
+   class=""
+   button=""
+   control=""
+/&gt;
+</code:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>namespace</strong>: Namespace der Filter-Implementierung.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9:]</code>)
+  </li>
+  <li>
+    <strong>class</strong>: Name der Filter-Implementierung (Name = Klassen-Name!)
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>button</strong>: Name des Buttons, der die Filterung ausl&ouml;sen soll. Die Filterung
+    ist immer an das Event <em>isSent</em> eines Buttons oder Image-Buttons gebunden.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>control</strong>: Name des Formular-Controls auf das die Filterung Anwendung finden
+    soll. Sollen mehrere Controls mit der im Tag definierten Filterung belegt werden, so enth&auml;lt
+    das Attribut alle mit Pipe getrennte Feld-Namen (z.B. <em>sender|recipient|subject</em>).
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_|]</code>)
+  </li>
+</ul>
+<div class="hint">
+   F&uuml;r mitgelieferte Filter muss das Attribut <strong>namespace</strong> nicht definiert
+   werden. Hier verwendet die Taglib automatisch <strong>tools::form::filter</strong> als Wert.
+   Unter diesem Namespace finden sich alle enthaltenen Filter, die im Kapitel 1.1. aufgef&uuml;hrt
+   sind.
+</div>
+<br />
+<br />
+<a name="5-1-Verfuegbare-Filter"></a><h4>5.1. Verf&uuml;gbare Filter</h4>
+Wie auch in den Releases < 1.11 werden eine Reihe von Filter mitgeliefert. Diese decken
+&uuml;blicherweise den Gro&szlig;teil der Anforderungen ab. Sollten diese nicht gen&uuml;gen, k&ouml;nnen
+eigene Filter implementiert werden. Dies ist im n&auml;chsten Kapitel beschrieben.
+<br />
+<br />
+Aktuell sind folgende Filter im Release verf&uuml;gbar:
+<br />
+<br />
+<br />
+<a name="5-1-1-EMailFilter"></a><h5>5.1.1. EMailFilter</h5>
+Der <strong>EMailFilter</strong> entfernt alle Zeichen, die f&uuml;r eine E-Mail-Adresse nicht relevant
+sind.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="email" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="EMailFilter"
+      button="send"
+      control="email"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="5-1-2-NoSpecialCharactersFilter"></a><h5>5.1.2. NoSpecialCharactersFilter</h5>
+Der <strong>NoSpecialCharactersFilter</strong> filtert alle Zeichen, die nicht dem regul&auml;ren
+Ausdruck <strong>[^0-9A-Za-z-_\.& ]</strong> gen&uuml;gen.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="simplechars" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="NoSpecialCharactersFilter"
+      button="send"
+      control="simplechars"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="5-1-3-OnlyHTMLEntitiesFilter"></a><h5>5.1.3. OnlyHTMLEntitiesFilter</h5>
+Mit dem <strong>OnlyHTMLEntitiesFilter</strong> kann erreicht werden, dass Sonderzeichen in ihre
+HTML Entity Entsprechungen umgewandelt werden. Hierbei muss jedoch beachtet werden, dass bei
+mehrmaligem Abschicken, Mehrfach-Codierungen m&ouml;glich sind.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="htmlentitiestext" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="OnlyHTMLEntitiesFilter"
+      button="send"
+      control="htmlentitiestext"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="5-1-4-OnlyIntegersFilter"></a><h5>5.1.4. OnlyIntegersFilter</h5>
+Der <strong>OnlyIntegersFilter</strong> l&auml;sst nur Ziffern zu und filtert alle anderen Zeichen.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="zipcode" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="OnlyIntegersFilter"
+      button="send"
+      control="zipcode"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="5-1-5-OnlyLettersFilter"></a><h5>5.1.5. OnlyLettersFilter</h5>
+Mit dem <strong>OnlyLettersFilter</strong> werden nur Standard-Zeichen des Alphabets zugelassen.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="productcode" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="OnlyLettersFilter"
+      button="send"
+      control="productcode"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+
+<br />
+<a name="5-1-6-OnlyNumbersFilter"></a><h5>5.1.6. OnlyNumbersFilter</h5>
+Der <strong>OnlyNumbersFilter</strong> l&auml;sst nur Ziffern und Interpunktionen zu, die f&uuml;r die
+Trennung von 1000er Bl&ouml;cken und Nachkommastellen notwendig sind.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:text name="productprice" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="OnlyNumbersFilter"
+      button="send"
+      control="productprice"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="5-1-7-SpecialCharacterFilter"></a><h5>5.1.7. SpecialCharacterFilter</h5>
+Mit dem <strong>SpecialCharacterFilter</strong> werden nur Zeichen zugelassen, die im normalen
+Satzbau notwendig sind.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:area name="simpletext" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="SpecialCharacterFilter"
+      button="send"
+      control="simpletext"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="5-1-8-String2LowerFilter"></a><h5>5.1.8. String2LowerFilter</h5>
+Der <strong>String2LowerFilter</strong> wandelt alle Buchstaben in Klein-Buchstaben um.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:area name="lowertext" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="String2LowerFilter"
+      button="send"
+      control="lowertext"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="5-1-9-String2UpperFilter"></a><h5>5.1.9. String2UpperFilter</h5>
+Der <strong>String2UpperFilter</strong> wandelt alle Buchstaben in Gro&szlig;-Buchstaben um.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:area name="uppertext" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="String2LowerFilter"
+      button="send"
+      control="uppertext"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="5-1-10-StripTagsFilter"></a><h5>5.1.10. StripTagsFilter</h5>
+Mit dem <strong>StripTagsFilter</strong> werden alle HTML- und PHP-Code-Fragmente aus dem Text
+entfernt. Dieser eignet sich gut f&uuml;r Felder, in denen viel Freitext eingegeben werden kann.
+<code:highlight>
+&lt;html:form name="..."&gt;
+   &lt;form:area name="notagstext" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addfilter
+      class="StripTagsFilter"
+      button="send"
+      control="notagstext"
+   /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<br />
+<a name="5-2-Aufbau-von-Filtern"></a><h4>5.2. Aufbau von Filtern</h4>
+Formular-Filter sind eine Spezialisierung der APF-Filter-API, die im Kapitel
+<a href="./?Seite=087-Filter#4-Aufbau-und-Funktion" title="Aufbau und Funktion von Filtern">Aufbau und Funktion von Filtern</a>
+n&auml;her beschrieben ist. Als Interface steht die abstrakte Klasse <strong>AbstractFormFilter</strong>
+zur Verf&uuml;gung, die alle konkreten Formular-Filter implementieren m&uuml;ssen.
+<br />
+<br />
+&Auml;hnlich den im Kapitel 4.2 beschrieben Formular-Validatoren, m&uuml;ssen Formular-Validatoren einige
+Formular-spezifische Methoden implementieren. Die Klasse <strong>AbstractFormFilter</strong> hat
+folgenden Aufbau:
+<php:highlight>
+abstract class AbstractFormFilter extends AbstractFilter {
+
+   protected $__Control;
+   protected $__Button;
+
+   public function AbstractFormFilter(form_control &$control,form_control &$button){
+      $this->__Control = &$control;
+      $this->__Button = &$button;
+   }
+
+   public function isActive(){
+      return $this->__Button->isSent();
+   }
+
+}
+</php:highlight>
+&Uuml;ber den Konstruktor werden das zu filternde Form-Control und der Button, der als Trigger
+fungiert injiziert. Die Methode <strong>filter()</strong> wird vom Formular-Element mit dem zu
+filternden Inhalt versorgt und muss den Filter-Code enthalten. Als R&uuml;ckgabe wird der gefilterte
+Wert erwartet.
+<br />
+<br />
+Die Methode <strong>isActive()</strong> dienen dazu, dem Filter zu fragen, ob er ausgef&uuml;hrt werden
+darf.
+<br />
+<br />
+Die Klassen-Variablen <strong>$__Control</strong> und <strong>$__Button</strong> enthalten jeweils
+die Instanz des zu validieren Formular-Elements und den Button, der als Trigger verwendet wird.
+<br />
+<br />
+Voraussetzung f&uuml;r die Funktion von Filtern ist, dass ein Formular-Element dies unterst&uuml;tzt.
+Hierzu muss in jedem Formular-Control die Methode <strong>addFilter()</strong>
+implementiert sein. Diese in der Klasse <strong>form_control</strong> definierte Methode hat
+folgende Signatur:
+<php:highlight>
+public function addFilter(AbstractFormFilter &$filter){
+   if($filter->isActive()){
+      $value = $this->getAttribute('value');
+      $filteredValue = $filter->filter($value);
+      $this->setAttribute('value',$filteredValue);
+   }
+}
+</php:highlight>
+Wie im Code-Snippet zu sehen ist, nimmt die Methode eine Instanz eines Filters entgegen, f&uuml;hrt
+diesen - falls als aktiv gekennzeichnet - aus.
+<br />
+<br />
+Wie ebenfalls zu erkennen ist, wird dem Filter <em>by default</em> das Tag-Attribut
+<strong>value</strong> &uuml;bergeben, was nur f&uuml;r Text-Felder g&uuml;ltig ist. Aus diesem Grund
+&uuml;berschreiben Nicht-Text-Felder diese Methode und &uuml;bergeben dem Filter den relevanten
+Inhalt.
+<br />
+<br />
+<div class="hint">
+   Filter finden &uuml;blicherweise nur bei Text-Feldern Anwendung. F&uuml;r Felder mit komplexeren
+   Datenstrukturen kann es Sinn machen einen Filter zu schreiben, im Fall der Select-Felder ist es
+   jedoch f&uuml;r die Sicherheit nicht von Bedeutung. Aus diesem Grund liefert das APF f&uuml;r Select-Felder
+   keine Filter mit.
+</div>
+<br />
+<br />
+<a name="5-3-Implementierung-von-Filtern"></a><h4>5.3. Implementierung von Filtern</h4>
+Wie bereits im letzten Kapitel angesprochen, muss ein Filter von der Klasse
+<strong>AbstractFormFilter</strong> erben.
+<br />
+<br />
+F&uuml;r die Implementierung eines eigenen Filters muss folgendes beachtet werden:
+<ul>
+   <li>Der Filter muss von von der Klasse <strong>AbstractFormFilter</strong> erben.</li>
+   <li>
+      &Uuml;ber den Button (Methode: <strong>isSent()</strong>) kann der Entwickler abfragen, ob das
+      Formular mit Klick auf diesen abgesendet wurde.
+   </li>
+   <li>
+      Die Methode <strong>isActive()</strong> kann &uuml;blicherweise von
+      <strong>AbstractFormFilter</strong> &uuml;bernommen werden.
+   </li>
+</ul>
+<div class="hint">
+   Auf Grund der Besonderheit, dass mit PHP >=5.2.10, bzw. >=5.3.0 die Signaturen von
+   &uuml;berschriebenen abstrakten Methoden Zeichen-identisch sein m&uuml;ssen, muss darauf geachtet werden,
+   dass die Funktion <em>public function filter($input)</em> in der Filter-Imp&uuml;lementierung exakt so
+   definiert wurde!
+</div>
+<br />
+<br />
+<a name="6-Verwendung-von-Formularen"></a><h3>6. Verwendung von Formularen</h3>
+Die Verwendung von Formularen und die Verarbeitung mit Hilfe von Document Controllern ist im Kapitel
+<a href="./?Seite=011-Formulare" title="Formulare">Formulare</a> n&auml;her bescchrieben. Diese Seite
+soll lediglich als Referenz f&uuml;r die vorhandenen Taglibs und die Implementierung von Validatoren und
+Filtern dienen. Weiter wird auf die Erstellung von dynamischen Formularen eingegangen.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_113" />
