@@ -1,4 +1,4 @@
-<doku:title tags="forumlare,forums,aufbau,validierung,manipulation,befuellung,auslesen,dynamische formulare,controller" title="Formulare" urlname="Formulare">
+<doku:title tags="forumlare,forums,aufbau,validierung,manipulation,befuellung,auslesen,dynamische formulare,controller" title="Verwendung von Formularen (ab Version 1.11)" urlname="Verwendung-von-Formularen">
   Diese Dokumentationsseite beschreibt den Aufbau und die Verwendung von Formularen so wie die
   M&ouml;glichkeiten, die sich aus dem APF-Form-Modell ergeben. Dazu z&auml;hlen die Validierung und
   das Vorausf&uuml;llen sowie die M&ouml;glichkeit, Formular-Elemente (=Objekte) im Controller zu
@@ -6,20 +6,390 @@
   wie dynamische Formulare erstellt werden k&ouml;nnen.
 </doku:title>
 <core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
+Das Adventure PHP Framework beinhaltet eine sehr umfangreiche Formular-Unterst&uuml;tzung die auf dem
+Taglibs-Konzept basiert. Die Grundlagen und vorhandenen Taglibs sind im Abschnitt
+<a href="./?Seite=113-Formulare" title="Formulare">Formulare</a> beschrieben. Dieses Kapitel
+besch&auml;ftigt sich nun mit der Verwendung von Formularen, der dynamischen Formular-Generierung
+und der Erweiterung der Formular-Taglibs.
+<br />
+<br />
+<br />
+<a name="1-Formulare-und-Controller"></a><h3>1. Formulare &amp; Controller</h3>
+Formulare sind - genau wie Template-Fragmente - Elemente, die im DOM-Baum existieren, jedoch bei der
+Transformation nicht automatisch ausgegeben werden. Hierzu bedarf es eines Document-Controller. Der
+Grund daf&uuml;r ist simple: nahezu jedes Formular ist an Aktionen geknüpft, die mit dem Absenden
+des Formulars ausgeführt werden sollen (z.B. Speichern der Daten).
+<br />
+<br />
+Um ein Formular mit Hilfe eines Document-Controller auszugeben, ist folgender Code notwendig:
+<php:highlight>
+class form_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('Search');
+      $form->transfromOnPlace();
+   }
+}
+</php:highlight>
+In der Variable <strong>$form</strong> steht dabei eine Instanz der Klasse
+<strong>html_taglib_form</strong> zur Verfügung, die ein APF-Formular mit all seinen Elementen und
+Funktionen kapselt. Mit Hilfe dieser Referenz auf das Formular-Objekt im DOM-Baum kann das Formular
+ausgegeben, manipuliert, befüllt und angepasst werden. Details dazu können den folgenden Kapiteln
+entnommen werden.
+<br />
+<br />
+<br />
+<a name="2-API-der-Formular-Taglibs"></a><h3>2. API der Formular-Taglibs</h3>
+Im vorangegangenen Abschnitt wurde beschrieben, wie ein Formular in einem Document-Controller
+referenziert werden kann. In diesem Kapitel beschäftigen wir uns nun mit der API der
+Formular-Taglibs, die Aufschluss darüber gibt, welche Möglichkeiten die Formular-Integration des
+APF bietet.
+<br />
+<br />
 <div class="hint">
-   Diese Seite dokumentiert die Formular-Unterst&uuml;tzung des APF <strong>bis einschlie&szlig;lich der
-   Version 1.10</strong>. In Release 1.11 wurde die Formular-Integration vollst&auml;ndig &uuml;berarbeitet.
-   Die neue Dokumentation findet sich nun im Kapitel
-   <a href="./?Seite=113-Formulare" title="Formulare (ab Version 1.11)">Formulare (ab Version 1.11)</a>.
+   Für die Entwicklung ist es stets ratsam, die
+   <a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>
+   der eingesetzten Version parallel zur Entwicklungsumgebung geöffnet zu haben. Dies erleichtert
+   die Arbeit, da jede Taglib ihre eigene API mitbringt, die in der API-DOkumentation genau
+   beschrieben ist.
 </div>
 <br />
-Das Adventure-PHP-Framework unterst&uuml;tzt die dynamische Generierung und Abstraktion von Formularen
-out-of-the-box. Durch den generischen Tag-Parser k&ouml;nnen Formulare durch Tags in Templates und die
-entsprechenden DOM-Objekte im Objektbaum der Pr&auml;sentations-Schicht abgebildet werden. Dadurch ist
-es m&ouml;glich Formular-Elementen "interne Intelligenz" mitzugeben. Hierrunter f&auml;llt das
-automatische Ausf&uuml;llen anhand eines URL-Parameters und die Validierung von Benutzereingaben. Dies
-beiden Features k&ouml;nnen einfach durch die Definition des Verhaltens in den Templates gesteuert
-werden und der Entwickler ben&ouml;tigt keine weiteren Hilfmittel und Logiken mehr.
+Grundlage für alle Formular-Elemente ist die Klasse <strong>form_control</strong>. Diese
+implementiert Basis-Funktionalitäten für alle konkreten Formular-Elemente und definiert die
+Struktur eines Formular-Elements. Da die Formular-Elemente als Taglibs ausgeführt sind, unterliegen
+sie dem
+<a href="./?Seite=098-Pagecontroller#2-1-Ablaufdiagramm" title="Lifecycle des Page-Controllers">Lifecycle des Page-Controllers</a>.
+Das bedeutet, dass sie darüber hinaus alle Methoden einer &quot;normalen&quot; Taglib
+implementieren müssen.
+<br />
+<br />
+<div class="hint">
+   Im Gegensatz zu den Formular-Taglibs <strong>bis Version 1.10</strong>, kennen die
+   Formular-Elemente <strong>ab Version 1.11</strong> ihren Validitäts-Status selbst. Damit kann
+   jedes Element nach seinem Status gefragt werden. Für das Formular selbst bedeutet das, dass die
+   Methode <strong>isValid()</strong> den Status von jedem Element abfragt und daraus einen
+   kumulierten Wert erzeugt.
+</div>
+<br />
+Die Klasse <strong>form_control</strong> implementierten folgende Methoden:
+<ul>
+   <li>
+      <strong>isValid():</strong> Die Funktion ermöglicht es, den Validitäts-Status der
+      Formular-Elements abzufragen. Intern oder auch von aussen.
+   </li>
+   <li>
+      <strong>markAsInvalid():</strong> Markiert ein Element als invalid.
+   </li>
+   <li>
+      <strong>markAsSent():</strong> Markiert ein Element als abgesendet (relevant für Formulare
+      und Buttons).
+   </li>
+   <li>
+      <strong>isSent():</strong> Prüft, ob ein Formular abgesendet wurde!
+   </li>
+   <li>
+      <strong>isChecked():</strong> Gibt zurück, ob eine Checkbox angehakt wurde oder nicht.
+   </li>
+   <li>
+      <strong>check():</strong> Hakt eine Checkbox an.
+   </li>
+   <li>
+      <strong>uncheck():</strong> Deaktiviert eine Checkbox.
+   </li>
+   <li>
+      <strong>addFilter():</strong> Fügt einen Filter zu einem Element hinzu.
+   </li>
+   <li>
+      <strong>addValidator():</strong> Fügt einen Validator zu einem Element hinzu.
+   </li>
+   <li>
+      <strong>addAttribute():</strong> Kann genutzt werden, um zu einem Attribut eines Tags weiteren
+      Inhalt hinzuzufügen. Dies wird beim Benachrichtigen eines Formular-Elements innerhalb der 
+      Validierung genutz.
+   </li>
+   <li>
+      <strong>notifyValidationListeners():</strong> Benachrichtigt alle Listener eines
+      Formular-Elements, dass dieses invalid ist.
+   </li>
+   <li>
+      <strong>__presetValue():</strong> Die Methode stellt Presetting von Formular-Elementen für
+      einfache Text-Felder zur Verfügung. Diese kann bei der Erweiterung von Formular-Elementen
+      entweder mit einer eigenen Logik überschrieben oder direkt genutzt werden.
+   </li>
+   <li>
+      <strong>setPlaceHolder():</strong> Die Methode implementiert eine generische Funktion zum
+      setzen eines Platzhalters in einem Formular-Element. Wichtig hierbei ist, dass das Kind-Tag
+      <strong>*:placeholder</strong> hei&szlig;t.
+   </li>
+</ul>
+Mit Hilfe dieser Funktionen wird der Entwickler darin untrstützt, eigene Formular-Elemente zu
+erstellen. Mehr dazu in Kapitel 7.
+<br />
+<br />
+<br />
+<a name="3-Validierung"></a><h3>3. Validierung</h3>
+Die Validierung von Formular-Elementen wird über die Taglib <strong>form:addvalidator</strong>
+und die Implementierung der Validatoren auf das Klick-Event eines Buttons ausgeführt. Zeitlich
+gesehen erfolgt die Validierung bei der Ausführung der <strong>onAfterAppend()</strong>-Methode.
+Das ist nach der Analyse-Phase (hier wird die Methode <strong>onParseTime()</strong> jeder Taglib
+ausgeführt) und damit steht der DOM-Baum der Formular-Elemente vollständig zur Verfügung.
+<br />
+<br />
+In der <strong>onAfterAppend()</strong>-Methode des <strong>form:addvalidator</strong>-Tags wird
+dann der Validator erzeugt, mit den notwendigen Informationen (Button und Formular-Control)
+ausgestattet und dem Element übergeben. Das Element führt den Validator dann bei aktivem Status
+aus und prüft das Ergebnis. Im Negativfall wird die <strong>notify()</strong>-Methode des
+Validators aufgerufen.
+<br />
+<br />
+<br />
+<a name="3-1-Abfragen-des-Validierungs-Status"></a><h4>3.1. Abfragen des Validierungs-Status</h4>
+Damit ist sichergestellt, dass zum Zeitpunkt der Transformation der Status des Formulars - der sich
+aus den Einzel-Status der Elemente zusammen setzt - bekannt ist. Damit kann nun in einem
+Document-Controller wie folgt der Zustand eines Formulars abgefragt werden:
+<php:highlight>
+class form_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('MyForm');
+      if($form->isSent()){
+         echo 'Form was send');
+      }
+      if($form->isValid()){
+         echo 'Form is valid';
+      }
+   }
+}
+</php:highlight>
+Ebenso ist es möglich, den Status eines definierten Elements zu erfragen:
+<php:highlight>
+class form_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('MyForm');
+      $searchField = &$form->getFormElementByName('searchterm');
+      if($searchField->isValid()){
+         echo 'Search field is valid';
+      }
+   }
+}
+</php:highlight>
+Um den Klick-Status eines Buttons abzufragen, kann folgender Code genutzt werden:
+<php:highlight>
+class form_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('MyForm');
+      $button = &$form->getFormElementByID('button');
+      if($button->isSent()){
+         echo 'Search button was clicked';
+      }
+   }
+}
+</php:highlight>
+<div class="hint">
+   Weitere Methoden der Formular-Elemente finden sich in der
+   <a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>
+   der Klassen <strong>html_taglib_form</strong>, <strong>form_control</strong> und den Taglibs
+   der jeweiligen Formular-Elemente (z.B. <strong>form_taglib_text</strong>).
+</div>
+<br />
+<br />
+<a name="3-2-Ausgabe-von-Validator-Fehlermeldungen"></a><h4>3.2. Ausgabe von Validator-Fehlermeldungen</h4>
+Bei der Validierung von Formularen werden monierte Felder üblicherweise farblich markiert und der
+Benutzer mit einem Hinweistext benachrichtigt. Für diese Aufgaben können die Tags
+<strong>&lt;form:error /&gt;</strong> (globale Formular-Fehlermeldungen) und
+<strong>&lt;form:listener /&gt;</strong> verwendet werden. Alternativ dazu ist ein Platzhalter-Tag
+verfügbar, das im Controller mit einem entsprechenden Wert belegt werden kann.
+<br />
+<br />
+<br />
+<a name="3-2-1-Form-Error"></a><h5>3.2.1. Form-Error</h5>
+Der <strong>&lt;form:error /&gt;</strong> gibt immer dann seinen Inhalt aus, wenn das Formular nicht
+valide ist. Dazu fragt er das Formular bei der Transformation nach seinem Status:
+<br />
+<br />
+<u>Template:</u>
+<code:highlight>
+&lt;html:form name="product-form"&gt;
+   &lt;form:error&gt;Please fill in the mandatory fields!&lt;/form:error&gt;
+   &lt;form:text name="code" minlength="5" maxlength="5"/&gt;
+   &lt;form:text name="title" minlength="20"/&gt;
+   &lt;form:area name="description" minlength="30"/&gt;
+   &lt;form:addvalidator
+      class="TextLengthValidator"
+      control="code|title|description"
+      button="send"
+   /&gt;
+   &lt;form:button name="send" value="Save" /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<u>Controller</u>
+<php:highlight>
+class form_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('product-form');
+      $form->transformOnPlace();
+   }
+}
+</php:highlight>
+Innerhalb des <strong>&lt;form:error /&gt;</strong>-Tags können gemäß
+<a href="./?Seite=113-Formulare#3-19-Error" title="Anzeige von Formular-Fehlern">Anzeige von Formular-Fehlern</a>
+noch weitere Tags zur Definition der Inhalte verwendet werden.
+<br />
+<br />
+<br />
+<a name="3-2-2-Listener"></a><h5>3.2.2. Listener</h5>
+Der <strong>&lt;form:listener /&gt;</strong>-Tag dient dazu Feld-speziefische Fehler anzuzeigen. Wie
+in der Einleitung zum Kapitel 3 angesprochen, wird bei fehlgeschlagener Validierung die Methode
+<strong>notify()</strong> aufgerufen. Diese benachrichtigt alle Listener, die sich auf das
+entsprechende Control registriert haben und diese geben dann bei der Transformation den definierten
+Inhalt aus.
+<br />
+<br />
+Im folgenden Beispiel wird bei fehgeschlagener Validierung jeweils eine Feld-spezifische Meldung
+angezeigt:
+<br />
+<br />
+<u>Template:</u>
+<code:highlight>
+&lt;html:form name="product-form"&gt;
+   &lt;form:listener control="code"&gt;Please fill in a five letter product code!&lt;/form:listener&gt;
+   &lt;form:text name="code" minlength="5" maxlength="5"/&gt;
+   &lt;form:listener control="title"&gt;Please fill in a title with at least 20 characters!&lt;/form:listener&gt;
+   &lt;form:text name="title" minlength="20"/&gt;
+   &lt;form:listener control="description"&gt;Please provide a verbose product description!&lt;/form:listener&gt;
+   &lt;form:area name="description" minlength="30"/&gt;
+   &lt;form:addvalidator
+      class="TextLengthValidator"
+      control="code|title|description"
+      button="send"
+   /&gt;
+   &lt;form:button name="send" value="Save" /&gt;
+&lt;/html:form&gt;
+</code:highlight>
+<u>Controller</u>
+<php:highlight>
+class form_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('product-form');
+      $form->transformOnPlace();
+   }
+}
+</php:highlight>
+Innerhalb des <strong>&lt;form:listener /&gt;</strong>-Tags können gemäß
+<a href="./?Seite=113-Formulare#3-18-Listener" title="Listener">Listener</a> noch weitere Tags zur
+Definition der Inhalte verwendet werden.
+<br />
+<br />
+<br />
+<a name="4-Auslesen-von-Formularen"></a><h3>4. Auslesen von Formularen</h3>
+Eine häufige Aufgabe beim Handling von Formularen stellt das Auslesen von Werte dar. Hierzu
+können im Document-Controller folgende Methoden genutzt werden:
+<ul>
+   <li>
+      <strong>getFormElementByID():</strong> Liefert ein Formular-Element an Hand seiner ID
+      (Attribut: <em>id</em>).
+   </li>
+   <li>
+      <strong>getFormElementByName():</strong> Liefert ein Formular-Element an Hand seines Namens
+      (Attribut: <em>name</em>).
+   </li>
+   <li>
+      <strong>getFormElementsByTagName():</strong> Liefert eine Liste von Formular-Elementen an
+      Hand des Tag-Namens (z.B. <em>form:text</em>).
+   </li>
+   <li>
+      <strong>getFormElementsByObjectID():</strong> Liefert ein Formular-Element an Hand seiner
+      internen ObjektID. Diese Vorgehensweise kann bei der Generierung von dynamischen Formularen
+      angewendet werden.
+   </li>
+</ul>
+<br />
+<a name="4-1-Auswahl-per-Name"></a><h4>4.1. Auswahl per Name</h4>
+Sollen die im Formular des Kapitels 3.2.2. beschriebenen Felder zum Abspeichern des Formulars
+ausgelesen werden, kann dies mit Hilfe des folgenden Controller-Codes erreicht werden:
+<php:highlight>
+class form_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('product-form');
+
+      if($form->isSent() && $form->isValid()){
+
+         $code = &$form->getFormElementByName('code');
+         echo 'product code: '.$code->getAttribute('value');
+
+         $title = &$form->getFormElementByName('title');
+         echo 'product title: '.$title->getAttribute('value');
+
+         $description = &$form->getFormElementByName('description');
+         echo 'product desc: '.$description->getContent();
+      }
+      
+   }
+}
+</php:highlight>
+<div class="hint">
+   Bei Textareas wird der Inhalt nicht im Attribut <strong>value</strong> gespeichert, sondern
+   im Inhalt des Tags. Dies entspriche exakt der Vorgehensweise der Tag-Definition in HTML.
+</div>
+<br />
+Da das Formular nichts anderes darstellt als einen DOM-Baum von Formular-Elementen, kann ein
+Platzhalter in einem Error-Tag über zwei Stufen adressiert werden. Zu erst wird die Instanz des
+Error-Tags bezogen und von dort der Platzhalter. Als Beispiel nutzen wir folgendes Formular:
+<code:highlight>
+&lt;html:form name="product-form"&gt;
+   &lt;form:error name="error"&gt;
+      &lt;error:placeholder name="ph1" /&gt;
+   &lt;/form:error&gt;
+   ...
+&lt;/html:form&gt;
+</code:highlight>
+Um nun den Platzhalter innerhalb des <strong>&lt;form:error /&gt;</strong>-Tags zu füllen, kann
+folgender Controller-Code genutzt werden:
+<php:highlight>
+class form_controller extends baseController {
+   public function transformContent(){
+      $form = &$this->__getForm('product-form');
+      $error = &$form->getFormElementByName('error');
+
+      // simple way:
+      $error->setPlaceHolder('ph1','My placeholder value');
+
+      // alternative way:
+      $placeHolder = $error->getFormElementByName('ph1');
+      $placeHolder->setContent('My placeholder value');
+   }
+}
+</php:highlight>
+<div class="hint">
+   Um ein Formular-Element per ID auszuwählen, kann die gleiche Vorgehensweise wie bei der Auswahl
+   nach Name verwendet werden.
+</div>
+<br />
+<br />
+<a name="4-2-Auswahl-per-Tag"></a><h4>4.2. Auswahl per Tag</h4>
+In manchen Fällen kann es nützlich sein, die gewünschten Formular-Elemente per Tag-Namen zu
+selektieren.
+
+
+<br />
+<br />
+<br />
+<a name=""></a><h3>5. Manipulation von Formularen</h3>
+
+<br />
+<br />
+<br />
+<a name=""></a><h3>6. Dynamische Formulare</h3>
+
+<br />
+<br />
+<br />
+<a name=""></a><h3>7. Erweiterung von Formular-Elementen</h3>
+
+
+
+<br />
+<br />
+<br />
+
 <br />
 <br />
 <br />
@@ -770,4 +1140,4 @@ Die Verwendung gestaltet sich wie folgt:
 &lt;/html:form&gt;
 </code:highlight>
 <br />
-<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_011" />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_114" />
