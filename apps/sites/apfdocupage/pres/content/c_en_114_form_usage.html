@@ -1,27 +1,24 @@
-<doku:title tags="forumlare,forums,aufbau,validierung,manipulation,befuellung,auslesen,dynamische formulare,controller" title="Form usage (as of revision 1.11)" urlname="Form-usage">
-  Diese Dokumentationsseite beschreibt den Aufbau und die Verwendung von Formularen so wie die
-  M&ouml;glichkeiten, die sich aus dem APF-Formular-Modell ergeben. Dazu z&auml;hlen die Validierung
-  und das Vorausf&uuml;llen, sowie die M&ouml;glichkeit, Formular-Elemente (=Objekte) im Controller
-  zu manipulieren, zu bef&uuml;llen oder diese auszulesen. Weiterhin wird die dynamische
-  Formular-Erstellung beschrieben.
+<doku:title tags="forms,validation,manipulation,initialization,construction,dynamic forms,controller" title="Usage of forms (as of revision 1.11)" urlname="Usage-of-forms">
+  This documentation page describes the structure and usage of forms. Among these are validation,
+  presetting as well as field manipulation within the document controller. Further dynamic form
+  generation is described.
 </doku:title>
 <core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content::voting" template="voting" />
-Das Adventure PHP Framework beinhaltet eine sehr umfangreiche Formular-Unterst&uuml;tzung die auf dem
-Taglibs-Konzept basiert. Die Grundlagen und vorhandenen Taglibs sind im Abschnitt
-<a href="./?Seite=113-Formulare" title="Formulare">Formulare</a> beschrieben. Dieses Kapitel
-besch&auml;ftigt sich nun mit der Verwendung von Formularen, der dynamischen Formular-Generierung
-und der Erweiterung der Formular-Taglibs.
+The adventure PHP framework contains a comprehensive form support based on the taglib concept. The
+basics of forms and the available taglibs are described in the
+<a href="./?Page=113-Forms" title="Forms">forms</a> chapter. This section now discusses the usage of
+forms, dynamic form generation, and implementation of custon form taglibs in detail.
 <br />
 <br />
 <br />
-<a name="1-Formulare-und-Controller"></a><h3>1. Formulare &amp; Controller</h3>
-Formulare sind - genau wie Template-Fragmente - Elemente, die im DOM-Baum existieren, jedoch bei der
-Transformation nicht automatisch ausgegeben werden. Hierzu bedarf es eines Document-Controller. Der
-Grund daf&uuml;r ist simple: nahezu jedes Formular ist an Aktionen gekn&uuml;pft, die mit dem Absenden
-des Formulars ausgef&uuml;hrt werden sollen (z.B. Speichern der Daten).
+<a name="1-Forms-and-controller"></a><h3>1. Forms &amp; controller</h3>
+Forms are kind of template fragments, that exist within the APF DOM tree, but are not displayed at
+transformation. To display a form, a document controller is needed. The reason for it is simple:
+nearly every form is attached to operations which should be executed with sending the form (e.g.
+save data).
 <br />
 <br />
-Um ein Formular mit Hilfe eines Document-Controller auszugeben, ist folgender Code notwendig:
+In order to display a form, the following controller code can be used:
 <php:highlight>
 class form_controller extends baseController {
    public function transformContent(){
@@ -30,122 +27,113 @@ class form_controller extends baseController {
    }
 }
 </php:highlight>
-In der Variable <strong>$form</strong> steht dabei eine Instanz der Klasse
-<strong>html_taglib_form</strong> zur Verf&uuml;gung, die ein APF-Formular mit all seinen Elementen und
-Funktionen kapselt. Mit Hilfe dieser Referenz auf das Formular-Objekt im DOM-Baum kann das Formular
-ausgegeben, manipuliert, bef&uuml;llt und angepasst werden. Details dazu k&ouml;nnen den folgenden Kapiteln
-entnommen werden.
+Teherby, the <strong>$form</strong> variable contains a reference on the
+<strong>html_taglib_form</strong> instance, that encapsulates an APF form with all it's child
+elements. Having this reference, the form can be manipulated, filled, displayed, or adapted. Details
+can be taken from the subsequent chapters.
 <br />
 <br />
 <br />
-<a name="2-API-der-Formular-Taglibs"></a><h3>2. API der Formular-Taglibs</h3>
-Im vorangegangenen Abschnitt wurde beschrieben, wie ein Formular in einem Document-Controller
-referenziert werden kann. In diesem Kapitel besch&auml;ftigen wir uns nun mit der API der
-Formular-Taglibs, die Aufschluss dar&uuml;ber gibt, welche M&ouml;glichkeiten die Formular-Integration des
-APF bietet.
-<br />
-<br />
-<div class="hint">
-   F&uuml;r die Entwicklung ist es stets ratsam, die
-   <a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>
-   der eingesetzten Version parallel zur Entwicklungsumgebung ge&ouml;ffnet zu haben. Dies erleichtert
-   die Arbeit, da jede Taglib ihre eigene API mitbringt, die in der API-DOkumentation genau
-   beschrieben ist.
-</div>
-<br />
-Grundlage f&uuml;r alle Formular-Elemente ist die Klasse <strong>form_control</strong>. Diese
-implementiert Basis-Funktionalit&auml;ten f&uuml;r alle konkreten Formular-Elemente und definiert die
-Struktur eines Formular-Elements. Da die Formular-Elemente als Taglibs ausgef&uuml;hrt sind, unterliegen
-sie dem
-<a href="./?Seite=098-Pagecontroller#2-1-Ablaufdiagramm" title="Lifecycle des Page-Controllers">Lifecycle des Page-Controllers</a>.
-Das bedeutet, dass sie dar&uuml;ber hinaus alle Methoden einer &quot;normalen&quot; Taglib
-implementieren m&uuml;ssen.
+<a name="2-API-of-the-form-taglibs"></a><h3>2. API of the form taglibs</h3>
+As described within the preceeding section, a form can be referenced within a document controller
+easily. This section deals with the API of the form taglibs, that gives you an idea if the
+functionality included.
 <br />
 <br />
 <div class="hint">
-   Im Gegensatz zu den Formular-Taglibs <strong>bis Version 1.10</strong>, kennen die
-   Formular-Elemente <strong>ab Version 1.11</strong> ihren Validit&auml;ts-Status selbst. Damit kann
-   jedes Element nach seinem Status gefragt werden. F&uuml;r das Formular selbst bedeutet das, dass die
-   Methode <strong>isValid()</strong> den Status von jedem Element abfragt und daraus einen
-   kumulierten Wert erzeugt.
+   It is recommended to have the
+   <a href="./?Page=002-API-documentation" title="API documentation">API documentation</a>
+   opened during development times. This eases work much, because each taglib has it's own API,
+   that is described within the API documentation in detail.
 </div>
 <br />
-Die Klasse <strong>form_control</strong> implementierten folgende Methoden:
+The basic form element is defined within the <strong>form_control</strong> class. There, the structure
+is defined as well as the basic functionality is included. Due to the fact, that all taglibs underly
+the
+<a href="./?Page=098-Pagecontroller#2-1-Activity-diagram" title="Page controller lifecycle">page controller lifecycle</a>
+each form element must implement the methods, a &quot;normal&quot; taglib must implement, too.
+<br />
+<br />
+<div class="hint">
+   In contrast to form controls <strong>up to version 1.10</strong>, form elements <strong>since
+   version 1.11</strong> know about their validation status. Hence, each element can be queried it's
+   status. Concerning the implementation, this means, that a form collects the status of all
+   controls and returns the cumulated value executing the <strong>isValid()</strong> method.
+</div>
+<br />
+Class <strong>form_control</strong> implements the following methods:
 <ul>
    <li>
-      <strong>isValid():</strong> Die Funktion erm&ouml;glicht es, den Validit&auml;ts-Status der
-      Formular-Elements abzufragen. Intern oder auch von aussen.
+      <strong>isValid():</strong> The function enables you to query the validity status from
+      inside the form as well as from the outside.
    </li>
    <li>
-      <strong>markAsInvalid():</strong> Markiert ein Element als invalid.
+      <strong>markAsInvalid():</strong> Marks a form element as invalid.
    </li>
    <li>
-      <strong>markAsSent():</strong> Markiert ein Element als abgesendet (relevant f&uuml;r Formulare
-      und Buttons).
+      <strong>markAsSent():</strong> Marks an element as sent (only relevant for forms and buttons).
    </li>
    <li>
-      <strong>isSent():</strong> Pr&uuml;ft, ob ein Formular abgesendet wurde!
+      <strong>isSent():</strong> Checks, whether a form was sent or not.
    </li>
    <li>
-      <strong>isChecked():</strong> Gibt zur&uuml;ck, ob eine Checkbox angehakt wurde oder nicht.
+      <strong>isChecked():</strong> Returns true, in case a checkbox is checked and false otherwise.
    </li>
    <li>
-      <strong>check():</strong> Hakt eine Checkbox an.
+      <strong>check():</strong> Enables a checkbox.
    </li>
    <li>
-      <strong>uncheck():</strong> Deaktiviert eine Checkbox.
+      <strong>uncheck():</strong> Deaktivates a checkbox.
    </li>
    <li>
-      <strong>addFilter():</strong> F&uuml;gt einen Filter zu einem Element hinzu.
+      <strong>addFilter():</strong> Adds a filter to the current form control.
    </li>
    <li>
-      <strong>addValidator():</strong> F&uuml;gt einen Validator zu einem Element hinzu.
+      <strong>addValidator():</strong> Adds a validator to the current form control.
    </li>
    <li>
-      <strong>addAttribute():</strong> Kann genutzt werden, um zu einem Attribut eines Tags weiteren
-      Inhalt hinzuzuf&uuml;gen. Dies wird beim Benachrichtigen eines Formular-Elements innerhalb der
-      Validierung genutz.
+      <strong>addAttribute():</strong> Can be used to add content to an existing attribute. This is
+      used when notifying invalid form elements.
    </li>
    <li>
-      <strong>notifyValidationListeners():</strong> Benachrichtigt alle Listener eines
-      Formular-Elements, dass dieses invalid ist.
+      <strong>notifyValidationListeners():</strong> Notifies all listeners of a form element, that
+      it is invalid.
    </li>
    <li>
-      <strong>__presetValue():</strong> Die Methode stellt Presetting von Formular-Elementen f&uuml;r
-      einfache Text-Felder zur Verf&uuml;gung. Diese kann bei der Erweiterung von Formular-Elementen
-      entweder mit einer eigenen Logik &uuml;berschrieben oder direkt genutzt werden.
+      <strong>__presetValue():</strong> This method provides presetting for form text fields. It
+      can be directly used or overwritten for custom form elements.
    </li>
    <li>
-      <strong>setPlaceHolder():</strong> Die Methode implementiert eine generische Funktion zum
-      setzen eines Platzhalters in einem Formular-Element. Wichtig hierbei ist, dass das Kind-Tag
-      <strong>*:placeholder</strong> hei&szlig;t.
+      <strong>setPlaceHolder():</strong> This method implements a generic method to set place holder
+      tags within subtags of the form taglib. Please note, that place holder tags must be namedag
+      <strong>*:placeholder</strong> to be able to use the method.
    </li>
 </ul>
-Mit Hilfe dieser Funktionen wird der Entwickler darin untrst&uuml;tzt, eigene Formular-Elemente zu
-erstellen. Mehr dazu in Kapitel 7.
+Using this methods, the developer is supported to implement custom form taglibs as described in
+chapter 7.
 <br />
 <br />
 <br />
-<a name="3-Validierung"></a><h3>3. Validierung</h3>
-Die Validierung von Formular-Elementen wird &uuml;ber die Taglib <strong>form:addvalidator</strong>
-und die Implementierung der Validatoren auf das Klick-Event eines Buttons ausgef&uuml;hrt. Zeitlich
-gesehen erfolgt die Validierung bei der Ausf&uuml;hrung der <strong>onAfterAppend()</strong>-Methode.
-Das ist nach der Analyse-Phase (hier wird die Methode <strong>onParseTime()</strong> jeder Taglib
-ausgef&uuml;hrt) und damit steht der DOM-Baum der Formular-Elemente vollst&auml;ndig zur Verf&uuml;gung.
+<a name="3-Validation"></a><h3>3. Validation</h3>
+Validation is executed via the <strong>form:addvalidator</strong>, that attaches a validator to the
+desired form control. The validator is executed, when the click event of a form button is fired.
+Having a look at the timing, validation is executed within the <strong>onAfterAppend()</strong>
+method of each taglib. This is after the analysis phase (at this time, the <strong>onParseTime()</strong>
+of each taglib is executed) and the DOM tree is fully created by the page controller.
 <br />
 <br />
-In der <strong>onAfterAppend()</strong>-Methode des <strong>form:addvalidator</strong>-Tags wird
-dann der Validator erzeugt, mit den notwendigen Informationen (Button und Formular-Control)
-ausgestattet und dem Element &uuml;bergeben. Das Element f&uuml;hrt den Validator dann bei aktivem Status
-aus und pr&uuml;ft das Ergebnis. Im Negativfall wird die <strong>notify()</strong>-Methode des
-Validators aufgerufen.
+Within the <strong>onAfterAppend()</strong> method of the <strong>form:addvalidator</strong> tag,
+the validator is created and initialized with the necessary information (button and target form
+control) and given to the target element. The element itself executes the validator in case it is
+active and checks the result. In case of errors, the <strong>notify()</strong> method of the
+validator is called.
 <br />
 <br />
 <br />
-<a name="3-1-Abfragen-des-Validierungs-Status"></a><h4>3.1. Abfragen des Validierungs-Status</h4>
-Damit ist sichergestellt, dass zum Zeitpunkt der Transformation der Status des Formulars - der sich
-aus den Einzel-Status der Elemente zusammen setzt - bekannt ist. Damit kann nun in einem
-Document-Controller wie folgt der Zustand eines Formulars abgefragt werden:
+<a name="3-1-Validation-status-query"></a><h4>3.1. Validation status query</h4>
+Since each form element knows about it's validation status within the new implementation, the 
+form's <em>isValid()</em> method must query the status of each form element. Using a document
+controller, you can get the form status as follows:
 <php:highlight>
 class form_controller extends baseController {
    public function transformContent(){
@@ -159,7 +147,7 @@ class form_controller extends baseController {
    }
 }
 </php:highlight>
-Ebenso ist es m&ouml;glich, den Status eines definierten Elements zu erfragen:
+Further, you can ask a single form element to return it's status using the subsequent PHP code:
 <php:highlight>
 class form_controller extends baseController {
    public function transformContent(){
@@ -171,7 +159,7 @@ class form_controller extends baseController {
    }
 }
 </php:highlight>
-Um den Klick-Status eines Buttons abzufragen, kann folgender Code genutzt werden:
+To decide, whether a button has been clicked, use the follwing code:
 <php:highlight>
 class form_controller extends baseController {
    public function transformContent(){
@@ -184,25 +172,26 @@ class form_controller extends baseController {
 }
 </php:highlight>
 <div class="hint">
-   Weitere Methoden der Formular-Elemente finden sich in der
-   <a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>
-   der Klassen <strong>html_taglib_form</strong>, <strong>form_control</strong> und den Taglibs
-   der jeweiligen Formular-Elemente (z.B. <strong>form_taglib_text</strong>).
+   To get an overview of the existent methods, please refer to the
+   <a href="./?Page=002-API-documentation" title="API documentation">API documentation</a> of the
+   classes <strong>html_taglib_form</strong>, <strong>form_control</strong> and the dedicated
+   form taglibs (e.g. <strong>form_taglib_text</strong>).
 </div>
 <br />
 <br />
-<a name="3-2-Ausgabe-von-Validator-Fehlermeldungen"></a><h4>3.2. Ausgabe von Validator-Fehlermeldungen</h4>
-Bei der Validierung von Formularen werden monierte Felder &uuml;blicherweise farblich markiert und der
-Benutzer mit einem Hinweistext benachrichtigt. F&uuml;r diese Aufgaben k&ouml;nnen die Tags
-<strong>&lt;form:error /&gt;</strong> (globale Formular-Fehlermeldungen) und
-<strong>&lt;form:listener /&gt;</strong> verwendet werden. Alternativ dazu ist ein Platzhalter-Tag
-verf&uuml;gbar, das im Controller mit einem entsprechenden Wert belegt werden kann.
+<a name="3-2-Display-of-validation-messages"></a><h4>3.2. Display of validation messages</h4>
+Introducin form validation, the fields containing wrong data are often marked with red borders and
+the user is presented a validation message. To achieve this, the taglibs
+<strong>&lt;form:error /&gt;</strong> (used for global error messages) and
+<strong>&lt;form:listener /&gt;</strong> can be used. As an alternative, you may use place holders,
+that are filled with the appropriate error messages within the controller code.
 <br />
 <br />
 <br />
-<a name="3-2-1-Form-Error"></a><h5>3.2.1. Form-Error</h5>
-Der <strong>&lt;form:error /&gt;</strong> gibt immer dann seinen Inhalt aus, wenn das Formular nicht
-valide ist. Dazu fragt er das Formular bei der Transformation nach seinem Status:
+<a name="3-2-1-Form-error"></a><h5>3.2.1. Form error</h5>
+The <strong>&lt;form:error /&gt;</strong> displays it's content, in case the form is not valid -
+regardless which field is invalid. For this reason, the tag queries the form's status at transformation
+time:
 <br />
 <br />
 <u>Template:</u>
@@ -229,22 +218,20 @@ class form_controller extends baseController {
    }
 }
 </php:highlight>
-Innerhalb des <strong>&lt;form:error /&gt;</strong>-Tags k&ouml;nnen gem&auml;&szlig;
-<a href="./?Seite=113-Formulare#3-19-Error" title="Anzeige von Formular-Fehlern">Anzeige von Formular-Fehlern</a>
-noch weitere Tags zur Definition der Inhalte verwendet werden.
+Within the <strong>&lt;form:error /&gt;</strong> tag, you may define further tags for formatting
+or content generation purposes as described in chapter
+<a href="./?Page=113-Forms#3-19-Error" title="display of form errors">display of form errors</a>.
 <br />
 <br />
 <br />
 <a name="3-2-2-Listener"></a><h5>3.2.2. Listener</h5>
-Der <strong>&lt;form:listener /&gt;</strong>-Tag dient dazu Feld-speziefische Fehler anzuzeigen. Wie
-in der Einleitung zum Kapitel 3 angesprochen, wird bei fehlgeschlagener Validierung die Methode
-<strong>notify()</strong> aufgerufen. Diese benachrichtigt alle Listener, die sich auf das
-entsprechende Control registriert haben und diese geben dann bei der Transformation den definierten
-Inhalt aus.
+The <strong>&lt;form:listener /&gt;</strong> tag is aimed to display field specific errors. As noted
+in the introduction chapter, the <strong>notify()</strong> method is called, when a form control
+is considered invalid. This method then notifies all listener tags, that have registered on this
+event to display their content at transformation time.
 <br />
 <br />
-Im folgenden Beispiel wird bei fehgeschlagener Validierung jeweils eine Feld-spezifische Meldung
-angezeigt:
+In the below, field specific messages are displayed in case a desired field is marked invaluid:
 <br />
 <br />
 <u>Template:</u>
@@ -273,38 +260,37 @@ class form_controller extends baseController {
    }
 }
 </php:highlight>
-Innerhalb des <strong>&lt;form:listener /&gt;</strong>-Tags k&ouml;nnen gem&auml;&szlig;
-<a href="./?Seite=113-Formulare#3-18-Listener" title="Listener">Listener</a> noch weitere Tags zur
-Definition der Inhalte verwendet werden.
+Within the <strong>&lt;form:listener /&gt;</strong> tag, you may define further tags for formatting
+or content generation purposes as described in chapter
+<a href="./?Page=113-Forms#3-18-Listener" title="Listener">Listener</a>.
 <br />
 <br />
 <br />
-<a name="4-Auslesen-von-Formularen"></a><h3>4. Auslesen von Formularen</h3>
-Eine h&auml;ufige Aufgabe beim Handling von Formularen stellt das Auslesen von Werte dar. Hierzu
-k&ouml;nnen im Document-Controller folgende Methoden genutzt werden:
+<a name="4-Handle-form-content"></a><h3>4. Handle form content</h3>
+A frequent job with the handling of forms is the readout of values. To support this, the following
+methods can be used in the document controller:
 <ul>
    <li>
-      <strong>getFormElementByID():</strong> Liefert ein Formular-Element an Hand seiner ID
+      <strong>getFormElementByID():</strong> Returns a form element selected by id
       (Attribut: <em>id</em>).
    </li>
    <li>
-      <strong>getFormElementByName():</strong> Liefert ein Formular-Element an Hand seines Namens
+      <strong>getFormElementByName():</strong> Returns a form element selected by name
       (Attribut: <em>name</em>).
    </li>
    <li>
-      <strong>getFormElementsByTagName():</strong> Liefert eine Liste von Formular-Elementen an
-      Hand des Tag-Namens (z.B. <em>form:text</em>).
+      <strong>getFormElementsByTagName():</strong> Returns a list of form elements selected by tag name
+      (z.B. <em>form:text</em>).
    </li>
    <li>
-      <strong>getFormElementsByObjectID():</strong> Liefert ein Formular-Element an Hand seiner
-      internen ObjektID. Diese Vorgehensweise kann bei der Generierung von dynamischen Formularen
-      angewendet werden.
+      <strong>getFormElementsByObjectID():</strong> Returns a form element selected by the APF DOM
+      id. This can be used generating dynamic forms.
    </li>
 </ul>
 <br />
-<a name="4-1-Auswahl-per-Name"></a><h4>4.1. Auswahl per Name</h4>
-Sollen die im Formular des Kapitels 3.2.2. beschriebenen Felder zum Abspeichern des Formulars
-ausgelesen werden, kann dies mit Hilfe des folgenden Controller-Codes erreicht werden:
+<a name="4-1-Select-by-name"></a><h4>4.1. Select by name</h4>
+Are you faced with the task to gather the values of the form described in chapter 3.2.2., you can
+use the subsequent controller code:
 <php:highlight>
 class form_controller extends baseController {
    public function transformContent(){
@@ -326,13 +312,14 @@ class form_controller extends baseController {
 }
 </php:highlight>
 <div class="hint">
-   Bei Textareas wird der Inhalt nicht im Attribut <strong>value</strong> gespeichert, sondern
-   im Inhalt des Tags. Dies entspriche exakt der Vorgehensweise der Tag-Definition in HTML.
+   Using text ares, the content of the tag is not contained in the <strong>value</strong> attribute
+   but within the content of the tag. This is identical to the HTML tag definition.
 </div>
 <br />
-Da das Formular nichts anderes darstellt als einen DOM-Baum von Formular-Elementen, kann ein
-Platzhalter in einem Error-Tag &uuml;ber zwei Stufen adressiert werden. Zu erst wird die Instanz des
-Error-Tags bezogen und von dort der Platzhalter. Als Beispiel nutzen wir folgendes Formular:
+Due to the fact, that an APF form is a DOM subtree containing form taglibs, a place holder within
+an error tag can be addressed with two steps. First, get the instance of the error tag, and second
+get the place holder's instance from the error tag. To have a dedicated example, consider the
+following form definition:
 <code:highlight>
 &lt;html:form name="product-form"&gt;
    &lt;form:error name="error"&gt;
@@ -341,8 +328,8 @@ Error-Tags bezogen und von dort der Platzhalter. Als Beispiel nutzen wir folgend
    ...
 &lt;/html:form&gt;
 </code:highlight>
-Um nun den Platzhalter innerhalb des <strong>&lt;form:error /&gt;</strong>-Tags zu f&uuml;llen, kann
-folgender Controller-Code genutzt werden:
+To fill the place holder within the <strong>&lt;form:error /&gt;</strong> tag use the following
+controller code:
 <php:highlight>
 class form_controller extends baseController {
    public function transformContent(){
@@ -359,21 +346,22 @@ class form_controller extends baseController {
 }
 </php:highlight>
 <div class="hint">
-   Um ein Formular-Element per ID auszuw&auml;hlen, kann die gleiche Vorgehensweise wie bei der Auswahl
-   nach Name verwendet werden.
+   To select a form element by id, the same procedure can be used. Please ensure, to use the
+   content of the id atttribute of the desired form element in combination with the
+   <em>getFormElementByID()</em> method.
 </div>
 <br />
 <br />
-<a name="4-2-Auswahl-per-Tag"></a><h4>4.2. Auswahl per Tag</h4>
-In manchen F&auml;llen kann es n&uuml;tzlich sein, die gew&uuml;nschten Formular-Elemente per Tag-Namen zu
-selektieren. Hierzu steht die Methode <strong>getFormElementsByTagName()</strong> zur Verf&uuml;gung.
-Diese liefert eine Liste mit Referenzen auf Formular-Elemente des &uuml;bergebenen Tag-Namens.
+<a name="4-2-Selection-by-tag"></a><h4>4.2. Selection by tag</h4>
+In some cases, it may be useful to select form elements by it's tag name. For this application case,
+the <strong>getFormElementsByTagName()</strong> method is available. It returns a list of form controls
+filtered by the given tag name.
 <br />
 <br />
-Im Zusammenspiel mit dem
-<a href="./?Seite=063-Generischer-OR-Mapper#4-3-Speichern-von-Objekten" title="GenericORMapper - Speichern von Objekten">GenericORMapper</a>
-kann die Methode genutzt werden um Formular-Felder auszulesen und direkt in ein
-<strong>GenericDomainObject</strong> zu speichern. Hierzu kann folgender Code genutzt werden:
+In combination with the
+<a href="./?Page=063-Generic-OR-mapper#4-3-Saving-objects" title="GenericORMapper - savin objects">GenericORMapper</a>
+the method can be used to read the content of the form elements and directly map them to a
+<strong>GenericDomainObject</strong>. Achieving this, you can use the following code:
 <php:highlight>
 class edit_controller extends baseController {
    public function transformContent(){
@@ -390,42 +378,40 @@ class edit_controller extends baseController {
    }
 }
 </php:highlight>
-Bei der Anwendung ist zu beachten, dass die Methode jeweils nur diejenigen Elemente zur&uuml;ckliefert,
-die ausgehend vom verwendeten Element, als direkte Kind-Knoten vorhanden sind.
+Please note, that the method returns only those elements which exist as direct child nodes in all
+cases.
 <br />
 <br />
 <br />
-<a name="5-Manipulation-von-Formularen"></a><h3>5. Manipulation von Formularen</h3>
-Die Implementierung der Formular-TagLibs des Frameworks bringt einige M&ouml;glichkeiten zur
-Manipulation von Formularelementen oder deren Werte mit. Die folgenden Kapitel zeigen h&auml;ufig
-auftretende Anwendungsbeispiele.
+<a name="5-Manipulation-of-forms"></a><h3>5. Manipulation of forms</h3>
+The implementation of the form taglibs of the framework included several opportunities to manipulate
+form elements or their values. The next chapters thus describe solutions for the most frequent tasks.
 <br />
 <br />
 <br />
-<a name="5-1-Vorbefuellung"></a><h4>5.1. Vorbef&uuml;llung von Formularen</h4>
-Zur Vorbef&uuml;llung von Formularen (z.B. in einem Bearbeiten-Dialog) k&ouml;nnen Methoden
+<a name="5-1-Presetting"></a><h4>5.1. Form presetting</h4>
+To preset form controls (e.g. within an edit dialog) the
 <ul>
    <li><strong>getFormElementByName()</strong>,</li>
    <li><strong>getFormElementByTagName()</strong>,</li>
    <li><strong>getFormElementByID()</strong> oder</li>
    <li><strong>getFormElementByObjectID()</strong></li>
 </ul>
-eingesetzt werden um eine Referenz auf ein Formular-Element zu beziehen. Anschlie&szlig;end stehen
-die Standard-Methoden
+methods can be used to gather an instance of the desired form control. After that, you can take one
+of the standard methods
 <ul>
    <li><strong>get()</strong> und</li>
    <li><strong>getAttribute()</strong></li>
 </ul>
-bzw.
+or
 <ul>
    <li><strong>set()</strong> und </li>
    <li><strong>setAttribute()</strong></li>
 </ul>
-zur Verf&uuml;gung.
+respectively to retrieve or fill the content.
 <br />
 <br />
-Die folgenden Codebox definiert ein Beispiel-Formular, das im anschlie&szlig;end abgedruckten
-PHP-Code bef&uuml;llt wird:
+The subsequent code box defines a form, that is filled using the php code below:
 <br />
 <br />
 <u>Template:</u>
@@ -457,11 +443,10 @@ $lastName = &$form->getFormElementByName('LastName');
 $lastName->setAttribute('value','...');
 </php:highlight>
 <br />
-<a name="5-2-Befuellen-von-Select-Feldern"></a><h4>5.2. Bef&uuml;llen von Select-Feldern</h4>
-Die Behandlung Select- und Multiselect-Feldern unterscheidet sich ein wenig von einfachen
-Formular-Elementen. Das Framework stellt jedoch auch hier Methoden zur Verf&uuml;gung, mit denen das
-Bef&uuml;llen von Feldern vereinfacht wird. Im nachfolgend aufgef&uuml;hrten Code wird ein Formular
-vorausgef&uuml;llt, das zus&auml;tzlich zu den Standard-Text-Felder auch Auswahlfelder beinhaltet:
+<a name="5-2-Prefilling-of-form-controls"></a><h4>5.2. Prefilling of form controls</h4>
+Treatment of select and multi select fields is a bit different to normal form controls. But, the
+framework provides methods to ease prefilling of select fields. The subsequent code is used to
+prefill a form, that contains select fields in addition to normal text fields:
 <code:highlight>
 &lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
 &lt;html:form name="UserCreate" method="post"&gt;
@@ -484,7 +469,7 @@ vorausgef&uuml;llt, das zus&auml;tzlich zu den Standard-Text-Felder auch Auswahl
    &lt;form:hidden name="userid" /&gt;
 &lt;/html:form&gt;
 </code:highlight>
-Der folgende PHP-Code bef&uuml;llt das Formular:
+The below controller code prefills the form:
 <php:highlight>
 $form = &$this->__getForm('UserCreate');
 $salutations = array(...);
@@ -499,15 +484,12 @@ for($i = 0; $i < count($groups); $i++){
 }
 </php:highlight>
 <div class="hint">
-   Sollen beim Bef&uuml;llen eines Multiselect-Feldes bestimmte Optionen bereits vorausgew&auml;hlt
-   sein, so kann die Methode <strong>setOption2Selected()</strong> verwendet werden.
+   In order to mark options as selected, please use the <strong>setOption2Selected()</strong> method.
 </div>
 <br />
-Der folgende Code zeigt, wie ein Multiselect-Feld zun&auml;chst mit Berechtigungen gef&uuml;llt und
-anschlie&szlig;end gem&auml;&szlig; den Applikationsinformationen vorselektiert wird. Das Beispiel
-ist aus dem im Release mitgelieferten
-<a href="./?Seite=095-Module-Usermanagement" title="Usermanagement-Modul">Usermanagement-Modul</a>
-entnommen.
+The follwing code box gives presents an example taken from the
+<a href="./?Page=095-Module-usermanagement" title="Usermanagement module">usermanagement module</a>.
+The controller code first fills the select field and then preselects the desired option.
 <php:highlight>
 $form = &$this->__getForm('PermissionSetEdit');
 
@@ -525,11 +507,10 @@ for($i = 0; $i < count($selectedPermissions); $i++){
 }
 </php:highlight>
 <br />
-<a name="5-3-Auslesen-von-Formular-Elementen"></a><h4>5.3. Auslesen von Formular-Elementen</h4>
-Das Auslesen von Formular-Elementen gestaltet sich &auml;hnlich wie das Bef&uuml;llen. Eine
-Besonderheit stellen auch hier die Einfach- und Mehrfachselektionsfelder dar. Das folgende Code-Beispiel
-zeigt, wie die Werte des unter 3.1 dargestellten Formulars im DocumentController ausgelesen werden
-k&ouml;nnen:
+<a name="5-3-Readout-of-form-controls"></a><h4>5.3. Readout of form controls</h4>
+Readout of form controls is similar to prefilling. Please note, that simple and multi select fields
+are handled a little bit different. The following code example shows how the values can be read out
+from the form described in chapter 3.1:
 <php:highlight>
 $form = &$this->__getForm('UserEdit');
 
@@ -542,9 +523,9 @@ echo $firstName->getAttribute('value');
 $lastName = &$form->getFormElementByName('LastName');
 echo $lastName->getAttribute('value');
 </php:highlight>
-Um die selektierten Optionen eines Einfach- oder Mehrfachselektionsfeldes auszulesen, stehen die
-Methoden <strong>getSelectedOption()</strong> und <strong>getSelectedOptions()</strong> zur
-Verf&uuml;gung. Die folgende Codebox zeigt den Anwendungsfall:
+In order to get the selected options of simple and multi select fields,
+<strong>getSelectedOption()</strong> and <strong>getSelectedOptions()</strong> can be used. The
+subsequent code box describes how:
 <php:highlight>
 $form = &$this->__getForm('UserCreate');
 
@@ -569,56 +550,52 @@ for($i = 0; $i < count($selectedGroups); $i++){
 }
 </php:highlight>
 <br />
-<a name="6-Dynamische-Formulare"></a><h3>6. Dynamische Formulare</h3>
-In einigen Anwendungsf&auml;llen ist es notwenig, Formulare dynamisch nach Anforderung zu erstellen.
-Hierzu besitzt die Implementierung der Formular-TagLib (<em>html_taglib_form</em>) die Methoden
+<a name="6-Dynamic-forms"></a><h3>6. Dynamic forms</h3>
+In some cases it is necessary to generate forms dynamically. For this reason, the form taglib
+(<em>html_taglib_form</em>) features the methods
 <ul>
   <li>addFormElement()</li>
   <li>addFormContent()</li>
 </ul>
-und seit dem Release 1.7
+and as of release 1.7
 <ul>
   <li>addFormContentBeforeMarker()</li>
   <li>addFormContentAfterMarker()</li>
   <li>addFormElementBeforeMarker()</li>
   <li>addFormElementAfterMarker()</li>
 </ul>
-an. Die ersten beiden Funktionen lassen sich dazu nutzen, Inhalte oder konkrete Formular-Elemente
-an das Ende des Formulars anzuh&auml;ngen. Die zu letzt genannten Methoden sind dazu gedacht, Inhalte
-oder Formular-Elemente an konkreten Stellen zu platzieren. Zur Positionierung steht das
-<strong>&lt;form:marker /&gt;</strong>-Tag zur Verf&uuml;gung. Das Tag selbst generiert keine Ausgabe,
-sondern dient lediglich als Positionierungshilfe.
+The first two functions can be used to add content (i.e. plain text or html) or form elements at the
+end of the form. The latter ones are intended to add content or form at certain positions. For this
+reason, the <strong>&lt;form:marker /&gt;</strong> tag was introduced. The tag itself does not generate
+any output, but can be used for positioning purposes along with the "<em>addForm*[Before|After]Marker()</em>"
+methods.
 <br />
 <br />
-Die folgenden Kapitel sollen zeigen, wie ein dynamisches Formular zur Eingabe von Form-Koordinaten
-(Dreieck, Quadrat, ...) realisiert werden kann. Je nach Auswahl des Typs sollen die jeweils notwenigen
-Felder angezeigt werden. Bei Auswahl des Typs "square" werden vier Felder angezeigt ...
+The following chapters describe, how a dynamic form can be generated displaying form coordinate fields
+(triangle, square, ...). Depending on the type, the corresponding fields are displayed. If the type
+is set to "square", four fields are displayed ...
 <br />
 <br />
-<img src="http://media.adventure-php-framework.org/content/dynamic_forms_02.png" alt="APF - Dynamische Formular-Generierung; Auswahl des Typs square" />
+<img src="http://media.adventure-php-framework.org/content/dynamic_forms_02.png" alt="APF - dynamische Form generation; selection of the 'square' type" />
 <br />
 <br />
-... und bei Auswahl von "triangle" drei:
+... in case of "triangle" three fields are presented:
 <br />
 <br />
-<img src="http://media.adventure-php-framework.org/content/dynamic_forms_01.png" alt="APF - Dynamische Formular-Generierung; Auswahl des Typs triangle" />
+<img src="http://media.adventure-php-framework.org/content/dynamic_forms_01.png" alt="APF - dynamische Form generation; selection of the 'triangle' type" />
 <br />
 <br />
 <br />
-<a name="6-1-Formular-Definition"></a><h4>6.1. Formular-Definition</h4>
-Bei der Definition des Formulars sollte bereits bedacht werden, welche Art der Formular-Generierung
-angestrebt wird. Kommen die Methoden <em>addFormElement()</em> und/oder <em>addFormContent()</em>
-zum Einsatz, ist keinen Marker erforderlich. In diesem Beispiel wird jedoch ein Marker eingesetzt, da
-das Formular bereits Inhalte besitzt, die nach den dynamisch erzeugten Elementen angezeigt werden
-sollen.
+<a name="6-1-Form-definition"></a><h4>6.1. Form definition</h4>
+As already mentioned, the dynamic definition can be done in two flavours. While using
+<em>addFormElement()</em> and/or <em>addFormContent()</em>, no marker is needed. Instead, the
+following example uses marker, because the form already contains structural elements (e.g. table).
 <br />
 <br />
-Die folgende Code-Box zeigt das notwenige Formular mit einem Auswahlfeld. Bei der Implementierung
-wurde auf CSS-Formatierung verzichtet um die wesentlichen Elemente besser hervorheben zu k&ouml;nnen.
-Das Formular besteht dabei aus einem statisch definierten Auswahlfeld, das den Typ der geometrischen
-Form vorgibt und aus einem Marker-Tag, der als Positionierungshilfe f&uuml;r die dynamisch erzeugten
-Felder dient. Weiterhin wird ein DocumentController definiert, der die gew&uuml;nschten Felder
-dynamisch an der Stelle des Markers hinzuf&uuml;gt:
+The following code box shows the form definition needed to display the form denoted above. To keep
+things simple, no CSS was added. Taking a closer look at the definition, you can see, that the form
+consists of a static select field, that defines the types available and a marker tag for positioning.
+Further, a document controller is specified, to add the desired form elements in front of the marker:
 <code:highlight>
 &lt;@controller namespace="..." file="..." class="select_controller" @&gt;
 &lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
@@ -646,11 +623,11 @@ dynamisch an der Stelle des Markers hinzuf&uuml;gt:
 </code:highlight>
 <br />
 <a name="6-2-Controller"></a><h4>6.2. Controller</h4>
-Der DocumentController &uuml;bernimmt im beschriebenen Beispiel die Generierung der abh&auml;ngigen
-Formularfelder, die je nach Auswahl angezeigt werden sollen. Hierzu wird im Controller zun&auml;chst
-definiert, welche Formular-Felder f&uuml;r welchen Typ angezeigt werden. Anschlie&szlig;end wird
-das Typ-Feld ausgewertet und das Formular mit Inhalten und Text-Feldern gem&auml;&szlig; Typ
-erg&auml;nzt. Die folgende Code-Box zeigt die Implementierung des DocumentControllers:
+The document controller is responsible for generating the form field, that depends on the type of
+the geometrical shape. For this reason, the constructor contains a definition of the form fields
+that should be displayed for a concrete type. Afterwards, the typ is read from the select field and
+the form is enhanced with additional content and fields. The following code box presents the
+implementation of the document controller needed for this functionality:
 <php:highlight>
 class select_controller extends baseController {
 
@@ -717,24 +694,20 @@ class select_controller extends baseController {
 }
 </php:highlight>
 <br />
-<a name="6-3-Dynamische-Filter-und-Validatoren"></a><h4>6.3. Dynamische Filter und Validatoren</h4>
-Mit dem <strong>Release 1.10</strong> wurde das Konzept der Filter und Validatoren &uuml;berarbeitet.
-Dies wirkt sich auch auf die Definition von dynamischen Formular-Elementen mit Filtern und
-Validatoren aus.
+<a name="6-3-Dynamic-filters-and-validators"></a><h4>6.3. Dynamic filters and validators</h4>
+As of release <strong>Release 1.10</strong> the filter and validation comcept was completely
+redesigned. This does also effect the dynamic form filters and validators.
 <br />
 <br />
-Wie im Kapitel
-<a href="./?Seite=113-Formulare#4-2-Aufbau-von-Validatoren" title="Aufbau von Validatoren">Aufbau von Validatoren</a>
-und
-<a href="./?Seite=113-Formulare#5-2-Aufbau-von-Filtern" title="Aufbau von Filtern">Aufbau von Filtern</a>
-besprochen wurde, werden Validatoren und Filter als <strong>Observer</strong> an Formular-Elemente
-geheftet. Bei dynamischen Formularen kann durch &quot;Simulation&quot; der
-<strong>&lt;form:addvalidator /&gt;</strong>- und <strong>&lt;form:addfilter /&gt;</strong>-Tags
-ebenso verfahren werden. F&uuml;r die konkrete Anwendung bedeutet das, dass nach der Definition eines
-dynamischen Formular-Feldes der gew&uuml;nschte Validator oder Filter &uuml;ber die Methoden
-<strong>addValidator()</strong> bzw. <strong>addFilter()</strong> angeheftet werden kann. Dies
-gestaltet sich in Code ausgedr&uuml;ckt im Kontext des in den letzten Kapiteln besprochenen
-Beispiels wie folgt:
+As described in chapter
+<a href="./?Page=113-Forms#4-2-Construction-of-validators" title="Construction of validators">construction of validators</a>
+and
+<a href="./?Page=113-Forms#5-2-Construction-of-filters" title="Construction of filters">construction of filters</a>
+validators and filters are attached to a form control as an <strong>Observer</strong>. Using dynamic
+forms, this can be simulated by imitateing the <strong>&lt;form:addvalidator /&gt;</strong> and
+<strong>&lt;form:addfilter /&gt;</strong> tags. This means, that you can add a filter or validator
+using the <strong>addValidator()</strong> and <strong>addFilter()</strong> method respectively. The
+follwing code sample descibes this approach in detail:
 <php:highlight>
 // gather button instance of the form
 $button = &$form->getFormElementByName('submit');
@@ -770,68 +743,65 @@ for($i = 0; $i < count($this->__FormElements[$CurrentType]); $i++){
 }
 </php:highlight>
 <div class="hint">
-   Bei der Definition von dynamischen Validatoren und Filtern muss die Reihenfolge beachtet werden.
-   Damit keine unerw&uuml;nschten Validierungs-Ergebnisse auftreten, m&uuml;ssen Filter stets
-   <u>vor</u> Validatoren ausgef&uuml;hrt werden.
+   Please respect the order of filters and validators defining dynamic forms. If you do not, 
+   undesirable validation effects may occure, because filters are executed after validators.
 </div>
 <br />
 <br />
-<a name="6-4-Weitere-Hinweise"></a><h4>6.4. Weitere Hinweise</h4>
-Ein APF-Formular-Element ben&ouml;tigt bereits bei der Erstellung des Objekts die Information &uuml;ber
-den Namen des Feldes. Ist dieser nicht bekannt, kann es nicht vorausgef&uuml;llt oder validiert werden.
-Um die Presetting und Validierung von Formular-Elementen nutzen zu k&ouml;nnen besitzen die Methoden
-<em>addFormElement()</em>, <em>addFormElementBeforeMarker()</em> und <em>addFormElementBeforeMarker()</em>
-einen optionalen, dritten Parameter. Dieser erwartet eine assoziative Liste von Tag-Attributen, die
-dem Formular-Tag bei der Erstellung mitgegeben werden. Es daher sinnvoll, der Methode mindestens
-den Namen des Feldes in der Form
+<a name="6-4-Notes"></a><h4>6.4. Notes</h4>
+A APF form element does need information about the name of itself already at creation time. If the
+element doesn't know it's own name, presetting and validation cannot be enabled. In order to use
+presetting and validation in combination with dynamic form elements, the <em>addFormElement()</em>,
+<em>addFormElementBeforeMarker()</em> and <em>addFormElementBeforeMarker()</em> functions possess a
+third parameter. This parameter expects an associative list of tag attributes, that are applied to
+the form object on creation time. Creating dynamic form elements, it is thus recommended to at least
+apply the name of the tag to the third argument:
 <code:highlight>
 array(
-      'name' => 'current_name'
+      'name' => 'currentname'
      )
 </code:highlight>
-als drittes Argument mitzugeben. Dies kann unter Umst&auml;nden auch f&uuml;r die sp&auml;tere
-Adressierung der Objekte &uuml;ber die Methoden <em>getFormElementByName()</em> und
-<em>getFormElementByID()</em> von Interesse sein.
+Please note, that the tag attributes are also interesting for addressing the form objects after
+appending them to the form via the <em>getFormElementByName()</em> or <em>getFormElementByID()</em>
+methods.
 <br />
 <br />
 <br />
-<a name="7-Erweiterung-von-Formular-Elementen"></a><h3>7. Erweiterung von Formular-Elementen</h3>
-Das APF-Konzept des Page-Controllers erlaubt es, eigene Taglibs zu schreiben um wiederverwendbare
-Elemente zu schaffen. Dies setzt sich auch bei den Formularen fort. Eigene Formular-Elemente
-k&ouml;nnen bequem mit dem <strong>&lt;form:addtaglib /&gt;</strong>-Tag, dessen Funktion identisch
-zum <strong>&lt;core:addtaglib /&gt;</strong> ist, in ein bestehendes Formular eingebunden werden.
+<a name="7-Enhancement-of-form-controls"></a><h3>7. Enhancement of form controls</h3>
+The concept of the APF's page controller allows you to write own taglibs to create reusable elements.
+This also continues with forms. Custom form controls can be added using the <strong>&lt;form:addtaglib /&gt;</strong>
+tag. This tag acts similar to the <strong>&lt;core:addtaglib /&gt;</strong>, but is restricted to
+forms.
 <br />
 <br />
-Die Besonderheit der Formular-Taglibs bzw. Formular-Elemente ist, dass diese die abstrakte Klasse
-<strong>form_control</strong> implementieren. Sie gen&uuml;gen damit einem erweiterten Tag-Interface,
-das vom <strong>&lt;html:form /&gt;</strong>-Tag behandelt werden kann. Die Erweiterung des
-Funktions-Umfangs besteht insbesondere in der Validierung und Filterung.
+The difference between a normal taglib and a form taglib is the fact, that each form taglib implements
+the abstract <strong>form_control</strong> class. Hence, the form control inherits an advanced tag
+definition and some more functionality to enable the <strong>&lt;html:form /&gt;</strong> tag to
+handle the control. The extra functionality mentioned in the last sentence merely consists of
+validation and filter handling code.
 <br />
 <br />
-Die folgenden drei Kapitel beschreiben die Erstellung von eigenen Formular-Elementen, Validatoren
-und Filter und geben Beispiele f&uuml;r die Implementierung.
+The next three chapters describe the creation of custom form controls, validators and filters.
+Besiders, implementation examples are presented.
 <br />
 <br />
 <br />
-<a name="7-1-Formular-Felder"></a><h4>7.1. Formular-Felder</h4>
-Wie bereits angedeutet, ist eine Formular-Element im APF durch die abstrakten Basis-Klasse
-<strong>form_control</strong> definiert. Um ein neues Formular-Element zu implementieren, muss diese
-nun um die gew&uuml;nschten Funktionen erweitert werden.
+<a name="7-1-Form-controls"></a><h4>7.1. Form controls</h4>
+As mentioned above, an APF form control is defined by the abstract class <strong>form_control</strong>.
+In order to implement a custom form element, the class' functionality must be enhanced.
 <br />
 <br />
-Als Beispiel soll im Folgenden ein Formular-Element besprochen werden, das zum Schutz eines
-Formulars ein verstecktes Text-Feld erzeugt und das im darauffolgenden Kapitel mit einem speziellen
-Validator belegt werden kann. Ist das Feld gef&uuml;llt, ist davon auszugehen, dass es sich um eine
-automatisierte Anfrage handelt. Ist das Feld nicht gef&uuml;llt, wird das Formular als valide
-betrachtet, sofern alle anderen Felder ebenfalls valide sind. In diversen Blog-Eintr&auml;gen werden
-diese Art von Felder auch als
-<a href="http://nedbatchelder.com/text/stopbots.html" title="Stopping spambots with hashes and honeypots" target="_blank">honeypot fields</a>
-bezeichnet.
+As an example, a form element should be discussed that generates a hidden input field in order to
+protect a form. In the next chapter, we are going to implement the appropriate validator. In case,
+the control is filled, we consider the field invalid and assume, that it was filled by automated
+scripts. Otherwise, the field is defined to be valid. In various blog entries this kind of fields
+are also as called
+<a href="http://nedbatchelder.com/text/stopbots.html" title="Stopping spambots with hashes and honeypots" target="_blank">honeypot fields</a>.
 <br />
 <br />
-Beginnen wir zun&auml;chst mit dem Rumpf des Elements. Wie zuvor beschrieben soll ein Text-Feld
-ausgeben werden, das via CSS versteckt wird. Um diese Funktion zu gew&auml;hrleisten, muss das neue
-Formular-Element bei der Transformation die entsprechende HTML-Ausgabe zur&uuml;ckliefern:
+Let's start with the basics of the element. As described in the last sentence, the tag should
+generate a hidden text input field. To achieve this, the taglib must return the desired source
+code:
 <php:highlight>
 class form_taglib_honeypot extends form_control {
    public function transform(){
@@ -844,14 +814,13 @@ class form_taglib_honeypot extends form_control {
    }
 }
 </php:highlight>
-Da die R&uuml;ckgabe des Validit&auml;ts-Status, die M&ouml;glichkeit Validatoren und Filter
-anzuheften und Presetting der eingegebenen Werte beim Absenden bereits in der Klasse
-<strong>form_control</strong> enthalten ist, stellt die oben gezeigte Klasse bereits den
-vollst&auml;ndig Funktionsumfang dar.
+Due to the fact, that validation and filter attachment as well as the method returning the validity
+status of the tag is already included in the <strong>form_control</strong> class, the code printed
+above is all that you need by now.
 <br />
 <br />
-Um das neue Element in einem Formular verwenden zu k&ouml;nnen, muss dieses mit Hilfe des
-<strong>&lt;form:addtaglib /&gt;</strong>-Tags im Formular bekannt gemacht werden:
+In order to use the newly created form control, the <strong>&lt;form:addtaglib /&gt;</strong> tag
+can be used to announce the tag to the form:
 <code:highlight>
 &lt;core:addtaglib namespace="tools::html::form" prefix="html" class="form" /&gt;
 &lt;html:form name="CheckedForm"&gt;
@@ -861,31 +830,28 @@ Um das neue Element in einem Formular verwenden zu k&ouml;nnen, muss dieses mit 
    ...
 &lt;/html:form&gt;
 </code:highlight>
-Die eigentliche Funktionalit&auml;t des <strong>honepot field</strong> steckt in der Validierung.
-Diese wird im n&auml;chsten Kapitel besprochen.
+The real functionality is now included in the <strong>honepot field</strong> validator. See the
+next chapter for details.
 <br />
 <br />
 <br />
-<a name="7-2-Validatoren"></a><h4>7.2. Validatoren</h4>
-Validatoren werden ab dem Release <strong>1.11</strong> von Formular-Elementen getrennt
-definiert und diesen als Observer mitgegeben. Um diesen Mechanismus zu unterst&uuml;tzen, muss das
-Formular-Element jedoch darauf vorbereitet sein. Im Fall des im vorangegangenen Kapitels
-beschriebenen Honeypot-Feldes ist die Validierungs-Funktionalit&auml;t bereits durch die
-Basis-Klasse <strong>form_control</strong> definiert. Bei der Validierung wird dem Validator der
-Inhalt des Attributs <strong>value</strong> &uuml;bergeben und dieser kann entsprechend darauf
-reagieren.
+<a name="7-2-Validators"></a><h4>7.2. Validators</h4>
+Validators are defined separately and are attached as observer since release <strong>1.11</strong>.
+In order to support this mechanism, a form control must be aware of validators. In case of the honey
+pot field, the functionality is already included in the tag, because it extends the base class
+<strong>form_control</strong>. Thus, the validator is applied the content of the <strong>value</strong>
+attribute and is thus able to act as descibed in the introduction.
 <br />
 <br />
-Der zu erstellende <strong>HoneypotValidator</strong> ist im Wesentlichen ein Text-Feld-Validator,
-daher kann die im APF-Release enthaltene Klasse <strong>TextFieldValidator</strong> als Basis
-f&uuml;r die Implementierung verwendet werden. Diese leitet von
-<strong>AbstractFormValidator</strong> ab, der Basis-Klasse f&uuml;r alle Formular-Validatoren.
+For convenience, we call the validator <strong>HoneypotValidator</strong>. In common sense, it is a
+text field validator and can thus use the <strong>TextFieldValidator</strong> class as a basis. This
+class derives from <strong>AbstractFormValidator</strong>, what is the bas class for all validators.
 <br />
 <br />
-Jeder Validator implementiert die Methode <strong>validate()</strong>, die den zu validierenden
-Inhalt entgegen nimmt. In unserem Fall erh&auml;lt die Funktion den Inhalt des Honeypot-Feldes.
-Dieses muss im Positiv-Fall leer sein, sofern dort Zeichen enthalten ist, muss das Feld als invalid
-gekennzeichnet werden. Hierzu kann folgender Code verwendet werden:
+Each validator must implement the <strong>validate()</strong> method, that is applied the content to
+validate. In case of the <em>HoneypotValidator</em> the content of the text field must be empty to
+consider the control valid. If not, the field is marked as invalid. The following code can be used
+to implement the descibed functionality:
 <php:highlight>
 class HoneypotValidator extends TextFieldValidator {
    public function validate($input){
@@ -897,12 +863,11 @@ class HoneypotValidator extends TextFieldValidator {
    ...
 }
 </php:highlight>
-Da die Klasse <strong>TextFieldValidator</strong> bereits die Benachrichtigung eines &quot;echten&quot;
-Text-Feldes &uuml;bernimmt wird das Feld im Fehlerfall mit einem roten Rahmen versehen. Dies ist im
-aktuellen Anwendungsfall nicht erforderlich und muss daher unterdr&uuml;ckt werden. Hierzu
-&uuml;berschreiben wir die Methode <strong>notify()</strong> der Klasse
-<strong>TextFieldValidator</strong>, die aufgerufen wird, sofern ein Feld nicht erfolgreich
-validiert werden konnte:
+Due to the fact, that <strong>TextFieldValidator</strong> already contains the functionality that
+is necessary to notify a &quot;real&quot; text field and mark it with a red border in case of errors.
+As of this application case, we do not need this functionality and though we have to suppress it.
+For this reason, we are going to overwrite the <strong>notify()</strong> method (defined within
+<strong>TextFieldValidator</strong>), that is called when a field failed validation:
 <php:highlight>
 class HoneypotValidator extends TextFieldValidator {
    public function validate($input){
@@ -918,16 +883,16 @@ class HoneypotValidator extends TextFieldValidator {
    }
 }
 </php:highlight>
-Die Methode enth&auml;lt im Gegensatz zur Implemenietung in der Klasse
+In contrast to the implementation of the <strong>TextFieldValidator</strong> class, the line
 <strong>TextFieldValidator</strong> die Zeile
 <php:highlight>
 $this->__Control->addAttribute('style','; border: 2px solid red;');
 </php:highlight>
-nicht. Damit haben wir das Markieren des fehlerhaften Formular-Feldes durch einen roten Rahmen
-ausgeschaltet.
+is not included. This disables the marking of the form element using a red CSS border.
 <br />
 <br />
-Die Anwendung des Validators gestaltet sich dann im Zusammenhang mit dem Honeypot-Textfeld wie folgt:
+The following code box describes the application of the validator together with the above honeypot
+field:
 <code:highlight>
 &lt;core:addtaglib namespace="tools::html::form" prefix="html" class="form" /&gt;
 &lt;html:form name="CheckedForm"&gt;
@@ -942,30 +907,28 @@ Die Anwendung des Validators gestaltet sich dann im Zusammenhang mit dem Honeypo
    &lt;form:button name="send" value="Send" /&gt;
 &lt;/html:form&gt;
 </code:highlight>
-Der Validator kann durch die eigentst&auml;ndige Definition auch auf andere Text-Felder angewendet
-werden, die Text-Validierung unterst&uuml;tzen. Hierzu z&auml;hlen alle im Release mitgelieferten
-Text- und Text-Area-Taglibs.
+Thanks to the independent definition and implementation of the validator, it can also be applied to
+other text fields. These are all text fields and text areas shipped with the APF release.
 <br />
 <br />
 <br />
 <a name="7-3-Filter"></a><h4>7.3. Filter</h4>
-F&uuml;r das Honeypot-Feld wird kein Validator ben&ouml;tigt. Aus diesem Grund soll in diesem
-Kapitel ein Filter implementiert werden, mit dem deutsche Umlaute durch die Laut-Entsprechungen
-(z.B. &auml; -> ae) ersetzt werden.
+Applying the honeypot field no filter is needed. Hence, this chapter describes a filter, that
+substitutes german umlauts with their phoneme equivalents (e.g. &auml; -> ae).
 <br />
 <br />
-Der <strong>GermanUmlautsFilter</strong> implementiert dabei die Klasse
-<strong>AbstractFormFilter</strong> - die wie der <strong>AbstractFormValidator</strong> bei den
-Validatoren - das Interface eines Formular-Filters beschreibt.
+The <strong>GermanUmlautsFilter</strong> thus implements the <strong>AbstractFormFilter</strong> class
+that is the base class for all form filters just as the <strong>AbstractFormValidator</strong> is
+for validators. The abstract form filter class defines the interface for all concrete form filter
+implementations.
 <br />
 <br />
-Jeder Filter implementiert dabei gem&auml;&szlig; der
-<a href="./?Seite=087-Filter#4-Aufbau-und-Funktion" title="Aufbau und Funktion von Filtern">Filter-API</a>
-die Methode <strong>filter()</strong>. Diese nimmt den zu filternden Inhalt entgegen, f&uuml;hrt
-die gew&uuml;nschte Funktion aus und gibt den gefilterten Inhalt wieder zur&uuml;ck.
+Further, each form filter implements <strong>filter()</strong> method described in the APF
+<a href="./?Page=087-Filter#4-Design-and-function" title="Design and function of filters">filter api</a>.
+The function takes the content to filter as an argument and returns the filtered content.
 <br />
 <br />
-Das Grundger&uuml;st des Filters kann damit durch folgenden Code beschrieben werden:
+The skeleton of the filter is as follows:
 <php:highlight>
 class GermanUmlautsFilter extends AbstractFormFilter {
    public function filter($input){
@@ -973,8 +936,8 @@ class GermanUmlautsFilter extends AbstractFormFilter {
    }
 }
 </php:highlight>
-Die Funktionalit&auml;t des Filters besteht aus einem einfachen Aufruf der Funktion
-<strong>string_replace()</strong>:
+The functionality of the filter is a simple string replace call using the PHP standard function
+<strong>str_replace()</strong>:
 <php:highlight>
 class GermanUmlautsFilter extends AbstractFormFilter {
    public function filter($input){
@@ -986,8 +949,7 @@ class GermanUmlautsFilter extends AbstractFormFilter {
    }
 }
 </php:highlight>
-Die Anwendung des Filters gestaltet sich dann im Zusammenhang mit einem Text-Feld oder einer
-Text-Area wie folgt:
+The application of the filter using a text field or a text area can be taken from the below code box:
 <code:highlight>
 &lt;core:addtaglib namespace="tools::html::form" prefix="html" class="form" /&gt;
 &lt;html:form name="UmlautsForm"&gt;
