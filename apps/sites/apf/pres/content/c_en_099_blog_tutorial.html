@@ -1,0 +1,124 @@
+<doku:title parent="072" tags="tutorials,blog,ormapper,implementation" title="Implementing a blog with the APF" urlname="Implementing-a-blog-with-the-APF">
+  The current page contains a list of available tutorials. Further, tutorials released in future are
+  listed.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+One of the most popular implementation examples on the web is a Blog. Usually, the blog described in
+those tutorials is kept very easy, to show how easy it is to implement a Blog with the product presented
+there. In fact, a Blog is nothing easy, but a complex tool, that can handle several use cases and many data.
+<br />
+<br />
+Nevertheless, it is hard to find good tutorial topics, so the APF page now features a Blog tutorial,
+too. :)
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Preparation"><a href="#Chapter-2-Preparation">2. Preparation</a></h3>
+Let us at first have a look at the requirements of a blog. Usually a Blog has four different data
+objects, that must be handled: posts, categories, tags and comments. As an extended feature, a
+navigation can be added for structuring the Blog page. For security reasons, the blog should have a
+user management.
+<br />
+<br />
+As you can see by the last few lines, Blogs are nothing that can be implemented within a 5 minute
+tutorial. Due to this fact, the tutorial is splitted into several parts: a quickstart, that describes
+the basics of the Blog and further chapters, that teach you how to implement navigation and user
+management.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Requirements"><a href="#Chapter-3-Requirements">3. Requirements</a></h3>
+<h4 id="Chapter-3-1-Use-cases"><a href="#Chapter-3-1-Use-cases">3.1. Use cases</a></h4>
+Too keep thing simple - as we know, in reality they are not ;) - this part of the tutorial is
+restricted to the following use cases:
+<br />
+<br />
+<img src="http://media.adventure-php-framework.org/content/Blog_Use_Case_Model.png" alt="Blog use case model" />
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-2-Data-model"><a href="#Chapter-3-2-Data-model">3.2. Data model</a></h4>
+To represent these use cases, the data model should look like this:
+<br />
+<br />
+<img src="http://media.adventure-php-framework.org/content/Simple_Blog_Data_Model.png" alt="Simple Blog data model" />
+<br />
+<br />
+The <em>Post</em> object is the central object of the data model. It composes <em>Comment</em>s and
+has associations to the <em>Category</em> and <em>Tag</em> objects. The relations have been choosen
+like this, because a <em>Comment</em> object cannot exist without a <em>Post</em>. Instead, a
+<em>Tag</em> or <em>Category</em> can. The object and relation names are used later on, so keep them
+in mind.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Implementation"><a href="#Chapter-4-Implementation">4. Implementation</a></h3>
+As you may have read in other APF tutorials sometimes it is good to start with te data layer
+implementation and in other cases it is comfortable to first create the presentation layer. In case
+of the blog, let's start with the data layer.
+<br />
+<br />
+Please note, that the adventure php framework does <strong>not</strong> feature a build tool, that
+generates the skeletons for you. We consciously abstain from that, because we think that this is too
+<strong>intransparent</strong>!
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-1-Data-layer"><a href="#Chapter-4-1-Data-layer">4.1. Data layer</a></h4>
+Due to the demand, that the data layer implementation should be kept simple, the
+<a href="./?Page=063-Generic-OR-mapper" title="Generic OR mapper">Generic OR mapper</a> is used. This
+module provides a reusable data laser component, that can handle all data models defined by some
+configuration files.
+<br />
+<br />
+As described in the
+<a href="./?Page=063-Generic-OR-mapper#Chapter-2-3-1-Object-definition" title="Object definition">object definition</a>
+chapter, each object must be defined within one configuration section. The following code box shows
+the configuration of the data model depicted above:
+<gen:highlight type="apf-xml">
+[Post]
+Title = "VARCHAR(100)"
+Teaser = "VARCHAR(200)"
+Content = "TEXT"
+
+[Category]
+Name = "VARCHAR(100)"
+Description = "TEXT"
+
+[Tag]
+Name = "VARCHAR(100)"
+
+[Comment]
+Title = "VARCHAR(100)"
+Content = "TEXT"
+Author = "VARCHAR(100)"
+EMail = "VARCHAR(200)"
+</gen:highlight>
+Further, the relations contained in the UML diagram must be defined in the relation definition file.
+This looks as follows:
+<gen:highlight type="apf-xml">
+[Category2Post]
+Type = "ASSOCIATION"
+SourceObject = "Category"
+TargetObject = "Post"
+
+[Tag2Post]
+Type = "ASSOCIATION"
+SourceObject = "Tag"
+TargetObject = "Post"
+
+[Post2Comment]
+Type = "COMPOSITION"
+SourceObject = "Post"
+TargetObject = "Comment"
+</gen:highlight>
+In order to use the generic or mapper, the object and relation configuration must be stored in two
+configuration files.
+
+
+
+
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_099" />

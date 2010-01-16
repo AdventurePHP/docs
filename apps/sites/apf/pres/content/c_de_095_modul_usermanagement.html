@@ -1,0 +1,588 @@
+<doku:title parent="119" tags="dokumentation,module,captcha,gaestebuch,pager,kommentar,social bookmarking,usermanagement" title="Usermanagement" urlname="Usermanagement">
+  Generisch einsetzbares Usermanagement.
+</doku:title>
+Das Modul <strong>usermanagement</strong> beinhaltet ein Backend zur Benutzerverwaltung und eine
+generische Business-Komponente - basierend auf dem
+<a href="./?Seite=063-Generischer-OR-Mapper" title="GenericORMapper">GenericORMapper</a> - die zur
+Authentifizierung und zur Verwaltung von Benutzern, Gruppen, Rollen, Berechtigungen und
+Berechtigungsschemata verwendet werden kann. Es dient einerseits dazu, Benutzer-Verwaltung zu
+standardisieren, andererseits, dem Entwickler f&uuml;r eine so zentrale Aufgabe ein fertiges und
+verl&auml;ssliches Tool an die Hand zu geben.
+<br />
+<br />
+Die folgenden Kapitel zeigen den Aufbau des Moduls und geben Beispiele f&uuml;r die Verwendung des
+Business-Komponente und die Einbindung des Backends.
+<br />
+<br />
+<br />
+<h3 id="Chapter-1-Design"><a href="#Chapter-1-Design">1. Design des Moduls</a></h3>
+Das Modul besteht aus einer Business-Komponente, dem <strong>UmgtManager</strong>, und einem Backend.
+Der Manager nutzt den <strong>GenericORMapper</strong> als Datenkomponente. Das Backend basiert
+komplett auf der Business-Schicht des Moduls. Das bedeutet, dass diese in anderen Anwendungen f&uuml;r
+die Authentifizierung und Benutzerverwaltung als vollwertige Komponente eingesetzt werden kann.
+<br />
+<br />
+<br />
+<h4 id="Chapter-1-1-Datenmodell"><a href="#Chapter-1-1-Datenmodell">1.1. Datenmodell</a></h4>
+Das Datenmodell des Benutzer-Managements sieht die Gliederung in
+<ul>
+  <li>Benutzer</li>
+  <li>Gruppen</li>
+  <li>Rollen</li>
+  <li>Berechtigungsschemen</li>
+  <li>Berechtigungen</li>
+</ul>
+vor. Dieses Trennung erm&ouml;glicht es, eine granulare und allgemeing&uuml;ltige Benutzerverwaltung
+bereitzustellen. Das folgende UML-Diagramm zeigt die Bedeutung der Objekte und deren Beziehungen:
+<br />
+<br />
+<img src="http://media.adventure-php-framework.org/content/usermanagement_domain_model.png" alt="Usermanagement UML Diagramm (APF)" style="width: 560px;" />
+<br />
+<br />
+<strong>Hinweis:</strong> Gruppen werden in der Regel zur Vergabe von Berechtigungen auf
+<strong>Objekte</strong> einer Anwendung verwendet, Rollen kommen dann zum Einsatz, wenn Berechtigungen
+auf das ausf&uuml;hren von <strong>Funktionen</strong> vergeben werden sollen. Zur Granularisierung
+und Wiederverwendbarkeit von &quot;Funktionsberechtigungen&quot; wurden <em>Berechtigungsschemen</em>
+eingef&uuml;hrt. Diese k&ouml;nnen wiederum mehrere Berechtigungen kapseln und werden selbst einer
+Rolle zugewiesen.
+<br />
+<br />
+<br />
+<h4 id="Chapter-1-2-UmgtManager"><a href="#Chapter-1-2-UmgtManager">1.2. UmgtManager</a></h4>
+Die Business-Komponente besitzt eine Reihe von Methoden, die dem Entwickler einen abstrahierten
+Zugriff auf das Datenmodell geben. Darunter befinden sich nicht nur Methoden zum Erzeugen, Lesen,
+Manipulieren und L&ouml;schen von einzelnen Objekten, sondern auch zum Erzeugen, Lesen, Manipulieren
+und L&ouml;schen der Beziehungen zwischen den Objekten. Im Besonderen wurden Methoden inkludiert,
+die das Authentifizieren und Verwenden von Benutzern erleichtert um die Implementierung von
+Anwendungen, basierend auf dem Benutzermanagement, m&ouml;glichst effektiv zu gestalten.
+<br />
+<br />
+Die folgende Liste zeigt eine &Uuml;bersicht &uuml;ber die API-Methoden der Komponente. Details
+k&ouml;nnen der API-Dokumentation der Klasse <strong>UmgtManager</strong> entnommen werden:
+<ul style="line-height: 20px;">
+  <li><strong>loadUserByEMailAndPassword()</strong>: L&auml;d einen Benutzer per E-Mail und Passwort.</li>
+  <li><strong>loadUserByUsernameAndPassword()</strong>: L&auml;d einen Benutzer per Benutzername und Passwort.</li>
+  <li><strong>loadUserPermissions()</strong>: L&auml;d die Berechtigungen, die ein Benutzer besitzt.</li>
+  <li><strong>saveUser($user)</strong>: Speichert einen Benutzer in der aktuellen Instanz der Benutzerverwaltung.</li>
+  <li><strong>saveGroup($group)</strong>: Speichert eine Gruppe in der aktuellen Instanz der Benutzerverwaltung.</li>
+  <li><strong>saveRole($role)</strong>: Speichert eine Rolle in der aktuellen Instanz der Benutzerverwaltung.</li>
+  <li><strong>savePermissionSet($permissionSet)</strong>: Speichert ein Berechtigungsschema in der aktuellen Instanz der Benutzerverwaltung.</li>
+  <li><strong>savePermission($permission)</strong>: Speichert eine Berechtigung in der aktuellen Instanz der Benutzerverwaltung.</li>
+  <li><strong>getPagedUserList()</strong>: Gibt eine Liste von Benutzern zur&uuml;ck.</li>
+  <li><strong>getPagedGroupList()</strong>: Gibt eine Liste von Gruppen zur&uuml;ck.</li>
+  <li><strong>getPagedRoleList()</strong>: Gibt eine Liste von Rollen zur&uuml;ck.</li>
+  <li><strong>getPagedPermissionSetList()</strong>: Gibt eine Liste von Berechtigungsschemen zur&uuml;ck.</li>
+  <li><strong>getPagedPermissionList()</strong>: Gibt eine Liste von Berechtigungen zur&uuml;ck.</li>
+  <li><strong>loadUserByID($userID)</strong>: L&auml;d einen Benutzer per ID.</li>
+  <li><strong>loadGroupByID($groupID)</strong>: L&auml;d eine Gruppe per ID.</li>
+  <li><strong>loadRoleByID($roleID)</strong>: L&auml;d eine Rolle per ID.</li>
+  <li><strong>loadPermissionSetByID($permissionSetID)</strong>: L&auml;d ein Berechtigungsschema per ID.</li>
+  <li><strong>loadPermissionByID($permID)</strong>: L&auml;d ein Berechtigung per ID.</li>
+  <li><strong>loadPermissionList()</strong>:  Gibt eine Liste von Berechtigungen zur&uuml;ck.</li>
+  <li><strong>loadRolesNotWithPermissionSet($permissionSet)</strong>: L&auml;d eine Liste von Rollen, die nicht das &uuml;bergebene Berechtigungsschema haben.</li>
+  <li><strong>loadRolesWithPermissionSet($permissionSet)</strong>: L&auml;d eine Liste von Rollen, die das &uuml;bergebene Berechtigungsschema haben.</li>
+  <li><strong>assignPermissionSet2Roles($permissionSet,$roles)</strong>: Weist ein Berechtigungsschema mehreren Rollen zu.</li>
+  <li><strong>detachPermissionSetFromRoles($permissionSet,$roles)</strong>: Entfernt ein Berechtigungsschema von einer Liste von Rollen.</li>
+  <li><strong>deleteUser($user)</strong>: L&ouml;scht einen Benutzer.</li>
+  <li><strong>deleteGroup($group)</strong>: L&ouml;scht eine Gruppe.</li>
+  <li><strong>deleteRole($role)</strong>: L&ouml;scht eine Rolle.</li>
+  <li><strong>deletePermissionSet($permissionSet)</strong>: L&ouml;scht ein Berechtigungsschema.</li>
+  <li><strong>deletePermission($permission)</strong>: L&ouml;scht eine Berechtigung.</li>
+  <li><strong>assignUser2Groups($user,$groups)</strong>: Nimmt einen Benutzer in mehrere Gruppen auf.</li>
+  <li><strong>assignUsers2Group($users,$group)</strong>: Nimmt mehrere Benutzer in eine Gruppe auf.</li>
+  <li><strong>assignRole2Users($role,$users)</strong>: Weist eine Rolle mehreren Benutzern zu.</li>
+  <li><strong>loadGroupsWithUser(&$user)</strong>: L&auml;d alle Gruppen, die einem Benutzer zugewiesen wurden.</li>
+  <li><strong>loadGroupsNotWithUser(&$user)</strong>: L&auml;d alle Gruppen, die einem Benutzer nicht zugewiesen wurden.</li>
+  <li><strong>loadUsersWithGroup(&$group)</strong>: L&auml;d alle Benutzer, die einer Gruppe angeh&ouml;ren.</li>
+  <li><strong>loadUsersNotWithGroup(&$group)</strong>: L&auml;d alle Benutzer, die nicht einer Gruppe angeh&ouml;ren.</li>
+  <li><strong>loadRolesWithUser(&$user)</strong>: L&auml;d alle Rollen, die einem Benutzer zugewiesen wurden.</li>
+  <li><strong>loadRolesNotWithUser(&$user)</strong>: L&auml;d alle Rollen, die einem Benutzer nicht zugewiesen wurden.</li>
+  <li><strong>loadUsersWithRole(&$role)</strong>: L&auml;d alle Benutzer, die einer Rolle angeh&ouml;ren.</li>
+  <li><strong>loadUsersNotWithRole(&$role)</strong>: L&auml;d alle Benutzer, die einer Rolle nicht angeh&ouml;ren.</li>
+  <li><strong>loadPermissionsOfPermissionSet(&$permissionSet)</strong>: L&auml;d alle Berechtigungen eines Schemas.</li>
+  <li><strong>detachUserFromRole($user,$role)</strong>: Entfernt die Zuweisung eines Benutzers zu einer Rolle.</li>
+  <li><strong>detachUsersFromRole($users,$role)</strong>: Entfernt die Zuweisung mehrerer Benutzer zu einer Rolle.</li>
+  <li><strong>detachUserFromGroup($user,$group)</strong>: Entfernt einen Benutzer aus einer Gruppe.</li>
+  <li><strong>detachUserFromGroups($user,$groups)</strong>: Entfernt einen Benutzer aus mehrern Gruppen.</li>
+  <li><strong>detachUsersFromGroup($users,$group)</strong>: Entfernt mehrere Benutzer aus einer Gruppe.</li>
+  <li><strong>loadUserByFirstName($firstName)</strong>: L&auml;d einen Benutzer an Hand des Vornamens.</li>
+  <li><strong>loadUserByLastName($lastName)</strong>: L&auml;d einen Benutzer an Hand des Nachnamens.</li>
+  <li><strong>loadUserByEMail($email)</strong>: L&auml;d einen Benutzer an Hand seiner E-Mail.</li>
+  <li><strong>loadUserByFirstNameAndLastName($firstName,$lastName)</strong>: L&auml;d einen Benutzer an Hand des Vor- und Nachnamens.</li>
+  <li><strong>loadUserByUserName($username)</strong>: L&auml;d einen Benutzer an Hand des Benutzer-Namens.</li>
+</ul>
+<br />
+<h3 id="Chapter-2-Installation"><a href="#Chapter-2-Installation">2. Installation</a></h3>
+Die Installation des Moduls umfasst folgende Schritte:
+<ul>
+  <li>Konfiguration des Moduls bereitstellen</li>
+  <li>Konfiguration des GenericORMappers bereitstellen</li>
+  <li>Installation der Datenbank</li>
+</ul>
+<br />
+<h4 id="Chapter-2-1-Konfiguration-Modul"><a href="#Chapter-2-1-Konfiguration-Modul">2.1. Konfiguration des Moduls</a></h4>
+Die Konfiguration des Moduls umfasst drei Parameter: den Schl&uuml;ssel der Datenbankverbindung,
+die ID des zu verwendenden Applikationscontainers und den Service-Mode, mit dem der OR-Mapper erzeugt
+werden soll:
+<gen:highlight type="apf-xml">
+[InstanceName]
+ConnectionKey = ""
+ApplicationID = ""
+ServiceMode = ""
+</gen:highlight>
+Im <em>adventure-configpack-*</em>-Package ist eine Beispiel-Konfigurationsdatei mit einer Bescheibung
+der Werte enthalten.
+<br />
+<br />
+Da das Datenmodell ein Objekt <strong>Application</strong> besitzt, kann das Usermanagement f&uuml;r
+mehrere Anwendungen gleichzeitig auf der selben Datenquelle verwendet werden. So ist es m&ouml;glich
+eine gemeinsame Datenhaltung f&uuml;r Benutzer in unterschiedlichen Applikationen oder Modulen
+aufzubauen. Bei der Verwendung muss dem <em>UmgtManager</em> deshalb die <strong>ApplicationID</strong>
+mitgegeben werden, damit bekannt ist, welcher Container adressiert werden soll. Durch die Konfiguration
+k&ouml;nnen innrhalb eines Contextes mehrere Instanzen definiert und verwendet werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-2-Konfiguration-OR-Mapper"><a href="#Chapter-2-2-Konfiguration-OR-Mapper">2.2. Konfiguration des OR-Mappers</a></h4>
+Da das Modul auf dem <a href="./?Seite=063-Generischer-OR-Mapper" title="GenericORMapper">GenericORMapper</a>
+basiert, muss f&uuml;r das oben abgebildete UML eine Konfiguration f&uuml;r den Mapper vorhanden
+sein. Um das Setup zu erleichtern sind die fertigen Konfigurationsdateien bereits im
+<em>adventure-configpack-*</em>-Package unter <strong>/modules/usermanagement/</strong> enthalten.
+Diese m&uuml;ssen lediglich in den <strong>config</strong>-Namespace in den richtigen Ordner kopiert
+werden. Hierbei muss darauf geachtet werden, dass die Konfigurationsdateien im korrekten Context-Pfad
+liegen und entsprechend benannt sind. Details k&ouml;nnen dem Kapitel
+<a href="./?Seite=033-Konfiguration#Chapter-2-Bennenung-Pfade-und-Dateien" title="Konfiguration">Konfiguration</a>
+entnommen werden.
+<br />
+<br />
+Wie der
+<a href="./?Seite=063-Generischer-OR-Mapper#Chapter-2-3-Objekt-und-Beziehungsdefinition" title="Objekt- und Beziehungsdefinition">Dokumentation</a>
+des generischen OR-Mappers zu entnehmen ist, m&uuml;ssen f&uuml;r die verwendeten Objekte und die
+Beziehungen der Objekte Konfigurationen vorgehalten werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-3-Installation-Datenbank"><a href="#Chapter-2-3-Installation-Datenbank">2.3. Installation der Datenbank</a></h4>
+Als letzter Schritt muss die Datenbank vorbereitet werden. Dazu muss das unter
+<strong>/modules/usermanagement/data/scripts/setup.sql</strong> gegen die gew&uuml;nschte Datenbank
+ausgef&uuml;hrt werden. Anschlie&szlig;end ist das Modul voll einsatzbereit.
+<br />
+<br />
+Es empfiehlt sich, f&uuml;r das Modul eine eigene Datenbank zu nutzen, grunds&auml;tzlich spricht
+jedoch nichts gegen eine bereits bestehende Datenbank zu bef&uuml;llen. Durch den Einsatz des
+<a href="./?Seite=031-Klassenreferenz-connectionManager" title="ConnectionManager">ConnectionManager</a>
+entsteht in keinem Fall ein Nachteil, da mit diesem innerhalb einer Applikation mehrere Datenbanken
+adressiert werden k&ouml;nnen.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Anwendung"><a href="#Chapter-3-Anwendung">3. Anwendung</a></h3>
+<h4 id="Chapter-3-1-Backend"><a href="#Chapter-3-1-Backend">3.1. Backend</a></h4>
+Um das integrierte Backend nutzen zu k&ouml;nnen, muss f&uuml;r das Modul eine eigene Bootstrap
+erstellt oder dieses per Tag in eine bestehende Anwendung eingebaut werden. Durch die generische
+Implementierung werden bei der Erzeugung der URLs des Moduls externe Parameter (z.B. zur Navigation)
+mit eingebunden.
+<br />
+<br />
+Da das Backend auf dem Frontcontroller basiert (Anzeige der Icons wird &uuml;ber die
+<a href="./?Seite=078-Spezielle-TagLibs#Chapter-2-Mediastream" title="Mediastream-Tags">&lt;*:mediastream /&gt;</a>-Tags
+realisiert), kann folgende <em>index.php</em> eingesetzt werden:
+<gen:highlight type="php">
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller','Frontcontroller');
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->set('Context',{CONTEXT});
+$fC->start('modules::usermanagement::pres::templates','main');
+</gen:highlight>
+Soll das Backend als View in einer bestehenden Anwendung integriert werden, kann folgende
+Tag-Definition verwendet werden:
+<gen:highlight type="apf-xml">
+&lt;core:importdesign namespace="modules::usermanagement::pres::templates" template="main" /&gt;
+</gen:highlight>
+Sollte die bestehende Anwendung eine Frontcontroller-Action zur Navigation nutzen, so muss das Modul
+mit dem <strong>&lt;generic:importdesign /&gt;</strong>-Tag eingebaut und die Navigations-Action
+mit <strong>$__KeepInURL = true</strong> definiert werden. Andernfalls wird die Action-Information
+nicht in die Links des Moduls eingebunden und die Navigation funktioniert unter Umst&auml;nden nicht.
+<gen:highlight type="apf-xml">
+&lt;core::addtaglib namespace="tools::html::taglib" prefix="generic" class="importdesign" /&gt;
+&lt;generic:importdesign
+   modelnamespace="namespace::to::application::model"
+   modelfile="ModelName"
+   modelclass="ModelName"
+   modelmode="SINGLETON"
+   namespaceparam="..."
+   templateparam="..."
+   dependentactionnamespace="namespace::to::dependent::action"
+   dependentactionname="DependentActionName"
+   dependentactionparams="param1:value1|param2:value2"
+/&gt;
+</gen:highlight>
+Details zum generischen importdesign-Tag k&ouml;nnen dem Kapitel
+<a href="./?Seite=078-Spezielle-TagLibs#Chapter-3-Generischer-importdesign-Tag" title="Generischer importdesign-Tag">Spezialle TagLibs</a>
+entnommen werden.
+<br />
+<br />
+Wie weiter oben erw&auml;hnt, wird die Auslieferung der Icons und Bilder des Moduls &uuml;ber
+<em>&lt;*:mediastream /&gt;</em>-Tags realisiert. Diese generieren eine Ziel-URL, die eine
+Frontcontroller-Anweisung enth&auml;lt. Wie im Kapitel
+<a href="./?Seite=012-Frontcontroller#Chapter-2-2-Konfiguration" title="Frontcontroller">Frontcontroller</a> beschrieben ist,
+ben&ouml;tigt jede Action eine Konfiguration. Um die Anzeige der Bilder zu erm&ouml;glichen ist es
+notwendig eine Action-Konfigurationsdatei mit dem Namen
+<gen:highlight type="code">{ENVIRONMENT}_actionconfig.ini</gen:highlight>
+unter dem Namespace
+<gen:highlight type="code">
+/config/tools/media/actions/{CONTEXT}/
+</gen:highlight>
+angelegt werden. Der Inhalt der Datei ist
+<gen:highlight type="ini">
+[streamMedia]
+FC.ActionNamespace = "tools::media::actions"
+FC.ActionFile = "StreamMediaAction"
+FC.ActionClass = "StreamMediaAction"
+FC.InputFile = "StreamMediaInput"
+FC.InputClass = "StreamMediaInput"
+FC.InputParams = ""
+</gen:highlight>
+Details zur Bennenung von Konfigurationsdateien k&ouml;nnen im Kapitel
+<a href="./?Seite=033-Konfiguration#Chapter-2-Bennenung-Pfade-und-Dateien" title="Bennenung von Pfaden und Dateien">Bennenung von Pfaden und Dateien</a>
+nachgelesen werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-2-Businesskomponente"><a href="#Chapter-3-2-Businesskomponente">3.2. Business-Komponente</a></h4>
+Die API der Klasse <strong>UmgtManager</strong> arbeitet grunds&auml;tzlich mit Objekten. Das
+bedeutet, dass als Argumente weitestgehend Objekte des Typs <strong>GenericDomainObject</strong>
+erwartet werden. Als R&uuml;ckgabewerte dienen ebenfalls Instanzen der Klasse
+<strong>GenericDomainObject</strong> oder der Wert <strong>null</strong>.
+<br />
+<br />
+<br />
+<h5 id="Chapter-3-2-1-Login-Benutzer"><a href="#Chapter-3-2-1-Login-Benutzer">3.2.1. Login via Benutzer und Passwort</a></h5>
+Das folgende Beispiel zeigt, wie eine einfache Authentifizierung mit Hilfe von URL-Werten
+durchgef&uuml;hrt werden kann:
+<gen:highlight type="php">
+// include business component prior to use
+import('modules::usermanagement::biz','umgtManager');
+
+// get the business object
+$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','umgtManager','Default');
+
+// retrieve the username and password from the request
+$username = RequestHandler::getValue('user');
+$password = RequestHandler::getValue('pass');
+
+// try to get the user object. if null ist returned, the credentials are not correct
+$user = $uM->loadUserByUsernameAndPassword($username,$password);
+if($user !== null){
+   echo 'user "'.$user->getProperty('DisplayName').'" is logged in';
+}
+else{
+   echo 'user could not be logged in with the given credentials';
+}
+</gen:highlight>
+<br />
+<h5 id="Chapter-3-2-2-Login-E-Mail"><a href="#Chapter-3-2-2-Login-E-Mail">3.2.2. Login via E-Mail und Passwort</a></h5>
+Um einen Benutzer nicht &uuml;ber seinen Benutzernamen sondern seiner E-Mail-Adresse und seinem
+Passwort zu authentifizieren, muss der Methodenaufruf
+<gen:highlight type="php">
+$user = $uM->loadUserByUsernameAndPassword($username,$password);
+</gen:highlight>
+durch
+<gen:highlight type="php">
+$user = $uM->loadUserByEMailAndPassword($email,$password);
+</gen:highlight>
+ersetzt werden.
+<br />
+<br />
+<br />
+<h5 id="Chapter-3-2-3-Gruppen-und-Rollen"><a href="#Chapter-3-2-3-Gruppen-und-Rollen">3.2.3. Laden von Gruppen und Rollen</a></h5>
+Wurde ein Benutzer erfolgreich &uuml;ber die in 3.2.1 und 3.2.1 geschilderte Methoden geladen, so
+kann wie folgt auf dessen Gruppen und Rollen zugegriffen werden:
+<gen:highlight type="php">
+// load groups
+$groups = $uM->loadGroupsWithUser($user);
+
+// load roles
+$roles = $uM->loadRolesWithUser($user);
+</gen:highlight>
+<br />
+<h5 id="Chapter-3-2-4-Benutzer-Berechtigungen"><a href="#Chapter-3-2-4-Benutzer-Berechtigungen">3.2.4. Laden von Benutzer-Berechtigungen</a></h5>
+M&ouml;chte der Entwickler nun auf die dem Benutzer zugeordneten Funktionsberechtigungen
+(<em>Permissions</em>) zugreifen, kann das &uuml;ber die Rollen, oder direkt &uuml;ber eine daf&uuml;r
+vorgesehene API-Methode erledigt werden:
+<gen:highlight type="php">
+// load permissions via the relevant relations
+$roles = $uM->loadRolesWithUser($user);
+
+$permissions = array();
+for($i = 0; $i < count($roles); $i++){
+
+   // load permission sets
+   $permSets = $roles[$i]->loadRelatedObjects('Role2PermissionSet');
+
+   for($j = 0; $j < count($permSets); $j++){
+      $permissions = array_merge($permissions,$permSets[$j]->loadRelatedObjects('PermissionSet2Permission'));
+   }
+
+}
+// call the api method
+$permissions = $uM->loadUserPermissions($user);
+</gen:highlight>
+Nachteil der ersten Variante ist die m&ouml;gliche Mehrfachzuordnung von Funktionsberechtigungen zu
+Berechtigungsschemen und Rollen zu Benutzern. Die API-Methode ber&uuml;cksicht dies.
+<br />
+<br />
+<br />
+<h5 id="Chapter-3-2-5-Manipulation-Objekte"><a href="#Chapter-3-2-5-Manipulation-Objekte">3.2.5. Manipulieren von Objekten</a></h5>
+F&uuml;r die Manipulation von Objekten gibt es eine Reihe von API-Funktionen. Das folgende Code-Beispiel
+zeigt, wie Benutzer, Gruppen und Rollen angelegt, bearbeitet und gel&ouml;scht werden k&ouml;nnen.
+Da als Business-Objekt jeweils eine Instanz der Klasse <strong>GenericDomainObject</strong> verwendet
+wird, muss darauf geachtet werden, dass der Namen eines Objektes, der bei der Instanzierung mitgegeben
+wird, auch mit den Objekt-Namen in der Konfiguration &uuml;bereinstimmen. Gleiches gilt f&uuml;r die
+Bezeichnungen der Attribute. Auch diese m&uuml;ssen mit den Attribut-Namen der Objekt-Konfiguration
+&uuml;bereinstimmen. Details k&ouml;nnen dem Kapitel
+<a href="./?Seite=063-Generischer-OR-Mapper#Chapter-2-3-1-Objektdefinition" title="Generischer-OR-Mapper - Objektdefinition">Objektdefinition</a>
+entnommen werden.
+<gen:highlight type="php">
+// get the business object
+$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','umgtManager','Default');
+
+// create new user
+$user = new GenericDomainObject('User');
+$user->setProperty('FirstName','John');
+$user->setProperty('LastName','Doe');
+$user->setProperty('Username','jdoe');
+$uM->saveUser($user);
+
+// create new group
+$group = new GenericDomainObject('Group');
+$group->setProperty('DisplayName','Users');
+$uM->saveGroup($group);
+
+// load a user and change username
+$user = $uM->loadUserByID(1);
+$user->setProperty('Username','johndoe');
+$uM->saveUser($user);
+
+// load a group and change display name
+$group = $uM->loadGroupByID(2);
+$group->setProperty('DisplayName','Forum users');
+$uM->saveGroup($group);
+
+// delete a user
+$users = $uM->getPagedUserList();
+for($i = 0; $i < count($users); $i++){
+   if($users[$i]->getProperty('Username') === 'johndoe'){
+      $user = $users[$i];
+   }
+}
+$uM->deleteUser($user);
+
+// delete a group
+$groups = $uM->getPagedGroupList();
+for($i = 0; $i < count($groups); $i++){
+   if($groups[$i]->getProperty('DisplayName') === 'Forum users'){
+      $group = $groups[$i];
+   }
+}
+$uM->deleteGroup($group);
+</gen:highlight>
+<br />
+<h5 id="Chapter-3-2-6-Manipulation-Beziehungen"><a href="#Chapter-3-2-6-Manipulation-Beziehungen">3.2.6. Manipulieren von Beziehungen</a></h5>
+F&uuml;r die Erstellung, Manipulation und L&ouml;schung von Beziehungen zwischen den Objekten des
+Usermanagements (siehe <a href="#1-1-Datenmodell" title="UML-Diagram">UML</a>) stehen dem Entwickler
+zahlreiche Methoden zur Verf&uuml;gung. Diese sind auf den konkreten Anwendungsfall des Moduls
+zugeschnitten und erwarten jeweils Objekte des Type <strong>GenericDomainObject</strong>. Die folgende
+Codebox zeigt einige typische Anwendungsf&auml;lle f&uuml;r das "Bearbeiten" von Beziehungen:
+<gen:highlight type="php">
+// get the business object
+$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','umgtManager','Default');
+
+// add user to group
+$user = $uM->loadUserByID(1);
+$group = $uM->loadGroupByID(2);
+$uM->assignUser2Groups($user,array($group));
+
+// assign a dedicated role to a user
+$role = $uM->loadRoleByID(3);
+$uM->assignRole2Users($role,array($user));
+
+// remove user from group
+$uM->detachUserFromGroups($user,array($group));
+
+// detatch role from user
+$uM->detachUserFromRole($user,$role);
+</gen:highlight>
+<br />
+<h4 id="Chapter-3-2-Direkter-Zugriff"><a href="#Chapter-3-2-Direkter-Zugriff">3.2. Direkter Zugriff</a></h4>
+Sollte die API des <strong>UmgtManager</strong> nicht ausreichen, so kann der
+<strong>GenericORMapper</strong> direkt verwendet werden. Wichtig dabei ist, dass der gleiche Satz
+an Konfigurationsdateien benutzt werden. Die folgende Codebox zeigt, wie die Businesskomponente des
+Usermanagement-Moduls den OR-Mapper erzeugt:
+<gen:highlight type="php">
+$oRMFact = &$this->__getServiceObject(
+                       'modules::genericormapper::data',
+                       'GenericORMapperFactory'
+                                     );
+$oRM = &$oRMFact->getGenericORMapper(
+                       'modules::usermanagement',
+                       'umgt',
+                       $connectionKey,
+                       $serviceMode
+                                    );
+</gen:highlight>
+Die Variablen <strong>$connectionKey</strong> und <strong>$serviceMode</strong> m&uuml;ssen jeweils
+mit den Inhalten der
+<a href="#2-1-Konfiguration-Modul" title="Konfiguration des Moduls">Konfiguration des Moduls</a>
+ersetzt werden. Der <em>ServiceMode</em> ist dabei optional.
+<br />
+<br />
+Nach dem Erzeugen des Mappers kann dieser gem&auml;&szlig; den Konfigurationsdateien des Moduls
+eingesetzt werden. Die folgende Code-Box zeigt, wie der OR-Mapper dazu genutzt werden kann um die
+Benutzer einer Gruppe zu z&auml;hlen. Die Variable <strong>$oRM</strong> wurde dabei wie oben
+erl&auml;utert erstellt.
+<gen:highlight type="php">
+$group = $oRM->loadObjectByID('Group',1);
+$count = $oRM->loadRelationMultiplicity($group,'Group2User');
+</gen:highlight>
+Um zu pr&uuml;fen, ob ein Benutzer einer bestimmten Gruppe angeh&ouml;rt oder ihm eine definierte
+Rolle zugeordnet ist, kann folgender Code dienen:
+<gen:highlight type="php">
+// test, if user is within group
+$group = $oRM->loadObjectByID('Group',1);
+$user = $oRM->loadObjectByID('User',2);
+if($oRM->isAssociated('Group2User',$group,$user)){
+   echo 'user is in group';
+}
+else{
+   echo 'user is *not* in group';
+}
+
+// test, if user is associated with the desired role
+$role = $oRM->loadObjectByID('Role',3);
+if($oRM->isAssociated('Role2User',$role,$user)){
+   echo 'user is associated the desired role';
+}
+else{
+   echo 'user is *not* associated the desired role';
+}
+</gen:highlight>
+Um andere Ladekriterien als die in der API der Businesskomponente enthaltenen Methoden zu nutzen,
+k&ouml;nnen die Methoden
+<ul>
+  <li>loadObjectByStatement()</li>
+  <li>loadObjectByTextStatement()</li>
+  <li>loadObjectByCriterion()</li>
+  <li>loadObjectListByStatement()</li>
+  <li>loadObjectListByTextStatement()</li>
+  <li>loadObjectListByCriterion()</li>
+</ul>
+verwendet werden. Diese erwarten jeweils ein SQL-Statement oder ein
+<a href="./?Seite=063-Generischer-OR-Mapper#Chapter-5-GenericCriterionObject" title="GenericCriterionObject">GenericCriterionObject</a>.
+Die folgende Codebox zeigt das Laden von Funktionsberechtigungen, die mit einer bestimmten Rolle
+verkn&uuml;pft sind:
+<gen:highlight type="php">
+// define statement
+$select = 'SELECT `ent_permission`.* FROM `ent_permission`
+           INNER JOIN ass_permissionset2permission ON ent_permission.PermissionID = ass_permissionset2permission.PermissionID
+           INNER JOIN ent_permissionset ON ass_permissionset2permission.PermissionSetID = ent_permissionset.PermissionSetID
+           INNER JOIN ass_role2permissionset ON ent_permissionset.PermissionSetID = ass_role2permissionset.PermissionSetID
+           INNER JOIN ent_role ON ass_role2permissionset.RoleID = ent_role.RoleID
+           WHERE ent_role.RoleID = '1'
+           GROUP BY ent_permission.PermissionID;';
+
+// load permission list
+$permissions = $oRM->loadObjectListByTextStatement('Permission',$select);
+</gen:highlight>
+Um eine Liste von vorhandenen Applikationscontainern zu selektieren, kann folgender Code eingesetzt
+werden:
+<gen:highlight type="php">
+$apps = $oRM->loadObjectListByCriterion('Application');
+</gen:highlight>
+Details zu den im Modul enthalten Objekten, Attributen und Beziehungen, k&ouml;nnen den
+<a href="#2-1-Konfiguration-Modul" title="Konfiguration des Moduls">Konfigurationsdateien</a> oder
+dem obigen <a href="#1-1-Datenmodell" title="Datenmodell">UML-Diagramm</a> entnommen werden. Die
+Verwendung des OR-Mappers wird im Kapitel
+<a href="./?Seite=063-Generischer-OR-Mapper#Chapter-1-Einleitung" title="GenericORMapper - Einleitung">GenericORMapper</a>
+genauer beschrieben.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Erweiterung"><a href="#Chapter-4-Erweiterung">4. Erweiterung</a></h3>
+<h4 id="Chapter-4-1-Passwort-Verschluesselung"><a href="#Chapter-4-1-Passwort-Verschluesselung">4.1. Passwort-Verschl&uuml;sselung</a></h4>
+<h5 id="Chapter-4-1-1-Erweiterung-des-Managers"><a href="#Chapter-4-1-1-Erweiterung-des-Managers">4.1.1. Erweiterung des Managers</a></h5>
+<div class="hint">
+   Dieser Absatz spiegelt die Vorgehensweise bis einschlie&szlig;lich Version 1.10 wieder. Diese
+   M&ouml;glichkeit besteht jedoch auch in h&ouml;heren Versionen, die pr&auml;ferierte Methode
+   wird jedoch im n&auml;chsten Kapitel besprochen.
+</div>
+<br />
+Die Business-Komponente nutzt aktuell das <strong>MD5</strong>-Verfahren um Passwort-Hashes zu
+erzeugen. Soll dieses Verhalten ge&auml;ndert werden (z.B. auf <em>SHA1</em>), so kann dies durch
+ableiten von der Klasse <strong>umgtManager</strong> und &Uuml;berschreiben der privaten Methode
+<strong>__createPasswordHash()</strong> erfolgen. Dabei ist darauf zu achten, dass die abgeleitete
+Klasse die <strong>init()</strong>-Methode nicht &uuml;berschreibt.
+<br />
+<br />
+Die neue Klasse kann nach der &Uuml;berladung exakt gleich verwendet werden. Das folgende Beispiel
+zeigt eine &Auml;nderung des Passwort-Hash-Verfahrens:
+<gen:highlight type="php">
+class MyUmgtManager extends umgtManager {
+   function __createPasswordHash($password){
+      return sha1($password);
+   }
+}
+$umgt = &$this->__getAndInitServiceObject('my::namespace','MyUmgtManager','Default');
+$user = $umgt->loadUserByID(5);
+</gen:highlight>
+<br />
+<h5 id="Chapter-4-1-2-Implementierung-PasswordHashProvider"><a href="#Chapter-4-1-2-Implementierung-PasswordHashProvider">4.1.2. Implementierung PasswordHashProvider</a></h5>
+Die ab <strong>Version 1.11</strong> implementierte &Auml;ndeurung erm&ouml;glicht es, einen eigenen
+<strong>PasswordHashProvider</strong> in der Konfiguration des Moduls zu definieren. Dieser ist
+daf&uuml;r zust&auml;ndig, dem <strong>umgtManager</strong> bei der Erstellung des Password
+Hash-Wertes behilflich zu sein. Im Standard-Fall wird weiterhin <strong>md5</strong> eingesetzt.
+<br />
+<br />
+Um eine eigene Komponente zur Verf&uuml;gung zu stellen, muss zun&auml;chst eine PHP-Klasse erstellt
+werden, die das <em>PasswordHashProvider</em> Interface implemeniert. Dieses definiert eine Methode,
+die f&uuml;r ein &uuml;bergebenes Password einen Hash berechnet. F&uuml;hren wir obiges Beispiel
+weiter, so hat die Klasse folgende Gestalt:
+<gen:highlight type="php">
+import('modules::usermanagement::biz','PasswordHashProvider');
+class Sha1PasswordHashProvider implements PasswordHashProvider {
+   public function createPasswordHash($password){
+      return sha1($password);
+   }
+}
+</gen:highlight>
+Die Konfiguration muss dann um die zwei Direktiven erweitert werden, die den Namespace und den
+(Klassen-)Namen der Komponente definieren:
+<gen:highlight type="apf-xml">
+PasswordHashProvider.Namespace = "my::namespace"
+PasswordHashProvider.Class = "Sha1PasswordHashProvider"
+</gen:highlight>
+Vollst&auml;ndige Beispiel-Konfigurationen f&uuml;r das Usermanagement finden sich in den
+<strong>apf-configpack-*</strong>-Paketen.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-2-Anzeige-Name-Benutzer"><a href="#Chapter-4-2-Anzeige-Name-Benutzer">4.2. Anzeige-Name des Benutzers</a></h4>
+Der Anzeige-Name eines Benutzers wird aktuell aus
+<gen:highlight type="apf-xml">{Nachname}, {Vorname}</gen:highlight>
+zusammengesetzt. Um dieses Verhalten zu beeinflussen kann die Klasse <strong>umgtManager</strong>
+&auml;hnlich wie unter 4.1. beschrieben erweitert werden. Hierbei muss die Methode
+<strong>__getDisplayName($user)</strong> &uuml;berschrieben werden. Diese erwartet ein Objekt des
+Typs <em>GenericDomainObject</em> und gibt den Anzeige-Namen des Benutzers zur&uuml;ck.
+<br />
+<br />
+Um die E-Mail-Adresse als Anzeige-Namen zu nutzen, ist folgende Erweiterung notwendig:
+<gen:highlight type="php">
+class MyUmgtManager extends umgtManager
+{
+   function __getDisplayName($user){
+      return $user->getProperty('EMail');
+   }
+}
+</gen:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_095" />

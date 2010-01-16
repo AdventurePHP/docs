@@ -1,0 +1,367 @@
+<doku:title parent="119" tags="documentation,taglibs,front controller" title="Special-taglibs" urlname="Special-taglibs">
+  This documentation page describes advanced functions of the framework, that are designed for special
+  application cases of more complex software designs.
+</doku:title>
+This documentation page describes advanced functions of the framework, that are designed for special
+application cases of more complex software designs.
+<div class="hint">
+   <strong>Note:</strong> Please be aware, that within a tag definition only spaces are allowed as a
+   seperator. Tabs or new line characters are not parsed and using them can lead to unrecognized error
+   on tag definition analysis!
+</div>
+
+<h3 id="Chapter-1-Iterator"><a href="#Chapter-1-Iterator">1. Iterator</a></h3>
+The iterator tag was introduced in version 1.6 (final) to simplify the display mechanism of objects
+or associative arrays. For this reason an iterator tag defined within a template file must be filled
+by the document controller with the desired data. The definition of the tag looks as follows:
+<gen:highlight type="apf-xml">
+&lt;html:iterator name=""&gt;
+ ...
+ [&lt;iterator:addtaglib namespace="" prefix="" class="" /&gt;]
+ [&lt;iterator:getstring namespace="" config="" entry="" /&gt;]
+ ...
+ &lt;iterator:item [getter=""]&gt;
+   &lt;item:placeholder name="" /&gt;
+  [<item:getstring namespace="" config="" entry="" />]
+  [<item:addtaglib namespace="" prefix="" class="" />]
+ &lt;/iterator:item&gt;
+ ...
+&lt;/html:iterator&gt;
+</gen:highlight>
+The <strong>&lt;html:iterator /&gt;</strong> tag defines the iterator and the
+<strong>&lt;iterator:item /&gt;</strong> tag contains the graphical description of how a data element
+should be displayed. Inside the data element a various number of placeholders and HTML tags
+(<strong>&lt;item:placeholder /&gt;</strong>) can be defined. The name of the placeholder is equal to
+the name of the class attribute or array offset at the same time. In order to change the name of the
+get method, the optional tag attribut <strong>getter</strong> must be added to the
+<strong>&lt;iterator:item /&gt;</strong> tag definition. Please note, that the tag implementation
+uses the <strong>get()</strong> function as the default getter.
+<br />
+<br />
+<strong>Description of the attributes:</strong>
+<ul>
+  <li>
+    <strong>name</strong> (1): Name of the iterators.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9]</code>)
+  </li>
+  <li>
+    <strong>getter</strong>: Name of the mathod that is used to retrieve an object's attribute.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>name</strong> (2): Name of the place holder.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9]</code>)
+  </li>
+</ul>
+To use the tag it must be announced using the
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="iterator" /&gt;
+</gen:highlight>
+directive. Further, the document controller of the <em>Document</em> in which the iterator is defined
+must inherit from the <strong>iteratorBaseController</strong> class located in the namespace
+<strong>tools::html::taglib::documentcontroller</strong>. The following code fragment shows, how to
+use the iterator tag:
+<gen:highlight type="php">
+import('tools::html::taglib::documentcontroller','iteratorBaseController');
+
+class list_controller extends iteratorBaseController {
+
+   function list_controller(){
+   }
+
+   function transformContent(){
+
+      ...
+
+      // Get a reference om the iterator tag
+      $Iterator = &$this->__getIterator('...');
+
+      // Fill the data container with a list of objects or associative arrays
+      $Iterator->fillDataContainer(...);
+
+      // Display on the place of definition ...
+      $Iterator->transformOnPlace();
+      // ... or insert the content of the tag into a place holder
+      $this->setPlaceHolder('...',$Iterator->transformIterator());
+
+      ...
+
+   }
+
+}
+</gen:highlight>
+<div class="hint">
+   In order to display language dependent value within the iterator (e.g. for language dependent table
+   headers), the <em>&lt;iterator:getstring /&gt;</em> and <em>&lt;item:getstring /&gt;</em> tags
+   can be used. The functionality is equal to the
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link> tag.
+   If you are not comfortable with this tag, feel free to add your custom taglibs using the
+   <em>&lt;iterator:addtaglib /&gt;</em> and <em>&lt;item:addtaglib /&gt;</em> tags. The
+   functionality is equal to the
+   <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link> tag.
+</div>
+
+<h3 id="Chapter-2-Mediastream"><a href="#Chapter-2-Mediastream">2. Media stream tags</a></h3>
+The media stream tags enable the developer to store and deliver GUI ressources directly from the
+namespace of a specific module. For this reason, the framework contains an abstract implementation
+of a streaming taglib and several dedicated taglibs, that generate a media url. Further, a generic
+front controller action is included, that streams the media files, that are requested by the tags.
+<br />
+<br />
+In order to use the tags you must be sure, that the front controller action, that is intended to
+deliver the desired files, has a valid configuration for the current context. The action config is
+expected to be contained in the
+<gen:highlight type="code">/config/tools/media/actions/{CONTEXT}/{ENVIRONMENT}_actionconfig.ini</gen:highlight>
+file. The content of the file can be taken from the following code box:
+<gen:highlight type="ini">
+[streamMedia]
+FC.ActionNamespace = "tools::media::actions"
+FC.ActionFile = "StreamMediaAction"
+FC.ActionClass = "StreamMediaAction"
+FC.InputFile = "StreamMediaInput"
+FC.InputClass = "StreamMediaInput"
+FC.InputParams = ""
+</gen:highlight>
+A example configuration file is also included in the <strong>adventure-configpack-*</strong> release
+file under <strong>tools/media/actions/</strong>.
+<br />
+<br />
+In order to generate dynamic media urls, the following taglibs are included in the framework:
+<ul>
+  <li><strong>form_taglib_mediastream:</strong> To be used within the html:form tag</li>
+  <li><strong>html_taglib_mediastream:</strong> To be used within a template file</li>
+  <li><strong>template_taglib_mediastream:</strong> To be used within the html:template tag</li>
+</ul>
+To be able to use one of the taglibs, the tag must be introduced to the desired scope using the
+<strong>&lt;*:importdesign /&gt;</strong> tags. The following code box shows an real life application
+example:
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;html:form name="TestFormular"&gt;
+  &lt;form:addtaglib namespace="tools::media::taglib" prefix="form" class="mediastream" /&gt;
+  &lt;img src="&lt;form:mediastream namespace="modules::mymodule::pres::images" filename="phone_icon.png" /&gt;" alt="" /&t;
+  &lt;form:text name="phonenumber" /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="send" value="Absenden" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+As you can take from the example above, the <strong>&lt;*:mediastream /&gt;</strong> tags expect the
+following attributes to be filled:
+<ul>
+  <li>
+    <strong>namespace</strong>: Namespace to the desired media file.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9:]</code>)
+  </li>
+  <li>
+    <strong>filename</strong>: Name of the media file.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_.-]</code>)
+  </li>
+</ul>
+<br />
+<strong>Hint:</strong>
+<br />
+If you intend to manipulate the namespace of the file, that should be delivered, because you want to
+store the image files in the config namespace - using the context to give the application an individual
+touch - you have to acte like this:
+<br />
+<br />
+<ol>
+  <li>
+    Add an id attribute to the desired tag:
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib namespace="tools::media::taglib" prefix="html" class="mediastream" /&gt;
+&lt;img src="&lt;html:mediastream
+                     namespace="config::modules::mymodule::pres::images"
+                     filename="phone_icon.png"
+                     id="PhoneIcon"
+             /&gt;"
+        alt=""
+/&gt;
+</gen:highlight>
+  </li>
+  <li>
+    Manipulate the namespaces within the responsible document controller:
+<gen:highlight type="php">
+class example_controller extends baseController
+{
+   function transformContent(){
+      $mediaStreamTag = &$this->__getMediaStreamTagByID('PhoneIcon');
+      $mediaStreamTag->setAttribute($mediaStreamTag->getAttribute().'::'.$this->__Context);
+   }
+
+   function &__getMediaStreamTagByID($id){
+      $children = &$this->__Document->getByReference('Children');
+      foreach($children as $objectId => $DUMMY){
+         if(get_class($children[$objectId]) == 'html_taglib_mediastream'){
+            return $children[$objectId];
+         }
+      }
+      $null = null;
+      return $null;
+   }
+}
+</gen:highlight>
+  </li>
+</ol>
+<h3 id="Chapter-3-Generic-importdesign-tag"><a href="#Chapter-3-Generic-importdesign-tag">3. Generic importdesign tag</a></h3>
+Within more complex applications it is often necessary to fill the views - defined with the
+<strong>&lt;*:importdesign /&gt;</strong> tags - dynamically. In many cases, the developer thus wants
+to use model information of the application. To be able, to use the business layer as a real control
+layer, the framework features a generic importdesign tag, that allows you to retrieve the name of the
+template to include as well as the template's namespace from the desired application model dynamically.
+<br />
+<br />
+The tag's signature looks like this:
+<gen:highlight type="apf-xml">
+&lt;generic:importdesign
+   modelnamespace=""
+   modelfile=""
+   modelclass=""
+   modelmode="NORMAL|SINGLETON|SESSIONSINGLETON"
+   namespaceparam=""
+   templateparam=""
+   [getmethod=""]
+   [dependentactionnamespace=""
+   dependentactionname=""
+   [dependentactionparams=""]]
+/&gt;
+</gen:highlight>
+The attributes have the following meaning:
+<ul>
+  <li>
+    <strong>modelnamespace</strong>: Namespace of the model class.
+    (<strong>Allowed characters:</strong>: <code>[A-Za-z0-9:]</code>)
+  </li>
+  <li>
+    <strong>modelfile</strong>: Name of the model class' file.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>modelclass</strong>: Name of the model class.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>modelmode</strong>: Creation mode of the model.
+    (<strong>Allowed values</strong>: <code>NORMAL|SINGLETON|SESSIONSINGLETON</code>)
+  </li>
+  <li>
+    <strong>namespaceparam</strong>: Name of the model param, that returns the namespace of the template.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_.-]</code>)
+  </li>
+  <li>
+    <strong>templateparam</strong>: Name of the model param, that returns the name of the template.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_.-]</code>)
+  </li>
+  <li>
+    <strong>getmethod</strong>: Name of the model method, that should be used to query the template
+    name and namespace of the template to include. Please note, that the method must expect one param
+    that is given the value of the <em>namespaceparam</em> or <em>templateparam</em> attributes
+    respectively and the tag expects that the function returns the value of the two parameters. By
+    default, the <strong>getAttribute()</strong> function is used. (<strong>Allowed characters</strong>:
+    <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>dependentactionnamespace</strong> / <strong>dependentactionname</strong> /
+    <strong>dependentactionparams</strong>: These three options are intended to automatically register
+    an action with the front controller. This functionality is helpful, if a module is included by
+    the tag and a front controller action is used for navigation purposes.
+    <br />
+    <br />
+    The attribute <strong>dependentactionnamespace</strong> defines the namespace of the action
+    (e.g. <em>sites::mysite::biz</em>) and <strong>dependentactionname</strong> the name or the alias
+    of the action (e.g. <em>Navigate</em>). <strong>dependentactionparams</strong> contains the
+    params of the action like <strong>param1:value1|param2:value2</strong>. This format ist already
+    known from the action configuration file layout.
+  </li>
+</ul>
+<br />
+In order to use the tag, you must first add the tag to the current scope by placing
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="generic" class="importdesign" /&gt;
+</gen:highlight>
+before the tag definition.
+<br />
+<br />
+<strong>Notes:</strong>
+<ul>
+  <li>
+    As an real life application example the <a href="./?Page=079-Behind-the-site">behind the site</a>
+    can be used. This article describes, how this documentation page is implemented and which tools
+    of the framework are used.
+  </li>
+  <li>
+    If a front controller action is used for navigation purposes, the action class must set the
+    class variable <strong>$__KeepInURL</strong> to <strong>true</strong>. This causes the
+    <a href="./?Page=012-Frontcontroller#Chapter-2-4-Link-generation" title="FrontcontrollerLinkHandler">FrontcontrollerLinkHandler</a>
+    to include the action and it's params to be included while url generation.
+  </li>
+  <li>
+    The registration of the action is only done, if the
+    <strong>dependentactionnamespace</strong> and <strong>dependentactionname</strong> attributes
+    are present in the tag definition and the action was not registered before. The action params
+    attribute is optional.
+  </li>
+</ul>
+<br />
+<h3 id="Chapter-4-Core-appendnode"><a href="#Chapter-4-Core-appendnode">4. core:appendnode tag</a></h3>
+Within a discussion about reusable template fragments (e.g. forms), the idea occured to design a
+taglib, that can import various content to the scope of the current document. Thanks to the generic
+DOM structure of the GUI elements of the framework, this task is quite easy.
+<br />
+<br />
+In order to provide a generic and reusable function, the 1.8 branch now features the
+<strong>&lt;core:appendnode /&gt;</strong> tag, that can import any content from a defined template.
+To use the tag, you must provide two attributes similar to the importdesign tag:
+<strong>namespace</strong> and <strong>template</strong>.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-1-Inclusion-of-templates"><a href="#Chapter-4-1-Inclusion-of-templates">4.1. Inclusion of templates</a></h4>
+To include reusable fragments, the following code must be placed within the desired template:
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib namespace="core::pagecontroller" prefix="core" class="appendnode" /&gt;
+&lt;core:appendnode namespace="..." template="..." /&gt;
+</gen:highlight>
+If you want to reuse a special template, that is ised to display a domain object of your application,
+it is suitable to define this tag within a seperate template file (namespace:
+<em>sites::testsite::pres::templates::generic</em>; template: <em>generic_templates</em>). The tag
+definition my look like this:
+<gen:highlight type="apf-xml">
+&lt;html:template name="ReusableTemplate"&gt;
+  ...
+  &lt;template:placeholder name="DisplayName"&gt;
+  ...
+&lt;/html:template&gt;
+</gen:highlight>
+In order to use the html template within another template file, the fragment can be included
+using the following tag definitions:
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib namespace="core::pagecontroller" prefix="core" class="appendnode" /&gt;
+&lt;core:appendnode namespace="sites::testsite::pres::templates::generic" template="generic_templates" /&gt;
+</gen:highlight>
+<br />
+<h4 id="Chapter-4-2-Usage-of-the-imported-elements"><a href="#Chapter-4-2-Usage-of-the-imported-elements">4.2. Usage of the imported elements</a></h4>
+The usage of the elements imported by the <strong>&lt;core:appendnode /&gt;</strong> tag is identical
+to the previous approach. This is because the elements are directly appended to the current children
+list within the DOM tree. Especially, the document controller's methods (e.g. <em>__getTemplate()</em>)
+can be used as well.
+<br />
+<br />
+To address the template printed in chapter 4.1, the following code snippet can be used:
+<gen:highlight type="php">
+$tmpl = &$this->__getTemplate('ReusableTemplate');
+</gen:highlight>
+<br />
+<h4 id="Chapter-4-3-Important-notes"><a href="#Chapter-4-3-Important-notes">4.3. Important notes</a></h4>
+Due to the fact, that template oarsing is done identically to the importdesign tag, the developer
+must care of the tags included in the special template. If necessary, tags have to be anounced using
+the adequate <strong>core:addtaglib</strong> statements.
+<br />
+<br />
+Further, the tag creates transformation marker tags within the origin template, to enable the
+<strong>transformOnPlace()</strong> feature of the included tags supporting this. Please be aware,
+that the sequence of definition is equal to the marker tag order!
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_078" />

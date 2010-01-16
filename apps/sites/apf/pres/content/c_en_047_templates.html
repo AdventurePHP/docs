@@ -1,0 +1,235 @@
+<doku:title parent="119" tags="templates,construction,examples,list generation,dynamic views,controller,basics" title="Templates" urlname="Templates">
+  Templates - in apf chargon - is only a fall-out of the page controller implementation. Within the
+  apf you can find templates in two flavors: template files (*.html) are used to create the DOM
+  structure and the html:template tags can are reusable framents within the template files mentioned
+  above.
+</doku:title>
+<h3 id="Chapter-1-The-use-of-templates"><a href="#Chapter-1-The-use-of-templates">1. The use of templates</a></h3>
+Templates in this framework are a kind of "waste product" of the DOM structure explained under
+<a href="./?Page=016-Classes" title="classes">classes</a> and serve the abstraction and separation of
+function and representation according to the MVC pattern. They offer the possibility to define
+different partial elements or views in XML and HTML code with which afterwards a controller can
+generate a dynamic view. There are two kinds of templates used in this frameworks. To the one hand
+the template files which are intended to the storage of the XML and HTML fragments which represent
+the contents of a DOM node, on the other hand HTML templates within these files which define a
+reusable area of XML and HTML code. The latter is often required for the representation of lists in
+which a list element is joined by any iteration template in the controller to form a list.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Structure-of-templates"><a href="#Chapter-2-Structure-of-templates">2. Structure of templates</a></h3>
+Templates can contain three different types of contents:
+<ul>
+  <li>XML taglibs </li>
+  <li>HTML code</li>
+  <li>Simple text</li>
+</ul>
+Taglib tags are XML tags familiar to the tag parser. They are composed of two main elements:
+<strong>&lt;prefix:class /&gt;</strong> whereas "prefix" and "class" can be represented by every
+legal XML compilant prefix and class sign. The signs <strong>[a-z]</strong> are permitted here.
+Every tag can own any number of attributes and any contents in not self-closing tags. These have the
+form <strong>attribute="value"</strong>. HTML code and an easy text are usable as attributes of
+taglib tags as well as the content of the tag.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Typical-templates"><a href="#Chapter-3-Typical-templates">3. Typical templates</a></h3>
+In the following some typical templates are performed and explained:
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-1-Dynamic-content"><a href="#Chapter-3-1-Dynamic-content">3.1. Template for the representation of dynamic contents</a></h4>
+One example for the representation of dynamic contents is the filling of HTML meta tags. Therefore
+several <strong>&lt;html:placeholder /&gt;</strong> tags can be placed in the template. The dynamic
+meta tags on this documentation site have the following figure:
+<br />
+<br />
+<gen:highlight type="apf-xml">
+[..]
+&lt;meta name="DC.Date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
+&lt;meta name="DC.Type" content="Text" /&gt;
+&lt;meta name="DC.Format" content="text/html" /&gt;
+&lt;meta name="DC.Identifier" content="Dipl.-Ing. (FH) Christian Achatz" /&gt;
+&lt;meta name="DC.Source" content="&lt;html:placeholder name="URI" /&gt;" /&gt;
+&lt;meta name="DC.Language" content="de" /&gt;
+&lt;meta name="DC.Relation" content="&lt;html:placeholder name="URI" /&gt;" /&gt;
+[..]
+&lt;meta name="keywords" lang="de" content="PHP,Framework,PageController,FrontController,Pattern,[..]" /&gt;
+&lt;meta name="date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
+&lt;meta name="robots" content="index,follow" /&gt;
+&lt;meta name="revisit-after" content="5 days" /&gt;
+[..]
+</gen:highlight>
+Here two different place holders are available to be filled in a controller with different content.
+During transformation of the DOM node the XML tags are replaced with the contents set in the controller.
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-2-HTML-templates"><a href="#Chapter-3-2-HTML-templates">3.2. HTML templates</a></h4>
+HTML-Templates serve - as already appealed - for the definition of reusable HTML fragments for the
+representation of lists or tables. Here - in common - one HTML element is represented by one template
+which can be used by the controller to construct a views or a view element. HTML templates are not
+displayed directly on the place of their definition, but are structural elements to the generation
+of elements and can be used by the controller of the current node. In the following a template file
+should be presented to generate single column table:
+<br />
+<gen:highlight type="apf-xml">
+[..]
+&lt;html:placeholder name="List" /&gt;
+
+&lt;html:template name="ListHeader"&gt;
+  &lt;table cellpadding="0" cellspacing="0" border="0"&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+         &lt;strong&gt;ExampleList&lt;/strong&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;template:placeholder name="TableElements" /&gt;
+  &lt;/table&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="ListItem"&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+         &lt;template:placeholder name="ItemValue" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+The template file defines thre different elements:
+<ul>
+  <li>
+    <strong>HTML place holder:</strong>
+    <br />
+    This serves the representation of the complete list. It is filled in the controller with the
+    HTML code of the generated list.
+  </li>
+  <li>
+    <strong>HTML template "ListHeader":</strong>
+    <br />
+    This HTML template defines the head of the table. It contains one place holder for the elements
+    of the table.
+  </li>
+  <li>
+    <strong>HTML template "ListItem":</strong>
+    <br />
+    This HTML template represents on list element. It includes on place holder to display the content
+    of the list element.
+  </li>
+</ul>
+The document controller of the current DOM node has to implement the following functionality:
+<br />
+<br />
+<pre>
+                    START
+                      |
+                      v
+      +--------------------------------+
+      |      Load list entries         |
+      +--------------------------------+
+                      |
+                      v
+      +--------------------------------+
+      |     Initialize list buffer     |
+      +--------------------------------+
+                      |
+                      v
+      +--------------------------------+
+      |       Run through list         |
+      +--------------------------------+
+                      |
+                      v
+      +--------------------------------+
+      |     Insert list value in       |
+      |      template "ListItem"       |
+      +--------------------------------+
+                      |
+                      v
+      +--------------------------------+
+      |  Transform "ListItem" and add  |
+      |         to list buffer         |
+      +--------------------------------+
+                      |
+                      v
+      +--------------------------------+
+      |     Insert list buffers in     |
+      |      template "ListHeader"     |
+      +--------------------------------+
+                      |
+                      v
+      +--------------------------------+
+      |   Transform of the template    |
+      |  "ListHeader" and insert the   |
+      |  content into the place holder |
+      |             "List"             |
+      +--------------------------------+
+                      |
+                      v
+                     END
+</pre>
+<br />
+<strong>Note:</strong> Templates that are not used to generate lists or self-repeating structures
+can be displayed directly where they are declared. Therefore, the method
+<strong>transformOnPlace()</strong> must be applied to the desired template. In order to display the
+HTML template
+<gen:highlight type="apf-xml">
+  ...
+  &lt;html:template name="my_template"&gt;
+    ...
+  &lt;/html:template&gt;
+  ...
+</gen:highlight>
+right where it was defined within the template file, the following code must be present in the
+corresponding document controller
+<gen:highlight type="php">
+class my_controller extends baseController {
+   function transformContent(){
+      $template = &$this->__getTemplate('my_template');
+      $template->transformOnPlace();
+   }
+}
+</gen:highlight>
+<br />
+<h4 id="Chapter-3-3-Dynamic-views"><a href="#Chapter-3-3-Dynamic-views">3.3. Dynamic inclusion of views</a></h4>
+To be able to dynamically include views in a specific template the <strong>&lt;core:importdesign /&gt;</strong>
+tag was introduced. This gains the ability to define a view (e.g. a login form) which behaviour can
+be influenced by URL parameters:
+<gen:highlight type="apf-xml">
+  &lt;core:importdesign namespace="[..]" template="[pagepart = start]" /&gt;
+</gen:highlight>
+If the param "pagepart" is not set in the URL the template file "start" is loaded into that view.
+Whether the param is set, the content of the defined template is loaded into the view. This makes it
+possible to generate a series of views (e.g. a multi-page form) or include different modules via URL
+parameter. Because it can come to interference while integrating several modules with the "pagepart"
+parameter, the URL parameter to use to inlclude the template can be manipulated ba the the attribute
+<strong>incparam</strong>. Inclusion then is as follows:
+<gen:highlight type="apf-xml">
+  &lt;core:importdesign namespace="[..]" incparam="myurlparam" template="[myurlparam = start]" /&gt;
+</gen:highlight>
+A concrete example of the dynamic view integration is the control of the indicated perspective of
+the present site. As desired by the user one of the avaliable views is displayed (normal web page
+view or print view). To produce this behaviour the <strong>&lt;core:importdesign /&gt;</strong> must
+be configured in the <em>website.html</em> as follows:
+<gen:highlight type="apf-xml">
+  &lt;core:importdesign
+                     namespace="sites::apfdocupage::pres::templates"
+                     template="[perspective=site]"
+                     incparam="perspective"
+  /&gt;
+</gen:highlight>
+With this configuration it is easy to supply a printing function. Please refer to the printer symbol
+placed on <a href="#top" title="Druck-Funktion">top</a> of the site to get a feeling of the function
+of this definition.
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-4-More-tags"><a href="#Chapter-3-4-More-tags">3.4. More tags</a></h4>
+<int:link pageid="046" /> describes all tags shipped with each release. To get specific examples of
+the benefit please have a look at the
+<a href="./?Page=057-Guestbook-tutorial" title="guestbook">guestbook</a> and
+<a href="./?Page=035-Contact-form-tutorial" title="contact form">contact form</a>
+tutorial.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_047" />

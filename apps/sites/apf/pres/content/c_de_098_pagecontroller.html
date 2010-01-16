@@ -1,0 +1,141 @@
+<doku:title parent="119" tags="dokumentation,pagecontroller,klassen referenz,controller,templates,mvc,hmvc,apfmvc,grundlagen" title="Pagecontroller" urlname="Pagecontroller">
+  Die Funktion des Pagecontrollers besteht darin, einen allgemeing&uuml;ltigen Rahmen f&uuml;r
+  Applikationen zu bieten, die nach dem MVC Muster implementiert werden. Er verf&uuml;gt daher
+  &uuml;ber Mechanismen zum Laden und Verarbeiten von Templates mit Hilfe der Funktionen von TagLibs,
+  zur Ausf&uuml;hrung von Controllern und zum Handling des MVC-Baumes, der mit Hilfe der TagLibs
+  erzeugt wird.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+Das Herzst&uuml;ck des Adventure PHP Framework bildet der Pagecontroller. Dieser ist eine Komponente,
+die aus diversen Basis-Klassen besteht, die im Kapitel <a href="./?Seite=016-Klassen" title="Klassen">Klassen</a>
+beschrieben sind. Die Funktion des Pagecontrollers besteht darin, einen allgemeing&uuml;ltigen Rahmen
+f&uuml;r Applikationen zu bieten, die nach dem <strong>MVC</strong> Muster implementiert werden.
+Er verf&uuml;gt daher &uuml;ber Mechanismen zum Laden und Verarbeiten von
+<a href="./?Seite=047-Templates" title="Templates">Templates</a> mit Hilfe der Funktionen von
+<a href="./?Seite=045-TagLibs-erstellen" title="TagLibs">TagLibs</a>, zur Ausf&uuml;hrung von
+<a href="./?Seite=006-Controller" title="Controller">Controllern</a> und zum Handling des MVC-Baumes,
+der mit Hilfe der TagLibs erzeugt wird.
+<br />
+<br />
+Wegen der Baum-Struktur der GUI-Elemente spricht man in diesem Zusammenhang auch vom <strong>HMVC</strong>
+Pattern. Dieses sieht vor, dass es einen hirarchischen Baum bestehend aus lauter kleinen MVC-Einheiten
+gibt, der mit Hilfe eines Mechanismus (hier: Pagecontroller) verwaltet wird. Beim HMVC Pattern geht
+man zudem davon aus, dass das Model nicht wie beim MVC Pattern stark an eine Zelle gebunden ist,
+sondern mehreren Zellen zur Verf&uuml;gung stehen kann. So ist es auf eine um vielfaches flexiblere
+Weise m&ouml;glich, Module und Applikationen zu erstellen.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Funktion"><a href="#Chapter-2-Funktion">2. Funktion</a></h3>
+Da der Pagecontroller nur den Rahmen absteckt, bzw. f&uuml;r das Ausf&uuml;hren des ihm zu eigenen
+Workflows zust&auml;ndig ist, kann die Applikationslogik durch eigene
+<a href="./?Seite=045-TagLibs-erstellen" title="TagLibs">TagLibs</a> und
+<a href="./?Seite=006-Controller" title="Controller">Controller</a> direkt beeinflusst werden. Das
+bedeutet auch, dass der Pagecontroller selbst unabh&auml;ngig von in Tags definierter Logik handelt.
+Damit ist es m&ouml;glich, Tags mit sehr unterschiedlichen Funktionen zu erstellen (z.B. Formulare,
+Taglibs zum Einbinden weiterer Templates, Platzhalter, ...). Das folgende Ablauf-Diagramm zeigt den
+angesprochenen Workflow und gibt Aufschluss dar&uuml;ber, wo der Entwickler eingreifen kann um eine
+Anforderung seiner Applikation umsetzen zu k&ouml;nnen. Per Klick kann das Bild vergr&ouml;&szlig;ert
+werden!
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-1-Ablaufdiagramm"><a href="#Chapter-2-1-Ablaufdiagramm">2.1. Ablaufdiagramm</a></h4>
+<br />
+<a href="http://media.adventure-php-framework.org/content/pagecontroller_timing_model.png" title="Pagecontroller timing model (Zum Vergr&ouml;&szlig;ern klicken!)">
+  <img src="http://media.adventure-php-framework.org/content/pagecontroller_timing_model.png" alt="Pagecontroller timing model (APF)" style="width: 560px;"/>
+</a>
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-2-Beschreibung"><a href="#Chapter-2-2-Beschreibung">2.2. Beschreibung</a></h4>
+Im folgenden soll der Ablauf nochmal textuell beschrieben werden:
+<br />
+<br />
+<ul>
+  <li>
+    Zu Beginn einer Anfrage wird die
+    <a href="./?Seite=013-Grundlagen#Chapter-3-1-Aufbau-Bootstrapdatei" title="Bootstrap-Datei">Bootstrap-Datei</a>
+    (zumeist: index.php) aufgerufen.
+  </li>
+  <li>
+    In dieser wird bei Verwendung des Pagecontrollers das Page-Objekt instanziiert. Bei der Erzeugung
+    des Objekts wird der in der <a href="./?Seite=067-Klassenreferenz-Registry" title="Registry">Registry</a>
+    definierte <a href="./?Seite=087-Filter#Chapter-2-Eingabe-Filter" title="Eingabe-Filter">Eingabe-Filter</a>
+    ausgef&uuml;hrt. Diesem kommt die Aufgabe zu, die Benutzer-Eingaben aufzubereiten (Stichwort:
+    <a href="./?Seite=069-URL-Rewriting" title="URL-Rewriting">URL-Rewriting</a>) und hinsichtlich
+    Sicherheit zu &uuml;berpr&uuml;fen.
+  </li>
+  <li>
+    Mit dem Aufruf der <strong>loadDesign()</strong> wird ein initiales
+    <a href="./?Seite=047-Templates" title="Templates">Template</a> geladen und geparst.
+  </li>
+  <li>
+    Beim Parsen wird nachgesehen, ob das <a href="./?Seite=047-Templates" title="Templates">Template</a>
+    eine <a href="./?Seite=006-Controller" title="DocumentController">DocumentController</a>-Anweisung
+    und weitere <int:link pageid="046">bekannte Tags</int:link> beinhaltet.
+  </li>
+  <li>
+    Ist eine <a href="./?Seite=006-Controller" title="DocumentController">Controller</a>-Anweisungen
+    vorhanden, wird diese extrahiert und die Informationen f&uuml;r die Transformation vorbereitet.
+  </li>
+  <li>
+    Sind <int:link pageid="046">bekannte Tags</int:link> vorhanden,
+    werden diese analysiert und als Kind-Objekte in den aktuellen DOM-Knoten eingehangen.
+  </li>
+  <li>
+    Beim Parsen eines Tags wird die f&uuml;r die Tag-Definition relevante TagLib-Implementierung
+    (PHP-Klasse) instanziiert und ihr werden die Attribute und der Inhalt des Tags mitgegeben.
+    Anschlie&szlig;end wird die Methode <strong>onParseTime()</strong> aufgerufen (siehe
+    <a href="./?Seite=045-TagLibs erstellen" title="TagLibs erstellen">TagLibs erstellen</a>).
+    Die Implementierung der Funktion <strong>onParseTime()</strong> bestimmt dabei &uuml;ber die
+    weitere Vorgehensweise mit den Inhalten des Tags, der wiederum weitere Tags beinhalten kann.
+    Daher wird innerhalb dieser &uuml;blicherweise der Inhalt weiter analysiert, bekannte Tags als
+    Kinder erzeugt...
+  </li>
+  <li>
+    Nach dem Parsen eines Knotens werden die Kinder in den Objektbaum eingehangen und es wird die
+    <strong>onAfterAppend()</strong>-Methode jedes Kindes aufgerufen. In diesem Stadium "kennen"
+    sich die einzelnen Knoten &uuml;ber die <em>$this->__ParentObject</em>- und
+    <em>$this->__Children</em>-Referenzen. In dieser Funktion einer TagLib werden &uuml;blicherweise
+    Operationen platzieren, bei denen ein Vater-Knoten oder ein dem Vater benachbarter Knoten relevant
+    ist.
+  </li>
+  <li>
+    Nach Abschluss der <strong>loadDesign()</strong>-Methode steht ein kompletter APF-DOM-Baum zur
+    Verf&uuml;gung, der aus einer vom Entwickler direkt beeinflussten Anzahl an Knoten und deren
+    Informationen besteht.
+  </li>
+  <li>
+    Der Aufruf von <em>$Page->transform()</em> wird der DOM Baum rekursiv durchlaufen und
+    transformiert. Dabei ist jedes Element f&uuml;r seine Transformation selbst zust&auml;ndig. Da
+    viele Knoten &uuml;blicherweise von der Klasse <strong>Document</strong> ableiten, gestaltet sich
+    der Workflow wie folgt: zun&auml;chst wird &uuml;berpr&uuml;ft, ob f&uuml;r den aktuellen Knoten
+    ein DocumentController definiert wurde. Falls ja, wird die dazu notwendige Klasse eingebunden,
+    ihr werden die n&ouml;tigen Referenzen, Attribute und Inhalte mitgegeben und anschlie&szlig;end
+    wird die Methode <strong>transformContent()</strong> aufgerufen.
+  </li>
+  <li>
+    Nach dem Ausf&uuml;hren des <a href="./?Seite=006-Controller" title="DocumentController">Controllers</a>
+    wird die Liste der Kinder durchlaufen und diese werden ebenso durch den Aufruf der
+    <strong>transform()</strong>-Methode transformiert. Die Knoten steuern dann selbst, in welcher
+    Form die Transformation stattfinden soll. Der Pagecontroller erwartet nur, dass der Aufruf von
+    <strong>transform()</strong> den transformierten Inhalt des Knotens zur&uuml;ckgibt, da dieser
+    vom aufrufenden Knoten verarbeitet wird.
+  </li>
+  <li>
+    Nachdem alle Knoten transformiert wurden steht der fertige HTML-Inhalt zur Ausgabe bereit. Dieser
+    wird dann noch durch den <a href="./?Seite=087-Filter#Chapter-3-Ausgabe-Filter" title="Ausgabefilter">Ausgabefilter</a>
+    - sofern nicht deaktiviert - gefiltert und anschlie&szlig;end ausgegeben.
+  </li>
+</ul>
+<br />
+<br />
+<h3 id="Chapter-3-Hinweis"><a href="#Chapter-3-Hinweis">3. Hinweis auf das Forum</a></h3>
+Weitere Informationen k&ouml;nnen dem Forum-Thread
+&quot;<a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=4&t=62" title="Ein Einfaches Formular erstellen." linkrewrite="false" >Ein Einfaches Formular erstellen.</a>&quot;
+entnommen werden.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_098" />

@@ -1,0 +1,670 @@
+<doku:title parent="100" tags="behind,the,site,tutorial,implementation,example,real,life,taglibs,front,controller,page,controller,multilanguage,perspectives" title="Behind the site" urlname="Behind-the-site">
+  This page describes, how this documentation page is designed and which features of the framework
+  are used. Moreover, daily life problems are discussed and source code examples are presented.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+This page is intended to be a guide to application development. It describes the design of the
+present documentation page and shows, how real life problems can easily be solved using the adventure
+php framework. Further, this page presents several source code examples to you, that can be used for
+your applications, as well.
+<br />
+<br />
+At first, the article describes the software design of the page. After that, the dynamic perspective
+and view concept is discussed. Then, several examples are presented containing source code as well
+as some explanations on this issues.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Software-design"><a href="#Chapter-2-Software-design">2. The software design</a></h3>
+As you have already mentioned, this page features two main layouts: the start page and the documentation
+pages. Some of the elements presented in those - we call them - perspectives are similar, some are not.
+The challenge is now, to structure the software in a way, that you don't have duplicate code. Let us
+at fist have a look at the two perspectives and the areas, that can be defined:
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-1-Start-perspective"><a href="#Chapter-2-1-Start-perspective">2.1. Start perspective</a></h4>
+<img src="http://media.adventure-php-framework.org/content/behind_the_site_01.png" alt="Behind the site - start perspective (APF)" />
+<br />
+<br />
+The areas have the following meaning:
+<ul>
+  <li>
+    <strong>Head</strong>:
+    The head of the page contains the menu and the generic navigation (contact, impress). Within the
+    menu, the search field is presented as well.
+  </li>
+  <li>
+    <strong>Teaser</strong>:
+    The teaser area contains the logo, the claim and some important links.
+  </li>
+  <li>
+    <strong>Tutorials</strong>:
+    The tutorials box contains a list of available tutorials.
+  </li>
+  <li>
+    <strong>Downloads</strong>:
+    The downloads box contains the latest downloads and links to the documentation and the subversion
+    core repository.
+  </li>
+  <li>
+    <strong>Latest</strong>:
+    The latest entries box contains a list of the two latest forum entries and user comments on the
+    documentation. These information are read from the respective databases.
+  </li>
+  <li>
+    <strong>Content 1</strong>:
+    The first content area contains three tabs, that present APF references, a weekly implementation
+    hint and links to related projects.
+  </li>
+  <li>
+    <strong>Content 2</strong>:
+    The second content area features two tabs: a list of articles and the news tab, that contains
+    a short sentence on the news of the adventure php framework's code or the documentation page itself.
+  </li>
+</ul>
+<br />
+<h4 id="Chapter-2-2-Content-perspective"><a href="#Chapter-2-2-Content-perspective">2.2. Content perspective</a></h4>
+<img src="http://media.adventure-php-framework.org/content/behind_the_site_02.png" alt="Behind the site - content perspective (APF)" />
+<br />
+<br />
+The areas have the following meaning:
+<ul>
+  <li>
+    <strong>Head</strong>:
+    The head of the page contains the menu and the generic navigation (contact, impress). Within the
+    menu, the search field is presented as well.
+  </li>
+  <li>
+    <strong>Breadcrump</strong>:
+    The breadcump path shows where you are on the page and presents the home link to you.
+  </li>
+  <li>
+    <strong>Content</strong>:
+    The content area contains the documentation content.
+  </li>
+  <li>
+    <strong>Quicknavi</strong>:
+    The quicknavi area contains a kind of subnavigation that can be used to navigate with a single
+    dcumentation page. Without it, the standard taglibs page would be horrible.
+  </li>
+</ul>
+<br />
+<h4 id="Chapter-2-3-Perspectives-areas-and-views"><a href="#Chapter-2-3-Perspectives-areas-and-views">2.3. Perspectives, areas and views</a></h4>
+The software design of this documentation page differentiates between three types of structural
+elements: the perspectives, the areas and the views. The perspective is the main "layout switch".
+Within each of the two perspectives, the <strong>&lt;*:importdesign/&gt;</strong> tags contained in
+the templates define the areas, that contain the views, that should be presented to the visitor. The
+are is also a simple <strong>&lt;*:importdesign/&gt;</strong> tag definition. The view itself is a
+template, that is intended to generate dynamic content. This concept makes the page flexible and easy
+to maintain and to extend in further times. If you one time decide to add a print perspective, you
+only have to define a new perspective template containing the desired areas!
+<br />
+<br />
+Within this documentation page, the name of the perspective is represened in the global application
+model (<strong>APFModel</strong>) and the area-to-view-mapping is statically. Hence, the main
+template contains a dynamic importdesign tag and the perspective templates only static import
+definitions.
+<br />
+<br />
+Due to the fact, that the head view is used within the start and the content perspective, the menu
+(view-)template is defined globally and imported in each of the two perspective templates. Also the
+generic navigation on the right top is a global (view-)template.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-4-Multilanguage-views"><a href="#Chapter-2-4-Multilanguage-views">2.4. Multilanguage views</a></h4>
+To be able to reuse one template for several languages, the templates mentioned above are created
+language independent. This means, that every template contains place holders, that are filled with
+the language dependet values at transformation time. This can be achieved using the
+<strong>&lt;*:getstring/&gt;</strong> tags or simple place holders that are filled within a document
+controller. Please note, that this function can only be implemented in the way described before,
+because each APF DOM node knows about it's language. Setting the root node to a specific language,
+all the child nodes will be applied this language.
+<br />
+<br />
+The fact of language inheritance within the APF DOM tree is also used here to control the language
+of the view templates. For this reason, a global front controller action is executed on each request
+that checks the language set in the bootstrap file and analyzes the url keywords and thus decides
+which language the page currently has got. The action then manipulates the language param of the
+front controller, and that way the language of the page's DOM tree, too.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-5-Business-layer"><a href="#Chapter-2-5-Business-layer">2.5. Business layer</a></h4>
+As already mentioned above for some times, the documentation page features a dedicated business
+layer, that cares about the perspective to display and the current language of the page. It also
+handles the page sensitive infotmation like html meta data (keywords, description, ...) that are
+used by the perspective controller to fill the meta data.
+<br />
+<br />
+Another task of the business layer is the statistic recording. To achieve this, another action was
+implemented, that reads the relevant information from the application model and stores the request
+in a database table. Te ensure, that the statistic is written after the page is delivered, the
+action is given the type <strong>posttransform</strong>.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Perspective-implementation"><a href="#Chapter-3-Perspective-implementation">3. Perspective implementation</a></h3>
+As we have already discussed the theory of perspectives, this section should give you advice, how to
+implement this concept.
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-1-Main-template"><a href="#Chapter-3-1-Main-template">3.1. Main template</a></h4>
+The main template of the page contains a single import design definition, that uses the application
+model's information to load the suitable persective template:
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="fcon" class="importdesign" /&gt;
+&lt;fcon:importdesign
+      templatenamespace="sites::apfdocupage::pres::templates::perspectives"
+      modelnamespace="sites::apf::biz"
+      modelfile="APFModel"
+      modelclass="APFModel"
+      modelparam="perspective.name"
+/&gt;
+</gen:highlight>
+As you can get from the code box, the <em>pres::templates</em> namespace does not only contain the
+templates of the page, but a subfolder for the perspectives and another subfolder for the view
+templates of each perspective. This is done to have a clean folder structure with clear memberships.
+The following box shows the structure of the <em>sites::apfdocupage</em> namespace:
+<gen:highlight type="apf-xml">
+biz/
+    actions/
+            setmodel/     --> <em>Files for the application model action</em>
+            stat/     --> <em>Files for the statistic action</em>
+data/
+pres/
+     content/     --> <em>Content files for the content view</em>
+     documentcontroller/
+                        global/     --> <em>Controllers for menu and generic navigation</em>
+                        perspectives/     --> <em>Perspective controllers</em>
+                                     content/     --> <em>Controllers of the view templates for the content perspective</em>
+                                     start/     --> <em>Controllers of the view templates for the start perspective</em>
+     quicknavi/     --> <em>Content files for the quicknavi view</em>
+     taglib/     --> <em>Taglibs, that extend the APF's functionality</em>
+     templates/
+               global/     --> <em>Templates for menu and generic navigation</em>
+               perspectives/ <em>Perspective templates</em>
+                            content/     --> <em>View templates for the content perspective</em>
+                            start/     --> <em>View templates for the start perspective</em>
+</gen:highlight>
+<br />
+<h4 id="Chapter-3-2-Perspective-templates"><a href="#Chapter-3-2-Perspective-templates">3.2. Perspective templates</a></h4>
+The perspective templates contain further importdesign statements (=area definitions) to include the
+desired view templates. The include directives are choosen to be static, because the perspectives
+have no need to include dynamic views.
+<br />
+<br />
+The content perspective template looks as follows (shortened):
+<gen:highlight type="apf-xml">
+&lt;@controller namespace="sites::apfdocupage::pres::documentcontroller::perspectives" class="content_perspective_controller" file="content_perspective_controller" @&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;&lt;html:placeholder name="Title" /&gt; :: Adventure PHP Framework (APF)&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+   &lt;div id="head"&gt;
+      &lt;div id="top"&gt;
+      &lt;div id="small_menu"&gt;
+           &lt;core:importdesign namespace="sites::apfdocupage::pres::templates::global" template="smallmenu" /&gt;
+         &lt;/div&gt;
+         &lt;core:importdesign namespace="sites::apfdocupage::pres::templates::global" template="mainnavi" /&gt;
+      &lt;/div&gt;
+   &lt;/div&gt;
+   &lt;div id="page"&gt;
+      &lt;div id="teaser_small"&gt;
+        &lt;core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content" template="breadcrump" /&gt;
+      &lt;/div&gt;
+      &lt;div id="doku_menu"&gt;
+         &lt;div id="doku_menu_content"&gt;
+           &lt;pre&gt;Quicknavi&lt;/pre&gt;
+           &lt;core:addtaglib namespace="sites::apfdocupage::pres::taglib" prefix="html" class="quicknavi" /&gt;
+           &lt;html:quicknavi /&gt;
+         &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div id="doku_page"&gt;
+         &lt;div id="doku_page_content"&gt;
+           &lt;core:importdesign namespace="sites::apfdocupage::pres::templates::perspectives::content" template="bookmark" /&gt;
+           &lt;core:addtaglib namespace="sites::apfdocupage::pres::taglib" prefix="html" class="content" /&gt;
+           &lt;html:content /&gt;
+         &lt;/div&gt;
+      &lt;/div&gt;
+   &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</gen:highlight>
+As you can see, the perspective template defines a document controller, that fills the language
+and/or page dependent values (e.g. title of the page). Moreover, the content and quicknavi content
+is included by special taglibs. Details on these taglibs are discussed in chapter 3.3.
+<br />
+<br />
+The corresponding perspective document controller contains the following code:
+<gen:highlight type="php">
+import('sites::apf::biz','APFModel');
+
+class content_perspective_controller extends baseController
+{
+
+   function transformContent(){
+
+      // get model
+      $Model = &Singleton::getInstance('APFModel');
+
+      // set current title
+      $this->setPlaceHolder('Title',$Model->getAttribute('page.title'));
+
+      ...
+
+   }
+
+}
+</gen:highlight>
+<br />
+<br />
+<h4 id="Chapter-3-3-Additional-taglibs"><a href="#Chapter-3-3-Additional-taglibs">3.3. Additional taglibs</a></h4>
+As already quoted above, the content and quicknavi content is included by special taglibs. The reason
+is, that a normal importdesign tag does not meet the requirements at this point. Let me first give
+you an explanation on the reasons:
+<br />
+The content and quicknavi content files have a special naming convention. This means, that content
+files start with <strong>c_</strong> then containing the id of the page (e.g. <strong>079</strong>)
+and a descriptive name. Quicknavi follow the same naming convention, but start with a <strong>n_</strong>.
+This is because the pages on this documentation page are addressed by their page id. The tow taglibs
+now include application logic, that read the desired content or quicknavi file name from the model,
+read the content and parse the taglibs and document controller directives included there. To not have
+the need to announce tags within each content file, the tags define the known tags within their
+constructor.
+<br />
+<br />
+Here's an example of the content taglib:
+<gen:highlight type="php">
+import('sites::apf::biz','APFModel');
+import('sites::apfdocupage::pres::taglib','php_taglib_highlight');
+import('sites::apfdocupage::pres::taglib','html_taglib_highlight');
+import('sites::apfdocupage::pres::taglib','doku_taglib_link');
+import('sites::apfdocupage::pres::taglib','doku_taglib_title');
+
+class html_taglib_content extends Document
+{
+
+   function html_taglib_content(){
+      parent::Document();
+      $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','php','highlight');
+      $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','html','highlight');
+      $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','doku','link');
+      $this->__TagLibs[] = new TagLib('sites::apfdocupage::pres::taglib','doku','title');
+   }
+
+   function onParseTime(){
+
+      // get model
+      $Model = &Singleton::getInstance('APFModel');
+
+      // include the content of the model's content file in the current object
+      $this->__Content = file_get_contents($Model->getAttribute('content.filepath').'/content/'.$Model->getAttribute('page.contentfilename'));
+
+      // extract tag libs included in the content
+      $this->__extractTagLibTags();
+
+      // extract document controller statements
+      $this->__extractDocumentController();
+
+   }
+
+}
+</gen:highlight>
+This approach gives you the flexibility to include further templates or functionality in the content
+and quicknavi files without changing the inclusion.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Management-of-page-dependent-values"><a href="#Chapter-4-Management-of-page-dependent-values">4. Management of page dependent values</a></h3>
+The flexibility of the software design is built around the business layer and the application model.
+The latter one therefor stores all relevant data, that is needed to display the content and quicknavi,
+but also to fill the page dependent meta tags in the perspective. To achieve this goal, several
+mechanisms were implemented.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-1-Application-model"><a href="#Chapter-4-1-Application-model">4.1. The application model</a></h4>
+The application model is designed to be the central management instance of the present page. Thus,
+the model class defines the relevant parameters as class attributes:
+<gen:highlight type="php">
+class APFModel extends coreObject
+{
+
+   function APFModel(){
+      $this->__Attributes['content.filepath'] = '../apps/sites/apfdocupage/pres';
+      $this->__Attributes['perspective.name'] = 'start';
+      $this->__Attributes['page.language'] = null;
+      $this->__Attributes['page.id'] = null;
+      $this->__Attributes['page.title'] = null;
+      $this->__Attributes['page.urlname'] = null;
+      $this->__Attributes['page.description'] = null;
+      $this->__Attributes['page.tags'] = null;
+      $this->__Attributes['page.contentfilename'] = null;
+      $this->__Attributes['page.quicknavifilename'] = null;
+      $this->__Attributes['page.indicator'] = array(
+                                                    'de' => 'Seite',
+                                                    'en' => 'Page'
+      );
+   }
+}
+</gen:highlight>
+The attributes are then filled by the components described in the chapters 4.2. and 4.3.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-2-Setmodel-action"><a href="#Chapter-4-2-Setmodel-action">4.2. The setmodel action</a></h4>
+The setmodel action is one of the central application components. It is called on every request and
+extracts the url information and sets the
+<ul>
+  <li>page.language</li>
+  <li>perspective.name</li>
+  <li>page.id</li>
+  <li>page.contentfilename</li>
+  <li>page.quicknavifilename</li>
+</ul>
+parameters of the <em>APFModel</em>. When the action is executed, the page controller is invoked by
+the front controller and the document tree is created. Here's the source code of the action:
+<gen:highlight type="php">
+import('sites::apf::biz','APFModel');
+import('tools::request','RequestHandler'); 
+
+class SetModelAction extends AbstractFrontcontrollerAction
+{
+
+   function run(){
+
+      // get model
+      $Model = &Singleton::getInstance('APFModel');
+
+      // register request parameters
+      $PageIndicatorNames = $Model->getAttribute('page.indicator');
+      $PageIndicatorNameDE = $PageIndicatorNames['de'];
+      $PageIndicatorNameEN = $PageIndicatorNames['en'];
+      $CurrentPageIndicators = 
+            RequestHandler::getValues(
+                  array($PageIndicatorNameDE => null,$PageIndicatorNameEN => null));
+
+      // check request parameters and set current language
+      if($CurrentPageIndicators[$PageIndicatorNameDE] != null){
+         $Language = 'de';
+         $Model->setAttribute('page.language',$Language);
+         $this->__ParentObject->set('Language',$Language);
+         $this->__Language = $Language;
+         $Model->setAttribute('perspective.name','content');
+      }
+      elseif($CurrentPageIndicators[$PageIndicatorNameEN] != null){
+         $Language = 'en';
+         $Model->setAttribute('page.language',$Language);
+         $this->__ParentObject->set('Language',$Language);
+         $this->__Language = $Language;
+         $Model->setAttribute('perspective.name','content');
+      }
+      else{
+         // use default language of the front controller
+         $Language = $this->__ParentObject->get('Language');
+         $Model->setAttribute('page.language',$Language);
+         $Model->setAttribute('perspective.name','start');
+      }
+
+      // fill current page id
+      $PageName = $CurrentPageIndicators[$PageIndicatorNames[$Model->getAttribute('page.language')]];
+      $PageID = substr($PageName,0,3);
+      $Model->setAttribute('page.id',$PageID);
+
+      // fill the current content and quicknavi file name
+      $ContentFilePath = $Model->getAttribute('content.filepath');
+      $Model->setAttribute('page.contentfilename',$this->__getFileName($ContentFilePath.'/content','c',$Language,$PageID));
+      $Model->setAttribute('page.quicknavifilename',$this->__getFileName($ContentFilePath.'/quicknavi','n',$Language,$PageID));
+   }
+
+   function __getFileName($ContentFilePath,$Prefix,$Language,$PageID){
+      $ContentFiles = glob($ContentFilePath.'/'.$Prefix.'_'.$Language.'_'.$PageID.'*');
+      if(!isset($ContentFiles[0])){
+         return $Prefix.'_'.$Language.'_404.html';
+      }
+      else{
+         return basename($ContentFiles[0]);
+      }
+   }
+}
+</gen:highlight>
+<br />
+<h4 id="Chapter-4-3-doku-title-taglib"><a href="#Chapter-4-3-doku-title-taglib">4.3. The doku:title taglib</a></h4>
+The <strong>&lt;doku:title /&gt;</strong> tag is indended to store and publish the meta information
+about the current page. To do so, the taglib takes the information if the tag itself and publishes
+them to the model. Due to the fact, that this is done during parse time (see
+<a href="./?Page=045-User-specific-taglibs#Chapter-2-2-Class-methods" title="Taglib class methods">onParseTime()</a>
+for details), the information provided by the tag is available on transformation time and can then be
+taken from the model and written to a desired place holder.
+<br />
+<br />
+The following code box shows the implementation of the taglib:
+<gen:highlight type="php">
+import('sites::apf::biz','APFModel');
+
+class doku_taglib_title extends Document
+{
+
+   var $__Title = null;
+
+   function onParseTime(){
+
+      // get page title
+      if(!isset($this->__Attributes['title']) || empty($this->__Attributes['title'])){
+         trigger_error('[doku_taglib_title::onParseTime()] The attribute "title" is missing. Please provide the page title!',E_USER_ERROR);
+         exit(1);
+      }
+      $this->__Title = $this->__Attributes['title'];
+
+      // get page tags
+      if(!isset($this->__Attributes['tags']) || empty($this->__Attributes['tags'])){
+         trigger_error('[doku_taglib_title::onParseTime()] The attribute "tags" is missing. Please provide the page meta tags!',E_USER_ERROR);
+         exit(1);
+      }
+      $Tags = $this->__Attributes['tags'];
+
+      // get urlname
+      if(!isset($this->__Attributes['urlname']) || empty($this->__Attributes['urlname'])){
+         trigger_error('[doku_taglib_title::onParseTime()] The attribute "urlname" is missing. Please provide url name of the page!',E_USER_ERROR);
+         exit(1);
+      }
+      $URLName = $this->__Attributes['urlname'];
+
+      // get page description
+      if(empty($this->__Content)){
+         trigger_error('[doku_taglib_title::onParseTime()] No page description given in the tag\'s content area. Please provide the page description!',E_USER_ERROR);
+         exit(1);
+      }
+
+      // inform model
+      $Model = &Singleton::getInstance('APFModel');
+      $Model->setAttribute('page.title',$this->__Title);
+      $Model->setAttribute('page.description',str_replace('  ',' ',str_replace("\r",'',str_replace("\n",'',trim($this->__Content)))));
+      $Model->setAttribute('page.tags',$Tags);
+      $Model->setAttribute('page.urlname',$URLName);
+   }
+
+   ...
+
+}
+</gen:highlight>
+<br />
+<h4 id="Chapter-4-4-Meta-tag-display"><a href="#Chapter-4-4-Meta-tag-display">4.4. Meta tag display</a></h4>
+Due to the fact, that the meta information of a specific page is completely described within the model
+on transformation time, it is quite easy to display the page's meta tags in the perspective template.
+For this reason, the controller of the perspective template gets an instance of the model and fills
+the place holders:
+<gen:highlight type="php">
+import('sites::apf::biz','APFModel');
+
+class start_perspective_controller extends baseController
+{
+
+   function transformContent(){
+
+      // get model
+      $Model = &Singleton::getInstance('APFModel');
+
+      ...
+
+      // fill current language
+      $this->setPlaceHolder('Language',$Model->getAttribute('page.language'));
+
+   }
+}
+</gen:highlight>
+<br />
+<h3 id="Chapter-5-Multilanguage-implementation"><a href="#Chapter-5-Multilanguage-implementation">5. Multilanguage implementation</a></h3>
+The multilanguage implementation implementation utilizes the fact, that each APF DOM node knows about
+it's language. This can be used to fill template place holders with language dependent values or
+display templates, that contain content for the desired target language.
+<br />
+<br />
+<br />
+<h4 id="Chapter-5-1-Language-dependent-place-holders"><a href="#Chapter-5-1-Language-dependent-place-holders">5.1. Language dependent place holders</a></h4>
+Language dependency on the layer of place holder is quite easy. Therefore, all language dependent
+content is replaced by place holders and the content of the place holder is filled by a document
+controller. This can be achieved by placing
+<gen:highlight type="apf-xml">
+  &lt;html:placeholder name="MyPlaceHolder" /&gt;
+</gen:highlight>
+in your template and write something like
+<gen:highlight type="php">
+if($this->__Language == 'en'){
+   $this->setPlaceHolder('MyPlaceHolder','My desired content');
+}
+elseif($this->__Language == 'de'){
+   $this->setPlaceHolder('MyPlaceHolder','Mein gewuenschter Inhalt');
+}
+else{
+   $this->setPlaceHolder('MyPlaceHolder','!!! ERROR: no language specific content is present !!!');
+}
+</gen:highlight>
+to the <strong>transform()</strong> method of your document controller.
+<br />
+<br />
+Another approach is to use the <strong>&lt;*:getstring /&gt;</strong> tags. This - im my eyes - very
+elegant method enables you to store the language dependent content within a language configuration
+file. To do so, a language config file must be create containing the desired language sections and
+the relevant translations - each referenced by a configuration key. After that, you can place a
+<strong>&lt;*:getstring /&gt;</strong> in the desired scope (template file, html:template, html:form).
+This procedural method is used within the start perspective's template:
+<gen:highlight type="apf-xml">
+...
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
+&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"&gt;
+&lt;html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de"&gt;
+
+&lt;head&gt;
+  &lt;title&gt;&lt;html:getstring namespace="sites::apfdocupage::pres" config="language" entry="title" /&gt;&lt;/title&gt;
+  &lt;meta http-equiv="content-type" content="text/html; charset=utf-8" /&gt;
+...
+</gen:highlight>
+Here, the title is filled with the language dependent content from the configuration file
+<gen:highlight type="code">/config/sites/apfdocupage/pres/{CONTEXT}/{ENVIRONMENT}_language.ini</gen:highlight>
+<br />
+<h4 id="Chapter-5-2-Language-dependent-templates"><a href="#Chapter-5-2-Language-dependent-templates">5.2. Language dependent templates</a></h4>
+For each of the boxes of the start perspective described in chapter 2.1., one single template is
+stored in the <em>sites::apfdocupage::pres::tenplates::perspectives::start</em> namespace. The
+template file contains two templates, that follow a naming convention. The english content must be
+encapsulated by a template with the name <strong>Content_en</strong>, the german content must be
+included in the <strong>Content_de</strong> template. In order to display the content in language
+dependent manner, the document controller picks the template suitable for the current language and
+displays it. This can be done by
+<gen:highlight type="php">
+class i_box_standard_controller extends baseController
+{
+
+   function transformContent(){
+      $Template__Content = &$this->__getTemplate('Content_'.$this->__Language);
+      $Template__Content->transformOnPlace();
+   }
+
+}
+</gen:highlight>
+<br />
+<h3 id="Chapter-6-Tools-used"><a href="#Chapter-6-Tools-used">6. Tools used</a></h3>
+The follwing list presents the tools used within the implementation of the documentation page. For
+each list entry a brief desciption tells you how and for which tasks the component is used:
+<ul>
+  <li>
+    <strong>Front controller</strong>:
+    <br />
+    The front controller's action mechanism is used to set up the application model before the
+    presentation layer is created. After the page is transformed, the statistic action is called to
+    log each request for future analysis.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>Page controller</strong>:
+    <br />
+    The page controller's flexibility of template handling and DOM tree manipulation is used to
+    implement the perspective-area-view concept.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>connectionManager</strong>:
+    <br />
+    The connectionManager is used to be able to address multiple databases at the same time. This is
+    necessary reading the latest forum and comment entries from different databases on the start
+    perspective's "latest entries" box.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>filesystemHandler</strong>:
+    <br />
+    The filesystemHandler is used to read the release folders and display the release and documentation
+    files on the downloads page.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>LinkHandler</strong>:
+    <br />
+    The LinkHandler is applied to generate dynamic links. This is necessary within the search page.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>FrontcontrollerLinkHandler</strong>:
+    <br />
+    The FrontcontrollerLinkHandler generates the context sensitive links presented in the comments
+    module at the end of (nearly) each documentation page.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>Standard taglibs</strong>:
+    <br />
+    Besides the framework components listet above a lot of standard taglibs are used to ease
+    development. Among these are: <strong>&lt;html:template /&gt;</strong>,
+    <strong>&lt;html:form /&gt;</strong>, <strong>&lt;html:placeholder /&gt;</strong>.
+    <br />
+    <br />
+  </li>
+</ul>
+<br />
+<h3 id="Chapter-7-Source-code"><a href="#Chapter-7-Source-code">7. Source code of the documentation page</a></h3>
+The code of the documentation page can be obtained under
+<doku:link>http://media.adventure-php-framework.org/content/apfdocupage-current-php4.zip</doku:link>.
+Please note, that the documentation page is served on a PHP 4 server. So if you like to run the page
+on your local development box, please be sure to have PHP 4 installed.
+<br />
+<br />
+A current copy of the code can also be checked out from the sourceforge.net subversion repository.
+To do so, please call
+<gen:highlight type="apf-xml">
+svn co https://adventurephpfra.svn.sourceforge.net/svnroot/adventurephpfra/apfdocupage &lt;your_target_folder&gt;
+</gen:highlight>
+on your favourite shell.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_079" />

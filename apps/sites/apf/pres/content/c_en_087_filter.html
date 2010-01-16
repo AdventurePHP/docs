@@ -1,0 +1,225 @@
+<doku:title parent="119" tags="documentation,filter,security" title="Filter" urlname="Filter">
+  Within this documentation chapter, the includes filter mechanisms of the APF are described.
+  Further, the definition of filters, the usage and the configuration of input and output filters
+  with help of the registry is included.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+&quot;Filter&quot; play an important role within the apdventure php framework. In the releases prior
+to the 1.9 branch, filters were already there to secure input and input data, but hidden. Since the
+1.9 release, they can be configured via the registry. Moreover, filters to safeguard form input is
+included now.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Input-filter"><a href="#Chapter-2-Input-filter">2. Input filter</a></h3>
+The input filter group cares about the analysis of the user input, that is embedded in the URL or
+the HTTP protocol (aka POST data). For this reason, the framework includes a set of filter, that
+handle the input in case of url rewriting and normal url usage.
+<br />
+<br />
+The core of the framework has no knowledge about the url layout, because the components rely on the
+<em>$_REQUEST</em> array. This abstraction makes it possible to operate in different url layout
+environments using input filter.
+<br />
+<br />
+The filters can be grouped as follows:
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-1-Pagecontroller-standard-urls"><a href="#Chapter-2-1-Pagecontroller-standard-urls">2.1. Page controller with standard urls</a></h4>
+The easiest typ of filter is used in conjunction with the page controller and normal urls. The
+<strong>StandardRequestFilter</strong> from the <strong>core::filter::input</strong> namespace
+replaces the input values with their HTML entities (see
+<a class="external" href="http://php.net/htmlspecialchars" title="htmlspecialchars()">htmlspecialchars()</a>)
+and executes a
+<a class="external" href="http://php.net/stripcslashes" title="stripcslashes()">stripcslashes()</a>,
+if <em>magic_quotes_gpc</em> is set to <em>1</em> to ensure, that form input is displayed correctly.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-2-Pagecontroller-rewrite-urls"><a href="#Chapter-2-2-Pagecontroller-rewrite-urls">2.2. Page controller with rewrite urls</a></h4>
+In case of rewritten urls, the <strong>PagecontrollerRewriteRequestFilter</strong> from the
+<strong>core::filter::input</strong> namespace handles the user input. This filter decomposes the
+rewrite url and regenerates the <em>$_REQUEST</em> out of this pieces. The filter assumes, that the
+rewritten url uses &quot;/&quot; as an seperator between the key-value-pairs. After that, the
+request array is filterd as with the <strong>StandardRequestFilter</strong> to safeguard the input.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-3-Frontcontroller-standard-urls"><a href="#Chapter-2-3-Frontcontroller-standard-urls">2.3. Front controller with standard urls</a></h4>
+The front controller input filter for default urls analyzes the request, extracts action instructions
+and applies the actions to the front controller. Normal url params are treated identically to the
+page controller filters above. This job is done by the <strong>FrontcontrollerRequestFilter</strong>
+from the <strong>core::filter::input</strong> namespace.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-4-Frontcontroller-rewrite-urls"><a href="#Chapter-2-4-Frontcontroller-rewrite-urls">2.4. Front controller rewrite urls</a></h4>
+Similar to the <strong>PagecontrollerRewriteRequestFilter</strong> the
+<strong>FrontcontrollerRewriteRequestFilter</strong> from the <strong>core::filter::input</strong>
+namespace filters the url whet using the front controller. Thereby, the rewritten action instructions
+and normal url params are extracted and applied to the <em>$_REQUEST</em> array or to the front
+controller.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Output-filter"><a href="#Chapter-3-Output-filter">3. Output filter</a></h3>
+The output filter care about the HTML formatting. Due to the fact, that in this case no differentiation
+between front and page controller must be done, the APF includes only one output filter. In case of
+url rewriting active, the filter rewrites the links and form actions included in the HTML output code.
+This task is done by the <strong>HtmlLinkRewriteFilter</strong> class, that resides in the
+<strong>core::filter::output</strong> namespace. In order to explicitly exclude links, the link attribute
+<strong>linkrewrite</strong> can be set to <strong>false</strong>. As of release 1.10,
+<em>mailto:</em> links are excluded by default.
+<br />
+<br />
+<div class="hint">
+   The <strong>OutputFilter</strong> deliverd with the APF (Class: <em>GenericOutputFilter</em>)
+   uses the <strong>XmlParser</strong> to analyze the HTML links. For this reason, it is necessary
+   that the attributes of a HTML anchor are delimited using &gt;&gt;"&lt;&lt; and the tag definitions
+   must not include <strong>TAB</strong> characters. Otherwise you will be faced with endless loop
+   effects described under
+   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=6&amp;t=213" title="99% CPU-Last bei aktiviertem UrlRewriting">99% CPU-Last bei aktiviertem UrlRewriting</a>
+   (german language forum).
+</div>
+<br />
+<br />
+<h3 id="Chapter-4-Design-and-function"><a href="#Chapter-4-Design-and-function">4. Design and function</a></h3>
+An APF filter is represented by a class, that is derived from the <strong>AbstractFilter</strong>
+class. It must also implement the <strong>filter()</strong> method, that takes one argument:
+the <em>input</em>. The function must return the <em>output</em> at the end.
+<br />
+<br />
+A sample implementation is shown in the subsequent code box:
+<gen:highlight type="php">
+class MySpecialFilter extends AbstractFilter {
+
+   public function filter($input){
+      return $this->__replaceAWithB($input);
+   }
+
+   private function __replaceAWithB($string){
+      return str_replace('a','b',$input);
+   }
+
+}
+</gen:highlight>
+In order to use the filter, it must be created using the <strong>FilterFactory</strong>. The static
+<strong>getFilter()</strong> method expects one argument, that represents the filter definition. This
+parameter must be an instance of the <strong>FilterDefinition</strong> including the namespace and
+the filter's (class- and file-)name.
+<br />
+<br />
+The following example explains the usage of a filter:
+<gen:highlight type="php">
+// define the filter
+$filterDef = new FilterDefinition('my::filter::namespace','MySpecialFilter');
+
+// create the filter
+$filter = FilterFactory::getFilter($filterDef);
+
+// gather the input
+$input = /* ... */
+
+// apply the filter
+$output = $filter->filter($input);
+</gen:highlight>
+The internal structure of a filter is completely delegated to the developer's responsibility.
+<br />
+<br />
+Details on the included default filters can be taken from the API documentation included in every
+release presented on the
+<a href="./?Page=008-Downloads" title="Downloads page">downloads page</a>.
+<br />
+<br />
+<br />
+<h3 id="Chapter-5-Configuration"><a href="#Chapter-5-Configuration">5. Configuration</a></h3>
+The configuration of the input and output filters can be done using the registry. For this reaons,
+the registry namespace <strong>apf::core::filter</strong> contains the following directives:
+<ul>
+  <li>
+    <strong>PageControllerInputFilter</strong>: is executed on page creation while using the page
+    controller.
+  </li>
+  <li>
+    <strong>FrontControllerInputFilter</strong>: is executed on front controller start. Includes the
+    functionality of the <em>PageControllerInputFilter</em> concerning the url rewriting feature.
+  </li>
+  <li>
+    <strong>OutputFilter</strong>: is applied to the generated HTML code after the page is transformed.
+  </li>
+</ul>
+If the developer considers to use his own url layout, this can be achieved using an own filter, that
+is defined as the page controller or front controller input filter. Due to the fact, that the
+configuration is done using the registry, the bootstrap file can be used to apply changes to the
+filter definition. The code box below shows, how the page controller input filter can be adapted:
+<gen:highlight type="php">
+// include page controller
+include('./apps/core/pagecontroller/pagecontroller.php');
+
+// configure registry
+$reg = &Singleton::getInstance('Registry');
+$reg->register(
+   'apf::core::filter',
+   'PageControllerInputFilter',
+   new FilterDefinition('my::filter::namespace','MyPageControllerInputFilter')
+);
+
+// create page and display page
+$page = new Page();
+$page->loadDesign('namespace::of::my::webpage','mytemplate');
+echo $page->transform();
+</gen:highlight>
+In case of the front controller, the adjustment works as follows:
+<gen:highlight type="php">
+// include page controller
+include('./apps/core/pagecontroller/pagecontroller.php');
+
+// include front controller
+import('core::frontcontroller','Frontcontroller');
+
+// configure registry
+$reg = &Singleton::getInstance('Registry');
+$reg->register(
+   'apf::core::filter',
+   'FrontControllerInputFilter',
+   new FilterDefinition('my::filter::namespace','MyFrontControllerInputFilter')
+);
+
+// create front controller and start it
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->start('namespace::of::my::webpage','mytemplate');
+</gen:highlight>
+<strong>Please note:</strong> the configuration of the filter must be done <em>before</em> the page or
+front controller is created!
+<br />
+<br />
+The manipulation of the output filter is identically to the examples above. In this case, the
+registry directove <strong>OutputFilter</strong> must be provided with a new <em>FilterDefinition</em>.
+<br />
+<br />
+If you want to disable the built-in filters, the configuration directives must be set to <em>null</em>:
+<gen:highlight type="php">
+// include page controller
+include('./apps/core/pagecontroller/pagecontroller.php');
+
+// include front controller
+import('core::frontcontroller','Frontcontroller');
+
+// disable all filters (or just parts of it)
+$reg = &Singleton::getInstance('Registry');
+$reg->register('apf::core::filter','PageControllerInputFilter',null);
+$reg->register('apf::core::filter','FrontControllerInputFilter',null);
+$reg->register('apf::core::filter','OutputFilter',null);
+
+...
+</gen:highlight>
+<br />
+<h3 id="Chapter-6-Form-filters"><a href="#Chapter-6-Form-filters">6. Form filters</a></h3>
+Based on the filter definition descibed in chapter 4, the 1.9 branch includes filters on form
+elements. The usage and adaption of these filters is described in the documentation section
+<a href="./?Page=011-Forms#Chapter-5-Form-filters" title="usage of form filters">usage of form filters</a>.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_087" />

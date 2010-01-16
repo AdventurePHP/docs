@@ -1,0 +1,378 @@
+<doku:title parent="100" tags="rss,delivery,page controller,front controller" title="RSS delivery with the APF" urlname="RSS-delivery-with-the-APF">
+  This article deals with RSS streams and the APF tools, that help you to publish your own streams.
+</doku:title>
+This article deals with RSS streams and the APF tools, that help you to publish your own streams.
+For this reason, this page contains two main sections: the first section describes, how the page
+controller can be used to generate XML using a document controller and the second part demonstrates
+the front controller's capability of delivering RSS streams dynamically.
+<br />
+<br />
+<br />
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+By default, RSS streams are just simple xml documents, that follow the RSS specification. A common
+RSS may contain the following content <em>(taken from http://www.weather.com/weather/rss/subscription):</em>
+<gen:highlight type="apf-xml">
+&lt;?xml version="1.0" encoding="ISO-8859-1" ?&gt;
+&lt;rss version="2.0"&gt;
+  &lt;channel&gt;
+    &lt;title&gt;The Weather Channel: National Weather Outlook&lt;/title&gt;
+    &lt;link&gt;&lt;![CDATA[http://www.weather.com/newscenter/fcstsummary.html?cm_ven=NWF&cm_pla=news&cm_ite=fcstsummary&site=news&cm_cat=rss&par=NWF_rss]]&gt;&lt;/link&gt;
+    &lt;description&gt;
+      Since 1982, The Weather Channel has brought timely weather information to the world. Now via our National Weather Outlook RSS feed we can keep you up-to-date on the latest weather affecting the nation, including severe weather alerts and video forecasts with expert commentary, delivered right to your desktop.  The Weather Channel...Bringing Weather To Life
+    &lt;/description&gt;
+    &lt;language&gt;en-us&lt;/language&gt;
+    &lt;copyright&gt;Copyright &copy; 2006, The Weather Channel Interactive, Inc.&lt;/copyright&gt;
+    &lt;pubDate&gt;Tue, 11 Nov 2008 16:44:01 EST&lt;/pubDate&gt;
+    &lt;docs&gt;http://blogs.law.harvard.edi/tech/rss&lt;/docs&gt;
+    &lt;ttl&gt;60&lt;/ttl&gt;
+    &lt;image&gt;
+      &lt;title&gt;The Weather Channel:  National Weather Outlook&lt;/title&gt;
+      &lt;url&gt;&lt;![CDATA[http://image.weather.com/web/common/logos/twci_logo_110x104.jpg?cm_ven=NWF&site=logo&cm_pla=logo&cm_ite=homepage&cm_cat=rss&par=NWF_rss]]&gt;&lt;/url&gt;
+      &lt;link&gt;&lt;![CDATA[http://www.weather.com?cm_ven=NWF&site=logo&cm_pla=logo&cm_ite=homepage&cm_cat=rss&par=NWF_rss]]&gt;&lt;/link&gt;
+      &lt;description&gt;National Weather Outlook from The Weather Channel&lt;/description&gt;
+    &lt;/image&gt;
+    &lt;item&gt;
+	   &lt;title&gt;&lt;![CDATA[ Current Weather Conditions Across The 48 Contiguous United States ]]&gt;&lt;/title&gt;
+	   &lt;link&gt;&lt;![CDATA[ http://www.weather.com/maps/maptype/currentweatherusnational/index_large.html?cm_ven=NWF&cm_cat=rss&cm_pla=map&cm_ite=cc_us&par=NWF_rss&site=map  ]]&gt;&lt;/link&gt;
+      &lt;description&gt;&lt;![CDATA[ Northwest Flood; Central Storm. For more details...  ]]&gt;&lt;/description&gt;
+      &lt;pubDate&gt;Tue, 11 Nov 2008 16:44:01 EST&lt;/pubDate&gt;
+    &lt;/item&gt;
+    ...
+  &lt;/channel&gt;
+&lt;/rss&gt;
+</gen:highlight>
+Analyzing the document's structure, the weather forecast channel presented here, contains some static
+and some dynamic sections. The latter ones have to be filled dynamically to guarantee best actuality.
+<br />
+<br />
+To be compatible with most of the readers, please have a look at
+<ul>
+  <li><doku:link>http://cyber.law.harvard.edu/rss/rss.html</doku:link></li>
+  <li><doku:link>http://www.rss-specifications.com/rss-specifications.htm</doku:link></li>
+</ul>
+to get a detailed idea about the content presented via rss.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Dynamic-rss-generation"><a href="#Chapter-2-Dynamic-rss-generation">2. Dynamic rss generation</a></h3>
+Due to the fact, that XML documents are similar to HTML files, the page controller and it's
+mechanisms can also be used to generate XML output. As we have seen above, the rss content can be
+devided into two main sections: the header including the channel definition and the channel's items.
+This seems to be like a web page with a design template and a content area created by an included
+template.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-1-Definition-of-the-base-document"><a href="#Chapter-2-1-Definition-of-the-base-document">2.1. Definition of the base document</a></h4>
+So let us first of all define the base document. To do so, we create a rss base template and fill it
+with the necessary structural elements mentioned in the of rss specification:
+<gen:highlight type="apf-xml">
+&lt;?xml version="1.0"?&gt;
+&lt;rss version="2.0"&gt;
+   &lt;channel&gt;
+      &lt;title&gt;&lt;/title&gt;
+      &lt;link&gt;&lt;/link&gt;
+      &lt;description&gt;&lt;/description&gt;
+      &lt;language&gt;&lt;/language&gt;
+      &lt;pubDate&gt;&lt;/pubDate&gt;
+
+      &lt;lastBuildDate&gt;&lt;/lastBuildDate&gt;
+      &lt;docs&gt;http://blogs.law.harvard.edu/tech/rss&lt;/docs&gt;
+      &lt;generator&gt;The adventure php framework's page controller&lt;/generator&gt;
+      &lt;managingEditor&gt;&lt;/managingEditor&gt;
+      &lt;webMaster&gt;&lt;/webMaster&gt;
+      ...
+   &lt;/channel&gt;
+&lt;/rss&gt;
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-2-Dynamic-content-generation"><a href="#Chapter-2-2-Dynamic-content-generation">2.2. Dynamic content generation</a></h4>
+To be flexible with the values presented in the stream we add some place holders and a document
+controller, that is instructed to fill them as desired. The template now looks like this:
+<gen:highlight type="apf-xml">
+&lt;@controller namespace="..." file="rss_controller" class="rss_controller" @&gt;
+&lt;?xml version="1.0"?&gt;
+&lt;rss version="2.0"&gt;
+   &lt;channel&gt;
+      &lt;title&gt;&lt;html:placeholder name="title" /&gt;&lt;/title&gt;
+      &lt;link&gt;&lt;html:placeholder name="link" /&gt;&lt;/link&gt;
+      &lt;description&gt;&lt;html:placeholder name="description" /&gt;&lt;/description&gt;
+      &lt;language&gt;&lt;html:placeholder name="language" /&gt;&lt;/language&gt;
+      &lt;pubDate&gt;&lt;html:placeholder name="pubdate" /&gt;&lt;/pubDate&gt;
+
+      &lt;lastBuildDate&gt;&lt;html:placeholder name="lastbuilddate" /&gt;&lt;/lastBuildDate&gt;
+      &lt;docs&gt;http://blogs.law.harvard.edu/tech/rss&lt;/docs&gt;
+      &lt;generator&gt;The adventure php framework's page controller&lt;/generator&gt;
+      &lt;managingEditor&gt;&lt;html:placeholder name="editor" /&gt;&lt;/managingEditor&gt;
+      &lt;webMaster&gt;The name of the great webmaster&lt;/webMaster&gt;
+      ...
+   &lt;/channel&gt;
+&lt;/rss&gt;
+</gen:highlight>
+Before we are going to create the document controller, let me talk about application design in common.
+Typically, your application design features a three layer architecture, where the data layer is
+intended to care about persistent data, the business layer, that controls the application and the
+presentation tier to generate the user interface. In case of good designs, the presentation layer
+is convertible with other implementations or output formats. Despite the powerful HTML and XML
+implementation of the adventure php framework you are free to choose and deploy tools for generating
+other output formats such as PDF. In this case, we can use the built-in mechanisms to generate
+dynamical rss streams.
+<br />
+<br />
+Let us now define the document controller's functionality. As mentioned before, the items of the
+channel are going to be presented by a sub template, that we are discussing later on. So the
+controller's logic filling the place holder looks quite simple:
+<gen:highlight type="php">
+import('namespace::of:my::business::component','BusinessComp');
+
+class rss_controller extends baseController
+{
+
+   function rss_controller(){
+   }
+
+   function transformContent(){
+
+      // create / get the business layer as a service object
+      $bC = &$this->__getServiceObject('namespace::of:my::business::component','BusinessComp');
+
+      // read the channel information
+      $channel = $bC->getChannelInformation('desired_channel');
+
+      // fill the place holders
+      $this->setPlaceHolder('title',$channel->getAttribute('...'));
+      $this->setPlaceHolder('link',$channel->getAttribute('...'));
+      $this->setPlaceHolder('description',$channel->getAttribute('...'));
+      $this->setPlaceHolder('language',$channel->getAttribute('...'));
+      $this->setPlaceHolder('pubdate',$channel->getAttribute('...'));
+      $this->setPlaceHolder('lastbuilddate',$channel->getAttribute('...'));
+      $this->setPlaceHolder('editor',$channel->getAttribute('...'));
+
+   }
+
+}
+</gen:highlight>
+As you can see in the code box, our current application features a business layer, that we use to
+gather the desired data. Please note, that we will use this component for the items as well.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-3-Loading-the-items"><a href="#Chapter-2-3-Loading-the-items">2.3. Loading the items</a></h4>
+Next, we care about the channel's items. As already mentioned before, we can use the business layer
+to load the items for the desired channel and we can use subtemplates to include the item list
+into the main template.
+<br />
+<br />
+For this reason, we update the template definition above like this:
+<gen:highlight type="apf-xml">
+&lt;@controller namespace="..." file="rss_controller" class="rss_controller" @&gt;
+&lt;?xml version="1.0"?&gt;
+&lt;rss version="2.0"&gt;
+   &lt;channel&gt;
+      &lt;title&gt;&lt;html:placeholder name="title" /&gt;&lt;/title&gt;
+      &lt;link&gt;&lt;html:placeholder name="link" /&gt;&lt;/link&gt;
+      &lt;description&gt;&lt;html:placeholder name="description" /&gt;&lt;/description&gt;
+      &lt;language&gt;&lt;html:placeholder name="language" /&gt;&lt;/language&gt;
+      &lt;pubDate&gt;&lt;html:placeholder name="pubdate" /&gt;&lt;/pubDate&gt;
+
+      &lt;lastBuildDate&gt;&lt;html:placeholder name="lastbuilddate" /&gt;&lt;/lastBuildDate&gt;
+      &lt;docs&gt;http://blogs.law.harvard.edu/tech/rss&lt;/docs&gt;
+      &lt;generator&gt;The adventure php framework's page controller&lt;/generator&gt;
+      &lt;managingEditor&gt;&lt;html:placeholder name="editor" /&gt;&lt;/managingEditor&gt;
+      &lt;webMaster&gt;The name of the great webmaster&lt;/webMaster&gt;
+
+      <strong>&lt;core:importdesign namespace="..." template="items" /&gt;</strong>
+
+   &lt;/channel&gt;
+&lt;/rss&gt;
+</gen:highlight>
+The <strong>items</strong> template then contains an iterator tag, that is intended to display the
+list of available items. Do fill the iterator's data container a second document controller is defined
+at the top of the template:
+<gen:highlight type="apf-xml">
+&lt;@controller namespace="..." file="rss_controller" class="rss_items_controller" @&gt;
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="iterator" /&gt;
+&lt;html:iterator name="items"&gt;
+  &lt;iterator:item getter="getAttribute"&gt;
+    &lt;item&gt;
+       &lt;title&gt;&lt;item:placeholder name="title" /&gt;&lt;/title&gt;
+       &lt;link&gt;&lt;item:placeholder name="link" /&gt;&lt;/link&gt;
+       &lt;description&gt;&lt;item:placeholder name="content" /&gt;&lt;/description&gt;
+       &lt;author&gt;&lt;item:placeholder name="author" /&gt;&lt;/author&gt;
+       &lt;pubDate&gt;&lt;item:placeholder name="date" /&gt;&lt;/pubDate&gt;
+    &lt;/item&gt;
+  &lt;/iterator:item&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+The content of the document controller class looks like this:
+<gen:highlight type="php">
+import('namespace::of:my::business::component','BusinessComp');
+import('tools::html::taglib::documentcontroller','iteratorBaseController');
+
+class rss_items_controller extends iteratorBaseController
+{
+
+   function rss_items_controller(){
+   }
+
+   function transformContent(){
+
+      // create / get the business layer as a service object
+      $bC = &$this->__getServiceObject('namespace::of:my::business::component','BusinessComp');
+
+      // read the channel information
+      $channel = $bC->getChannelInformation('desired_channel');
+
+      // get the channel's items
+      $items = $channel->getItems();
+
+      // reference the iterator template
+      $iterator = &$this->__getIterator('items');
+
+      // fill the data container
+      $iterator->fillDataContainer($items);
+
+      // display the item list
+      $iterator->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-4-Conclusion"><a href="#Chapter-2-4-Conclusion">2.4. Conclusion</a></h4>
+To sum things up, the page controller's functionality can also be used to generate XML output instead
+of HTML content. Second, the framework contains various tools, that can help to generate an rss
+stream out of existing content and with help of an application's business component. But please be
+aware, that good software design is a central condition to be able to exchange the presentation! To
+be a bit more explicitly: good software design should be independent of tools or frameworks. :)
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Rss-delivery"><a href="#Chapter-3-Rss-delivery">3. Rss delivery</a></h3>
+Chapter 3 now describes, how the rss stream generated through the APF page controller can be
+presented to the user in a convenient way. For this reason, each content page should get a rss tag.
+When the user clicks on that tag, the content should be presented as an rss stream in a new window.
+<br />
+<br />
+To achieve this, a front controller action can be used to deliver the rss document generated in
+chapter 2. To keep things simple, the action definition contains no input parameters, but reads the
+page id from the "normal" GET params. As an example, the rss stream URL may then look like this:
+<gen:highlight type="code">
+http://adventure-php-framework.org/Page/082-RSS-delivery-with-the-APF/~/my_namespace-action/deliverRSS
+</gen:highlight>
+In order to execute the action described before, we have to ensure, that the bootstrap file uses the
+front controller to create the page output. If this is not the case, please take a look at the
+<a href="./?Page=012-Frontcontroller#Chapter-2-3-Bootstrapping" title="front controller documentation">front controller documentation</a>.
+After having done that, we can define the action configuration for the current context of our
+application and the action implementation. If you are not yet familiar with the implementation of
+front controller actions, take a short break and read about this topic on the
+<a href="./?Page=012-Frontcontroller#Chapter-2-Implementation" title="Front controller implementation">appropriate page</a>.
+<br />
+<br />
+As we have already implemented the major part of the functionality of the action and the action has
+not input params by definition, the implementation of the action is quite easy. The only thing it
+has to do is to extract the page id from the url, create the page and flush the output to the user.
+<br />
+<br />
+You might expect, that this job is not as easy as it sounds. :) This is because the implementation
+above does not contain a page configuration parameter, that is applied to the business component.
+But don't be afraid, there's a very elegant way of injecting this parameter into the DOM tree. To
+get a better understanding, let me say a few words about the DOM tree, the page controller creates:
+<br />
+<br />
+Every template file is searched for known tags. Every tag is then extracted, the taglib implementation
+is executet and the object created in this way is stored as a child node of the current DOM node.
+Due to the fact, that the <em>importdesign</em> tags include functionality to include another template
+file as a new DOM node and parse the tags within that template in the same way, a tree containing
+objects derived from the <strong>Document</strong> class. After the <strong>loadDesign()</strong>
+method is called in the bootstrap file, the complete DOM tree exists in memory and can be manipulated
+using the API functions of the <strong>Page</strong> and <strong>Document</strong> classes. This fact
+enables the developer to subsequently "inject" attributes into the DOM document objects as desired.
+In this simple case, we exactly know the structure of the DOM tree. I consists of the <strong>Page</strong>
+object, the root <strong>Document</strong> and it's child - the items template.
+<br />
+<br />
+<br />
+<h5 id="Chapter-3-1-Param-injection"><a href="#Chapter-3-1-Param-injection">3.1. Parameter injection</a></h5>
+Now, that we know about the characteristics of the DOM tree created by the templates described in
+chapter 2, the parameter injection can be done by the following code snippet:
+<gen:highlight type="php">
+// declare page id
+$id = '001';
+
+// create the DOM tree
+$page = new Page();
+$page->loadDesign('namespace::to::the::desired::template','template_name');
+
+// get the root node of the tree and add attribute
+$doc = &$page->getByReference('Document');
+$doc->setAttribute('page_id',$id);
+</gen:highlight>
+<br />
+<h5 id="Chapter-3-2-Adaption-of-the-rss_controller">3.2. Adaption of the rss_controller</h5>
+Now the <em>rss_controller</em> must be adapted to use the <em>Document</em>'s attribute instead of
+the static channel name. This can be achieved by changing
+<gen:highlight type="php">
+$channel = $bC->getChannelInformation('desired_channel');
+</gen:highlight>
+to
+<gen:highlight type="php">
+$channel = $bC->getChannelInformation($this->__Document->getAttribute('page_id'));
+</gen:highlight>
+<br />
+<h5 id="Chapter-3-3-Adaption-of-the-rss_items_controller">3.3. Adaption of the rss_items_controller</h5>
+In case of the item controller, the parent document must be asked for the page id. Here,
+<gen:highlight type="php">
+$channel = $bC->getChannelInformation('desired_channel');
+</gen:highlight>
+must be changed to
+<gen:highlight type="php">
+$parent = &$this->__Document->getByReference('ParentObject');
+$channel = $bC->getChannelInformation($parent->getAttribute('page_id'));
+</gen:highlight>
+because the document referenced within the items controller is the child of the document node we
+added the secondary attribute to.
+<br />
+<br />
+<br />
+<h5 id="Chapter-3-4-Action-definition"><a href="#Chapter-3-4-Action-definition">3.4. Action definition</a></h5>
+The action implementation now contains to following code:
+<gen:highlight type="php">
+class DeliverRSSAction extends AbstractFrontcontrollerAction
+{
+
+   function run(){
+
+      // get page id (to keep it simple)
+      $id = $_REQUEST['id'];
+
+      // create the DOM tree
+      $page = new Page();
+      $page->loadDesign('namespace::to::the::desired::template','template_name');
+
+      // get the root node of the tree and add attribute
+      $doc = &$page->getByReference('Document');
+      $doc->setAttribute('page_id',$id);
+
+      // transform and display rss stream
+      header('Content-Type: text/xml');
+      echo $page->transform();
+
+      // exit execution, because we're done
+      exit(0);
+
+   }
+
+}
+</gen:highlight>
+<br />
+<h4 id="Chapter-3-5-Conclusion"><a href="#Chapter-3-5-Conclusion">3.5. Conclusion</a></h4>
+Thanks to the clean DOM structure and the capabilities of the front controller it is easy to create
+an rss stream within an exosting application. Moreover, the developer is - also thanks to the front
+controller - not forced to create and maintain several bootstrap or <em>rss.php</em> files to deliver
+the rss content.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_082" />

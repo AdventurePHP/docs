@@ -1,0 +1,106 @@
+<doku:title parent="119" tags="generic or mapper,gorm,or,mapper,update" title="Generic OR mapper - database update" urlname="Generic-OR-mapper-database-update">
+   As of release 1.11, an update tool for the Generic OR mapper is available. The tool can apply
+   changes to the configuration files to an existing database.
+</doku:title>
+<p>
+   As of release 1.11, an update tool for the <int:link pageid="063" /> is available. The tool can
+   apply changes to the configuration files to an existing database.
+</p>
+<p>
+   In case, no automated update is desired, the <em>GenericORMapperUpdate</em> provides a mode, that
+   displays the update statements rather to execute them directly. For huge databases, manual update
+   should be prefered. This is especially true, if index or row updates are included!
+</p>
+<div class="hint">
+   The update tool includes some limitations. For some MySQL versions, columns with DEFAULT values
+   are updated by the GORM update tool even if it is not necessary. This will be fixed in one of
+   the next releases if possible at all. But this fact does not limit the functionality of the tool
+   it self!
+</div>
+<p>
+   The following script shows, how the automated database update can be done with aim of the
+   <strong>GenericORMapperUpdate</strong> tool. If you are searching for an example script, have a look
+   at the <em>/apps/modules/genericormapper/data/tools</em> folder in the <em>apf-codepack-*</em>
+   release. The file is named <em>update.php</em> and must be adapted to your application case:
+</p>
+<gen:highlight type="php">
+// include page controller
+require('../../apps/core/pagecontroller/pagecontroller.php');
+
+// configure the registry if desired
+$reg = &Singleton::getInstance('Registry');
+$reg->register('apf::core','Environment','{ENVIRONMENT}');
+
+// include SetupMapper
+import('modules::genericormapper::data::tools','GenericORMapperUpdate');
+
+// create update tool
+$updateMapper = new GenericORMapperUpdate();
+
+// set Context (important for the configuration files!)
+$updateMapper->set('Context','{CONTEXT}');
+
+// adapt storage engine (default is MyISAM)
+$updateMapper->set('StorageEngine','MyISAM|INNODB');
+
+// update database layout
+$updateMapper->updateDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}','{CONNECTION_NAME}');
+
+// display statements only
+$updateMapper->updateDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}','{CONNECTION_NAME}',false);
+</gen:highlight>
+<p>The place holders within the script have the following meaning:</p>
+<ul>
+  <li>
+    <strong>{ENVIRONMENT}</strong>: This is the environment indicator of the application. It is used
+    for addressing configuration files and must be adopted, if your environment is set to a value
+    different than the default one. For details have a look at the
+    <a href="./?Page=033-Configuration" title="Configuration">configuration chapter</a>.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>{CONTEXT}</strong>: This is the context of the application. It is used for addressing
+    configuration files and must be adopted, if your environment is set to a value different than
+    the default one. For details have a look at the
+    <a href="./?Page=033-Configuration" title="Configuration">configuration chapter</a>.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>{CONFIG_NAMESPACE}</strong>: The namespace, that contains the mapper configuration files
+    (see chapter 2.2).
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>{CONFIG_NAME_AFFIX}</strong>: The name affix for the configuration files (see chapter 2.1).
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>{CONNECTION_NAME}</strong>: The name of the database connection, that is used for the
+    setup and for productional use.
+    <br />
+    <br />
+  </li>
+</ul>
+<p>
+   Further, it is important that the database, that should be initialized, must exist before setup is
+   started. Additionally, the user connecting to the database must have <em>CREATE TABLE</em>,
+   <em>ALTER TABLE</em>- and, if desired, <em>ALTER INDEX</em>-rights.Otherwise, the update could
+   not be done. If no error is displayed during setup, the setup has finished successfully. The
+   result can be checked by using phpMyAdmin or a MySQLAdmin tool.
+</p>
+<div class="warn">
+   Please note some basic rules:
+   <ul>
+      <li>Huge databases should <em>not</em> be updated automatically!</li>
+      <li>
+         Applying column changes, custom indices are not attended and can thus be deleted during
+         update!
+      </li>
+   </ul>
+</div>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_128" />

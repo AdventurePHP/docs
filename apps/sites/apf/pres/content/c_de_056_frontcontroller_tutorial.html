@@ -1,0 +1,368 @@
+<doku:title parent="071" tags="tutorials,frontcontroller,bild auslieferung,login pr&uuml;fung,modelbasiertes gui design" title="Frontcontroller-Tutorial" urlname="Frontcontroller-Tutorial">
+  Das FrontController-Tutorial zeigt auf, wie der FrontController genutzt werden kann. Zu den
+  typischen Anwendungsf&auml;llen geh&ouml;ren Auslieferung von dynamischen Bildern, Pr&uuml;fung
+  von Login-Informationen und Model-basiertes GUI-Design.
+</doku:title>
+<h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einf&uuml;hrung</a></h3>
+Die Frontcontroller-Implementierung des Frameworks kann durch das Timing-Modell f&uuml;r
+unterschiedliche Bereiche eingesetzt werden. Das folgende Diagramm zeigt, wann Actions bei der
+Ausf&uuml;hrung der Frontcontroller-Methode <strong>start()</strong> ausgef&uuml;hrt werden:
+<br />
+<br />
+<a href="http://media.adventure-php-framework.org/content/frontcontroller_timing_model.png" title="Zum Vergr&ouml;&szlig;ern klicken!">
+  <img src="http://media.adventure-php-framework.org/content/frontcontroller_timing_model.png" alt="Frontcontroller timing model" style="width: 560px;" border="0" />
+</a>
+<br />
+<br />
+Das vorliegende Tutorial m&ouml;chte nun Einsatzgebiete des Frontcontrollers aufzeigen und konkrete
+Hinweise f&uuml;r die Implementierungen geben. Als typische Anwendungsf&auml;lle werden nun im
+Folgenden die <strong>Auslieferung von Bildern</strong> und die
+<strong>Pr&uuml;fung von Login-Informationen</strong>, die zum Aufbau eines Applikationsmodels dienen,
+diskutiert.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Bild-Auslieferung"><a href="#Chapter-2-Bild-Auslieferung">2. Auslieferung von Bildern</a></h3>
+Das Framework bietet dem Entwickler mit der Bootstrap-Architektur an, alle Inhalte &uuml;ber eine
+zentrale PHP-Datei ausliefern zu lassen. Je mehr Module eine Applikation besitzt, desto
+gr&ouml;&szlig;er wird der Wunsch, auch PopUp-Fenster mit speziellen Inhalten wie Druck-Ansichten
+oder Formularen, bzw. Medien wie Bilder und Videos &uuml;ber diesen Mechanismus auszuliefern. Um
+derartige Inhalte darstellen zu k&ouml;nnen wird in der Regel eine weitere Bootstrap-Datei f&uuml;r
+das gew&uuml;nschte Modul angelegt, das in den mei&szlig;ten F&auml;llen zur <strong>index.php</strong>
+redundanten Code enth&auml;lt.
+<br />
+<br />
+Mit Hilfe des Frontcontrollers, bzw. einer Frontcontroller-Action, kann diesem Problem Abhilfe
+geschaffen werden. Das Timing-Modell des Frontcontroller-Dispatcher-Prozesses (obiges Diagramm) sieht
+vor, dass eine Action vor dem Erstellen der Pagecontroller-Seite (<strong>prepagecreate</strong>,
+siehe <a href="./?Seite=012-Frontcontroller" title="Frontcontroller">Frontcontroller-Dokumentation</a>)
+ausgef&uuml;hrt werden kann. Der Entwickler ist dabei durch die Gestaltung des HTML-Codes frei, ob
+die mit der Action-Anweisung aufgerufene Seite im selben, oder in einem neuen Fenster erscheinen
+soll. Weiterer Vorteil ist, dass der Programm-Code des pr&auml;sentierten Inhalts im Namespace des
+jeweiligen Moduls abgelegt werden kann und so eine einheitlichere und sauberere Struktur des
+Quellcodes erreicht werden kann. Zudem kann innerhalb einer Action problemlos eine PageController-Seite
+erzeugt, transformiert und ausgegeben werden um den Inhalt eines PopUp-Fensters zu zeigen.
+<br />
+<br />
+Wie in der FrontController-Dokumentation beschrieben ist, wird eine Action durch eine Sektion in einer
+Konfigurationsdatei, einer Action- und einer Input-Klasse definiert. Der Umfang der Input-Klasse
+richtet sich nach dem Umfang der auszuliefernden Applikation, bzw. der zu erledigenden Aufgabe. Im
+Modul <strong>socialbookmark</strong>, das mit jedem Release ausgeliefert wird, wird die im Folgenden
+beschriebene Action zur Auslieferung der Bookmark-Service-Symbole folgende Dateien verwendet. Diese
+soll nun n&auml;her erl&auml;utert werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-1-Action-Konfiguration"><a href="#Chapter-2-1-Action-Konfiguration">2.1. Action-Konfiguration</a></h4>
+Die Datei <strong>DEFAULT_actionconfig.ini</strong> (siehe Ordner
+<em>apps/config/modules/socialbookmark/action/sites/demosite/</em> im
+<strong>adventure-demopack-*</strong>-Release-Package) definiert die Bestandteile der Action und die
+Bezeichnung der Action in der URL. In den Input-Parametern werden Standard-Werte f&uuml;r das
+Input-Objekt definiert, die sp&auml;ter Anwendung finden:
+<gen:highlight type="apf-xml">
+[showImage]
+FC.ActionNamespace = "modules::socialbookmark::biz::actions"
+FC.ActionFile = "ShowImageAction"
+FC.ActionClass = "ShowImageAction"
+FC.InputFile = "ShowImageInput"
+FC.InputClass = "ShowImageInput"
+FC.InputParams = "img:bookmark_del_icio_us|imgext:png"
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-2-Action-Implementierung"><a href="#Chapter-2-2-Action-Implementierung">2.2. Action-Implementierung</a></h4>
+Die Datei <strong>ShowImageAction.php</strong> beinhaltet die Definition des Programm-Codes der
+Action. Im Fall der Bild-Auslieferung wird der Pfad zum angefragten Service-Bilder zusammengesetzt,
+der entsprechende Header und anschlie&szlig;end das Bild selbst gesendet. Um die Verarbeitung nach
+dem Ausliefern des Bildes zu stoppen, wird am Ende ein <strong>exit()</strong> notiert. Andernfalls
+w&uuml;rde die in der <strong>index.php</strong> definierte Seite ausgeliefert werden und der
+Browser k&ouml;nnte das Bild nicht korrekt anzeigen. Folgender Quellcode ist f&uuml;r die Anzeige
+eines Bildes zust&auml;ndig:
+<gen:highlight type="php">
+class ShowImageAction extends AbstractFrontcontrollerAction {
+
+   function ShowImageAction(){
+   }
+
+   function run(){
+
+      // Bild aus dem Input-Objekt beenden
+      $Image = APPS__PATH.'/modules/socialbookmark/pres/image/';
+      $Image .= $this->__Input->getAttribute('img').'.'.$this->__Input->getAttribute('imgext');
+
+      // Header senden
+      header('Content-type: image/'.$this->__Input->getAttribute('imgext'));
+      header('Cache-Control: public');
+
+      // Datei streamen
+      readfile($Image);
+
+      // Abarbeitung beenden
+      exit();
+
+   }
+
+}
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-3-Input-Definition"><a href="#Chapter-2-3-Input-Definition">2.3. Input-Definition</a></h4>
+Die Datei <strong>ShowImageInput.php</strong> beinhaltet die Definition des Input-Objekts, in dem
+die Parameter des Action-Aufrufs bereitgestellt werden. Im Fall der Bild-Auslieferung sind hier keine
+weiteren Parameter-Definitionen notwendig und folgender PHP-Code gen&uuml;gt um die Definition der
+Action zu komplettieren.
+<gen:highlight type="php">
+class ShowImageInput extends FrontcontrollerInput {
+
+   function ShowImageInput(){
+   }
+
+}
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-4-Anwendung"><a href="#Chapter-2-4-Anwendung">2.4. Praktische Anwendung</a></h4>
+Im Socialbookmark-Modul werden die Symbole der Bookmark-Anbieter an den entsprechenden Stellen per
+<gen:highlight type="apf-xml">
+  &lt;img src="/~/modules_socialbookmark-action/showImage/imgext/png/img/bookmark_technorati" alt="" /&gt;
+</gen:highlight>
+eingebunden. Analysiert man den Aufruf der unter 2.2. dargestellten Action, so kommt den Parametern
+folgende Bedeutung zu:
+<ul>
+  <li>
+    <strong>modules_socialbookmark</strong>:
+    Namespace, unter dem die Definition (Konfiguration, siehe 1.1.) der Action gesucht wird.
+    Action-Konfigurationen sind immer Context-abh&auml;ngig und werden daher immer unter dem Verzeichnis
+    <gen:highlight type="apf-xml">{NAMESPACE}/actions/{CONTEXT}</gen:highlight>
+    gesucht.
+  </li>
+  <li>
+    <strong>-action</strong>:
+    Das K&uuml;rzel dient dazu, eine Action-Anweisung in der URL zu identifizieren.
+  </li>
+  <li>
+    <strong>showImage</strong>: Name der Action und gleichzeitig der Name der Sektion der Definition.
+  </li>
+  <li>
+    <strong>imgext</strong>: Parameter <em>imgext</em>
+  </li>
+  <li>
+    <strong>png</strong>: Wert des Parameters <em>imgext</em>
+  </li>
+  <li>
+    <strong>img</strong>: Parameter <em>img</em>
+  </li>
+  <li>
+    <strong>bookmark_technorati</strong>: Wert des Parameters <em>img</em>
+  </li>
+</ul>
+<br />
+<h3 id="Chapter-3-Login-Pruefung"><a href="#Chapter-3-Login-Pruefung">3. Pr&uuml;fung von Login-Informationen</a></h3>
+Frontcontroller-Actions werden in der Regel dazu verwendet ein Applikationsmodel, das den Status der
+Anwendung repr&auml;sentiert, vor der Erzeugung der Pr&auml;sentationsschicht aufzubauen. Hierzu
+bedient sich ein Action aus dem Input-Objekt, das vom Frontcontroller bereitgestellt wird. Falls
+erw&uuml;nscht, k&ouml;nnen in der Konfiguration der Action bereits Standard-Werte f&uuml;r die
+Input-Parameter definiert werden. Diese dienen dann zum Zeitpunkt der Verarbeitung der Action als
+Standard-Attribute.
+<br />
+<br />
+Beim Thema "Pr&uuml;fung von Login-Informationen" besteht die Aufgabe der Action darin, im Request
+mitgesendete Login-Informationen zu pr&uuml;fen oder diese aus bestehenden Sessions oder Cookies
+auszulesen und entsprechend f&uuml;r die Applikation zur Verf&uuml;gung zu stellen. Diese dienen
+dann der &uuml;brigen Businesslogik als Grundlage der Applikationssteuerung und Erzeugung der GUI.
+Frontcontroller-Actions sind dabei als Bestandteil der Business-Logik zu sehen.
+<br />
+<br />
+Das beschriebene Szenario beinhaltet im Wesentlichen zwei "business cases": Login-Informationen
+werden mitgesendet und Login-Informationen m&uuml;ssen aus anderen Quellen (Session, Cookie) bezogen
+und aufbereitet werden. Um einem Benutzer die M&ouml;glichkeit zu geben, sich per Cookie einzuloggen,
+muss die Action bei jedem Request ausgef&uuml;hrt werden. Zu diesem Zweck kann die f&uuml;r das
+Handling der Login-Informationen verantwortliche Action als "permanente" Action registriert werden.
+Dies geschieht in Bootstrap-Datei per
+<gen:highlight type="php">
+   $fC = &Singleton::getInstance('Frontcontroller');
+   $fC->set('Context','my::context');
+   $fC->registerAction('my::namespace','myAction');
+</gen:highlight>
+Die Implementierung der Action besteht auch hier aus drei Komponenten. Im Rahmen von MCV-,
+FrontController- und 3-Schicht-Architektur-basierten Applikationen ist es dabei hilfreich, ein
+zentrales Applikationsmodel zu definieren, das den aktuellen Zustand der Applikation speichert. Dieses
+Objekt kann sp&auml;ter zur Ablaufsteuerung innerhalb der Businessschicht und zur Gestaltung der GUI
+eingesetzt werden.
+<br />
+<br />
+F&uuml;r das Login-Beispiel dient die nachstehend aufgef&uuml;hrte Klasse als Applikationsmodel. Um
+das Beispiel einfache zu gestalten, werden nur folgende Model-Informationen beachtet:
+<gen:highlight type="php">
+class ApplicationModel extends coreObject {
+
+   function ApplicationModel(){
+
+      // Definiert den gerade anzuzeigenden View (login|welcome)
+      $this->__Attributes['view.content.template'] = 'login';
+
+      // User-ID des aktuell eingeloggten Benutzers (null|user_id)
+      $this->__Attributes['user.id'] = null;
+
+      // Definiert die Methode des Logins (request|cookie|session)
+      $this->__Attributes['login.mode'] = 'request';
+
+      // Zeigt, ob ein fehlgeschlagener Login vorliegt
+      $this->__Attributes['login.status'] = null;
+
+   }
+
+}
+</gen:highlight>
+Im Quellcode-Beispiel wird die private Klassenvariable <strong>$__Attributes</strong> als Container
+f&uuml;r Model-Attribute verwendet. Das bietet den Vorteil, dass diese sp&auml;ter durch den
+<strong>&lt;fcon:importdesign /&gt;</strong>-Tag ausgelesen und zur Gestaltung der GUI genutzt werden
+k&ouml;nnen. Details k&ouml;nnen in Kapitel 5 der Sektion
+<int:link pageid="046" /> eingesehen
+werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-1-Action-Konfiguraton"><a href="#Chapter-3-1-Action-Konfiguraton">3.1. Action-Konfiguration</a></h4>
+Um die Action als permanente Action registrieren oder &uuml;ber die URL ansprechen zu k&ouml;nnen,
+muss zun&auml;chst eine Konfigurationssektion angelegt werden. Hierzu kann folgendes Schema als
+Vorlage dienen:
+<gen:highlight type="apf-xml">
+[Login]
+FC.ActionNamespace = "my::module::biz::actions::login"
+FC.ActionFile = "LoginAction"
+FC.ActionClass = "LoginAction"
+FC.InputFile = "LoginInput"
+FC.InputClass = "LoginInput"
+FC.InputParams = ""
+</gen:highlight>
+<br />
+<h4 id="Chapter-3-2-Action-Implementierung"><a href="#Chapter-3-2-Action-Implementierung">3.2. Action-Implementierung</a></h4>
+Die eigentliche Funktionalit&auml;t der Action wird in der <strong>run()</strong>-Methode definiert.
+Folgender Code kann dazu eingesetzt werden:
+<gen:highlight type="php">
+      function run(){
+
+         $_LOCALS = RequestHandler::getValues(array('Username','Password','ID'));
+
+         // Model der Anwendung holen
+         $Model = &$this->__getServiceObject('my::namespace','ApplicationModel');
+
+         // SessionManager erzeugen
+         $Session = new SessionManager('MyApplication');
+
+         // Fall 1: (keine direkte Benutzerinteraktion)
+         //
+         //   a) Daten aus Session sind nicht leer und diese k&ouml;nnen erfolgreich
+         //      validiert werden.
+         //   b) Daten sind nicht in der Session enthalten.
+         //
+         if(!isset($_REQUEST['Login'])){
+
+            // Fall 1.1: Session-Daten auslesen und pr&uuml;fen
+            $Username = $Session->loadSessionData('Username');
+            $Password = $Session->loadSessionData('Password');
+
+            if(!empty($Username) && !empty($Password)){
+
+               if($this->__validateCredentials($Username,$Password)){
+
+                  // Fall 1.1.1: Daten aus Session gewonnen und erfolgreich eingeloggt
+                  $Model->setAttribute('view.content.template','content');
+
+               }
+               else{
+
+                  // Fall 1.1.2: Daten aus Session gewonnen und diese sind nicht valide
+                  $Model->setAttribute('view.content.template','login');
+
+               }
+
+            }
+            else{
+
+               // Fall 1.2: Keine Daten aus Session erh&auml;ltlich
+               $Model->setAttribute('view.content.template','login');
+
+            }
+
+         }
+         else{
+
+            if(myValidator::validateText($_LOCALS['Username']) && myValidator::validateText($_LOCALS['Password'])){
+
+               // Falls 2.1: Versuch eines Logins
+               if($this->__validateCredentials($_LOCALS['Username'],md5($_LOCALS['Password']))){
+
+                  // Fall 2.1.1. Login-Vorgang war erfolgreich
+                  $Model->setAttribute('view.content.template','content');
+
+               }
+               else{
+
+                  // Fall 2.1.2: Login-Vorgang war auf Grund falscher Benutzerdaten NICHT erfolgreich
+                  $Model->setAttribute('view.content.template','login');
+                  $Model->setAttribute('login.status','failed');
+
+               }
+
+            }
+            else{
+
+               // Fall Falls 2.2: Formular wurde unvollst&auml;ndig ausgef&uuml;llt
+               $Model->setAttribute('view.content.template','login');
+
+            }
+
+         }
+
+         // Fall 3: (Logout)
+         //
+         if($this->__Input->getAttribute('action') == 'logout'){
+
+            // Session-Daten l&ouml;schen
+            $Session->destroySession('MyApplication');
+
+            // Benutzerdaten aus lokalem Array l&ouml;schen
+            $_LOCALS['Username'] = '';
+            $_LOCALS['Password'] = '';
+            $_LOCALS['ID'] = '';
+
+            // Login-Formular erzeugen
+            $Model->setAttribute('view.content.template','login');
+
+         }
+
+      }
+</gen:highlight>
+Die im Code-Beispiel verwendeten Framework-Komponenten wie
+<a href="./?Seite=019-Klassenreferenz-SessionManager" title="SessionManager">SessionManager</a>,
+<a href="./?Seite=096-Klassenreferenz-RequestHandler" title="RequestHandler">RequestHandler</a>
+und <a href="./?Seite=029-Klassenreferenz-myValidator" title="myValidator">myValidator</a>
+m&uuml;ssen nat&uuml;rlich zuvor per
+<gen:highlight type="php">
+   import('my::namespace','ApplicationModel');
+   import('core::session','SessionManager');
+   import('tools::request','RequestHandler'); 
+   import('tools::validator','myValidator');
+</gen:highlight>
+eingebunden werden. Die private Methode <strong>__validateCredentials()</strong> kapselt die
+Pr&uuml;fung der Login-Daten mit Hilfe einer Business-Komponente.
+<br />
+<br />
+Um die Model-Informationen &uuml;ber die Session hinweg vorzuhalten, kann das Model auch
+SESSIONSINGLETON erzeugt werden. Damit ist es m&ouml;glich, die Action nur beim Login bzw. Logout
+aufrufen zu m&uuml;ssen, da die Login-Informationen ohnehin &uuml;ber die Session zur Verf&uuml;gung
+stehen. Um dieses Verhalten zu erzeugen muss das Model per
+<gen:highlight type="php">
+   $Model = &$this->__getServiceObject('my::namespace','ApplicationModel','SESSIONSINGLETON');
+</gen:highlight>
+erzeugt werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-3-Input-Definition"><a href="#Chapter-3-3-Input-Definition">3.3. Input-Definition</a></h4>
+Im Fall der Login-Pr&uuml;fung sind keine weiteren Parameter-Definitionen im Input-Objekt notwendig.
+Als Input-Klasse kann daher eine leere, von <strong>FrontcontrollerInput</strong> angeleitete Klasse,
+dienen (siehe 2.3.).
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_056" />

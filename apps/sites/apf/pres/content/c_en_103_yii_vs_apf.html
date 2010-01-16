@@ -1,0 +1,178 @@
+<doku:title parent="100" tags="yii,apf,framework,performance,comparison" title="Yii vs. APF" urlname="Yii-vs-APF">
+  The article Yii. vs APF re-performs the RPS performance test from http://www.yiiframework.com/performance
+  and compares the canditates CakePHP, Yii framework and adventure php framework. The result: the
+  APF is beating them all!
+</doku:title>
+The article <strong>Performance of Yii</strong> under <doku:link>http://www.yiiframework.com/performance</doku:link>
+describes a performance comparison of different PHP frameworks. Due to the fact, that the APF is not
+among the candidates, we decided to empathize the test with the APF. The representative candidates
+are <em>CakePHP 1.2.1.8004</em>,<em>Yii 1.0.2.r614</em> and <em>APF 1.8-2009-01-09-2214</em>. The
+result is summarized within the following picture:
+<br />
+<br />
+<img src="http://media.adventure-php-framework.org/content/yii_vs_apf_rps_benchmark_summary.png" alt="Yii vs. APF - requests per second performance benchmark" />
+<br />
+<br />
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+The measurement of the <em>requests per second</em> particularly stresses the performance overhead
+of using a framework. Generally speaking, this is the performance handicap you get using a framework.
+For this reason, a <em>hello world!</em> application is used for the benchmark. Another nice side
+effect ist, that the analysis of the tests are easy and the code files prepared for the test are
+possibly lack potential design errors (especialle good for greenhorns). Hence, the maximum throughput
+using the framework can be gathered.
+<br />
+<br />
+As the article
+<a href="./?Page=086-How-to-implement-view-based-caching" title="How to implement view based caching">How to implement view based caching</a>
+describes, performance is an important part of web applications. It is even more important, because
+the number of mobile devices grows. The result overview on the Yii page shows a significant difference
+what inspired us to re-perform the test with a few candidates and compare it with the performance of
+the APF.
+<br />
+<br />
+To be able to evaluate the results, the article with the original benchmark on the Yii page can be
+used, as well as the
+<a href="./?Seite=055-PHP-Frameworks-im-Test-7" title="PHP-Frameworks im Test - Zusammenfassung (german)">PHP-Frameworks im Test (german)</a>
+article published on the APF page.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Test-description"><a href="#Chapter-2-Test-description">2. Test description</a></h3>
+<h4 id="Chapter-2-1-Environment"><a href="#Chapter-2-1-Environment">2.1. Environment</a></h4>
+To ensure comparability with the Yii benchmark, the test installation is equal. The test machine is
+a LINUX server (virtual VMWare machine) features the following performance characteristics:
+<gen:highlight type="shell">
+[root@centos53 ~]# cat /etc/redhat-release
+CentOS release 5.2 (Final)
+
+[root@centos53 ~]# cat /proc/meminfo (<em>gek&uuml;rzt!</em>)
+MemTotal:      1035244 kB
+
+[root@centos53 ~]# cat /proc/cpuinfo (<em>gek&uuml;rzt!</em>)
+processor       : 0
+vendor_id       : GenuineIntel
+model name      : Intel(R) Core(TM)2 Duo CPU     T9500  @ 2.60GHz
+cpu MHz         : 2592.732
+cache size      : 6144 KB
+processor       : 1
+vendor_id       : GenuineIntel
+model name      : Intel(R) Core(TM)2 Duo CPU     T9500  @ 2.60GHz
+cpu MHz         : 2592.732
+cache size      : 6144 KB
+
+[root@centos53 ~]# lsscsi
+[0:0:0:0]    disk    VMware,  VMware Virtual S 1.0   /dev/sda
+
+[root@centos53 ~]# df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/mapper/VG_LOCAL-LV_ROOT
+                       18G  2.4G   15G  15% /
+/dev/sda1              99M   18M   77M  19% /boot
+tmpfs                 506M     0  506M   0% /dev/shm
+
+[root@centos53 ~]# rpm -qa | grep -E "httpd|php" (<em>gek&uuml;rzt!</em>)
+php-cli-5.1.6-20.el5_2.1
+php-gd-5.1.6-20.el5_2.1
+php-pecl-memcache-2.2.3-1.el5_2
+php-mysql-5.1.6-20.el5_2.1
+php-common-5.1.6-20.el5_2.1
+httpd-2.2.3-11.el5_2.centos.4
+php-5.1.6-20.el5_2.1
+php-devel-5.1.6-20.el5_2.1
+</gen:highlight>
+The caching of the compiled PHP files (aka. <em>bytecode cache</em>) is done by the current APC version
+(3.0.18) that was compiled from source and is configured with the following parameters:
+<gen:highlight type="shell">
+[root@centos53 ~]# cat /etc/php.d/apc.ini
+extension=apc.so
+apc.enabled=1
+apc.shm_segments=1
+apc.optimization=1
+apc.shm_size=32
+apc.ttl=7200
+apc.user_ttl=7200
+apc.num_files_hint=1024
+apc.mmap_file_mask=/tmp/apc.XXXXXX
+apc.enable_cli=1
+apc.cache_by_default=1
+apc.stat=0
+</gen:highlight>
+As you can see in the last code box, <em>apc.stat</em> is disabled to minimize file system access.
+The configuration directive was choosen like that in the original test, too.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-2-Test-mode"><a href="#Chapter-2-2-Test-mode">2.2. Test mode</a></h4>
+The benchmark indicator is - as in the original test - the maximum request rate. For measurement
+issues, the
+<a class="external" href="http://httpd.apache.org/docs/2.0/programs/ab.html" title="Apache HTTP server benchmarking tool">Apache HTTP server benchmarking tool</a>
+is used. To ensure, that the test is a real world test, the tool simulates 10 parallel users, that
+initiate requests 30 seconds long. Each test candidate was created a seperate VHOST, that was called
+during the test.
+<br />
+<br />
+The test series contained four steps. The first two rounds are intended to gather the maximum
+requests per second without <em>byte code caching</em>, the latter ones show the performance boost
+using APC. Between the tests, the apache webserver was restarted to guarantee identical start
+conditions. In order to be not too idealistic, &quot;warmup&quot; was not done, because applications
+in real life environments do not have the chance to warmup either. During the test execution, no
+additional programs or daemons were executed.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Result"><a href="#Chapter-3-Result">3. Result</a></h3>
+<h4 id="Chapter-3-1-Overview"><a href="#Chapter-3-1-Overview">3.1. Overview</a></h4>
+The detailed result is depicted in the following image including the absolute values:
+<br />
+<br />
+<img src="http://media.adventure-php-framework.org/content/yii_vs_apf_rps_benchmark.png" alt="Yii vs. APF - requests per second performance benchmark" />
+<br />
+<br />
+<h4 id="Chapter-3-2-Details"><a href="#Chapter-3-2-Details">3.2. Details</a></h4>
+The following list contains an interpretation on the results:
+<ul>
+  <li>
+    The difference between CakePHP and Yii seems to be identical to the Yii performance benchmark.
+  </li>
+  <li>
+    The optimization factor of the APF using APC is not as big as with CakePHP and Yii (APF:
+    1005/239 (~420%) and Yii: 936/119 (~780%)). This effect has already been discussed in the
+    <a href="./?Page=083-Zend-framework-1-7-rc-vs-apf-1-8-beta" title="Zend framework 1.7rc vs. APF 1.8-BETA (english)">Zend framework 1.7rc vs. APF 1.8-BETA</a>
+    article.
+    <br />
+    <strong>Nevertheless, the absolut performance indicator is about 100% higher without APC and
+    roughly 8% higher using APC.</strong>
+  </li>
+  <li>
+    Yii claims, that the huge performance difference results from the architecture. This is also true
+    for the APF. Please note, that the results for Yii turn worse, if <em>apc.stat</em> is enabled.
+    Thus, the performance difference add up to 13% in favor to the APF. This leads to the conclusion,
+    thet the <em>lazy class loading</em> of Yii is quite good, but the segmentation of the class file
+    is some kind of 	unfortunate.
+  </li>
+  <li>
+    Further, the APF always uses template files to create the internal DOM tree per design. Hence,
+    there is no chance (except with a front controller action) to generate the content by a controller
+    directly. This means more file IO, that has to be initiated by the APF components. If we now add
+    a <em>file_get_contents()</em> to the Yii controller to read the content from a text file, the
+    performance indicators turn worse and the APF appears to be about 13% to 17% faster.
+  </li>
+</ul>
+<br />
+<h3 id="Chapter-4-Files"><a href="#Chapter-4-Files">4. Files</a></h3>
+The list presented below includes all relevant files, that were created for the test. These can be
+used to repeat it on your machine:
+<ul>
+  <li><a href="http://media.adventure-php-framework.org/content/rps_performance_benchmark_apf_1_8.tar.gz" title="rps_performance_benchmark_apf_1_8.tar.gz">rps_performance_benchmark_apf_1_8.tar.gz</a></li>
+  <li><a href="http://media.adventure-php-framework.org/content/rps_performance_benchmark_cake_1_2_1.tar.gz" title="rps_performance_benchmark_cake_1_2_1.tar.gz">rps_performance_benchmark_cake_1_2_1.tar.gz</a></li>
+  <li><a href="http://media.adventure-php-framework.org/content/rps_performance_benchmark_yii_1_0_2.tar.gz" title="rps_performance_benchmark_yii_1_0_2.tar.gz">rps_performance_benchmark_yii_1_0_2.tar.gz</a></li>
+  <li><a href="http://media.adventure-php-framework.org/content/rps_performance_benchmark_configfiles.tar.gz" title="rps_performance_benchmark_configfiles.tar.gz">rps_performance_benchmark_configfiles.tar.gz</a></li>
+  <li><a href="http://media.adventure-php-framework.org/content/rps_performance_benchmark_resultfiles.tar.gz" title="rps_performance_benchmark_resultfiles.tar.gz">rps_performance_benchmark_resultfiles.tar.gz</a></li>
+</ul>
+The first three files contain the code files of the test candidates, <em>*configfiles.tar.gz</em>
+includes the server configuration files and in <em>*resultfiles.tar.gz</em> you can find the result
+files of the benchmark tool.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_103" />

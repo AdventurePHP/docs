@@ -1,0 +1,94 @@
+<doku:title parent="119" tags="dokumentation,module,captcha,gaestebuch,pager,kommentar,social bookmarking,usermanagement" title="Socialbookmarking" urlname="Socialbookmarking">
+  Unter das Schlagwort <strong>Web 2.0</strong> fallen vor allem Funktionen, die eine
+  Benutzer-Interaktion mit einer Webseite verbessern. Zu diesem Bereich geh&ouml;rt auch das
+  Socialbookmarking, das auf Seiten wie http://del.icio.us, http://www.mister-wong.de oder
+  http://www.technorati.com als Internet-Service angeboten wird. Um es einem Benutzer zu
+  erleichtern eine Seite zu bei den genannten Services zu bookmarken wurde das Modul erstellt.
+  Dieses erzeugt beispielsweise die oben neben dem Druck-Symbol angezeigten Bookmark-Symbole.
+</doku:title>
+Unter das Schlagwort <strong>Web 2.0</strong> fallen vor allem Funktionen, die eine Benutzer-Interaktion
+mit einer Webseite verbessern. Zu diesem Bereich geh&ouml;rt auch das "Socialbookmarking", das auf
+Seiten wie <em>http://del.icio.us/</em>, <em>http://www.mister-wong.de/</em> oder
+<em>http://www.technorati.com/</em> als Internet-Service angeboten wird. Um es einem Benutzer zu
+erleichtern eine Seite zu bei den genannten Services zu bookmarken wurde das Modul erstellt. Dieses
+erzeugt beispielsweise die oben neben dem Druck-Symbol angezeigten Bookmark-Symbole.
+<br />
+<br />
+<br />
+<h4 id="Chapter-5-1-Konfiguration"><a href="#Chapter-5-1-Konfiguration">5.1. Konfiguration</a></h4>
+Um das Modul mit der mit dem Release ausgelieferten Demo-Seite einsetzen zu k&ouml;nnen ist
+zun&auml;chst keine Konfiguration notwenig. M&ouml;chte der Entwickler das Modul in seine Webseite
+einbinden zu k&ouml;nnen m&uuml;ssen zwei Konfigurations-Dateien &uuml;bernommen werden:
+<ul>
+  <li>
+    <strong>/apps/config/modules/socialbookmark/actions/sites/demosite/DEFAULT_actionconfig.ini</strong>
+    <br />
+    Die Konfigurations-Datei <em>DEFAULT_actionconfig.ini</em> enth&auml;lt die Action-Definition
+    f&uuml;r die Action, die die Auslieferung der Bookmark-Bilder &uuml;bernimmt. Diese liest die
+    Bilder im Ordner <em>/apps/modules/socialbookmark/pres/image</em> aus uns stellt diese dar.
+    Wichtig dabei ist, dass die Anwendung nur in FrontController-basierte Projekte eingebunden werden
+    kann, da die Auslieferung der Bilder sonst nicht funktioniert.<br />
+    Die Datei bzw. der Ordner-Pfad unterhalb von <strong>/apps/config/modules/socialbookmark/</strong>
+    m&uuml;ssen ggf. umbenannt werden, wenn die Umgebungsvariable der Registry bzw. der Context der
+    Applikation anders gesetzt ist.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>/apps/config/modules/socialbookmark/sites/demosite/DEFAULT_bookmarkservices.ini</strong>
+    <br />
+    Die Datei <em>DEFAULT_bookmarkservices.ini</em> enth&auml;lt die Definition der Bookmark-
+    Services. Pro Service muss ein eigener Abschnitt existieren, der nach dem in der Datei ersichtlichen
+    Schema bef&uuml;llt sein muss:
+    <gen:highlight type="apf-xml">[Mr. Wong]
+BookmarkService.BaseURL = "http://www.mister-wong.de/index.php?action=addurl"
+BookmarkService.Param.URL = "bm_url"
+BookmarkService.Param.Title = "bm_description"
+BookmarkService.Display.Title = "Bookmark &#64; Mr. Wong"
+BookmarkService.Display.Image = "bookmark_mister_wong"
+BookmarkService.Display.ImageExt = "png"</gen:highlight>
+    Die Datei bzw. der Ordner-Pfad unterhalb von <strong>/apps/config/modules/socialbookmark/</strong>
+    m&uuml;ssen ggf. umbenannt werden, wenn die Umgebungsvariable der Registry bzw. der Context der
+    Applikation anders gesetzt ist.
+  </li>
+</ul>
+Weitere Konfigurationen sind nicht notwendig.
+<br />
+<br />
+<br />
+<h4 id="Chapter-5-2-Anwendung"><a href="#Chapter-5-2-Anwendung">5.2. Anwendung</a></h4>
+Um die konfigurierten Bookmarkservices anzeigen zu k&ouml;nnen gibt es zwei M&ouml;glichkeiten:
+Verwendung des <strong>socialBookmarkManager</strong>s oder der TagLib. Der <em>socialBookmarkManager</em>
+muss dabei als Service-Objekt erzeugt werden.
+<gen:highlight type="php">
+   //
+   // Bookmark-Manager holen
+   //
+   $sBM = &$this->__getServiceObject('modules::socialbookmark::biz','socialBookmarkManager');
+
+
+   //
+   // Parameter konfigurieren (optional)
+   //
+   $sBM->set('Width','20'); // Breite der Bookmark-Icons
+   $sBM->set('Height','20'); // H&ouml;he der Bookmark-Icons
+   $sBM->set('URL','http://www.example.com'); // URL der zum Bookmarking angebotenen Seite
+   $sBM->set('Title','Titel der Seite'); // Titel der zum Bookmarking angebotenen Seite
+   $sBM->set('Target','_blank'); // Ziel-Fenster der Bookmarking-Links
+
+
+   //
+   // Bookmark-Quelltext erzeugen
+   //
+   $BookmarkServices = $sBM->getBookmarkCode();
+</gen:highlight>
+Die einfachere Anwendung ist die Verwendung des Tags. Dieser kann mit den Attributen <strong>width</strong>
+und <strong>height</strong> parametrisiert werden. Vor der Anwendung muss die TagLib per
+<strong>&lt;core:addtaglib /&gt;</strong> eingebunden werden:
+<gen:highlight type="apf-xml">
+  &lt;core:addtaglib namespace="modules::socialbookmark::pres::taglib" prefix="social" class="bookmark" /&gt;
+  &lt;social:bookmark [width=""] [height=""] [url=""] [title=""] [target=""] /&gt;
+</gen:highlight>
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_093" />

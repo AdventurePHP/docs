@@ -1,0 +1,75 @@
+<doku:title parent="119" tags="dokumentation,klassen referenz,klassen,referenz,singleton,registry" title="Registry" urlname="Registry">
+  Die Registry (siehe registry pattern) dient im Adventure PHP Framework als zentrale Stelle f&uuml;r
+  die Speicherung von Konfigurationsparametern. Parameter sind in diesem Zusammenhang sowohl einfache
+  Datentypen wie Zeichenketten und Zahlen als auch Objekte. Die Registry wird von den core- und
+  tools-Komponenten dazu verwendet, die Konfigurationsdirektiven URLRewriting, URLBasePath,
+  Environment, LogDir und LibPath im Namespace apf::core vorzuhalten. Die Registry dient jedoch
+  nicht nicht nur als globale Speicherstelle f&uuml;r die Parameter des Frameworks, sondern kann
+  auch in Applikationen zur Speicherung von Applikationskonfigurationen verwendet werden.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+Die <strong>Registry</strong> (siehe registry pattern) dient im Adventure PHP Framework als zentrale
+Stelle f&uuml;r die Speicherung von Konfigurationsparametern. Parameter sind in diesem Zusammenhang
+sowohl einfache Datentypen wie Zeichenketten und Zahlen als auch Objekte. Die <strong>Registry</strong>
+wird von den core- und tools-Komponenten dazu verwendet, die Konfigurationsdirektiven
+<ul>
+  <li><strong>URLRewriting</strong> (Konfiguration des URL-Rewriting)</li>
+  <li><strong>URLBasePath</strong> (Pfad zur aktuellen Anwendung)</li>
+  <li><strong>Environment</strong> (Umgebungsvariable f&uuml;r die Konfiguration)</li>
+  <li><strong>LogDir</strong> (Pfad zum Log-Verzeichnis)</li>
+  <li><strong>LibPath</strong> (Pfad zu den Quellcode-Dateien)</li>
+  <li><strong>CurrentRequestURL</strong> (Vollst&auml;ndige Request-URL)</li>
+</ul>
+im Namespace <strong>apf::core</strong> vorzuhalten. Die Registry dient jedoch nicht nicht nur als
+globale Speicherstelle f&uuml;r die Parameter des Frameworks, sondern kann auch in Applikationen zur
+Speicherung von Applikationskonfigurationen verwendet werden.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Einsatz-der-Registry"><a href="#Chapter-2-Einsatz-der-Registry">2. Einsatz der Registry</a></h3>
+Um die Registry als zentrale Komponente nutzen zu k&ouml;nnen, muss diese <em>SINGLETON</em> erstellt
+werden. Da die Registry bereits im PageController eingebunden und initialisiert wird, gen&uuml;gt ein
+einfaches
+<gen:highlight type="php">
+$Reg = &Singleton::getInstance('Registry');
+</gen:highlight>
+um eine Referenz auf die Singleton-Instanz der Registry im aktuellen G&uuml;ltigkeitsbereich zu
+beziehen. Anschlie&szlig;end dient die Methode <strong>register()</strong> bereits vorhandene Werte
+zu manipulieren oder neue Werte hinzuzuf&uuml;gen. Die Funktion <strong>retrieve()</strong> bezieht
+Werte aus der Registry. Um eine definierte Abgrenzung zwischen Wertebereichen zu schaffen, besitzt die
+Registry Namespaces. Um auch bei der Verwendung durch weitere Applikationen keine &Uuml;berschneidung
+von Wertebereichen zu generieren, ist es ratsam, den Namespace der Applikation als Namespace in der
+Registry zu verwenden.
+<br />
+<br />
+Um die oben genannten Standard-Werte zu manipulieren, kann folgender PHP-Code eingesetzt werden:
+<gen:highlight type="php">
+$Reg = &Singleton::getInstance('Registry');
+$Reg->register('apf::core','URLRewriting',true);
+$Reg->register('apf::core','URLBasePath','http://example.com/folder');
+$Reg->register('apf::core','Environment','TESTSERVER');
+$Reg->register('apf::core','LogDir','/path/to/my/log/dir');
+</gen:highlight>
+Bei der Manipulation der Standard-Werte oder auch von eigenen Registry-Eintr&auml;gen ist darauf zu
+achten, dass diese vor dem Erstellen des Page- bzw. FrontControllers ge&auml;ndert werden.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Schreibschutz"><a href="#Chapter-3-Schreibschutz">3. Schreibschutz</a></h3>
+Um bei Eintr&auml;gen f&uuml;r eigene Applikationen sicher gehen zu k&ouml;nnen, dass diese w&auml;hrend
+der Laufzeit nicht mehr ver&auml;ndert werden k&ouml;nnen, bietet die Registry einen Schreibschutz.
+Dieser kann mit einem optionalen Parameter bei der Bef&uuml;llung eines Wertes aktiviert werden und
+bleibt bis zum Ende des Requests erhalten. Hierzu kann folgendes Beispiel als Quellcode-Vorlage
+hinzugezogen werden:
+<gen:highlight type="php">
+// Referenz auf die Registry beziehen
+$Reg = &Singleton::getInstance('Registry');
+
+// Wird erfolgreich durchgef&uuml;hrt
+$Reg->register('modules::mymodule','MyModuleID',1,true);
+
+// Erzeugt einen Fehler
+$Reg->register('modules::mymodule','MyModuleID',2);
+</gen:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_067" />

@@ -1,0 +1,269 @@
+<doku:title parent="100" tags="migration,1.8,1.9,api,aenderung,neue features" title="Migration von 1.8 auf 1.9" urlname="Migration-von-1-8-auf-1-9">
+  Der vorliegende Artikel zeigt die &Auml;nderungen, die bei Upgrade auf die Version 1.9 an
+  bestehender Software vorgenommen werden m&uuml;ssen.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+In der Version 1.9 sind einige &Auml;nderungen enthalten, die nicht API-konform sind. Daher ist es
+notwendig, bestehende Anwendungen anzupassen. Die folgenden Kapitel beschreiben die notwendigen
+Updates und geben Hinweise auf die neu im Release vorhandenen Features.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Entfernen-variablenHandler"><a href="#Chapter-2-Entfernen-variablenHandler">2. Entfernen des variablenHandler</a></h3>
+Wie den Release-Notes zu entnehmen ist, wurde die veraltete Komponente <strong>variablenHandler</strong>
+entfernt. Als Abl&ouml;sung dient die Klasse
+<a href="./?Seite=096-Klassenreferenz-RequestHandler" title="Klassenferenerenz - RequestHandler">RequestHandler</a>,
+die eine sehr &auml;hnliche Funktion bereitstellt.
+<br />
+<br />
+Die Migration vom <strong>variablenHandler</strong> auf den <strong>RequestHandler</strong> gestaltet
+sich wegen der nahezu identischen API sehr einfach. Im Quellcode muss dabei lediglich
+<gen:highlight type="php">
+$myVar = variablenHandler::registerLocal(...);
+</gen:highlight>
+durch
+<gen:highlight type="php">
+$myVar = RequestHandler::getValues(...);
+</gen:highlight>
+ersetzt werden. Weiterhin muss das import()-Statement
+<gen:highlight type="php">
+import('tools::variablen','variablenHandler');
+</gen:highlight>
+durch
+<gen:highlight type="php">
+import('tools::request','RequestHandler');
+</gen:highlight>
+ausgetauscht werden. Die &Auml;nderungen k&ouml;nnen daher durch &quot;<em>search&replace</em>&quot;
+vorgenommen werden.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Umstieg-auf-FilesystemManager"><a href="#Chapter-3-Umstieg-auf-FilesystemManager">3. Umstieg auf den FilesystemManager</a></h3>
+Der Umstieg von der veralteten Komponente <strong>filesystemHandler</strong> auf den neu
+hinzugekommenen <strong>FilesystemManager</strong> gestaltet sich etwas aufwendiger. Hier hat sich
+nicht nur der Name der Klasse und der Methoden ge&auml;ndert, sondern auch die Funktionalit&auml;t.
+<br />
+<br />
+Die folgende Tabelle zeigt die &Auml;nderungen der Methoden und deren Signaturen:
+<br />
+<br />
+<style type="text/css">
+.api_changes
+{
+   width: 99%;
+   position: relative;
+   font-size: 11px;
+}
+
+.api_changes td
+{
+   padding: 5px;
+   border-bottom: 1px dashed gray;
+}
+
+.filled
+{
+   background-color: lightgray;
+   font-weight: bold;
+}
+</style>
+<table cellpadding="0" cellspacing="0" class="api_changes">
+  <tr>
+    <td class="filled">Methode des filesystemHandler (alt)</td>
+    <td class="filled">Methode des FilesystemManager (neu)</td>
+  </tr>
+  <tr>
+    <td>deleteFolderRecursive(<em>$folder = ''</em>)</td>
+    <td>deleteFolder(<em>$folder</em>[,<em>$recursive = true</em>])</td>
+  </tr>
+  <tr>
+    <td>deleteWorkDir()</td>
+    <td>deleteFolder(<em>$folder</em>[,<em>$recursive = false</em>])</td>
+  </tr>
+  <tr>
+    <td>changeWorkDir([<em>$folder = '.'</em>])</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>renameFile(<em>$fileName</em>,<em>$newFileName</em>)</td>
+    <td>renameFile(<em>$sourceFile</em>,<em>$targetFile</em>[,<em>$force = false</em>])</td>
+  </tr>
+  <tr>
+    <td>getAffectedFiles()</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>deleteFiles(<em>$files = array()</em>)</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>-</td>
+    <td>removeFile(<em>$file<em>)</td>
+  </tr>
+  <tr>
+    <td>copyFile(<em>$sourceFile</em>,<em>$targetFile</em>)</td>
+    <td>copyFile(<em>$sourceFile</em>,<em>$targetFile</em>[,<em>$force = false</em>])</td>
+  </tr>
+  <tr>
+    <td>showFileSize($<em>$file<em>)</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>showDirContent()</td>
+    <td>getFolderContent(<em>$folder</em>[,<em>$fullpath = false</em>])</td>
+  </tr>
+  <tr>
+    <td>showDirSize()</td>
+    <td>showFolderSize(<em>$folder</em>)</td>
+  </tr>
+  <tr>
+    <td>showDirContentCount()</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>showFileAttributes(<em>$file<em>)</td>
+    <td>getFileAttributes(<em>$file<em>[,<em>$attributeName = null</em>)]</td>
+  </tr>
+  <tr>
+    <td>deleteWorkDir()</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>isFileNameUnique(<em>$folder</em>,<em>$fileName</em>)</td>
+    <td>-</td>
+  </tr>
+</table>
+<br />
+<br />
+<strong>Anmerkungen:</strong>
+<ul>
+  <li>
+    <strong>renameFile()</strong>: <em>$sourceFile</em> und <em>$targetFile</em> m&uuml;ssen qualifizierte Pfad-Angaben
+    enthalten. Ist der dritte Parameter auf <em>true</em> gesetzt, so wird die u.U. vorhandene
+    Zieldatei &uuml;berschrieben.
+  </li>
+  <li>
+    <strong>removeFile()</strong>: <em>$file</em> muss eine qualifizierte Pfad-Angabe enthalten.
+  </li>
+  <li>
+    <strong>copyFile()</strong>: <em>$sourceFile</em> und <em>$targetFile</em> m&uuml;ssen qualifizierte Pfad-Angaben
+    enthalten. Ist der dritte Parameter auf <em>true</em> gesetzt, so wird die u.U. vorhandene
+    Zieldatei &uuml;berschrieben.
+  </li>
+  <li>
+    Die Methode <strong>uploadFile()</strong> beh&auml;lt ihre Signatur, jedoch muss der Name der Ziel-Datei
+    selbst&auml;ndig auf Korrektheit (z.B. erlaubte Zeichen) &uuml;berpr&uuml;ft werden. Zudem gibt
+    die Funktion nun nur noch <em>true</em> bzw. <em>false</em>, nicht jedoch den Pfad zur Zieldatei
+    zur&uuml;ck.
+  </li>
+  <li>
+    Die Methode <strong>getFileAttributes()</strong> gibt ein assoziatives Array mit Attributes zur&uuml;ck.
+    Falls der zweite Parameter den Namen eines Attributes enth&auml;lt, wird statt der Liste der
+    Wert desselben zur&uuml;ckgegeben.
+  </li>
+  <li>
+    Die in der Komponente <strong>FilesystemManager</strong> enthaltenen Methoden sind alle statisch.
+  </li>
+</ul>
+<br />
+Die Verwendung der neuen Klasse kann der
+<a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a> oder der
+<a href="./?Seite=085-Klassenreferenz-FilesystemManager" title="Klassenreferenz - FilesystemManager">Klassenreferenz</a>
+entnommen werden.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Aenderungen-Pager"><a href="#Chapter-4-Aenderungen-Pager">4. &Auml;nderungen des Pagers</a></h3>
+Das Release 1.9 enth&auml;lt mehrere Kompatibilit&auml;ts&auml;nderungen am Pager.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-1-Aenderung-der-Konfiguration"><a href="#Chapter-4-1-Aenderung-der-Konfiguration">4.1. &Auml;nderung der Konfiguration</a></h4>
+Um die neuen Version des Pagers mit dem <em>GenericORMapper</em> verwenden zu k&ouml;nnen, wurde der
+Datenbank-Zugriff auf den <em>ConnectionManager</em> umgestellt. Des Weiteren k&ouml;nnen zur
+Steigerung der Performance des Pagers die Ergebnisse der Datenbank-Abfragen in der Session
+zwischengespeichert werden. Hierzu wird der <em>SessionManager</em> eingesetzt.
+<br />
+<br />
+Um die erweiterte Version des Pagers nutzen zu k&ouml;nnen, m&uuml;ssen in den bestehenden
+Konfigurationsdateien zwei daf&uuml;r verwendete Parameter erg&auml;nzt werden. Diese sind:
+<gen:highlight type="apf-xml">
+Pager.DatabaseConnection = "&lt;ConnectionKey&gt;"
+Pager.CacheInSession = "true|false"
+</gen:highlight>
+Die erste Direktive benennt die zu nutzende Datenbank-Verbindung (siehe
+<a href="./?Seite=031-Klassenreferenz-connectionManager" title="Klassenreferenz - connectionManager">connectionManager</a>),
+der zweite Parameter definiert, ob die Pager-Ergebnisse in der Session zwischengespeichert werden
+sollen.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-2-API-Aenderungen"><a href="#Chapter-4-2-API-Aenderungen">4.2. API-&Auml;nderungen</a></h4>
+Des Weiteren umfasst das Refactoring der Komponente einige &Auml;nderungen der API. Die folgende
+Tabelle zeigt diese im &Uuml;berblick:
+<br />
+<br />
+<table cellpadding="0" cellspacing="0" class="api_changes">
+  <tr>
+    <td class="filled">Methode des pagerManager (alt)</td>
+    <td class="filled">Methode des PagerManager (neu)</td>
+  </tr>
+  <tr>
+    <td>loadEntries()</td>
+    <td>loadEntries([<em>$addStmtParams=array()</em>])</td>
+  </tr>
+  <tr>
+    <td>
+      loadEntriesByAppDataComponent(
+      <em>&$DataComponent</em>,
+      <em>$LoadMethod</em>)
+    </td>
+    <td>
+      loadEntriesByAppDataComponent(
+      <em>&$dataComponent</em>,
+      <em>$loadMethod</em>[,
+      <em>$addStmtParams=array()</em>])
+    </td>
+  </tr>
+  <tr>
+    <td>getPager()</td>
+    <td>getPager([<em>$addStmtParams=array()</em>])</td>
+  </tr>
+</table>
+<br />
+<br />
+<strong>Anmerkungen:</strong>
+<ul>
+  <li>
+    Wichtigste &Auml;nderung ist, dass die zus&auml;tzlich von der Applikation mitgegebenen
+    Parameter nun statt bei der Initialisierung des Pagers beim Aufruf der Lade-Methoden &uuml;bergeben
+    werden muss.
+  </li>
+  <li>
+    Weitere &Auml;nderung ist, dass die Fabrik-Klasse von <strong>pagerManagerFabric</strong> auf
+    <strong>PagerManagerFabric</strong> umbenannt wurde. Dies bedingt, dass die Erzeugung des Pagers
+    nun &uuml;ber
+<gen:highlight type="php">
+$pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+$pM = &$pMF->getPagerManager('{CONFIG_SECTION}');
+</gen:highlight>
+    erfolgt.
+  </li>
+</ul>
+<br />
+<h3 id="Chapter-5-Aenderungen-ImageManager"><a href="#Chapter-5-Aenderungen-ImageManager">5. &Auml;nderungen des ImageManagers</a></h3>
+Die neue API des <strong>ImageManager</strong> beinhaltet im nun exakt zwei statische Methoden.
+F&uuml;r die Migration bedeutet dies, dass die Methoden <em>generateThumbnail()</em> und
+<em>resizeImage()</em> durch Aufrufe der neuen Methode <strong>resizeImage()</strong> und alle
+Aufrufe von <em>showImageAttributes()</em> durch <strong>getImageAttributes()</strong> ersetzt
+werden m&uuml;ssen.
+<br />
+<br />
+Dabei ist zu beachten, dass die Methode <em>getImageAttributes()</em> andere Schl&uuml;ssel f&uuml;r
+die Attribute des jeweiligen Bildes benutzt. Details k&ouml;nnen der
+<a href="./?Seite=025-Klassenreferenz-ImageManager" title="Klassenreferenz - ImageManager">Klassenreferenz</a>
+entnommen werden.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_106" />

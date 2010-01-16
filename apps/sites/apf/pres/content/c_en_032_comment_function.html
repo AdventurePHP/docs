@@ -1,0 +1,1032 @@
+<doku:title parent="071" tags="tutorials,comment function,multilanguage,reusability,frontcontroller," title="Comment function" urlname="Comment-function-tutorial">
+  This tutorial describes th realization of a comment function with use of the APF. It focuses on
+  multilanguage and reusability. The source code of the module is included in each release of the
+  framework.
+</doku:title>
+<div class="warn">
+   This page contains deprecated components, that are not contained in
+   <int:link pageid="126" params="/release/1.11">release 1.11</int:link>. Thus, this page now is
+   under development until this message is removed. If you have, any question, please create a new
+   thread in our
+   <a class="forum" href="http://forum.adventure-php-framework.org/en/">support forum</a>.
+</div>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+This tutorial shows you how the comment function provided at the end of each page is designed and
+which framework components are used to build up this application. The tutorial also contains a
+narration concerning the design pattern mentioned on the manual pages. For this reason the text is
+seperated in three parts:
+<ul>
+  <li>Description of the concept of the application,</li>
+  <li>illustration of modules aiming development and</li>
+  <li>source code explanation on the application's PHP files.</li>
+</ul>
+During the narrative chapters the design pattern mentioned on the
+<a href="./?Page=013-Basics" title="Basics">basics page</a> are illustrated by real live examples.
+In order to understand all the design rules in the <a href="./?Page=035-Contact-form-tutorial" title="Contact form">contact form</a>
+and <a href="./?Page=057-Guestbook-tutorial" title="Guestbook">guestbook tutorial</a>, this chapters give a basic
+idea of design patterns in practice.
+<br />
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Design-of-the-application"><a href="#Chapter-2-Design-of-the-application">2. Design of the application</a></h3>
+The comment function consists of two main parts: displaying output and a form. From a developer's
+point of view, the application contains output functionality, a form, a database table with the
+appropriate logic for reading the data from the database and writing data to it. Theory tells us
+a variety of design patterns that may be used to design the comment function. The following chapters
+perform a closer look at these pattern and tell some details about the usage and the benefit of them:
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-1-Three-tier-architecture"><a href="#Chapter-2-1-Three-tier-architecture">2.1. 3 tier architecture</a></h4>
+The 3 tier architecture pattern assumes that deviding a program - in this case a part of a huge
+application - into <strong>database layer</strong>, <strong>business layer</strong> and
+<strong>presentation layer</strong> brings greater transparency. At first glance, this generates
+additional expenses that pays off during operation and further development. Another advantage is the
+fact, that the implemenations of each of the layers can be changed using another one without changing
+the code of the remaining layers. The tiers mentioned above are to fulfil the following tasks:
+<ul>
+  <li>
+    <strong>Database layer:</strong>
+    <br />
+    This layer reads data from one ore more database tables or even one or more databases and presents
+    them to the business layer. Vice versa the layer receives data and stores is in the database.
+  </li>
+  <li>
+    <strong>Business layer:</strong>
+    <br />
+    The business stack controlles the workflow and behaviour of the software as well as the input
+    and output of the application.
+  </li>
+  <li>
+    <strong>Presentation layer:</strong>
+    <br />
+    The presentation layer takes care of the presentation of the application to the customer. In the
+    case of web applications on of the major tasks is to build HTML-Code and handle the user interaction.
+  </li>
+</ul>
+In the oriented object application design to some common phrases have been naturalize in the past, that
+should also be used here. In the context of a data layer pros merely speak of a <strong>mapper</strong>
+component (see 2.2) and in case of a presentation layer terms like <strong>view-</strong> or in this
+case <strong>document controller</strong> are familiar words to describe MVC style controllers.
+Each of this components is normally represented by a PHP class. Concerning the presetation layer this
+varies with the number of views contained in a presentation layer modul.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-2-OR-Mapper"><a href="#Chapter-2-2-OR-Mapper">2.2. (OR) data mapper</a></h4>
+A <strong>data mapper</strong> is a communication component between the "database world" and the
+"application world". This means that this piece of software deals with the database specifics and
+offers a common API to save and gather persistend data. More precisely, the mapper - a component
+belonging to the database layer - is used to read the data used in an application from a database and
+transform the data into application-readable format and vivce versa. The prefix <strong>OR</strong>
+indicates that the mapper mediates between a relational database that stores the data and a object
+oriented application. One common task of the OR mapper is to map a result set into a domain object
+known by the presend application. For this reason a mapper merely implements private mapping methods
+that are ofthe named <nobr><strong>map{ObjectName}2DomainObject()</strong></nobr>. Here
+<em>{ObjectName}</em> is to be replaced by the name of the desired domain object. The function takes
+one parameter - the database result array - and gives back an object of the type <em>object {ObjectName}</em>.
+Moreover, the mapper implements private and public methods for reading and writing objects.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-3-Domain-object-pattern"><a href="#Chapter-2-3-Domain-object-pattern">2.3. Domain object pattern</a></h4>
+The <strong>domain object pattern</strong> describes the fact that a single application commonly uses
+just a little amount of the whole data, that is stored to operate a huge application or portal. Big
+data management concepts merely contain a global scheme concept that is not needed by a single piece
+of the software. Assuming that the database installed to save the data of the present comment function
+is intended to store more data like meetings, cities, countries and the releations between these
+objects the comment function only needs a small section of the data stored there. It would be
+oversized that the comment function handles all the data provided there. For this reason each
+application only deals with the data interesting for the application's domain. Hence a single
+application only "knows" little amount of objects and is able to handle them with respect to the
+global data management concept. Domain objects are usually belonging to the business layer and have
+to be stored in the <strong>biz</strong> folder. Please note that these objects are familiar to all
+layers of an application: the data layer creates them out of the huge pool of data stored in the
+database and stores this extract back to the database, the business layer forms the application's
+workflow depending on the data and the presentation layer uses the domain objects to display data to
+the user.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-4-MVC"><a href="#Chapter-2-4-MVC">2.4. MVC</a></h4>
+The <strong>model view controller</strong> pattern is a software design pattern used in the
+presentation layer of the three tier architecture. It is only intended to improve the presentation layer
+design. The pattern describes the separation of data and application behaviour (model), appearance of
+the application (view) and the presentation layer functionality (controller). As already described in
+the <a href="./?Page=013-Basics" title="Basics">basics section</a> the software developer hopes to
+minimize maintenance and gains flexibility similar to the three tier architecture.
+<br />
+<br />
+In case of the present comment function a common business component is used that consists of a
+<strong>manager</strong> and a <strong>domain object</strong>. These classes store the behaviour of
+the application (manager) as well as the data used (domain object). To give a more detailed structure
+to the <strong>pres</strong> folder two subfolders are created to store controller and view template
+files. This boosts clarity and makes it easy to differentiate the data stored in the
+<strong>pres</strong> folder.
+<br />
+<br />
+Please keep in mind, that the MVC pattern itself needs further tools to support the developers with
+reasonable functions so that the programmer must not reinvent things in different applications one
+more time. Thus the MVC pattern is just one of the tools that are implemented in the adventure php
+framework to assist the programmer in building presentation layer components.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-5-Page-controller"><a href="#Chapter-2-5-Page-controller">2.5. Page controller</a></h4>
+The <strong>page controller</strong> component is together with the <strong>composite pattern</strong>
+a generic tool to create MVC style applications without developing things twice or more. Moreover,
+the page controller is a mechanism or convention how to integrate modules of the presentation layer.
+This fact is important for the present comment function because this module is integrated into the
+existing GUI by adding a special XML tag to the existing view template file of an article. In general,
+the page controller manages the building of the internal GUI DOM and the transformation into HTML code.
+<br />
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Software-design"><a href="#Chapter-3-Software-design">3. Software design</a></h3>
+The current tutorial dispense with detailled UML style software design, because the comment function
+is not as complex as the guestbook software design. In addition the adventure php framework itself
+provides a modular structure and implements nearly all of the pattern described in chapter 2 so that
+it is not necessary to think out a more detailled software design.
+<br />
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Implementation"><a href="#Chapter-4-Implementation">4. Implementation of the software</a></h3>
+There is no generic formula of how to implement software best. In many cases it is clever to take the
+top-down approach in other cases the bottom-up style is more efficient. Other people say that an
+application should be built up based on the functions - sort of vertically. The latter procedure can
+thus be split up in read-only functionality and write operations that are implemented one after the
+other. In this case the author prefers to choose the rapid prototyping approach.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-1-Folder-structure"><a href="#Chapter-4-1-Folder-structure">4.1. Folder structure of the module</a></h4>
+First of all the folder or namespace structure of the module must be created. Due to the fact, that
+the present software should be integratable in several applications it is called "module". As
+already mentioned in the <a href="./?Page=013-Basics" title="Basics">basics section</a> the program
+files should be stored in the <strong>/apps/modules</strong> folder. The module should be named
+<strong>comments</strong> and thus a folder <strong>/apps/modules/comments</strong> must be created.
+Now the folders that contain the program files of the different layers must be created in the module
+folder. These are: <strong>pres</strong> for presentation layer files, <strong>biz</strong> for
+classes belonging to the business layer and <strong>data</strong> for data layer components.
+Furthermore, the <strong>pres</strong> folder is split up in two sufolders called
+<em>documentcontroller</em> (hosting the controller files) and <em>templates</em> (for template files).
+In this case the following structure must be created:
+<gen:highlight type="code">
+/apps
+     /config
+     /core
+     /modules
+             /comments
+                      /biz
+                      /data
+                      /pres
+                           /documentcontroller
+                           /templates
+     /sites
+     /tools
+</gen:highlight>
+Since the business layer uses the pager component more folders must be created in the
+<strong>config</strong> folder later on.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-2-Domain-object"><a href="#Chapter-4-2-Domain-object">4.2. Domain objekt</a></h4>
+Our first class created is the domain object that is used within all layers. This class is called
+<strong>ArticleComment</strong>. Therefore the file <em>ArticleComment.php</em> must be created in
+the <strong>/apps/modules/comments/biz</strong> folder. The following code box shows the content of
+this class:
+<gen:highlight type="php">
+class ArticleComment extends coreObject {
+
+   protected $__ID = null;
+   protected $__Name;
+   protected $__EMail;
+   protected $__Comment;
+   protected $__Date;
+   protected $__Time;
+   protected $__CategoryKey;
+
+}
+</gen:highlight>
+Given the fact that the class inherits from <strong>coreObject</strong> no <em>get()</em> or
+<em>set()</em> methods must be created, because the <em>coreObject</em> already has this methods
+implemented. The <em>get()</em> and <em>set()</em> functions are used to fill the domain object with
+data and read this in other layers. In order to use this methods the member variables of the domain
+object class must follow the naming convention. This tells you to allways name the variables like
+<strong>$__{Name}</strong> where <em>{Name}</em> is the name of the variable that can be used to
+address it when using the abstract <em>get()</em> and <em>set()</em> functions. As an example the
+name of the given domain object can be filled and printed by
+<gen:highlight type="php">
+$AC = new ArticleComment();
+$AC->set('Name','Max Mustermann');
+echo $AC->get('Name');
+</gen:highlight>
+The output in this case would be
+<gen:highlight type="apf-xml">
+  Max Mustermann
+</gen:highlight>
+<br />
+<h4 id="Chapter-4-3-Data-layer"><a href="#Chapter-4-3-Data-layer">4.3. Data layer</a></h4>
+The data layer consists of a <strong>data mapper</strong> class as mentioned in chapter 2 that
+contains reading functionality as a start. At this point it is to anticipate, that the pager component
+needs to have a mapper method that loads domain object by object ids. For this purpose we create the
+<strong>commentMapper</strong> class in the <strong>/apps/modules/comments/data</strong> folder.
+Please note that the class name must be the body of the filename. At first the file has to contain
+the proximate content:
+<gen:highlight type="php">
+import('modules::comments::biz','ArticleComment');
+import('core::database','connectionManager');
+
+class commentMapper extends coreObject {
+
+   function loadArticleCommentByID($articleCommentID){
+
+      // get a database connnection
+      $SQL = &$this->__getConnection();
+
+      // Select entry
+      $select = 'SELECT ArticleCommentID, Name, EMail, Comment, Date, Time
+                 FROM article_comments
+                 WHERE ArticleCommentID = \''.$ArticleCommentID.'\';';
+      $result = $SQL->executeTextStatement($select);
+
+      // return an domain object
+      return $this->__mapArticleComment2DomainObject($SQL->fetchData($result));
+
+   }
+
+   function __mapArticleComment2DomainObject($ResultSet){
+
+      $ArticleComment = new ArticleComment();
+
+      if(isset($ResultSet['ArticleCommentID'])){
+         $ArticleComment->set('ID',$ResultSet['ArticleCommentID']);
+      }
+      if(isset($ResultSet['Name'])){
+         $ArticleComment->set('Name',$ResultSet['Name']);
+      }
+      if(isset($ResultSet['EMail'])){
+         $ArticleComment->set('EMail',$ResultSet['EMail']);
+      }
+      if(isset($ResultSet['Comment'])){
+         $ArticleComment->set('Comment',$ResultSet['Comment']);
+      }
+      if(isset($ResultSet['Date'])){
+         $ArticleComment->set('Date',$ResultSet['Date']);
+      }
+      if(isset($ResultSet['Time'])){
+         $ArticleComment->set('Time',$ResultSet['Time']);
+      }
+      return $ArticleComment;
+
+   }
+
+   private function &__getConnection(){
+      $cM = &$this->__getServiceObject('core::database','connectionManager');
+      $config = $this->__getConfiguration('modules::comments','comments');
+      $connectionKey = $config->getValue('Default','Database.ConnectionKey');
+      return $cM->getConnection($connectionKey);
+   }
+
+}
+</gen:highlight>
+Besides, the source code has the following meaning:
+<ul>
+  <li>
+    The two <em>import()</em> calls import the classes necessary. Among these are the domain object
+    <em>ArticleComment</em> and the MySQL abstraction component <em>MySQLHandler</em>.
+  </li>
+  <li>
+    The method <em>loadArticleCommentByID()</em> loads a comment object by a given database id - the
+    primary key of the table <em>article_comments</em>. In this case there is no configuration created
+    to map the field names of the table, becaus this would be oversized to the current application.
+    This eases implementation and gains the speed of the data layer component. Within the
+    <em>loadArticleCommentByID()</em> function the <em>MySQLHandler</em> is used to execute a SQL
+    statement and to fetch the database result. After fetching the result from the database the
+    result array is mapped into a domain object by use of the private method
+    <em>__mapArticleComment2DomainObject()</em> and given back to the calling function.
+  </li>
+  <li>
+     <em>__mapArticleComment2DomainObject()</em> is a mapping method as described in chapter 2, that
+     translates an relational database result array into a domain object known by the application.
+  </li>
+  <li>
+     The funktion <em>__getConnection()</em> returns the desired database connection as configured
+     in the module's configuration file.
+  </li>
+</ul>
+To generate the database table necessary for this application the init script
+<strong>init_comments.sql</strong> stored in the folder <strong>/apps/modules/comments/data/scripts</strong>
+must be executed. To raise clearness it is recommended to store the scripts that inialize the database
+for beeing used by applications created by yourself in the <strong>/apps/modules/{ModuleName}/data/scripts</strong>
+folder. Furthermore this eases the allocation of an applications' tables.
+<br />
+<br />
+The configuration file <em>{ENVIRONMENT}_comments.ini</em> contains a reference on a database
+connection. The latter one is defines within the database connection setup in the
+<em>core::database</em> namespace. Details on the database connection configuration can be taken
+from the chapter
+<a href="./?Page=031-Class-reference-table-connectionmanager#Chapter-1-Configuration" title="connectionManager">connectionManager</a>.
+<br />
+<br />
+<div class="hint">
+  The source code printed in this example does not contain security mechanisms to avoid SQL
+  injections. Nevertheless, these should be included in real-life applications! For this reason,
+  the <em>MySQLxHandler</em> does contain the <em>escapeValue()</em> method. This function can be
+  used to escape control characters and do form a input good security along with the
+  <a href="./?Page=087-Filter#Chapter-2-Input-filter" title="Input filters">input filters</a>. The
+  <a href="./?Page=075-Security" title="security">security</a> chapter contains some more notes on
+  the built-in mechanisms of the APF.
+</div>
+<br />
+<br />
+<h4 id="Chapter-4-4-Business-layer"><a href="#Chapter-4-4-Business-layer">4.4. Business layer</a></h4>
+The central business class is a manager, that coordinates the software workflow. For this reason we
+create a file named <strong>commentManager.php</strong> in the folder <strong>/apps/modules/comments/biz</strong>.
+In case of the read-only access this class only has to get data from the data layer and make it
+available to presentation layer. As mentioned several times the business class makes use of the pager
+component shipped with the codepack release files. Hence we have to configure the pager for use with
+the <strong>commentManager.php</strong> later on. The subsequent printed code box shows the sceleton
+of the class:
+<gen:highlight type="php">
+   import('modules::pager::biz','PagerManagerFabric');
+   import('modules::comments::data','commentMapper');
+
+   class commentManager extends coreObject {
+
+      private $__CategoryKey;
+
+      function init($CategoryKey){
+         $this->__CategoryKey = $CategoryKey;
+      }
+
+      function loadEntries(){
+      }
+
+   }
+</gen:highlight>
+Besides, the source code has the following meaning:
+<ul>
+  <li>
+    The two <em>import()</em> calls import the classes necessary. Among these are the domain object
+    <em>ArticleComment</em>, the data layer component <em>commentMapper</em>, the
+    <strong>pagerManager</strong> and the <strong>FrontcontrollerLinkHandler</strong>. The latter is
+    used to generate the link to that the user is forwared after saving the entry.
+  </li>
+  <li>
+    The class member <strong>$__CategoryKey</strong> stores the category key, the specific entry is
+    associated with. This key is also used during loading the comments.
+  </li>
+  <li>
+    To use the business component with the method <strong>getAndInitServiceObject()</strong> a
+    <strong>init()</strong> methode must be implemented to initialize the class with the desired
+    parameter set. Here, the class should be initialized with the current category key.
+  </li>
+  <li>
+    <strong>loadEntries()</strong> is the prototype of the method to load the entries of a single
+    category to give the list back to the presentation layer.
+  </li>
+</ul>
+Let's have a closer look at the function described at the end of the list. The <em>pagerManager</em>
+component features the following functions concerning the <a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>:
+<ul>
+  <li><strong>setAnchorName()</strong> (set the name of the anchor)</li>
+  <li><strong>loadEntries()</strong> (load the IDs of the desired entries)</li>
+  <li><strong>getPager()</strong> (generate the HTML output of the pager)</li>
+  <li><strong>getPagerURLParameters()</strong> (load the URL parameters used by the pager manager)</li>
+</ul>
+To use the pager manager a reference on a specific <strong>pagerManagery</strong> must be obtained by
+use of the <strong>PagerManagerFabric</strong>. While getting a pager manager the fabric must be told
+the configuration section to use to initialize the pager manager. The PHP code therefore looks as
+follows:
+<gen:highlight type="php">
+   // get a singleton instance of the pager manager fabric
+   $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+
+   // get an instance of the pagerManager
+   $pM = &$pMF->getPagerManager('ArticleComments');
+</gen:highlight>
+With this code a pager manager is created and initialized with the configuration keys located in the
+configuration section <strong>ArticleComments</strong>. Moreover, the pager manager is initialized
+with the <strong>CategoryKey</strong> contained in the local member variable <strong>$__CategoryKey</strong>
+of the <strong>commentManager</strong>. The second argument of the <strong>getPagerManager()</strong>
+initializes the SQL parameter of the statements to get the count of the entries within one category
+and load the ids of the desired category. To configure these statements with further parameters, the
+second argument of the <strong>getPagerManager()</strong> function has to be used.
+<br />
+<br />
+The configuration of the pager manager is located in the namespace <em>modules::pager</em> and the
+context path of the current application. In case of this documentation site the context is
+<em>sites::demosite</em>. This results in the path <strong>/apps/config/modules/pager/sites/demosite</strong>.
+There, a counfiguration file with the name <strong>DEFAULT_pager.ini</strong> must exist and contain
+the following content:
+<gen:highlight type="apf-xml">
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ArticleComments                                                                                  ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[ArticleComments]
+; database connection key
+Pager.DatabaseConnection = "..."
+
+; number of entries per page
+Pager.EntriesPerPage = "5"
+
+; names of the URL parameters for indicating start and number of entries per page
+Pager.ParameterStartName = "PgrStr"
+Pager.ParameterCountName = "PgrAnz"
+
+; namespace and name of the statements to select a count and the ids
+Pager.StatementNamespace = "modules::comments"
+Pager.CountStatement = "load_entries_count"
+Pager.CountStatement.Params = "CategoryKey:standard"
+Pager.EntriesStatement = "load_entry_ids"
+Pager.EntriesStatement.Params = "CategoryKey:standard"
+
+; namespace and template for displaying the HTML output of the pager
+Pager.DesignNamespace = "modules::pager::pres::templates"
+Pager.DesignTemplate = "pager_2"
+</gen:highlight>
+This set of parameters fully configures the pager component. Most of these keys could be applied for
+every use case. What is different in each application are the SQL statements to load the number of
+entries or the ids of the favored entries. These two statements are indicated through theire namespace
+and theire names. A namespace is a folder path seperated by "::" instead of "/" not containing the
+context subpath and the name is the name of the file without the environment prefix and the file's
+extension (.sql for statement files). The context is given to the pager manager during creating the
+instance in the pager manager fabric. The statement files must be located in a subfolder of the
+module's configuration, because statement are some kind of configuration. The statement files must
+therefore be stored in the folder <strong>/apps/config/modules/comments/sites/demosite/statements</strong>.
+The <strong>statements</strong> folder is expected by the <strong>MySQLHandler</strong>. As already
+mentioned in the <a href="./?Page=033-Configuration" title="configuration">configuration chapter</a>
+the file name must be prefixed with the environment variable's content and be suffixed by the extension
+<strong>.sql</strong>. In the case of the comment function the two files mzst be named
+<ul>
+  <li><strong>DEFAULT_load_entries_count.sql</strong></li>
+  <li><strong>DEFAULT_load_entry_ids.sql</strong></li>
+</ul>
+Furthermore the <strong>pagerManager</strong> expects, that the result set and stamement variables
+are named corresponding to the naming convention. As an example, the entries count statement must
+look like this:
+<gen:highlight type="apf-xml">
+SELECT COUNT(*) AS EntriesCount
+FROM article_comments
+WHERE CategoryKey = '[CategoryKey]'
+GROUP BY CategoryKey;
+</gen:highlight>
+Here, the pager manager expects that the resultset of the statement contains the array offset
+<strong>EntriesCount</strong>. For this reason the selected row or value must be aliased. In order to
+allow further configuration parameters, these must be included using the "[" and "]" directives. The
+content of the load_entry_ids statement must look like this:
+<gen:highlight type="apf-xml">
+SELECT ArticleCommentID AS DB_ID
+FROM article_comments
+WHERE CategoryKey = '[CategoryKey]'
+ORDER BY Date DESC, Time DESC
+LIMIT [Start],[EntriesCount];
+</gen:highlight>
+Within this statement, the <strong>pagerManager</strong> expects the result set to contain an offset
+with the name <strong>DB_ID</strong> - so another alias is necessary. Parameters like
+<strong>[CategoryKey]</strong> can be used as described above. Another characteristic of the pager
+is the <em>LIMIT directive</em>. This clause must contain the parameter
+<ul>
+  <li><strong>[Start]</strong></li>
+  <li><strong>[EntriesCount]</strong></li>
+</ul>
+to be filled with the dynamic pager numbers to be able to display the desired page. The rest of the
+statement can be as complex as the application needs it to be.
+<br />
+<br />
+After having learned how to configure the pager, the subsequently printed code box shows the usage
+of the component. The <strong>loadEntries()</strong> method of the <strong>commentManager</strong>
+looks as follows:
+<gen:highlight type="php">
+   function loadEntries(){
+
+      // get pagerManager
+      $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+      $pM = &$pMF->getPagerManager('ArticleComments');
+
+      // load comments
+      $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
+      return $pM->loadEntriesByAppDataComponent($M,'loadArticleCommentByID',array('CategoryKey' => $this->__CategoryKey));
+
+   }
+</gen:highlight>
+As a first step, the instance of the pager manager is fetched using the <em>PagerManagerFabric</em>,
+further the instance of the data layer component (the mapper) is instanciated. In the third step the
+mapper is used to load the desired domain objects with help of the pager manager. Another possibility
+of loading the domain objects to display on the current page is to manually load the domain objects
+using a for loop. The corresponding PHP code looks as follows:
+<gen:highlight type="php">
+   function loadEntries(){
+
+      // get pagerManager
+      $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+      $pM = &$pMF->getPagerManager('ArticleComments');
+
+      // load IDs
+      $EntryIDs = $pM->loadEntries(array('CategoryKey' => $this->__CategoryKey));
+
+      // load comments
+      $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
+
+      $Entries = array();
+
+      for($i = 0; $i < count($EntryIDs); $i++){
+         $Entries[] = $M->loadArticleCommentByID($EntryIDs[$i]);
+      }
+
+      return $Entries;
+
+   }
+</gen:highlight>
+Both possibilities are given by the pager manager, but the latter one is intended to be able to sort
+the entries after loading within the business layer or do something different before giving them to
+the presentation layer component. The comment function uses the first alternative, the next tutorials
+make use of the second one. With this step the implementation of the business layer is finished.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-5-Presentation-layer"><a href="#Chapter-4-5-Presentation-layer">4.5. Presentation layer</a></h4>
+The display of the comments in a pagable list contains only one view beneath the view that includes
+the module - the listing. Let's at first have a look at the inclusion of the module, due to the fact,
+that it brings a little difference compared to usual view definitions. As described above it should
+be possible to integrate the comment function in an existing view template file of content file. In
+soing so, the <strong>&lt;core:importdesign /&gt;</strong> tag can be used.
+
+This tag takes - according to <int:link pageid="046" /> - the XML parameters <strong>namespace</strong>
+to declare the namespace of the templates, <strong>template</strong> for the definition of the
+template name and the optional parameter <strong>incparam</strong> to specify the URL parameter,
+that should be used to manage the view content. The latter is important in this case. By default
+this parameter is filled with the value &quot;<em>pagepart</em>&quot;. This fact rescues conflict
+potential, because the parameter could be already used in other applications to control the contents
+of a view. Further, the template developer should be able to decide which comments are displayed.
+Therefore we introduce the XML parameter <strong>categorykey</strong>, that defines the category of
+comments. This mechanism was silently introduced in the chapters above with the knowledge, that the
+comments must be distinguishable. By means of the database this differentiation is feasible by other
+possibilities. But this example should be kept easy to understand. More complex database designs can
+be seen in the <a href="./?Page=057-Guestbook-tutorial" title="Guestbook">guestbook tutorial</a>.
+<br />
+<br />
+The inclusion of the module within an existing template can be done by
+<gen:highlight type="apf-xml">
+  &lt;core:importdesign
+      namespace="modules::comments::pres::templates"
+      template="comment"
+      categorykey="****"
+  /&gt;
+</gen:highlight>
+The template named <strong>comment</strong> includes the heading
+<gen:highlight type="apf-xml">
+  &lt;a name="comments" /&gt;&lt;h2&gt;Kommentare&lt;/h2&gt;
+</gen:highlight>
+and the inclusion
+<gen:highlight type="apf-xml">
+  &lt;core:importdesign
+      namespace="modules::comments::pres::templates"
+      template="[coview = listing]"
+      incparam="coview"
+  /&gt;
+</gen:highlight>
+This XML tag takes responsibility of wheather the list or the form is displayed by the URL parameter
+<strong>coview</strong> (coview like CommentView). The output of the list is done within the template
+file <strong>listing</strong>, that must be created in the namespace given before. The content of the
+file looks like:
+<gen:highlight type="apf-xml">
+&lt;@controller namespace="modules::comments::pres::documentcontroller" file="comment_listing_v1_controller" class="comment_listing_v1_controller" @&gt;
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
+&lt;div class="cm--list"&gt;
+   &lt;div class="cm--list-head"&gt;
+      &lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.1" /&gt; &lt;a href="&lt;html:placeholder name="Link" /&gt;#comments" title="&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt; &lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.3" /&gt;
+   &lt;/div&gt;
+   &lt;div class="cm--list-pager"&gt;
+      &lt;html:placeholder name="Pager" /&gt;
+   &lt;/div&gt;
+   &lt;div class="cm--list-items"&gt;
+      &lt;html:placeholder name="Content" /&gt;
+   &lt;/div&gt;
+&lt;/div&gt;
+&lt;html:template name="ArticleComment"&gt;
+   &lt;div class="cm--list-item"&gt;
+      &lt;div class="cm--list-item-head"&gt;
+         &lt;div class="cm--list-item-head-num"&gt;&lt;template:placeholder name="Number" /&gt;&lt;/div&gt;
+         &lt;div class="cm--list-item-head-date"&gt;
+            &lt;span&gt;&lt;template:placeholder name="Name" /&gt;&lt;/span&gt;
+            &lt;em&gt;&lt;template:placeholder name="Date" /&gt;, &lt;template:placeholder name="Time" /&gt;&lt;/em&gt;
+         &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class="cm--list-item-body"&gt;
+         &lt;template:placeholder name="Comment" /&gt;
+      &lt;/div&gt;
+   &lt;/div&gt;
+&lt;/html:template&gt;
+&lt;html:template name="NoEntries"&gt;
+   &lt;template:addtaglib namespace="tools::html::taglib" prefix="template" class="getstring" /&gt;
+   &lt;div class="cm--list-noentries"&gt;
+      &lt;template:getstring namespace="modules::comments" config="language" entry="noentries.text" /&gt;
+   &lt;/div&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+This template contains the controller definition, an introduction, place holders for the output of
+the pager and the output of the comment list and templates that define the appearance of the entries
+and the list. If the list takes no entries a message is displayed. To get a closer understanding of
+the tags used here, please refer to the
+<a href="./?Page=046-Standard-TagLibs" title="standard taglibs">standard taglibs section</a>. Much more
+interesting is the implementation of the document controller that generates the output.
+<br />
+<br />
+To make things clearer I will include a little excursion into GUI design of the adventure php
+framework here. The following lines explain the functionality of a tag by example:
+<br />
+The page controller component creates a DOM node in the global GUI object tree for each XML tag
+contained in a template file. Each node knows his father node by a reference, that is stored in the
+<strong>$this->__ParentObject</strong> member. So it is possible to read or write attributes of a
+neighbor DOM object (parent or child objects). Further code parts will make use of this matter of
+fact. The current design that the comment function is included by an XML tag that is configured by
+it's tag attributes. This node includes another template that generates the listing or the form. The
+node mentioned last needs access to the configuration parameter included in the
+<strong>&lt;core:importdesign /&gt;</strong> tag written to the template file mentioned at first to
+get the right category. Each document controller stores a reference on the current DOM node in the
+member variable <em>Document</em>. The following code shows how to get the content of the category
+key:
+<gen:highlight type="php">
+   $DocParent = &$this->__Document->getByReference('ParentObject');
+   $this->__CategoryKey = $DocParent->getAttribute('categorykey');
+</gen:highlight>
+To make the core more secure the value is checked with the following code fragment:
+<gen:highlight type="php">
+   if($CategoryKey == null){
+      $this->__CategoryKey = 'standard';
+   }
+   else{
+      $this->__CategoryKey = $CategoryKey;
+   }
+</gen:highlight>
+As this function must be included in both document controllers (generation of the list and the form
+controller) this function is sourced out into a basic document controller. This controller is named
+<strong>commentBaseController</strong> and stored under
+<strong>/apps/modules/coments/pres/documentcontroller</strong>. This abstract controller is also used
+to include the domain object and the manager. All of the concrete implementations inherit from the
+<em>commentBaseController</em> and thus inherit all of the functionality included there.
+<br />
+<br />
+The concrete document controller <strong>comment_listing_v1_controller</strong> (see definition in the
+template file above) now contains the functionality to display the entries and the pager or display
+a message that no entries are made. This task can be solved like printed in the next code box:
+<gen:highlight type="php">
+class comment_listing_v1_controller extends commentBaseController {
+
+   function transformContent(){
+
+      $this->__loadCategoryKey();
+      $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
+
+      // load the entries using the business component
+      $entries = $M->loadEntries();
+
+      $buffer = (string)'';
+      $template = &$this->__getTemplate('ArticleComment');
+
+      // init bb code parser (remove some provider, that we don't need configuration files)
+      $bP = &$this->__getServiceObject('tools::string','AdvancedBBCodeParser');
+      $bP->removeProvider('standard.font.color');
+      $bP->removeProvider('standard.font.size');
+
+      for($i = 0; $i < count($entries); $i++){
+
+         $template->setPlaceHolder('Number',$i + 1);
+         $template->setPlaceHolder('Name',$entries[$i]->get('Name'));
+         $template->setPlaceHolder('Date',dateTimeManager::convertDate2Normal($entries[$i]->get('Date')));
+         $template->setPlaceHolder('Time',$entries[$i]->get('Time'));
+         $template->setPlaceHolder('Comment',$bP->parseCode($entries[$i]->get('Comment')));
+
+         $buffer .= $template->transformTemplate();
+
+      }
+
+      // display hint, if no entries are to display
+      if(count($entries) < 1){
+         $Template__NoEntries = &$this->__getTemplate('NoEntries');
+         $buffer = $Template__NoEntries->transformTemplate();
+      }
+
+      // display the list
+      $this->setPlaceHolder('Content',$buffer);
+
+      // display the pager
+      $this->setPlaceHolder('Pager',$M->getPager('comments'));
+
+      // get the pager url params from the business component
+      // to be able to delete them from the url.
+      $urlParams = $M->getURLParameter();
+
+      // generate the add comment link
+      $this->setPlaceHolder(
+             'Link',
+             FrontcontrollerLinkHandler::generateLink(
+                                       $_SERVER['REQUEST_URI'],
+                                       array(
+                                             $urlParams['StartName'] => '',
+                                             $urlParams['CountName'] => '',
+                                             'coview' => 'form'
+                                       )
+             )
+      );
+
+   }
+
+}
+</gen:highlight>
+Special to this implementation is the gathering of the category key at the beginning of the method
+<em>transformContent()</em> and dynamically generation of the links. The links must be generated like
+this, because the developer does not know in which application the module is integrated. To generate
+the links correctly the business component is asked to give back the URL parameters used by the pager.
+These parameters - originally defined in the <em>DEFAULT_pager.ini</em> file described in chapter
+4.3 - are reset due to "cosmetical reasons". This causes the pager to return to the first page when
+the entry is done. This trick could also be done inside the business component of the comment module
+but is placed in the document controller in this case, though the document controller must generate
+links anyway. Here the <em>FrontcontrollerLinkHandler</em> is used instead of the <em>LinkHandler</em>
+to make sure that the links generated with this component do not contain front controller action
+definition fragments. The formating of the text of a comment is done by the <strong>bbCodeParser</strong>
+and the <strong>dateTimeManager</strong>.
+<br />
+<br />
+<br />
+<br />
+<h3 id="Chapter-5-Enhancements"><a href="#Chapter-5-Enhancements">5. Enhancements</a></h3>
+The software described above is able to display comments generated by external tools such as
+PHPMyAdmin. Doing entries is not implemented yet. For this reason the software should be added the
+possibility to write comments step by step. The upgrade to the software is now done in a top-down
+approach. So let's start with the presentation layer.
+<br />
+<br />
+<br />
+<h4 id="Chapter-5-1-Presentation-layer"><a href="#Chapter-5-1-Presentation-layer">5.1. Presentation layer</a></h4>
+Chapter 4.4 describes the possibility to manage the content of a view by the URL parameter
+<strong>coview</strong>. The view created to display te form should be named <strong>form</strong>.
+As the domain object already declares the user should provide
+<ul>
+  <li>Name</li>
+  <li>E-Mail</li>
+  <li>Kommentar</li>
+</ul>
+to the form. Using the form taglib the form definition may look like this:
+<gen:highlight type="apf-xml">
+&lt;html:form name="AddComment" method="post"&gt;
+   &lt;span&gt;
+      &lt;form:getstring namespace="modules::comments" config="language" entry="form.name" /&gt;*
+   &lt;/span&gt;
+   &lt;form:text
+      maxlength="100"
+      name="Name"
+      class="cm--create-element-name"
+      validate="true"
+      button="Save"
+      validator="Text"
+   /&gt;
+   &lt;br /&gt;
+   &lt;span&gt;
+      &lt;form:getstring namespace="modules::comments" config="language" entry="form.email" /&gt;*
+   &lt;/span&gt;
+   &lt;form:text
+      maxlength="100"
+      name="EMail"
+      class="cm--create-element-email"
+      validate="true"
+      button="Save"
+      validator="EMail"
+   /&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;form:getstring namespace="modules::comments" config="language" entry="form.comment" /&gt;
+   &lt;br /&gt;
+   &lt;form:area
+      name="Comment"
+      class="cm--create-element-comment"
+      validate="true"
+      button="Save"
+      validator="Text"
+   /&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;span&gt;
+      &lt;form:getstring namespace="modules::comments" config="language" entry="form.confirm" /&gt;*
+   &lt;/span&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;form:addtaglib namespace="modules::captcha::pres::taglib" prefix="form" class="captcha" /&gt;
+   &lt;form:captcha
+       text_class="cm--create-element-captcha"
+       validate="true"
+       button="Save"
+       clearonerror="true"
+   /&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;form:button name="Save" class="cm--create-element-button" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+Note: the attributes <strong>validate="true"</strong> and <strong>button="Speichern"</strong> activate
+the form validation and <strong>validator="Text"</strong> or <strong>validator="EMail"</strong>
+declares the validator the field should be validated with. Adding a little more text the template
+file <em>form</em> contains the following XML and HTML code:
+<gen:highlight type="apf-xml">
+&lt;@controller namespace="modules::comments::pres::documentcontroller" file="comment_form_v1_controller" class="comment_form_v1_controller" @&gt;
+&lt;core:addtaglib namespace="tools::form::taglib" prefix="html" class="form" /&gt;
+&lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
+&lt;div class="cm--create"&gt;
+   &lt;div class="cm--create-head"&gt;
+      &lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.1" /&gt; &lt;a href="&lt;html:placeholder name="back" /&gt;#comments" title="&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.3" /&gt;
+   &lt;/div&gt;
+   &lt;div class="cm--create-form"&gt;
+      &lt;html:form name="AddComment" method="post"&gt;
+         &lt;span&gt;
+            &lt;form:getstring namespace="modules::comments" config="language" entry="form.name" /&gt;*
+         &lt;/span&gt;
+         &lt;form:text
+            maxlength="100"
+            name="Name"
+            class="cm--create-element-name"
+            validate="true"
+            button="Save"
+            validator="Text"
+         /&gt;
+         &lt;br /&gt;
+         &lt;span&gt;
+            &lt;form:getstring namespace="modules::comments" config="language" entry="form.email" /&gt;*
+         &lt;/span&gt;
+         &lt;form:text
+            maxlength="100"
+            name="EMail"
+            class="cm--create-element-email"
+            validate="true"
+            button="Save"
+            validator="EMail"
+         /&gt;
+         &lt;br /&gt;
+         &lt;br /&gt;
+         &lt;form:getstring namespace="modules::comments" config="language" entry="form.comment" /&gt;
+         &lt;br /&gt;
+         &lt;form:area
+            name="Comment"
+            class="cm--create-element-comment"
+            validate="true"
+            button="Save"
+            validator="Text"
+         /&gt;
+         &lt;br /&gt;
+         &lt;br /&gt;
+         &lt;span&gt;
+            &lt;form:getstring namespace="modules::comments" config="language" entry="form.confirm" /&gt;*
+         &lt;/span&gt;
+         &lt;br /&gt;
+         &lt;br /&gt;
+         &lt;form:addtaglib namespace="modules::captcha::pres::taglib" prefix="form" class="captcha" /&gt;
+         &lt;form:captcha
+             text_class="cm--create-element-captcha"
+             validate="true"
+             button="Save"
+             clearonerror="true"
+         /&gt;
+         &lt;br /&gt;
+         &lt;br /&gt;
+         &lt;form:button name="Save" class="cm--create-element-button" /&gt;
+      &lt;/html:form&gt;
+   &lt;/div&gt;
+&lt;/div&gt;
+</gen:highlight>
+The document controller belonging to this template file (<strong>comment_form_v1_controller</strong>)
+is entrusted with the generation of the form and the filling of the place holders defined there. In
+case the form was filled correctly the entry must be stored using the business component. For this
+reason the business component must be added the <strong>saveEntry()</strong> method that takes a
+domain object as an argument. The code box shows the complete PHP code:
+<gen:highlight type="php">
+class comment_form_v1_controller extends commentBaseController {
+
+      function transformContent(){
+
+         $form = &$this->__getForm('AddComment');
+
+         if($form->get('isSent') == true){
+
+            $this->__loadCategoryKey();
+            $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
+
+            if($form->get('isValid') == true){
+
+               $articleComment = new ArticleComment();
+               $name = &$form->getFormElementByName('Name');
+               $articleComment->set('Name',$name->getAttribute('value'));
+
+               $email = &$form->getFormElementByName('EMail');
+               $articleComment->set('EMail',$email->getAttribute('value'));
+
+               $comment = &$form->getFormElementByName('Comment');
+               $articleComment->set('Comment',$comment->get('Content'));
+
+               $M->saveEntry($articleComment);
+
+            }
+            else{
+               $this->__buildForm();
+            }
+
+         }
+         else{
+            $this->__buildForm();
+         }
+
+      }
+
+      private function __buildForm(){
+
+         $form = &$this->__getForm('AddComment');
+         $form->setAttribute('action',$_SERVER['REQUEST_URI'].'#comments');
+
+         $config = &$this->__getConfiguration('modules::comments','language');
+         $button = &$form->getFormElementByName('Save');
+         $button->setAttribute('value',$config->getValue($this->__Language,'form.button'));
+
+         $form->transformOnPlace();
+
+         $link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
+         $this->setPlaceHolder('back',$link);
+
+      }
+
+   }
+</gen:highlight>
+<h4 id="Chapter-5-2-Business-layer"><a href="#Chapter-5-2-Business-layer">5.2. Business layer</a></h4>
+In this chapter the task is to implement the <em>saveEntry()</em> function that was described in the
+section before. Merely the domain object must be saved and the corresponding view must be displayed.
+In order to save the object the data layer component must be involved to save the domain object. The
+following code box shows how to save the comment by the the manager's
+<strong>saveArticleComment()</strong> method. To display the listing view the user is redirected to
+the desired URL.
+<gen:highlight type="php">
+   function saveEntry($ArticleComment){
+
+      // get the mapper
+      $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
+
+      // save article
+      $ArticleComment->set('CategoryKey',$this->__CategoryKey);
+      $M->saveArticleComment($ArticleComment);
+
+      // redirect to the listing view
+      $Link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
+      header('Location: '.$Link.'#comments');
+
+   }
+</gen:highlight>
+Line 6 (<em>$ArticleComment->set('CategoryKey'..</em>) shows how the business layer manipulates the
+domain object, that it is saved in the right category. Line 10 generates the redirect URL using the
+<strong>FrontcontrollerLinkHandler</strong>.
+<br />
+<br />
+<br />
+<h4 id="Chapter-5-3-Data-layer"><a href="#Chapter-5-3-Data-layer">5.3. Data layer</a></h4>
+Within the data layer only the <strong>saveArticleComment()</strong> method must be implemented:
+<gen:highlight type="php">
+   function saveArticleComment($ArticleComment){
+
+      $SQL = &$this->__getConnection();
+
+      // check if the comment already exists
+      if($ArticleComment->get('ID') == null){
+
+         $insert = 'INSERT INTO article_comments
+                    (Name, EMail, Comment, Date, Time, CategoryKey)
+                    VALUES
+                    (\''.$ArticleComment->get('Name').'\',
+                     \''.$ArticleComment->get('EMail').'\',
+                     \''.$ArticleComment->get('Comment').'\',
+                     CURDATE(),
+                     CURTIME(),
+                     \''.$ArticleComment->get('CategoryKey').'\');';
+         $SQL->executeTextStatement($insert);
+
+      }
+
+   }
+</gen:highlight>
+The meaning of the lines of code is easy to understand. At first a singleton instance of the
+<em>MySQLHandler</em> is generated by the <em>__getServiceObject()</em> function. After that the
+method checks wheather the object already exists and saves the object by a SQL statement if not.
+During the insert the object is deconstructed into a flat and relational structure again.
+<br />
+<br />
+<br />
+<br />
+<h3 id="Chapter-6-Perspective"><a href="#Chapter-6-Perspective">6. Perspective / additions</a></h3>
+In this chapter the author would like to point out to the fact that the methods
+<strong>__getServiceObject()</strong> and <strong>__getAndInitServiceObject()</strong> must be used
+when the service layer generated with it wants to load context or language dependent configuration or
+use context dependent components. Therefore, in database based applications both methods should
+always be used.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_032" />

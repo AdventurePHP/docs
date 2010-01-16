@@ -1,0 +1,296 @@
+<doku:title parent="119" tags="documentation,class reference,classes,reference,cachemanager" title="CacheManager" urlname="CacheManager">
+  The new cache manager implementation features a generic concept, that is much more flexible
+  compared with the old dated cache components of the framework. This includes an open provider
+  structure and methods to manage caches,
+</doku:title>
+As you can take from the <a href="./?Page=042-Roadmap" title="Roadmap">Roadmap</a>, the 1.8 branch
+contains a redesigned cache manager. The old dated implementation had various disadvantages while
+using the cache classes or extend them, respectively.
+<br />
+<br />
+Hence, the new implementation is much more convenient but yet powerful due to the easy extension API.
+The <em>CacheManager</em> itself only deals with the creation and configuration of the concrete
+<strong>CacheProvider</strong> implementations, that present the write, read and clear capabilities.
+The release already contains common providers and an abstract provider definition that allows you to
+enhance the list of providers easily.
+<br />
+<br />
+<br />
+<h3 id="Chapter-1-Configuration"><a href="#Chapter-1-Configuration">1. Configuration</a></h3>
+The <strong>CacheManager</strong> expects a configuration file within the <strong>tools::cache</strong>
+namespace and the current application's context. The name of the config file is <strong>cacheconfig</strong>.
+For each cache manager, one configuration section must be present in the configuration containing the
+following directives:
+<gen:highlight type="apf-xml">
+[my_cache_instance]
+Cache.Provider.Namespace = ""
+Cache.Provider.Class = ""
+Cache.Active = ""
+</gen:highlight>
+The <strong>Cache.Provider.Namespace</strong> parameter defines the namespace of the provider
+implementation, <strong>Cache.Provider.Class</strong> contains the class name and <strong>Cache.Active</strong>
+defines the activity state of the cache manager. In case, the configuration directive contains "true",
+the cache manager is considered active, otherwise not.
+<br />
+<br />
+Please note, that each provider expects some more configuration attributes, described in the
+following chapters.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Usage"><a href="#Chapter-2-Usage">2. Usage</a></h3>
+The cache manager design includes the possibility to create several cache manager instances within
+one application or one module. For this reason, a factory is used to create the cache managers.
+Therefor, the <strong>CacheManagerFabric</strong> features the <strong>getCacheManager()</strong>
+method, that creates the desired cache manager corresponing to the configuration section. Hence, the
+fabrix ist created via the service manager, the fabric is a singleton to not slow down the performance
+of the component due to several initialisation processes. Caching components have to be fast per se!
+<br />
+<br />
+The following code box provides a typical application sample:
+<gen:highlight type="php">
+import('tools::cache','CacheManager');
+$cMF = &$this->__getServiceObject('tools::cache','CacheManagerFabric');
+$cM = &$cMF->getCacheManager('{config_section}');
+$cacheKey = 'my_cache_key';
+$cacheContent = $cM->getFromCache($cacheKey);
+if($cacheContent === null){
+
+   $cacheContent = /* generate content */;
+   $cM->writeToCache($cacheKey,$cacheContent);
+
+}
+
+// clear cache if necessary
+if(/* ... */){
+
+   if(/* ... */){
+      $cM->clearCache($cacheKey); // clean only the desired cache content
+   }
+   else{
+      $cM->clearCache(); // clean the entire namespace
+   }
+
+}
+</gen:highlight>
+As you can see, the cache manager has three API methods, that delegate the functionality to the
+corresponding provider, that is currently used:
+<ul>
+  <li>
+    <strong>getFromCache()</strong>: Reads the desired cache content. If no content is available for
+    the given cache key, <em>null</em> is returned. This can be used to check, if a cache entry exists
+    at the same time.
+  </li>
+  <li>
+    <strong>writeToCache()</strong>: Writes the desired content to namespace configured within the
+    configuration section. The method returns <em>true</em> on success, otherwise <em>false</em>.
+  </li>
+  <li>
+    <strong>clearCache()</strong>: The <em>clearCache()</em> method can be used to maintain the cache.
+    If no cache key is provided during function call, the entire namespace is purged, if a key is
+    present, the cache content for this key is deleted.
+  </li>
+</ul>
+<br />
+<br />
+<h3 id="Chapter-3-Included-provider"><a href="#Chapter-3-Included-provider">3. Included provider</a></h3>
+The framework already includes four ready-to-use provider. These are aimed to solve common caching
+issues. If there is not provider fitting your requirements, an own provider can be implemented as
+described in chapter 4.
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-1-Text-cache-provider"><a href="#Chapter-3-1-Text-cache-provider">3.1. Text cache provider</a></h4>
+Der Text-Cache-Provider implementiert ein einfaches Filesystem-Caching. Hierbei wird unter einem
+definierten Basis-Pfad der gew&uuml;nschte Cache-Inhalt strukturiert abgelegt. Als erstes
+Strukturelement wird der Namespace eingesetzt, gefolgt von einem weiteren Unterordner aus den ersten
+beiden Zeichen des md5-Schl&uuml;ssels des Cache-Keys.
+<br />
+<br />
+To use this provider, the referenced configuration section must look like this:
+<gen:highlight type="apf-xml">
+[text_cache]
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "TextCacheProvider"
+Cache.Active = ""
+Cache.BaseFolder = ""
+Cache.Namespace = ""
+</gen:highlight>
+<strong>Cache.BaseFolder</strong> contains the cache base folder, that is managed by the CacheManager,
+the attribute <strong>Cache.Namespace</strong> names the namespace, that is the first structural
+element within the base folder. Please note, that the sections of the namespace must be seperated by
+"::" to create the desired subfolder structure.
+<br />
+<br />
+<strong>Note:</strong> The text cache provider uses the
+<a href="./?Page=085-Class-reference-table-FilesystemManager" title="FilesystemManager">FilesystemManager</a>
+for cache folder management. For this reason, the user that is assigned to the webserver, must habe
+write permissions to the base folder.
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-2-Object-cache-provider"><a href="#Chapter-3-2-Object-cache-provider">3.2. Objekt cache provider</a></h4>
+The object cache provider is based on the text cache provider described under section 3.1. As of the
+text cache provider, the cache files are also stored on the filesystem. The difference is, that this
+provider serializes the objects presented to the cache manager before storing them within a cache
+file. This mechanism enables the developer to create a filesystem based object cache.
+<br />
+<br />
+To use the provider, the following directives have to be included in the configuration section:
+<gen:highlight type="apf-xml">
+[object_cache]
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "ObjectCacheProvider"
+Cache.Active = ""
+Cache.BaseFolder = ""
+Cache.Namespace = ""
+</gen:highlight>
+<br />
+<h4 id="Chapter-3-3-Mem-cache-provider"><a href="#Chapter-3-3-Mem-cache-provider">3.3. Mem cache provider</a></h4>
+The memcache provider gives you the opportunity to store PHP objects within a <strong>memcached</strong>
+server. To make the objects storable, they are serialized whilst saving and unserialized when retrieving
+from the cache. Please note, that resource types cannot be serialized and have to be reinitialized
+on unserialize.
+<br />
+<br />
+To access a <strong>memcached</strong>, the following configuration section must be provided:
+<gen:highlight type="apf-xml">
+[mem_cache]
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "MemCacheProvider"
+Cache.Active = ""
+Cache.Host = ""
+Cache.Port = ""
+Cache.PersistentConnect = ""
+Cache.Namespace = ""
+</gen:highlight>
+Despite the fact, that the PHP memcache functions do not support namespaces within the memcache
+cache keys, the <strong>MemCacheProviders</strong> supports namespaces. This is realized by the
+internal cache key management. This renders possible to clear all cache keys within one namespace as
+described in the above code sample.
+<br />
+<br />
+<strong>Note</strong>: To use the <em>MemCacheProvider</em>, the PHP extenstion <strong>memcache</strong>
+must be loaded!
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-4-Database-cache-provider"><a href="#Chapter-3-4-Database-cache-provider">3.4. Database cache provider</a></h4>
+The <strong>DBCacheProvider</strong> uses a database table to store the cache information. In order
+to use the database as a cache backend, the configuration section should look like this:
+<gen:highlight type="apf-xml">
+[database_cache]
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "DBCacheProvider"
+Cache.Active = ""
+Cache.Connection = ""
+Cache.Table = ""
+Cache.Namespace = ""
+</gen:highlight>
+Thereby, <strong>Cache.Connection</strong> specifies the database connection key, that is used to
+create a database connection with the
+<a href="./?Page=031-Class-reerence-table-connectionManager" title="connectionManager">connectionManager</a>.
+For this reason, a corresponding database connection configuration must be provided as described in
+the connectionManager's class reference.<strong>Cache.Table</strong> defines the name of the cache
+table, that should be created with the statement below:
+<gen:highlight type="apf-xml">
+CREATE TABLE `database_cache` (
+  `CacheID` int(5) NOT NULL auto_increment,
+  `namespace` varchar(100) NOT NULL default '',
+  `cachekey` varchar(100) NOT NULL default '',
+  `value` text NOT NULL,
+  PRIMARY KEY  (`CacheID`),
+  KEY `cachevalues` (`namespace`,`cachekey`)
+);
+</gen:highlight>
+Allow me to call your attention to the fact, that the columns <strong>namespace</strong>,
+<strong>cachekey</strong> and <strong>value</strong> must be named as printed above.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Enhancement"><a href="#Chapter-4-Enhancement">4. Enhancement</a></h3>
+The design of the cache manager includes several components. The creation of the desired cache manager
+instance is done by the <strong>CacheManagerFabric</strong>. This component creates, initializes and
+manages the concrete <strong>CacheManager</strong> instances. The cache manager itself deals with the
+initialization of the desired provider and features the interface methods described in chapter 2.
+Thus, each provider implements the three abstract methods <strong>read()</strong>,
+<strong>write()</strong> and <strong>clear()</strong> of the <strong>AbstractCacheProvider</strong>
+class. These functions is given the desired cache key and the cache content as desired. To access
+the configuration params defined in the dedicated section, the private
+<strong>__getCacheConfigAttribute()</strong> function can be used. Applying the name of the attribute,
+the method returns the content of the given directive. For operating purposes, the method triggers
+an error, if the attribute is not existing or empty. Details can be taken from the API definition
+for the class on the <a href="./?Page=008-Downloads" title="Downloads">downloads</a> page.
+<br />
+<br />
+Thanks to the fact, that a provider is addressed by it's namespace and class name, an own provider
+can be stored where ever you want. The body of a application specific provider looks like this:
+<gen:highlight type="php">
+class MyCacheProvider extends AbstractCacheProvider
+{
+
+   function MyCacheProvider(){
+   }
+
+   function read($cacheKey){
+   }
+
+   function write($cacheKey,$content){
+   }
+
+   function clear($cacheKey = null){
+   }
+
+}
+</gen:highlight>
+The return values are described in the API documentation of the <strong>AbstractCacheProvider</strong>
+class. If the functionality of existing providers should be used, you can easily inherit from the
+desired provider. This is already used within the <em>ObjectCacheProvider</em>, because the cache
+folder and cache file name generation is also used within this provider.
+<br />
+<br />
+The code box below gives you an idea, how a cache provider for image ressources could look like:
+<gen:highlight type="php">
+class PNGImageCacheProvider extends TextCacheProvider
+{
+
+   function PNGImageCacheProvider(){
+   }
+
+   function read($cacheKey){
+
+      $cacheFile = $this->__getCacheFile($cacheKey);
+      if(!file_exists($cacheFile)){
+         return null;
+      }
+      else{
+         return createimagefrompng($cacheFile);
+      }
+
+   }
+
+   function write($cacheKey,$img){
+
+      $cacheFile = $this->__getCacheFile($cacheKey);
+      FilesystemManager::createFolder(dirname($cacheFile));
+      imagepng($img,$cacheFile);
+
+   }
+
+   function clear($cacheKey = null){
+
+      if($cacheKey === null){
+         $baseFolder = $this->__getCacheConfigAttribute('Cache.BaseFolder');
+         FilesystemManager::deleteFolder($baseFolder,true);
+      }
+      else{
+         $cacheFile = $this->__getCacheFile($cacheKey);
+         FilesystemManager::removeFile($cacheFile);
+      }
+
+   }
+
+}
+</gen:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_084" />

@@ -1,0 +1,50 @@
+<doku:title parent="119" tags="performance,hacks,object,relational,mapping,or,mapper,generisch,beziehungen,objekte,objektb&auml;ume,objekt strukturen,konfiguration,verwendung" title="Generischer OR-Mapper - Performance-Hacks" urlname="Generischer-OR-Mapper-Performance-Hacks">
+  Das Modul genericormapper bietet einen generischen OR-Mapper, der voll in das APF integriert ist
+  uns dessen Mechanismen - z.B. Konfiguration - nutzt um die gew&uuml;nschten Objekte und deren
+  Beziehungen zu konfigurieren. Auf dieser Seite werden Performance-Hacks pr&auml;sentiert, die bei
+  langsamen Anwendungen dazu beitragen k&ouml;nnen, den Zugriff auf die Datenschicht zu beschleunigen.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+Der OR-Mapper ist grunds&auml;tzlich auf maximale Performance ausgelegt, jedoch kann dieser durch
+ung&uuml;nstige Implementierung der dar&uuml;berliegenden Schichten oder durch nicht optimale
+Definition der Tabellen negativ beeinflusst werden. Das vorliegende Kapitel zeigt Themen auf, bei
+denen ein manueller Eingriff in die Mapperschicht oder die Verwendung der Mapper-Schicht positive
+Performance-Effekte hat.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Performance-Hacks"><a href="#Chapter-2-Performance-Hacks">2. Performance-Hacks</a></h3>
+<h4 id="Chapter-2-1-Abfrage-ueber-Attribute"><a href="#Chapter-2-1-Abfrage-ueber-Attribute">2.1. H&auml;ufige Abfrage &uuml;ber Attribute</a></h4>
+Werden Abfragen h&auml;ufig &uuml;ber Attribute eines Objekts definiert bzw. eingeschr&auml;nkt, so
+ist es ratsam, einen Index auf die verwendete Spalte oder die verwendeten Spalten zu legen.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-2-Erzeugen-der-Mapperschicht"><a href="#Chapter-2-2-Erzeugen-der-Mapperschicht">2.2. Erzeugen der Mapperschicht</a></h4>
+Stellt es f&uuml;r die Applikation kein Problem dar, sollte der OR-Mapper im
+<strong>SESSIONSINGLETON</strong>-Modus erstellt werden. Das bietet den Vorteil, dass die
+Mapping- und Relation-Table innerhalb des Mappers nur einmal innerhalb einer Session erstellt werden.
+Diese Ma&szlig;nahme spart ~10% Performance bei jedem weiteren Aufruf der Applikation. Die folgenden
+Code-Zeilen zeigen, wie der Mapper <strong>SESSIONSINGLETON</strong> erzeugt werden kann:
+<gen:highlight type="php">
+// Mapper-Factory holen
+$ORMFactory = $this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+
+// Mapper erzeugen
+$ORM = &$ORMFactory->getGenericORMapper(
+                                        '{NAMESPACE}',
+                                        '{NAMEAFFIX}',
+                                        '{CONNECTIONKEY}',
+                                        'SESSIONSINGLETON' // <-- Indiziert Erstellung im Modus SESSIONSINGLETON
+                                       );
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-3-JOIN-Optimierung"><a href="#Chapter-2-3-JOIN-Optimierung">2.3. JOIN-Optimierung</a></h4>
+Um bei Abfragen &uuml;ber mehrere Objektbeziehungen hinweg mehr Performance zu erreichen, wird dazu
+geraten, die JOIN-Anweisungen selbst zu formulieren, da dort die Reihenfolge der JOINs und deren
+Einschr&auml;nkungseigenschaften die Ausf&uuml;hrungszeiten erheblich beeinflussen kann. Hierbei
+ist es jedoch wichtig, dass die am st&auml;rksten einschr&auml;nkenden JOINs zuerst platziert werden.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_065" />

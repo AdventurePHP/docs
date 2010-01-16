@@ -1,0 +1,140 @@
+<doku:title parent="119" tags="dokumentation,klassen referenz,klassen,referenz,singleton,connectionmanager" title="connectionManager" urlname="connectionManager">
+  Zweck des connectionManagers ist es, eine Konvention zu definieren, wie die Konfiguration und
+  Implementierung einer Datenbank-Zugriffsschnittstelle gestaltet sein soll. Idealerweise
+  erm&ouml;glicht diese Vorgehensweise einen einfachen Austausch einer Treiberschicht gegen eine
+  andere um von einer Datenbank zur anderen zu wechseln.
+</doku:title>
+Zweck des connectionManagers ist es, eine Konvention zu definieren, wie die Konfiguration und
+Implementierung einer Datenbank-Zugriffsschnittstelle gestaltet sein soll. Idealerweise
+erm&ouml;glicht diese Vorgehensweise einen einfachen Austausch einer Treiberschicht gegen eine andere
+um von einer Datenbank zur anderen zu wechseln.
+<br />
+<br />
+Trotz, dass dieser Ansatz hinsichtlich der Unterschiede zwischen Datenbanken sehr ambitioniert ist,
+vereinheitlicht er dennoch die API und schafft ein gemeinsames Verst&auml;ndnis f&uuml;r den Zugriff
+der Datenschicht einer Applikation auf die Datenbank-Treiberschicht.
+<br />
+<br />
+<br />
+<h3 id="Chapter-1-Konfiguration"><a href="#Chapter-1-Konfiguration">1. Konfiguration</a></h3>
+Der <strong>connectionManager</strong> fungiert als Factory f&uuml;r konkrete Implementierungen
+eines Datenbanktreibers. Um den gew&uuml;nschte Treiber laden zu k&ouml;nnen, muss dieser
+zun&auml;chst konfiguriert werden. Die geschieht in der Konfigurationsdatei
+<gen:highlight type="code">/config/core/database/{CONTEXT}/{ENVIRONMENT}_connections.ini</gen:highlight>
+Details zu Konfigurationsdateien k&ouml;nnen dem Kapitel
+<a href="./?Seite=033-Konfiguration" title="Konfiguration">Konfiguration</a> entnommen werden. Die
+Konfigurationsdatei enth&auml;lt je eine Sektion f&uuml;r einen Treiber:
+<gen:highlight type="ini">
+[Sektionsname]
+DB.Host = ""
+DB.User = ""
+DB.Pass = ""
+DB.Name = ""
+[DB.DebugMode = "true|false"]
+</gen:highlight>
+Der <strong>Sektionsname</strong> dient als Referenz f&uuml;r die Erstellung der Treiber-Instanz,
+<strong>DB.Host</strong> beinhaltet den Hostnamen des Datenbank-Server, <strong>DB.User</strong> und
+<strong>DB.Pass</strong> die Authentifizierungsdaten und <strong>DB.Name</strong> benennt die zu
+verwendende Datenbank. <strong>DB.Type</strong> dient zur Definition des zur verwendenen Treibers
+und <strong>DB.DebugMode</strong> entscheidet, ob der Debug-Modus des Treibers aktiviert werden soll
+oder nicht.
+<div class="hint">
+   Der Debug-Modus kann dazu genutzt werden, das aktuell ausgef&uuml;hrte Statement auszugeben.
+   Alternativ dazu kann der optionale Parameter <em>$logStatement</em> der Methoden
+   <em>executeStatement()</em> und <em>executeTextStatement()</em> genutzt werden um das aktuell
+   ausgef&uuml;hrte Statement in eine Log-Datei zu schreiben. Details zur Funktion k&ouml;nnen der
+   <int:link pageid="002" /> entnommen werden.
+</div>
+
+<h3 id="Chapter-2-Anwendung"><a href="#Chapter-2-Anwendung">2. Anwendung</a></h3>
+Um den <strong>connectionManager</strong> einsetzen zu k&ouml;nnen muss dieser zun&auml;chst per
+<gen:highlight type="php">
+import('core::database','connectionManager');
+</gen:highlight>
+eingebunden werden. Anschlie&szlig;end kann per
+<gen:highlight type="php">
+$cM = &$this->__getServiceObject('core::database','connectionManager');
+$DBTreiber = &$cM->getConnection('Sektionsname');
+</gen:highlight>
+eins Instanz eines Datenbank-Treibers erzeugt werden.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Erweiterung"><a href="#Chapter-3-Erweiterung">3. Erweiterung</a></h3>
+Gem&auml;&szlig; der Definition der abstrakten Klasse <strong>AbstractDatabaseHandler</strong>
+k&ouml;nnen weitere Datenbank-Abstraktions-Klassen hinzugef&uuml;gt werden. Um diese mit dem
+<strong>connectionManager</strong> verwenden zu k&ouml;nnen, m&uuml;ssen diese im Namespace
+<strong>core::database</strong> abgelegt werden und von der Klasse
+<strong>AbstractDatabaseHandler</strong> ableiten.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Vorhandene-Treiberschichten"><a href="#Chapter-4-Vorhandene-Treiberschichten">4. Vorhandene Treiberschichten</a></h3>
+Das Framework liefert zwei Treiberschichten mit:
+<ul>
+  <li>MySQLx: MySQL-Treiberschicht. Setzt auf die mysql_*-Funktionen auf</li>
+  <li>SQLite: SQLite-Treiberschicht. Setzt auf die sqlite_*-Funktionen. Hier ist PHP > 5.0.0 notwendig!</li>
+</ul>
+<br />
+<h4 id="Chapter-4-1-MySQL-Treiberschicht"><a href="#Chapter-4-1-MySQL-Treiberschicht">4.1. MySQL-Treiberschicht</a></h4>
+Um eine Instanz des MySQL-Treibers erstellen zu k&ouml;nnen, ist folgende Konfiguration notwendig:
+<gen:highlight type="apf-xml">
+[MySQL]
+DB.Host = "host"
+DB.User = "user"
+DB.Pass = "pass"
+DB.Name = "name"
+DB.Type = "MySQLx"
+[DB.DebugMode = "true|false"]
+[DB.Charset = ""]
+[DB.Collation = ""]
+</gen:highlight>
+Die Parameter <strong>DB.Charset</strong> und <strong>DB.Collation</strong> dienen dazu, den
+<em>Zeichensatz</em> und die <em>Zeichenbehandlung</em> der MySQL-Verbindung zu definieren. Mit dem
+Parameter <strong>DB.Charset</strong> werden die MySQL-Variablen
+<ul>
+   <li>character_set_client</li>
+   <li>character_set_connection</li>
+   <li>character_set_results</li>
+</ul>
+gesetzt, <strong>DB.Collation</strong> beeinflusst
+<ul>
+   <li>collation_connection</li>
+   <li>collation_database</li>
+</ul>
+Die beiden Parameter sind optional und k&ouml;nnen bei Bedarf auch wechselseitig gesetzt werden, das
+Vorhandensein beider ist nicht erforderlich.
+<div class="hint">
+   Details zu den verf&uuml;gbaren Werten f&uuml;r die Konfiguration findet sich in der
+   MySQL-Dokumentation im Kapitel
+   <a class="external" href="http://dev.mysql.com/doc/refman/5.0/en/charset-connection.html" title="Connection Character Sets and Collations (MySQL 5.0)">Connection Character Sets and Collations (MySQL 5.0)</a>.
+</div>
+Anschlie&szlig;end kann die Treiber-Instanz mit den Code-Zeilen
+<gen:highlight type="php">
+  $cM = &$this->__getServiceObject('core::database','connectionManager');
+  $MySQL = &$cM->getConnection('MySQL');
+</gen:highlight>
+erzeugt werden. Die Treiberschicht wird aus Performance-Gr&uuml;nden dabei immer als Singleton-Objekt
+erstellt.
+<br />
+<br />
+<br />
+<h4 id="Chapter-4-2-SQLite-Treiberschicht"><a href="#Chapter-4-2-SQLite-Treiberschicht">4.2. SQLite-Treiberschicht</a></h4>
+Eine SQLite Treiberschicht kann mit dem Konfigurationseintrag
+<gen:highlight type="apf-xml">
+[SQLite]
+DB.Name = "/path/to/my/database.sqlite"
+DB.Type = "SQLite"
+DB.DebugMode = "true|false"
+</gen:highlight>
+und den Code-Zeilen
+<gen:highlight type="php">
+  $cM = &$this->__getServiceObject('core::database','connectionManager');
+  $SQLite = &$cM->getConnection('SQLite');
+</gen:highlight>
+instanziiert werden. Bitte beachten Sie, dass im Fall von SQLite Host, User und Passwort nicht
+konfiguriert werden m&uuml;ssen, da SQLite eine integrierte Datenbank-Engine ist.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_031" />

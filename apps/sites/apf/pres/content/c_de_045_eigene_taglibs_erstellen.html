@@ -1,0 +1,396 @@
+<doku:title parent="071" tags="tutorial,taglibs,eigene taglibs,erweiterung bestehender taglibs" title="TagLibs erstellen" urlname="TagLibs-erstellen">
+  Das vorliegende Tutorial beschreibt, wie eigene TagLibs erstellt werden k&ouml;nnen. Neben einem
+  theoretischen Beispiel finden sich auch praktische Anwendungen auf der Seite.
+</doku:title>
+<h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einf&uuml;hrung</a></h3>
+Der hier diskutierte Page-Controller baut beim Parsen der Templates einen internen Objektbaum aus den
+Implementierungen der einzelnen TagLib-Klassen auf. Als Basis f&uuml;r alle vorhandenen und weiteren
+Baum-Objekte dient die Klasse <em>Document</em>. Dieses erbt bereits vom zentralen Basis-Objekt
+<em>coreObject</em> und besitzt in ihrer Spezialisierung die zentrale Parser-Methode
+<em>__extractTagLibTags()</em>. Jeder in einem Template notierte XML-TagLib-Tag bildet im DOM-Baum ein
+weiteres Kind des aktuellen Dokuments. Der XML-Tag in einer Template-Datei definiert dabei die Parameter
+des Tags, die TagLib-Klasse die Funktion desselben zum Zeitpunkt des Parsen und bei der Transformation.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Aufbau-einer-TagLib"><a href="#Chapter-2-Aufbau-einer-TagLib">2. Aufbau einer TagLib</a></h3>
+Jeder XML-Tag, der unter <int:link pageid="046" />
+dokumentiert ist, wird - wie oben beschrieben - durch eine TagLib-Klasse repr&auml;sentiert. Die
+TagLib-Klasse definiert dabei &uuml;ber die Interface-Methoden das Verhalten des Tags zur Laufzeit der
+Anwendung.
+<br />
+<br />
+Eine TagLib-Klasse besitzt immer den Namensbestandteil "<strong>_taglib_</strong>" zwischen Pr&auml;fix
+und Klassenbezeichnung. M&ouml;chte der Entwickler in einer Template-Datei das Tag
+<gen:highlight type="apf-xml">
+  &lt;shop:basket /&gt;
+</gen:highlight>
+einbauen, so ist die TagLib-Klasse
+<gen:highlight type="apf-xml">
+  <font style="color: green; font-weight: bold;">shop</font><em>_taglib_</em><font style="color: blue; font-weight: bold;">basket</font>
+</gen:highlight>
+zu benennen. Dabei wird der gr&uuml;n markierte Teil als <strong>Pr&auml;fix</strong> und der blau
+markierte Teil als <strong>Klasse</strong> bezeichnet. Die Vergabe von Pr&auml;fix und Klasse obligt
+dem Entwickler. Es wird jedoch empfohlen, die Tags nach Abh&auml;ngigkeit und Schachtelung zu bezeichnen.
+Besitzt der <strong>&lt;shop:basket /&gt;</strong>-Tag beispielsweise weitere Sub-Tags, so sollte das
+Pr&auml;fix dieser mit <strong>basket</strong> betitelt werden. Hier ein Beispiel f&uuml;r die
+sinnvolle Benennung:
+<gen:highlight type="apf-xml">
+  &lt;shop:basket&gt;
+    &lt;basket:title /&gt;
+    &lt;basket:products&gt;
+      &lt;products:listing /&gt;
+      &lt;products:sum /&gt;
+    &lt;/basket:products&gt;
+  &lt;/shop:basket&gt;
+</gen:highlight>
+<br />
+Da an dieser Stelle gew&uuml;nscht ist, dass beim Parsen des <strong>&lt;shop:basket /&gt;</strong>-Tags
+weitere Sub-Tags ber&uuml;cksichtigt werden, m&uuml;ssen diese der <strong>shop_taglib_basket</strong>-Klasse
+im Konstruktur durch
+<gen:highlight type="php">
+class shop_taglib_basket extends Document {
+
+   function shop_taglib_basket(){
+      $this->__TagLibs[] = new TagLib('namespace::to::taglib','basket','title');
+      $this->__TagLibs[] = new TagLib('namespace::to::taglib','basket','products');
+   }
+
+   [..]
+
+}
+</gen:highlight>
+bekannt gemacht werden. Selbiges gilt f&uuml;r das Tag <strong>&lt;basket:products /&gt;</strong>
+in der TagLib-Klasse <strong>basket_taglib_products</strong>. Auch hier m&uuml;ssen die TagLibs
+<strong>&lt;products:listing /&gt;</strong> und <strong>&lt;products:sum /&gt;</strong> im Konstruktor
+von <strong>basket_taglib_products</strong> bekannt gemacht werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-1-Klassen-Variablen"><a href="#Chapter-2-1-Klassen-Variablen">2.1. Klassen-Variablen</a></h4>
+Beim Parsen des XML-/HTML-Codes einer HTML-Datei werden die eingesetzten und dem Parser bekannten Tags
+in Objekte gemappt. Der Inhalt eines Tags, z.B.
+<gen:highlight type="apf-xml">
+ &lt;php:hightlight&gt;
+   $var = 'value';
+ &lt;/php:hightlight&gt;
+</gen:highlight>
+wird in die Variable <strong>$this->__Content</strong> geschrieben, die Attribute des Tags in die
+Variable <strong>$this->__Attributes</strong>, wobei letzteres vom Typ Array ist. Damit kann
+innerhalb einer TagLib immer auf den Inhalt und die Attribute desselben zugegriffen werden. Tags
+k&ouml;nnen damit ganz einfach im XML-/HTML-Code f&uuml;r die Verwendung parametrisiert/konfiguriert
+werden. Weiterer Vorteil ist, dass einem so eingesetzten Tag beliebig viele HTML-Attribute wie "style"
+oder "class" zugewiesen werden k&ouml;nnen. Dies erleichtert vor allem bei UI-Elementen wie Text-Felder
+oder Buttons die Formatierung unabh&auml;ngig vom PHP-Code.
+<br />
+Die private Variable <strong>$this->__ParentObject</strong> h&auml;lt eine Referenz auf das
+Vater-Objekt. Somit kann mit den Methoden <strong>get()</strong>, <strong>set()</strong>,
+<strong>getAttribute()</strong> und <strong>setAttribute()</strong> auf die Eigenschaften der
+Eltern-Klasse zugegriffen werden. Die Funktionen <strong>getByReference()</strong> und
+<strong>setByReference()</strong> erm&ouml;glichen zudem Referenzen auf diverse Objekte im Baum zu
+holen, oder den adressierten Objekten Referenzen auf diverse Objekte mit zu geben. Die Dokumentation
+der Methoden kann unter der <a href="Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>
+des Core-Namespaces f&uuml;r das Objekt <em>Document</em> bzw. <em>coreObject</em> nachgelesen werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-2-Klassen-Methoden"><a href="#Chapter-2-2-Klassen-Methoden">2.2. Klassen-Methoden</a></h4>
+Um einer Tag-Library Funktionen "mitgeben" zu k&ouml;nnen gibt es mehrere Interface-Methoden, die zu
+unterschiedlichen Zeiten ausgef&uuml;hrt werden und unterschiedliche Bedeutung haben. Grunds&auml;tzlich
+ist der Entwickler jedoch frei in der Gestaltung der Klasse selbst und kann diese durch beliebige
+Methoden erweitern. Bindend bzw. vorgegeben sind jedoch folgende Bereiche:
+<ul>
+  <li>
+    <strong>Klassen-Deklaration:</strong>
+    <br />
+    Die Klasse muss stets von <em>Document</em> erben, da diese das Interface f&uuml;r die konkrete
+    Implementierung vorgibt und die zentrale Parser-Methode zur Verf&uuml;gung stellt. Der Dateiname
+    richtet sich nach der Wahl des Tag-Namens. Wird der Tag "php:highlight" genannt, so bildet der
+    erste Teil (Pr&auml;fix) den ersten Teil des Namens vor dem Mittel-Teil "_taglib_" und der zweite
+    Teil (Class) das Suffix. Es ergibt sich somit ein Klassen-Name von <strong>php_taglib_highlight</strong>.
+    Wird eine TagLib mit dem "core:addtaglib"-Tag eingebunden sucht der Parser nach einer derart
+    benannten Datei. Wichtig ist ausserdem, dass die Dateinamen mit dem der Klasse &uuml;bereinstimmen
+    muss.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>Konstruktor:</strong>
+    <br />
+    Im Konstruktor einer TagLib k&ouml;nnen einfache Initialisierungen von Member-Variablen oder
+    &auml;hnliche Aufgaben platziert sein. Beim Erzeugen des Objekts wird dem Konstruktor kein
+    Parameter &uuml;bergeben. Es muss nicht zwingend ein Konstruktor implementiert werden.
+    <br />
+    Ein weiterer Anwendungsfall ist das Hinzuf&uuml;gen weiterer TagLibs, die als Kinder eines Tags
+    fungieren (siehe oben). Ein Beispiel hierf&uuml;r ist zudem die Klasse <em>html_taglib_template</em>
+    (siehe <a href="Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>).
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>onParseTime()-Implementierung:</strong>
+    <br />
+    Die Methode <em>onParseTime()</em> wird auf jede TagLib dann ausgef&uuml;hrt, wenn die Eigenschaften
+    <br />
+    <br />
+    <ul>
+      <li>$this->__Context</li>
+      <li>$this->__Attributes</li>
+      <li>$this->__Content</li>
+      <li>$this->__Language</li>
+    </ul>
+    <br />
+    vom PageController gesetzt wurden. Damit hat die Tag-Library bereits zu diesem Zeitpunkt Zugriff
+    auf die Attribute und Inhalte und kann Operationen implementieren. Es ist zu diesem Zeitpunkt
+    jedoch noch nicht sichergestellt, dass alle Kinder des aktuellen Dokuments erzeugt und
+    eingeh&auml;ngt wurde. Um Zugriff auf diese zu erhalten sollte die Funktion <em>onAfterAppend()</em>
+    genutzt werden.
+    <br />
+    <br />
+    <div class="hint">
+      Die Methode eignet sich jedoch um weitere Sub-Tags im Inhalt des aktuellen
+      Objekts zu parsen oder etwaig angegebene DocumentController zu extrahieren. Hier stehen die
+      privaten Methoden <em>__extractTagLibTags()</em> und <em>__extractDocumentController()</em>
+      (siehe <a href="Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>)
+      zur Verf&uuml;gung.
+    </div>
+    <br />
+    <br />
+    <div class="hint">
+       Damit bei der Transformation die Inhalte einer Taglib an der korrekten Stelle ausgegeben werden,
+       erzeugt die Methode <em>__extractTagLibTags()</em> Platzhalter-Tags der Form
+       <gen:highlight type="apf-xml">&lt;{OBJECT_ID} /&gt;</gen:highlight> Dabei entspricht <em>{OBJECT_ID}</em>
+       dem Wert der Klassen-Variable <em>$this->__ObjectID</em> und dem Array-Offset, in dem die
+       Kind-Tags gespeichert werden (<em>$this->__Children</em>). Dieser Wert kann dann bei der
+       Implementierung von eigenen <em>transform()</em>-Methoden f&uuml;r die Ersetzung des Inhalts
+       genutzt werden.
+    </div>
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>onAfterAppend()-Implementierung:</strong>
+    <br />
+    Sind alle Kinder des aktuellen Knotens in den Baum eingeh&auml;ngt, wird auf diese jeweils die
+    <em>onAfterAppend()</em>-Methode ausgef&uuml;hrt. Von hier aus kann nun auf alle Objekte des
+    Baumes zugegriffen werden. In der Variablen <strong>$this->__ParentObject</strong> ist eine
+    Referenz auf das Vater-Objekt und in <strong>$this->__Children</strong> sind die Kinder eines
+    Objekts gespeichert. Mit den oben genannten Methoden kann auf die Attribute und Eigenschaften
+    zugegriffen werden.
+    <br />
+    <br />
+  </li>
+  <li>
+    <strong>transform()-Implementierung</strong>
+    <br />
+    Die bisher genannten Methoden dienten dem Abbilden des XML-/HTML-Codes in einen Objektbaum. Die
+    Funktion <strong>transform()</strong> hingegen ist f&uuml;r die Generierung der HTML-Ausgabe
+    zust&auml;ndig. Hier wird der HTML-Code generiert, der nach der vollst&auml;ndigen Transformation
+    des Baumes zur Anzeige gebracht wird. In der Regel kann die Implementierung der Methode von der
+    Klasse <em>Document</em> &uuml;bernommen werden, f&uuml;r spezielle Anwendungen muss diese jedoch
+    &uuml;berladen werden. Um die Attribute eines Objekts in HTML-Code ausgeben zu k&ouml;nnen gibt es
+    eine weitere private Helper-Methode: <strong>__getAttributesAsString()</strong>.
+  </li>
+</ul>
+<br />
+<div class="hint">
+   Sofern die Methode <em>transform()</em> in eigenen TagLibs &uuml;berschrieben wird, muss
+   sich der Entwickler selbst um die Transformation der Kind-Knoten k&uuml;mmern. Dies kann im
+   einfachsten Fall durch
+<gen:highlight type="php">
+foreach($this->__Children as $objectId => $DUMMY){
+   $this->__Content = str_replace(
+         '<'.$objectId.' />',
+         $this->__Children[$objectId]->transform(),
+         $this->__Content
+   );
+}
+</gen:highlight>
+   erreicht werden, wenn in den Methoden <em>onParseTime()</em> oder <em>onAfterAppend()</em> die
+   Parser-Funktion <em>__extractTagLibTags()</em> aufgerufen wurde. Weitere Hinweise k&ouml;nnen dem
+   Foren-Beitrag
+   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=191" title="transform() von eigenem taglib nicht ausgef&uuml;hrt">transform() von eigenem taglib nicht ausgef&uuml;hrt</a>
+   entnommen werden.
+</div>
+<br />
+<br />
+<h3 id="Chapter-3-Anwendungsbeispiele"><a href="#Chapter-3-Anwendungsbeispiele">3. Anwendungsbeispiele</a></h3>
+<h4 id="Chapter-3-1-php_taglib_hightlight">3.1. Taglib <em>php_taglib_hightlight</em></h4>
+Folgender Code zeigt ein Beispiel f&uuml;r eine einfache TagLib, die im Text zwischen
+<gen:highlight type="apf-xml">
+  &lt;php:highlight&gt;
+    [..]
+  &lt;/php:highlight&gt;
+</gen:highlight>
+enthaltenen PHP-Code farbig darstellt. Die Logik wird dabei von der Klasse <strong>php_taglib_hightlight</strong>
+abgebildet. Diese implementiert dazu die Methode <em>transform()</em>, die den in der Variable
+<strong>$this->__Content</strong> enthaltene Text mit Hilfe der PHP-Funktion <em>highlight_string()</em>
+als PHP-Quelltext formatiert wird:
+<gen:highlight type="php">
+class phpphp_taglib_highlight extends Document {
+
+   function phpphp_taglib_highlight(){
+   }
+
+   function transform(){
+
+      // count lines
+      $LineCount = substr_count($this-&gt;__Content,"\n") - 1;
+
+      // highlight source code
+      // - Remove new lines at the beginning
+      // - Remove new lines and blanks at the end
+      // - Remove new lines and blanks around the whole text
+      $HighlightedContent = highlight_string(trim('&lt;?php '.ltrim(rtrim($this-&gt;__Content),"\x0A..\x0D").' ?&gt;'),true);
+
+      // replace php start tags
+      $HighlightedContent = str_replace('&lt;font color="#007700"&gt;&lt;?&lt;/font&gt;','',$HighlightedContent);
+      $HighlightedContent = str_replace('&lt;font color="#0000BB"&gt;&lt;?php&nbsp;','&lt;font color="#0000BB"&gt;',$HighlightedContent);
+      $HighlightedContent = str_replace('&lt;font color="#0000BB"&gt;php','&lt;font color="#0000BB"&gt;',$HighlightedContent);
+      $HighlightedContent = str_replace('&lt;font color="#0000BB"&gt;&nbsp;&lt;/font&gt;','',$HighlightedContent);
+
+      // enhancement to the PHP5 support
+      $HighlightedContent = str_replace('&lt;span style="color: #0000BB"&gt;&lt;?php&nbsp;','&lt;span style="color: #0000BB"&gt;',$HighlightedContent);
+      $HighlightedContent = str_replace('&lt;span style="color: #0000BB"&gt;&lt;?php','&lt;span style="color: #0000BB"&gt;',$HighlightedContent);
+      $HighlightedContent = str_replace('&lt;span style="color: #0000BB"&gt;?&gt;&lt;/span&gt;','',$HighlightedContent);
+
+      // replace php end tags
+      $HighlightedContent = str_replace('&lt;font color="#0000BB"&gt;?&gt;&lt;/font&gt;','',$HighlightedContent);
+
+      // return div encloses source code with height limit if necessary
+      if($LineCount &gt; 27){
+         return '&lt;div class="phpcode" style="height: 400px; overflow: auto;"&gt;'.$HighlightedContent.'&lt;/div&gt;';
+      }
+      else{
+         return '&lt;div class="phpcode"&gt;'.$HighlightedContent.'&lt;/div&gt;';
+      }
+
+   }
+
+}
+</gen:highlight>
+<br />
+<br />
+<h4 id="Chapter-3-2-html_taglib_entityencode">3.2. Taglib <em>html_taglib_entityencode</em></h4>
+Die TagLib <em>html:entityencode</em> dient dazu Text in HTML-Entities zu konvertieren. Ein wichtiges
+Anwendungsgebiet ist die Codierung einer E-Mail-Adresse um diese von Crawlern zu sch&uuml;tzen. Um
+diese Funktionalit&auml;t bereitzustellen wird eine neue TagLib-Klasse definiert, die die Methode
+<strong>encodeCharactersToHTML</strong> der Klasse <strong>stringAssistant</strong> nutzt, um den
+Inhalt des Tags zu konvertieren. Nach dem Einbinden der TagLib kann diese wie folgt verwendet werden:
+<br />
+<br />
+<gen:highlight type="apf-xml">
+  &lt;html:entityencode&gt;nobody@example.com&lt;/html:entityencode&gt;
+</gen:highlight>
+Im Quelltext der ausgelieferten Seite findet sich dann der Text
+<gen:highlight type="apf-xml">
+&amp;#110;&amp;#111;&amp;#98;&amp;#111;&amp;#100;&amp;#121;&amp;#64;&amp;#101;&amp;#120;&amp;#97;&amp;#109;&amp;#112;&amp;#108;&amp;#101;&amp;#46;&amp;#99;&amp;#111;&amp;#109;
+</gen:highlight>
+wieder. Da die Codierungs-Funktionalit&auml;t nicht in der TagLib selbst implementiert ist, kann diese
+auch in anderen Bereichen wie einem G&auml;stebuch durch Einbindung der Klasse <strong>stringAssistant</strong>
+verwendet werden. Die nachfolgend angezeigte Quelltext-Box zeigt die TagLib nochmal im &Uuml;berblick:
+<gen:highlight type="php">
+import('tools::string','stringAssistant');
+
+class html_taglib_entityencode extends Document {
+
+   function html_taglib_entityencode(){
+   }
+
+   function transform(){
+      return stringAssistant::encodeCharactersToHTML($this->__Content);
+   }
+
+}
+</gen:highlight>
+<br />
+<br />
+<h4 id="Chapter-3-3-doc_taglib_createobject">3.3. Taglib <em>doc_taglib_createobject</em></h4>
+Als weiteres Anwendungs-Beispiel soll die Tag-Library erl&auml;utert werden, die f&uuml;r die
+Einbindung des Inhalts der Dokumentations-Seite verantwortlich ist. Die Tag-Library
+<strong>&lt;doc:createobject /&gt;</strong> liest Inhalte aus HTML-Dateien in einem
+speziellen Ordner aus, parst den Inhalt und generiert dadurch eine weitere Verzweigung im Objektbaum.
+Der folgende Kasten zeigt den Quell-Code der TagLib. Um diese nutzen zu k&ouml;nnen muss diese zuerst
+mit
+<gen:highlight type="apf-xml">
+  &lt;core:addtaglib namespace="tools::html::taglib" prefix="doc" class="createobject" /&gt;
+</gen:highlight>
+eingebunden werden. Anschlie&szlig;end (bereits unmittelbar nach dem Einbinden) kann folgendes in der
+HTML-Datei notiert werden:
+<gen:highlight type="apf-xml">
+  &lt;doc:createobject requestparam="Seite" defaultvalue="Startseite" /&gt;
+</gen:highlight>
+Betrachtet man den Quellcode der TagLib-Klasse n&auml;her wird dort folgende Logik gekapselt:
+<gen:highlight type="php">
+   import('tools::request','RequestHandler'); 
+
+   class doc_taglib_createobject extends Document {
+
+      function doc_taglib_createobject(){
+         parent::Document();
+      }
+
+      function onParseTime(){
+
+         // Attribute auslesen
+         $RequestParameter = $this->__Attributes['requestparam'];
+         $DefaultValue = $this->__Attributes['defaultvalue'];
+
+         // Parameter &uuml;ber RequestHandler initialisieren
+         $_LOCALS = RequestHandler::getValues(array($RequestParameter => $DefaultValue));
+
+         // Aktuellen Parameter auslesen
+         $CurrentRequestParameter = $_LOCALS[$RequestParameter];
+
+         // Content des Objekts setzen
+         $this->__Content = $this->__getContent($CurrentRequestParameter);
+
+         // Tags extrahieren
+         $this->__extractTagLibTags();
+
+         // DocumentController extrahieren
+         $this->__extractDocumentController();
+
+      }
+
+      function __getContent($Seite){
+         $Datei = './frontend/content/c_'.$this->__Language.'_'.strtolower($Seite).'.html';
+         if(!file_exists($Datei)){
+            $Datei = './frontend/content/c_'.$this->__Language.'_404.html';
+         }
+         return file_get_contents($Datei);
+      }
+
+   }
+</gen:highlight>
+<ul>
+  <li>
+    Zu Beginn der Datei wird ein weiteres Tool importiert, das sp&auml;ter Verwendung findet.
+  </li>
+  <li>
+    Im Konstruktor wird der Konstruktor der Eltern-Klasse aufgerufen. Dies beinhaltet die Initialisierung
+    der standardm&auml;&szlig;ig eingebundenen TagLibs. Jede TagLib wird in einem Objekt in der
+    Variable <strong>$this->__TagLibs</strong> nochmals durch ein eigenes Objekt repr&auml;sentiert,
+    damit der Parser wei&szlig;, auf welche TagLibs er den Inhalt untersuchen muss. Nur bekannt
+    gemachte TagLibs k&ouml;nnen gefunden werden!
+  </li>
+  <li>
+    In der Methode <em>onParseTime()</em> werden die Tag-Attribute eingelesen und der aktuelle
+    Request-Parameter mit Hilfe der Klasse <em>RequestHandler</em> ermittelt. Anschlie&szlig;end
+    wird mit Hilfe der privaten Funktion <em>__getContent()</em> der Inhalt des Objekts gef&uuml;llt.
+    Ist der Inhalt eingelesen, wird versucht, mit den Parser-Methoden <em>__extractTagLibTags()</em>
+    und <em>__extractDocumentController()</em> enthaltene und bekannte Tags und DocumentController
+    zu extrahieren und als Kinder bzw. Attribut einzuh&auml;ngen.
+  </li>
+  <li>
+    Innerhalb der Methode <em>__getContent()</em> wird lediglich der Inhalt der mit dem &Uuml;bergabe-
+    Parameter spezifizierten Datei geladen und zur&uuml;ckzugeben. Ist die gew&uuml;nschte Datei
+    nicht vorhanden wird der Inhalt einer Standard-Fehler-Datei zur&uuml;ckgegeben.
+  </li>
+</ul>
+F&uuml;r weiterf&uuml;hrende Anwendungs-Beispiele k&ouml;nnen die TagLibs f&uuml;r das Formular-
+Management herangezogen werden. Diese befinden sich im Ordner <strong>apps/tools/form/taglib/</strong>.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_045" />

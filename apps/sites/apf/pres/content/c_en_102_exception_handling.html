@@ -1,0 +1,101 @@
+<doku:title parent="119" tags="exception,handling,exception handling,registry,core,exceptionhandler" title="Exception handling" urlname="Exception-handling">
+  The exception handling chapter describes the exception handling contained in the framework to
+  catch uncaught exceptions. Further, this section describes the usage of the concept and the
+  extension.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+The framework features the <strong>exceptionHandler</strong> function, that is intended to do global
+exception handling. This function is used to catch and handle uncaught exceptions at a central
+place. For this reason, it uses an <strong>ExceptionHandler</strong> component, that can be configured
+within the registry. The exception handler itself is then responsible for the handling of the current
+exception. This mechanism is similar to the integrated
+<a href="./?Page=101-Error-handling" title="Error handling">error handling</a>.
+<br />
+<br />
+The preconfigured APF exception handler saves the exception message into a log file and displays the
+nice exception screen including the stacktrace. Details can be taken from the
+<a href="./?Page=002-API-documentation" title="API documentation">API documentation</a> of the
+<strong>DefaultExceptionHandler</strong> class.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration</a></h3>
+To replace the preconfigured <strong>DefaultExceptionHandler</strong> with an own class, the registry
+offset <strong>ExceptionHandler</strong> within the <strong>apf::core</strong> namespace must be filled
+with the desired <strong>ExceptionHandlerDefinition</strong> instance. The configuration of the exception
+handling component must be placed in the bootstrap file directly after the <em>pagecontroller.php</em>
+is included.
+<br />
+<br />
+The definition of a custom exception handler looks as follows:
+<gen:highlight type="php">
+$reg = Singleton::getInstance('Registry');
+$reg->register(
+   'apf::core',
+   'ExceptionHandler',
+   new ExceptionHandlerDefinition(
+      'my::exceptionhandler::namespace',
+      'MyExceptionHandler'
+   )
+);
+</gen:highlight>
+As you can take from the example, the desired <em>ExceptionHandler</em> is referenced by it's
+namespace and it's class name.
+<br />
+<br />
+<strong>Note:</strong> if the registry offset does not contain a valid definition, the exceptions are
+displayed in text mode. You can identify the fallback mode by the prefix
+<gen:highlight type="apf-xml">
+APF catchable exception:
+</gen:highlight>
+In this cases, the definition or the implementation of the exception handler class must be checked.
+<br />
+<br />
+<div class="hint">
+   In order to deactivate the <em>ExceptionHandler</em>, initilize the registry offset with
+   <strong>null</strong>.
+   <br />
+   <br />
+</div>
+<br />
+<br />
+<h3 id="Chapter-3-Enhancement"><a href="#Chapter-3-Enhancement">3. Enhancement</a></h3>
+To introduce a custom exception handling, you must implement the <strong>AbstractExceptionHandler</strong>.
+This class defines the following interface:
+<gen:highlight type="php">
+abstract class AbstractExceptionHandler extends coreObject
+{
+
+   function handleException($exception){
+   }
+
+}
+</gen:highlight>
+If an error occures, the <strong>handleException</strong> is applied the current exception object
+as an argument. Due to the fact, that the exception handling is done in an page controller independent
+class, that is not created by the service manager, the current <strong>Context</strong> and the current
+<strong>Language</strong> are <em>not</em> available!
+<br />
+<br />
+If these information are important for the exception handling, the must be obtained from information
+containers available within an application or module (e.g. application model class). The environment
+param is available via the registry as mentioned in the corresponding documentation chapter.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Usage"><a href="#Chapter-4-Usage">4. Usage</a></h3>
+The global exception handling mechanism can be used by placing the following PHP code within your
+application:
+<gen:highlight type="php">
+throw new Exception('My application exception');
+</gen:highlight>
+Please note, that the global exception handler only is invoked, when the current exception is not
+caught by a <em>try-catch</em> block!
+<br />
+<br />
+Details on the usage of exceptions can be taken from the online documentation under
+<doku:link>http://php.net/exception</doku:link> and <doku:link>http://php.net/exceptions</doku:link>.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_102" />

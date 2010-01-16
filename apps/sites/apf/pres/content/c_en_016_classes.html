@@ -1,0 +1,130 @@
+<doku:title parent="119" tags="important classes,dom model,benchmark,controller" title="Classes" urlname="Classes">
+  This chapter includes an overview of the framework's essential classes. The section further contains
+  a description of the APF DOM structure of the presentation layer, that enables you to integrate your
+  modules in a very easy way.
+</doku:title>
+The present chapter explains important classes of the frameworks and defines the intent. It goes into
+the internal design of the frameworks and the document object model (DOM) defined there. The class
+definitions are avaliable under <a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>
+in CHM files or ZIP files with plain HTML files.
+<br />
+<br />
+<br />
+<h3 id="Chapter-1-Central-basic-classes"><a href="#Chapter-1-Central-basic-classes">1. Central basic classes of the framework</a></h3>
+All classes in the folder "core" are important classes to the framework. These were structured in
+the folder "core", because the author assumes that these are necessary for building an application
+based on this framework. The following chapters discuss the most important and most often used classes
+and their intent.
+<br />
+<br />
+<br />
+<h4 id="Chapter-1-1-coreObject"><a href="#Chapter-1-1-coreObject">1.1. coreObject</a></h4>
+The class <em>coreObject</em> forms the very central class. Normally every class inherits from this
+base class. It defines attributes and methodes used in concrete implementations of this interface.
+<em>coreObject</em> is not only a base class to presentation layer classes but also to classes that
+are residing in the business or data layer. This has the advantage that many parts of the
+applications can be standardised. The private attributes define basic qualities of an object and
+allow object trees to be based by father-to-child relations. With the public methods the attributes
+and properties can be manipulated. The private methods are service methods which apply in the
+implementings of <em>coreObject()</em>. Examples for existing service methodes can be found on the
+<a href="./?Page=033-Configuration" title="configuration">configuration page</a>.
+<br />
+<br />
+<br />
+<h4 id="Chapter-1-2-Document"><a href="#Chapter-1-2-Document">1.2. Document</a></h4>
+<em>Document</em> inherits from <em>coreObject</em> and plays a central role for presentation layer
+classes only. This class features a variety of parser methodes that generate object trees out of XML
+code and generates HTML code out of an given object tree with help of the <em>transform()</em> method.
+Every XML taglib must inherit from the <em>Document</em> class to be able to use it's attributes and
+methodes. The UML diagram can be seen under <a href="./?Page=002-API-Documentation" title="API dokumentation">API dokumentation</a>
+The developer does not get into contact with the class <em>Document</em> within
+<a href="./?Page=047-Templates" title="templates">template construction</a> at first, nevertheless, the
+definition of the class will get interesting with the construction of own
+<a href="./?Page=045-User-specific-taglibs" title="create taglibs">taglibs</a>, because all tree nodes must
+inherit from <em>Document</em> to specialize the functionality of the tag.
+<br />
+<br />
+<br />
+<h4 id="Chapter-1-3-Page"><a href="#Chapter-1-3-Page">1.3. Page</a></h4>
+The class <em>Page</em> encases a complete web page with it's internal tree structure. It finds use
+in the index files and implements a variety of methods for the URL rewriting feature.
+<br />
+<br />
+<br />
+<h4 id="Chapter-1-4-baseController"><a href="#Chapter-1-4-baseController">1.4. baseController</a></h4>
+The class <em>baseController</em> is the central interface for all DocumentController according to
+the MVC approach. It describes which methods of the DocumentController must be implemented and which
+attributes of a Documents are available within the controller. Further details to controllers can be
+read up <a href="./?Page=006-Controller" title="controller">here</a>. To insert dynamic contents in
+documents the method "transformContent()" must be implemented in the derived controller classes. It
+is executed while transforming a tree node and the content is afterwards implanted in the contents
+of the node. Thus it is possible, for example, to print out the text "<code>hello world!</code>"
+with respect to the browser language.
+<br />
+<br />
+<br />
+<h4 id="Chapter-1-5-Singleton"><a href="#Chapter-1-5-Singleton">1.5. Singleton</a></h4>
+A very often used component is the singleton implementation. The implementation contained in the
+framework is an <strong>abstract singleton</strong> class. With this it is possible to generate any
+class as a singleton object in the application. A requirement is that the constructor expects no
+duty parameters. For design and performance reasons nearly all services are used in "singleton" style.
+This means that "services" that used during a requests exist exactly <strong>once</strong>. This
+pattern is mainly used for all the services generated with the <em>__getServiceObject()</em> and
+<em>__getAndInitServiceObject()</em> methods. An often appearing application case of singleton is
+the benchmarker.
+<br />
+<br />
+<br />
+<h4 id="Chapter-1-6-BenchmarkTimer"><a href="#Chapter-1-6-BenchmarkTimer">1.6. BenchmarkTimer</a></h4>
+The <em>BenchmarkTimer</em> is other important component. With this it is possible to gather the execution
+times of different parts of the software and to generate a report from it. Thus performance-weak
+points can be found out and execution times be measured. Details to <em>BenchmarkTimer</em> can be
+read up <a href="./?Page=004-Benchmark" title="benchmark">here</a>.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-GUI-DOM-model"><a href="#Chapter-2-GUI-DOM-model">2. DOM object model of the presentation layer</a></h3>
+With the contained page controller the framework owns a GUI controller who abstracts the complete
+GUI of a site into an own internal document object tree. Besides, every node is represented by an
+object which inherits from the class <em>Document</em>. Thus it is made sure according to the composite
+pattern that the object tree can be extended at any place. One single tree element is represented by
+a view and a controller concerning the MVC pattern. The model - here one speaks of "model" in terms
+of internals like expiries and status information, not from "model" for the purposes of a domain
+object - often is included in the controller, a business component or an extra model class. The view
+is represented by a template file in the present implementation and the controller is a DocumentController,
+inheriting from the class <em>baseController</em>.
+<br />
+<br />
+The page controller features the central parser methode <strong>__extractTagLibTags()</strong> which
+is used to create tree nodes (child nodes of the current node) by parsing known tags in template files.
+The functionality of a single DOM node is represented by a taglib class that inherits from the
+<em>Document</em> class. Each node has a set of known taglibs, that can be expanded by adding specific
+XML tags to a given template file. The documentation of these taglibs can be found on the
+<int:link pageid="046" /> page.
+<br />
+<br />
+If one analyzes the templates and controllers of the topical documentation web page, the following
+internal DOM object structure arises after the parsing of the templates:
+<br />
+<br />
+<a href="http://media.adventure-php-framework.org/content/DOM_Tree.png" title="Click to enlarge!">
+  <img src="http://media.adventure-php-framework.org/content/DOM_Tree.png" border="0" alt="Adventure php framework DOM object tree" style="width: 560px;"/>
+</a>
+<br />
+<br />
+The DOM definition of the frameworks assumes from the fact that the structure of a site is encapsulated
+in an object of the class <em>Page</em>. That means that the object of the class <em>Page</em> forms
+the root node. Within this root node a initial <em>Document</em> node is created to load the
+initial template. The known tags of this template are examined by the page controller and new child
+nodes are created from them.
+<br />
+<br />
+In general, <strong>&lt;core:importdesign /&gt;</strong> tags are used to include the templates defined
+with the tag's attributes as a new child node in the existing DOM structure. Doing so, is possible
+to generate and to administer an arbitrarily deep tree structure. This is handy particularly in big
+web pages with meny views. Details on the <strong>&lt;core:importdesign /&gt;</strong> tag can be
+taken from the <int:link pageid="046" anchor="Chapter-1-2-Importdesign" /> page.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_016" />

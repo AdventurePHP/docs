@@ -1,0 +1,101 @@
+<doku:title parent="119" tags="fehler,behandlung,fehlerbehandlung,registry,core,errorhandler" title="Fehlerbehandlung" urlname="Fehlerbehandlung">
+  Das Kapitel Fehlerbehandlung beschreibt das im Framework enthaltene Fehlerhandling-Konzept und
+  zeigt die Verwendung sowie die Erweiterung auf.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+Zur globalen Fehlerbehandlung nutzt das Framework die Funktion <strong>errorHandler</strong>. Diese
+hat die Aufgabe, alle auftretenden Fehler abzufangen und an zentraler Stelle zu behandeln. Zu diesem
+Zweck nutzt die Funktion eine <strong>ErrorHandler</strong>-Komponente, die &uuml;ber die Registry
+konfigurierbar ist. Letztere ist dann f&uuml;r die eigentliche Behandlung eines Fehlers verantwortlich.
+<br />
+<br />
+Die im APF vorkonfigurierte Fehlerbehandlung beinhaltet dabei die Speicherung der Meldung in einer
+Log-Datei und die Ausgabe des Fehlers inklusive des Stacktraces. Details k&ouml;nnen der
+<a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a> der Klasse
+<strong>DefaultErrorHandler</strong> entnommen werden.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration</a></h3>
+Um den vorkonfigurierten <strong>DefaultErrorHandler</strong> durch einen eigenen zu ersetzen muss der
+Registry-Offset <strong>ErrorHandler</strong> im Namespace <strong>apf::core</strong> mit der
+gew&uuml;nschten <strong>ErrorHandlerDefinition</strong> ersetzt werden. Die Konfiguration einer
+eigenen Fehlerbehandlungsroutine muss dabei in der Bootstrap-Datei nach dem Einbinden der
+<em>pagecontroller.php</em> erfolgen.
+<br />
+<br />
+Die Definition einer eigenen Fehler-Behandlungskomponente gestaltet sich wie folgt:
+<gen:highlight type="php">
+$reg = &Singleton::getInstance('Registry');
+$reg->register(
+   'apf::core',
+   'ErrorHandler',
+   new ErrorHandlerDefinition(
+      'my::errorhandler::namespace',
+      'MyErrorHandler'
+   )
+);
+</gen:highlight>
+Wie aus dem Code-Beispiel zu erkennen ist, wird ein <em>ErrorHandler</em> durch seinen Namespace und
+seinen Klassennamen referenziert.
+<br />
+<br />
+<strong>Hinweis:</strong> enth&auml;lt der Registry-Offset keine g&uuml;ltige Definition, werden
+auftretende Fehler in Text-Form ausgegeben. Der Fallback-Modus ist daran zu erkennen, dass die Meldung
+mit
+<gen:highlight type="apf-xml">
+APF catchable error:
+</gen:highlight>
+beginnt. In diesem Fall muss die Definition oder die Implementierung der ErrorHandler-Klasse
+&uuml;berpr&uuml;ft werden.
+<br />
+<br />
+<div class="hint">
+   Um den <em>ErrorHandler</em> zu deaktivieren kann der Registry-Eintrag mit <strong>null</strong>
+   initialisiert werden.
+   <br />
+   <br />
+</div>
+<br />
+<br />
+<h3 id="Chapter-3-Erweiterung"><a href="#Chapter-3-Erweiterung">3. Erweiterung</a></h3>
+Um eine eigene Fehlerbehandlung einzuf&uuml;hren, muss die Klasse <strong>AbstractErrorHandler</strong>
+implementiert werden. Diese definiert folgendes Interface:
+<gen:highlight type="php">
+class AbstractErrorHandler extends coreObject {
+
+   function handleError($errorNumber,$errorMessage,$errorFile,$errorLine){
+   }
+
+}
+</gen:highlight>
+Bei Auftreten eines Fehlers werden der Methode <strong>handleError</strong> die Parameter
+<ul>
+  <li>Fehler-Nummer</li>
+  <li>Fehler-Meldung</li>
+  <li>Datei, in der der Fehler auftritt</li>
+  <li>Zeile, in der der Fehler auftritt</li>
+</ul>
+&uuml;bergeben. Da die Fehlerbehandlung in einer eigenen Klasse stattfindet, die nicht mit dem
+ServiceManager erzeugt wurde, steht der Zugriff auf den aktuellen <strong>Context</strong> und die
+aktuelle <strong>Sprache</strong> <em>nicht</em> zur Verf&uuml;gung!
+<br />
+<br />
+Sollten diese Informationen f&uuml;r die Behandlung des Fehlers notwendig sein, m&uuml;ssen diese
+&uuml;ber in einer Applikation verf&uuml;gbaren Informationscontainer (z.B. Model-Klasse eines Modules)
+bezogen werden. Der Umgebungsparameter steht wie in der Dokumentation beschrieben &uuml;ber die
+Registry zur Verf&uuml;gung.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Anwendung"><a href="#Chapter-4-Anwendung">4. Anwendung</a></h3>
+Der globale Fehler-Behandlungsmechanismus kann einfach durch Aufrufen der PHP-Funktion
+<gen:highlight type="php">
+trigger_error();
+</gen:highlight>
+genutzt werden. Details k&ouml;nnen der Online-Dokumentation unter
+<doku:link>http://php.net/trigger_error</doku:link> entnommen werden.
+<br />
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_101" />

@@ -1,0 +1,74 @@
+<doku:title parent="100" tags="migration,1.9,1.10,pager,mysqlhandler,comment" title="Migration from 1.9 to 1.10" urlname="Migration-from-1-9-to-1-10">
+  The present article describes the changes that have to be applied to existing code, when switching
+  to revision 1.10.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+Version 1.10 contains several changes, that are not backward-compatible with the previous versions.
+For this reason, it is necessary to adapt existing applications. The following chapters will decribe
+the changes and give you some hints for effective migration.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Inclusion-PagerManager"><a href="#Chapter-2-Inclusion-PagerManager">2. Inclusion of the PagerManager</a></h3>
+In order to be able to implement the changes discussed for release 1.11, the inclusion/call of the
+<em>PagerManager</em> was modified. As of 1.9, the business component had to be imported by
+<gen:highlight type="php">import('modules::pager::biz','pagerManager');</gen:highlight>
+until now, you need to use
+<gen:highlight type="php">import('modules::pager::biz','PagerManagerFabric');</gen:highlight>
+Due to the fact, that the change is only textual, the migration can be done using search &amp;
+replace.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Outsourcing-of-statements"><a href="#Chapter-3-Outsourcing-of-statements">3. Outsourcing of statements</a></h3>
+Including release 1.9, the external statement files must reside within the "statements" subfolder.
+Until now, these files are treated as configuration files, too. This means, that the additional
+subfolder is no longer necessary. For this reason, the existing statement files must be moved one
+directory level higher. Details can be read about in the
+<a href="./?Page=018-Class-reference-table-MySQLHandler#Chapter-2-Statement-outsourcing" title="Statement outsourcing">statement outsourcing</a>
+section.
+<br />
+<br />
+<br />
+<h3 id="Chapter-4-Configuration-comment-function"><a href="#Chapter-4-Configuration-comment-function">4. Configuration comment function</a></h3>
+The comment function was introduced the <em>ConnectionManager</em> to be more flexible with
+database connection definition. For this reason, the comment module needs an additional configuration
+file, that defines the database connection. Details can be read about in the
+<a href="./?Page=089-Module-comment-function#Chapter-2-Configuration" title="Configuration">Configuration</a>
+chapter.
+<br />
+<br />
+<br />
+<h3 id="Chapter-5-Introduction-of-php5-language-elements"><a href="#Chapter-5-Introduction-of-php5-language-elements">5. Introduction of PHP5 language elements</a></h3>
+As announced in the release notes of the last release, the development has now switched to PHP5.
+This means, that the PHP5 release files contain all PHP5 language elemens. For this reason, you must
+now take care about the visibility of methods and class members. Please ensure, that the visibility
+is recognized within your existing applications.
+<br />
+<br />
+<br />
+<h3 id="Chapter-6-Renamings"><a href="#Chapter-6-Renamings">6. Renamings</a></h3>
+The following classes have been renamed:
+<ul>
+   <li>serviceManager -> ServiceManager</li>
+   <li>sessionManager -> SessionManager</li>
+   <li>benchmarkTimer -> BenchmarkTimer</li>
+</ul>
+The renaming of the <em>ServiceManager</em> class should be transparent to you, because the call
+is encapsulated within the <strong>__get*ServiceObject()</strong> of the <strong>coreObject</strong>.
+<br />
+<br />
+The remaining changes are only textual changes that can be done by search &amp; replace.
+<br />
+<br />
+<div class="hint">
+Be careful with capitalization and use of small letters! In case your code contains a mixture of
+both notations you may faced with errors like "<em>cannot redeclare class ... in ...</em>". To fix
+this, the miss-spelt usages must be corrected within the <em>import()</em> or
+<em>include()</em>/<em>require()</em> statements. Sometimes the PHP module
+<a class="external" href="http://xdebug.org/docs/stack_trace" title="xdebug 2">xdebug</a>
+can help finding the relevant lines of code.
+</div>
+<br />
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_109" />

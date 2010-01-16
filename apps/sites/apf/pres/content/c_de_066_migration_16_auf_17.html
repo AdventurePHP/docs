@@ -1,0 +1,158 @@
+<doku:title parent="100" tags="migration,1.6,1.7,registry,einfache konfiguration,performance,url rewriting" title="Migration von 1.6 auf 1.7" urlname="Migration-von-1.6-auf-1.7">
+  Der vorliegende Artikel zeigt, wie der Umstieg von Version 1.6 auf Version 1.7 einfach bew&auml;ltigt
+  werden kann. Die neuen Komponenten werden erl&auml;utert und die relevanten Stellen aufgezeigt, die
+  einer Anpassung unterzogen werden m&uuml;ssen.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+In der Version 1.7 wurde die Komponente <strong>ApplicationManager</strong> entfernt und durch eine
+<strong>Registry</strong> und einen <strong>modifizierten Initialisierungsprozess</strong> ausgetauscht.
+Dies garantiert einfachere Handhabung und effizientere Gestaltung von Applikationen. Das folgende
+Kapitel zeigt, welche Schritte zur Migration vorgenommen werden m&uuml;ssen und welche Neuerungen
+Einzug gehalten haben. Die Dokumentation wurde entsprechend angepasst.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Aenderungen"><a href="#Chapter-2-Aenderungen">2. &Auml;nderungen</a></h3>
+Der ApplicationManager hat an Hand den Eintr&auml;gen der INIT-Datei Konstanten erzeugt, die in den
+unterschiedlichen Programmteilen Verwendung gefunden haben. Diese Art der Initialisierung wurde durch
+die Einf&uuml;hrung einer Registry, die zuk&uuml;nftig alle global verwendeten Parameter enth&auml;lt
+und einen in den PageController verlagerten Initialisierungsprozess ersetzt. Auf Konstanten wird ab
+Version 1.7 komplett verzichtet, die initialen Konfigurationsdateien sind ab Release 1.7 obsolet.
+<br />
+<br />
+Auf Grund dieser Anpassung werden einige &Auml;nderungen an den Bootstrap-Dateien und denjenigen
+Komponenten f&auml;llig, die sich er bisher bereitgestellten Konstanten bedient haben. Die folgenden
+Kapitel zeigen die &Auml;nderungen auf und geben Hinweise zur neuen Handhabung.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-1-Registry"><a href="#Chapter-2-1-Registry">2.1. Registry</a></h4>
+Ab Version 1.7 wird eine Registry zur Speicherung der global eingesetzten Parameter verwendet. Der
+Registry-Store ist dabei in Namespaces unterteilt. Der Namespace <strong>apf::core</strong> beinhaltet
+vier Konfigurationsdirektiven
+<ul>
+  <li><strong>URLRewriting</strong>: Konfiguration des URL-Rewriting.</li>
+  <li><strong>URLBasePath</strong>: Pfad zur aktuellen Anwendung.</li>
+  <li><strong>Environment</strong>: Umgebungsvariable f&uuml;r die Konfiguration.</li>
+  <li><strong>LogDir</strong>: Pfad zum Log-Verzeichnis.</li>
+</ul>
+Die Bedeutung der einzelnen Werte und die Manipulation werden in den folgenden Kapiteln beschrieben.
+Weiterhin ist die schreibgesch&uuml;tzte Direktive <strong>LibPath</strong> enthalten. Diese
+beinhaltet den Pfad zur Code-Basis.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-2-URL-Rewriting"><a href="#Chapter-2-2-URL-Rewriting">2.2. Konfiguration URL-Rewriting</a></h4>
+Die Konstante <strong>APPS__URL_REWRITING</strong> wurde durch den Registry-Eintrag
+<strong>URLRewriting</strong> im Namespace <strong>apf::core</strong> ersetzt. Der Parameter tr&auml;gt
+die Werte <strong>true</strong> (aktives URL-Rewriting) oder <strong>false</strong> (deaktiviertes
+URL-Rewriting). Standardm&auml;&szlig;ig wird das URLRewriting mit <strong>false</strong> im PageController
+initialisiert. Zur Manipulation des Wertes muss in der Bootstrap-Datei nach dem Einbinden des
+PageControllers folgender Code eingef&uuml;gt werden:
+<gen:highlight type="php">
+$Reg = &Singleton::getInstance('Registry');
+$Reg->register('apf::core','URLRewriting',true|false);
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-3-Basis-Pfad"><a href="#Chapter-2-3-Basis-Pfad">2.3. Konfiguration des Basis-Pfades</a></h4>
+Die Konstante <strong>APPS__URL_PATH</strong> wurde durch den Registry-Eintrag
+<strong>URLBasePath</strong> im Namespace <strong>apf::core</strong> ersetzt. Der Parameter tr&auml;gt
+die URL zur aktuellen Applikation und kann fungiert zur Linkgenerierung in Applikationen dienen.
+Standardm&auml;&szlig;ig wird der URLBasePath mit dem Inhalt der Server-Variable <strong>HTTP_HOST</strong>
+im PageController initialisiert. Zur Manipulation des Wertes muss in der Bootstrap-Datei nach dem
+Einbinden des PageControllers folgender Code eingef&uuml;gt werden:
+<gen:highlight type="php">
+$Reg = &Singleton::getInstance('Registry');
+$Reg->register('apf::core','URLBasePath','http://example.com/folder');
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-4-Umgebung"><a href="#Chapter-2-4-Umgebung">2.4. Konfiguration der Umgebung</a></h4>
+Die Konstante <strong>APPS__ENVIRONMENT</strong> wurde durch den Registry-Eintrag
+<strong>Environment</strong> im Namespace <strong>apf::core</strong> ersetzt. Der Parameter
+beinhaltet den Namen der Umgebung der als Pr&auml;fix f&uuml;r Konfigurationsdateien dient.
+Standardm&auml;&szlig;ig wird die Umgebungsvariable mit dem Wert <strong>DEFAULT</strong> im PageController
+initialisiert. Zur Manipulation des Wertes muss in der Bootstrap-Datei nach dem
+Einbinden des PageControllers folgender Code eingef&uuml;gt werden:
+<gen:highlight type="php">
+$Reg = &Singleton::getInstance('Registry');
+$Reg->register('apf::core','Environment','TESTSERVER');
+</gen:highlight>
+Diese Anpassung sollte bei der Migration auf eine Version > 1.6 vorgenommen werden. Andernfalls
+m&uuml;ssen bestehende Konfigurationsdateien umbenannt werden.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-5-Log-Verzeichnis"><a href="#Chapter-2-5-Log-Verzeichnis">2.5. Konfiguration des Log-Verzeichnisses</a></h4>
+Die Konstante <strong>APPS__LOG_PATH</strong> wurde durch den Registry-Eintrag
+<strong>LogDir</strong> im Namespace <strong>apf::core</strong> ersetzt. Der Parameter beinhaltet
+den Pfad, der als Log-Verzeichnis verwendet werden darf. Standardm&auml;&szlig;ig wird die Umgebungsvariable
+mit dem Wert <strong>./logs</strong> im PageController initialisiert. Zur Manipulation des Wertes
+muss in der Bootstrap-Datei nach dem Einbinden des PageControllers folgender Code eingef&uuml;gt werden:
+<gen:highlight type="php">
+$Reg = &Singleton::getInstance('Registry');
+$Reg->register('apf::core','LogDir','/path/to/my/log/dir');
+</gen:highlight>
+Diese Anpassung sollte bei der Migration auf eine Version > 1.6 vorgenommen werden. Andernfalls
+versucht der Logger Dateien im Verzeichnis der Bootstrap-Datei anzulegen.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-6-Library-Verzeichnis"><a href="#Chapter-2-6-Library-Verzeichnis">2.6. Definition des Library-Verzeichnisses</a></h4>
+In Versionen &lt; 1.7 musste dem Framework mit der Konstante <strong>APPS__PATH</strong> der Pfad
+zu den Software-Bibliotheken bekannt gegeben werden. Dies ist in Versionen &gt; 1.6 nicht mehr
+notwendig. Die Konfiguration entf&auml;llt ersatzlos.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-7-Getrennte-Releases"><a href="#Chapter-2-7-Getrennte-Releases">2.7. Nach PHP-Version getrennte Releases</a></h4>
+Zuk&uuml;nftig werden nach PHP-Version getrennte Releases angeboten. Hierbei ist auf das Suffix "php4"
+f&uuml;r Anwender von PHP 4 und auf "php5" f&uuml;r PHP 5 Anwender zu achten. Die Spaltung bedeutet
+auch, dass die Dateiendungen aller Dateien <strong>.php</strong> lautet. Dateien, die PHP 5 Code
+enthalten brauchen nicht mehr mit <strong>.php5</strong> gekennzeichnet werden. Dieser Schritt
+bereitet die Abspaltung des PHP 4 Zweiges vor.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Typische-Bootstrap-Datei"><a href="#Chapter-3-Typische-Bootstrap-Datei">3. Aussehen einer typischen index.php</a></h3>
+Bei der Migration von Versionen &gt; 1.7 auf Version 1.7 wird der Code-Block
+<gen:highlight type="php">
+define('APPS__NAME','myapp');
+define('APPS__PATH','./apps');
+require_once(APPS__PATH.'/core/applicationmanager/ApplicationManager.php');
+</gen:highlight>
+durch
+<gen:highlight type="php">
+require_once('/path/to/core/pagecontroller/pagecontroller.php');
+</gen:highlight>
+ersetzt. Die Initialisierung des Frameworks wird dabei im PageController vorgenommen. Dadurch
+verringert sich der Konfigurations- und Initialisierungsaufwand deutlich und der Inhalt einer
+"neuen" index.php gestaltet sich wie folgt:
+<gen:highlight type="php">
+require_once('/path/to/core/pagecontroller/pagecontroller.php');
+
+import('core::frontcontroller','Frontcontroller');
+
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->set('Context','my::context');
+$fC->set('Language','de');
+$fC->start('sites::mysite','pres/templates/site');
+</gen:highlight>
+Zur Anpassung der Standard-Parameter soll die Registry genutzt werden. Die folgende Code-Box zeigt
+wie die in Kapitel 2 erkl&auml;rten Parameter mit Hilfe der Registry angepasst werden. Dabei ist
+wichtig, dass die Anpassung <strong>vor</strong> Instanziierung des Page- oder des FrontControllers
+erledigt wird:
+<gen:highlight type="php">
+require_once('/path/to/core/pagecontroller/pagecontroller.php');
+
+$Reg = &Singleton::getInstance('Registry');
+$Reg->register('apf::core','LogDir','/path/to/my/log/dir');
+
+import('core::frontcontroller','Frontcontroller');
+
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->set('Context','my::context');
+$fC->set('Language','de');
+$fC->start('sites::mysite','pres/templates/site');
+</gen:highlight>
+<br />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_066" />
