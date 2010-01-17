@@ -8,7 +8,6 @@
       ob_start();
    }
    ini_set('html_errors','off');
-
    include('../apps/core/pagecontroller/pagecontroller.php');
    import('core::frontcontroller','Frontcontroller');
 
