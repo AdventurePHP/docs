@@ -38,57 +38,56 @@
          // get model
          $model = Singleton::getInstance('APFModel');
 
-         $mode = RequestHandler::getValue('perspective','screen');
-
          // current title
          $this->setPlaceHolder('Title',$model->getTitle());
 
-         if($mode == 'screen'){
+         // current URI
+         $this->setPlaceHolder('URI','http://'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']);
 
-            // current URI
-            $this->setPlaceHolder('URI','http://'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']);
+         // current date
+         $TZDiff = date('O');
+         $this->setPlaceHolder('Date',date('Y-m-d\TH:i:s').substr($TZDiff,0,3).':'.substr($TZDiff,3,2));
 
-            // current date
-            $TZDiff = date('O');
-            $this->setPlaceHolder('Date',date('Y-m-d\TH:i:s').substr($TZDiff,0,3).':'.substr($TZDiff,3,2));
-
-            // current language
-            $this->setPlaceHolder('Language',$model->getAttribute('page.language'));
+         // current language
+         $this->setPlaceHolder('Language',$model->getAttribute('page.language'));
 
 
-            // expires header
-            $this->setPlaceHolder('Expires',date('D, d M Y H:i:s \G\M\T',strtotime('+4 weeks')));
+         // expires header
+         $this->setPlaceHolder('Expires',date('D, d M Y H:i:s \G\M\T',strtotime('+4 weeks')));
 
-            // keywords
-            $this->setPlaceHolder('Keywords',$model->getAttribute('page.tags'));
+         // keywords
+         $this->setPlaceHolder('Keywords',$model->getAttribute('page.tags'));
 
-            // description
-            $this->setPlaceHolder('Description',$model->getAttribute('page.description'));
+         // description
+         $this->setPlaceHolder('Description',$model->getAttribute('page.description'));
 
-            // Alte Werte setzen
-            $PageIndicators = $model->getAttribute('page.indicator');
-            $RequestParam = $PageIndicators[$this->__Language];
-            $DefaultPageName['de'] = '001-Startseite';
-            $DefaultPageName['en'] = '001-Home';
+         // Alte Werte setzen
+         $PageIndicators = $model->getAttribute('page.indicator');
+         $RequestParam = $PageIndicators[$this->__Language];
+         $DefaultPageName['de'] = '001-Startseite';
+         $DefaultPageName['en'] = '001-Home';
 
-            if($this->__Language == 'de'){
-               $this->setPlaceHolder('ImpressumTitle','Impressum');
-               $this->setPlaceHolder('ImpressumLink','/Seite/015-Impressum');
-               $this->setPlaceHolder('SucheTitle','Suche');
-               $this->setPlaceHolder('SucheLink','/Seite/044-Suche');
-             // end if
-            }
-            else{
-               $this->setPlaceHolder('ImpressumTitle','Impress');
-               $this->setPlaceHolder('ImpressumLink','/Page/015-Impress');
-               $this->setPlaceHolder('SucheTitle','Search');
-               $this->setPlaceHolder('SucheLink','/Page/044-Search');
-             // end else
-            }
-
+         if($this->__Language == 'de'){
+            $this->setPlaceHolder('ImpressumTitle','Impressum');
+            $this->setPlaceHolder('ImpressumLink','/Seite/015-Impressum');
+            $this->setPlaceHolder('SucheTitle','Suche');
+            $this->setPlaceHolder('SucheLink','/Seite/044-Suche');
           // end if
          }
-         
+         else{
+            $this->setPlaceHolder('ImpressumTitle','Impress');
+            $this->setPlaceHolder('ImpressumLink','/Page/015-Impress');
+            $this->setPlaceHolder('SucheTitle','Search');
+            $this->setPlaceHolder('SucheLink','/Page/044-Search');
+          // end else
+         }
+
+         // Set additional css class for content wrapper, in case the sidebar
+         // should not be displayed. Thus, the with must be 100%
+         if($model->getDisplaySidebar() === false){
+            $this->setPlaceHolder('content-wrapper-class',' class="noSidebar"');
+         }
+
        // end function
       }
 

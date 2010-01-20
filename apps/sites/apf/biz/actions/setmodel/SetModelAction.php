@@ -14,6 +14,8 @@
     */
    class SetModelAction extends AbstractFrontcontrollerAction {
 
+      private static $ABOUT_PAGEID = '073';
+      
       function SetModelAction(){
       }
 
@@ -83,7 +85,10 @@
          $model->setAttribute('page.contentfilename',$this->__getFileName($contentFilePath.'/content','c',$language,$pageId));
          $model->setAttribute('page.quicknavifilename',$this->__getFileName($contentFilePath.'/quicknavi','n',$language,$pageId));
 
-         //echo printObject($model);
+         // initialize sidebar status
+         if($pageId === self::$ABOUT_PAGEID){
+            $model->setDisplaySidebar(false);
+         }
 
        // end function
       }

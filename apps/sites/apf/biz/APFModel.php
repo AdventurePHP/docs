@@ -15,6 +15,7 @@
       private static $PARENT_PAGEID = 'parent.page.id';
       private static $LANG = 'page.language';
       private static $TITLE = 'page.title';
+      private static $DISPLAY_SIDEBAR = 'page.display.sidebar';
 
       /**
        * @public
@@ -70,6 +71,9 @@
                                                        'en' => 'Page'
          );
 
+         // display sidebar (true) or not (false)
+         $this->__Attributes[self::$DISPLAY_SIDEBAR] = true;
+
        // end function
       }
 
@@ -121,7 +125,14 @@
 
       public function setTitle($title){
          $this->setAttribute(self::$TITLE,$title);
+      }
 
+      public function setDisplaySidebar($displaySidebar){
+         $this->setAttribute(self::$DISPLAY_SIDEBAR,$displaySidebar);
+      }
+
+      public function getDisplaySidebar(){
+         return $this->getAttribute(self::$DISPLAY_SIDEBAR);
       }
 
     // end class
