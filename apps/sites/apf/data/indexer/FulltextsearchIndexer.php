@@ -48,16 +48,12 @@
        */
       function importArticles() {
 
-         // Timer holen
          $T = &Singleton::getInstance('BenchmarkTimer');
 
-         // Logger erzeugen
          $L = &Singleton::getInstance('Logger');
 
-         // Konfiguration holen
          $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
 
-         // Connection holen
          $cM = &$this->__getServiceObject('core::database','connectionManager');
          $SQL = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
 
@@ -72,7 +68,6 @@
          // import files
          foreach($Files as $File) {
 
-            // Auf Datei pr�fen
             if(!is_dir($this->__ContentFolder.'/'.$File)) {
 
                // Log-Eintrag schreiben
@@ -114,11 +109,21 @@
                   // end else
                }
 
+               preg_match('/parent="([0-9]{1,3})"/i',$content,$ParentPageMatches);
+
+               if(isset($ParentPageMatches[1])){
+                  $ParentPage = $ParentPageMatches[1];
+               }
+               else {
+                  $ParentPage = '0';
+                  $L->logEntry($this->__LogFileName,'- File "'.$FileName.'" contains no parent page ...');
+               }
+
                // In Artikel-Datenbank einf�gen
                $insert = 'INSERT INTO search_articles
-                             (Title,PageID,URLName,Language,FileName,ModificationTimestamp)
+                             (Title,PageID,ParentPage,URLName,Language,FileName,ModificationTimestamp)
                              VALUES
-                             (\''.$Title.'\',\''.$PageID.'\',\''.$URLName.'\',\''.$Lang.'\',\''.$FileName.'\',\''.$ModStamp.'\');';
+                             (\''.$Title.'\',\''.$PageID.'\',\''.$ParentPage.'\',\''.$URLName.'\',\''.$Lang.'\',\''.$FileName.'\',\''.$ModStamp.'\');';
                $SQL->executeTextStatement($insert);
 
                // Log-Eintrag schreiben
@@ -249,7 +254,7 @@
             unset($index);
 
             // create log entry
-            $l->logEntry($this->__LogFileName,'[FINISH] Indexing article "'.$data_articles['FileName'].'" (ID: '.$articleId.') ...');
+            $l->logEntry($this->__LogFileName,'[FINISH] Indexing article "'.$data_articles['FileName'].'".');
             $l->logEntry($this->__LogFileName,'');
             $l->flushLogBuffer();
 

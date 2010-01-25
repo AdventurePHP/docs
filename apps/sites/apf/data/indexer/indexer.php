@@ -27,7 +27,7 @@
    import('sites::apf::data::indexer','FulltextsearchIndexer');
 
    // create indexer
-   $fSI = new fulltextsearchIndexer();
+   $fSI = new FulltextsearchIndexer();
    $fSI->set('Context','sites::apf');
    $fSI->set('ContentFolder','../apps/sites/apf/pres/content');
 

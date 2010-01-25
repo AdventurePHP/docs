@@ -43,24 +43,6 @@
        // end function
       }
 
-      /**
-       * @public
-       *
-       * L�d eine Liste der in der Seite vorhandenen Seiten.<br />
-       *
-       * @return array $Pages; Liste von Seiten-Objekten
-       *
-       * @author Christian Achatz
-       * @version
-       * Version 0.1, 24.03.2008<br />
-       * Version 0.2, 20.10.2008 (Removed sitemap logging)<br />
-       */
-      function loadPages() {
-         $m = &$this->__getServiceObject('sites::apfdocupage::data','fulltextsearchMapper');
-         return $m->loadPages($this->__Language);
-       // end function
-      }
-
     // end class
    }
 ?>

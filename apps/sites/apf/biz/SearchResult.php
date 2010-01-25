@@ -12,57 +12,64 @@
     */
    class SearchResult extends coreObject {
 
-      /**
-       *  @private
-       *  name of the content file.
-       */
-      var $__FileName;
+      private $title;
+      private $language;
+      private $pageID;
+      private $lastMod;
+      private $wordCount;
+      private $indexedWord;
 
-      /**
-       *  @private
-       *  the page's title.
-       */
-      var $__Title;
-
-      /**
-       *  @private
-       *  language of the page.
-       */
-      var $__Language;
-
-      /**
-       *  @private
-       *  url name of the page.
-       */
-      var $__URLName;
-
-      /**
-       *  @private
-       *  url id of the page.
-       */
-      var $__PageID;
-
-      /**
-       *  @private
-       *  date of last modification.
-       */
-      var $__LastMod;
-
-      /**
-       *  @private
-       *  word count in index.
-       */
-      var $__WordCount;
-
-      /**
-       *  @private
-       *  which word was found.
-       */
-      var $__IndexWord;
-
-      function SearchResult() {
+      public function SearchResult(){
       }
 
-      // end class
+      public function setPageId($pageId){
+         $this->pageID = $pageId;
+      }
+
+      public function getPageId(){
+         return $this->pageID;
+      }
+
+      public function setTitle($title){
+         $this->title = $title;
+      }
+
+      public function getTitle(){
+         return $this->title;
+      }
+
+      public function setLanguage($lang){
+         $this->language = $lang;
+      }
+
+      public function getLanguage(){
+         return $this->language;
+      }
+
+      public function setLastModified($lastMod){
+         $this->lastMod = $lastMod;
+      }
+
+      public function getLastModified(){
+         return $this->lastMod;
+      }
+
+      public function setWordCount($count){
+         $this->wordCount = $count;
+      }
+
+      public function getWordCount(){
+         return $this->wordCount;
+      }
+
+      public function setIndexedWord($word){
+         $this->indexedWord = $word;
+      }
+
+      public function getIndexedWord(){
+         return $this->indexedWord;
+      }
+
+    // end class
    }
 ?>

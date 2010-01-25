@@ -1,8 +1,5 @@
 <?php
-   import('tools::datetime','dateTimeManager');
-   import('tools::link','LinkHandler');
    import('sites::apf::biz','FulltextsearchManager');
-   import('sites::apf::biz','APFModel');
    import('tools::request','RequestHandler');
 
    /**
@@ -34,46 +31,25 @@
        * Version 0.4, 02.04.2008 (changed target of the search page. hence, this module is no more independent)<br />
        * Version 0.5, 13.06.2008 (changed target link for english results on german pages)<br />
        * Version 0.6, 03.10.2008 (Addapted to the new page structure; removed deactivation)<br />
+       * Version 0.7, 
        */
       function transformContent(){
 
          // register search content
-         $_LOCALS = RequestHandler::getValues(array('search' => ''));
-
-         // get registry and gather url mode
-         $reg = &Singleton::getInstance('Registry');
-         $urlRewriting = $reg->retrieve('apf::core','URLRewriting');
-         $urlRewritingBasePath = $reg->retrieve('apf::core','URLBasePath');
-
-         // get model and gather current page information
-         $model = &$this->__getServiceObject('sites::apf::biz','APFModel');
-         $pageIndicators = $model->getAttribute('page.indicator');
-         $lang = $model->getAttribute('page.language');
-         $currPageIndicator = $pageIndicators[$lang];
-         $urlName = $model->getAttribute('page.urlname');
-         $pageId = $model->getAttribute('page.id');
+         $searchTerm = RequestHandler::getValue('search','');
 
          // display form
          $form = &$this->__getForm('SearchV2');
-
-         if($urlRewriting == true){
-            $form->setAttribute('action','/'.$currPageIndicator.'/'.$pageId.'-'.$urlName);
-          // end if
-         }
-         else{
-            $form->setAttribute('action','./?'.$currPageIndicator.'='.$pageId.'-'.$urlName);
-          // end else
-         }
          $form->transformOnPlace();
 
          // display results
-         if(strlen($_LOCALS['search']) >= 3){
+         if(strlen($searchTerm) >= 3){
 
             // get manager
             $m = &$this->__getServiceObject('sites::apf::biz','FulltextsearchManager');
 
             // load results
-            $searchResults = $m->loadSearchResult($_LOCALS['search']);
+            $searchResults = $m->loadSearchResult($searchTerm);
 
             // load language config
             $config = &$this->__getConfiguration('sites::apf::biz','language');
@@ -84,31 +60,30 @@
             // get template
             $template = &$this->__getTemplate('Result');
 
-            // Ausgabe erzeugen
             $count = count($searchResults);
+            $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');
+            $reg = &Singleton::getInstance('Registry');
+            $baseUrl = $reg->retrieve('apf::core','URLBasePath');
             for($i = 0; $i < $count; $i++){
 
-               // create link
-               $link = LinkHandler::generateLink('',array($pageIndicators[$searchResults[$i]->get('Language')] => $searchResults[$i]->get('PageID').'-'.$searchResults[$i]->get('URLName')));
+               // gather common information
+               $url = $urlMan->generateLink($searchResults[$i]->getPageId(),$searchResults[$i]->getLanguage());
+               $title = $urlMan->getPageTitle($searchResults[$i]->getPageId(),$searchResults[$i]->getLanguage());
+               $link = $baseUrl.$url;
 
                // display title
-               $template->setPlaceHolder('Title','<a href="'.$link.'" title="'.($searchResults[$i]->get('Title')).'" style="font-size: 14px; font-weight: bold;">'.$searchResults[$i]->get('Title').'</a>');
+               $template->setPlaceHolder('Title',$title);
 
                // display content language
-               $resultLang = $config->getValue($this->__Language,'DisplayName.'.$searchResults[$i]->get('Language'));
+               $resultLang = $config->getValue($this->__Language,'DisplayName.'.$searchResults[$i]->getLanguage());
                $template->setPlaceHolder('Language',$resultLang);
 
-               // diaplay last modifying date
-               $date = dateTimeManager::convertDate2Normal(substr($searchResults[$i]->get('LastMod'),0,10));
-               $time = substr($searchResults[$i]->get('LastMod'),11);
-               $template->setPlaceHolder('LastMod',$date.', '.$time);
+               // display last modifying date --> refactor!
+               $time = strtotime($searchResults[$i]->getLastModified());
+               $template->setPlaceHolder('LastMod',date('d.m.Y, H:i:s',$time));
 
-               // display word count of search word in article
-               $template->setPlaceHolder('WordCount',$searchResults[$i]->get('WordCount'));
-
-               // display indexed word with highlight
-               $indexWord = preg_replace('/'.preg_quote($_LOCALS['search']).'/i','<span style="background-color: yellow;">'.strtolower($_LOCALS['search']).'</span>',$searchResults[$i]->get('IndexWord'));
-               $template->setPlaceHolder('IndexWord',$indexWord);
+               // display permalink
+               $template->setPlaceHolder('PermaLink',$link);
 
                // add current result to list
                $buffer .= $template->transformTemplate();

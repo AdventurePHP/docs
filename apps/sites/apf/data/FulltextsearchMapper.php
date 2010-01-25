@@ -49,10 +49,10 @@
          // do synonym mapping
          $synonyms = &$this->__getConfiguration('sites::apf::biz','fulltextsearch_synonyms');
          $section = $synonyms->getSection($this->__Language);
-
+         
          foreach($section as $key => $value) {
             $SearchString = str_replace($key,$value,$SearchString);
-            // end foreach
+          // end foreach
          }
 
          // split search strings
@@ -105,59 +105,6 @@
       }
 
       /**
-       *  @public
-       *
-       *  L�d alle Seiten im Index f�r eine bestimmte Sprache.
-       *
-       *  @param string $Language; Sprache der zu ladenen Seiten
-       *  @return array $Pages; Liste von Seiten-Objekten
-       *
-       *  @author Christian Achatz
-       *  @version
-       *  Version 0.1, 24.03.2008<br />
-       */
-      function loadPages($Language = 'de') {
-
-         // Timer starten
-         $T = &Singleton::getInstance('BenchmarkTimer');
-         $T->start('fulltextsearchMapper::loadPages()');
-
-         // Konfiguration holen
-         $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
-
-         // Connection holen
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
-         $SQL = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
-
-         // Statement erzeugen
-         $select = 'SELECT * FROM search_articles
-                       WHERE
-                          Language = \''.$Language.'\'
-                          AND
-                          FileName != \'404\'
-                       ORDER BY Title ASC';
-
-         // Abfrage ausf�hren
-         $result = $SQL->executeTextStatement($select);
-
-         // Ergebnisse in DomainObjekte mappen
-         $Pages = array();
-
-         while($data = $SQL->fetchData($result)) {
-            $Pages[] = $this->__mapSearchResult2DomainObject($data);
-            // end while
-         }
-
-         // Timer stoppen
-         $T->stop('fulltextsearchMapper::loadPages()');
-
-         // Ergebnisse laden
-         return $Pages;
-
-         // end function
-      }
-
-      /**
        *  @private
        *
        *  Mappt ein Result-Array in ein Ergebnis-Objekte.<br />
@@ -170,56 +117,32 @@
        *  Version 0.1, 10.03.2008<br />
        *  Version 0.2, 02.10.2008 (Added some new domain object attributes)<br />
        */
-      function __mapSearchResult2DomainObject($ResultSet) {
+      function __mapSearchResult2DomainObject($resultSet) {
 
-         // Objekt erstellen
-         $SearchResult = new searchResult();
+         $searchResult = new searchResult();
 
-         if(isset($ResultSet['FileName'])) {
-            $SearchResult->set('FileName',$ResultSet['FileName']);
-            // end if
+         if(isset($resultSet['PageID'])) {
+            $searchResult->setPageId($resultSet['PageID']);
+         }
+         if(isset($resultSet['Title'])) {
+            $searchResult->setTitle($resultSet['Title']);
+         }
+         if(isset($resultSet['Language'])) {
+            $searchResult->setLanguage($resultSet['Language']);
+         }
+         if(isset($resultSet['ModificationTimestamp'])) {
+            $searchResult->setLastModified($resultSet['ModificationTimestamp']);
+         }
+         if(isset($resultSet['WordCount'])) {
+            $searchResult->setWordCount($resultSet['WordCount']);
+         }
+         if(isset($resultSet['Word'])) {
+            $searchResult->setIndexedWord($resultSet['Word']);
          }
 
-         if(isset($ResultSet['URLName'])) {
-            $SearchResult->set('URLName',$ResultSet['URLName']);
-            // end if
-         }
-
-         if(isset($ResultSet['PageID'])) {
-            $SearchResult->set('PageID',$ResultSet['PageID']);
-            // end if
-         }
-
-         if(isset($ResultSet['Title'])) {
-            $SearchResult->set('Title',$ResultSet['Title']);
-            // end if
-         }
-
-         if(isset($ResultSet['Language'])) {
-            $SearchResult->set('Language',$ResultSet['Language']);
-            // end if
-         }
-
-         if(isset($ResultSet['ModificationTimestamp'])) {
-            $SearchResult->set('LastMod',$ResultSet['ModificationTimestamp']);
-            // end if
-         }
-
-         if(isset($ResultSet['WordCount'])) {
-            $SearchResult->set('WordCount',$ResultSet['WordCount']);
-            // end if
-         }
-
-         if(isset($ResultSet['Word'])) {
-            $SearchResult->set('IndexWord',$ResultSet['Word']);
-            // end if
-         }
-
-         return $SearchResult;
-
-         // end function
+         return $searchResult;
       }
 
-      // end class
+    // end class
    }
 ?>
