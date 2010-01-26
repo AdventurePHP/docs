@@ -35,71 +35,60 @@
       function transform(){
 
          // remove blanks
-         $Content = trim($this->__Content);
+         $content = trim($this->__Content);
 
          // initialize return value
-         $Link = (string)'';
+         $link = (string)'';
 
          // check, if content is present
-         if(strlen($Content) > 0){
+         if(strlen($content) > 0){
 
             // add link tag to the buffer
-            $Link .= '<a ';
+            $link .= '<a ';
 
             // add link to the buffer
-            $Link .= 'href="'.trim($this->__Content).'" ';
+            $link .= 'href="'.$content.'" ';
 
             // add title the buffer
-            $Link .= 'title="'.trim($this->__Content).'" ';
-
-            // add target
-            if(isset($this->__Attributes['target'])){
-               $Link .= 'target="'.$this->__Attributes['target'].'" ';
-             // end if
-            }
-            else{
-               $Link .= 'target="_blank" ';
-             // end else
-            }
+            $link .= 'title="'.$content.'" ';
 
             // add css class
             if(isset($this->__Attributes['class'])){
-               $Link .= 'class="'.$this->__Attributes['class'].'" ';
+               $link .= 'class="'.$this->__Attributes['class'].'" ';
              // end if
             }
 
             // add css style
             if(isset($this->__Attributes['style'])){
-               $Link .= 'style="'.$this->__Attributes['style'].'" ';
+               $link .= 'style="'.$this->__Attributes['style'].'" ';
              // end if
             }
 
             // add link rewrite protection
-            $Link .= 'linkrewrite="false"';
+            $link .= 'linkrewrite="false"';
 
             // close link attribute list
-            $Link .= '>';
+            $link .= '>';
 
             // add link text:
             // behaviour like PHPBB. Links are limited to a certain number of letters and are
             // displayed as {PART1}..{10 letters from the end}
-            if(strlen($Content) > $this->__MaxLinkLength){
-               $Link .= substr($Content,0,$this->__MaxLinkLength - 20).'...'.substr($Content,strlen($Content) - 10 ,10);
+            if(strlen($content) > $this->__MaxLinkLength){
+               $link .= substr($content,0,$this->__MaxLinkLength - 20).'...'.substr($content,strlen($content) - 10 ,10);
              // end if
             }
             else{
-               $Link .= $Content;
+               $link .= $content;
              // end else
             }
 
             // close link
-            $Link .= '</a>';
+            $link .= '</a>';
 
           // end if
          }
 
-         // return link string
-         return $Link;
+         return $link;
 
        // end function
       }
