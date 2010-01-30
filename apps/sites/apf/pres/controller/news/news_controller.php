@@ -13,18 +13,19 @@
 
          $type = $this->getAttribute(self::$TYPE);
          if($type === 'start'){
-            $maxCount = 4;
+            $maxCount = 5;
             $startCount = 0;
          }
          else{
             $maxCount = 1000;
-            $startCount = 4;
+            $startCount = 5;
          }
 
          $count = 0;
          $newsItems = &$this->getNewsItems();
          foreach($newsItems as $objectId => $DUMMY){
-            if($count > $startCount && $startCount < $maxCount){
+            //echo '<br />$maxCount: '.$maxCount.', $startCount: '.$startCount.', $count: '.$count;
+            if($count >= $startCount && $startCount < $maxCount){
                $newsItems[$objectId]->transformOnPlace();
                $startCount++;
             }
