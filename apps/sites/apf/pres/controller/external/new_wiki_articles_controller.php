@@ -19,7 +19,7 @@
 
          // get configuration from the registry
          $reg = &Singleton::getInstance('Registry');
-         $wikiBaseURL = $reg->retrieve('sites::apfdocupage','WikiBaseURL');
+         $wikiBaseURL = $reg->retrieve('sites::apf','WikiBaseURL');
 
          // build select
          $tablePrefix = 'wiki_'.$this->__Language.'_';

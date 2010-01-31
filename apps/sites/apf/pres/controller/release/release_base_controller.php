@@ -435,7 +435,12 @@
                 // end if
                }
                $templateOfflineDoku->setPlaceHolder('BuildDate',$buildDate);
-               $templateOfflineDoku->setPlaceHolder('DokuFile',$this->getDisplayFileName($dokuFiles[$k]));
+               $templateOfflineDoku->setPlaceHolder('DokuFileFull',$dokuFiles[$k]);
+
+               if($version >= 110){
+                  $templateOfflineDoku->setPlaceHolder('DokuFile',$this->getDisplayFileName($dokuFiles[$k]));
+               }
+               
                $templateOfflineDoku->setPlaceHolder('ReleasesBaseURL',$this->__ReleasesBaseURL);
                $bufferOfflineDoku .= $templateOfflineDoku->transformTemplate();
 
