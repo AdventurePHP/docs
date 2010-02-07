@@ -10,6 +10,7 @@ CSSPATH=$(pwd)
 TEMPCSSFILE="apf-combined.css"
 COMBINEDCSSFILE="apf.css"
 IE6CSSFILE="lte-ie7.css"
+IE7CSSFILE="ie7.css"
 PRINTCSSFILE="print.css"
 
 # build classpath
@@ -29,7 +30,7 @@ JARPATH=$(cygpath -m $BUILDPATH/yuicompressor-2.4.2.jar)
 
 # create combined css
 rm -f $CSSPATH/$TEMPCSSFILE
-cat $(ls $CSSPATH/*.css | grep -v "$TEMPCSSFILE" | grep -v "$COMBINEDCSSFILE" | grep -v "$IE6CSSFILE" | grep -v "$PRINTCSSFILE") > $CSSPATH/$TEMPCSSFILE
+cat $(ls $CSSPATH/*.css | grep -v "$TEMPCSSFILE" | grep -v "$COMBINEDCSSFILE" | grep -v "$IE6CSSFILE" | grep -v "$IE7CSSFILE" | grep -v "$PRINTCSSFILE") > $CSSPATH/$TEMPCSSFILE
 
 # create shrinked version
 INFILE=$(cygpath -m $CSSPATH/$TEMPCSSFILE)
