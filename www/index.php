@@ -48,7 +48,6 @@
    $fC->set('Language','de');
 
    $fC->registerAction('sites::apf::biz','setModel');
-   $fC->registerAction('sites::apf::biz','stat');
 
    $fC->start('sites::apf::pres::templates','main');
 

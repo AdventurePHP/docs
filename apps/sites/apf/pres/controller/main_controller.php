@@ -51,7 +51,6 @@
          // current language
          $this->setPlaceHolder('Language',$model->getAttribute('page.language'));
 
-
          // expires header
          $this->setPlaceHolder('Expires',date('D, d M Y H:i:s \G\M\T',strtotime('+4 weeks')));
 
@@ -87,6 +86,16 @@
          if($model->getDisplaySidebar() === false){
             $this->setPlaceHolder('content-wrapper-class',' class="noSidebar"');
          }
+
+         // include tracking pixel
+         $pageLang = $model->getLanguage();
+         $pageName = $model->getTitle();
+         $pageId = $model->getPageId();
+         $reg = &Singleton::getInstance('Registry');
+         $baseUrl = $reg->retrieve('apf::core','URLBasePath');
+         $requestUrl = $reg->retrieve('apf::core','CurrentRequestURL');
+         $this->setPlaceHolder('TrackingPixelUrl',$baseUrl.'/sites_apf_biz-action/stat/lang/'
+                 .$pageLang.'/title/'.urlencode($pageName).'/id/'.$pageId.'/url/'.urlencode(urlencode($requestUrl)).'/');
 
        // end function
       }
