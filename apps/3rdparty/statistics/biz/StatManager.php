@@ -13,7 +13,7 @@
     * Version 0.1, 21.12.2005<br />
     * Version 0.2, 12.11.2008 (Combined different classes to one business class)<br />
     */
-   class StatManager extends coreObject {
+   class StatManager extends APFObject {
 
       /**
        * Caches the user agent for multiple calls.

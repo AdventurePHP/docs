@@ -1,5 +1,5 @@
 <?php
-   class FileStatMapper extends coreObject {
+   class FileStatMapper extends APFObject {
 
       function createStatEntry($pageName,$pageLang,$requestURI,$day,$month,$year,$hour,$minute,$second,$userName,$sessionID,$browser,$clientLanguage,$os,$ipAddress,$dnsAddress,$referer,$userAgent){
 

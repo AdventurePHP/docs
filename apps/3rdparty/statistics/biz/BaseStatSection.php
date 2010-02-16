@@ -5,8 +5,7 @@
    *  Implements the basic stat section domain object.
    *
    */
-   class BaseStatSection extends coreObject
-   {
+   class BaseStatSection extends APFObject {
 
       function BaseStatSection(){
 

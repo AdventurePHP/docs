@@ -13,7 +13,7 @@
     * @version
     * Version 0.1, 22.12.2009<br />
     */
-   final class UrlManager extends coreObject {
+   final class UrlManager extends APFObject {
 
       private $linkCache = array();
       private $titleCache = array();

@@ -20,7 +20,7 @@
       /**
       *  @public
       *
-      *  Implements the transform() method of the coreObject class. Returns the field's html code.
+      *  Implements the transform() method of the APFObject class. Returns the field's html code.
       *
       *  @return string $TagCode code if the tag
       *
@@ -62,7 +62,7 @@
       /**
       *  @public
       *
-      *  Implements the transform() method of the coreObject class. Returns the field's html code.
+      *  Implements the transform() method of the APFObject class. Returns the field's html code.
       *
       *  @return string $TagCode code if the tag
       *

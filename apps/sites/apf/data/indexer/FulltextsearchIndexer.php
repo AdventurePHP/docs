@@ -16,7 +16,7 @@
     * Version 0.1, 06.03.2008<br />
     * Version 0.2, 07.06.2008 (removed timer due to performance leaks)<br />
     */
-   class FulltextsearchIndexer extends coreObject {
+   class FulltextsearchIndexer extends APFObject {
 
       /**
        * @private

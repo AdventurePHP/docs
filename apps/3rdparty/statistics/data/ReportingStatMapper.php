@@ -18,7 +18,7 @@
    *  Version 0.1, 15.11.2008<br />
    *  Version 0.2. 16.11.2008<br />
    */
-   class ReportingStatMapper extends coreObject
+   class ReportingStatMapper extends APFObject
    {
 
       /**

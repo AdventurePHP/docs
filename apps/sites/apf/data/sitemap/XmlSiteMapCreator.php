@@ -1,5 +1,5 @@
 <?php
-   class XmlSiteMapCreator extends coreObject {
+   class XmlSiteMapCreator extends APFObject {
 
       private $baseUrl = 'http://adventure-php-framework.org';
       

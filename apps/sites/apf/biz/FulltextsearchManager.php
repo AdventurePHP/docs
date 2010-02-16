@@ -14,7 +14,7 @@
     * @version
     * Version 0.1, 10.03.2008<br />
     */
-   class FulltextsearchManager extends coreObject {
+   class FulltextsearchManager extends APFObject {
 
       function fulltextsearchManager() {
       }

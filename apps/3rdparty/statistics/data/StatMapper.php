@@ -15,7 +15,7 @@
     *  Version 0.3, 08.03.2006<br />
     *  Version 0.4, 14.10.2008 (Adapted to the apfdocupage and the new technologies)<br />
     */
-   class StatMapper extends coreObject {
+   class StatMapper extends APFObject {
 
       /**
        *  @private

@@ -9,7 +9,7 @@
     * @version
     * Version 0.1, 22.08.2008<br />
     */
-   class APFModel extends coreObject {
+   class APFModel extends APFObject {
 
       private static $PAGEID = 'page.id';
       private static $PARENT_PAGEID = 'parent.page.id';

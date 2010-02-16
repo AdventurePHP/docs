@@ -11,7 +11,7 @@
     * @version
     * Version 0.1, 10.03.2008<br />
     */
-   class FulltextsearchMapper extends coreObject {
+   class FulltextsearchMapper extends APFObject {
 
       function fulltextsearchMapper() {
       }

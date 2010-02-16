@@ -10,7 +10,7 @@
     * Version 0.1, 08.03.2008<br />
     * Version 0.2, 02.10.2008<br />
     */
-   class SearchResult extends coreObject {
+   class SearchResult extends APFObject {
 
       private $title;
       private $language;
