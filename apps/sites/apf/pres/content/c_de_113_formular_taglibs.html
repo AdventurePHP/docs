@@ -55,7 +55,7 @@ der Suche oder das Speichern von Nutzerdaten.
 <br />
 Zur Anzeige des Formulars ist folgender Code im Controller erforderlich:
 <gen:highlight type="php">
-class search_controller extends baseController {
+class search_controller extends base_controller {
    public function transformContent(){
       $form = &$this->__getForm('Search');
       $form->transfromOnPlace();
@@ -231,6 +231,9 @@ Inhalt, der im Template definiert wurde.
 </ul>
 <br />
 <h4 id="Chapter-3-8-Dateiupload"><a href="#Chapter-3-8-Dateiupload">3.8. Dateiupload-Feld</a></h4>
+<p>
+   Das Dateiupload-Feld besitzt folgende Signatur:
+</p>
 <gen:highlight type="apf-xml">
 &lt;form:file name="" /&gt;
 </gen:highlight>
@@ -241,7 +244,32 @@ Inhalt, der im Template definiert wurde.
     zugegriffen werden. (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
   </li>
 </ul>
-<br />
+<p>
+   Mit dem Release 1.12 des APF wurde eine Erweiterung des Dateiupload-Feldes eingef&uuml;hrt, mit
+   dem es auf sehr einfache Art uns Weise m&ouml;glich ist, einen Datei-Upload zu realisieren. Dazu
+   besitzt die Taglib folgende Methoden, die in einem Document-Controller genutzt werden k&ouml;nnen:
+</p>
+<ul>
+   <li>
+      <em>hasUploadedFile():boolean</em>: gibt <em>true</em> zur&uuml;ck, sofern eine Datei 
+      hochgeladen wurden; ansonsten <em>false</em>.
+   </li>
+   <li>
+      <em>getFile():FileModel</em>: gibt eine Instanz der Klasse <em>FileModel</em> zur&uuml;ck,
+      die eine hochgeladene Datei repr&auml;sentiert. Wenn keine Datei hochleladen wurden, wird
+      <em>null</em> zur&uuml;ckgegeben.
+   </li>
+</ul>
+<p>
+   Der Wiki-Eintrag 
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/File-Upload_mit_Form-Taglibs" title="File-Upload mit Form-Taglibs">File-Upload mit Form-Taglibs</a>
+   beschreibt, wie ein Datei-Upload auf einfache Weise realisiert werden kann. Bitte beachten Sie
+   auch die in 1.12 neu hinzugekommenen 
+   <a href="#Chapter-4-1-13-MimeTypeValidator">MimeTypeValidator</a> und
+   <a href="#Chapter-4-1-14-FileSizeValidator">FileSizeValidator</a>, die zur
+   Validierung der hochgeladenen Dateien genutzt werden k&ouml;nnen.
+</p>
+
 <h4 id="Chapter-3-9-Checkbox"><a href="#Chapter-3-9-Checkbox">3.9. Checkbox</a></h4>
 Die Checkbox-Taglib implementierung nicht nur einen Wrapper f&uuml;r eine HTML-Checkbox, sondern
 inkludiert auch die Logik, die zum anhaken und abhaken einer Checkbox notwendig ist. Hierbei wird
@@ -458,7 +486,7 @@ entnommen werden.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_.]</code>)
   </li>
 </ul>
-<br />
+
 <h4 id="Chapter-3-18-Listener"><a href="#Chapter-3-18-Listener">3.18. Listener</a></h4>
 Der Listener-Tag ist Teil des Validierungs-Konzeptes. Er h&ouml;rt auf das Event eines Validators und
 zeigt seinen Inhalt an, sofern das referenzierte Formular-Element nicht erfolgreich validiert werden
@@ -466,7 +494,7 @@ kann. Im Tag selbst k&ouml;nnen beliebiger Text und weitere Tags definiert werde
 Ausgabe-Formatierung heran gezogen werden k&ouml;nnen. Details zur Validierung, k&ouml;nnen dem Kapitel 4
 entnommen werden.
 <gen:highlight type="apf-xml">
-&lt;form:listener [name=""] control="..."&gt;
+&lt;form:listener [name=""] control="..." [validator="..." ]&gt;
   ...
   [&lt;listener:getstring namespace="" config="" key="" /&gt;]
   [&lt;listener:placeholder name="" /&gt;]
@@ -484,6 +512,10 @@ entnommen werden.
     <strong>name</strong>: Name des Listeners. Dient zur Adressierung des Elements innerhalb des
     Formulars.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-]</code>)
+  </li>
+  <li>
+     <strong>validator</strong>: Name des Validators, der den Listener bei fehlgeschlagener
+     Validierung aktivieren darf.
   </li>
 </ul>
 Der Platzhalter-Tag <strong>&lt;listener:placeholder /&gt;</strong> gleicht in seiner Funktion
@@ -510,7 +542,7 @@ Zur Bef&uuml;llung eines Platzhalters in einem Document-Controller kann folgende
 </gen:highlight>
 <em>Controller:</em>
 <gen:highlight type="php">
-class form_controller extends baseController {
+class form_controller extends base_controller {
    public function transformContent(){
       $form = &$this->__getForm('name-form');
       $listener = &$form->getFormElementByName('name-listener');
@@ -518,7 +550,79 @@ class form_controller extends baseController {
    }
 }
 </gen:highlight>
-<br />
+<p>
+   Das Attribut <em>validator</em> kann dann verwendet werden, wenn f&uuml;r das relevante
+   Formular-Feld <a href="#">spezielle Validator-Listener</a>
+   definitiert sind. Ein Anwendungs-Beispiel ist die Pr&uuml;fung eines E-Mail-Feldes, f&uuml;r das
+   jeweils eine eigene Meldung f&uuml;r eine fehlende E-Mail-Adresse und eine syntaktisch nicht
+   korrekte Eingabe ausgegeben werden soll. Hierzu kann folgendes Template genutzt werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="email_form" method="post"&gt;
+   &lt;form:listener control="email" validator="TextLengthValidator"&gt;
+      Please fill in the email field!
+   &lt;/form:listener&gt;
+   &lt;form:listener control="email" validator="EMailValidator"&gt;
+      Please fill in the email field with a correct email address!
+   &lt;/form:listener&gt;
+   &lt;form:text name="email" /&gt;
+   &lt;form:addvalidator
+      class="TextLengthValidator"
+      control="name"
+      button="send"
+      type="special"
+   /&gt;
+   &lt;form:addvalidator
+      class="EMailValidator"
+      control="email"
+      button="send"
+      type="special"
+   /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass Validatoren, die f&uuml;r das Attribut <em>type</em> den Wert
+   <em>special</em> enthalten nur spezielle Validator-Listener benachrichtigen. Sofern die oben
+   ausgegebenen Validator-Meldungen noch mit einer Markierung versehen werden sollen, bietet sich an,
+   einen <em>EMailValidator</em> zu definieren, deren Listener als Rahmen-gebende Elemente fungieren:
+<gen:highlight type="apf-xml">
+&lt;html:form name="email_form" method="post"&gt;
+   &lt;form:listener control="email"&gt;
+      &lt;div class="error-container"&gt;
+   &lt;/form:listener&gt;
+   &lt;form:listener control="email" validator="TextLengthValidator"&gt;
+      Please fill in the email field!
+   &lt;/form:listener&gt;
+   &lt;form:listener control="email" validator="EMailValidator"&gt;
+      Please fill in the email field with a correct email address!
+   &lt;/form:listener&gt;
+   &lt;form:listener control="email"&gt;
+      &lt;/div&gt;
+   &lt;/form:listener&gt;
+   &lt;form:text name="email" /&gt;
+   &lt;form:addvalidator
+      class="TextLengthValidator"
+      control="name"
+      button="send"
+      type="special"
+   /&gt;
+   &lt;form:addvalidator
+      class="EMailValidator"
+      control="email"
+      button="send"
+      type="special"
+   /&gt;
+   &lt;form:addvalidator
+      class="EMailValidator"
+      control="email"
+      button="send"
+   /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+</div>
+
 <h4 id="Chapter-3-19-Error"><a href="#Chapter-3-19-Error">3.19. Anzeige von Formular-Fehlern</a></h4>
 Der in Kapitel 3.18 beschriebene Tag kann dazu benutzt werden, automatisiert Fehlermeldungen eines
 definierten Formular-Feldes zu erzeugen. Der <nobr><strong>&lt;form:error /&gt;</strong></nobr>-Tag
@@ -562,34 +666,33 @@ der <strong>&lt;success:getstring /&gt;</strong>-Tag
 <int:link pageid="046" anchor="2-2-Getstring">&lt;html:getstring /&gt;</int:link>.
 Die Bef&uuml;llung des Platzhalters kann identisch zur Vorgehensweise des vorangegangenen Kapitels
 erledigt werden.
-<br />
-<br />
-<br />
+
 <h3 id="Chapter-4-Validierung"><a href="#Chapter-4-Validierung">4. Validierung</a></h3>
-In den bisherigen Versionen des APF wurde die Validierung direkt mit einem Formular-Element
-verkn&uuml;pft und diese auch im
-<a href="./?Seite=098-Pagecontroller#Chapter-2-1-Ablaufdiagramm" title="Taglib-Lifecycle des Page-Controllers">Lifecycle einer Taglib</a>
-ausgef&uuml;hrt. Das hat zum Nachteil, dass ein Element mit nur einem Validator belegt werden kann und
-sich h&auml;ufig redundanter Code durch Definition der Validatoren pro Feld ergibt. Weiterhin war es
-nicht ohne Weiteres m&ouml;glich eigene Validatoren einzuh&auml;ngen.
-<br />
-<br />
-Ab Version 1.11 wurden diese Umst&auml;nde ber&uuml;cksichtigt und die Formular-Taglibs auf eine neue
-Variante der Validierung umgestellt. Ab dieser Version werden Validatoren &uuml;ber ein eigenes
-Tag, das nach dem
-<a class="external" href="http://de.wikipedia.org/wiki/Observer_%28Entwurfsmuster%29" title="Observer-Pattern ">Observer-Pattern</a>
-implementiert ist, an das einzelne Element gebunden. So ist es m&ouml;glich, mehrere Validatoren auf ein
-Feld anzusetzen, eigene Validatoren zu schreiben und mit einer Observer-Definition mehrere Felder
-zu gleicherma&szlig;en zu validieren.
-<br />
-<br />
-Die Definition einer Validierung eines Formular-Feldes gestaltet sich dabei wie folgt:
+<p>
+   In den bisherigen Versionen des APF wurde die Validierung direkt mit einem Formular-Element
+   verkn&uuml;pft und diese auch im
+   <a href="./?Seite=098-Pagecontroller#Chapter-2-1-Ablaufdiagramm" title="Taglib-Lifecycle des Page-Controllers">Lifecycle einer Taglib</a>
+   ausgef&uuml;hrt. Das hat zum Nachteil, dass ein Element mit nur einem Validator belegt werden kann und
+   sich h&auml;ufig redundanter Code durch Definition der Validatoren pro Feld ergibt. Weiterhin war es
+   nicht ohne Weiteres m&ouml;glich eigene Validatoren einzuh&auml;ngen.
+</p>
+<p>
+   Ab Version 1.11 wurden diese Umst&auml;nde ber&uuml;cksichtigt und die Formular-Taglibs auf eine neue
+   Variante der Validierung umgestellt. Ab dieser Version werden Validatoren &uuml;ber ein eigenes
+   Tag, das nach dem
+   <a class="external" href="http://de.wikipedia.org/wiki/Observer_%28Entwurfsmuster%29" title="Observer-Pattern ">Observer-Pattern</a>
+   implementiert ist, an das einzelne Element gebunden. So ist es m&ouml;glich, mehrere Validatoren auf ein
+   Feld anzusetzen, eigene Validatoren zu schreiben und mit einer Observer-Definition mehrere Felder
+   zu gleicherma&szlig;en zu validieren.
+</p>
+<p>Die Definition einer Validierung eines Formular-Feldes gestaltet sich dabei wie folgt:</p>
 <gen:highlight type="apf-xml">
 &lt;form:addvalidator
    namespace=""
    class=""
    button=""
    control=""
+   [type="special"]
 /&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
@@ -613,6 +716,12 @@ Die Definition einer Validierung eines Formular-Feldes gestaltet sich dabei wie 
     das Attribut alle mit Pipe getrennte Feld-Namen (z.B. <em>sender|recipient|subject</em>).
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_|]</code>)
   </li>
+  <li>
+     <strong>type</strong>: Sofern das optionale Attribut vorhanden und auf den Wert <em>special</em>
+     gesetzt ist, werden nur noch Listener informiert, die im Attribut <em>validator</em> den Namen
+     (=Klassen-Namen) des mit dem Tag definierten Validators enthalten. 
+     (<strong>Zeichen</strong>: <code>special</code>)
+  </li>
 </ul>
 <div class="hint">
    F&uuml;r mitgelieferte Validatoren muss das Attribut <strong>namespace</strong> nicht definiert
@@ -620,18 +729,19 @@ Die Definition einer Validierung eines Formular-Feldes gestaltet sich dabei wie 
    Unter diesem Namespace finden sich alle enthaltenen Validatoren, die im Kapitel 4.1. aufgef&uuml;hrt
    sind.
 </div>
-<br />
-<br />
+<div class="hint">
+   Hinweise zu speziellen Validator-Listenern findet sich auch im Wiki-Artikel
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Spezielle_Validator-Listener" title="Spezielle Validator-Listener">Spezielle Validator-Listener</a>.
+</div>
+
 <h4 id="Chapter-4-1-Verfuegbare-Validatoren"><a href="#Chapter-4-1-Verfuegbare-Validatoren">4.1. Verf&uuml;gbare Validatoren</a></h4>
-Wie auch in den Releases < 1.11 werden eine Reihe von Validatoren mitgeliefert. Diese decken
-&uuml;blicherweise den Gro&szlig;teil der Anforderungen ab. Sollten diese nicht gen&uuml;gen, k&ouml;nnen eigene
-Validatoren implementiert werden. Dies ist im n&auml;chsten Kapitel beschrieben.
-<br />
-<br />
-Aktuell sind folgende Validatoren im Release verf&uuml;gbar:
-<br />
-<br />
-<br />
+<p>
+   Wie auch in den Releases < 1.11 werden eine Reihe von Validatoren mitgeliefert. Diese decken
+   &uuml;blicherweise den Gro&szlig;teil der Anforderungen ab. Sollten diese nicht gen&uuml;gen, k&ouml;nnen eigene
+   Validatoren implementiert werden. Dies ist im n&auml;chsten Kapitel beschrieben.
+</p>
+<p>Aktuell sind folgende Validatoren im Release verf&uuml;gbar:</p>
+
 <h5 id="Chapter-4-1-1-TextLengthValidator"><a href="#Chapter-4-1-1-TextLengthValidator">4.1.1. TextLengthValidator</a></h5>
 Der <strong>TextLengthValidator</strong> &uuml;berpr&uuml;ft ein Text-Formular-Feld (Text-Feld,
 Passwort-Feld, Text-Area), ob der enthaltene Text eine Mindestl&auml;nge aufweist. Standardm&auml;&szlig;ig
@@ -857,7 +967,83 @@ Er erwartet, dass das dort ausgew&auml;hlte Datum gr&ouml;&szlig;er als das heut
    /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
+
+<h5 id="Chapter-4-1-13-MimeTypeValidator"><a href="#Chapter-4-1-13-MimeTypeValidator">4.1.13. MimeTypeValidator</a></h5>
+<p>
+   Der <strong>MimeTypeValidator</strong> pr&uuml;ft, ob der MIME-Typ der hochgeladenen Datei in
+   der Liste der akzeptierten Typen zu finden ist. Die Liste der zugelassenen Datei-Typen wird als
+   Pipe-separierte Liste im Attribut <em>accepts</em> des zu validierenden Formular-Elements
+   erwartet. 
+</p>
+<p>
+   Die Evaluierung der Datei-Typen wird <strong>ab PHP 5.3</strong> mit Hilfe der 
+   <em>finfo</em>-Funktionen durchgef&uuml;hrt, f&uuml;r alle fr&uuml;heren Versionen wird die
+   Information genutzt, die von PHP im Offset <em>type</em> des <em>$_FILES</em>-Array zur
+   Verf&uuml;gung gestellt wird (siehe auch 
+   <a class="external" href="http://de.php.net/manual/en/reserved.variables.files.php" title="$_FILES">$_FILES</a>
+   im PHP-Manual).
+</p>
+<div class="warn">
+   Aus der Bestimmung der Inhalts-Typen kann sich eine &Auml;nderung der Definition der akzeptierten
+   Medien ergeben. Ab der PHP Version 5.3 k&ouml;nnen die akzeptierten Typen in der
+   MIME-Typen-Schreibweise (z.B. <em>application/pdf</em>) definiert werden, in PHP Versionen < 5.3
+   lediglich &uuml;ber die Endung (z.B. <em>pdf</em>).
+</div>
+<p>
+   Im folgenden Formular akzeptiert ein Dateiupload-Feld lediglich PDF-Dateien. Das Formular wird
+   solange als invalid gekennzeichnet, bis der Benutzer das richtige Datei-Format gew&auml;hlt hat:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="upload" method="post"&gt;
+   <fieldset>
+      <label for="pdf">PDF file:</label>
+      <form:file name="pdf" id="pdf" accepts="pdf|application/pdf" />
+      <form:addvalidator
+         class="MimeTypeValidator"
+         control="pdf"
+         button="send"
+      />
+      <form:button name="send" value="GO" />
+   </fieldset>
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Wie dem Attribut <em>accepts</em> zu entnehmen ist, wurden hier aus Gr&uuml;nden der
+   Kompatibilit&auml;t beide Schreibweisen der Type-Definitionen eingef&uuml;gt um bei einem
+   Version-Upgrade weiter die gew&uuml;nschte Funktion zu erhalten.
+</p>
+
+<h5 id="Chapter-4-1-14-FileSizeValidator"><a href="#Chapter-4-1-14-FileSizeValidator">4.1.14. FileSizeValidator</a></h5>
+<p>
+   Der <strong>FileSizeValidator</strong> pr&uuml;ft die hochgeladene Datei auf ihre
+   Datei-Gr&ouml;&szlig;e. Hierzu werden die optionalen Attribute <em>minsize</em> und <em>maxsize</em>
+   genutzt um den Bereich der erlaubten Datei-Gr&ouml;&szlig;e <strong>in Bytes</strong> zu definieren.
+</p>
+<p>
+   Ist das Attribut <em>minsize</em> im zu validierenden Formular-Element nicht definiert, wird ein
+   Wert von <em>0</em> angenommen. Es ist damit m&ouml;glich, 0-Byte-Dateien hochzuladen. Ist das
+   Attribut <em>maxsize</em> nicht definiert, wird eine maximale Gr&ouml;&szlig;e von <em>1024000</em>
+   (=1 MB) zugelassen.
+</p>
+<p>
+   Im folgenden Formular werden nur Dateien zugelassen, die eine Mindest-Gr&ouml;&szlig;e von
+   <em>20kB</em> und eine maximale Gr&ouml;&szlig;e von <em>500kB</em> haben:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="upload" method="post"&gt;
+   <fieldset>
+      <label for="image">Image:</label>
+      <form:file name="image" id="image" minsize="20480" maxsize="512000" />
+      <form:addvalidator
+         class="FileSizeValidator"
+         control="image"
+         button="send"
+      />
+      <form:button name="send" value="GO" />
+   </fieldset>
+&lt;/html:form&gt;
+</gen:highlight>
+
 <h4 id="Chapter-4-2-Aufbau-von-Validatoren"><a href="#Chapter-4-2-Aufbau-von-Validatoren">4.2. Aufbau von Validatoren</a></h4>
 Validatoren sind Klassen, die von <strong>AbstractFormValidator</strong> erben. Diese definiert das
 Interface aller Formular-Validatoren. Das ist notwendig, damit diese als Observer an alle

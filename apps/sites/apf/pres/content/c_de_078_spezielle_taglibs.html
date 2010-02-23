@@ -183,7 +183,7 @@ kann folgende Vorgehenweise gew&auml;hlt werden:
   <li>
     Manipulieren des Namespaces im DocumentController:
 <gen:highlight type="php">
-class example_controller extends baseController
+class example_controller extends base_controller
 {
    function transformContent(){
       $mediaStreamTag = &$this->__getMediaStreamTagByID('PhoneIcon');
@@ -191,7 +191,7 @@ class example_controller extends baseController
    }
 
    function &__getMediaStreamTagByID($id){
-      $children = &$this->__Document->getByReference('Children');
+      $children = &$this->__Document->getChildren();
       foreach($children as $objectId => $DUMMY){
          if(get_class($children[$objectId]) == 'html_taglib_mediastream'){
             return $children[$objectId];
@@ -307,32 +307,43 @@ im aktuellen G&uuml;ltigkeitsbereich bekannt gemacht werden.
     sind und die Action noch nicht gegistriert ist. Die Angabe von Parametern ist optional.
   </li>
 </ul>
-<br />
+
 <h3 id="Chapter-4-Core-appendnode"><a href="#Chapter-4-Core-appendnode">4. core:appendnode-Tag</a></h3>
-Aus einer Diskussion &uuml;ber wiederverwendbare Template-Fragmente (z.B. Formulare) entstand die
-Idee, eine TagLib zu entwerfen, die Inhalte aus einem beliebigen Template in den aktuellen
-G&uuml;ltigkeitsbereich zu importieren. Durch die generische DOM-Struktur der GUI-Elemente des
-Frameworks ist dies auf sehr einfache Weise m&ouml;glich.
-<br />
-<br />
-Um die Funktion allgemeing&uuml;ltig zur Verf&uuml;gung zu stellen, wurde im 1.8er-Zweig der
-<strong>&lt;core:appendnode /&gt;</strong>-Tag hinzugef&uuml;gt, der beliebige Templates
-"importieren" kann. Der Tag erwartet - &auml;hnlich dem importdesign-Tag - die statischen Attribute
-<strong>namespace</strong> und <strong>template</strong>.
-<br />
-<br />
-<br />
+<p>
+   Aus einer Diskussion &uuml;ber wiederverwendbare Template-Fragmente (z.B. Formulare) entstand die
+   Idee, eine TagLib zu entwerfen, die Inhalte aus einem beliebigen Template in den aktuellen
+   G&uuml;ltigkeitsbereich zu importieren. Durch die generische DOM-Struktur der GUI-Elemente des
+   Frameworks ist dies auf sehr einfache Weise m&ouml;glich.
+</p>
+<p>
+   Um die Funktion allgemeing&uuml;ltig zur Verf&uuml;gung zu stellen, wurde im 1.8er-Zweig der
+   <strong>&lt;core:appendnode /&gt;</strong>-Tag hinzugef&uuml;gt, der beliebige Templates
+   "importieren" kann. Der Tag erwartet - &auml;hnlich dem importdesign-Tag - die statischen Attribute
+   <strong>namespace</strong> und <strong>template</strong>.
+</p>
+<div class="hint">
+   Ab Version 1.12 ist zus&auml;tzlich das Attribut <em>includestatic</em> verf&uuml;gbar. Ist
+   dieses vorhanden und auf den Wert <em>true</em> eingestellt, so wird s&auml;mtlicher Inhalt
+   des inkludierten Templates &uuml;bernommen. Enth&auml;lt es einen anderen Wert oder ist nicht
+   vorhanden, werden nur die aktuell im eingebundenen Template enthaltenen DOM-Knoten (Instanzen von
+   Taglibs) &uuml;bernommen.
+</div>
+
 <h4 id="Chapter-4-1-Einbindung-von-Templates"><a href="#Chapter-4-1-Einbindung-von-Templates">4.1. Einbindung von Templates</a></h4>
-Um ein wiederverwendbares Template einbinden zu k&ouml;nnen, muss das Tag im gew&uuml;nschten
-Template wir folgt platziert werden:
+<p>
+   Um ein wiederverwendbares Template einbinden zu k&ouml;nnen, muss das Tag im gew&uuml;nschten
+   Template wir folgt platziert werden:
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib namespace="core::pagecontroller" prefix="core" class="appendnode" /&gt;
-&lt;core:appendnode namespace="..." template="..." /&gt;
+&lt;core:appendnode namespace="..." template="..." [includestatic="true" ]/&gt;
 </gen:highlight>
-Soll beispielweise ein Template zur Ausgabe eines Dom&auml;nen-Objekts in mehreren View-Templates
-eingesetzt werden, so schickt es sich, dieses in einem eigenen Template (Namespace:
-<em>sites::testsite::pres::templates::generic</em>; Template: <em>generic_templates</em>) zu definieren.
-Die Definition kann dabei folgende Gestalt haben:
+<p>
+   Soll beispielweise ein Template zur Ausgabe eines Dom&auml;nen-Objekts in mehreren View-Templates
+   eingesetzt werden, so schickt es sich, dieses in einem eigenen Template (Namespace:
+   <em>sites::testsite::pres::templates::generic</em>; Template: <em>generic_templates</em>) zu
+   definieren. Die Definition kann dabei folgende Gestalt haben:
+</p>
 <gen:highlight type="apf-xml">
 &lt;html:template name="ReusableTemplate"&gt;
   ...
@@ -340,40 +351,51 @@ Die Definition kann dabei folgende Gestalt haben:
   ...
 &lt;/html:template&gt;
 </gen:highlight>
-Um das Template in einem anderen verwenden zu k&ouml;nnen, muss die Template-Datei wie folgt in die
-bestehende eingebunden werden:
+<p>
+   Um das Template in einem anderen verwenden zu k&ouml;nnen, muss die Template-Datei wie folgt in die
+   bestehende eingebunden werden:
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib namespace="core::pagecontroller" prefix="core" class="appendnode" /&gt;
 &lt;core:appendnode namespace="sites::testsite::pres::templates::generic" template="generic_templates" /&gt;
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-4-2-Verwendung-der-Elemente"><a href="#Chapter-4-2-Verwendung-der-Elemente">4.2. Verwendung der Elemente</a></h4>
-Die Verwendung der durch das <strong>&lt;core:appendnode /&gt;</strong>-Tag eingebundenen Elements
-gestaltet sich identisch zur bisherigen Vorgehensweise, da die Elemente in den G&uuml;ltigkeitsbereich
-des gew&uuml;nschten Templates importiert werden. Damit k&ouml;nnen weiterhin die im
-DocumentController zur Verf&uuml;gung stehenden Methoden (z.B. <em>__getTemplate()</em>) verwendet
-werden.
-<br />
-<br />
-Das im Kapitel 4.1 aufgezeigte Template k&ouml;nn wie auch bisher mit
+<p>
+   Die Verwendung der durch das <strong>&lt;core:appendnode /&gt;</strong>-Tag eingebundenen Elements
+   gestaltet sich identisch zur bisherigen Vorgehensweise, da die Elemente in den G&uuml;ltigkeitsbereich
+   des gew&uuml;nschten Templates importiert werden. Damit k&ouml;nnen weiterhin die im
+   DocumentController zur Verf&uuml;gung stehenden Methoden (z.B. <em>__getTemplate()</em>) verwendet
+   werden.
+</p>
+<p>Das im Kapitel 4.1 aufgezeigte Template k&ouml;nn wie auch bisher mit</p>
 <gen:highlight type="php">
 $tmpl = &$this->__getTemplate('ReusableTemplate');
 </gen:highlight>
-adressiert werden.
-<br />
-<br />
-<br />
+<p>adressiert werden.</p>
+
 <h4 id="Chapter-4-3-Wichtige-Hinweise"><a href="#Chapter-4-3-Wichtige-Hinweise">4.3. Wichtige Hinweise</a></h4>
-Das Parsen des eingebundenen Templates erfolgt identisch zu den per importdesign-Tag eingebundenen
-Template-Dateien. Das bedeutet, dass der Entwickler daf&uuml;r Sorge tragen muss, dass die
-gew&uuml;nschten Tags im eingebundenen Template auch erkannt werden.
-<br />
-<br />
-Die <strong>&lt;core:appendnode /&gt;</strong>-TagLib legt im Ursprungstemplate Marker-Tags an, damit
-die <strong>transformOnPlace()</strong>-Methoden genutzt werden k&ouml;nnen. Bitte beachten Sie, dass
-die eingebundenen Kinder in der Reihenfolge der Definition im zus&auml;tzlichen Template eingebunden
-werden!
-<br />
-<br />
-<br />
+<p>
+   Das Parsen des eingebundenen Templates erfolgt identisch zu den per importdesign-Tag eingebundenen
+   Template-Dateien. Das bedeutet, dass der Entwickler daf&uuml;r Sorge tragen muss, dass die
+   gew&uuml;nschten Tags im eingebundenen Template auch erkannt werden.
+</p>
+<p>
+   Die <strong>&lt;core:appendnode /&gt;</strong>-TagLib legt im Ursprungstemplate Marker-Tags an, damit
+   die <strong>transformOnPlace()</strong>-Methoden genutzt werden k&ouml;nnen. Bitte beachten Sie, dass
+   die eingebundenen Kinder in der Reihenfolge der Definition im zus&auml;tzlichen Template eingebunden
+   werden!
+</p>
+<p>Sofern auch statischer Inhalt des eingebundenen Templates wie z.B.</p>
+<gen:highlight type="apf-xml">
+<div class="formattingContainer">
+   &lt;html:template name="ReusableTemplate"&gt;
+     ...
+   &lt;/html:template&gt;
+</div>
+</gen:highlight>
+<p>
+   &uuml;bernommen werden soll, muss das Attribut <em>includestatic</em> auf den Wert <em>true</em>
+   gestellt werden.
+</p>
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_078" />

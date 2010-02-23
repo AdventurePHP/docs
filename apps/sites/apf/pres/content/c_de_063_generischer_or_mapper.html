@@ -245,7 +245,7 @@ import('modules::genericormapper::data::tools','GenericORMapperSetup');
 $SetupMapper = new GenericORMapperSetup();
 
 // Context der Applikation bekannt geben (wichtig f&uuml;r die Konfigurationsdateien!)
-$SetupMapper->set('Context',{CONTEXT});
+$SetupMapper->setContext({CONTEXT});
 
 // Ggf. MySQL Storage-Engine anpassen (Standard is MyISAM)
 $SetupMapper->set('StorageEngine','...');
@@ -756,7 +756,7 @@ for($i = 0; $i < count($GroupList); $i++){
    echo '<br />'.$GroupList[$i]->getProperty('DisplayName');
 }
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-4-2-5-Laden-der-Beziehungsmultiplizitaet"><a href="#Chapter-4-2-5-Laden-der-Beziehungsmultiplizitaet">4.2.5 Laden der Beziehungsmultiplizit&auml;t</a></h4>
 Um herauszufinden, wie viele Objekte in Beziehung zu einem anderen gesetzt wurden, steht dem
 Entwickler die Methode
@@ -779,7 +779,40 @@ $Group = $ORM->loadObjectByID('Group',1);
 // Selektieren und Ausgeben der Anzahl der Benutzer einer Gruppe
 echo $ORM->loadRelationMultiplicity($Group,'Group2User');
 </gen:highlight>
-<br />
+
+<h4 id="Chapter-4-2-6-Laden-der-Objekt-Anzahl"><a href="#Chapter-4-2-6-Laden-der-Objekt-Anzahl">4.2.6 Laden der Objekt-Anzahl</a></h4>
+<p>
+   Neben der Anzahl der zu einem Objekt in Beziehung stehenden Objekte k&ouml;nnen seit dem Release
+   1.12 auch die Anzahl der in der Datenbank befindlichen Objekte eines definierten Typs abgefragt
+   werden. Hierzu steht die Methode
+</p>
+<ul>
+   <li><strong>loadObjectCount()</strong></li>
+</ul>
+<p>
+   zur Verf&uuml;gung. Als Parameter wird der Name des Objekt gem&auml;&szlig der Definition der
+   Objekte in der Konfiguration erwartet. Optional kann noch ein <em>GenericCriterionObject</em>
+   mitgegeben werden, das das Ergebnis auf Basis von Attributen des Objekts einschr&auml;nken kann.
+</p>
+<p>
+   Die Abfragen aller Objekte vom Typ <em>User</em> und aller Benutzer mit dem Buchstaben <em>A</em>
+   am Anfang des Nachnamens k&ouml;nnen wie folgt durchgef&uuml;hrt werden:
+</p>
+<gen:highlight type="php">
+$ormf = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+$orm = &$ormf->getGenericORMapper('modules::usermanagement','umgt_1','umgt');
+
+$totalUsers = $orm->loadObjectCount('User');
+
+$crit = new GenericCriterionObject();
+$crit->addPropertyIndicator('LastName','A%');
+$usersWithA = $orm->loadObjectCount('User',$crit);
+</gen:highlight>
+<div class="warn">
+   Da die Abfrage ungecached gegen die Datenbank abgesendet wird, sollte die Abfrage der
+   Objekt-Anzahl nicht in Performance-kritischen Bereichen der Applikation durchgef&uuml;hrt werden.
+</div>
+
 <h4 id="Chapter-4-3-Speichern-von-Objekten"><a href="#Chapter-4-3-Speichern-von-Objekten">4.3. Speichern von Objekten</a></h4>
 F&uuml;r das Speichern von Objekten steht die Methode
 <ul>

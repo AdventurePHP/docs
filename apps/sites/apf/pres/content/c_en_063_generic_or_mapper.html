@@ -229,7 +229,7 @@ import('modules::genericormapper::data::tools','GenericORMapperSetup');
 $SetupMapper = new GenericORMapperSetup();
 
 // set Context of the applcication (important for addressing configuration files!)
-$SetupMapper->set('Context',{CONTEXT});
+$SetupMapper->setContext({CONTEXT});
 
 // adopt storage engine if desired (default is MyISAM)
 $SetupMapper->set('StorageEngine','...');
@@ -744,7 +744,39 @@ $Group = $ORM->loadObjectByID('Group',1);
 // select amount of users within the group
 echo $ORM->loadRelationMultiplicity($Group,'Group2User');
 </gen:highlight>
-<br />
+
+<h4 id="Chapter-4-2-6-Loading-the-object-count"><a href="#Chapter-4-2-6-Loading-the-object-count">4.2.6 Loading the object count</a></h4>
+<p>
+   Beneath the amount of objects related to another object, release 1.12 introduces a method to
+   request the amount of objects of a certain kind stored in the database. For this reason, the
+</p>
+<ul>
+   <li><strong>loadObjectCount()</strong></li>
+</ul>
+<p>
+   method has been added. It takes the name of the object as defined in the mappin configuration as
+   it's first parameter. As an optional second parameter, you can pass a <em>GenericCriterionObject</em>
+   that limits the amount of objects using attribute indicators.
+</p>
+<p>
+   Requesting the amount of objects of type <em>User</em> and all users who's last name starts with
+   character <em>A</em> can be requested as follows:
+</p>
+<gen:highlight type="php">
+$ormf = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+$orm = &$ormf->getGenericORMapper('modules::usermanagement','umgt_1','umgt');
+
+$totalUsers = $orm->loadObjectCount('User');
+
+$crit = new GenericCriterionObject();
+$crit->addPropertyIndicator('LastName','A%');
+$usersWithA = $orm->loadObjectCount('User',$crit);
+</gen:highlight>
+<div class="warn">
+   Due to the fact, that this query is not cached, it should not be integrated in performance
+   relevant parts of the application.
+</div>
+
 <h4 id="Chapter-4-3-Saving-objects"><a href="#Chapter-4-3-Saving-objects">4.3. Saving objects</a></h4>
 Saving objects is quite easy. Regardless you save objects or object trees, the
 <ul>

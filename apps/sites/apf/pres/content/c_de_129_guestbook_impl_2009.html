@@ -536,12 +536,12 @@ guestbook2009/pres/
    des Templates zum Einsatz kommen soll. Die Deklaration besagt, dass in diesem Fall die Klasse
    guestbook_controller aus dem Namespace modules::guestbook2009::pres::controller verwendet
    werden soll. Der Page-Controller erwartet, dass die Controller-Klasse implizit oder explizit
-   von baseController erbt und die Methode transformContent() implementieren. Die &uuml;brige
+   von base_controller erbt und die Methode transformContent() implementieren. Die &uuml;brige
    Gestaltung einer Controller-Klasse obliegt dabei dem Entwickler. Das folgende Listing zeigt den
    zur Ausgabe des Titels und der Beschreibung notwendigen Code:
 </p>
 <gen:highlight type="php">
-   class guestbook_controller extends baseController {
+   class guestbook_controller extends base_controller {
    public function transformContent(){
       $gS = &$this->__getDIServiceObject(
          'modules::guestbook2009::biz',
@@ -618,7 +618,7 @@ guestbook2009/pres/
    &lt;html:placeholder name="content" /> mitgegeben.
 </p>
 <p>
-   Dass ein Document-Controller von der Klasse baseController erben muss ist nicht nur reine
+   Dass ein Document-Controller von der Klasse base_controller erben muss ist nicht nur reine
    Konvention, sondern bietet auch eine Reihe von Vorteilen. Die Klasse beinhaltet eine Vielzahl
    von Methoden, die das Erzeugen von dynamischem Inhalt erleichtern. Zu diesen z&auml;hlt die
    Funktion __getTemplate($tmplName), die eine Referenz auf die mit $tmplName benannte Instanz der
@@ -633,7 +633,7 @@ guestbook2009/pres/
    kann auch in einem Controller auf die umliegenden Objekte direkt zugegriffen werden:
 </p>
 <gen:highlight type="php">
-class list_controller extends baseController {
+class list_controller extends base_controller {
    function transformContent(){
       $gS = &$this->__getDIServiceObject(
          'modules::guestbook2009::biz',
@@ -867,7 +867,7 @@ class = "MockGuestbookService"
 );
 </gen:highlight>
 <p>ein</p>
-<gen:highlight type="php">$page->set('Context','testproject');</gen:highlight>
+<gen:highlight type="php">$page->setContext('testproject');</gen:highlight>
 <p>hinzu. Damit wird der Context des Page-Controllers auf den Wert testproject gesetzt.</p>
 <p>
    Wie der Dokumentation zu entnehmen ist, erwartet der Aufruf der Methode __getDIServiceObject() 
@@ -1073,7 +1073,7 @@ class search_controller extends base_controller {
    Speicherung an den GuestbookService zu &uuml;bergeben:
 </p>
 <gen:highlight type="php">
-class create_controller extends baseController {
+class create_controller extends base_controller {
    function transformContent(){
       $form =
         &$this->__getForm('create_entry');
@@ -1099,7 +1099,7 @@ class create_controller extends baseController {
             $title->getAttribute('value')
          );
          $entry->setText(
-            $text->get('Content')
+            $text->getContent()
          );
          $entry->setEditor($user);
 
@@ -1171,7 +1171,7 @@ import(
 $fC = &Singleton::getInstance(
    'Frontcontroller'
 );
-$fC->set('Context','testproject');
+$fC->setContext('testproject');
 $fC->start(
    'gb::templates',
    'guestbook'
@@ -1282,7 +1282,7 @@ Please log in to administrate the guestbook.
    &uuml;bergeben. Schl&auml;gt diese fehl, so wird die zuvor erw&auml;hnte Fehlermeldung angezeigt:
 </p>
 <gen:highlight type="php">
-class login_controller extends baseController {
+class login_controller extends base_controller {
    public function transformContent(){
       $form = &$this->__getForm('login');
       if($form->get('isSent')
@@ -1389,7 +1389,7 @@ class login_controller extends baseController {
    gew&uuml;nschten Links:
 </p>
 <gen:highlight type="php">
-class admin_controller extends baseController {
+class admin_controller extends base_controller {
    public function transformContent(){
       $gS =
          &$this->__getDIServiceObject(
@@ -1462,7 +1462,7 @@ class admin_controller extends baseController {
    ableiten. Diese beinhaltet die Funktion, das Formular darzustellen:
 </p>
 <gen:highlight type="php">
-abstract class backend_base_controller extends baseController {
+abstract class backend_base_controller extends base_controller {
    protected function __displayEntrySelection($adminView){
       $form = &$this->__getForm(
          'selectentry'
