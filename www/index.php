@@ -44,8 +44,8 @@
    HttpCacheManager::sendHtmlCacheHeaders();
 
    $fC = Singleton::getInstance('Frontcontroller');
-   $fC->set('Context','sites::apf');
-   $fC->set('Language','de');
+   $fC->setContext('sites::apf');
+   $fC->setLanguage('de');
 
    $fC->registerAction('sites::apf::biz','setModel');
 

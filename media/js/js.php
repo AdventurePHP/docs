@@ -5,6 +5,6 @@
    import('core::frontcontroller','Frontcontroller');
 
    $fC = Singleton::getInstance('Frontcontroller');
-   $fC->set('Context','sites::apf');
+   $fC->setContext('sites::apf');
    $fC->start('foo::bar','baz'); // pseudo template, because we do not need one!
 ?>
