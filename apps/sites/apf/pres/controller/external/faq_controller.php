@@ -11,7 +11,7 @@
     *  @version
     *  Version 0.1, 10.01.2009<br />
     */
-   class faq_controller extends baseController {
+   class faq_controller extends base_controller {
 
       function faq_controller() {
       }

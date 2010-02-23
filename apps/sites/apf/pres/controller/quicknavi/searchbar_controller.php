@@ -1,5 +1,5 @@
 <?php
-   class searchbar_controller extends baseController {
+   class searchbar_controller extends base_controller {
       public function transformContent(){
 
          if($this->__Language === 'de'){

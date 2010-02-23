@@ -8,7 +8,7 @@
     * @version
     * Version 0.1, 22.12.2009<br />
     */
-   class langswitch_controller extends baseController {
+   class langswitch_controller extends base_controller {
 
       public function transformContent(){
 

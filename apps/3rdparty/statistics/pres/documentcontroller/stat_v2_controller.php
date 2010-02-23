@@ -24,7 +24,7 @@
    *  Version 0.2, 05.06.2006<br />
    *  Version 0.3, 15.11.2008 (Adapted to new business objects)<br />
    */
-   class stat_v2_controller extends baseController {
+   class stat_v2_controller extends base_controller {
 
       /**
       *  @private

@@ -9,7 +9,7 @@
     * @version
     * Version 0.1, 05.12.2009<br />
     */
-   class new_wiki_articles_controller extends baseController {
+   class new_wiki_articles_controller extends base_controller {
 
       public function transformContent(){
 

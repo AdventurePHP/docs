@@ -335,8 +335,8 @@
          $currentPage = new Page('SearchIndex',false);
 
          // apply context and language
-         $currentPage->set('Context',$this->__Context);
-         $currentPage->set('Language',$lang);
+         $currentPage->setContext($this->__Context);
+         $currentPage->setLanguage($lang);
 
          // load indexer template
          $currentPage->loadDesign('sites::apf::pres::templates::indexer','createindex');

@@ -13,11 +13,12 @@
     * Version 0.1, 18.12.2009<br />
     * Version 0.2, 22.12.2009 (Introduced link generating facility)<br />
     */
-   class breadcrumb_controller extends baseController {
+   class breadcrumb_controller extends base_controller {
 
       public function transformContent(){
-
-         $model = Singleton::getInstance('APFModel');
+         
+         $model = &Singleton::getInstance('APFModel');
+         /* @var $model APFModel */
          $parent = $model->getParentPageId();
          $lang = $model->getLanguage();
          if($parent !== '0'){

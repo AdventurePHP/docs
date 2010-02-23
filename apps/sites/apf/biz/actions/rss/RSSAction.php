@@ -36,8 +36,8 @@
 
          // generate items
          $page = new Page();
-         $page->set('Context',$this->__Context);
-         $page->set('Language',$lang);
+         $page->setContext($this->__Context);
+         $page->setLanguage($lang);
          $page->loadDesign('sites::apf::pres::templates::news','rss');
          $items = $page->transform();
 

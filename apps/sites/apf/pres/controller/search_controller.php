@@ -13,7 +13,7 @@
     * Version 0.1, 08.03.2008<br />
     * Version 0.2, 03.10.2008 (Ported the controller to the new site structure)<br />
     */
-   class search_controller extends baseController {
+   class search_controller extends base_controller {
 
       function search_controller(){
       }

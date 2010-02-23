@@ -9,7 +9,7 @@
     *  @version
     *  Version 0.1, 20.07.2008<br />
     */
-   class form_captcha_example_controller extends baseController {
+   class form_captcha_example_controller extends base_controller {
 
       function form_captcha_example_controller() {
       }
@@ -17,7 +17,7 @@
       /**
        *  @public
        *
-       *  Implements the transformContent() method of the baseController class. Creates the document's html code.
+       *  Implements the transformContent() method of the base_controller class. Creates the document's html code.
        *
        *  @author Christian Achatz
        *  @version

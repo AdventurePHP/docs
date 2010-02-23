@@ -12,7 +12,7 @@
     * @version
     * Version 0.1, 09.04.2007<br />
     */
-   class main_controller extends baseController {
+   class main_controller extends base_controller {
 
       function main_controller(){
       }

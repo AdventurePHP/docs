@@ -23,7 +23,7 @@
    import('sites::apf::data::sitemap','XmlSiteMapCreator');
 
    $xSC = new XmlSiteMapCreator();
-   $xSC->set('Context','sites::apf');
+   $xSC->setContext('sites::apf');
 
    $fH = fopen('sitemap.xml','w+');
    fwrite($fH,$xSC->createSitemap());

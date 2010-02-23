@@ -11,7 +11,7 @@
     * @version
     * Version 0.1, 29.12.2009<br />
     */
-   abstract class release_base_controller extends baseController {
+   abstract class release_base_controller extends base_controller {
 
       private static $REV_HISTORY_PAGEID = '126';
 

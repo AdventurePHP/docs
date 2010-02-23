@@ -47,7 +47,7 @@
          if($currentPageIndicators[$pageIndicatorNameDe] != null){
             $language = 'de';
             $model->setLanguage($language);
-            $this->__ParentObject->set('Language',$language);
+            $this->__ParentObject->setLanguage($language);
             $this->__Language = $language;
             $model->setAttribute('perspective.name','content');
           // end if
@@ -55,7 +55,7 @@
          elseif($currentPageIndicators[$pageIndicatorNameEn] != null){
             $language = 'en';
             $model->setLanguage($language);
-            $this->__ParentObject->set('Language',$language);
+            $this->__ParentObject->setLanguage($language);
             $this->__Language = $language;
             $model->setAttribute('perspective.name','content');
           // end if
@@ -64,7 +64,7 @@
 
             // use default language of the front controller (maybe a problem, perhaps use
             // a session instance to store the language)
-            $language = $this->__ParentObject->get('Language');
+            $language = $this->__ParentObject->getLanguage();
             $this->__Language = $language;
             $model->setLanguage($language);
             $model->setAttribute('perspective.name','start');
