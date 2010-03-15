@@ -21,7 +21,7 @@
 
       public static function sendHtmlCacheHeaders(){
          HeaderManager::send('Content-Type: text/html; charset=utf-8');
-         //self::sendCacheHeaders();
+         self::sendCacheHeaders();
       }
 
       public static function sendCssCacheHeaders(){
