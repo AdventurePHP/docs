@@ -658,6 +658,25 @@ the <strong>&lt;success:getstring /&gt;</strong> tag like the
 <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>
 tag. Filling the place holder can be done as described in the last chapter.
 
+<h5 id="Chapter-3-21-TimeCaptcha"><a href="#Chapter-3-21-TimeCaptcha">3.21. TimeCaptcha</a></h5>
+<p>
+   The <strong>TimeCaptcha</strong> can be used in combination with the
+   <a href="#Chapter-4-1-16-TimeCaptchaValidator">TimeCaptchaValidator</a> to defeat (spam-)bots
+   in forms. For this reason, the taglib saves the point in time, the form is generated and makes
+   this timestamp available for the validator within the session.
+</p>
+<p>
+   Setting the optional attribute <em>seconds</em> the minimal time can be influenced that the
+   validator uses to decide, whether the form was filled by a bot or a regular user. The value of the
+   attribute must contain an integer value of the desired period of time.
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="..."&gt;
+   <form:timecaptcha name="timecaptcha" [seconds="3"]/>
+   ...
+&lt;/html:form&gt;
+</gen:highlight>
+
 <h3 id="Chapter-4-Validation"><a href="#Chapter-4-Validation">4. Validation</a></h3>
 <p>
    In the previous versions of the APF the validation was linked directly with a form element and
@@ -1031,6 +1050,27 @@ The <strong>SimpleDateControlValidator</strong> validates the date control descr
       />
       <form:button name="send" value="GO" />
    </fieldset>
+&lt;/html:form&gt;
+</gen:highlight>
+
+<h5 id="Chapter-4-1-16-TimeCaptchaValidator"><a href="#Chapter-4-1-16-TimeCaptchaValidator">4.1.16. TimeCaptchaValidator</a></h5>
+<p>
+   The <strong>TimeCaptchaValidator</strong> can be used in combination with the
+   <a href="#Chapter-3-21-TimeCaptcha">&lt;form:timecaptcha /&gt;</a> taglib to defeat (spam-)bots
+   in forms. The validator checks the time, which the "user" took to complete the form. Bots
+   normally only need a fraction of a second, so it should be enough to refuse all data which was
+   filled within the default 2 seconds. This period can be influenced by adding an optional 
+   <em>seconds</em> attribute in the taglib definition.
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="..."&gt;
+   <form:timecaptcha name="timecaptcha"/>
+   <form:addvalidator
+      class="TimeCaptchaValidator"
+      button="send"
+      control="timecaptcha"
+   />
+   <form:button name="send" value="Send"/>
 &lt;/html:form&gt;
 </gen:highlight>
 
