@@ -14,7 +14,7 @@
     */
    class main_controller extends base_controller {
 
-      function main_controller(){
+      public function main_controller(){
       }
 
       /**
@@ -94,8 +94,11 @@
          $reg = &Singleton::getInstance('Registry');
          $baseUrl = $reg->retrieve('apf::core','URLBasePath');
          $requestUrl = $reg->retrieve('apf::core','CurrentRequestURL');
+         $referer = (empty($_SERVER['HTTP_REFERER'])) ? 'n/a' : $_SERVER['HTTP_REFERER'];
          $this->setPlaceHolder('TrackingPixelUrl',$baseUrl.'/sites_apf_biz-action/stat/lang/'
-                 .$pageLang.'/title/'.urlencode($pageName).'/id/'.$pageId.'/url/'.urlencode(urlencode($requestUrl)).'/');
+                 .$pageLang.'/title/'.urlencode($pageName).'/id/'.$pageId
+                 .'/url/'.urlencode(urlencode($requestUrl))
+                 .'/referer/'.urlencode(urlencode($referer)).'/');
 
        // end function
       }

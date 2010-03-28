@@ -31,6 +31,7 @@
        * @author Christian Achatz
        * @version
        * Version 0.1, 03.01.2010<br />
+       * Version 0.2, 18.03.2010 (Added css markup code class)<br />
        */
       public function transform(){
 
@@ -74,6 +75,11 @@
             case self::$INI:
                $title = 'APF-Konfiguration';
                $cssClass = self::$INI;
+               break;
+
+            case self::$CSS:
+               $title = 'CSS-Code';
+               $cssClass = self::$CSS;
                break;
 
             default:

@@ -15,6 +15,7 @@
    class StatAction extends AbstractFrontcontrollerAction {
 
       private static $REQUEST_URL_INDICATOR = '/url/';
+      private static $REFERER_INDICATOR = '/referer/';
 
       public function StatAction() {
       }
@@ -30,13 +31,18 @@
        *  Version 0.2, 15.12.2008 (Introduced new StatManager)<br />
        *  Version 0.3, 08.02.2010 (Switched to introduce a tracking pixel to avoid missing hits)<br />
        */
-      function run() {
+      public function run() {
 
          // gather input values
          $pageLang = $this->__Input->getLanguage();
          $pageName = $this->__Input->getTitle();
          $pageId = $this->__Input->getPageId();
-         $_SERVER['REQUEST_URI'] = $this->getRequestUrl(); // fake request url
+         $requestUrl = $this->getRequestUrl();
+         $referer = $this->getReferer();
+
+         // fakes *must* be done after param extraction, or we get unexpected results!
+         $_SERVER['REQUEST_URI'] = $requestUrl; // fake request url
+         $_SERVER['HTTP_REFERER'] = $referer; // fake referer
 
          // write statistic entry
          $sM = &$this->__getServiceObject('3rdparty::statistics::biz','StatManager');
@@ -68,9 +74,29 @@
        * Version 0.2, 08.02.2010<br />
        */
       private function getRequestUrl(){
-         $start = strpos($_SERVER['REQUEST_URI'],self::$REQUEST_URL_INDICATOR);
-         $length = strlen(self::$REQUEST_URL_INDICATOR);
-         return urldecode(urldecode(substr($_SERVER['REQUEST_URI'],$start + $length)));
+         return $this->getParameter(self::$REQUEST_URL_INDICATOR);
+      }
+
+      /**
+       * Evaluates and returnes the referer in a special way, because the
+       * tracking pixel has a different referer.
+       *
+       * @return string The referer.
+       *
+       * @author Christian Achatz
+       * @version
+       * Version 0.2, 12.04.2010<br />
+       */
+      private function getReferer(){
+         return $this->getParameter(self::$REFERER_INDICATOR);
+      }
+
+      private function getParameter($name){
+         $start = strpos($_SERVER['REQUEST_URI'],$name);
+         $length = strlen($name);
+         $delimiter = strpos($_SERVER['REQUEST_URI'],'/',$start + $length);
+         $foo = substr($_SERVER['REQUEST_URI'],$start + $length,$delimiter - $start - $length);
+         return urldecode(urldecode($foo));
       }
 
     // end class
