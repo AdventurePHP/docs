@@ -215,30 +215,33 @@ The following script shows, how the automated database setup can be done with ai
 at the <em>/apps/modules/genericormapper/data/tools</em> folder in the <em>adventure-codepack-*</em>
 release. The file is named <em>setup.php</em> and must be adapted to your application case:
 <gen:highlight type="php">
-// include pagecontroller
+// include page controller
 require('../../apps/core/pagecontroller/pagecontroller.php');
 
-// adopt registry values, if desired
-$Reg = &Singleton::getInstance('Registry');
-$Reg->register('apf::core','Environment',{ENVIRONMENT});
+// configure the registry if desired
+$reg = &Singleton::getInstance('Registry');
+$reg->register('apf::core','Environment','{ENVIRONMENT}');
 
 // include SetupMapper
 import('modules::genericormapper::data::tools','GenericORMapperSetup');
 
-// create SetupMapper
-$SetupMapper = new GenericORMapperSetup();
+// create setup tool
+$setup = new GenericORMapperSetup();
 
-// set Context of the applcication (important for addressing configuration files!)
-$SetupMapper->setContext({CONTEXT});
+// set Context (important for the configuration files!)
+$setup->setContext('{CONTEXT}');
 
-// adopt storage engine if desired (default is MyISAM)
-$SetupMapper->set('StorageEngine','...');
+// adapt storage engine (default is MyISAM)
+$setup->setStorageEngine('MyISAM|INNODB');
+
+// adapt data type of the indexed columns, that are used for object and relation ids
+//$setup->setIndexColumnDataType('INT(5) UNSIGNED');
 
 // create database layout
-$SetupMapper->setupDatabase({CONFIG_NAMESPACE},{CONFIG_NAME_AFFIX},{CONNECTION_NAME});
+$setup->setupDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}','{CONNECTION_NAME}');
 
-// display database layout only
-$SetupMapper->setupDatabase({CONFIG_NAMESPACE},{CONFIG_NAME_AFFIX});
+// display statements only
+$setup->setupDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}');
 </gen:highlight>
 The place holders within the script have the following meaning:
 <ul>
@@ -276,16 +279,16 @@ The place holders within the script have the following meaning:
     <br />
   </li>
 </ul>
-Further, it is important that the database, that should be initialized, must exist before setup is
-started. Additionally, the user connecting to the database must have <em>CREATE TABLE</em> rights.
-Otherwise, the setup could not be done. If no error is displayed during setup, the setup has finished
-successfully. The result can be checked by using phpMyAdmin or a MySQLAdmin tool.
-<br />
-<br />
-Executing the script to display the create statements only, the output should look like this:
+<p>
+   Further, it is important that the database, that should be initialized, must exist before setup is
+   started. Additionally, the user connecting to the database must have <em>CREATE TABLE</em> rights.
+   Otherwise, the setup could not be done. If no error is displayed during setup, the setup has finished
+   successfully. The result can be checked by using phpMyAdmin or a MySQLAdmin tool.
+</p>
+<p>Executing the script to display the create statements only, the output should look like this:</p>
 <gen:highlight type="sql">
 CREATE TABLE IF NOT EXISTS `ent_application` (
-  `ApplicationID` TINYINT(5) NOT NULL auto_increment,
+  `ApplicationID` INT(5) UNSIGNED NOT NULL auto_increment,
   `DisplayName` VARCHAR(100) character set utf8 NOT NULL default '',
   `CreationTimestamp` timestamp NOT NULL default CURRENT_TIMESTAMP,
   `ModificationTimestamp` timestamp NOT NULL default '0000-00-00 00:00:00',
@@ -293,7 +296,7 @@ CREATE TABLE IF NOT EXISTS `ent_application` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ent_user` (
-  `UserID` TINYINT(5) NOT NULL auto_increment,
+  `UserID` INT(5) UNSIGNED NOT NULL auto_increment,
   `DisplayName` VARCHAR(100) character set utf8 NOT NULL default '',
   `FirstName` VARCHAR(100) character set utf8 NOT NULL default '',
   `LastName` VARCHAR(100) character set utf8 NOT NULL default '',
@@ -308,32 +311,47 @@ CREATE TABLE IF NOT EXISTS `ent_user` (
 ...
 
 CREATE TABLE IF NOT EXISTS `cmp_application2user` (
-  `CMPID` TINYINT(5) NOT NULL auto_increment,
-  `ApplicationID` TINYINT(5) NOT NULL default '0',
-  `UserID` TINYINT(5) NOT NULL default '0',
+  `CMPID` INT(5) UNSIGNED NOT NULL auto_increment,
+  `ApplicationID` INT(5) UNSIGNED NOT NULL default '0',
+  `UserID` INT(5) UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`CMPID`),
   KEY `JOININDEX` (`ApplicationID`,`UserID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `cmp_application2role` (
-  `CMPID` TINYINT(5) NOT NULL auto_increment,
-  `ApplicationID` TINYINT(5) NOT NULL default '0',
-  `RoleID` TINYINT(5) NOT NULL default '0',
+  `CMPID` INT(5) UNSIGNED NOT NULL auto_increment,
+  `ApplicationID` INT(5) UNSIGNED NOT NULL default '0',
+  `RoleID` INT(5) UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`CMPID`),
   KEY `JOININDEX` (`ApplicationID`,`RoleID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 </gen:highlight>
-Using phpMyAdmin you will get the following screen:
-<br />
-<br />
+
+<div class="hint">
+   Invoking <em>setIndexColumnDataType()</em> the data type of the columns that store the object and
+   relation ids can be adapted. Concerning the sample statements above, the type was changed to
+   <em>INT(5) UNSIGNED</em>. In case you need smaller or greater data rooms, you can adjust it
+   using
+<gen:highlight type="php">
+   $setup->setIndexColumnDataType('TINYINT(3)');
+</gen:highlight>
+   Please be aware, that the value set with this method is directly used within the create 
+   statements. In case you are using invalid data types, this will lead to errors during setup of
+   the tables.
+</div>
+
+<p>Using phpMyAdmin you will get the following screen:</p>
+
 <img src="http://media.adventure-php-framework.org/content/ormapper_phpmyadmin.png" alt="PHPMYAdmin view"/>
-<br />
-Now, the configuration of the mapper has finished and you can use it. Changes to the data model
-(at the moment) cannot be automatically applied to the database. For this reason, the affected tables
-must be altered manually. Due to the fact, that the database layout follows some easy ruls, you can
-easily do this yourself. Hints can be taken from the
-<a href="./?Page=064-Generic-OR-mapper-manual-database-setup" title="Manual database setup">manual database setup</a>
-chapter.
+
+<p>
+   Now, the configuration of the mapper has finished and you can use it. Changes to the data model
+   (at the moment) cannot be automatically applied to the database. For this reason, the affected tables
+   must be altered manually. Due to the fact, that the database layout follows some easy ruls, you can
+   easily do this yourself. Hints can be taken from the
+   <a href="./?Page=064-Generic-OR-mapper-manual-database-setup" title="Manual database setup">manual database setup</a>
+   chapter.
+</p>
 <div class="hint">
    Supporting the task of updating a database setup with the generic OR mapper setup tool a update
    tool was introduced in release 1.11. For detailed description, please refer to
@@ -442,78 +460,84 @@ an overview of the existing functions and their meaning:
     <br />
   </li>
 </ul>
-The <strong>*Statement*</strong> methods are provided due to performance optimization reasons. For
-details, please have a look at the
-<a href="./?Page=065-Generic-OR-mapper-performance-hacks" title="Generic OR mapper - Performance hacks">performance hacks</a>
-chapter. Details on the aruments can be taken from the
-<a href="./?Page=002-API-documentation" title="API documentation">API documentation page</a> for the
-modules.
-<br />
-<br />
-<br />
-<h4 id="Chapter-4-1-Create-an-instance"><a href="#Chapter-4-1-Create-an-instance">4.1. Creating an instance of the mapper</a></h4>
-The instance of the OR mapper must be created using the <strong>GenericORMapperFactory</strong>. This
-is necessary, because the concrete mapper must be initialized prior to use and to have the possibility
-to use more than one instance per module. The latter one is probably not necessary within easy
-applications, but in complexe environments this may be a knock-out criteria.
-<br />
-<br />
-The next code box shows a typical call of the mapper:
-<gen:highlight type="php">
-// include the factory
-import('modules::genericormapper::data','GenericORMapperFactory');
+<p>
+   The <strong>*Statement*</strong> methods are provided due to performance optimization reasons. For
+   details, please have a look at the
+   <a href="./?Page=065-Generic-OR-mapper-performance-hacks" title="Generic OR mapper - Performance hacks">performance hacks</a>
+   chapter. Details on the aruments can be taken from the
+   <a href="./?Page=002-API-documentation" title="API documentation">API documentation page</a> for the
+   modules.
+</p>
 
-// create the factory
-$ORMFactory = $this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+<h4 id="Chapter-4-1-Create-an-instance"><a href="#Chapter-4-1-Create-an-instance">4.1. Creating an instance of the mapper</a></h4>
+<p>
+   The instance of the OR mapper must be created using the <strong>GenericORMapperFactory</strong>. This
+   is necessary, because the concrete mapper must be initialized prior to use and to have the possibility
+   to use more than one instance per module. The latter one is probably not necessary within easy
+   applications, but in complexe environments this may be a knock-out criterion.
+<p>
+<p>The next code box shows a typical call of the mapper:</p>
+<gen:highlight type="php">
+// create the factory using the desired service mode
+$ormFact = &$this->__getServiceObject(
+                  'modules::genericormapper::data',
+                  'GenericORMapperFactory'[,
+                  {SERVICE_OBJECT_TYPE}]
+                  );
 
 // create the mapper using the factory
-$ORM = &$ORMFactory->getGenericORMapper(
-                                        {CONFIG_NAMESPACE},
-                                        {CONFIG_NAME_AFFIX},
-                                        {CONNECTION_NAME},
-                                        {SERVICE_OBJECT_TYPE}[,
-                                        $logStatements = false]
-                                       );
+$orm = &$ormFact->getGenericORMapper(
+                  {CONFIG_NAMESPACE},
+                  {CONFIG_NAME_AFFIX},
+                  {CONNECTION_NAME}[,
+                  $logStatements = false]
+                  );
 </gen:highlight>
-The place holders have the following meaning:
+<p>The place holders have the following meaning:</p>
 <ul>
+  <li>
+    <strong>{SERVICE_OBJECT_TYPE}</strong>: The type of service object of the factory. This param
+    implicitly defines service type of the mapper. Allowed values <em>NORMAL</em>, <em>SINGLETON</em>,
+    and <em>SESSIONSINGLETON</em>. Default is <em>SINGLETON</em>. Details can be taken from the
+    <a href="./?Page=033-Configuration#Chapter-3-Service-objects" title="Service objects">service object section</a>.
+  </li>
   <li>
     <strong>{CONFIG_NAMESPACE}</strong>: The namespace, the configuration files reside (see chapter
     2.2).
-    <br />
-    <br />
   </li>
   <li>
     <strong>{CONFIG_NAME_AFFIX}</strong>: The name affix, the configuration files have (see chapter
     2.1).
-    <br />
-    <br />
   </li>
   <li>
     <strong>{CONNECTION_NAME}</strong>: The name of the database connection used for setup and usage.
-    <br />
-    <br />
-  </li>
-  <li>
-    <strong>{SERVICE_OBJECT_TYPE}</strong>: The type of service object of the mapper. Allowed values
-    are "SINGLETON" and "SESSIONSINGLETON". Default is "SINGLETON". Details can be taken from the
-    <a href="./?Page=033-Configuration#Chapter-3-Service-objects" title="Service objects">service object section</a>.
-    <br />
-    <br />
   </li>
 </ul>
-Please note, that the factory must be created by the <strong>__getServiceObject()</strong> function
-to avoid unnecessary configuration side-effects.
-<br />
-<br />
-<div class="hint">
-In case, you want to acivate statement logging for debugging reasons, the <em>$logStatements</em>
-must be set to <em>true</em>. Please do not use this option in productional environments! Details
-can be taken from the
-<a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>.
+<div class="warn">
+   <p>
+      As of release 1.12 the factory service type also defines the service type of the mapper
+      (=scope of the object concerning the service manager's instanciation model). In case, the GORM
+      should be created only once per session due to performance reasons (mapping and relation tables
+      are then only created once per visit) the factory creation statement must have the third param
+      (<em>service type</em>) filled with the value <em>SESSIONSINGLETON</em>.
+   </p>
+   <p>
+      For development environments it is recommended to use the <em>SINGLETON</em> service type.
+      Using the <em>SESSIONSINGLETON</em> type, the mapping and relation tables are only updated
+      after the session has expired what may lead to unexpected results.
+   </p>
 </div>
-<br />
-<br />
+<p>
+   Please note, that the factory must be created by the <strong>__getServiceObject()</strong> function
+   to avoid unnecessary configuration side-effects.
+</p>
+<div class="hint">
+   In case, you want to acivate statement logging for debugging reasons, the <em>$logStatements</em>
+   must be set to <em>true</em>. Please do not use this option in productional environments! Details
+   can be taken from the
+   <a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>.
+</div>
+
 <h4 id="Chapter-4-2-Loading-data"><a href="#Chapter-4-2-Loading-data">4.2. Loading data</a></h4>
 To have a concrete example for the next code samples, the following UML diagram should be used. The
 picture contains the business object definition of the
