@@ -7,7 +7,7 @@
 
          $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
 
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          $sql = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
 
          $select = 'SELECT PageID,URLName,Language,ModificationTimestamp,Title FROM search_articles ORDER BY PageID ASC';

@@ -1,6 +1,4 @@
 <?php
-   import('core::database','connectionManager');
-
    /**
     * @package sites::apf::pres::controller::external
     * @class bugs_controller
@@ -19,7 +17,7 @@
       function transformContent(){
 
          // get forum database connection
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          $forumConn = &$cM->getConnection('Forum');
 
          // get configuration from the registry

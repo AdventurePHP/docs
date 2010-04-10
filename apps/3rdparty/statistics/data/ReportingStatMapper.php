@@ -1,25 +1,22 @@
 <?php
    import('tools::datetime','dateTimeManager');
-   import('core::database','connectionManager');
    import('3rdparty::statistics::biz','SimpleStatSection');
    import('3rdparty::statistics::biz','TableStatSection');
    import('3rdparty::statistics::biz','LinkTableStatSection');
    import('3rdparty::statistics::biz','StatEntry');
 
-
    /**
-   *  @package 3rdparty::statistics::data
-   *  @module ReportingStatMapper
-   *
-   *  Implements the statistic data loader.
-   *
-   *  @author Christian Achatz
-   *  @version
-   *  Version 0.1, 15.11.2008<br />
-   *  Version 0.2. 16.11.2008<br />
-   */
-   class ReportingStatMapper extends APFObject
-   {
+    * @package 3rdparty::statistics::data
+    * @class ReportingStatMapper
+    *
+    * Implements the statistic data loader.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 15.11.2008<br />
+    * Version 0.2. 16.11.2008<br />
+    */
+   class ReportingStatMapper extends APFObject {
 
       /**
       *  @private
@@ -195,7 +192,7 @@
       function __genericGetStatData($attribute,$where = null,$limit = null){
 
          // get database connection
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          $this->__SQL = &$cM->getConnection($this->__ConnectionKey);
 
          // initialize return list

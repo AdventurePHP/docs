@@ -1,6 +1,4 @@
 <?php
-   import('core::database','connectionManager');
-
    /**
     * @package sites::apf::data
     * @class FulltextsearchMapper
@@ -40,7 +38,7 @@
          $Config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
 
          // get database connection
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          $SQL = &$cM->getConnection($Config->getValue('Database','ConnectionKey'));
 
          // make search string save (sql injection)

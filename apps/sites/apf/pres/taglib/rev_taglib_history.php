@@ -28,8 +28,7 @@
          parent::Document();
          $this->__TagLibs[] = new Taglib('sites::apf::pres::taglib','int','link');
          $this->__TagLibs[] = new Taglib('sites::apf::pres::taglib','doku','link');
-         $this->__TagLibs[] = new Taglib('sites::apf::pres::taglib','code','highlight');
-         $this->__TagLibs[] = new Taglib('sites::apf::pres::taglib','php','highlight');
+         $this->__TagLibs[] = new Taglib('sites::apf::pres::taglib','gen','highlight');
        // end function
       }
 

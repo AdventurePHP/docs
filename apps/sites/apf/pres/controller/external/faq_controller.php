@@ -1,6 +1,4 @@
 <?php
-   import('core::database','connectionManager');
-
    /**
     *  @package sites::apf::pres::controller::external
     *  @class faq_controller
@@ -28,7 +26,7 @@
       function transformContent() {
 
          // get forum database connection
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          $SQLForum = &$cM->getConnection('Forum');
 
          // get configuration from the registry

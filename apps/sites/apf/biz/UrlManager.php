@@ -51,6 +51,7 @@
 
          // fetch the url name from the database using the fulltextsearch
          $sql = &$this->getConnection();
+         $pageId = $sql->escapeValue($pageId); // avoid injections!
          $select = 'SELECT URLName
                     FROM search_articles
                     WHERE PageID = \''.$pageId.'\' AND Language = \''.$lang.'\'';
@@ -97,6 +98,7 @@
 
          // select title from the database
          $sql = &$this->getConnection();
+         $pageId = $sql->escapeValue($pageId); // avoid injections!
          $select = 'SELECT Title
                     FROM search_articles
                     WHERE PageID = \''.$pageId.'\' AND Language = \''.$lang.'\'';
@@ -117,7 +119,7 @@
        * @return AbstractDatabaseHandler The database connection.
        */
       private function &getConnection(){
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          return $cM->getConnection('FulltextSearch');
        // end function
       }

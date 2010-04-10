@@ -1,5 +1,4 @@
 <?php
-   import('core::database','connectionManager');
    import('3rdparty::statistics::data','ReportingStatMapper');
 
    /**
@@ -80,7 +79,7 @@
       function createStatEntry($PageName,$PageLang,$RequestURI,$Day,$Month,$Year,$Hour,$Minute,$Second,$UserName,$SessionID,$Browser,$ClientLanguage,$OS,$IPAddress,$DNSAddress,$Referer,$UserAgent) {
 
          // get database connection
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          $SQL = &$cM->getConnection($this->__ConnectionKey);
 
          // create entry

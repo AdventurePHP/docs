@@ -1,6 +1,5 @@
 <?php
    import('core::logging','Logger');
-   import('core::database','connectionManager');
    import('tools::filesystem','FilesystemManager');
    import('sites::apf::biz','APFModel');
 
@@ -54,7 +53,7 @@
 
          $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
 
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          $SQL = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
 
          // delete old articles
@@ -158,7 +157,7 @@
          $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
 
          // get connection
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          $SQL = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
 
          // delete the recent index
@@ -283,7 +282,7 @@
          $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
 
          // Connection holen
-         $cM = &$this->__getServiceObject('core::database','connectionManager');
+         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
          $sql = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
 
          // Wort selektieren
