@@ -1,4 +1,10 @@
 <?php
+   // redirect madmind.net to avoid duplicate content with google!
+   if($_SERVER['SERVER_NAME'] == 'madmind.net'){
+      header('Location: http://adventure-php-framework.org',true,301);
+      exit(0);
+   }
+
    //ini_set('session.cache_limiter','none');
    date_default_timezone_set('Europe/Berlin');
    if(isset($_SERVER['HTTP_ACCEPT_ENCODING']) && (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'],'gzip') > 0 || substr_count($_SERVER['HTTP_ACCEPT_ENCODING'],'deflate') > 0)){
