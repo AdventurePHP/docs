@@ -23,7 +23,7 @@
 
          $pageId = $this->getAttribute('pageid');
          if($pageId === null){
-            trigger_error('[int_taglib_link::transform()] Attribute "pageid" must not be null!',E_USER_ERROR);
+            throw new IllegalArgumentException('[int_taglib_link::transform()] Attribute "pageid" must not be null!',E_USER_ERROR);
             exit(1);
          }
 
