@@ -1,0 +1,212 @@
+<doku:title parent="100" tags="migration,1.11,1.12,API,refactoring,gorm" title="Migration von 1.11 auf 1.12" urlname="Migration-von-1-11-auf-1-12">
+  Der vorliegende Artikel beschriebt die &Auml;nderungen, die bei Upgrade auf die Version 1.12 an
+  bestehender Software vorgenommen werden m&uuml;ssen.
+</doku:title>
+<p>
+   Der vorliegende Artikel beschreibt die &Auml;nderungen, die an bestehenden Applikationen
+   durchgef&uuml;hrt werden m&uuml;ssen. Im Wesentlichen enth&auml;lt das Release 1.12 Anpassungen
+   der API, die die Lesbarkeit verbessern und eine &Auml;nderung der Erzeugung des
+   <int:link pageid="063">generischen O/R Mappers</int:link>.
+</p>
+<h3 id="Chapter-1-API-Aenderungen"><a href="#Chapter-1-API-Aenderungen">1. API-&Auml;nderungen</a></h3>
+<p>
+   Die Anpassungen der Core-API (<int:link pageid="098" />, <int:link pageid="012" />, ...) besteht
+   darin, die generischen <em>get('my_param')</em>- und <em>set('my_param','my_value')</em>-Methoden
+   gegen sprechende Funktionen der Form <em>getMyParam()</em>- und <em>setMyParam('my_value')</em>
+   auszutauschen. Des Weiteren wurden in diesem Release die f&uuml;r die PHP-4-Implementierung im 
+   Core enthaltenen <em>getByReference()</em> und <em>setByReference()</em> entfernt.
+</p>
+<p>
+   Die folgende Code-Box zeigt die Umbenennungen, die beim Update auf die neue Version vorgenommen
+   werden m&uuml;ssen. Sofern die API des APF korrekt benutzt wurde, sind die Anpassungen durch
+   einfaches Ersetzen der Vorkommen m&ouml;glich. Die im ersten Block aufgef&uuml;hrten Ersetzungen
+   betreffen Klassen-Namen des APF-Basis-Objekts und der Basis-Klasse f&uuml;r
+   <int:link pageid="006" />.
+</p>
+<gen:highlight type="php">
+coreObject -> APFObject
+baseController -> base_controller
+connectionManager -> ConnectionManager
+
+AbstractFrontControllerAction::set('KeepInURL',...) -> AbstractFrontControllerAction::setKeepInUrl(...)
+AbstractFrontControllerAction::get('KeepInURL') -> AbstractFrontControllerAction::getKeepInUrl()
+AbstractFrontcontrollerAction::set('ActionNamespace',...) -> AbstractFrontcontrollerAction::setActionNamespace(...)
+AbstractFrontcontrollerAction::get('ActionNamespace') -> AbstractFrontcontrollerAction::getActionNamespace()
+AbstractFrontcontrollerAction::set('ActionName',...) -> AbstractFrontcontrollerAction::setActionName(...)
+AbstractFrontcontrollerAction::get('ActionName') -> AbstractFrontcontrollerAction::getActionName()
+AbstractFrontcontrollerAction::set('Type',...) -> AbstractFrontcontrollerAction::setType(...)
+AbstractFrontcontrollerAction::get('Type') -> AbstractFrontcontrollerAction::getType()
+AbstractFrontcontrollerAction::set('Input',...) -> AbstractFrontcontrollerAction::setInput(...)
+AbstractFrontcontrollerAction::get('Input') -> AbstractFrontcontrollerAction::getInput()
+Document::set('Content',...) -> Document::setContent(...)
+APFObject::getByReference('ParentObject') -> APFObject::getParentObject()
+APFObject::setByReference('ParentObject',...) -> APFObject::setParentObject(...)
+APFObject::get('ParentObject') -> APFObject::getParentObject()
+APFObject::set('ParentObject',...) -> APFObject::setParentObject(...)
+APFObject::set('ObjectID',...) -> APFObject::setObjectId(...)
+APFObject::get('ObjectID') -> APFObject::getObjectId()
+APFObject::set('Language',...) -> APFObject::setLanguage(...)
+APFObject::get('Language') -> APFObject::getLanguage()
+APFObject::set('Context',...) -> APFObject::setContext(...)
+APFObject::get('Context') -> APFObject::getContext()
+Document::get('DocumentController') -> Document::getDocumentController()
+BaseMapper::getByReference('DBDriver') -> BaseMapper::getDBDriver()
+GenericORMapperSetup::set('StorageEngine',...) -> GenericORMapperSetup::setStorageEngine(...)
+GenericORMapperSetup::get('StorageEngine') -> GenericORMapperSetup::getStorageEngine()
+GenericORMapperUpdate::set('StorageEngine',...) -> GenericORMapperUpdate::setStorageEngine(...)
+GenericORMapperUpdate::get('StorageEngine') -> GenericORMapperUpdate::getStorageEngine()
+Page::getByReference('Document') -> Page::getRootDocument()
+Page::get('Document') -> Page::getRootDocument()
+APFObject::set('ServiceType',...) -> APFObject::setServiceType(...)
+APFObject::get('ServiceType') -> APFObject::getServiceType()
+Taglib::set('Prefix',...) -> Taglib::setPrefix(...)
+Taglib::get('Prefix') -> Taglib::getPrefix()
+Taglib::get('Prefix') -> Taglib::getPrefix()
+Document::getByReference('Children') -> Document::getChildren()
+FilterDefinition::set('Namespace',...) -> FilterDefinition::setNamespace(...)
+FilterDefinition::get('Namespace') -> FilterDefinition::getNamespace()
+FilterDefinition::set('Class',...) -> FilterDefinition::setClass(...)
+FilterDefinition::get('Class') -> FilterDefinition::getClass()
+ExceptionHandlerDefinition::set('Namespace',...) -> ExceptionHandlerDefinition::setNamespace(...)
+ExceptionHandlerDefinition::get('Namespace') -> ExceptionHandlerDefinition::getNamespace()
+ExceptionHandlerDefinition::set('Class',...) -> ExceptionHandlerDefinition::setClass(...)
+ExceptionHandlerDefinition::get('Class') -> ExceptionHandlerDefinition::getClass()
+ErrorHandlerDefinition::set('Namespace',...) -> ErrorHandlerDefinition::setNamespace(...)
+ErrorHandlerDefinition::get('Namespace') -> ErrorHandlerDefinition::getNamespace()
+ErrorHandlerDefinition::set('Class',...) -> ErrorHandlerDefinition::setClass(...)
+ErrorHandlerDefinition::get('Class') -> ErrorHandlerDefinition::getClass()
+</gen:highlight>
+<p>
+   Die Ersetzung kann weitestgehend per search&amp;replace erledigt. Die folgende Code-Box zeigt
+   einige Beispiele:
+</p>
+<gen:highlight type="shell">
+$ cd /path/to/my/app/dir
+$ for FILE in $(find sites)
+do
+   sed -e "s/coreObject/APFObject/g" -i $file
+done
+$ for file in $(find mymodules)
+do
+   sed -e "s/->set('Content',/->setContent(/g" -i $file
+done
+</gen:highlight>
+<p>
+   Wie der Code-Box zu entnehmen ist, muss die Ersetzung nur auf die Verzeichnisse angewendet werden,
+   die eigenen Code enth&auml;lt. Das APF selbst ist nat&uuml;rlich mit allen Modulen bereits komplett
+   angepasst.
+</p>
+<div class="hint">
+   Die Anpassung der API ist auch auf der Seite
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/API-%C3%84nderungen_in_Version_1.12" title="API-Änderungen in Version 1.12">API-Änderungen in Version 1.12</a>
+   im Wiki beschrieben.
+</div>
+
+<h3 id="Chapter-2-GORM"><a href="#Chapter-2-GORM">2. GenericORMapper</a></h3>
+<p>
+   Auf Grund eines Fehlers bei der Erzeugung von mehreren Instanzen des GORM wurde die Art der
+   Initialisierung ge&auml;ndert. Die bisherige Art der Erzeugung des GORM muss daher von
+</p>
+<gen:highlight type="php">
+$ormFact = &$this->__getServiceObject(
+                  'modules::genericormapper::data',
+                  'GenericORMapperFactory'
+                  );
+$orm = &$ormFact->getGenericORMapper(
+                  {CONFIG_NAMESPACE},
+                  {CONFIG_NAME_AFFIX},
+                  {CONNECTION_NAME},
+                  {SERVICE_OBJECT_TYPE}[,
+                  $logStatements = false]
+                  );
+</gen:highlight>
+<p>auf</p>
+<gen:highlight type="php">
+$ormFact = &$this->__getServiceObject(
+                  'modules::genericormapper::data',
+                  'GenericORMapperFactory'[,
+                  {SERVICE_OBJECT_TYPE}]
+                  );
+$orm = &$ormFact->getGenericORMapper(
+                  {CONFIG_NAMESPACE},
+                  {CONFIG_NAME_AFFIX},
+                  {CONNECTION_NAME}[,
+                  $logStatements = false]
+                  );
+</gen:highlight>
+<p>
+   ge&auml;ndert werden. Im G&auml;stebuch- und Usermanagement-Modul wurden diese Anpassungen
+   bereits im Rahmen des Release get&auml;tigt. Diese können daher nach dem Update
+   uneingeschr&auml;nkt eingesetzt werden.
+</p>
+<p>
+   Details zur Initialisierung k&ouml;nnen der
+   <int:link pageid="063" anchor="Chapter-4-1-Erzeugen-einer-Instanz">angepassten Dokumentation</int:link>
+   entnommen werden.
+</p>
+
+<h3 id="Chapter-3-DateControl"><a href="#Chapter-3-DateControl">3. DateControl</a></h3>
+<p>
+   Das Date-Control wurde im Rahmen des Form-Refactorings und der Einf&uuml;hrung der Client-Validatoren
+   umgebaut. Ein Date-Control hat nun folgendes Markup:
+</p>
+<gen:highlight type="apf-xml">
+<span id="date">
+   <select name="date[Day]">...</select>
+   <select name="date[Month]">...</select>
+   <select name="date[Year]">...</select>
+</span>
+</gen:highlight>
+<p>
+   Da die Inline-Styles entfernt wurden, m&uuml;ssen die Select-Felder explizit per CSS formatiert
+   werden. Um dem obigen Date-Control ein zur Version 1.11 identsiches Aussehen zu geben ist
+   folgender CSS-Code (Version 2.x) notwendig:
+</p>
+<gen:highlight type="css">
+#date select {
+   width: 40px;
+}
+#date select:last-child {
+   width: 55px;
+}
+</gen:highlight>
+
+<h3 id="Chapter-4-FormularValidierung"><a href="#Chapter-4-FormularValidierung">4. Formular-Validierung</a></h3>
+<p>
+   Um zuk&uuml;nftig eine flexiblere Formatierung f&uuml;r nicht erfolgreich validierten 
+   Formular-Felder vornehmen zu k&ouml;nnen, wurde die Validierung gem&auml;&szlig; dem Proposal
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Weiterentwicklung_Formular-Validierung" title="Weiterentwicklung Formular-Validierung">Weiterentwicklung Formular-Validierung</a>
+   angepasst. 
+</p>
+<p>
+   Aus diesem Grund ist es nun notwendig, die zur Validierung eingesetzten CSS-Klassen im Projekt
+   zu definieren. Sofern das in Version 1.11 enthaltene Verhalten nachgestellt werden soll, 
+   gen&uuml;gt die Definition der CSS-Klasse <em>apf-form-error</em>:
+</p>
+<gen:highlight type="css">
+form .apf-form-error {
+   border: 2px solid red;
+}
+</gen:highlight>
+
+<h3 id="Chapter-5-Kontakt-Formular"><a href="#Chapter-5-Kontakt-Formular">5. Kontakt-Formular</a></h3>
+<p>
+   Das Kontakt-Formular-Modul wurde einem Refactoring unterzogen, damit die Benamung der Klassen
+   der Coding Convention entsprechen. Zudem wurden die verwendeten Dom&auml;nen-Objekte auf explizite
+   getter und setter umgestellt.
+</p>
+<p>Die Einbindung muss daher nicht wie bisher durch</p>
+<gen:highlight type="apf-xml">
+&lt;core:importdesign namespace="modules::kontakt4::pres::templates" template="kontakt" /&gt;
+</gen:highlight>
+<p>sondern durch</p>
+<gen:highlight type="apf-xml">
+&lt;core:importdesign namespace="modules::kontakt4::pres::templates" template="contact" /&gt;
+</gen:highlight>
+<p>
+   erfolgen. Die Konfiguration und Einbindung des Moduls ist im Wiki unter
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Einrichtung_Kontakt-Formular" title="Einrichtung Kontakt-Formular">Einrichtung Kontakt-Formular</a>
+   ausf&uuml;hrlich beschrieben.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_133" />
