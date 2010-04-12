@@ -33,6 +33,14 @@
          'sites::apf::biz::errorhandler',
          'LiveErrorHandler'
       )
+   );
+   $reg->register(
+      'apf::core',
+      'ExceptionHandler',
+      new ExceptionHandlerDefinition(
+         'sites::apf::biz::exceptionhandler',
+         'LiveExceptionHandler'
+      )
    );*/
 
    // special output filter
