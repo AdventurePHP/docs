@@ -3,7 +3,7 @@
     * @package sites::apf::data
     * @class FulltextsearchMapper
     *
-    * Implementiert die Datenschicht f�r die Volltextsuche.<br />
+    * Implements the data layer of the APF docu page's fulltext search.
     *
     * @author Christian Achatz
     * @version
@@ -11,24 +11,24 @@
     */
    class FulltextsearchMapper extends APFObject {
 
-      function fulltextsearchMapper() {
+      public function fulltextsearchMapper() {
       }
 
       /**
-       *  @public
+       * @public
        *
-       *  Loads a list of search result objects according to the given search string.
+       * Loads a list of search result objects according to the given search string.
        *
-       *  @param string $SearchString one or more search strings
-       *  @return array $SearchResults list of search result objects
+       * @param string $searchString one or more search strings.
+       * @return searchResult[] List of search result objects.
        *
-       *  @author Christian Achatz
-       *  @version
-       *  Version 0.1, 10.03.2008<br />
-       *  Version 0.2, 19.10.2008 (Introduced synonym mapping)<br />
-       *  Version 0.3, 05.11.2008 (Added value escaping for the search string to avoid sql injections)<br />
+       * @author Christian Achatz
+       * @version
+       * Version 0.1, 10.03.2008<br />
+       * Version 0.2, 19.10.2008 (Introduced synonym mapping)<br />
+       * Version 0.3, 05.11.2008 (Added value escaping for the search string to avoid sql injections)<br />
        */
-      function loadSearchResult($SearchString) {
+      public function loadSearchResult($searchString) {
 
          // start timer
          $T = &Singleton::getInstance('BenchmarkTimer');
@@ -42,19 +42,19 @@
          $SQL = &$cM->getConnection($Config->getValue('Database','ConnectionKey'));
 
          // make search string save (sql injection)
-         $SearchString = $SQL->escapeValue($SearchString);
+         $searchString = $SQL->escapeValue($searchString);
 
          // do synonym mapping
          $synonyms = &$this->__getConfiguration('sites::apf::biz','fulltextsearch_synonyms');
          $section = $synonyms->getSection($this->__Language);
          
          foreach($section as $key => $value) {
-            $SearchString = str_replace($key,$value,$SearchString);
+            $searchString = str_replace($key,$value,$searchString);
           // end foreach
          }
 
          // split search strings
-         $SearchStringArray = split(' ',$SearchString);
+         $SearchStringArray = explode(' ',$searchString);
 
          // create where statement
          $count = count($SearchStringArray);
@@ -69,7 +69,7 @@
             // end if
          }
          else {
-            $WHERE[] = 'search_word.Word LIKE \'%'.strtolower($SearchString).'%\'';
+            $WHERE[] = 'search_word.Word LIKE \'%'.strtolower($searchString).'%\'';
             // end else
          }
 
@@ -103,19 +103,19 @@
       }
 
       /**
-       *  @private
+       * @private
        *
-       *  Mappt ein Result-Array in ein Ergebnis-Objekte.<br />
+       * Mapps a database result set to a search result object.
        *
-       *  @param array $ResultSet; Datenbank-Result-Set
-       *  @return object $SearchResult; Such-Ergebnis-Objekt
+       * @param string[] $resultSet The database result set.
+       * @return searchResult The search result object.
        *
-       *  @author Christian Achatz
-       *  @version
-       *  Version 0.1, 10.03.2008<br />
-       *  Version 0.2, 02.10.2008 (Added some new domain object attributes)<br />
+       * @author Christian Achatz
+       * @version
+       * Version 0.1, 10.03.2008<br />
+       * Version 0.2, 02.10.2008 (Added some new domain object attributes)<br />
        */
-      function __mapSearchResult2DomainObject($resultSet) {
+      private function __mapSearchResult2DomainObject($resultSet) {
 
          $searchResult = new searchResult();
 
