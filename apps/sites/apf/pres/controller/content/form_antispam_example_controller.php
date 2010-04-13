@@ -25,7 +25,7 @@
        *  @version
        *  Version 0.1, 17.07.2008<br />
        */
-      function transformContent() {
+      public function transformContent() {
 
          // obtain a reference on the desired form (depends on the language of the document!)
          $Form__AntiSpamExample = &$this->__getForm('AntiSpamExample_'.$this->__Language);
@@ -61,7 +61,7 @@
          }
 
          // display form on the place of definition
-         $Form__AntiSpamExample->setAttribute('action','#antispam');
+         $Form__AntiSpamExample->setAttribute('action','#Chapter-antispam');
          $Form__AntiSpamExample->transformOnPlace();
 
          // end function

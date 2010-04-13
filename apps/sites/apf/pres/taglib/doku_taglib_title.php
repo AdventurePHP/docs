@@ -39,7 +39,7 @@
          // get page title
          $this->__Title = $this->getAttribute('title');
          if($this->__Title === null){
-            throw new IllegalArgumentException('[doku_taglib_title::onParseTime()] The attribute "title" is missing. Please provide the page title!',E_USER_ERROR);
+            throw new InvalidArgumentException('[doku_taglib_title::onParseTime()] The attribute "title" is missing. Please provide the page title!',E_USER_ERROR);
             exit(1);
           // end if
          }
@@ -47,7 +47,7 @@
          // get page tags
          $tags = $this->getAttribute('tags');
          if($tags === null){
-            throw new IllegalArgumentException('[doku_taglib_title::onParseTime()] The attribute "tags" is missing. Please provide the page meta tags!',E_USER_ERROR);
+            throw new InvalidArgumentException('[doku_taglib_title::onParseTime()] The attribute "tags" is missing. Please provide the page meta tags!',E_USER_ERROR);
             exit(1);
           // end if
          }
@@ -55,14 +55,14 @@
          // get urlname
          $urlName = $this->getAttribute('urlname');
          if($urlName === null){
-            throw new IllegalArgumentException('[doku_taglib_title::onParseTime()] The attribute "urlname" is missing. Please provide url name of the page!',E_USER_ERROR);
+            throw new InvalidArgumentException('[doku_taglib_title::onParseTime()] The attribute "urlname" is missing. Please provide url name of the page!',E_USER_ERROR);
             exit(1);
           // end if
          }
 
          // get page description
          if(empty($this->__Content)){
-            throw new IllegalArgumentException('[doku_taglib_title::onParseTime()] No page description given in the tag\'s content area. Please provide the page description!',E_USER_ERROR);
+            throw new InvalidArgumentException('[doku_taglib_title::onParseTime()] No page description given in the tag\'s content area. Please provide the page description!',E_USER_ERROR);
             exit(1);
           // end if
          }

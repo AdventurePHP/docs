@@ -33,7 +33,7 @@
          // validate the given attributes
          if($this->getAttribute('minfilltime') === null){
             $formName = $this->__ParentObject->getAttribute('name');
-            throw new IllegalArgumentException('[form_taglib_antispam::onAfterAppend()] There is not attribute "minfilltime" given in the anti spam tag definition in form "'.$formName.'"! Please provide the attribute mentioned containing the time in seconds the user needs to fill in the form.');
+            throw new InvalidArgumentException('[form_taglib_antispam::onAfterAppend()] There is not attribute "minfilltime" given in the anti spam tag definition in form "'.$formName.'"! Please provide the attribute mentioned containing the time in seconds the user needs to fill in the form.');
           // end if
          }
 

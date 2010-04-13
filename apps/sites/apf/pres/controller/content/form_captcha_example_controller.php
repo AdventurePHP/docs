@@ -59,7 +59,7 @@
          }
 
          // display form on the place of definition
-         $Form__CaptchaExample->setAttribute('action','#captcha');
+         $Form__CaptchaExample->setAttribute('action','#Chapter-captcha');
          $Form__CaptchaExample->transformOnPlace();
 
          // end function
