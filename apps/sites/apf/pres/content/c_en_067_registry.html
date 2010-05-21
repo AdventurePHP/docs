@@ -23,27 +23,29 @@ it can also be used as a configuration parameter container for your applications
 <br />
 <br />
 <h3 id="Chapter-2-Use-the-registry"><a href="#Chapter-2-Use-the-registry">2. Use the registry</a></h3>
-In order to use the registy it must be created <em>SINGLETON</em>. Due to the fact, that the registry
-is already included and initialized in the page controller a simple
-<gen:highlight type="php">
-$Reg = &Singleton::getInstance('Registry');
-</gen:highlight>
-can be used, to gather a singleton instance of the registry in the current scope. After that, the
-method <strong>register()</strong> can be utilized to change existing values or to register new values.
-The <strong>retrieve()</strong> function reades values from the registry. To be able to differenciate
-between the various param domains the registry features namespaces. In order to not produce interferences
-with other param domains, it is well to use the namespace of your application as a namespace within
-the registry.
+<div class="hint">
+   The <em>Registry</em> was re-implemented to a static container for performance reasons in 1.12.
+   In all previous release the <em>Registry</em> must be created using
+   <gen:highlight type="php">$reg = &Singleton::getInstance('Registry');</gen:highlight>
+   Afterwards, it can be addressed as any other object. The <em>Registry</em> instance features two
+   methods: <em>register()</em> and <em>retrieve()</em>. These methods have the identical interface
+   as the implementation in 1.12.
+</div>
+Since release 1.12 the <em>Registry</em> is implemented as a static container for global configuration
+purpose of the framework and for custom configuration. The method <strong>register()</strong> can be
+utilized to change existing values or to register new values. The <strong>retrieve()</strong> function
+reades values from the registry. To be able to differenciate between the various param domains the
+registry features namespaces. In order to not produce interferences with other param domains, it is
+well to use the namespace of your application as a namespace within the registry.
 <br />
 <br />
 In order to manipulate the default values of the <strong>apf::core</strong> namespace, the following
 PHP code can be used:
 <gen:highlight type="php">
-$Reg = &Singleton::getInstance('Registry');
-$Reg->register('apf::core','URLRewriting',true);
-$Reg->register('apf::core','URLBasePath','http://example.com/folder');
-$Reg->register('apf::core','Environment','TESTSERVER');
-$Reg->register('apf::core','LogDir','/path/to/my/log/dir');
+Registry::register('apf::core','URLRewriting',true);
+Registry::register('apf::core','URLBasePath','http://example.com/folder');
+Registry::register('apf::core','Environment','TESTSERVER');
+Registry::register('apf::core','LogDir','/path/to/my/log/dir');
 </gen:highlight>
 Please note, that manipulation of the default parameters must be done before creating the page or
 frontcontroller. This is also reasonable for application directives.
@@ -57,14 +59,11 @@ every param by a forth parameter to the <strong>register()</strong> method. If t
 the value cannot be manipulated within the whole request. The following code sample can be used as a
 code template for configuring write protection:
 <gen:highlight type="php">
-// get a singleton instance of the registry
-$Reg = &Singleton::getInstance('Registry');
-
 // action will succeed
-$Reg->register('modules::mymodule','MyModuleID',1,true);
+Registry::register('modules::mymodule','MyModuleID',1,true);
 
 // action will last in an error
-$Reg->register('modules::mymodule','MyModuleID',2);
+Registry::register('modules::mymodule','MyModuleID',2);
 </gen:highlight>
 <br />
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_067" />

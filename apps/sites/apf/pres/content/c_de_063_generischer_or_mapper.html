@@ -126,7 +126,7 @@ jedoch die meisten Anwendungsf&auml;lle abbilden.
    Hierzu muss der Wert einer Property-Definition eine g&uuml;ltige Definition eines BIT-Feldes wie
    z.B.
    <gen:highlight type="sql">bit(7) NOT NULL default b'0'</gen:highlight>
-   Dabei ist es grunds&auuml;tzlich nicht erheblich, dass das Feld einen Default-Wert besitzt. Wichtig
+   Dabei ist es grunds&auml;tzlich nicht erheblich, dass das Feld einen Default-Wert besitzt. Wichtig
    ist die Definition eines BIT-Feldes mit dem Schl&uuml;sselwort &quot;BIT&quot;. Details k&ouml;nnen
    der Foren-Diskussion unter
    <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=8&amp;t=234" title="Fehler mit BIT-Feldern" linkrewrite="false">Fehler mit BIT-Feldern</a>
@@ -215,7 +215,55 @@ eine Referenz auf die Sektion der Objektdefinition.
     werden.
   </li>
 </ul>
-<br />
+
+<h4 id="Chapter-2-4-Zustaetzliche-Indizes"><a href="#Chapter-2-4-Zustaetzliche-Indizes">2.4. Zus&auml;tzliche Indizes</a></h4>
+<p>
+   Mit dem Release 1.12 ist es m&ouml;glich die Objekt-Definition mit zus&auml;tzlichen Indizes
+   auszustatten. Dies kann aus Performance-Gr&uuml;nden notwendig sein und ist vor allem dann ratsam,
+   wenn eine Property eines Objekts sehr h&auml;ufig zur Abfrage von Daten genutzt wird.
+</p>
+<p>
+   In diesem Fall kann die die Objekt-Definition um den Schl&uuml;ssel <em>AddIndices</em> erweitert
+   werden. Diese Information wird vom automatischen Setup und Update dazu genutzt, weitere Indizes
+   anzulegen um die Abfragen zu beschleunigen.
+</p>
+<p>
+   Die folgende Code-Box zeigt ein Beispiel f&uuml;r drei Indizes auf die wichtigsten Attribute
+   eines Benutzer-Objekts:
+</p>
+<gen:highlight type="ini">
+[User]
+...
+FirstName = "VARCHAR(100)"
+LastName = "VARCHAR(100)"
+Username = "VARCHAR(100)"
+Password = "VARCHAR(100)"
+...
+AddIndices = "FirstName,LastName(INDEX)|Username(UNIQUE)|Password(INDEX)"
+</gen:highlight>
+<p>
+   Die Definitionen unterliegen folgenden Regeln:
+</p>
+<ul>
+   <li>
+      Jeder zus&auml;tzliche Index wird durch die zu inkludierenden Spalten und durch einen Typ
+      ausgezeichnet. Mehrere Definitionen werden durch &quot;<em>|</em>&quot; (Pipe) getrennt.
+   </li>
+   <li>
+      Die zul&auml;ssigen Index-Typen sind: <em>INDEX</em> (normaler Index), <em>UNIQUE</em> (Spalte 
+      darf nur eindeutige Werte enthalten) und <em>FULLTEXT</em> (Such-Index, der mit <em>MATCH
+      AGAINST()</em> abgefragt werden kann). Die Index-Typen werden jeweils in Klammern notiert.
+   </li>
+   <li>
+      Sollen mehrere Spalten in den Index einbezogen werden, so k&ouml;nnen diese in einer
+      Komma-separierten (&quot;<em>,</em>&quot;) Liste angegeben werden. Die Namen der Spalten
+      entsprechen dabei den Namen in der Objekt-Definition.
+   </li>
+</ul>
+<div class="hint">
+   ...Details zur Entstehung k&ouml;nnen dem Wiki und dem Forum entnommen werden...
+</div>
+
 <h3 id="Chapter-3-Datenbank-Setup"><a href="#Chapter-3-Datenbank-Setup">3. Setup der Datenbank</a></h3>
 Nachdem die Konfigurationsdateien fertiggestellt sind, muss die Datenbank f&uuml;r die Verwendung
 vorkonfiguriert werden. Dies kann manuell oder automatisiert vorgenommen passieren. Die manuelle
@@ -235,8 +283,7 @@ angepasst werden. Hier das Setup-Skript im &Uuml;berblick:
 require('../../apps/core/pagecontroller/pagecontroller.php');
 
 // configure the registry if desired
-$reg = &Singleton::getInstance('Registry');
-$reg->register('apf::core','Environment','{ENVIRONMENT}');
+Registry::register('apf::core','Environment','{ENVIRONMENT}');
 
 // include SetupMapper
 import('modules::genericormapper::data::tools','GenericORMapperSetup');
@@ -374,6 +421,7 @@ CREATE TABLE IF NOT EXISTS `cmp_application2role` (
    F&uuml;r das Update einer mit dem Setup-Tool konfigurierten Datenbank steht seit dem Release 1.11
    ein Update-Tool zur Verf&uuml;gung. Die Bedienung ist unter <int:link pageid="128" /> beschrieben.
 </div>
+
 <h3 id="Chapter-4-Verwendung"><a href="#Chapter-4-Verwendung">4. Verwendung des O/R-Mappers</a></h3>
 Der O/R-Mapper, oder genauer die Komponente <strong>GenericORRelationMapper</strong>, bietet eine Reihe
 von API-Methoden an, die zur Manipulation von Daten und Beziehungen eingesetzt werden k&ouml;nnen.

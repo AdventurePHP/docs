@@ -27,18 +27,22 @@ Mapping- und Relation-Table innerhalb des Mappers nur einmal innerhalb einer Ses
 Diese Ma&szlig;nahme spart ~10% Performance bei jedem weiteren Aufruf der Applikation. Die folgenden
 Code-Zeilen zeigen, wie der Mapper <strong>SESSIONSINGLETON</strong> erzeugt werden kann:
 <gen:highlight type="php">
-// Mapper-Factory holen
-$ORMFactory = $this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+// Factory im relevanten Service-Mode erstellen
+$ormFact = &$this->__getServiceObject(
+                  'modules::genericormapper::data',
+                  'GenericORMapperFactory',
+                  'SESSIONSINGLETON' // <-- Indiziert Erstellung im Modus SESSIONSINGLETON
+                  );
 
-// Mapper erzeugen
-$ORM = &$ORMFactory->getGenericORMapper(
-                                        '{NAMESPACE}',
-                                        '{NAMEAFFIX}',
-                                        '{CONNECTIONKEY}',
-                                        'SESSIONSINGLETON' // <-- Indiziert Erstellung im Modus SESSIONSINGLETON
-                                       );
+// Mapper von der Factory beziehen
+$orm = &$ormFact->getGenericORMapper(
+                  {CONFIG_NAMESPACE},
+                  {CONFIG_NAME_AFFIX},
+                  {CONNECTION_NAME}[,
+                  $logStatements = false]
+                  );
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-2-3-JOIN-Optimierung"><a href="#Chapter-2-3-JOIN-Optimierung">2.3. JOIN-Optimierung</a></h4>
 Um bei Abfragen &uuml;ber mehrere Objektbeziehungen hinweg mehr Performance zu erreichen, wird dazu
 geraten, die JOIN-Anweisungen selbst zu formulieren, da dort die Reihenfolge der JOINs und deren

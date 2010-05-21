@@ -18,15 +18,14 @@
    import('core::frontcontroller','Frontcontroller');
 
    // configure page values
-   $reg = &Singleton::getInstance('Registry');
-   $reg->register('apf::core','URLRewriting',true);
-   $reg->register('sites::apf','Releases.LocalDir','D:/Entwicklung/Dokumentation/Build/RELEASES');
-   $reg->register('sites::apf','Releases.BaseURL','http://files.adventure-php-framework.org');
-   $reg->register('sites::apf','ForumBaseURL','http://forum.adventure-php-framework.org');
-   $reg->register('sites::apf','WikiBaseURL','http://wiki.adventure-php-framework.org');
+   Registry::register('apf::core','URLRewriting',true);
+   Registry::register('sites::apf','Releases.LocalDir','D:/Entwicklung/Dokumentation/Build/RELEASES');
+   Registry::register('sites::apf','Releases.BaseURL','http://files.adventure-php-framework.org');
+   Registry::register('sites::apf','ForumBaseURL','http://forum.adventure-php-framework.org');
+   Registry::register('sites::apf','WikiBaseURL','http://wiki.adventure-php-framework.org');
 
    // special script kiddie error handler ;)
-   /*$reg->register(
+   /*Registry::register(
       'apf::core',
       'ErrorHandler',
       new ErrorHandlerDefinition(
@@ -34,7 +33,7 @@
          'LiveErrorHandler'
       )
    );
-   $reg->register(
+   Registry::register(
       'apf::core',
       'ExceptionHandler',
       new ExceptionHandlerDefinition(
@@ -44,14 +43,14 @@
    );*/
 
    // special output filter
-   $reg->register(
+   Registry::register(
       'apf::core::filter',
       'OutputFilter',
       new FilterDefinition('sites::apf::pres::filter::output','ScriptletOutputFilter')
    );
 
    // register downloads environment
-   $reg->register('sites::apf','sitemap.env','dev');
+   Registry::register('sites::apf','sitemap.env','dev');
 
    // send HTTP caching headers
    import('sites::apf::pres::http','HttpCacheManager');

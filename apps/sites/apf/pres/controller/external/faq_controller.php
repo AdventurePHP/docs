@@ -30,8 +30,7 @@
          $SQLForum = &$cM->getConnection('Forum');
 
          // get configuration from the registry
-         $reg = &Singleton::getInstance('Registry');
-         $forumBaseURL = $reg->retrieve('sites::apf','ForumBaseURL');
+         $forumBaseURL = Registry::retrieve('sites::apf','ForumBaseURL');
 
          // build select
          if($this->__Language === 'de') {

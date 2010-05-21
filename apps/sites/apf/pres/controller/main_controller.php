@@ -91,9 +91,8 @@
          $pageLang = $model->getLanguage();
          $pageName = $model->getTitle();
          $pageId = $model->getPageId();
-         $reg = &Singleton::getInstance('Registry');
-         $baseUrl = $reg->retrieve('apf::core','URLBasePath');
-         $requestUrl = $reg->retrieve('apf::core','CurrentRequestURL');
+         $baseUrl = Registry::retrieve('apf::core','URLBasePath');
+         $requestUrl = Registry::retrieve('apf::core','CurrentRequestURL');
          $referer = (empty($_SERVER['HTTP_REFERER'])) ? 'n/a' : $_SERVER['HTTP_REFERER'];
          $this->setPlaceHolder('TrackingPixelUrl',$baseUrl.'/sites_apf_biz-action/stat/lang/'
                  .$pageLang.'/title/'.urlencode($pageName).'/id/'.$pageId

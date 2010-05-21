@@ -12,8 +12,7 @@
    class socialnetworkbar_controller extends base_controller {
 
       public function transformContent(){
-         $reg = &Singleton::getInstance('Registry');
-         $currentUrl = $reg->retrieve('apf::core','CurrentRequestURL');
+         $currentUrl = Registry::retrieve('apf::core','CurrentRequestURL');
          $this->setPlaceHolder('currentUrl',$currentUrl);
       }
 

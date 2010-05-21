@@ -51,9 +51,8 @@
       private static $CODE_RELEASE_FILE_INDICATOR = '-codepack';
 
       public function release_base_controller(){
-         $reg = &Singleton::getInstance('Registry');
-         $this->__ReleasesLocalDir = $reg->retrieve('sites::apf','Releases.LocalDir');
-         $this->__ReleasesBaseURL = $reg->retrieve('sites::apf','Releases.BaseURL');
+         $this->__ReleasesLocalDir = Registry::retrieve('sites::apf','Releases.LocalDir');
+         $this->__ReleasesBaseURL = Registry::retrieve('sites::apf','Releases.BaseURL');
        // end function
       }
 

@@ -27,28 +27,29 @@ Speicherung von Applikationskonfigurationen verwendet werden.
 <br />
 <br />
 <h3 id="Chapter-2-Einsatz-der-Registry"><a href="#Chapter-2-Einsatz-der-Registry">2. Einsatz der Registry</a></h3>
-Um die Registry als zentrale Komponente nutzen zu k&ouml;nnen, muss diese <em>SINGLETON</em> erstellt
-werden. Da die Registry bereits im PageController eingebunden und initialisiert wird, gen&uuml;gt ein
-einfaches
-<gen:highlight type="php">
-$Reg = &Singleton::getInstance('Registry');
-</gen:highlight>
-um eine Referenz auf die Singleton-Instanz der Registry im aktuellen G&uuml;ltigkeitsbereich zu
-beziehen. Anschlie&szlig;end dient die Methode <strong>register()</strong> bereits vorhandene Werte
-zu manipulieren oder neue Werte hinzuzuf&uuml;gen. Die Funktion <strong>retrieve()</strong> bezieht
-Werte aus der Registry. Um eine definierte Abgrenzung zwischen Wertebereichen zu schaffen, besitzt die
-Registry Namespaces. Um auch bei der Verwendung durch weitere Applikationen keine &Uuml;berschneidung
-von Wertebereichen zu generieren, ist es ratsam, den Namespace der Applikation als Namespace in der
-Registry zu verwenden.
+<div class="hint">
+   Die <em>Registry</em> wurde im Release 1.12 aus Performance-Gr&uuml;nden auf eine statische
+   Implementierung umgestellt. In allen vorherigen Releases muss diese via
+   <gen:highlight type="php">$reg = &Singleton::getInstance('Registry');</gen:highlight>
+   bezogen und als Objekt angesprochen werden. Hier stehen ebenfalls die Methoden <em>register()</em>
+   und <em>retrieve()</em> zur Verf&uuml;gung. Diese besitzten eine zur neuen Implementierung
+   identische Signatur.
+</div>
+Ab Release 1.12 steht die <em>Registry</em> als statischer Container zur Konfiguration von Parametern
+des Frameworks und eigenen zur Verf&uuml;gung. Die Methode <strong>register()</strong> dient dazu,
+bereits vorhandene Werte zu manipulieren oder neue Werte hinzuzuf&uuml;gen. Die Funktion
+<strong>retrieve()</strong> bezieht Werte aus der Registry. Um eine definierte Abgrenzung zwischen
+Wertebereichen zu schaffen, besitzt die <em>Registry</em> Namespaces. Um auch bei der Verwendung
+durch weitere Applikationen keine &Uuml;berschneidung von Wertebereichen zu generieren, ist es ratsam,
+den Namespace der Applikation als Namespace in der Registry zu verwenden.
 <br />
 <br />
 Um die oben genannten Standard-Werte zu manipulieren, kann folgender PHP-Code eingesetzt werden:
 <gen:highlight type="php">
-$Reg = &Singleton::getInstance('Registry');
-$Reg->register('apf::core','URLRewriting',true);
-$Reg->register('apf::core','URLBasePath','http://example.com/folder');
-$Reg->register('apf::core','Environment','TESTSERVER');
-$Reg->register('apf::core','LogDir','/path/to/my/log/dir');
+Registry::register('apf::core','URLRewriting',true);
+Registry::register('apf::core','URLBasePath','http://example.com/folder');
+Registry::register('apf::core','Environment','TESTSERVER');
+Registry::register('apf::core','LogDir','/path/to/my/log/dir');
 </gen:highlight>
 Bei der Manipulation der Standard-Werte oder auch von eigenen Registry-Eintr&auml;gen ist darauf zu
 achten, dass diese vor dem Erstellen des Page- bzw. FrontControllers ge&auml;ndert werden.
@@ -62,14 +63,11 @@ Dieser kann mit einem optionalen Parameter bei der Bef&uuml;llung eines Wertes a
 bleibt bis zum Ende des Requests erhalten. Hierzu kann folgendes Beispiel als Quellcode-Vorlage
 hinzugezogen werden:
 <gen:highlight type="php">
-// Referenz auf die Registry beziehen
-$Reg = &Singleton::getInstance('Registry');
-
 // Wird erfolgreich durchgef&uuml;hrt
-$Reg->register('modules::mymodule','MyModuleID',1,true);
+Registry::register('modules::mymodule','MyModuleID',1,true);
 
 // Erzeugt einen Fehler
-$Reg->register('modules::mymodule','MyModuleID',2);
+Registry::register('modules::mymodule','MyModuleID',2);
 </gen:highlight>
 <br />
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_067" />

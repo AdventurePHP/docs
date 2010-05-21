@@ -26,17 +26,21 @@ session. This activity gains the performance up to 10% on every further call of 
 following lines of code show how to create the mapper in <strong>SESSIONSINGLETON</strong> mode:
 <gen:highlight type="php">
 // get the mapper factory
-$ORMFactory = $this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+$ormFact = &$this->__getServiceObject(
+                  'modules::genericormapper::data',
+                  'GenericORMapperFactory',
+                  'SESSIONSINGLETON' // <-- Indicates SESSIONSINGLETON mode
+                  );
 
 // create the mapper
-$ORM = &$ORMFactory->getGenericORMapper(
-                                        '{NAMESPACE}',
-                                        '{NAMEAFFIX}',
-                                        '{CONNECTIONKEY}',
-                                        'SESSIONSINGLETON' // <-- Indicates SESSIONSINGLETON mode
-                                       );
+$orm = &$ormFact->getGenericORMapper(
+                  {CONFIG_NAMESPACE},
+                  {CONFIG_NAME_AFFIX},
+                  {CONNECTION_NAME}[,
+                  $logStatements = false]
+                  );
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-2-3-JOIN-optimization"><a href="#Chapter-2-3-JOIN-optimization">2.3. JOIN optimization</a></h4>
 If you have a huge amount of data and you often have to query complex object relations, it is
 recommended to write the JOIN conditions within the statements yourself. Thereby, you can take care,

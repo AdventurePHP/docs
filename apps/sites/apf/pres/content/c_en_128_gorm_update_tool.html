@@ -28,26 +28,28 @@
 require('../../apps/core/pagecontroller/pagecontroller.php');
 
 // configure the registry if desired
-$reg = &Singleton::getInstance('Registry');
-$reg->register('apf::core','Environment','{ENVIRONMENT}');
+Registry::register('apf::core','Environment','{ENVIRONMENT}');
 
 // include SetupMapper
 import('modules::genericormapper::data::tools','GenericORMapperUpdate');
 
 // create update tool
-$updateMapper = new GenericORMapperUpdate();
+$update = new GenericORMapperUpdate();
 
 // set Context (important for the configuration files!)
-$updateMapper->setContext('{CONTEXT}');
+$update->setContext('{CONTEXT}');
 
 // adapt storage engine (default is MyISAM)
-$updateMapper->set('StorageEngine','MyISAM|INNODB');
+//$update->setStorageEngine('MyISAM|INNODB');
+
+// adapt data type of the indexed columns, that are used for object and relation ids
+//$update->setIndexColumnDataType('INT(5) UNSIGNED');
 
 // update database layout
-$updateMapper->updateDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}','{CONNECTION_NAME}');
+$update->updateDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}','{CONNECTION_NAME}');
 
 // display statements only
-$updateMapper->updateDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}','{CONNECTION_NAME}',false);
+$update->updateDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}','{CONNECTION_NAME}',false);
 </gen:highlight>
 <p>The place holders within the script have the following meaning:</p>
 <ul>

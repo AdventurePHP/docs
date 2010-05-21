@@ -21,8 +21,7 @@
          $forumConn = &$cM->getConnection('Forum');
 
          // get configuration from the registry
-         $reg = &Singleton::getInstance('Registry');
-         $forumBaseURL = $reg->retrieve('sites::apfdocupage','ForumBaseURL');
+         $forumBaseURL = Registry::retrieve('sites::apfdocupage','ForumBaseURL');
 
          // build select
          if($this->__Language === 'de'){

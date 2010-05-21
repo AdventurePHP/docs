@@ -62,8 +62,7 @@
 
             $count = count($searchResults);
             $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');
-            $reg = &Singleton::getInstance('Registry');
-            $baseUrl = $reg->retrieve('apf::core','URLBasePath');
+            $baseUrl = Registry::retrieve('apf::core','URLBasePath');
             for($i = 0; $i < $count; $i++){
 
                // gather common information

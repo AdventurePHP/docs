@@ -209,4 +209,48 @@ form .apf-form-error {
    ausf&uuml;hrlich beschrieben.
 </p>
 
+<h3 id="Chapter-6-Registry"><a href="#Chapter-6-Registry">6. Registry</a></h3>
+<p>
+   Die <em>Registry</em> wurde nach einer Diskussion im Forum
+   (siehe <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=337#p2881" title="[Registry] Warum nicht als static?" linkrewrite="false">[Registry] Warum nicht als static?</a>)
+   zu einem statischen Container umgebaut um die Performance des APF nochmals zu verbessern. Hierdurch
+   ergeben sich &Auml;nderungen in der Benutzung der <em>Registry</em>.
+</p>
+<p>
+   In der bisherigen Form der Implementierung musste die <em>Registry</em> &uuml;ber die
+   <em>Singleton</em>-Klasse bezogen und als Objekt verwendet werden:
+</p>
+<gen:highlight type="php">
+$reg = &Singleton::getInstance('Registry');   
+$reg->register('name::space','foo','bar');
+$reg->retrieve('name::space','foo');
+</gen:highlight>
+<p>
+   Die in Release 1.12 gew&auml;hlte Implementierung steigert nicht nur die Performance, sondern 
+   vereinfacht das Handling. Der Zugriff auf die Registry funktioniert nun wie folgt:
+</p>
+<gen:highlight type="php">
+Registry::register('name::space','foo','bar');
+Registry::retrieve('name::space','foo');
+</gen:highlight>
+<p>
+   Um den bestehenden Code auf der neuen Version lauff&auml;hig zu machen, m&auuml;ssen nun alle
+   Vorkommen von
+</p>
+<gen:highlight type="php">
+$reg = &Singleton::getInstance('Registry');
+</gen:highlight>
+<p>aus dem Code entfernt und die Methoden-Aufrufe von</p>
+<gen:highlight type="php">
+$reg->register('name::space','foo','bar');
+$reg->retrieve('name::space','foo');
+</gen:highlight>
+in
+<gen:highlight type="php">
+Registry::register('name::space','foo','bar');
+Registry::retrieve('name::space','foo');
+</gen:highlight>
+<p>
+   umgeschrieben werden. Dies kann durch search &amp; replace erfolgen.
+</p>
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_133" />

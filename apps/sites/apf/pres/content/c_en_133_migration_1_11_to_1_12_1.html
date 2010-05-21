@@ -203,4 +203,47 @@ form .apf-form-error {
    (German only) in detail.
 </p>
 
+<h3 id="Chapter-6-Registry"><a href="#Chapter-6-Registry">6. Registry</a></h3>
+<p>
+   The <em>Registry</em> was refactored after a discussion within the forum
+   (siehe <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=337#p2881" title="[Registry] Warum nicht als static?" linkrewrite="false">[Registry] Warum nicht als static?</a> (German))
+   to behave as a static container. This is done due to performance reasons. Because of this change,
+   the handling of the <em>Registry</em> has changed, too.
+</p>
+<p>
+   With the previous implementation the <em>Registry</em> must be obtained by the
+   <em>Singleton</em> class and be treated as a full qualified object:
+</p>
+<gen:highlight type="php">
+$reg = &Singleton::getInstance('Registry');
+$reg->register('name::space','foo','bar');
+$reg->retrieve('name::space','foo');
+</gen:highlight>
+<p>
+   The implementation done in 1.12 does not only gain performance but also the handling of the
+   <em>Registry</em>. Accessing the <em>Registry</em> goes as follows:
+</p>
+<gen:highlight type="php">
+Registry::register('name::space','foo','bar');
+Registry::retrieve('name::space','foo');
+</gen:highlight>
+<p>
+   To make custom code work again all occurencies of
+</p>
+<gen:highlight type="php">
+$reg = &Singleton::getInstance('Registry');
+</gen:highlight>
+<p>must be deleted from the code and all method calls like</p>
+<gen:highlight type="php">
+$reg->register('name::space','foo','bar');
+$reg->retrieve('name::space','foo');
+</gen:highlight>
+must be changed to
+<gen:highlight type="php">
+Registry::register('name::space','foo','bar');
+Registry::retrieve('name::space','foo');
+</gen:highlight>
+<p>
+   This can be done using search &amp; replace.
+</p>
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_133" />
