@@ -1,144 +1,125 @@
 <doku:title parent="119" tags="service,object,dependency,injection,di,framework,factory,service manager,manager,business services" title="Services" urlname="Services">
   The present chapter describes the object creation mechanisms contained in the framework. In
-  particular, it details the dependency injection container added in release 1.10. The DIServiceManager
-  enables the developer to use objects preconfigured by dependency injection.
+  particular, it details the dependency injection container added in release 1.10. The
+  DIServiceManager enables the developer to use objects pre-configured by dependency injection.
 </doku:title>
-<div class="hint">
-   We are sorry, but this page is not yet available in english language. In case of questions,
-   please refer to the english language forum under
-   <doku:link>http://forum.adventure-php-framework.org/en/</doku:link>.
-</div>
-<br /><br />
-<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
-Die Kapselung von Funktionalit&auml;t in diverse eigenst&auml;ndige Komponenten ist eine in der
-objektorientierten Welt sehr verbreitete Methodik. Der Vorteil dieser Aufteilung wird im
-<strong>Mehrschicht-Architektur-Pattern</strong> beschrieben. Dabei geht der Entwickler beim Erstellen
-des Designs der Software davon aus, dass unterschiedliche Schichten der Software jeweils typischen
-Aufgaben &uuml;bernehmen.
-<br />
-<br />
-Da <em>Schichten</em> oder <em>Services</em> &uuml;blicherweise durch ein oder mehrere Klassen
-repr&auml;sentiert werden, leitet sich daraus unmittelbar die Aufgabe ab, Objekte der jeweiligen
-Schichten zu erstellen. Gleicherma&szlig;en ist der Entwickler beim Entwurf von wiederverwendbaren
-Schichten - <strong>Services</strong> - gefordert, diese mit einer klaren und einfach zu
-konfigurierenden API auszustatten. Die Datenschicht einer Anwendung ben&ouml;tigt beispielsweise
-eine Komponente zur Anbindung an eine externe Datenquelle, eine Business-Komponente ben&ouml;tigt
-Kenntnis &uuml;ber das Umfeld, in dem die Applikation eingesetzt ist.
-<br />
-<br />
-<br />
-<h3 id="Chapter-2-Grundlagen"><a href="#Chapter-2-Grundlagen">2. Grundlagen</a></h3>
-Wie bereits im Kapitel
-<a href="./?Seite=098-Pagecontroller#Chapter-2-1-Ablaufdiagramm" title="Pagecontroller - Ablaufdiagramm">Pagecontroller</a>
-beschrieben wurde, besitzt das APF eine spezielle Art der Erstellung von Objekten, die zur Erzeugung
-von GUI-Elementen eingesetzt werden. Da auch die Objekte der Business- und Datenschicht das Umfeld,
-in dem sie eingesetzt sind, kennen m&uuml;ssen (siehe Kapitel
-<a href="./?Seite=033-Konfiguration#Chapter-2-Bennenung-Pfade-und-Dateien" title="Konfiguration - Benennung Pfade und Dateien">Konfiguration</a>),
-ist es notwendig, dass diese mit einem &auml;hnlichen Mechanismus erzeugt werden.
-<br />
-<br />
-Hierzu stellt das Framework zwei Komponenten zur Verf&uuml;gung, die es erlauben, Objekte innerhalb
-einer Anwendung zu erzeugen, die bereits &uuml;ber die relevanten Informationen verf&uuml;gen. Nur so gelingt
-es, eine einheitliche Konfigurationsschnittstelle bereitzustellen, um wiederverwendbare und
-generische Applikationen zu entwickeln.
-<br />
-<br />
-Die folgenden Kapitel beschreiben die genannten Komponenten und deren Bedeutung f&uuml;r die
-Entwicklung.
-<br />
-<br />
-<br />
-<h3 id="Chapter-3-Erstellung-von-Objekten"><a href="#Chapter-3-Erstellung-von-Objekten">3. Erstellung von Objekten</a></h3>
-Das Adventure PHP Framework kennt mehrere Mechanismen zur Erstellung und Initialisierung von
-Objekten. Um die oben genannten Informationen an jedes neu erstellte Objekt zu &uuml;bermittel, wird
-das Prinzip der <strong>dependency injection</strong> eingesetzt.
-<br />
-<br />
-Da das Framework eine generische M&ouml;glichkeit bietet, ein beliebige Klasse als Singleton oder
-Session-Singleton zu erzeugen, verzichtet die hierf&uuml;r bereitgestellte Implementierung zu
-Gunsten des generischen Ansatzes auf Konstruktor-Argumente. Aus diesem Grund wird bei der
-Initialisierung ausschlie&szlig;lich auf <strong>method injection</strong> bzw.
-<strong>setter injection</strong> gesetzt.
-<br />
-<br />
-<br />
-<h4 id="Chapter-3-1-GUI-Objekte"><a href="#Chapter-3-1-GUI-Objekte">3.1. GUI-Objekte</a></h4>
-Die Erstellung von Objekten der Pr&auml;sentationsschicht wird dabei von den Factory-Methoden des
-<a href="./?Seite=098-Pagecontroller#Chapter-2-2-Beschreibung" title="Pagecontroller - Beschreibung">Pagecontroller</a>
-&uuml;bernommen. Jedem Objekt wird nach der Erstellung &uuml;ber definierte Methoden der aktuelle
-Context, die aktuelle Sprache und die Attribute des APF-DOM-Elements &uuml;bergeben.
-<br />
-<br />
-Sofern ausschlie&szlig;lich im Release enthaltene TagLibs oder Parser-Methoden verwendet werden, muss
-dieser Mechanismus nicht n&auml;her betrachtet werden. Hinweise zur Erstellung eigener TagLibs k&ouml;nnen
-dem Kapitel <a href="./?Seite=045-TagLibs-erstellen" title="TagLibs erstellen">TagLibs erstellen</a>
-entnommen werden.
-<br />
-<br />
-<br />
-<h4 id="Chapter-3-2-Service-Objekte"><a href="#Chapter-3-2-Service-Objekte">3.2. Service-Objekte</a></h4>
-Damit sich der Entwickler bei der Erstellung von Services bzw. weiteren Schichten seiner Applikation
-nicht um die Interna des Frameworks k&uuml;mmern muss, stehen ihm drei M&ouml;glichkeiten bereit,
-vorkonfigurierte Objekte zu erzeugen. Dazu stellt die Klasse <strong>APFObject</strong> nachfolgend
-beschriebene Methoden bereit, die auf die Funktionalit&auml;t des <strong>ServiceManager</strong> und
-<strong>DIServiceManager</strong> zur&uuml;ckgreifen.
-<br />
-<br />
-<br />
-<h5 id="Chapter-3-2-1-__getServiceObject">3.2.1. __getServiceObject()</h5>
-Die Methode liefert ein mit dem aktuellen Context und der aktuellen Sprache initialisiertes Objekt
-zur&uuml;ck. Sie nutzt dabei die Funktionalit&auml;t des <strong>ServiceManager</strong>s (siehe
-<a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>). Da die
-Funktion auf den Context und die Sprache des aktuellen Objektes zur&uuml;ckgreift, ist es sogar
-innerhalb von Modulen m&ouml;glich, zur Applikation differente Contexte - etwa f&uuml;r einzelne
-Module - zu vergeben.
-<br />
-<br />
-<br />
-<h5 id="Chapter-3-2-2-__getAndInitServiceObject">3.2.2. __getAndInitServiceObject()</h5>
-Die Methode erweitert die Initialisierung aus Kapitel 3.2.1 um einen dynamischen 
-Initialisierungsparameter. Der als drittes Argument &uuml;bergebene Parameter wird der
-<strong>init()</strong>-Methode des Objektes nach der Erstellung &uuml;bergeben und kann dort zur
-Konfiguration genutzt werden. Der Parameter ist typ-unabh&auml;ngig. Das bedeutet, dass zur Initialisierung
-nicht nur einfache Datentypen sondern auch beliebige Objekte genutzt werden k&ouml;nnen.
-<br />
-<br />
-Nachteil dieser Methode ist jedoch, dass die zur Initialisierung der Komponente genutzten Parameter
-der Anwendung bekannt sein m&uuml;ssen. Aus diesem Grund eignet sich diese Variante vor allem f&uuml;r
-die Konfiguration eines Services mit Applikations-spezifischen Inhalten (z.B. Kennung einer Applikation
-bei dynamischer 
-<a href="./?Seite=032-Kommentar-Funktion-Tutorial#Chapter-4-5-Praesentationsschicht" title="Kommentar-Funktion-Tutorial">Einbindung &uuml;ber eine TagLib</a>).
-<br />
-<br />
-<br />
-<h5 id="Chapter-3-2-3-__getDIServiceObject">3.2.3. __getDiServiceObject()</h5>
-Die Methode nutzt die Funktion des <strong>DIServiceManager</strong>, der einen
-<strong>dependency injection container</strong> f&uuml;r das APF zur Verf&uuml;gung stellt. Services
-k&ouml;nnen dabei sowohl durch wiederum andere Services als auch durch statische Konfigurationsparameter
-f&uuml;r den Einsatz vorbereitet werden.
-<br />
-<br />
-Die Nutzung des <strong>DIServiceManager</strong>s bietet zudem den Vorteil, dass der Code deutlich
-besser von der Konfiguration der Applikation getrennt werden kann. Parameter werden dem Service von
-aussen bei der Erzeugung eingeimpft und m&uuml;ssen nicht mehr Teil der Applikationslogik sein. Gut
-gekapselte Services sind zudem auf sehr einfache Weise wiederverwendbar und die zus&auml;tzliche Kapselung
-einer Komponente erh&ouml;ht sich die Testbarkeit. Dies wirkt sich insbesondere f&uuml;r Unit-Tests
-positiv aus.
-<br />
-<br />
-<br />
-<h3 id="Chapter-4-Praktischer-Einsatz"><a href="#Chapter-4-Praktischer-Einsatz">4. Praktischer Einsatz</a></h3>
-Der praktische Einsatz gestaltet sich im Gegensatz zu den theoretischen Grundlagen denkbar einfach.
-Die folgenden Kapitel zeigen dabei jeweils die Verwendung der genannten Methoden an einem Beispiel.
-<br />
-<br />
-<br />
-<h4 id="Chapter-4-1-__getServiceObject">4.1. __getServiceObject()</h4>
-Wie im Kapitel 3.2.1 beschrieben, erzeugt die Methode <em>__getServiceObjekt()</em> ein einfaches
-Service-Objekt. Die Verwendung gestaltet sich wie folgt:
-<gen:highlight type="php">
-import('namespace::of::my::service','ServiceName');
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   Encapsulation of functionality within separate components is common in the object orientated world.
+   The advantages of this method is described by the <strong>tree tier architecture pattern</strong>.
+   Thereby, the different layers have different duties concerning their layer.
+</p>
+<p>
+   Due to the fact, that the <em>layers</em> or <em>services</em> are commonly represented by one
+   or more classes each developer is faced with the task to create classes for a dedicated layer or
+   a part of a layer. Further, according to the DRY principle each developer is told to design
+   reusable components - <strong>Services</strong> - that have a clear representation and configuration
+   interface. For example data layers often require a component, that has access to databases and
+   a business component needs knowledge about the context it is executed in.
+</p>
 
+<h3 id="Chapter-2-Basics"><a href="#Chapter-2-Basics">2. Basics</a></h3>
+<p>
+   As described in the
+   <int:link pageid="098" anchor="Chapter-2-1-Activity-diagram" title="Pagecontroller - Activity diagram"/>
+   chapter the Adventure PHP Framework provides a special way of creating objects that are responsible
+   for creating UI elements. Since business and data layer object must also know about the context
+   they are executed in (see 
+   <int:link pageid="033" anchor="Chapter-2-Naming-conventions" title="Naming convention for paths and files" />)
+   ist is necessary to transport this information into the service objects.
+</p>
+<p>
+   For this reason, the APF provides two different components that let you create objects within
+   your application that have all the information necessary injected. This enables you to write
+   clean and reusable applications.
+</p>
+<p>
+   The subsequent chapters describe the mentioned components and their meaning to development.
+</p>
+<h3 id="Chapter-3-Object-creation-mechanism"><a href="#Chapter-3-Object-creation-mechanism">3. Object creation mechanism</a></h3>
+<p>
+   The Adventure PHP Framework has several mechanisms to create and initialize objects. To provide
+   the necessary information for each object (DOM nodes, business services, etc.) the environment
+   attributes are passed to the new object using <strong>dependency injection</strong>.
+</p>
+<p>
+   Due to the fact, that the framework includes a generic way to create singleton and session
+   singleton objects the implementation avoids constructor injection to be able to provide a
+   generic way of object creation and to preserve testability. For this reason, initialization is
+   only done using <strong>method injection</strong> / <strong>setter injection</strong>.
+</p>
+
+<h4 id="Chapter-3-1-GUI-objects"><a href="#Chapter-3-1-GUI-objects">3.1. GUI objects</a></h4>
+<p>
+   Creation of presentation layer objects is done by factory methods of the
+   <int:link pageid="098" anchor="Chapter-2-2-Description" title="Pagecontroller - Description" />.
+   Each object is injected the context, the current language and the attributes of the DOM node
+   by interface methods.
+</p>
+<p>
+   In case you just apply taglibs or parser methods provided by the release you don't have to care
+   about that mechanism. Notes on custom taglib implementation can be read about in chapter
+   <int:link pageid="045" />.
+</p>
+
+<h4 id="Chapter-3-2-Service-objects"><a href="#Chapter-3-2-Service-objects">3.2. Service objects</a></h4>
+<p>
+   To ease development concerning creation of services or further objects representing an application
+   layer and to not have to deal with the internal mechanisms of the framework's dependency injection
+   the developer is provided three different possibilities to create pre-configured objects. Thererfore
+   the <strong>APFObject</strong> class provides wrapper methods for the <strong>ServiceManager</strong>
+   and the <strong>DIServiceManager</strong>.
+<p>
+<p>
+   Details on the method signatures can be found within the <int:link pageid="002" /> or by the
+   code completion functions of your IDE (see <int:link pageid="131" />).
+</p>
+
+<h5 id="Chapter-3-2-1-ServiceManager-Simple-services"><a href="Chapter-3-2-1-ServiceManager-Simple-services">3.2.1. Simple services using the ServiceManager</a></h5>
+<p>
+   Using <em>__getServiceObject()</em> you will receive an object, that is initialized with the 
+   context and the language of the current environment. Within this method, the
+   <strong>ServiceManager</strong>s is used (see <int:link pageid="002" />). Due to the fact, that
+   the wrapper function uses the context and the language of the current object you are able to
+   configure different contexts within one application (e.g. different contexts for different modules).
+</p>
+<h5 id="Chapter-3-2-1-ServiceManager-Initialized-services"><a href="#Chapter-3-2-1-ServiceManager-Initialized-services">3.2.2. Initialized services using the ServiceManager</a></h5>
+<p>
+   The <em>__getAndInitServiceObject()</em> enhances the method from chapter 3.2.1 with dynamic
+   initialization. You can pass the initialization parameter as a the third argument that is passed
+   to the <strong>init()</strong> method of the service. This parameter is typeless what means that
+   you can pass any type of data type.
+</p>
+<p>
+   This method of initialization included one disadvantage: the initialization parameter must be
+   known by the service consumer. For this reason you should use this mechanism in conjunction with
+   service initialization by application specific information (e.g. providing an application id
+   <int:link pageid="032" anchor="Chapter-4-5-Presentation-layer">defined within a tag attribute</int:link>).
+</p>
+
+<h5 id="Chapter-3-2-3-DIServiceManager-Complex-services"><a href="Chapter-3-2-3-DIServiceManager-Complex-services">3.2.3. Complex services using the DIServiceManager</a></h5>
+<p>
+   The <em>__getDIServiceObject()</em> method is a wrapper function for the <strong>DIServiceManager</strong>
+   call, that provides a user-level <strong>dependency injection container</strong> for the APF.
+   Services can be initialized by other services or static parameters.
+</p>
+<p>
+   Using the <strong>DIServiceManager</strong> better separates application code and configuration.
+   Parameters are injected from outside the source code and service creation must not ne part of the
+   code. This leads to loosly coupled services that are easily reusable. Further, testability is
+   much more better, because database access can easily be replaced by a MOCK layer.
+</p>
+
+<h3 id="Chapter-4-Samples"><a href="#Chapter-4-Samples">4. Samples</a></h3>
+<p>
+   Applying the theoretical knowledge descibed above is really a piece of cake. The subsequent
+   chapters give you an example of the application of the methods.
+</p>
+<h4 id="Chapter-4-1-ServiceManager-Simple-services"><a href="#Chapter-4-1-ServiceManager-Simple-services">4.1. Simple services</a></h4>
+<p>
+   As described in chapter 3.2.1 <em>__getServiceObjekt()</em> returns a simple service object:
+</p>
+<gen:highlight type="php">
 class MyObject extends APFObject {
    function doSomething(){
       $myService =
@@ -149,23 +130,21 @@ class MyObject extends APFObject {
       $myService->doSomething();
 }
 </gen:highlight>
-<strong>Anmerkungen:</strong>
+<strong>Notes:</strong>
 <ul>
-   <li>Das Service-Objekt muss vor der Erstellung per <strong>import()</strong> eingebunden werden.</li>
-   <li>Der Name des Service-Objektes ist gleich dem Namen der Klasse. Selbiges gilt f&uuml;r den Namespace.</li>
+   <li>
+      The service implementation must not be included using <strong>import()</strong> before usage.
+      This is done by the <em>ServiceManager</em> for you.
+   </li>
+   <li>
+      The name of the service object addressed here is equal to the name of the class. Same is
+      for the namespace.
+   </li>
 </ul>
-<br />
-<div class="hint">
-  Ab Version 1.10-stable kann auf das explizite Einbinden der Komponente via <em>import()</em>
-  verzichtet werden, da dies vom ServiceManager direkt &uuml;bernommen wird.
-</div>
-<br />
-<br />
-<h4 id="Chapter-4-2-__getAndInitServiceObject">4.2. __getAndInitServiceObject</h4>
-Die Erstellung eines vorkonfigurierten Service-Objekts gestaltet sich wie folgt:
-<gen:highlight type="php">
-import('namespace::of::my::service','ServiceName');
 
+<h4 id="Chapter-4-2-ServiceManager-Initialized-services"><a href="#Chapter-4-2-ServiceManager-Initialized-services">4.2. Initialized services</a></h4>
+<p>The creation of a pre-configured service is as follows:</p>
+<gen:highlight type="php">
 class MyObject extends APFObject {
    function doSomething(){
       $initParam = 'foo';
@@ -178,37 +157,38 @@ class MyObject extends APFObject {
       $myService->doSomething();
 }
 </gen:highlight>
-<strong>Anmerkungen:</strong>
+<strong>Notes:</strong>
 <ul>
-   <li>Das Service-Objekt muss vor der Erstellung per <strong>import()</strong> eingebunden werden.</li>
-   <li>Der Name des Service-Objektes ist gleich dem Namen der Klasse. Selbiges gilt f&uuml;r den Namespace.</li>
    <li>
-      Der Service muss die <strong>init()</strong>-Methode implementieren bzw. von der Klasse
-      <strong>APFObject</strong> ableiten.
+      The service implementation must not be included using <strong>import()</strong> before usage.
+      This is done by the <em>ServiceManager</em> for you.
+   </li>
+   <li>
+      The name of the service object addressed here is equal to the name of the class. Same is
+      for the namespace.
    </li>
 </ul>
-<br />
-<div class="hint">
-  Ab Version 1.10-stable kann auf das explizite Einbinden der Komponente via <em>import()</em>
-  verzichtet werden, da dies vom ServiceManager direkt &uuml;bernommen wird.
-</div>
-<br />
-<br />
-<h4 id="Chapter-4-3-__getDIServiceObject">4.3. __getDiServiceObject()</h4>
-Die Erstellung eines Services mit Hilfe des <em>dependency injection</em>-Containers unterscheidet
-sich von den zuvor aufgezeigten Varianten. Jedes DI-Service-Objekt muss durch eine Konfiguration
-beschrieben werden, da ein Service nicht nur f&uuml;r sich steht, sondern auch zur Initialisierung eines
-anderen dienen kann.
-<br />
-<br />
-<br />
-<h5 id="Chapter-4-3-1-Konfiguration"><a href="#Chapter-4-3-1-Konfiguration">4.3.1. Konfiguration</a></h5>
-F&uuml;r die Beschriebung eines Services mit dem Namen <strong>MyService</strong> und dem Namespace
-<strong>modules::mymodule::services</strong> muss die Konfigurationsdatei
+
+<h4 id="Chapter-4-3-DIServiceManager-Complex-services"><a href="#Chapter-4-3-DIServiceManager-Complex-services">4.3. Complex services</a></h4>
+<p>
+   Creating services with the <em>dependency injection</em> container of the APF is different to the
+   object initialization described in the last two chapters. First of all, each DI service is
+   represented by a configuration. This is due to the fact, that one service is no standalone object
+   but can be used for initialization of other services, too.
+</p>
+
+<h5 id="Chapter-4-3-1-Configuration"><a href="#Chapter-4-3-1-Configuration">4.3.1. Configuration</a></h5>
+<p>
+   In order to create a service named <strong>MyService</strong> for namespace
+   <strong>modules::mymodule::services</strong> the configuration file must be created:
+</p>
 <gen:highlight type="code">
 /config/modules/mymodule/services/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
 </gen:highlight>
-angelegt werden. Die Definition des Services delbst erfolgt &uuml;ber das folgende Schema:
+<p>
+   The definition of the service itself (including implementation and initialization) is done
+   as follows:
+</p>
 <gen:highlight type="ini">
 [{ServiceName}]
 servicetype = ""
@@ -223,66 +203,72 @@ conf.{INITKEY}.value = ""]
 <strong>Definition:</strong>
 <ul>
    <li>
-      Die Direktive <strong>servicetype</strong> definiert die Art des Services. G&uuml;ltige Werte
-      sind <em>SINGLETON</em>, <em>SESSIONSINGLETON</em>, <em>NORMAL</em>. Details k&ouml;nnen dem
-      Kapitel
-      <a href="./?Seite=030-Klassenreferenz-Singleton-SessionSingleton#Chapter-3-Verwendung-ServiceManager" title="Verwendung-ServiceManager">Verwendung des ServiceManager</a>
-      entnommen werden.
+      The <strong>servicetype</strong> directive defines the kind of service. You can use
+      <em>SINGLETON</em>, <em>SESSIONSINGLETON</em> and <em>NORMAL</em>. Details on the types can
+      be take from the
+      <int:link pageid="030" anchor="Chapter-3-ServiceManager-usage">ServiceManager usage</int:link>
+      chapter.
    </li>
-   <li><strong>namespace</strong> definiert den Namespace der Service-Implementierung.</li>
-   <li><strong>class</strong> beschreibt den Namen der Service-Klasse.</li>
+   <li><strong>namespace</strong> definines the namespace of the service implementation.</li>
+   <li><strong>class</strong> defines the class name of the service implementation.</li>
    <li>
-      Die <strong>init</strong>-Sektion definiert eine Initialisierung per <em>dependency
-      injection</em>, <strong>conf</strong> eine Konfiguration mit statischen Daten.
-   </li>
-   <li>
-      Da Attribut <strong>method</strong> einer <em>init</em>-Subsektion definiert die Method, mit
-      der die Initialisierung vorgenommen werden soll, <strong>namespace</strong> und
-      <strong>name</strong> referenzieren das dabei zu verwendende Service-Objekt. F&uuml;r das
-      definierte Objekt muss eine Konfiguration gem&auml;&szlig; dem oben beschriebenen Schema
-      existieren.
+      The <strong>init</strong> section is responsible for dynamic initialization using 
+      <em>dependency injection</em> the <strong>conf</strong> section can inject static
+      configuration params.
    </li>
    <li>
-      Da Attribut <strong>method</strong> in der <em>conf</em>-Subsektion definiert die Method, mit
-      der die "statische" Initialisierung vorgenommen werden soll. Dabei wird der Wert, der im
-      Attribut <strong>value</strong> definiert ist, der zuvor beschriebenen Methode als Parameter
-      mitgegeben.
+      The <strong>method</strong> attribute of an <em>init</em> sub section defines the method that
+      is used to inject the desired service. <strong>namespace</strong> and <strong>name</strong>
+      is used to refer a desired service to initialize the current with. Please note, that these two
+      parameters do refer to a service definition not a service implementation (i.e. class)! The
+      refered service must be described by a configuration section as described above.
+   </li>
+   <li>
+      The <strong>method</strong> attribute of the <em>conf</em> sub section defines the method that
+      is used to inject the desired configuration parameter. The service is thus provided the content
+      that is defined within the <strong>value</strong> attribute.
    </li>
 </ul>
-<br />
-<h5 id="Chapter-4-3-2-Beispiel"><a href="#Chapter-4-3-2-Beispiel">4.3.2. Beispiel</a></h5>
-Im folgenden Beispiel soll eine Business-Schicht-Komponente mit statischen Konfigurationsparametern,
-dem zur Applikation geh&ouml;renden Daten-Schicht-Service und einem Provider, der sich um die
-Bereitstellung von Konfigurationsparametern k&uuml;mmert initialisiert werden. Der Name des Services
-soll <strong>GuestbookService</strong> lauten, der Namespace der Komponente ist
-<strong>modules::guestbook</strong>. Die Implementierung des Services &uuml;bernimmt die Klasse
-<strong>GuestbookManager</strong> aus dem Namespace <strong>modules::guestbook::biz</strong>.
-<br />
-<br />
-Um den <em>dependency injection</em>-Container nutzen zu k&ouml;nnen, muss zun&auml;chst eine
-Konfiguration f&uuml;r den <em>GuestbookService</em> angelegt werden. Die Datei
+
+<h5 id="Chapter-4-3-2-Example"><a href="#Chapter-4-3-2-Example">4.3.2. Example</a></h5>
+<p>
+   As an example a business component should be initialized with static configuration parameters,
+   a data layer component, and a provider that is responsible for configuration issues. For
+   convenience, the name of the service is <strong>GuestbookService</strong> and the namespace is
+   <strong>modules::guestbook</strong>. The implementation of the service is provided by the
+   <strong>GuestbookManager</strong> class located in namespace <strong>modules::guestbook::biz</strong>.
+</p>
+<p>
+   In order to use the dependency injection mechanism we have to create a configuration file that
+   represents the <em>GuestbookService</em>. Having the last few lines in mind the file must be
+   named as shown in the next code box:
+</p>
 <gen:highlight type="code">
 /config/modules/guestbook/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
 </gen:highlight>
-angelegt und mit der Definition des Services gef&uuml;llt werden:
+<p>For a first instance, the service definition is as follows:</p>
 <gen:highlight type="ini">
 [GuestbookService]
 class = "GuestbookManager"
 namespace = "modules::guestbook::biz"
 servicetype = "SINGLETON"
 </gen:highlight>
-F&uuml;r die Datenschicht-Komponente und den Provider muss ebenso eine Konfiguration extistieren.
-Der Namespace der Datenschicht-Komponente <strong>DataService</strong> lautet dabei
-<strong>modules::guestbook</strong>, der Provider mit dem Namen <strong>ExtendedConfigProvider</strong>
-residiert im Namespace <strong>modules::guestbook::provider</strong>. Da der Namespace der
-Datenschicht-Komponente mit der ds <strong>GuestbookService</strong> identisch ist, kann die
-Konfiguration desselben in der oben erstellten Konfigurationsdatei vorgenommen werden. Der Provider
-hingegen muss in einer eigenen Konfigurationsdatei definiert werden. Diese lautet:
+<p>
+   Please note, that the config provider must be represented by another configuration section. 
+   Thereby namespace of the data layer component <strong>DataService</strong> is
+   <strong>modules::guestbook</strong> and the <strong>ExtendedConfigProvider</strong>'s namespace is
+   <strong>modules::guestbook::provider</strong>. Due to the fact, that the namespaces of the
+   <em>GuestbookService</em> and the data layer service are are equal, they can be placed within the
+   same configuration file. The <em>ExtendedConfigProvider</em> must be configures within another
+   confiuration file:
+</p>
 <gen:highlight type="code">
 /config/modules/guestbook/provider/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
 </gen:highlight>
-Der Inhalt der Datei <em>{ENVIRONMENT}_serviceobjects.ini</em> unter dem Namespace
-<em>modules::guestbook</em> tr&auml;gt damit den folgende Inhalt:
+<p>
+   To sum things up, the content of the service definition file <em>{ENVIRONMENT}_serviceobjects.ini</em>
+   located in the <em>modules::guestbook</em> namespace looks like this:
+</p>
 <gen:highlight type="ini">
 [GuestbookService]
 namespace = "modules::guestbook::biz"
@@ -294,18 +280,21 @@ namespace = "modules::guestbook::biz"
 class = "GuestbookMapper"
 servicetype = "..."
 </gen:highlight>
-Die Datei <em>{ENVIRONMENT}_serviceobjects.ini</em> aus dem Namespace
-<em>modules::guestbook::provider</em> beinhaltet die Konfiguration des Konfigurationsservice:
+<p>
+   The <em>ExtendedConfigProvider</em> is configured within the service definition file
+   <em>{ENVIRONMENT}_serviceobjects.ini</em> (namespace: <em>modules::guestbook::provider</em>):
+</p>
 <gen:highlight type="ini">
 [ExtendedConfigProvider]
 namespace = "modules::guestbook::biz::provider"
 class = "SpecialConfigProvider"
 servicetype = "..."
 </gen:highlight>
-Um dem <strong>DIServiceManager</strong> mitzuteilen, dass dieser mit den beiden genannten
-Komponenten und zwei statischen Parametern initialisiert werden soll, muss die Sektion
-<strong>GuestbookService</strong> um die Initialisierungsanweisungen erweitert werden. Diese haben
-die folgende Gestalt:
+<p>
+   To inform the <strong>DIServiceManager</strong> to initialize the <strong>GuestbookService</strong>
+   using the services described above it's configuration section must be added two dynamic and
+   two static initialization sub sections:
+</p>
 <gen:highlight type="ini">
 init.database.method = "setDBService"
 init.database.name = "modules::guestbook"
@@ -321,13 +310,14 @@ conf.appname.value = "123"
 conf.cache.method = "setCacheActive"
 conf.cache.value = "false"
 </gen:highlight>
-Wie dem Kasten zu entnehmen ist, k&ouml;nnen beliebig viele Initialisierungen definiert werden. Hierzu
-ist es lediglich notwendig Schl&uuml;ssel f&uuml;r die Sub-Sektionen zu vergeben.
-<br />
-<br />
-Die Nutzung des <strong>GuestbookService</strong> gestaltet sich dann wie folgt:
+<p>
+   As you can take from the above code box you can define various initialization sub sections. Please
+   note, that each sub section must includes a unique sub section key.
+</p>
+<p>Using the <strong>GuestbookService</strong> is as follows:</p>
 <gen:highlight type="php">
 class ServiceConsumer extends APFObject {
+
    function doSomething(){
       $service =
          &$this->__getDIServiceObject(
@@ -337,40 +327,44 @@ class ServiceConsumer extends APFObject {
       $service->doSomething();
 }
 </gen:highlight>
-Die Implementierung des Services (Klasse: <em>GuestbookManager</em>) hat dabei folgende Gestalt:
+<p>
+   Concerning the service definition, the service implementation (class: <em>GuestbookManager</em>)
+   must include at least the listed methods:
+</p>
 <gen:highlight type="php">
 class GuestbookManager extends APFObject {
 
-   ...
-
-   function setDBService($dbService){
+   public function setDBService($dbService){
       $this->dbService = $dbService;
    }
 
-   function setConfigProvider($provider){
+   public function setConfigProvider($provider){
       $this->configProvider = $provider;
    }
 
-   function setAppId($appId){
+   public function setAppId($appId){
       $this->appId = $appId;
    }
 
-   function setCacheActive($cacheActive){
+   public function setCacheActive($cacheActive){
       $this->cacheActive = $cacheActive;
    }
 
-   ...
-
-   function doSomething(){
+   public function doSomething(){
    }
 
    ...
 
 }
 </gen:highlight>
-Innerhalb der Methode <strong>doSomething()</strong> stehen dann alle injizierten Parameter zur
-Nutzung bereit.
-<br />
-<br />
-<br />
+<p>
+   Within <strong>doSomething()</strong> you can access all the services and configuration values
+   that are injected into the service.
+</p>
+<div class="hint">
+   Another application sample is described on
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Erzeugen_des_GORM_mit_dem_DIServiceManager" title="Erzeugen des GORM mit dem DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>
+   (German).
+</div>
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_107" />

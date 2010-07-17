@@ -249,7 +249,11 @@ AddIndices = "FirstName,LastName(INDEX)|Username(UNIQUE)|Password(INDEX)"
    </li>
 </ul>
 <div class="hint">
-   ...Details on the discussion of the feature can be found in wiki and forum...
+   Details on the discussion of this feature can be taken from the wiki page
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Zus%C3%A4tzliche_Indizes_f%C3%BCr_Setup-/Update-Tool_GORM" title="Zus&auml;tzliche Indizes f&uuml;r Setup-/Update-Tool GORM">Zus&auml;tzliche Indizes f&uuml;r Setup-/Update-Tool GORM</a>
+   (German) and the forum thead
+   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=246" title="Zus&auml;tzliche Indizes f&uuml;r Setup-/Update-Tool GORM">Zus&auml;tzliche Indizes f&uuml;r Setup-/Update-Tool GORM</a>
+   (German).
 </div>
 
 <h3 id="Chapter-3-Database-setup"><a href="#Chapter-3-Database-setup">3. Database setup</a></h3>
@@ -517,6 +521,7 @@ an overview of the existing functions and their meaning:
 </p>
 
 <h4 id="Chapter-4-1-Create-an-instance"><a href="#Chapter-4-1-Create-an-instance">4.1. Creating an instance of the mapper</a></h4>
+<h5 id="Chapter-4-1-1-Classic-approach"><a href="#Chapter-4-1-1-Classic-approach">4.1.1. Classic approach</a></h5>
 <p>
    The instance of the OR mapper must be created using the <strong>GenericORMapperFactory</strong>. This
    is necessary, because the concrete mapper must be initialized prior to use and to have the possibility
@@ -584,6 +589,29 @@ $orm = &$ormFact->getGenericORMapper(
    can be taken from the
    <a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a>.
 </div>
+<h5 id="Chapter-4-1-2-Creation-via-DI"><a href="#Chapter-4-1-2-Creation-via-DI">4.1.2. Creation via DI</a></h5>
+<p>
+   As of release 1.12 the GORM can also be created using the
+   <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DIServiceManager</int:link>.
+   This approach implies advantages to testability and decoupling of business layer and presentation
+   layer.
+</p>
+<p>
+   Creating an instance of the GORM is thus directly done by the <em>DIServiceManager</em> and not
+   using the factory described above. This is because the <em>DIServiceManager</em> only accepts
+   explicit service objects for dynamic initialization of other services. For this reason, three
+   new services are available that do not contain any logic but the necessary configuration information:
+</p>
+<ul>
+   <li><em>GenericORMapperDIConfiguration</em>: injection of the basic configuration</li>
+   <li><em>GenericORMapperDIMappingConfiguration</em>: injection of additional mapping configurations</li>
+   <li><em>GenericORMapperDIRelationConfiguration</em>: injection of additional relation configurations</li>
+</ul>
+<p>
+   Details in the configuration beside an application sample can be found on the wiki page
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Erzeugen_des_GORM_mit_dem_DIServiceManager" title="Erzeugen des GORM mit dem DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>
+   (German).
+</p>
 
 <h4 id="Chapter-4-2-Loading-data"><a href="#Chapter-4-2-Loading-data">4.2. Loading data</a></h4>
 To have a concrete example for the next code samples, the following UML diagram should be used. The
@@ -596,15 +624,17 @@ contained in the APF. The code presented here is thus taken from the module's co
 <br />
 <br />
 <h5 id="Chapter-4-2-1-Loading-objects"><a href="#Chapter-4-2-1-Loading-objects">4.2.1. Loading objects</a></h5>
-To load objects, you can use the functions
+<p>To load objects, you can use the functions</p>
 <ul>
   <li><strong>loadObjectByCriterion()</strong></li>
   <li><strong>loadObjectByTextStatement()</strong></li>
   <li><strong>loadObjectByStatement()</strong></li>
   <li><strong>loadObjectByID()</strong></li>
 </ul>
-If you intend to display the details of a user (see UML), you kan take the methods listed above to
-achieve this:
+<p>
+   If you intend to display the details of a user (see UML), you kan take the methods listed above
+   to achieve this:
+</p>
 <gen:highlight type="php">
 // create fabric
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
@@ -627,13 +657,34 @@ $User = $ORM->loadObjectByStatement('User','modules::usermanagement','load_user_
 // load user (4)
 $User = $ORM->loadObjectByID('User',1);
 </gen:highlight>
-The content of the statement file <strong>load_user_by_id</strong> is:
+<p>The content of the statement file <strong>load_user_by_id</strong> is:</p>
 <gen:highlight type="sql">SELECT * FROM ent_user WHERE UserID = '1';</gen:highlight>
-Details on the statement execution can be taken from the
-<a href="./?Page=018-Class-reference-table-MySQLHandler" title="MySQLHandler">class reference table of the MySQLHandler</a>.
-<br />
-<br />
-<br />
+<p>
+   Details on the statement execution can be taken from the
+   <a href="./?Page=018-Class-reference-table-MySQLHandler" title="MySQLHandler">class reference table of the MySQLHandler</a>.
+</p>
+<div class="hint">
+   As of release 1.12 <strong>GenericDomainObject</strong> was added seom convenience methods to
+   ease implementation. By typing
+<gen:highlight type="php">
+$user = $orm->loadObjectByID('User',1);
+echo $user->getObjectId();
+</gen:highlight>
+   you can easily retrieve the object's id without thinking about the id's property name. Using
+   <em>setObjectId()</em> the object id can be set to the applied value. In cse you are interested
+   in the object's name, just do the following:
+<gen:highlight type="php">
+$user = $orm->loadObjectByID('User',1);
+echo $user->getObjectName();
+</gen:highlight>
+   Further, the <strong>GenericDomainObject</strong> now supports PHP's automatic string conversion.
+   Thus a user object can be printed like this for debug reasons:
+<gen:highlight type="php">
+$user = $orm->loadObjectByID('User',1);
+echo $user;
+</gen:highlight>
+</div>
+
 <h5 id="Chapter-4-2-2-Loading-lists"><a href="#Chapter-4-2-2-Loading-lists">4.2.2. Loading lists</a></h5>
 For loading lists, the OR mapper features the following methods:
 <ul>
@@ -691,7 +742,7 @@ $UserList = $ORM->loadObjectListByCriterion('User',$Crit);
 for($i = 0; $ < count($UserList); $i++){
 
    // display name of the user
-   echo '<br />'.$UserList[$i]->getProperty('DisplayName');
+   echo $UserList[$i]->getProperty('DisplayName');
 
    // load corresponding groups
    $GroupList = $ORM->loadRelatedObjects($UserList[$i],'Group2User');
@@ -702,9 +753,6 @@ for($i = 0; $ < count($UserList); $i++){
       echo $GroupList[$j]->getProperty('DisplayName').' ';
     // end for
    }
-
-   // enter new line
-   echo '<br />';
 
  // end for
 }
@@ -893,71 +941,97 @@ and <em>User</em>), the <strong>addRelatedObject()</strong> method of the <stron
 can be used. The following code box shows, how the implementation is like:
 <gen:highlight type="php">
 // create fabric
-$ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+$ormf = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
 // create mapper
-$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
+$orm = &$ormf->getGenericORMapper('modules::usermanagement','umgt','umgt');
 
 // load application object
-$App = $ORM->loadObjectByID('Application',1);
+$app = $orm->loadObjectByID('Application',1);
 
 // fill user
-$User = new GenericDomainObject('User');
-$User->setProperty('FirstName','Christian');
-$User->setProperty('LastName','Achatz');
+$user = new GenericDomainObject('User');
+$user->setProperty('FirstName','Christian');
+$user->setProperty('LastName','Achatz');
 
 // compose user
-$App->addRelatedObject('Application2User',$User);
+$app->addRelatedObject('Application2User',$user);
 
 // save object tree
-$ORM->saveObject($App);
+$orm->saveObject($app);
 </gen:highlight>
+<div class="hint">
+   <p>
+      Creating relations of type <em>composition</em> must be done exactly as described within the
+      code block. This is because a composed object cannot <em>live</em> without it's father object.
+      Associations can be added afterwards using <em>createAssociation()</em>.
+   </p>
+   <p>
+      In case objects have to be created - as the user in the code snippet above - it is not
+      necessary to save the user before creating it's composition with the application object. The
+      GORM does this implicitly during saving the object tree (consisting of the <em>Application</em>,
+      the <em>User</em>, and the relation between the two objects composing the user under the app).
+   </p>
+</div>
 If you intend to add a group and a role at the same time, the php code above must be added the
 following lines:
 <gen:highlight type="php">
-...
-
 // load application
-$App = $ORM->loadObjectByID('Application',1);
+$app = $orm->loadObjectByID('Application',1);
 
 // fill user
-$User = new GenericDomainObject('User');
-$User->setProperty('FirstName','Christian');
-$User->setProperty('LastName','Achatz');
+$user = new GenericDomainObject('User');
+$user->setProperty('FirstName','Christian');
+$user->setProperty('LastName','Achatz');
 
 // load group
-$Group = $ORM->loadObjectByID('Group',1);
+$group = $orm->loadObjectByID('Group',1);
 
 // load role
-$Role = $ORM->loadObjectByID('Role',1);
+$role = $orm->loadObjectByID('Role',1);
 
 // associate role and group
-$User->addRelatedObject('Group2User',$Group);
-$User->addRelatedObject('Role2User',$Role);
+$user->addRelatedObject('Group2User',$group);
+$user->addRelatedObject('Role2User',$role);
 
 // compose user
-$App->addRelatedObject('Application2User',$User);
+$app->addRelatedObject('Application2User',$user);
 
 // save object tree
-$ORM->saveObject($App);
+$orm->saveObject($app);
 </gen:highlight>
-<br />
+<div class="warn">
+   <p>
+      The generic O/R mapper is able to save object trees with various size. Please note, that it
+      may be necessary to treat huge object trees a little bit different. But this is only necessary
+      for applications with high performance requirements. In all other cases, the performance of the
+      GORM is absolutely sufficient.
+   </p>
+   <p>
+      In case the amount of objects invoked during object tree persistance is greater than 20 including
+      at least one relation per object, it is recommended to save the objects first by using
+      <em>saveObject()</em>. Afterwards, the relations necessary can be created using
+      <em>createAssociation()</em>. This kind of hanling is only possible for associations and cannot 
+      be applied for compositions. This is because of the quality of composition relations.
+   </p>
+</div>
+
 <h3 id="Chapter-5-GenericCriterionObject"><a href="#Chapter-5-GenericCriterionObject">5. The <em>GenericCriterionObject</em></a></h3>
-The present chapter is intended to describe the usage of the <strong>GenericCriterionObject</strong>.
-As already mentioned in the chapters above, the class can be used to configure your request rather
-than to write SQL statements. The object can be used with all <strong>load*ByCriterion()</strong>
-methods and while loading relation objects on existing domain objects or domain object lists.
-<br />
-<br />
-The code box below presents an application use case of the <strong>GenericCriterionObject</strong>,
-where a list of users should be loaded. The users should be assigned to a special group and must be
-composed under a certain application object:
+<p>
+   The present chapter is intended to describe the usage of the <strong>GenericCriterionObject</strong>.
+   As already mentioned in the chapters above, the class can be used to configure your request rather
+   than to write SQL statements. The object can be used with all <strong>load*ByCriterion()</strong>
+   methods and while loading relation objects on existing domain objects or domain object lists.
+</p>
+<p>
+   The code box below presents an application use case of the <strong>GenericCriterionObject</strong>,
+   where a list of users should be loaded. The users should be assigned to a special group and must be
+   composed under a certain application object:
+</p>
 <gen:highlight type="php">
 class UsermanagementManager extends APFObject {
 
-   ...
-
-   function getUserList(){
+   public function getUserList(){
 
       // create fabric
       $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
@@ -1000,8 +1074,6 @@ class UsermanagementManager extends APFObject {
 
    }
 
-   ...
-
 }
 </gen:highlight>
 <strong>Notes on the source code:</strong>
@@ -1018,8 +1090,6 @@ class UsermanagementManager extends APFObject {
     If a developer is likely to select all users, that belong to a dedicated application and are
     are member of a group and are assigned a role, three relation indicators must be added to the
     criterion object.
-    <br />
-    <br />
   </li>
   <li>
      <strong>Sort sequence</strong>:
@@ -1027,8 +1097,6 @@ class UsermanagementManager extends APFObject {
      The order of calls decides the sort sequences. If you like to sort in another direction, the
      sort indicators must be changed. <strong>ASC</strong> stands for ascending and <strong>DESC</strong>
      for descending sortation.
-     <br />
-     <br />
   </li>
 </ul>
 <h3 id="Chapter-6-Enhancement-of-mapping-and-relation-table"><a href="#Chapter-6-Enhancement-of-mapping-and-relation-table">6. Enhancement of mapping and relation table</a></h3>
@@ -1083,16 +1151,15 @@ Type = "COMPOSITION"
 SourceObject = "Project"
 TargetObject = "News"
 </gen:highlight>
-<br />
+
 <h3 id="Chapter-7-Notes"><a href="#Chapter-7-Notes">7. Notes</a></h3>
-Hints on performance relevant issues can be found in the
-<a href="./?Page=065-Generic-OR-mapper-performance-hacks" title="Performance hacks">performance hacks</a>
-chapter, the manual database setup is discussed in the
-<a href="./?Page=064-Generic-OR-mapper-manual-database-setup" title="Manual database setup">manual database setup</a>
-section. The source files of the
-<a href="./?Page=095-Module-usermanagement" title="Usermanagement module">usermanagement module</a>
-can be used as an extended example.
-<br />
-<br />
-<br />
+<p>
+   Hints on performance relevant issues can be found in the
+   <a href="./?Page=065-Generic-OR-mapper-performance-hacks" title="Performance hacks">performance hacks</a>
+   chapter, the manual database setup is discussed in the
+   <a href="./?Page=064-Generic-OR-mapper-manual-database-setup" title="Manual database setup">manual database setup</a>
+   section. The source files of the
+   <a href="./?Page=095-Module-usermanagement" title="Usermanagement module">usermanagement module</a>
+   can be used as an extended example.
+</p>
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_063" />

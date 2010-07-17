@@ -1,53 +1,59 @@
 <doku:title parent="119" tags="dokumentation,module,captcha,gaestebuch,pager,kommentar,social bookmarking,usermanagement" title="Usermanagement" urlname="Usermanagement">
   Generisch einsetzbares Usermanagement.
 </doku:title>
-Das Modul <strong>usermanagement</strong> beinhaltet ein Backend zur Benutzerverwaltung und eine
-generische Business-Komponente - basierend auf dem
-<a href="./?Seite=063-Generischer-OR-Mapper" title="GenericORMapper">GenericORMapper</a> - die zur
-Authentifizierung und zur Verwaltung von Benutzern, Gruppen, Rollen, Berechtigungen und
-Berechtigungsschemata verwendet werden kann. Es dient einerseits dazu, Benutzer-Verwaltung zu
-standardisieren, andererseits, dem Entwickler f&uuml;r eine so zentrale Aufgabe ein fertiges und
-verl&auml;ssliches Tool an die Hand zu geben.
-<br />
-<br />
-Die folgenden Kapitel zeigen den Aufbau des Moduls und geben Beispiele f&uuml;r die Verwendung des
-Business-Komponente und die Einbindung des Backends.
-<br />
-<br />
-<br />
+<p>
+   Das Modul <strong>usermanagement</strong> beinhaltet ein Backend zur Benutzerverwaltung und eine
+   generische Business-Komponente - basierend auf dem
+   <a href="./?Seite=063-Generischer-OR-Mapper" title="GenericORMapper">GenericORMapper</a> - die zur
+   Authentifizierung und zur Verwaltung von Benutzern, Gruppen, Rollen, Berechtigungen und
+   Berechtigungsschemata verwendet werden kann. Weiterhin ist es seit dem Release 1.12 m&ouml;glich,
+   Sichtbarkeits-Berechtigungen f&uuml;r beliebige Anwendungen zu verwalten.
+</p>
+<p>
+   Das Modul dient einerseits dazu, Benutzer-Verwaltung zu standardisieren, andererseits, dem
+   Entwickler f&uuml;r eine so zentrale Aufgabe ein fertiges und verl&auml;ssliches Tool an die Hand
+   zu geben.
+</p>
+<p>
+   Die folgenden Kapitel zeigen den Aufbau des Moduls und geben Beispiele f&uuml;r die Verwendung des
+   Business-Komponente und die Einbindung des Backends.
+</p>
+
 <h3 id="Chapter-1-Design"><a href="#Chapter-1-Design">1. Design des Moduls</a></h3>
-Das Modul besteht aus einer Business-Komponente, dem <strong>UmgtManager</strong>, und einem Backend.
-Der Manager nutzt den <strong>GenericORMapper</strong> als Datenkomponente. Das Backend basiert
-komplett auf der Business-Schicht des Moduls. Das bedeutet, dass diese in anderen Anwendungen f&uuml;r
-die Authentifizierung und Benutzerverwaltung als vollwertige Komponente eingesetzt werden kann.
-<br />
-<br />
-<br />
+<p>
+   Das Modul besteht aus einer Business-Komponente, dem <strong>UmgtManager</strong>, und einem Backend.
+   Der Manager nutzt den <strong>GenericORMapper</strong> als Datenkomponente. Das Backend basiert
+   komplett auf der Business-Schicht des Moduls. Das bedeutet, dass diese in anderen Anwendungen f&uuml;r
+   die Authentifizierung und Benutzerverwaltung als vollwertige Komponente eingesetzt werden kann.
+</p>
+
 <h4 id="Chapter-1-1-Datenmodell"><a href="#Chapter-1-1-Datenmodell">1.1. Datenmodell</a></h4>
-Das Datenmodell des Benutzer-Managements sieht die Gliederung in
+<p>Das Datenmodell des Benutzer-Managements sieht die Gliederung in</p>
 <ul>
-  <li>Benutzer</li>
-  <li>Gruppen</li>
-  <li>Rollen</li>
-  <li>Berechtigungsschemen</li>
-  <li>Berechtigungen</li>
+  <li>Benutzer (users)</li>
+  <li>Gruppen (groups)</li>
+  <li>Rollen (roles)</li>
+  <li>Funktions-Berechtigungs-Schemen (permission sets)</li>
+  <li>Funktions-Berechtigungen (permissions)</li>
+  <li>Sichtbarkeits-Berechtigungen (visibility definitions)</li>
+  <li>Sichtbarkeits-Berechtigungs-Typen (visibility definitions types)</li>
 </ul>
-vor. Dieses Trennung erm&ouml;glicht es, eine granulare und allgemeing&uuml;ltige Benutzerverwaltung
-bereitzustellen. Das folgende UML-Diagramm zeigt die Bedeutung der Objekte und deren Beziehungen:
-<br />
-<br />
-<img src="http://media.adventure-php-framework.org/content/usermanagement_domain_model.png" alt="Usermanagement UML Diagramm (APF)" style="width: 560px;" />
-<br />
-<br />
-<strong>Hinweis:</strong> Gruppen werden in der Regel zur Vergabe von Berechtigungen auf
-<strong>Objekte</strong> einer Anwendung verwendet, Rollen kommen dann zum Einsatz, wenn Berechtigungen
-auf das ausf&uuml;hren von <strong>Funktionen</strong> vergeben werden sollen. Zur Granularisierung
-und Wiederverwendbarkeit von &quot;Funktionsberechtigungen&quot; wurden <em>Berechtigungsschemen</em>
-eingef&uuml;hrt. Diese k&ouml;nnen wiederum mehrere Berechtigungen kapseln und werden selbst einer
-Rolle zugewiesen.
-<br />
-<br />
-<br />
+<p>
+   vor. Dieses Trennung erm&ouml;glicht es, eine granulare und allgemeing&uuml;ltige Benutzerverwaltung
+   bereitzustellen. Das folgende UML-Diagramm zeigt die Bedeutung der Objekte und deren Beziehungen:
+</p>
+<p>
+   <img src="http://media.adventure-php-framework.org/content/usermanagement_domain_model.png" alt="Usermanagement UML Diagramm (APF)" style="width: 560px;" />
+</p>
+<div class="hint">
+   Gruppen werden in der Regel zur Vergabe von Berechtigungen auf
+   <strong>Objekte</strong> einer Anwendung verwendet, Rollen kommen dann zum Einsatz, wenn Berechtigungen
+   auf das Ausf&uuml;hren von <strong>Funktionen</strong> vergeben werden sollen. Zur Granularisierung
+   und Wiederverwendbarkeit von &quot;Funktionsberechtigungen&quot; wurden <em>Berechtigungsschemen</em>
+   eingef&uuml;hrt. Diese k&ouml;nnen wiederum mehrere Berechtigungen kapseln und werden selbst einer
+   Rolle zugewiesen.
+</div>
+
 <h4 id="Chapter-1-2-UmgtManager"><a href="#Chapter-1-2-UmgtManager">1.2. UmgtManager</a></h4>
 Die Business-Komponente besitzt eine Reihe von Methoden, die dem Entwickler einen abstrahierten
 Zugriff auf das Datenmodell geben. Darunter befinden sich nicht nur Methoden zum Erzeugen, Lesen,
@@ -111,7 +117,10 @@ k&ouml;nnen der API-Dokumentation der Klasse <strong>UmgtManager</strong> entnom
   <li><strong>loadUserByFirstNameAndLastName($firstName,$lastName)</strong>: L&auml;d einen Benutzer an Hand des Vor- und Nachnamens.</li>
   <li><strong>loadUserByUserName($username)</strong>: L&auml;d einen Benutzer an Hand des Benutzer-Namens.</li>
 </ul>
-<br />
+<div class="hint">
+   Weitere Methoden und deren Signatur k&ouml;nnen in der <int:link pageid="002" /> nachgelesen werden.
+</div>
+
 <h3 id="Chapter-2-Installation"><a href="#Chapter-2-Installation">2. Installation</a></h3>
 Die Installation des Moduls umfasst folgende Schritte:
 <ul>
@@ -262,10 +271,10 @@ Das folgende Beispiel zeigt, wie eine einfache Authentifizierung mit Hilfe von U
 durchgef&uuml;hrt werden kann:
 <gen:highlight type="php">
 // include business component prior to use
-import('modules::usermanagement::biz','umgtManager');
+import('modules::usermanagement::biz','UmgtManager');
 
 // get the business object
-$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','umgtManager','Default');
+$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','UmgtManager','Default');
 
 // retrieve the username and password from the request
 $username = RequestHandler::getValue('user');
@@ -345,7 +354,7 @@ Bezeichnungen der Attribute. Auch diese m&uuml;ssen mit den Attribut-Namen der O
 entnommen werden.
 <gen:highlight type="php">
 // get the business object
-$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','umgtManager','Default');
+$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','UmgtManager','Default');
 
 // create new user
 $user = new GenericDomainObject('User');
@@ -396,7 +405,7 @@ zugeschnitten und erwarten jeweils Objekte des Type <strong>GenericDomainObject<
 Codebox zeigt einige typische Anwendungsf&auml;lle f&uuml;r das "Bearbeiten" von Beziehungen:
 <gen:highlight type="php">
 // get the business object
-$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','umgtManager','Default');
+$uM = &$this->__getAndInitServiceObject('modules::usermanagement::biz','UmgtManager','Default');
 
 // add user to group
 $user = $uM->loadUserByID(1);
@@ -413,7 +422,27 @@ $uM->detachUserFromGroups($user,array($group));
 // detatch role from user
 $uM->detachUserFromRole($user,$role);
 </gen:highlight>
-<br />
+
+<h5 id="Chapter-3-2-7-Sichtbarkeits-Berechtigungen"><a href="#Chapter-3-2-7-Sichtbarkeits-Berechtigungen">3.2.7. Sichtbarkeits-Berechtigungen</a></h5>
+<p>
+   Das im Release 1.12. hinzugef&uuml;gte Konzept der Sichtbarkeits-Berechtigungen erm&ouml;glicht es
+   einem Entwickler, das Modul komplett in die Anwendung zu integrieren. Neben den Berechtigungen
+   auf das Ausf&uuml;hren von Funktionen (<em>permissions</em>) k&ouml;nnen nun auch auch
+   Berechtigungen auf die Sichtbarkeit (<em>visibility definition</em>) von Objekten einer verwaltet
+   werden.
+</p>
+<p>
+   Die Kombination aus Funktions- und Sichtbarkeits-Berechtigung stellt die Basis f&uuml;r eine
+   flexible und skalierbare Benutzer-Verwaltung, die eine Unterscheidung zwischen dem reinen Zugriff
+   auf ein Objekt sowie die Aktionen (Bearbeiten, Löschen, Verkn&uuml;pfen, ...), die mit einem
+   Objekt verkn&uuml;pft sind erm&ouml;licht.
+</p>
+<p>
+   Der Wiki-Artikel
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Usermanagement#Anwendung_Sichtbarkeits-Berechtigungen" title="Anwendung Sichtbarkeits-Berechtigungen ">Anwendung Sichtbarkeits-Berechtigungen </a>
+   beschreibt ein konkretes Beispiel f&uuml;r die Anwendung.
+</p>
+
 <h4 id="Chapter-3-2-Direkter-Zugriff"><a href="#Chapter-3-2-Direkter-Zugriff">3.2. Direkter Zugriff</a></h4>
 Sollte die API des <strong>UmgtManager</strong> nicht ausreichen, so kann der
 <strong>GenericORMapper</strong> direkt verwendet werden. Wichtig dabei ist, dass der gleiche Satz
@@ -519,7 +548,7 @@ genauer beschrieben.
 <br />
 Die Business-Komponente nutzt aktuell das <strong>MD5</strong>-Verfahren um Passwort-Hashes zu
 erzeugen. Soll dieses Verhalten ge&auml;ndert werden (z.B. auf <em>SHA1</em>), so kann dies durch
-ableiten von der Klasse <strong>umgtManager</strong> und &Uuml;berschreiben der privaten Methode
+ableiten von der Klasse <strong>UmgtManager</strong> und &Uuml;berschreiben der privaten Methode
 <strong>__createPasswordHash()</strong> erfolgen. Dabei ist darauf zu achten, dass die abgeleitete
 Klasse die <strong>init()</strong>-Methode nicht &uuml;berschreibt.
 <br />
@@ -527,8 +556,8 @@ Klasse die <strong>init()</strong>-Methode nicht &uuml;berschreibt.
 Die neue Klasse kann nach der &Uuml;berladung exakt gleich verwendet werden. Das folgende Beispiel
 zeigt eine &Auml;nderung des Passwort-Hash-Verfahrens:
 <gen:highlight type="php">
-class MyUmgtManager extends umgtManager {
-   function __createPasswordHash($password){
+class MyUmgtManager extends UmgtManager {
+   protected function __createPasswordHash($password){
       return sha1($password);
    }
 }
@@ -539,7 +568,7 @@ $user = $umgt->loadUserByID(5);
 <h5 id="Chapter-4-1-2-Implementierung-PasswordHashProvider"><a href="#Chapter-4-1-2-Implementierung-PasswordHashProvider">4.1.2. Implementierung PasswordHashProvider</a></h5>
 Die ab <strong>Version 1.11</strong> implementierte &Auml;ndeurung erm&ouml;glicht es, einen eigenen
 <strong>PasswordHashProvider</strong> in der Konfiguration des Moduls zu definieren. Dieser ist
-daf&uuml;r zust&auml;ndig, dem <strong>umgtManager</strong> bei der Erstellung des Password
+daf&uuml;r zust&auml;ndig, dem <strong>UmgtManager</strong> bei der Erstellung des Password
 Hash-Wertes behilflich zu sein. Im Standard-Fall wird weiterhin <strong>md5</strong> eingesetzt.
 <br />
 <br />
@@ -569,7 +598,7 @@ Vollst&auml;ndige Beispiel-Konfigurationen f&uuml;r das Usermanagement finden si
 <h4 id="Chapter-4-2-Anzeige-Name-Benutzer"><a href="#Chapter-4-2-Anzeige-Name-Benutzer">4.2. Anzeige-Name des Benutzers</a></h4>
 Der Anzeige-Name eines Benutzers wird aktuell aus
 <gen:highlight type="apf-xml">{Nachname}, {Vorname}</gen:highlight>
-zusammengesetzt. Um dieses Verhalten zu beeinflussen kann die Klasse <strong>umgtManager</strong>
+zusammengesetzt. Um dieses Verhalten zu beeinflussen kann die Klasse <strong>UmgtManager</strong>
 &auml;hnlich wie unter 4.1. beschrieben erweitert werden. Hierbei muss die Methode
 <strong>__getDisplayName($user)</strong> &uuml;berschrieben werden. Diese erwartet ein Objekt des
 Typs <em>GenericDomainObject</em> und gibt den Anzeige-Namen des Benutzers zur&uuml;ck.
@@ -577,9 +606,8 @@ Typs <em>GenericDomainObject</em> und gibt den Anzeige-Namen des Benutzers zur&u
 <br />
 Um die E-Mail-Adresse als Anzeige-Namen zu nutzen, ist folgende Erweiterung notwendig:
 <gen:highlight type="php">
-class MyUmgtManager extends umgtManager
-{
-   function __getDisplayName($user){
+class MyUmgtManager extends UmgtManager {
+   protected function __getDisplayName($user){
       return $user->getProperty('EMail');
    }
 }

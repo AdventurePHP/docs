@@ -261,7 +261,11 @@ AddIndices = "FirstName,LastName(INDEX)|Username(UNIQUE)|Password(INDEX)"
    </li>
 </ul>
 <div class="hint">
-   ...Details zur Entstehung k&ouml;nnen dem Wiki und dem Forum entnommen werden...
+   Details zur Entstehung dieses Features k&ouml;nnen der Wiki-Seite
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Zus%C3%A4tzliche_Indizes_f%C3%BCr_Setup-/Update-Tool_GORM" title="Zus&auml;tzliche Indizes f&uuml;r Setup-/Update-Tool GORM">Zus&auml;tzliche Indizes f&uuml;r Setup-/Update-Tool GORM</a>
+   und dem Foren-Thead
+   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=246" title="Zus&auml;tzliche Indizes f&uuml;r Setup-/Update-Tool GORM">Zus&auml;tzliche Indizes f&uuml;r Setup-/Update-Tool GORM</a>
+   entnommen werden.
 </div>
 
 <h3 id="Chapter-3-Datenbank-Setup"><a href="#Chapter-3-Datenbank-Setup">3. Setup der Datenbank</a></h3>
@@ -537,6 +541,7 @@ Hier ein &Uuml;berblick &uuml;ber die Methoden, deren Parameter und Bedeutung:
 </p>
 
 <h4 id="Chapter-4-1-Erzeugen-einer-Instanz"><a href="#Chapter-4-1-Erzeugen-einer-Instanz">4.1. Erzeugen einer Instanz</a></h4>
+<h5 id="Chapter-4-1-1-Klassische-Vorgehensweise"><a href="#Chapter-4-1-1-Klassische-Vorgehensweise">4.1.1. Klassische Vorgehensweise</a></h5>
 <p>
    Die Instanz eines O/R-Mappers muss &uuml;ber die zugeh&ouml;rige Factory (<strong>GenericORMapperFactory</strong>)
    erzeugt werden. Dies ist zum einen deshalb notwendig, um den konkreten O/R-Mapper vor der Verwendung
@@ -608,6 +613,29 @@ $orm = &$ormFact->getGenericORMapper(
    <a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API-Dokumentation</a>
    entnommen werden.
 </div>
+<h5 id="Chapter-4-1-2-Erzeugung-via-DI"><a href="#Chapter-4-1-2-Erzeugung-via-DI">4.1.2. Erzeugung via DI</a></h5>
+<p>
+   Seit dem Release 1.12 kann der GORM auch mit dem 
+   <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DIServiceManager</int:link>
+   erzeugt werden. Diese Vorgehensweise hat deutliche Vorteile f&uuml;r die Testbarkeit einer
+   Komponente und die Entkopplung der Business- von der Pr&auml;sentations-Schicht.
+</p>
+<p>
+   Die Erzeugung des GORM-Service erfolgt dabei direkt &uuml;ber den <em>DIServiceManager</em> und
+   nicht &uuml;ber die oben beschriebene Factory. Grund hierf&uuml;r ist, dass der <em>DIServiceManager</em>
+   nur explizite Services zur dynamischen Inititialisierung eines anderen Services akzeptiert. Dazu
+   existieren drei Service-Implementierungen, die zwar keine Funktion tragen, jedoch die notwendige
+   Konfigurations-Information in den GORM tragen:
+</p>
+<ul>
+   <li><em>GenericORMapperDIConfiguration</em>: Injektion der Basis-Konfiguration</li>
+   <li><em>GenericORMapperDIMappingConfiguration</em>: Injektion von zus&auml;tzlichen Objekt-Konfigurationen</li>
+   <li><em>GenericORMapperDIRelationConfiguration</em>: Injektion von zus&auml;tzlichen Beziehungs-Konfigurationen</li>
+</ul>
+<p>
+   Details zur Konfiguration und ein Anwendungsbeispiel finden sich im Wiki unter
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Erzeugen_des_GORM_mit_dem_DIServiceManager" title="Erzeugen des GORM mit dem DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>.
+</p>
 
 <h4 id="Chapter-4-2-Laden-von-Daten"><a href="#Chapter-4-2-Laden-von-Daten">4.2. Laden von Daten</a></h4>
 Um die Beschreibung der Features plastischer gestalten zu k&ouml;nnen, soll folgendes UML als Basis
@@ -620,16 +648,18 @@ Die im Kapitel 4.2. verwendeten Code-Beispiele sind dabei dem genannten Modul en
 <br />
 <br />
 <h5 id="Chapter-4-2-1-Laden-von-Objekten"><a href="#Chapter-4-2-1-Laden-von-Objekten">4.2.1. Laden von Objekten</a></h5>
-F&uuml;r das Laden von Objekten stehen die Methoden
+<p>F&uuml;r das Laden von Objekten stehen die Methoden</p>
 <ul>
   <li><strong>loadObjectByCriterion()</strong></li>
   <li><strong>loadObjectByTextStatement()</strong></li>
   <li><strong>loadObjectByStatement()</strong></li>
   <li><strong>loadObjectByID()</strong></li>
 </ul>
-zur Verf&uuml;gung. M&ouml;chte der Entwickler auf einer Seite die Details eines Benutzers (siehe
-UML-Diagramm) darstellen, so k&ouml;nnen die aufgef&uuml;hrten Methoden wie in der anschlie&szlig;end
-dargestellten Codebox beschreiben eingesetzt werden:
+<p>
+   zur Verf&uuml;gung. M&ouml;chte der Entwickler auf einer Seite die Details eines Benutzers (siehe
+   UML-Diagramm) darstellen, so k&ouml;nnen die aufgef&uuml;hrten Methoden wie in der anschlie&szlig;end
+   dargestellten Codebox beschreiben eingesetzt werden:
+</p>
 <gen:highlight type="php">
 // Fabric instanziieren
 $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
@@ -652,14 +682,35 @@ $User = $ORM->loadObjectByStatement('User','modules::usermanagement','load_user_
 // Benutzer laden (4)
 $User = $ORM->loadObjectByID('User',1);
 </gen:highlight>
-Der Inhalt der Statement-Datei <strong>load_user_by_id</strong> ist dabei
-<gen:highlight type="sql">SELECT * FROM ent_user WHERE UserID = '1';</gen:highlight>
-Details zur Ausf&uuml;hrung von Statement-Dateien k&ouml;nnen dem Kapitel
-<a href="./?Seite=018-KlassenReferenz-MySQLHandler" title="KlassenReferenz-MySQLHandler">KlassenReferenz-MySQLHandler</a>
-entnommen werden.
-<br />
-<br />
-<br />
+<p>
+   Der Inhalt der Statement-Datei <strong>load_user_by_id</strong> ist dabei
+   <gen:highlight type="sql">SELECT * FROM ent_user WHERE UserID = '1';</gen:highlight>
+   Details zur Ausf&uuml;hrung von Statement-Dateien k&ouml;nnen dem Kapitel
+   <a href="./?Seite=018-KlassenReferenz-MySQLHandler" title="KlassenReferenz-MySQLHandler">KlassenReferenz-MySQLHandler</a>
+   entnommen werden.
+</p>
+<div class="hint">
+   Mit dem Release 1.12 wurde die Klasse <strong>GenericDomainObject</strong> um einige Methoden
+   zur Vereinfachung der Implementierung erweitert. &Uuml;ber
+<gen:highlight type="php">
+$user = $orm->loadObjectByID('User',1);
+echo $user->getObjectId();
+</gen:highlight>
+   l&auml;sst sich sehr einfach die ID des Objektes ohne Umweg &uuml;ber die Properies auslesen. Mit
+   dem Pendant <em>setObjectId()</em> kann die Id des Objektes gleicherma&szlig;en gef&uuml;llt werden.
+   Per
+<gen:highlight type="php">
+$user = $orm->loadObjectByID('User',1);
+echo $user->getObjectName();
+</gen:highlight>
+   kann der Name des Objekts angezeigt werden. Wird ein mit dem GORM geladenes Objekt per
+<gen:highlight type="php">
+$user = $orm->loadObjectByID('User',1);
+echo $user;
+</gen:highlight>
+   ausgegeben, wird die String-Repr&auml;sentation des Objektes dargestellt.
+</div>
+
 <h5 id="Chapter-4-2-2-Laden-von-Listen"><a href="#Chapter-4-2-2-Laden-von-Listen">4.2.2. Laden von Objekt-Listen</a></h5>
 F&uuml;r das Laden von Objekt-Listen stehen die Methoden
 <ul>
@@ -721,7 +772,7 @@ $UserList = $ORM->loadObjectListByCriterion('User',$Crit);
 for($i = 0; $i < count($UserList); $i++){
 
    // Name des Benutzers ausgeben
-   echo '<br />'.$UserList[$i]->getProperty('DisplayName');
+   echo $UserList[$i]->getProperty('DisplayName');
 
    // Gruppen nachladen
    $GroupList = $ORM->loadRelatedObjects($UserList[$i],'Group2User');
@@ -731,9 +782,6 @@ for($i = 0; $i < count($UserList); $i++){
    for($j = 0; $j < count($GroupList); $j++){
       echo $GroupList[$j]->getProperty('DisplayName').' ';
    }
-
-   // Neue Zeile ausgeben
-   echo '<br />';
 
 }
 </gen:highlight>
@@ -931,73 +979,102 @@ mandantenf&auml;hig zu gestalten.
 Die folgende Codebox zeigt die Implementierung:
 <gen:highlight type="php">
 // Fabric instanziieren
-$ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+$ormf = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
 
 // Mapper mit Basis-Konfiguration laden
-$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt_1','umgt');
+$orm = &$ormf->getGenericORMapper('modules::usermanagement','umgt_1','umgt');
 
 // Applikation laden
-$App = $ORM->loadObjectByID('Application',1);
+$app = $ORM->loadObjectByID('Application',1);
 
 // Benutzer befuellen
-$User = new GenericDomainObject('User');
-$User->setProperty('FirstName','Christian');
-$User->setProperty('LastName','Achatz');
+$user = new GenericDomainObject('User');
+$user->setProperty('FirstName','Christian');
+$user->setProperty('LastName','Achatz');
 
 // Beziehung herstellen
-$App->addRelatedObject('Application2User',$User);
+$app->addRelatedObject('Application2User',$user);
 
 // Objektbaum speichern
-$ORM->saveObject($App);
+$orm->saveObject($app);
 </gen:highlight>
+<div class="hint">
+   <p>
+      Das Anlegen von Beziehungen des Typs <em>Komposition</em> muss exakt die im Quellcode vorgestellte
+      Art der Beziehungs-Generierung verwendet werden. Dies ist der Fall, da ein komponiertes Objekt
+      nicht ohne sein Vater-Objekt <em>leben</em> kann. Assoziationen k&ouml;nnen auch nachtr&auml;glich
+      per <em>createAssociation()</em> angelegt werden.
+   </p>
+   <p>
+      Sofern Objekte neu angelegt werden sollen - wie oben der Benutzer - ist es nicht notwendig,
+      diesen vorher selbst zu speichern. Dies &uuml;bernimmt der GORM implizit beim Speichern
+      des kompletten Baumes (bestehend aus der <em>Application</em>, dem <em>User</em> und der
+      Beziehung, die den Benutzer unter der Applikation komponiert).
+   </p>
+</div>
 M&ouml;chte der Entwickler im gleichen Zug dem Benutzer noch eine Gruppe und eine Rolle zuordnen,
 muss der oben gezeigte Quellcode zwischen dem Bef&uuml;llen des Benutzer-Objekts und der Herstellung
 der Beziehung zum Application-Objekt entsprechend erweitert werden:
 <gen:highlight type="php">
-...
-
 // Applikation laden
-$App = $ORM->loadObjectByID('Application',1);
+$app = $orm->loadObjectByID('Application',1);
 
 // Benutzer befuellen
-$User = new GenericDomainObject('User');
-$User->setProperty('FirstName','Christian');
-$User->setProperty('LastName','Achatz');
+$user = new GenericDomainObject('User');
+$user->setProperty('FirstName','Christian');
+$user->setProperty('LastName','Achatz');
 
 // Gruppe laden
-$Group = $ORM->loadObjectByID('Group',1);
+$group = $orm->loadObjectByID('Group',1);
 
 // Rolle laden
-$Role = $ORM->loadObjectByID('Role',1);
+$role = $orm->loadObjectByID('Role',1);
 
 // Gruppe und Rolle zuweisen
-$User->addRelatedObject('Group2User',$Group);
-$User->addRelatedObject('Role2User',$Role);
+$user->addRelatedObject('Group2User',$group);
+$user->addRelatedObject('Role2User',$role);
 
 // Beziehung herstellen
-$App->addRelatedObject('Application2User',$User);
+$app->addRelatedObject('Application2User',$user);
 
 // Objektbaum speichern
-$ORM->saveObject($App);
+$orm->saveObject($app);
 </gen:highlight>
-<br />
+<div class="warn">
+   <p>
+      Der GORM ist in der Lage, beliebig gro&szlig;e Objekt-B&auml;ume zu speichern. Hierbei gilt
+      es jedoch zu beachten, dass sehr gro&szlig;e B&auml;me aus Performance-Gr&uuml;nden etwas 
+      anders behandelt werden sollten. Dies ist jedoch nur Anwendungen notwendig, die sehr hohen
+      Performance-Anforderungen unterliegen. In der Regel ist die Performance des GORM in der
+      oben beschriebenen Vorgehensweise absolut ausreichend.
+   </p>
+   <p>
+      Sofern die Anzahl der bei einer Speicherung involvierten Objekte sehr gro&szlig; wird (c.a. 
+      20 Objekte mit jeweils mind. 1 Assoziations-Beziehung) ist zu empfehlen, die Objekte ohne das
+      Aufbauen der Beziehungen mit einem Aufruf von <em>saveObject()</em> zu speichern und diese
+      anschlie&szlig;end per <em>createAssociation()</em> anzulegen. Diese Art der Optimierung kann
+      f&uuml;r Kompositionen nicht genutzt werden. Dies ist in der Bedeutung der Komposition
+      begr&uuml;ndet.
+   </p>
+</div>
+
 <h3 id="Chapter-5-GenericCriterionObject"><a href="#Chapter-5-GenericCriterionObject">5. &Uuml;bersicht zum <em>GenericCriterionObject</em></a></h3>
-Das vorliegende Kapitel m&ouml;chte einen zusammenfassenden &Uuml;berblick &uuml;ber die Nutzung des
-<strong>GenericCriterionObject</strong> geben. Wie in den vorherigen Kapiteln angedeutet, kann das
-Kriterium-Objekt dazu genutzt werden, Abfragen ohne Schreiben von SQL-Statements f&uuml;r den
-Anwendungsfall zu konfigurieren. Das Objekt kann bei den <strong>load*ByCriterion()</strong>-Methoden
-und beim Nachladen von in Beziehung stehenden Objekten und Objektlisten genutzt werden.
-<br />
-<br />
-Die folgende Code-Box zeigt einen &Uuml;berblick &uuml;ber die Einsatzm&ouml;glichkeiten des
-<strong>GenericCriterionObject</strong>s am Beispiel einer Benutzer-Liste, deren Benutzer zu einer
-Applikation geh&ouml;ren und eine definierte Gruppe zugeordnet haben:
+<p>
+   Das vorliegende Kapitel m&ouml;chte einen zusammenfassenden &Uuml;berblick &uuml;ber die Nutzung des
+   <strong>GenericCriterionObject</strong> geben. Wie in den vorherigen Kapiteln angedeutet, kann das
+   Kriterium-Objekt dazu genutzt werden, Abfragen ohne Schreiben von SQL-Statements f&uuml;r den
+   Anwendungsfall zu konfigurieren. Das Objekt kann bei den <strong>load*ByCriterion()</strong>-Methoden
+   und beim Nachladen von in Beziehung stehenden Objekten und Objektlisten genutzt werden.
+</p>
+<p>
+   Die folgende Code-Box zeigt einen &Uuml;berblick &uuml;ber die Einsatzm&ouml;glichkeiten des
+   <strong>GenericCriterionObject</strong>s am Beispiel einer Benutzer-Liste, deren Benutzer zu einer
+   Applikation geh&ouml;ren und eine definierte Gruppe zugeordnet haben:
+</p>
 <gen:highlight type="php">
-class usermanagementManager extends APFObject {
+class UsermanagementManager extends APFObject {
 
-   ...
-
-   function getUserList(){
+   public function getUserList(){
 
       // Fabric instanziieren
       $ORMF = &$this->__getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
@@ -1040,8 +1117,6 @@ class usermanagementManager extends APFObject {
 
    }
 
-   ...
-
 }
 </gen:highlight>
 <strong>Hinweise zum Quelltext:</strong>
@@ -1059,8 +1134,6 @@ class usermanagementManager extends APFObject {
     einer definierten Gruppe angeh&ouml;ren und eine bestimmte Rolle zugewiesen haben, m&uuml;ssen
     drei Beziehungen gem&auml;&szlig; der Beziehungskonfiguration zum Kriterium hinzugef&uuml;gt
     werden.
-    <br />
-    <br />
   </li>
   <li>
      <strong>Sortierreihenfolge</strong>:
@@ -1069,8 +1142,6 @@ class usermanagementManager extends APFObject {
      Reihenfolge vorgenommen werden, m&uuml;ssen die Sortierkriterien in der entsprechend anderen
      Abfolge hinzugef&uuml;gt werden. Der Wert <strong>ASC</strong> steht f&uuml;r aufsteigende
      Sortierung, <strong>DESC</strong> f&uuml;r absteigende.
-     <br />
-     <br />
   </li>
 </ul>
 <h3 id="Chapter-6-Erweiterung-Mapping-und-Relation-Table"><a href="#Chapter-6-Erweiterung-Mapping-und-Relation-Table">6. Erweiterung des Mapping- und Relation-Table</a></h3>
@@ -1127,16 +1198,15 @@ Type = "COMPOSITION"
 SourceObject = "Project"
 TargetObject = "News"
 </gen:highlight>
-<br />
+
 <h3 id="Chapter-7-Anmerkungen"><a href="#Chapter-7-Anmerkungen">7. Anmerkungen</a></h3>
-Hinweise zur Performance k&ouml;nnen unter
-<a href="./?Seite=065-Generischer-OR-Mapper-Performance-Hacks" title="Generischer O/R-Mapper - Performance-Hacks">Performance-Hacks</a>
-nachgelesen werden, das manuelle Setup der Datenbank ist unter
-<a href="./?Seite=064-Generischer-OR-Mapper-Manuelles-Setup-der-Datenbank" title="Generischer O/R-Mapper - Manuelles Setup der Datenbank">Manuelles Setup der Datenbank</a>
-erkl&auml;rt. Die Quellcode-Dateien des
-<a href="./?Seite=095-Module-Usermanagement" title="Usermanagement-Modul">usermanagement-Moduls</a>
-k&ouml;nnen als weiterf&uuml;hrende Beispiele herangezogen werden.
-<br />
-<br />
-<br />
+<p>
+   Hinweise zur Performance k&ouml;nnen unter
+   <a href="./?Seite=065-Generischer-OR-Mapper-Performance-Hacks" title="Generischer O/R-Mapper - Performance-Hacks">Performance-Hacks</a>
+   nachgelesen werden, das manuelle Setup der Datenbank ist unter
+   <a href="./?Seite=064-Generischer-OR-Mapper-Manuelles-Setup-der-Datenbank" title="Generischer O/R-Mapper - Manuelles Setup der Datenbank">Manuelles Setup der Datenbank</a>
+   erkl&auml;rt. Die Quellcode-Dateien des
+   <a href="./?Seite=095-Module-Usermanagement" title="Usermanagement-Modul">usermanagement-Moduls</a>
+   k&ouml;nnen als weiterf&uuml;hrende Beispiele herangezogen werden.
+</p>
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_063" />
