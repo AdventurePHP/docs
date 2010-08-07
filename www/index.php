@@ -7,12 +7,8 @@
 
    //ini_set('session.cache_limiter','none');
    date_default_timezone_set('Europe/Berlin');
-   if(isset($_SERVER['HTTP_ACCEPT_ENCODING']) && (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'],'gzip') > 0 || substr_count($_SERVER['HTTP_ACCEPT_ENCODING'],'deflate') > 0)){
-      ob_start('ob_gzhandler');
-   }
-   else {
-      ob_start();
-   }
+   ob_start('ob_gzhandler');
+   
    ini_set('html_errors','off');
    include('../apps/core/pagecontroller/pagecontroller.php');
    import('core::frontcontroller','Frontcontroller');
