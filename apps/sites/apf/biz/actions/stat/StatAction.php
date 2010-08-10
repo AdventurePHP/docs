@@ -34,9 +34,9 @@
       public function run() {
 
          // gather input values
-         $pageLang = $this->__Input->getLanguage();
-         $pageName = $this->__Input->getTitle();
-         $pageId = $this->__Input->getPageId();
+         $pageLang = $this->getInput()->getLanguage();
+         $pageName = $this->getInput()->getTitle();
+         $pageId = $this->getInput()->getPageId();
          $requestUrl = $this->getRequestUrl();
          $referer = $this->getReferer();
 

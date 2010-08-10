@@ -31,8 +31,8 @@
        * Version 0.1, 28.01.2010<br />
        */
       public function run(){
-         $lang = $this->__Input->getAttribute(self::$LANG);
-         $version = $this->__Input->getAttribute(self::$PROTOCOL_VERSION);
+         $lang = $this->getInput()->getAttribute(self::$LANG);
+         $version = $this->getInput()->getAttribute(self::$PROTOCOL_VERSION);
 
          // generate items
          $page = new Page();

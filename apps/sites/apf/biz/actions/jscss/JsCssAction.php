@@ -28,14 +28,14 @@
        * Version 0.1, 15.12.2009<br />
        */
       public function run(){
-         $fileName = $this->__Input->getFileName();
+         $fileName = $this->getInput()->getFileName();
          if(isset($_SERVER['HTTP_ACCEPT_ENCODING']) && (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'],'gzip') > 0 || substr_count($_SERVER['HTTP_ACCEPT_ENCODING'],'deflate') > 0)){
             ob_start('ob_gzhandler');
          }
          else {
             ob_start();
          }
-         if($this->__Input->isCssFileRequested()){
+         if($this->getInput()->isCssFileRequested()){
             HttpCacheManager::sendCssCacheHeaders();
          }
          else {
