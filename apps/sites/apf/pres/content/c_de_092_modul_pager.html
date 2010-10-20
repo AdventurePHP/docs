@@ -2,55 +2,60 @@
   Der Pager ist eine Komponente, die zur Ausgabe-Steuerung von Datenbank-Eintr&auml;gen verwendet
   werden kann. Diese findet bereits in den Modulen Kommentar-Funktion und G&auml;stebuch Anwendung.
 </doku:title>
-Der Pager ist eine Komponente, die zur Ausgabe-Steuerung von Datenbank-Eintr&auml;gen verwendet werden
-kann. Diese findet bereits in den Modulen <em>Kommentar-Funktion</em> und <em>G&auml;stebuch</em>
-Anwendung. Auf dieser Seite wird der Aufbau des Moduls und die Verwendung n&auml;her erl&auml;utert.
-<br />
-<br />
-<br />
+<p>
+   Der Pager ist eine Komponente, die zur Ausgabe-Steuerung von Datenbank-Eintr&auml;gen verwendet werden
+   kann. Diese findet bereits in den Modulen <em>Kommentar-Funktion</em> und <em>G&auml;stebuch</em>
+   Anwendung. Auf dieser Seite wird der Aufbau des Moduls und die Verwendung n&auml;her erl&auml;utert.
+</p>
 <h3 id="Chapter-1-Aufbau"><a href="#Chapter-1-Aufbau">1. Aufbau</a></h3>
-Der Pager besteht im wesentlichen aus einer Business-Komponente (<strong>PagerManager</strong>), der
-Ausgabe-Komponente f&uuml;r die Pager-HTML-Darstellung (DocumentController
-<strong>pager_v1_controller</strong> oder <strong>pager_2_v1_controller</strong>) und einer
-Daten-Schicht, die die f&uuml;r den Betrieb des Managers notwendigen Informationen aus der Datenbank
-liest. Um einen Pager verwenden zu k&ouml;nnen muss dieser zun&auml;chst initialisiert und mit den
-richtigen Parametern versorgt werden. Diese Arbeit wird durch die <strong>PagerManagerFabric</strong>
-erledigt.
-<br />
-<br />
-<br />
+<p>
+   Der Pager besteht im wesentlichen aus einer Business-Komponente (<strong>PagerManager</strong>), der
+   Ausgabe-Komponente f&uuml;r die Pager-HTML-Darstellung (DocumentController
+   <strong>pager_v1_controller</strong> oder <strong>pager_2_v1_controller</strong>) und einer
+   Daten-Schicht, die die f&uuml;r den Betrieb des Managers notwendigen Informationen aus der Datenbank
+   liest. Um einen Pager verwenden zu k&ouml;nnen muss dieser zun&auml;chst initialisiert und mit den
+   richtigen Parametern versorgt werden. Diese Arbeit wird durch die <strong>PagerManagerFabric</strong>
+   erledigt.
+</p>
 <h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration</a></h3>
-Um den PagerManager zum Laden der f&uuml;r eine Seite relevanten Eintr&auml;ge nutzen zu k&ouml;nnen,
-muss dieser zun&auml;chst konfiguriert werden. Dazu sind im Wesentlichen eine Konfigurationsdatei und
-zwei Statementment-Dateien notwenig. Die Konfigurationsdatei umfasst folgende Parameter:
-<gen:highlight type="apf-xml">
-[&lt;Abschnittsname&gt;]
-Pager.DatabaseConnection = "&lt;ConnectionKey&gt;"
+<p>
+   Um den PagerManager zum Laden der f&uuml;r eine Seite relevanten Eintr&auml;ge nutzen zu k&ouml;nnen,
+   muss dieser zun&auml;chst konfiguriert werden. Dazu sind im Wesentlichen eine Konfigurationsdatei und
+   zwei Statement-Dateien notwenig. Die Konfigurationsdatei umfasst folgende Parameter:
+</p>
+<gen:highlight type="ini">
+[{Name des Pagers}]
+Pager.DatabaseConnection = "{ConnectionKey}"
 
-Pager.EntriesPerPage = "&lt;Anzahl&gt;"
+Pager.EntriesPerPage = "{Anzahl}"
 
-Pager.ParameterStartName = "&lt;URL-Parameter&gt;"
-Pager.ParameterCountName = "&lt;URL-Parameter&gt;"
+Pager.ParameterPageName = "{URL-Name f&uuml;r den Start-Parameter}"
+Pager.ParameterCountName = "{URL-Name f&uuml;r den dynamischen Anzahl/Seite-Parameter}"
 
-Pager.StatementNamespace = "&lt;Statement-Namespace&gt;"
-Pager.CountStatement = "&lt;Load-Entries-Count-Statement&gt;"
-Pager.CountStatement.Params = "&lt;Statement-Parameter&gt;"
-Pager.EntriesStatement = "&lt;Statement-Parameter&gt;"
-Pager.EntriesStatement.Params = "&lt;Load-Entry-Statement&gt;"
+Pager.StatementNamespace = "{Statement-Namespace}"
+Pager.CountStatement = "{Load-Entries-Count-Statement}"
+Pager.CountStatement.Params = "{Statement-Parameter}"
+Pager.EntriesStatement = "{Statement-Parameter}"
+Pager.EntriesStatement.Params = "{Load-Entry-Statement}"
 
-Pager.DesignNamespace = "&lt;Ausgabe-Template-Namespace&gt;"
-Pager.DesignTemplate = "&lt;Ausgabe-Template-Name&gt;"
+Pager.DesignNamespace = "{Ausgabe-Template-Namespace}"
+Pager.DesignTemplate = "{Ausgabe-Template-Name}"
 
 Pager.CacheInSession = "true|false"
+
+; seit 1.13. < 1.13 immer true
+Pager.AllowDynamicEntriesPerPage = "true|false"
 </gen:highlight>
-In den beiden Statements werden jeweils definierte Statement-Parameter erwartet, damit der Pager
-arbeiten kann. Innerhalb des <em>Load-Entries-Count-Statements</em> k&ouml;nnen beliebiger Parameter
-eingesetzt werden um das Ergebnis einzuschr&auml;nken. Diese m&uuml;ssen aber entweder in der
-Konfiguration unter <strong>Pager.CountStatement.Params</strong> oder beim Laden von Eintr&auml;gen
-&uuml;bergeben werden. Das Ergebnis wird im Offset <strong>EntriesCount</strong> erwartet (Aliasing
-erforderlich!). Das Statement sollte daher wie folgt aufgebaut sein
+<p>
+   In den beiden Statements werden jeweils definierte Statement-Parameter erwartet, damit der Pager
+   arbeiten kann. Innerhalb des <em>Load-Entries-Count-Statements</em> k&ouml;nnen beliebiger Parameter
+   eingesetzt werden um das Ergebnis einzuschr&auml;nken. Diese m&uuml;ssen aber entweder in der
+   Konfiguration unter <strong>Pager.CountStatement.Params</strong> oder beim Laden von Eintr&auml;gen
+   &uuml;bergeben werden. Das Ergebnis wird im Offset <strong>EntriesCount</strong> erwartet (Aliasing
+   erforderlich!). Das Statement sollte daher wie folgt aufgebaut sein
+</p>
 <gen:highlight type="sql">
-SELECT COUNT(Spalte) AS EntriesCount ...
+SELECT COUNT({Spalte}) AS EntriesCount ...
 </gen:highlight>
 Im <em>Load-Entry-Statement</em> muss immer eine LIMIT-Klausel der Form
 <gen:highlight type="sql">
@@ -60,20 +65,18 @@ aufgef&uuml;hrt sein. Weiterhin erwartet der Pager auch hier das Ergebnis (ID de
 einem Offset <strong>DB_ID</strong>. Das bedeutet, dass auch in diesem Fall mit einem Alias gearbeitet
 werden muss:
 <gen:highlight type="sql">
-SELECT &lt;Spalte&gt; AS DB_ID ...
+SELECT {Spalte} AS DB_ID ...
 </gen:highlight>
-gearbeitet werden. Weitere Parameter k&ouml;nnen entweder in der Konfiguration unter
-<strong>Pager.EntriesStatement.Params</strong> oder beim Laden von Eintr&auml;gen an den Pager
-&uuml;bergeben werden.
-<br />
-<br />
-Die Parameter k&ouml;nnen in der Form
+<p>
+   gearbeitet werden. Weitere Parameter k&ouml;nnen entweder in der Konfiguration unter
+   <strong>Pager.EntriesStatement.Params</strong> oder beim Laden von Eintr&auml;gen an den Pager
+   &uuml;bergeben werden.
+</p>
+<p>Die Parameter k&ouml;nnen in der Form</p>
 <gen:highlight type="code">
 param1:value1|param2:value2|...
 </gen:highlight>
-definiert werden.
-<br />
-<br />
+<p>definiert werden.</p>
 <strong>Hinweise:</strong>
 <ul>
   <li>
@@ -92,15 +95,21 @@ definiert werden.
     zwischengespeichert und beh&auml;lt so lange G&uuml;ltigkeit, wie die Session besteht.
   </li>
 </ul>
-<br />
+<div class="hint">
+   Die im Release 1.13 hinzugekommene Direktive <em>Pager.AllowDynamicEntriesPerPage</em> aktiviert
+   die Unterst&uuml;tzung des Pagers f&uuml;r dynamische Anzahl von Eintr&auml;gen pro Seite. Dieses
+   ist ab 1.13 aus Sicherheitsgr&uuml;nden standardm&auml;&szlig;ig deaktiviert. 
+</div>
+
 <h3 id="Chapter-3-Anwendungsbeispiel"><a href="#Chapter-3-Anwendungsbeispiel">4.3. Anwendungsbeispiel</a></h3>
-Ein ausf&uuml;hrliches Anwendungsbeispiele findet sich im Kapitel
-<a href="./?Seite=032-Kommentarfunktion#Chapter-4-3-Datenschicht" title="Kommentar-Funktion - 4.3. Datenschicht">Datenschicht</a>
-des Kommentar-Funktion-Tutorials. Dabei wird die
-<a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API</a> des PagerManagers wie
-folgt verwendet:
-<br />
-<br />
+<p>
+   Ein ausf&uuml;hrliches Anwendungsbeispiele findet sich im Kapitel
+   <a href="./?Seite=032-Kommentarfunktion#Chapter-4-3-Datenschicht" title="Kommentar-Funktion - 4.3. Datenschicht">Datenschicht</a>
+   des Kommentar-Funktion-Tutorials. Dabei wird die
+   <a href="./?Seite=002-API-Dokumentation" title="API-Dokumentation">API</a> des PagerManagers wie
+   folgt verwendet:
+<p>
+   
 <h4>3.1. Laden der relevanten IDs:</h4>
 <gen:highlight type="php">
 // PagerManager &uuml;ber die Fabric erzeugen
@@ -119,7 +128,7 @@ for($i = 0; $i < count($IDs); $i++){
  // end for
 }
 </gen:highlight>
-<br />
+
 <h4>3.2. Direktes Laden der Business-Objekte:</h4>
 <gen:highlight type="php">
 // PagerManager &uuml;ber die Fabric erzeugen
@@ -130,5 +139,4 @@ $pM = &$pMF->getPagerManager('{CONFIG_SECTION}');
 $M = &$this->__getServiceObject('namespace::to::data::component','DataMapper');
 $list = $pM->loadEntriesByAppDataComponent($M,'loadDomainObjectByID',array('AddParams' => 'Value'));
 </gen:highlight>
-<br />
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_092" />

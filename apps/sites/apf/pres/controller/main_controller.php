@@ -14,9 +14,6 @@
     */
    class main_controller extends base_controller {
 
-      public function main_controller(){
-      }
-
       /**
        * @public
        *
@@ -33,7 +30,7 @@
        * Version 0.7, 28.03.2008 (Anpassungen wg. neuem URL-Layout)<br />
        * Version 0.8, 21.06.2008 (Replaced APPS__URL_PATH with a value from the Registry)<br />
        */
-      function transformContent(){
+      public function transformContent(){
 
          // get model
          $model = Singleton::getInstance('APFModel');
@@ -82,7 +79,7 @@
          }
 
          // Set additional css class for content wrapper, in case the sidebar
-         // should not be displayed. Thus, the with must be 100%
+         // should not be displayed. Thus, the width must be 100%
          if($model->getDisplaySidebar() === false){
             $this->setPlaceHolder('content-wrapper-class',' class="noSidebar"');
          }
@@ -94,7 +91,7 @@
          $baseUrl = Registry::retrieve('apf::core','URLBasePath');
          $requestUrl = Registry::retrieve('apf::core','CurrentRequestURL');
          $referer = (empty($_SERVER['HTTP_REFERER'])) ? 'n/a' : $_SERVER['HTTP_REFERER'];
-         $this->setPlaceHolder('TrackingPixelUrl',$baseUrl.'/sites_apf_biz-action/stat/lang/'
+         $this->setPlaceHolder('TrackingPixelUrl',$baseUrl.'/3rdparty_statistics-action/stat/lang/'
                  .$pageLang.'/title/'.urlencode($pageName).'/id/'.$pageId
                  .'/url/'.urlencode(urlencode($requestUrl))
                  .'/referer/'.urlencode(urlencode($referer)).'/');

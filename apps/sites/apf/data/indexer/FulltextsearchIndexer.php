@@ -29,9 +29,6 @@
        */
       var $__ContentFolder = '../apps/sites/apf/pres/content';
 
-      function FulltextsearchIndexer() {
-      }
-
       /**
        *  @public
        *
@@ -45,16 +42,16 @@
        *  Version 0.4, 15.10.2008 (Added some characters to the urlname)<br />
        *  Version 0.5, 10.01.2009 (Added the ? to the allowed characters of the title)<br />
        */
-      function importArticles() {
+      public function importArticles() {
 
          $T = &Singleton::getInstance('BenchmarkTimer');
 
          $L = &Singleton::getInstance('Logger');
 
-         $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
+         $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
          $cM = &$this->__getServiceObject('core::database','ConnectionManager');
-         $SQL = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
+         $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          // delete old articles
          $L->logEntry($this->__LogFileName,'[DELETE] Delete articles ...');
@@ -148,17 +145,17 @@
        *  Version 0.1, 09.03.2008<br />
        *  Version 0.2, 03.20.2008 (Changed some details to fit new page structure)<br />
        */
-      function createIndex() {
+      public function createIndex() {
 
          // create logger instance
          $l = &Singleton::getInstance('Logger');
 
          // get configuration
-         $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
+         $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
          // get connection
          $cM = &$this->__getServiceObject('core::database','ConnectionManager');
-         $SQL = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
+         $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          // delete the recent index
          $delete = 'TRUNCATE search_index';
@@ -178,10 +175,10 @@
             $l->logEntry($this->__LogFileName,'[START] Indexing article "'.$data_articles['FileName'].'" (ID: '.$articleId.', Lang: '.$data_articles['Language'].') ...');
 
             // generate html code of the current content
-            $content = $this->__createPageOutput($data_articles['PageID'],$data_articles['FileName'],$data_articles['Language']);
+            $content = $this->createPageOutput($data_articles['PageID'],$data_articles['FileName'],$data_articles['Language']);
 
             // normalize content
-            $content = $this->__normalizeContent($content,$data_articles['Language']);
+            $content = $this->normalizeContent($content,$data_articles['Language']);
 
             // Noch vorhandene W�rter in ein Array verpacken, so dass es duchlaufen werden kann
             // Trennung an Hand von Leer-, Satz- oder Sonderzeichen
@@ -276,14 +273,14 @@
        *  @version
        *  Version 0.1, 06.03.2008<br />
        */
-      function __getWordID($Word) {
+      private function __getWordID($Word) {
 
          // Konfiguration holen
-         $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
+         $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
          // Connection holen
          $cM = &$this->__getServiceObject('core::database','ConnectionManager');
-         $sql = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
+         $sql = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          // Wort selektieren
          $select_word = 'SELECT WordID FROM search_word WHERE Word = \''.$Word.'\'';
@@ -322,7 +319,7 @@
        *  Version 0.1, 09.03.2008<br />
        *  Version 0.2, 03.10.2008 (Introduced the APFModel to be able to use the html:content tag)<br />
        */
-      function __createPageOutput($pageId,$fileName,$lang) {
+      private function createPageOutput($pageId,$fileName,$lang) {
 
          // fill the model
          $model = &Singleton::getInstance('APFModel');
@@ -359,7 +356,7 @@
        *  @version
        *  Version 0.1, 09.03.2008<br />
        */
-      function __normalizeContent($Content,$Language) {
+      private function normalizeContent($Content,$Language) {
 
          // Sonderzeichen ersetzen und normalisieren
          $locSearch[] = '/�/i';

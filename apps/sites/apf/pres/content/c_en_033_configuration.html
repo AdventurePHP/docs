@@ -122,7 +122,7 @@ echo $page->transform();
 </gen:highlight>
 If in any module <em>ConfigurationManager</em> is called by
 <gen:highlight type="php">
-$config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+$config = $this->getConfiguration('modules::mymodule','mymoduleconfig.ini');
 </gen:highlight>
 it would expect the configuration file to reside in the folder
 <gen:highlight type="code">
@@ -192,8 +192,8 @@ Key3 = "Value3"
 </gen:highlight>
 So the developer can fetch the content of the configuration file by placing the code
 <gen:highlight type="php">
-$Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
-echo printObject($Config->getConfiguration());
+$Config = $this->getConfiguration('modules::mymodule','mymoduleconfig.ini');
+echo printObject($Config);
 </gen:highlight>
 in any component of the application. The "echo" results in
 <gen:highlight type="code">
@@ -216,7 +216,7 @@ Array
 </gen:highlight>
 With the use of
 <gen:highlight type="php">
-$Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
+$Config = $this->getConfiguration('modules::mymodule','mymoduleconfig.ini');
 echo printObject($Config->getSection('Section2'));
 </gen:highlight>
 the array
@@ -230,8 +230,8 @@ Array
 </gen:highlight>
 is printed and
 <gen:highlight type="php">
-$Config = &$this->__getConfiguration('modules::mymodule','mymoduleconfig');
-echo $Config->getValue('Section1','Key2');
+$Config = $this->getConfiguration('modules::mymodule','mymoduleconfig.ini');
+echo $Config->getSection('Section1')->getValue('Key2');
 </gen:highlight>
 displays
 <gen:highlight type="code">
@@ -331,10 +331,10 @@ Here the statical texts are exchanged with XML tags that print the values config
 (e.g. for email dipatching) these values can be gathered by placing the following code in your
 controller
 <gen:highlight type="php">
-$Config = &$this->__getConfiguration('modules::mymodule','mymodule_lang');
-echo '<br />Form.Name: '.$Config->getValue($this->__Language,'Form.Name');
-echo '<br />Form.EMail: '.$Config->getValue($this->__Language,'Form.EMail');
-echo '<br />Form.Subject: '.$Config->getValue($this->__Language,'Form.Subject');
+$Config = $this->getConfiguration('modules::mymodule','mymodule_lang.ini');
+echo '<br />Form.Name: '.$Config->getSection($this->__Language)->getValue('Form.Name');
+echo '<br />Form.EMail: '.$Config->getSection($this->__Language)->getValue('Form.EMail');
+echo '<br />Form.Subject: '.$Config->getSection($this->__Language)->getValue('Form.Subject');
 </gen:highlight>
 The <em>echo</em> provided here is just placed there to demonstrate the functionality. In real life
 applications, the values printed out are used to fill place holders in templates such as
@@ -348,13 +348,13 @@ applications, the values printed out are used to fill place holders in templates
 by writing down the code
 <gen:highlight type="php">
 // Read configuration
-$Config = &$this->__getConfiguration('modules::mymodule','mymodule_lang');
+$Config = $this->getConfiguration('modules::mymodule','mymodule_lang.ini');
 
 // Get the reference of the template
 $Template__MyTemplate = &$this->__getTemplate('MyTemplate');
 
 // Fill placeholder "FormHeader"
-$Template__MyTemplate->setPlaceHolder('FormHeader',$Config->getValue($this->__Language,'Form.Name'));
+$Template__MyTemplate->setPlaceHolder('FormHeader',$Config->getSection($this->__Language)->getValue('Form.Name'));
 </gen:highlight>
 More examples can be seen in the <a href="./?Page=057-Guestbook-tutorial" title="guestbook tutorial">guestbook tutorial</a>.
 <br />

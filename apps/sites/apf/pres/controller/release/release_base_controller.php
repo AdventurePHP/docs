@@ -465,8 +465,8 @@
 
          // Generate changeset link. This is a link on the changeset page with the current
          // release as it's param.
-         $config = &$this->__getConfiguration('sites::apf::pres','labels');
-         $title = $config->getValue($this->__Language,'downloads.changeset.text.linktext');
+         $config = $this->getConfiguration('sites::apf::pres','labels.ini');
+         $title = $config->getSection($this->getLanguage())->getValue('downloads.changeset.text.linktext');
          $title .= $releaseNumber;
 
          $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');

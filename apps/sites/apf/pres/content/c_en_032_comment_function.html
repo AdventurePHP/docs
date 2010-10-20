@@ -286,8 +286,8 @@ class commentMapper extends APFObject {
 
    private function &__getConnection(){
       $cM = &$this->__getServiceObject('core::database','ConnectionManager');
-      $config = $this->__getConfiguration('modules::comments','comments');
-      $connectionKey = $config->getValue('Default','Database.ConnectionKey');
+      $config = $this->getConfiguration('modules::comments','comments');
+      $connectionKey = $config->getSection('Default')->getValue('Database.ConnectionKey');
       return $cM->getConnection($connectionKey);
    }
 
@@ -728,7 +728,7 @@ class comment_listing_v1_controller extends commentBaseController {
              FrontcontrollerLinkHandler::generateLink(
                                        $_SERVER['REQUEST_URI'],
                                        array(
-                                             $urlParams['StartName'] => '',
+                                             $urlParams['PageName'] => '',
                                              $urlParams['CountName'] => '',
                                              'coview' => 'form'
                                        )
@@ -945,9 +945,9 @@ class comment_form_v1_controller extends commentBaseController {
          $form = &$this->__getForm('AddComment');
          $form->setAttribute('action',$_SERVER['REQUEST_URI'].'#comments');
 
-         $config = &$this->__getConfiguration('modules::comments','language');
+         $config = $this->getConfiguration('modules::comments','language.ini');
          $button = &$form->getFormElementByName('Save');
-         $button->setAttribute('value',$config->getValue($this->__Language,'form.button'));
+         $button->setAttribute('value',$config->getSection($this->__Language)->getValue('form.button'));
 
          $form->transformOnPlace();
 

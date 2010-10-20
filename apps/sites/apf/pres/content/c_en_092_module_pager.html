@@ -3,53 +3,59 @@
   To provide paging functionality, the pager is included in the modules comment function and
   guestbook.
 </doku:title>
-The pager component is a backend tool, that can be used to control the loading of database objects.
-To provide paging functionality, the pager is included in the modules <em>comment function</em> and
-<em>guestbook</em>. Below the intent and the functionalities are described in detail.
-<br />
-<br />
-<br />
+<p>
+   The pager component is a backend tool, that can be used to control the loading of database objects.
+   To provide paging functionality, the pager is included in the modules <em>comment function</em> and
+   <em>guestbook</em>. Below the intent and the functionalities are described in detail.
+</p>
+
 <h3 id="Chapter-1-Usage"><a href="#Chapter-1-Usage">1. Usage</a></h3>
-The pager merely consists of a business component (<strong>PagerManager</strong>), a presentation
-layer component that generates the HTML code of the pager widget (DocumentController
-<strong>pager_v1_controller</strong> and <strong>pager_2_v1_controller</strong>) and a data layer
-module that gathers information that are needed in the busines tier. To use the pager, it must be
-created by using the <strong>PagerManagerFabric</strong>.
-<br />
-<br />
-<br />
+<p>
+   The pager merely consists of a business component (<strong>PagerManager</strong>), a presentation
+   layer component that generates the HTML code of the pager widget (DocumentController
+   <strong>pager_v1_controller</strong> and <strong>pager_2_v1_controller</strong>) and a data layer
+   module that gathers information that are needed in the busines tier. To use the pager, it must be
+   created by using the <strong>PagerManagerFabric</strong>.
+</p>
+
 <h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration</a></h3>
-To be able to use a PagerManager for loading database objects it must be configured properly. Therefore
-the developer must create one configuration file and at two statement files. The config file envelops
-the following parameters:
-<gen:highlight type="apf-xml">
-[&lt;SectionName&gt;]
-Pager.DatabaseConnection = "&lt;ConnectionKey&gt;"
+<p>
+   To be able to use a PagerManager for loading database objects it must be configured properly. Therefore
+   the developer must create one configuration file and at two statement files. The config file envelops
+   the following parameters:
+</p>
+<gen:highlight type="ini">
+[{SectionName}]
+Pager.DatabaseConnection = "ConnectionKey"
 
-Pager.EntriesPerPage = "&lt;Objects per page&gt;"
+Pager.EntriesPerPage = "{Objects per page}"
 
-Pager.ParameterStartName = "&lt;URL parameter for the start parameter&gt;"
-Pager.ParameterCountName = "&lt;URL parameter for the count parameter&gt;"
+Pager.ParameterPageName = "{URL parameter for the page parameter}"
+Pager.ParameterCountName = "{URL parameter for the entries per page parameter}"
 
-Pager.StatementNamespace = "&lt;Statement namespace&gt;"
-Pager.CountStatement = "&lt;Load-Entries-Count statement&gt;"
-Pager.CountStatement.Params = "&lt;Statement parameter&gt;"
-Pager.EntriesStatement = "&lt;Statement parameter&gt;"
-Pager.EntriesStatement.Params = "&lt;Load-Entry statement&gt;"
+Pager.StatementNamespace = "{Statement namespace}"
+Pager.CountStatement = "{Load-Entries-Count statement}"
+Pager.CountStatement.Params = "{Statement parameter}"
+Pager.EntriesStatement = "{Statement parameter}"
+Pager.EntriesStatement.Params = "{Load-Entry statement}"
 
-Pager.DesignNamespace = "&lt;Namespace of the pres template&gt;"
-Pager.DesignTemplate = "&lt;Template name&gt;"
+Pager.DesignNamespace = "{Namespace of the pres template}"
+Pager.DesignTemplate = "{Template name}"
 
 Pager.CacheInSession = "true|false"
+
+Pager.AllowDynamicEntriesPerPage = "true|false"
 </gen:highlight>
-Both of the statement files must contain a set of parameters, that can be filled by the PagerManager.
-Within the <em>load entries count statements</em> various parameters can be used to delimit the result
-set. These can be defined by the <strong>Pager.CountStatement.Params</strong> directive or while
-loading ids or business objects with the <em>PagerManager</em>. The result of the query is
-expected in the result offset <strong>EntriesCount</strong> (aliasing necessary!). Hence, the
-statement must contain an alias like this:
+<p>
+   Both of the statement files must contain a set of parameters, that can be filled by the PagerManager.
+   Within the <em>load entries count statements</em> various parameters can be used to delimit the result
+   set. These can be defined by the <strong>Pager.CountStatement.Params</strong> directive or while
+   loading ids or business objects with the <em>PagerManager</em>. The result of the query is
+   expected in the result offset <strong>EntriesCount</strong> (aliasing necessary!). Hence, the
+   statement must contain an alias like this:
+</p>
 <gen:highlight type="sql">
-SELECT COUNT(row) AS EntriesCount ...
+SELECT COUNT({row}) AS EntriesCount ...
 </gen:highlight>
 The <em>Load-Entry statement</em> must always contain the LIMIT clause
 <gen:highlight type="sql">
@@ -58,7 +64,7 @@ LIMIT [Start],[EntriesCount]
 Further, the pager expects the result of the <em>load entry statement</em> to be stored in the offset
 <strong>DB_ID</strong>. Therefore the sql query must contain an alias definition like this:
 <gen:highlight type="sql">
-SELECT &lt;row&gt; AS DB_ID ...
+SELECT {row} AS DB_ID ...
 </gen:highlight>
 Other parameters must be configured using the <strong>Pager.EntriesStatement.Params</strong> directive
 or while loading data with the <em>PagerManager</em>.
@@ -86,7 +92,11 @@ param1:value1|param2:value2|...
     thus valid as long as the session exists.
   </li>
 </ul>
-<br />
+<div class="hint">
+   The configuration directive <em>Pager.AllowDynamicEntriesPerPage</em> added in 1.13 activates the
+   dynamic entries per page feature. By default this facility is deactivated for secutity reasons.
+</div>
+
 <h3 id="Chapter-3-Example"><a href="#Chapter-3-Example">3. Example of use</a></h3>
 A detailed description on the function of this modul and its usage can be found in the
 <a href="./?Page=032-Comment-function-tutorial#Chapter-4-3-Data-layer" title="Comment function - 4.3. Data layer">data layer chapter</a>
@@ -123,5 +133,4 @@ $pM = &$pMF->getPagerManager('{CONFIG_SECTION}');
 $M = &$this->__getServiceObject('namespace::to::data::component','DataMapper');
 $list = $pM->loadEntriesByAppDataComponent($M,'loadDomainObjectByID',array('AddParams' => 'Value'));
 </gen:highlight>
-<br />
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_092" />

@@ -52,8 +52,8 @@
 
       private function getReleaseHeader($releaseNumber){
          $title = (string)'<h2>';
-         $config = &$this->__getConfiguration('sites::apf::pres','labels');
-         $title .= $config->getValue($this->__Language,'downloads.changeset.text.heading');
+         $config = $this->getConfiguration('sites::apf::pres','labels');
+         $title .= $config->getSection($this->getLanguage())->getValue('downloads.changeset.text.heading');
          return $title.$releaseNumber.'</h2>';
       }
 

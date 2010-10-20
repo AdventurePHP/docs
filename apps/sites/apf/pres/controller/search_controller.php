@@ -15,9 +15,6 @@
     */
    class search_controller extends base_controller {
 
-      function search_controller(){
-      }
-
       /**
        * @public
        *
@@ -33,7 +30,7 @@
        * Version 0.6, 03.10.2008 (Addapted to the new page structure; removed deactivation)<br />
        * Version 0.7, 
        */
-      function transformContent(){
+      public function transformContent(){
 
          // register search content
          $searchTerm = RequestHandler::getValue('search','');
@@ -52,7 +49,7 @@
             $searchResults = $m->loadSearchResult($searchTerm);
 
             // load language config
-            $config = &$this->__getConfiguration('sites::apf::biz','language');
+            $config = $this->getConfiguration('sites::apf::biz','language.ini');
 
             // initialize buffer
             $buffer = (string)'';
@@ -74,7 +71,7 @@
                $template->setPlaceHolder('Title',$title);
 
                // display content language
-               $resultLang = $config->getValue($this->__Language,'DisplayName.'.$searchResults[$i]->getLanguage());
+               $resultLang = $config->getSection($this->__Language)->getValue('DisplayName.'.$searchResults[$i]->getLanguage());
                $template->setPlaceHolder('Language',$resultLang);
 
                // display last modifying date --> refactor!

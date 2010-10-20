@@ -215,13 +215,13 @@ sprachabh&auml;ngige Texte zur Anzeige zu bringen. In diesem Fall muss im Docume
 Einfluss auf die Beschriftung genommen werden. Dies kann mit folgenden Code passieren:
 <gen:highlight type="php">
 // Sprachabh&auml;ngige Konfiguration laden
-$Config = &$this->__getConfiguration('modules::kontakt4','language');
+$Config = $this->getConfiguration('modules::kontakt4','language.ini');
 
 // Referenz auf das Button-Control holen
 $Button = &$Form->getFormElementByName('KontaktSenden');
 
 // Sprachabh&auml;ngigen Text mit Hilfe von $this->__Language auslesen
-$Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
+$Button->setAttribute('value',$Config->getSection($this->__Language)->getValue('form.button'));
 </gen:highlight>
 <br />
 <h4 id="Chapter-2-3-Struktur-des-Moduls"><a href="#Chapter-2-3-Struktur-des-Moduls">2.3. Struktur des Moduls</a></h4>
@@ -538,16 +538,16 @@ class kontakt_v4_controller extends base_controller {
       $Form__Kontakt->setAttribute('action',$_SERVER['REQUEST_URI']);
 
       // Button beschriften und formatieren
-      $Config = &$this->__getConfiguration('modules::kontakt4','language');
+      $Config = $this->getConfiguration('modules::kontakt4','language.ini');
       $Button = &$Form__Kontakt->getFormElementByName('KontaktSenden');
-      $Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
-      $Button->setAttribute('style',$Config->getValue($this->__Language,'form.button.style'));
+      $Button->setAttribute('value',$Config->getSection($this->__Language)->getValue('form.button'));
+      $Button->setAttribute('style',$Config->getSection($this->__Language)->getValue('form.button.style'));
 
       // Bild in der ValidatorGroup setzen (Auslesen der formconfig)
-      $Config = &$this->__getConfiguration('tools::form::taglib','formconfig');
+      $Config = $this->getConfiguration('tools::form::taglib','formconfig.ini');
       $ValGroup = &$Form__Kontakt->getFormElementByName('FormValGroup');
-      $ValGroup->setPlaceHolder('WarnImage',$Config->getValue($this->__Language,'Contact.Warning.Image'));
-      $ValGroup->setPlaceHolder('WarnText',$Config->getValue($this->__Language,'Contact.Warning.Text'));
+      $ValGroup->setPlaceHolder('WarnImage',$Config->getSection($this->__Language)->getValue('Contact.Warning.Image'));
+      $ValGroup->setPlaceHolder('WarnText',$Config->getSection($this->__Language)->getValue('Contact.Warning.Text'));
 
       // Auswahlfeld Person
       $Recipients = & $Form__Kontakt->getFormElementByName('Empfaenger');
@@ -637,10 +637,10 @@ Sprache den entsprechenden zweistelligen ISO-L&auml;ndercode beinhaltet, der als
 Sprachsektion in der Konfigurationsdatei gew&auml;hlt wurde. Im vorliegenden DocumentController wird
 das F&uuml;llen der beiden Platzhalter per
 <gen:highlight type="php">
-$Config = &$this->__getConfiguration('tools::form::taglib','formconfig');
+$Config = $this->getConfiguration('tools::form::taglib','formconfig.ini');
 $ValGroup = &$Form__Kontakt->getFormElementByName('FormValGroup');
-$ValGroup->setPlaceHolder('WarnImage',$Config->getValue($this->__Language,'Contact.Warning.Image'));
-$ValGroup->setPlaceHolder('WarnText',$Config->getValue($this->__Language,'Contact.Warning.Text'));
+$ValGroup->setPlaceHolder('WarnImage',$Config->getSection($this->__Language)->getValue('Contact.Warning.Image'));
+$ValGroup->setPlaceHolder('WarnText',$Config->getSection($this->__Language)->getValue('Contact.Warning.Text'));
 </gen:highlight>
 erledigt.
 <br />
@@ -766,42 +766,38 @@ import('modules::kontakt4::biz','oRecipient');
 
 class contactMapper extends APFObject {
 
-   function loadRecipients(){
+   public function loadRecipients(){
 
       // read config
-      $Config = $this->__getConfiguration('modules::kontakt4','empfaenger');
-
-      // read relevant section
-      $Sections = $Config->getConfiguration();
+      $Config = $this->getConfiguration('modules::kontakt4','empfaenger.ini');
 
       // initialize return array
       $Recipients = array();
 
       // parse config and generate recipients
-      foreach($Config->getConfiguration() as $Key => $Values){
+      foreach($Config->getSectionNames() as $name){
 
          $Count = count($Recipients);
          $Recipients[$Count] = new oRecipient();
 
          // id
-         preg_match("/Kontakt ([0-9]+)/i",$Key,$Matches);
+         preg_match("/Kontakt ([0-9]+)/i",$name,$Matches);
          $Recipients[$Count]->set('oID',$Matches[1]);
 
          // name
-         $Recipients[$Count]->set('Name',$Values['EmpfaengerName']);
+         $Recipients[$Count]->set('Name',$Config->getSection($name)->getValue('EmpfaengerName'));
 
          // email
-         $Recipients[$Count]->set('Adresse',$Values['EmpfaengerAdresse']);
+         $Recipients[$Count]->set('Adresse',$Config->getSection($name)->getValue('EmpfaengerAdresse'));
 
       }
-
 
       // return recipient list
       return $Recipients;
 
    }
 
-   function loadRecipientPerId($Id){
+   public function loadRecipientPerId($Id){
 
       $Rec = $this->loadRecipients();
 

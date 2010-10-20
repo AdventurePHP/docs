@@ -5,10 +5,10 @@
       
       public function createSitemap(){
 
-         $config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
+         $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
          $cM = &$this->__getServiceObject('core::database','ConnectionManager');
-         $sql = &$cM->getConnection($config->getValue('Database','ConnectionKey'));
+         $sql = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          $select = 'SELECT PageID,URLName,Language,ModificationTimestamp,Title FROM search_articles ORDER BY PageID ASC';
          $result = $sql->executeTextStatement($select);

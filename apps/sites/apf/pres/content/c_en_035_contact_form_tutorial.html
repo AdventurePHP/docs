@@ -210,13 +210,13 @@ like buttons. In this case the labelling must be done within a document controll
 code shows how to achieve this:
 <gen:highlight type="php">
 // Load language dependent configuration
-$Config = &$this->__getConfiguration('modules::kontakt4','language');
+$Config = $this->getConfiguration('modules::kontakt4','language');
 
 // Get a reference on the desired form control
 $Button = &$Form->getFormElementByName('KontaktSenden');
 
 // Set the value attribute of the control using the $this->__Language member
-$Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
+$Button->setAttribute('value',$Config->getSection($this->__Language)->getValue('form.button'));
 </gen:highlight>
 <br />
 <h4 id="Chapter-2-3-Structure-of-the-module"><a href="#Chapter-2-3-Structure-of-the-module">2.3. Structure of the module</a></h4>
@@ -471,7 +471,7 @@ class kontakt_v4_controller extends base_controller {
 
    var $_LOCALS;
 
-   function kontakt_v4_controller(){
+   public function kontakt_v4_controller(){
 
       $this->_LOCALS = RequestHandler::getValues(array('Empfaenger',
                                                              'AbsenderName',
@@ -483,7 +483,7 @@ class kontakt_v4_controller extends base_controller {
 
    }
 
-   function transformContent(){
+   public function transformContent(){
 
       // get form object
       $Form = &$this->__getForm('Kontakt');
@@ -524,16 +524,16 @@ class kontakt_v4_controller extends base_controller {
       $Form__Kontakt->setAttribute('action',$_SERVER['REQUEST_URI']);
 
       // sign and format button
-      $Config = &$this->__getConfiguration('modules::kontakt4','language');
+      $Config = $this->getConfiguration('modules::kontakt4','language.ini');
       $Button = &$Form__Kontakt->getFormElementByName('KontaktSenden');
-      $Button->setAttribute('value',$Config->getValue($this->__Language,'form.button'));
-      $Button->setAttribute('style',$Config->getValue($this->__Language,'form.button.style'));
+      $Button->setAttribute('value',$Config->getSection($this->__Language)->getValue('form.button'));
+      $Button->setAttribute('style',$Config->getSection($this->__Language)->getValue('form.button.style'));
 
       // insert image link for validator group
-      $Config = &$this->__getConfiguration('tools::form::taglib','formconfig');
+      $Config = &$this->getConfiguration('tools::form::taglib','formconfig.ini');
       $ValGroup = &$Form__Kontakt->getFormElementByName('FormValGroup');
-      $ValGroup->setPlaceHolder('WarnImage',$Config->getValue($this->__Language,'Contact.Warning.Image'));
-      $ValGroup->setPlaceHolder('WarnText',$Config->getValue($this->__Language,'Contact.Warning.Text'));
+      $ValGroup->setPlaceHolder('WarnImage',$Config->getSection($this->__Language)->getValue('Contact.Warning.Image'));
+      $ValGroup->setPlaceHolder('WarnText',$Config->getSection($this->__Language)->getValue('Contact.Warning.Text'));
 
       // get select field
       $Recipients = & $Form__Kontakt->getFormElementByName('Empfaenger');
@@ -616,10 +616,10 @@ selected on page controller or front controller startup or during front controll
 The member variable contains a two letter ISO country code. Within the current document controller
 this task is done by the following source code:
 <gen:highlight type="php">
-   $Config = &$this->__getConfiguration('tools::form::taglib','formconfig');
+   $Config = $this->getConfiguration('tools::form::taglib','formconfig.ini');
    $ValGroup = &$Form__Kontakt->getFormElementByName('FormValGroup');
-   $ValGroup->setPlaceHolder('WarnImage',$Config->getValue($this->__Language,'Contact.Warning.Image'));
-   $ValGroup->setPlaceHolder('WarnText',$Config->getValue($this->__Language,'Contact.Warning.Text'));
+   $ValGroup->setPlaceHolder('WarnImage',$Config->getSection($this->__Language)->getValue('Contact.Warning.Image'));
+   $ValGroup->setPlaceHolder('WarnText',$Config->getSection($this->__Language)->getValue('Contact.Warning.Text'));
 </gen:highlight>
 <br />
 At the end of the method the form object is transformed and returnd to the calling method.
@@ -737,32 +737,29 @@ import('modules::kontakt4::biz','oRecipient');
 
 class contactMapper extends APFObject {
 
-   function loadRecipients(){
+   public function loadRecipients(){
 
       // read config
-      $Config = $this->__getConfiguration('modules::kontakt4','empfaenger');
-
-      // read relevant section
-      $Sections = $Config->getConfiguration();
+      $Config = $this->getConfiguration('modules::kontakt4','empfaenger.ini');
 
       // initialize return array
       $Recipients = array();
 
       // parse config and generate recipients
-      foreach($Config->getConfiguration() as $Key => $Values){
+      foreach($Config->getSectionNames() as $name){
 
          $Count = count($Recipients);
          $Recipients[$Count] = new oRecipient();
 
          // id
-         preg_match("/Kontakt ([0-9]+)/i",$Key,$Matches);
+         preg_match("/Kontakt ([0-9]+)/i",$name,$Matches);
          $Recipients[$Count]->set('oID',$Matches[1]);
 
          // name
-         $Recipients[$Count]->set('Name',$Values['EmpfaengerName']);
+         $Recipients[$Count]->set('Name',$Config->getSection($name)->getValue('EmpfaengerName'));
 
          // email
-         $Recipients[$Count]->set('Adresse',$Values['EmpfaengerAdresse']);
+         $Recipients[$Count]->set('Adresse',$Config->getSection($name)->getValue('EmpfaengerAdresse'));
 
       }
 
@@ -771,7 +768,7 @@ class contactMapper extends APFObject {
 
    }
 
-   function loadRecipientPerId($Id){
+   public function loadRecipientPerId($Id){
 
       $Rec = $this->loadRecipients();
 

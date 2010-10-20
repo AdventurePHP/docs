@@ -11,9 +11,6 @@
     */
    class FulltextsearchMapper extends APFObject {
 
-      public function fulltextsearchMapper() {
-      }
-
       /**
        * @public
        *
@@ -35,22 +32,21 @@
          $T->start('fulltextsearchMapper::loadSearchResult()');
 
          // get configuration
-         $Config = &$this->__getConfiguration('sites::apf::biz','fulltextsearch');
+         $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
          // get database connection
          $cM = &$this->__getServiceObject('core::database','ConnectionManager');
-         $SQL = &$cM->getConnection($Config->getValue('Database','ConnectionKey'));
+         $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          // make search string save (sql injection)
          $searchString = $SQL->escapeValue($searchString);
 
          // do synonym mapping
-         $synonyms = &$this->__getConfiguration('sites::apf::biz','fulltextsearch_synonyms');
+         $synonyms = $this->getConfiguration('sites::apf::biz','fulltextsearch_synonyms.ini');
          $section = $synonyms->getSection($this->__Language);
          
-         foreach($section as $key => $value) {
-            $searchString = str_replace($key,$value,$searchString);
-          // end foreach
+         foreach($section->getValueNames() as $name) {
+            $searchString = str_replace($name, $section->getValue($name), $searchString);
          }
 
          // split search strings
@@ -89,7 +85,7 @@
          $Results = array();
 
          while($data = $SQL->fetchData($result)) {
-            $Results[] = $this->__mapSearchResult2DomainObject($data);
+            $Results[] = $this->mapSearchResult2DomainObject($data);
             // end while
          }
 
@@ -115,7 +111,7 @@
        * Version 0.1, 10.03.2008<br />
        * Version 0.2, 02.10.2008 (Added some new domain object attributes)<br />
        */
-      private function __mapSearchResult2DomainObject($resultSet) {
+      private function mapSearchResult2DomainObject($resultSet) {
 
          $searchResult = new searchResult();
 
