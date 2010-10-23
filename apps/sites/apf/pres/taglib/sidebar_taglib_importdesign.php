@@ -12,8 +12,8 @@
     */
    class sidebar_taglib_importdesign extends core_taglib_importdesign {
 
-      public function sidebar_taglib_importdesign(){
-         parent::core_taglib_importdesign();
+      public function __construct(){
+         parent::__construct();
       }
 
       /**

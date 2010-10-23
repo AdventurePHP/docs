@@ -24,12 +24,11 @@
        * @version
        * Version 0.1, 30.12.2009<br />
        */
-      public function rev_taglib_history(){
-         parent::Document();
+      public function __construct(){
+         parent::__construct();
          $this->__TagLibs[] = new Taglib('sites::apf::pres::taglib','int','link');
          $this->__TagLibs[] = new Taglib('sites::apf::pres::taglib','doku','link');
          $this->__TagLibs[] = new Taglib('sites::apf::pres::taglib','gen','highlight');
-       // end function
       }
 
       public function onParseTime(){

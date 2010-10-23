@@ -28,10 +28,10 @@
        * Version 0.1, 28.03.2008<br />
        * Version 0.2, 19.09.2008(Added several taglibs)<br />
        */
-      function html_taglib_content(){
+      public function __construct(){
 
          // call the parent constructor
-         parent::Document();
+         parent::__construct();
 
          // include the additional tag libs
          $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib','gen','highlight');
@@ -52,7 +52,7 @@
        * Version 0.1, 28.03.2008<br />
        * Version 0.2, 17.09.2008 (Changed function to fit new model structure)<br />
        */
-      function onParseTime(){
+      public function onParseTime(){
 
          // get model
          $model = Singleton::getInstance('APFModel');

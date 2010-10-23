@@ -14,8 +14,8 @@
     */
    class news_taglib_appendnode extends core_taglib_appendnode {
 
-      public function news_taglib_appendnode(){
-         parent::core_taglib_appendnode();
+      public function __construct(){
+         parent::__construct();
       }
 
       /**
