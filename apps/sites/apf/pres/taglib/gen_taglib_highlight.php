@@ -82,10 +82,14 @@
                $cssClass = self::$CSS;
                break;
 
+            case self::$SQL:
+               $title = 'SQL-Statement';
+               $cssClass = self::$SQL;
+               break;
+
             default:
                break;
                
-          // end switch
          }
 
          return '<div class="listing '.$cssClass.'"><div class="codeHeading">'.$title.'</div><code>'.$content.'</code></div>';
