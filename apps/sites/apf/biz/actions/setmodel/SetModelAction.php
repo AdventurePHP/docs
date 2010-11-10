@@ -15,9 +15,6 @@
    class SetModelAction extends AbstractFrontcontrollerAction {
 
       private static $ABOUT_PAGEID = '073';
-      
-      function SetModelAction(){
-      }
 
       /**
        * @public
@@ -31,7 +28,7 @@
        * Version 0.3, 19.09.2008 (Title is now set by the &lt;doku:title /&gt;-Tag)<br />
        * Version 0.4, 31.01.2009 (Removed the variablenHandler)<br />
        */
-      function run(){
+      public function run(){
 
          $model = Singleton::getInstance('APFModel');
 
