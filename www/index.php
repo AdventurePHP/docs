@@ -58,7 +58,7 @@
 
    $fC->registerAction('sites::apf::biz','setModel');
 
-   $fC->start('sites::apf::pres::templates','main');
+   echo $fC->start('sites::apf::pres::templates','main');
 
    // display benchmark report on demand
    if(isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true'){
