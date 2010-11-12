@@ -1,79 +1,85 @@
-<doku:title parent="119" tags="dokumentation,klassen referenz,klassen,referenz,singleton,cachemanager" title="CacheManager" urlname="CacheManager">
-  Die neue Implementierung des CacheManager bietet gegen&uuml;ber der bisherigen Komponenten variable
-  Ziele, frei implementierbare Provider sowie Methoden zum verwalten des Caches.
+<doku:title parent="119" tags="cache,key,performance,optimierung,klassen referenz,klassen,referenz,singleton,cachemanager" title="CacheManager" urlname="CacheManager">
+   Der CacheManager ist eine einfach zu erweiternde Komponente zur Verwaltung von Caches. Durch die
+   Möglichkeit, eigene CacheKeys und CacheProvider zu implementieren kann er für alle denkbaren
+   Zwecke eingesetzt werden.
 </doku:title>
-Wie der <a href="./?Seite=042-Roadmap" title="Roadmap">Roadmap</a> zu entnehmen ist, beinhaltet die
-Version 1.8 das Redesign des Cache-Managers. Nachteil der bisherigen Implementierung war die starre
-Handhabung der jeweiligen Cache-Klassen und die suboptimale M&ouml;glichkeit der Erweiterung
-derselben.
-<br />
-<br />
-Der neu implementierte <em>CacheManager</em> ist daher einfach gehalten, bietet jedoch eine sehr
-einfache und zugleich m&auml;chtige M&ouml;glichkeit, diesen zu erweitern. Der <em>CacheManager</em>
-selbst k&uuml;mmert sich dabei nur um die Verwaltung und Initialisierung der <strong>CacheProvider</strong>,
-die sich letztlich um die Funktion des Lesens, Schreibens und L&ouml;schen von Cache-Inhalten
-k&uuml;mmern. Im Release sind bereits wichtige <strong>Provider</strong> und eine abstrakte
-Definition zur Implementierung von eigenen Providern enthalten.
-<br />
-<br />
-<br />
+<p>
+   Der <em>CacheManager</em> k&uuml;mmert sich um die Verwaltung und Initialisierung der 
+   <em>CacheProvider</em>, die sich letztlich um die Funktion des Lesens, Schreibens und
+   L&ouml;schen von Cache-Inhalten k&uuml;mmern. Im Release sind bereits wichtige
+   <em>Provider</em> und eine abstrakte Definition zur Implementierung von eigenen Providern enthalten.
+</p>
+<p>
+   Als &quot;Adresse&quot; von Cache-Einträgen werden seit dem Release 1.13 sogenannte <em>CacheKeys</em>
+   eingesetzt. Dieses definieren einen beliebig komplexen Schlüssel, der für das Laden und Speichern
+   von Objekten (einfache Zeichen, Objekte, Listen, ...) als eindeutiger Key gilt.
+</p>
+
 <h3 id="Chapter-1-Konfiguration"><a href="#Chapter-1-Konfiguration">1. Konfiguration</a></h3>
-Der <strong>CacheManager</strong> erwartet eine Konfigurationsdatei im Namespace
-<strong>tools::cache</strong>, dem aktuellen Context und dem Namen <strong>cacheconfig</strong>.
-F&uuml;r die Verwendung des <strong>CacheManager</strong>s ist jeweils eine minimale Sektion der Form
+<p>
+   Der <em>CacheManager</em> erwartet die Konfigurationsdatei <em>cacheconfig.ini</em> im Namespace
+   <em>tools::cache</em>. F&uuml;r die Verwendung des <em>CacheManager</em>s ist jeweils eine
+   minimale Sektion der Form
+</p>
 <gen:highlight type="ini">
 [my_cache_instance]
 Cache.Provider.Namespace = ""
 Cache.Provider.Class = ""
 Cache.Active = ""
 </gen:highlight>
-anzulegen. <strong>Cache.Provider.Namespace</strong> definiert den Namespace und
-<strong>Cache.Provider.Class</strong> den Namen des zu verwendenden Cache-Providers. Die Diretive
-<strong>Cache.Active</strong> definiert, ob der Caching-Mechanismus aktiv ist oder nicht. Hierbei
-befindet sich der <em>CacheManager</em> im Status "aktiv", wenn die Direktive "true" beinhaltet.
-<br />
-<br />
-Je nach Provider m&uuml;ssen weitere Parameter definiert werden. Diese k&ouml;nnen in den folgenden
-Kapiteln nachgelesen werden.
-<br />
-<br />
-<br />
+<p>
+   notwendig. Der Schlüssel <em>Cache.Provider.Namespace</em> definiert den Namespace und
+   <em>Cache.Provider.Class</em> den Namen des zu verwendenden Cache-Providers. Die Direktive
+   <em>Cache.Active</em> definiert, ob der Caching-Mechanismus aktiv ist oder nicht. Wenn die
+   Direktive "true" beinhaltet befindet sich der <em>CacheManager</em> im Status "aktiv".
+</p>
+<p>
+   Je nach Provider m&uuml;ssen weitere Parameter definiert werden. Diese k&ouml;nnen in den 
+   folgenden Kapiteln nachgelesen werden.   
+</p>
+
 <h3 id="Chapter-2-Anwendung"><a href="#Chapter-2-Anwendung">2. Anwendung</a></h3>
-Da es m&ouml;glich sein soll, mehrere Cache-Manager-Instanzen innerhalb einer Anwendung zu verwenden
-wurde eine Factory zur Erzeugung und Verwaltung der konkreten Instanzen einef&uuml;hrt. Diese besitzt
-die Methode <strong>getCacheManager()</strong> um einen f&uuml;r den gew&uuml;nschten Anwendungsfall
-konfigurierten CacheManager zu erzeugen. Die <strong>CacheManagerFabric</strong> wird dabei als
-Singleton erzeugt um bei einem erneuten Aufruf der Komponente keinen Initialisierungsaufwand mehr
-betreiben zu m&uuml;ssen - Caching muss schlie&szlig;lich performant sein!
-<br />
-<br />
-Die folgende Code-Box zeigt einen typischen Anwendungsfall des CacheManagers:
+<p>
+   Da es m&ouml;glich sein soll, mehrere Cache-Manager-Instanzen innerhalb einer Anwendung zu 
+   verwenden wurde eine Factory zur Erzeugung und Verwaltung der konkreten Instanzen einef&uuml;hrt.
+   Diese besitzt die Methode <em>getCacheManager()</em> um einen f&uuml;r den gew&uuml;nschten
+   Anwendungsfall konfigurierten CacheManager zu erzeugen. Die <em>CacheManagerFabric</em> wird
+   dabei als Singleton erzeugt um bei einem erneuten Aufruf der Komponente keinen
+   Initialisierungsaufwand mehr betreiben zu m&uuml;ssen - Caching muss schlie&szlig;lich
+   performant sein!
+</p>
+<p>Die folgende Code-Box zeigt einen typischen Anwendungsfall des CacheManagers:</p>
 <gen:highlight type="php">
-$cMF = &$this->__getServiceObject('tools::cache','CacheManagerFabric');
+$cMF = &$this->__getServiceObject('tools::cache', 'CacheManagerFabric');
 $cM = &$cMF->getCacheManager('{config_section}');
+
+// for releases < 1.13
 $cacheKey = 'my_cache_key';
 $cacheContent = $cM->getFromCache($cacheKey);
-if($cacheContent === null){
 
+// for releases >= 1.13
+$cacheKey = new SimpleCacheKey('my_cache_key');
+$cacheContent = $cM->getFromCache($cacheKey);
+
+if($cacheContent === null){
    $cacheContent = /* generate content */;
    $cM->writeToCache($cacheKey,$cacheContent);
-
 }
 
 // clear cache if necessary
 if(/* ... */){
-
    if(/* ... */){
       $cM->clearCache($cacheKey); // clean only the desired cache content
    }
    else{
       $cM->clearCache(); // clean the entire namespace
    }
-
 }
 </gen:highlight>
-Wie dem Beispiel bereits zu entnehmen ist, besitzt der CacheManager drei Methoden, die jeweils vom
-zust&auml;ndigen Provider implementiert werden:
+<p>
+   Wie dem Beispiel bereits zu entnehmen ist, besitzt der CacheManager drei Methoden, die jeweils
+   vom zust&auml;ndigen Provider implementiert werden:
+</p>
 <ul>
   <li>
     <strong>getFromCache()</strong>: Liest den gew&uuml;nschten Cache-Inhalt. Ist f&uuml;r den
@@ -82,8 +88,8 @@ zust&auml;ndigen Provider implementiert werden:
   </li>
   <li>
     <strong>writeToCache()</strong>: Schreibt den Inhalt unter dem konfigurierten Namespace und dem
-    &uuml;bergebenen Cache-Key in den Cache. Bei Erfolg wird <em>true</em>, bei einem Fehler <em>false</em>
-    zur&uuml;ckgegeben.
+    &uuml;bergebenen Cache-Key in den Cache. Bei Erfolg wird <em>true</em>, bei einem Fehler 
+    <em>false</em> zur&uuml;ckgegeben.
   </li>
   <li>
     <strong>clearCache()</strong>: Die Methode <em>clearCache()</em> dient zum L&ouml;schen des Caches.
@@ -91,24 +97,32 @@ zust&auml;ndigen Provider implementiert werden:
     Argument, der komplette Namespace gel&ouml;scht werden.
   </li>
 </ul>
-<br />
-<br />
+
 <h3 id="Chapter-3-Mitgelieferte-Provider"><a href="#Chapter-3-Mitgelieferte-Provider">3. Mitgelieferte Provider</a></h3>
-Das Framework liefert bereits vier fertige Provider mit. Diese decken die typischen Anwendungsf&auml;lle
-ab. Sollte f&uuml;r einen definierten Anwendungsfall kein Provider enthalten sein, k&ouml;nnen diese
-wie in Kapitel 4 beschrieben erweitert werden.
-<br />
-<br />
-<br />
+<p>
+   Das Framework liefert bereits sechs fertige Provider mit. Diese decken die typischen
+   Anwendungsf&auml;lle ab. Sollte f&uuml;r einen definierten Anwendungsfall kein Provider enthalten 
+   sein, k&ouml;nnen diese wie in Kapitel 4 beschrieben erweitert werden.
+</p>
+<div class="hint">
+   Mit dem Release 1.13 sind zwei Provider hinzugekommen, die komplexere Cache-Schlüssel akzeptieren.
+   Der <em>AdvancedTextCacheProvider</em> bildet dabei eine Erweiterung des <em>TextCacheProvider</em>
+   und der <em>AdvancedObjectCacheProvider</em> erweitert den <em>AdvancedTextCacheProvider</em> um
+   die Möglichkeit, beliebige Objekte im Cache zu speichern. Details können den Kapiteln 3.5 und 3.6
+   entnommen werden.
+</div>
+
 <h4 id="Chapter-3-1-Text-Cache-Provider"><a href="#Chapter-3-1-Text-Cache-Provider">3.1. Text-Cache Provider</a></h4>
-Der Text-Cache-Provider implementiert ein einfaches Filesystem-Caching. Hierbei wird unter einem
-definierten Basis-Pfad der gew&uuml;nschte Cache-Inhalt strukturiert abgelegt. Als erstes
-Strukturelement wird der Namespace eingesetzt, gefolgt von einem weiteren Unterordner aus den ersten
-beiden Zeichen des md5-Schl&uuml;ssels des Cache-Keys.
-<br />
-<br />
-Um den Provider verwenden zu k&ouml;nnen, muss die referenzierte Konfigurationssektion wir folgt
-aufgebaut sein:
+<p>
+   Der Text-Cache-Provider implementiert ein einfaches Filesystem-Caching. Hierbei wird unter einem
+   definierten Basis-Pfad der gew&uuml;nschte Cache-Inhalt strukturiert abgelegt. Als erstes
+   Strukturelement wird der Namespace eingesetzt, gefolgt von einem weiteren Unterordner aus den ersten
+   beiden Zeichen des md5-Schl&uuml;ssels des Cache-Keys.
+</p>
+<p>
+   Um den Provider verwenden zu k&ouml;nnen, muss die referenzierte Konfigurationssektion wir folgt
+   aufgebaut sein:
+</p>
 <gen:highlight type="ini">
 [text_cache]
 Cache.Provider.Namespace = "tools::cache::provider"
@@ -116,27 +130,35 @@ Cache.Provider.Class = "TextCacheProvider"
 Cache.Active = ""
 Cache.BaseFolder = ""
 Cache.Namespace = ""
+[Cache.FolderPermission = "0770"]
 </gen:highlight>
-<strong>Cache.BaseFolder</strong> beinhaltet den Pfad zum vom CacheManager verwalteten Ordner, das
-Attribut <strong>Cache.Namespace</strong> benennet das erste Strukturelement. Bitte beachten Sie,
-dass Abschnitte des Namespaces jeweils durch "::" getrennt notiert werden sollten.
-<br />
-<br />
-<strong>Hinweis:</strong> Der Text-Cache-Provider verwendet den
-<a href="./?Seite=085-Klassenreferenz-FilesystemManager" title="Klassenreferenz FilesystemManager">FilesystemManager</a>
-f&uuml;r die Verwaltung des Cache-Ordners. Aus diesem Grund muss der Benutzer, unter dem der Webserver
-l&auml;uft Schreibrechte f&uuml;r diesen Ordner besitzen.
-<br />
-<br />
-<br />
+<p>
+   <em>Cache.BaseFolder</em> beinhaltet den Pfad zum vom CacheManager verwalteten Ordner, das
+   Attribut <em>Cache.Namespace</em> benennet das erste Strukturelement. Bitte beachten Sie,
+   dass Abschnitte des Namespaces jeweils durch &quot;::&quot; getrennt notiert werden sollten.
+</p>
+<p>
+   Der Schlüssel <em>Cache.FolderPermission</em> ist optional und kann dazu genutzt werden, die
+   Permission-Maske für angelegte Cache-Ordner zu definieren.
+</p>
+<div class="hint">
+   Der Text-Cache-Provider verwendet den <int:link pageid="085" /> f&uuml;r die Verwaltung des
+   Cache-Ordners. Aus diesem Grund muss der Benutzer, unter dem der Webserver l&auml;uft
+   Schreibrechte f&uuml;r diesen Ordner besitzen.
+</div>
+<p>
+   Dieser Provider unterstützt ab 1.13 die Verwendung der Klasse <em>SimpleCacheKey</em> zur
+   Identifizierung eines Cache-Eintrags.
+</p>
+
 <h4 id="Chapter-3-2-Objekt-Cache-Provider"><a href="#Chapter-3-2-Objekt-Cache-Provider">3.2. Objekt-Cache Provider</a></h4>
-Der Objekt-Cache-Provider ist eine Erweiterung des unter 3.1. beschriebenen Text-Caches. Zur Ablage
-der Cache-Dateien wird ebenfalls ein Ordner auf dem Dateisystem verwendet. Der Unterschied besteht
-darin, dass die als Cache-Content &uuml;bergebenen Werte serialisiert auf der Platte vorgehalten
-werden. Hierdurch ist es m&ouml;glich, einen Filesystem-basierten Objekt-Cache aufzubauen.
-<br />
-<br />
-Die Daf&uuml;r notwendige Konfigurationssektion gestaltet sich wie folgt:
+<p>
+   Der Objekt-Cache-Provider ist eine Erweiterung des unter 3.1. beschriebenen Text-Caches. Zur Ablage
+   der Cache-Dateien wird ebenfalls ein Ordner auf dem Dateisystem verwendet. Der Unterschied besteht
+   darin, dass die als Cache-Content &uuml;bergebenen Werte serialisiert auf der Platte vorgehalten
+   werden. Hierdurch ist es m&ouml;glich, einen Filesystem-basierten Objekt-Cache aufzubauen.
+</p>
+<p>Die Daf&uuml;r notwendige Konfigurationssektion gestaltet sich wie folgt:</p>
 <gen:highlight type="ini">
 [object_cache]
 Cache.Provider.Namespace = "tools::cache::provider"
@@ -144,16 +166,27 @@ Cache.Provider.Class = "ObjectCacheProvider"
 Cache.Active = ""
 Cache.BaseFolder = ""
 Cache.Namespace = ""
+[Cache.FolderPermission = "0770"]
 </gen:highlight>
-<br />
+<p>
+   Der Schlüssel <em>Cache.FolderPermission</em> ist optional und kann dazu genutzt werden, die
+   Permission-Maske für angelegte Cache-Ordner zu definieren.
+</p>
+<p>
+   Dieser Provider unterstützt ab 1.13 die Verwendung der Klasse <em>SimpleCacheKey</em> zur
+   Identifizierung eines Cache-Eintrags.
+</p>
+
 <h4 id="Chapter-3-3-Mem-Cache-Provider"><a href="#Chapter-3-3-Mem-Cache-Provider">3.3. Mem-Cache Provider</a></h4>
-Der Mem-Cache-Provider bietet die M&ouml;glichkeit, PHP-Objekte im <strong>memcached</strong>-Server
-vorzuhalten. Hierbei wird das jeweilige PHP-Objekt beim Schreiben des Caches serialisiert und beim
-Lesen deserialisiert. Bitte beachten Sie, dass hierdurch Objekt-Inhalte vom Typ <strong>Ressource</strong>
-verloren gehen und nach dem Deserialisieren neu initialisiert werden m&uuml;ssen.
-<br />
-<br />
-F&uuml;r den Zugriff auf einen <strong>memcached</strong>-Server ist folgende Konfiguration vorzuhalten:
+<p>
+   Der Mem-Cache-Provider bietet die M&ouml;glichkeit, PHP-Objekte im <em>memcached</em>-Server
+   vorzuhalten. Hierbei wird das jeweilige PHP-Objekt beim Schreiben des Caches serialisiert und beim
+   Lesen deserialisiert. Bitte beachten Sie, dass hierdurch Objekt-Inhalte vom Typ <strong>Ressource</strong>
+   verloren gehen und nach dem Deserialisieren neu initialisiert werden m&uuml;ssen.
+</p>
+<p>
+   F&uuml;r den Zugriff auf einen <em>memcached</em>-Server ist folgende Konfiguration vorzuhalten:
+</p>
 <gen:highlight type="ini">
 [mem_cache]
 Cache.Provider.Namespace = "tools::cache::provider"
@@ -164,20 +197,26 @@ Cache.Port = ""
 Cache.PersistentConnect = ""
 Cache.Namespace = ""
 </gen:highlight>
-Die Implementierung des <strong>MemCacheProviders</strong> beinhaltet - trotz der Tatsache, dass
-die <em>memcache_*()</em> keine Namespaces kennt - ebenfalls einen Namespace-Support. Dieser wird
-&uuml;ber ein Pr&auml;fix im Cache-Key abgebildet. Damit ist es wie bei den bisherigen
-Provider-Implementierungen m&ouml;glich, komplette Namespaces zu l&ouml;schen.
-<br />
-<br />
-<strong>Hinweis</strong>: F&uuml;r den Einsatz des <em>MemCacheProvider</em>s ist die PHP-Erweiterung
-<strong>memcache</strong> erforderlich!
-<br />
-<br />
-<br />
+<p>
+   Die Implementierung des <em>MemCacheProviders</em> beinhaltet - trotz der Tatsache, dass
+   die <em>memcache_*()</em> keine Namespaces kennt - ebenfalls einen Namespace-Support. Dieser wird
+   &uuml;ber ein Pr&auml;fix im Cache-Key abgebildet. Damit ist es wie bei den bisherigen
+   Provider-Implementierungen m&ouml;glich, komplette Namespaces zu l&ouml;schen.
+</p>
+<div class="warn">
+   F&uuml;r den Einsatz des <em>MemCacheProvider</em>s ist die PHP-Erweiterung
+   <em>memcache</em> erforderlich!   
+</div>
+<p>
+   Dieser Provider unterstützt ab 1.13 die Verwendung der Klasse <em>SimpleCacheKey</em> zur
+   Identifizierung eines Cache-Eintrags.
+</p>
+
 <h4 id="Chapter-3-4-Datenbank-Cache-Provider"><a href="#Chapter-3-4-Datenbank-Cache-Provider">3.4. Datenbank-Cache Provider</a></h4>
-Der <strong>DBCacheProvider</strong> nutzt eine Datenbank-Tabelle zur Ablage der Cache-Informationen.
-Um diesen nutzen zu k&ouml;nnen, muss folgende Konfiguration vorgehalten werden:
+<p>
+   Der <em>DBCacheProvider</em> nutzt eine Datenbank-Tabelle zur Ablage der Cache-Informationen.
+   Um diesen nutzen zu k&ouml;nnen, muss folgende Konfiguration vorgehalten werden:
+</p>
 <gen:highlight type="ini">
 [database_cache]
 Cache.Provider.Namespace = "tools::cache::provider"
@@ -187,12 +226,13 @@ Cache.Connection = ""
 Cache.Table = ""
 Cache.Namespace = ""
 </gen:highlight>
-<strong>Cache.Connection</strong> beinhaltet den Connection-Key, der dazu verwendet wird um &uuml;ber
-den
-<a href="./?Seite=031-Klassenreferenz-ConnectionManager" title="ConnectionManager">ConnectionManager</a>
-eine Verbindung zu einer Datenbank zu erzeugen. Hierzu muss eine korrespondierende Datenbank-Verbindung
-wie in der Klassenreferenz aufge&uuml;hrten Weise angelegt werden. <strong>Cache.Table</strong>
-definiert den Namen der Cache-Tabelle, die mit folgendem Statement erzeugt werden sollte:
+<p>
+   <em>Cache.Connection</em> beinhaltet den Connection-Key, der dazu verwendet wird um &uuml;ber
+   den <int:link pageid="031" /> eine Verbindung zu einer Datenbank zu erzeugen. Hierzu muss eine
+   korrespondierende Datenbank-Verbindung wie in der Klassenreferenz aufge&uuml;hrten Weise angelegt
+   werden. <em>Cache.Table</em> definiert den Namen der Cache-Tabelle, die mit folgendem Statement
+   erzeugt werden sollte:
+</p>
 <gen:highlight type="sql">
 CREATE TABLE `database_cache` (
   `CacheID` int(5) NOT NULL auto_increment,
@@ -203,65 +243,150 @@ CREATE TABLE `database_cache` (
   KEY `cachevalues` (`namespace`,`cachekey`)
 );
 </gen:highlight>
-Bitte beachten Sie, dass die Benennung der Spalten <strong>namespace</strong>, <strong>cachekey</strong>
-und <strong>value</strong> bindend ist.
-<br />
-<br />
-<br />
-<h3 id="Chapter-4-Erweiterung"><a href="#Chapter-4-Erweiterung">4. Erweiterung</a></h3>
-Die Implementierung des CacheManagers sieht mehrere Komponenten vor. Zur Erzeugung des CacheManagers
-wird die <strong>CacheManagerFabric</strong> eingesetzt, die die konkreten
-<strong>CacheManager</strong>-Instanzen erzeugt, initialisiert und f&uuml;r die weitere Verwendung
-vorh&auml;lt. Der CacheManager selbst &uuml;bernimmt die Initialisierung der gew&uuml;nschten Provider
-und bietet die in Kapitel 2 beschrieben Methoden. Jeder Provider implementiert dabei die in der
-abstrakten Klasse <strong>AbstractCacheProvider</strong> definierten Methoden <strong>read()</strong>,
-<strong>write()</strong> und <strong>clear()</strong>. Diesen wird jeweils der gew&uuml;nschte
-Cache-Key und ggf. der zu schreibende Inhalt &uuml;bergeben. Die Konfigurationsparameter stehen
-innerhalb der Methoden &uuml;ber die private Funktion <strong>__getCacheConfigAttribute()</strong>
-zur Ver&uuml;gung, die den Namen des Attributes erwartet. Zur Betriebssicherung wird ein Fehler
-ausgegeben, sollte die gew&uuml;nschte Konfigurationsdirektive nicht vorhanden oder leer sein. Details
-zur Klassendefinition kann der API-Dokumentation unter
-<a href="./?Seite=008-Downloads" title="Downloads">Downloads</a> entnommen werden.
-<br />
-<br />
-Da ein Cache-Provider &uuml;ber seinen Namespace und seinen Klassennamen adressiert wird, kann dieser
-in einem beliebigen Namespace (z.B. der Namespace der Applikation) abgelegt werden. Der Rumpf eines
-eigenen Providers gestaltet sich wie folgt:
+<div class="warn">
+   Bitte beachten Sie, dass die Benennung der Spalten <em>namespace</em>, <em>cachekey</em> und
+   <em>value</em> bindend ist.
+</div>
+<p>
+   Dieser Provider unterstützt ab 1.13 die Verwendung der Klasse <em>SimpleCacheKey</em> zur
+   Identifizierung eines Cache-Eintrags.
+</p>
+
+<h4 id="Chapter-3-5-Erweiterter-Text-Cache-Provider"><a href="#Chapter-3-5-Erweiterter-Text-Cache-Provider">3.5. Erweiterter Text-Cache Provider</a></h4>
+<p>
+   Die Implementierung <em>AdvancedTextCacheProvider</em> unterstützt einen komplexeren Cache-Key 
+   und ist dazu gedacht Cache-Elemente zu speichern, die mehrere Ausprägungen haben. Dies ist
+   beispielsweise bei einem HTML-Cache notwendig, der unterschiedliche Ergebnisse (z.B. 
+   unterschiedliche URLs) für die gleiche Seite abspeichern möchte. Dabei soll die Möglichkeit
+   erhalten bleiben, die Inhalte einer bestimmten Seite teilweise oder komplett zu löschen.
+</p>
+<p>
+   Zur Verwendung des Providers ist folgende Konfigurations-Sektion notwendig:
+</p>
+<gen:highlight type="ini">
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "AdvancedTextCacheProvider"
+Cache.Active = ""
+Cache.BaseFolder = ""
+Cache.Namespace = ""
+[Cache.FolderPermission = "0770"]
+</gen:highlight>
+<p>
+   Der Schlüssel <em>Cache.FolderPermission</em> ist optional und kann dazu genutzt werden, die
+   Permission-Maske für angelegte Cache-Ordner zu definieren.
+</p>
+<p>
+   Um einen Cache-Eintrag zu lesen bzw. zu speichern, ist folgender PHP-Code notwendig:
+</p>
 <gen:highlight type="php">
-class MyCacheProvider extends AbstractCacheProvider {
+$pageId = /* ... */;
+$currentUrl = $_SERVER['REQUEST_URI'];
 
-   function MyCacheProvider(){
+// create cache key, that stores the cache for one page but with different flavours
+$cacheKey = new AdvancedCacheKey($pageId, $currentUrl);
+
+// load cached content
+$content = $cM->getFromCache($cacheKey);
+
+if($content === null) {
+   $cacheContent = /* generate content */;
+   $cM->writeToCache($cacheKey, $cacheContent);
+}
+
+// clear cache if necessary
+if(/* ... */){
+   if(/* ... */){
+      $cM->clearCache($cacheKey); // clean only the desired cache content
+   }
+   else{
+      $cM->clearCache(); // clean the entire namespace
+   }
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-6-Erweiterter-Objekt-Cache-Provider"><a href="#Chapter-3-6-Erweiterter-Objekt-Cache-Provider">3.6. Erweiterter Objekt-Cache Provider</a></h4>
+<p>
+   Der <em>AdvancedObjectCacheProvider</em> erweitert den 
+   <a href="#Chapter-3-5-Erweiterter-Text-Cache-Provider">AdvancedTextCacheProvider</a> um die
+   Möglichkeit, serialisierte Objekte im Cache zu speichern. Die Struktur und Verwendung der
+   Provider-Implementierung gestaltet sich identisch. Auch hier kommt die Klasse
+   <em>AdvancedCacheKey</em> zum Einsatz.
+</p>
+<p>
+   Der Provider kann genutzt werden, wenn die Konfigurations-Sektion folgende Werte definiert:
+</p>
+<gen:highlight type="ini">
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "AdvancedObjectCacheProvider"
+Cache.Active = ""
+Cache.BaseFolder = ""
+Cache.Namespace = ""
+[Cache.FolderPermission = "0770"]
+</gen:highlight>
+<p>
+   Der Schlüssel <em>Cache.FolderPermission</em> ist optional und kann dazu genutzt werden, die
+   Permission-Maske für angelegte Cache-Ordner zu definieren.
+</p>
+
+<h3 id="Chapter-4-Erweiterung"><a href="#Chapter-4-Erweiterung">4. Erweiterung</a></h3>
+<p>
+   Die Implementierung des CacheManagers sieht mehrere Komponenten vor. Zur Erzeugung wird die 
+   <em>CacheManagerFabric</em> eingesetzt, die die konkreten <em>CacheManager</em>-Instanzen erzeugt,
+   initialisiert und f&uuml;r die weitere Verwendung vorh&auml;lt. Der CacheManager selbst
+   &uuml;bernimmt die Initialisierung der gew&uuml;nschten Provider und bietet die in Kapitel 2
+   beschrieben Methoden. Jeder Provider implementiert dabei das Interface <em>CacheProvider</em> -
+   genauer die Methoden <em>read()</em>, <em>write()</em> und <em>clear()</em>.
+</p>
+<p>
+   Diesen wird jeweils der gew&uuml;nschte Cache-Key und ggf. der zu schreibende Inhalt
+   &uuml;bergeben. Die Konfigurationsparameter stehen innerhalb der Methoden &uuml;ber die private
+   Funktion <em>getConfigAttribute()</em> zur Ver&uuml;gung, die den Namen des Attributes erwartet.
+   Hierzu ist es jedoch erforderlich, von der Klasse <em>CacheBase</em> zu erben. Zur
+   Betriebssicherung wird eine Exception erzeugt, sollte die gew&uuml;nschte Konfigurationsdirektive
+   nicht vorhanden oder leer sein. Details zur Klassendefinition kann der API-Dokumentation unter
+   <int:link pageid="008" /> entnommen werden.
+</p>
+<p>
+   Die Cache-Schlüssel werden seit dem Release 1.13 durch eigene Daten-Typen abgebildet. Das Schema
+   wird durch das Interface <em>CacheKey</em> vorgegeben. Im Release werden die Implementierungen
+   <em>SimpleCacheKey</em> und <em>AdvancedCacheKey</em> mitgeliefert.
+</p>
+<p>
+   Da ein Cache-Provider &uuml;ber seinen Namespace und seinen Klassennamen adressiert wird, kann 
+   dieser in einem beliebigen Namespace (z.B. der Namespace der Applikation) abgelegt werden. Der
+   Rumpf eines eigenen Providers gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+class MyCacheProvider extends CacheBase implements CacheProvider {
+
+   public function read(CacheKey $cacheKey){
    }
 
-   function read($cacheKey){
+   public function write(CacheKey $cacheKey, $object){
    }
 
-   function write($cacheKey,$content){
-   }
-
-   function clear($cacheKey = null){
+   public function clear(CacheKey $cacheKey = null){
    }
 
 }
 </gen:highlight>
-Die erwarteten R&uuml;ckgabe-Werte sind der API-Dokumentation der Klasse
-<strong>AbstractCacheProvider</strong> zu entnehmen. Sollen Funktionen der bestehenden Provider
-genutzt werden, besteht weiterhin die M&ouml;gichkeit von diesen abzuleiten. Dieses Mittel wird bereits
-intern f&uuml;r die Implementierung des <em>ObjectCacheProvider</em> genutzt, da dieser ebenso einen
-dedizierten Ordner f&uuml;r die Ablage der Objekt-Cache-Dateien nutzt.
-<br />
-<br />
-Die folgende Code-Box zeigt die Implementierung eines Cache-Providers f&uuml;r das Cachen von
-Image-Ressourcen:
+<p>
+   Die erwarteten R&uuml;ckgabe-Werte sind der API-Dokumentation des Interface <em>CacheProvider</em>
+   zu entnehmen. Sollen Funktionen der bestehenden Provider genutzt werden, besteht weiterhin die
+   M&ouml;gichkeit von diesen abzuleiten. Dieses Mittel wird bereits intern f&uuml;r die
+   Implementierung des <em>ObjectCacheProvider</em> genutzt, da dieser ebenso einen dedizierten
+   Ordner f&uuml;r die Ablage der Objekt-Cache-Dateien nutzt.
+</p>
+<p>
+   Die folgende Code-Box zeigt die Implementierung eines Cache-Providers f&uuml;r das Cachen von
+   Image-Ressourcen:
+</p>
 <gen:highlight type="php">
 class PNGImageCacheProvider extends TextCacheProvider {
 
-   function PNGImageCacheProvider(){
-   }
+   public function read(CacheKey $cacheKey){
 
-   function read($cacheKey){
-
-      $cacheFile = $this->__getCacheFile($cacheKey);
+      $cacheFile = $this->getCacheFile($cacheKey);
       if(!file_exists($cacheFile)){
          return null;
       }
@@ -271,22 +396,22 @@ class PNGImageCacheProvider extends TextCacheProvider {
 
    }
 
-   function write($cacheKey,$img){
+   public function write(CacheKey $cacheKey, $object){
 
-      $cacheFile = $this->__getCacheFile($cacheKey);
+      $cacheFile = $this->getCacheFile($cacheKey);
       FilesystemManager::createFolder(dirname($cacheFile));
-      imagepng($img,$cacheFile);
+      imagepng($object,$cacheFile);
 
    }
 
-   function clear($cacheKey = null){
+   public function clear(CacheKey $cacheKey = null){
 
       if($cacheKey === null){
-         $baseFolder = $this->__getCacheConfigAttribute('Cache.BaseFolder');
+         $baseFolder = $this->getConfigAttribute('Cache.BaseFolder');
          FilesystemManager::deleteFolder($baseFolder,true);
       }
       else{
-         $cacheFile = $this->__getCacheFile($cacheKey);
+         $cacheFile = $this->getCacheFile($cacheKey);
          FilesystemManager::removeFile($cacheFile);
       }
 
@@ -294,5 +419,11 @@ class PNGImageCacheProvider extends TextCacheProvider {
 
 }
 </gen:highlight>
-<br />
+<p>
+   Sofern die mitgelieferten Cache-Schlüssel nicht den Anforderungen des neu implementierten
+   Providers genügen, kann dieser unter Einhaltung der Regeln des <em>CacheKey</em>-Interface
+   erweitert werden. Hierzu stehen die Klassen <em>SimpleCacheKey</em> und <em>AdvancedCacheKey</em>
+   als Vorlage zur Verfügung.
+</p>
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_084" />

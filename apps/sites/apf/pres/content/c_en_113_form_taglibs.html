@@ -5,31 +5,31 @@
    Funktionen zur Verf&uuml;gung.
 </doku:title>
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
-Due to the fact, that the
-<a href="./?Seite=098-Pagecontroller" title="Page controller">page controller</a> of the APF
-provides a generic frame to handle taglibs, we were able to implement a form abstraction built on
-taglibs (e.g. text fields).
-<br />
-<br />
-The release of the adventure php framework contains a set of taglibs, that fully describe HTML
-forms and that contain features such as filtering, validation and presetting at the same time out of
-the box. With the taglibs reworked with release 1.11, form fields can be applied various filters and
-validators and custom form elements can be integrated with the delivered ones.
-<br />
-<br />
-The subsequent chapters describe the general design and the handling of APF forms as well as the
-tags shipped with the release with their meaning and functionality. Reading this documentation
-and implementing applications, it is recommended to have the
-<a href="./?Page=002-API-documentation" title="API documentation">API documentation</a> opened.
-There, you can see, which functionality is included in the various taglibs - e.g. the
-<strong>html_taglib_form</strong>.
-<br />
-<br />
+<p>
+   Due to the fact, that the
+   <a href="./?Seite=098-Pagecontroller" title="Page controller">page controller</a> of the APF
+   provides a generic frame to handle taglibs, we were able to implement a form abstraction built on
+   taglibs (e.g. text fields).
+</p>
+<p>
+   The release of the adventure php framework contains a set of taglibs, that fully describe HTML
+   forms and that contain features such as filtering, validation and presetting at the same time out of
+   the box. With the taglibs reworked with release 1.11, form fields can be applied various filters and
+   validators and custom form elements can be integrated with the delivered ones.
+</p>
+<p>
+   The subsequent chapters describe the general design and the handling of APF forms as well as the
+   tags shipped with the release with their meaning and functionality. Reading this documentation
+   and implementing applications, it is recommended to have the
+   <a href="./?Page=002-API-documentation" title="API documentation">API documentation</a> opened.
+   There, you can see, which functionality is included in the various taglibs - e.g. the
+   <strong>html_taglib_form</strong>.
+</p>
 <div class="hint">
    Chapter <int:link pageid="114" /> contains extended examples on form usage and extension of
    APF forms.
 </div>
-<br />
+
 <h3 id="Chapter-2-Construction"><a href="#Chapter-2-Construction">2. Construction of forms</a></h3>
 As noted in the introduction, APF forms are represented by taglibs. The
 <strong>&lt;html:form /&gt;</strong> tag forms the base taglib, that encapsulates all other form
@@ -113,7 +113,14 @@ The form tag itself takes three functional atributes, that are used for definiti
     <strong>action</strong>: The url, that is called on button click by the browser.
   </li>
 </ul>
-<br />
+<div class="hint">
+   As of release 1.13 the possibility was added to define a global default value for the <em>action</em>
+   attribute using the registry. The value can be defines within the bootstrap file using
+   <gen:highlight type="php">Registry::register('apf::tools', 'FormDefaultMethod','...')</gen:highlight>
+   This causes all forms to take this value in case the attribute is not specified within the local
+   declaration. If the global default value is not explicitly specified, &quot;post&quot; is taken.
+</div>
+
 <h4 id="Chapter-3-1-Button"><a href="#Chapter-3-1-Button">3.1. Button</a></h4>
 This taglib represents a submit button. APF form elements are validated and filtered on button click
 event. Hence, it is necessary to specify a button or image button within the form, due buttons
@@ -696,6 +703,65 @@ tag. Filling the place holder can be done as described in the last chapter.
 &lt;/html:form&gt;
 </gen:highlight>
 
+<h5 id="Chapter-3-22-CSRF-protection"><a href="#Chapter-3-22-CSRF-protection">3.22. CSRF protection</a></h5>
+<p>
+   This taglib creates a hidden field that contains a generated hash key. In case the hash sent
+   with the form differs from the calculated hash, the form is marked invalid. Doing so, the form
+   can be protected from CSRF attacks.
+</p>
+<div class="hint">
+   The <em>CSRFHashValidator</em> shipped with the APF release must not be added manually within
+   the form definition. This is done within the taglib automatically for you.
+</div>
+<p>
+   Hash generation is delegated to the configured component concerning the provider pattern. This
+   makes it easy to change the algorithm. To customize the hash key generation, the 
+   <em>CSRFHashProvider</em> interface must be implemented that requires the <em>generateHash()</em>
+   to be implemented.
+</p>
+<p>
+   The subsequent code box shows the provider that is already included in the APF:
+</p>
+<gen:highlight type="php">
+class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
+   public function generateHash($salt) {
+      if(!defined('SID')) {
+         session_start();
+      }
+
+      return md5($salt.SID);
+   }
+}
+</gen:highlight>
+<p>
+   The provider to use can be specified with the <em>namespace</em> and <em>class</em> attributes.
+   In case the attributes are not present the default provider is used. The <em>EncryptedSIDHashProvider</em>
+   creates an MD5 hash concatenating the session id and the configured salt.
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:csrfhash
+   salt=""
+   name=""
+   [namespace=""
+   class=""]
+/&gt;
+</gen:highlight>
+<strong>Description of the attributes:</strong>
+<ul>
+  <li>
+    <strong>salt</strong>: The salt that is used to calculate a more secure hash.
+  </li>
+  <li>
+     <strong>name</strong>: Der Name des Feldes (<strong>Zeichen</strong>: [A-Za-z0-9_]).
+  </li>
+  <li>
+     <strong>namespace</strong>: The namespace of the hash provider.
+  </li>
+  <li>
+     <strong>class</strong>: The class name of the hash provider.
+  </li>
+</ul>
+
 <h3 id="Chapter-4-Validation"><a href="#Chapter-4-Validation">4. Validation</a></h3>
 <p>
    In the previous versions of the APF the validation was linked directly with a form element and
@@ -768,6 +834,23 @@ tag. Filling the place holder can be done as described in the last chapter.
    large part of the demands. Should these not be enough, own validators can be implemented. This is
    described in the next chapter.
 </p>
+<div class="hint">
+   Since release 1.13 validators can be decladed optional. Therefore, the appropriate form control
+   must have the <em>optional</em> attribute set to <em>true</em>:
+<gen:highlight type="apf-xml">
+&lt;html:form name="..."&gt;
+   &lt;form:text name="age" optional="true"/&gt;
+   &lt;form:addvalidator
+      class="IntegerValidator"
+      button="send"
+      control="age"
+   /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+   Please note, that optional validation is only available for textual fields at the moment. The
+   APF developers agreed that optional validation of select and checkbox fields does make no sense.
+</div>
 <p>Currently the following validators are available:</p>
 
 <h5 id="Chapter-4-1-1-TextLengthValidator"><a href="#Chapter-4-1-1-TextLengthValidator">4.1.1. TextLengthValidator</a></h5>
@@ -803,6 +886,7 @@ tag. Filling the place holder can be done as described in the last chapter.
    <em>strict</em> the input is filtered through <em>trim()</em> to accept content that does not
    only contain blanks.
 </p>
+
 <h5 id="Chapter-4-1-2-NumberValidator"><a href="#Chapter-4-1-2-NumberValidator">4.1.2. NumberValidator</a></h5>
 The <strong>NumberValidator</strong> checks whether a text field contains a valid number. For this reason,
 the PHP function <em>is_numeric()</em> is used.
@@ -817,7 +901,7 @@ the PHP function <em>is_numeric()</em> is used.
    /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
+
 <h5 id="Chapter-4-1-3-EMailValidator"><a href="#Chapter-4-1-3-EMailValidator">4.1.3. EMailValidator</a></h5>
 The <strong>EMailValidator</strong> checks whether the referenced form control contains a valid
 email address. For this reason, the content of the text field is checked against a regular expression.
@@ -832,7 +916,7 @@ email address. For this reason, the content of the text field is checked against
    /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
+
 <h5 id="Chapter-4-1-4-PhoneAndFaxValidator"><a href="#Chapter-4-1-4-PhoneAndFaxValidator">4.1.4. PhoneAndFaxValidator</a></h5>
 The <strong>PhoneAndFaxValidator</strong> checks whether a form field contains a valid phone or
 fax number. For this reason, the content of the text field is checked against a regular expression.
@@ -848,7 +932,7 @@ fax number. For this reason, the content of the text field is checked against a 
    /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
+
 <h5 id="Chapter-4-1-5-FieldCompareValidator"><a href="#Chapter-4-1-5-FieldCompareValidator">4.1.5. FieldCompareValidator</a></h5>
 With the <strong>FieldCompareValidator</strong> you are enabled to compare the content of two text
 fields. If the content of both controls is equal, the fields ara makred valid.
@@ -871,7 +955,7 @@ control definition must refer to the field, that is defined for the comparison c
 &lt;/html:form&gt;
 </gen:highlight>
 
-<h5 id="Chapter-4-1-7-SimpleBirthdayValidator"><a href="#Chapter-4-1-7-SimpleBirthdayValidator">4.1.7. SimpleBirthdayValidator</a></h5>
+<h5 id="Chapter-4-1-6-SimpleBirthdayValidator"><a href="#Chapter-4-1-6-SimpleBirthdayValidator">4.1.6. SimpleBirthdayValidator</a></h5>
 The <strong>SimpleBirthdayValidator</strong> is also belonging to the group of text field validators
 and checks the content of a text field to contain a date definition that matches the pattern
 <strong>dd.MM.YYYY</strong>.
@@ -892,8 +976,8 @@ and checks the content of a text field to contain a date definition that matches
    /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
-<h5 id="Chapter-4-1-8-DefaultSelectFieldValidator"><a href="#Chapter-4-1-8-DefaultSelectFieldValidator">4.1.8. DefaultSelectFieldValidator</a></h5>
+
+<h5 id="Chapter-4-1-7-DefaultSelectFieldValidator"><a href="#Chapter-4-1-7-DefaultSelectFieldValidator">4.1.7. DefaultSelectFieldValidator</a></h5>
 The <strong>DefaultSelectFieldValidator</strong> can be added to select fields. It checks, if the
 selected content is not empty (=no option selected). Please note, that this validator may only be
 used with select fields, that are defined statically (with an explicit set of options). To validate
@@ -913,8 +997,8 @@ dynamic select fields, please use the <strong>SimpleSelectControlValidator</stro
    /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
-<h5 id="Chapter-4-1-9-SimpleSelectControlValidator"><a href="#Chapter-4-1-9-SimpleSelectControlValidator">4.1.9. SimpleSelectControlValidator</a></h5>
+
+<h5 id="Chapter-4-1-8-SimpleSelectControlValidator"><a href="#Chapter-4-1-8-SimpleSelectControlValidator">4.1.8. SimpleSelectControlValidator</a></h5>
 The <strong>SimpleSelectControlValidator</strong> validates static and dynamic text fields (=options
 are filled within a document controller). The validator checks, if the selected content is not
 empty.
@@ -933,8 +1017,8 @@ empty.
    /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
-<h5 id="Chapter-4-1-10-MultiSelectFieldValidator"><a href="#Chapter-4-1-10-MultiSelectFieldValidator">4.1.10. MultiSelectFieldValidator</a></h5>
+
+<h5 id="Chapter-4-1-9-MultiSelectFieldValidator"><a href="#Chapter-4-1-9-MultiSelectFieldValidator">4.1.9. MultiSelectFieldValidator</a></h5>
 The <strong>MultiSelectFieldValidator</strong> is the pendant to the
 <strong>SimpleSelectControlValidator</strong> but validates multi select fields. It checks the
 target element to have at least one option selected.
@@ -952,8 +1036,8 @@ target element to have at least one option selected.
    /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
-<h5 id="Chapter-4-1-11-SimpleRadioControlValidator"><a href="#Chapter-4-1-11-SimpleRadioControlValidator">4.1.11. SimpleRadioControlValidator</a></h5>
+
+<h5 id="Chapter-4-1-10-SimpleRadioControlValidator"><a href="#Chapter-4-1-10-SimpleRadioControlValidator">4.1.10. SimpleRadioControlValidator</a></h5>
 Using the <strong>SimpleRadioControlValidator</strong>, a radio button as well as a radio button
 group can be checked. The validator thus expects, that at one button out of a group is selected. The
 validator can be used for static and dynamic form definitions.
@@ -970,8 +1054,8 @@ validator can be used for static and dynamic form definitions.
    /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
-<h5 id="Chapter-4-1-12-SimpleDateControlValidator"><a href="#Chapter-4-1-12-SimpleDateControlValidator">4.1.12. SimpleDateControlValidator</a></h5>
+
+<h5 id="Chapter-4-1-11-SimpleDateControlValidator"><a href="#Chapter-4-1-11-SimpleDateControlValidator">4.1.11. SimpleDateControlValidator</a></h5>
 The <strong>SimpleDateControlValidator</strong> validates the date control described in chapter
 3.14. It requires the date to be greater or equal to today's date..
 <gen:highlight type="apf-xml">
@@ -986,7 +1070,7 @@ The <strong>SimpleDateControlValidator</strong> validates the date control descr
 &lt;/html:form&gt;
 </gen:highlight>
 
-<h5 id="Chapter-4-1-13-MimeTypeValidator"><a href="#Chapter-4-1-13-MimeTypeValidator">4.1.13. MimeTypeValidator</a></h5>
+<h5 id="Chapter-4-1-12-MimeTypeValidator"><a href="#Chapter-4-1-12-MimeTypeValidator">4.1.12. MimeTypeValidator</a></h5>
 <p>
    The <strong>MimeTypeValidator</strong> checks, whether the MIME type of the uploaded file can be
    found in the list of accepted file types. This list must be defines within a pipe-separated list
@@ -1028,7 +1112,7 @@ The <strong>SimpleDateControlValidator</strong> validates the date control descr
    still given after an upgrade.
 </p>
 
-<h5 id="Chapter-4-1-14-FileSizeValidator"><a href="#Chapter-4-1-14-FileSizeValidator">4.1.14. FileSizeValidator</a></h5>
+<h5 id="Chapter-4-1-13-FileSizeValidator"><a href="#Chapter-4-1-13-FileSizeValidator">4.1.13. FileSizeValidator</a></h5>
 <p>
    The <strong>FileSizeValidator</strong> checks the file size of the uploaded file. For this reason,
    the optional attributes <em>minsize</em> And <em>maxsize</em> can be used to define the allowed
@@ -1059,7 +1143,7 @@ The <strong>SimpleDateControlValidator</strong> validates the date control descr
 &lt;/html:form&gt;
 </gen:highlight>
 
-<h5 id="Chapter-4-1-15-CheckboxValidator"><a href="#Chapter-4-1-15-CheckboxValidator">4.1.15. CheckboxValidator</a></h5>
+<h5 id="Chapter-4-1-14-CheckboxValidator"><a href="#Chapter-4-1-14-CheckboxValidator">4.1.14. CheckboxValidator</a></h5>
 <p>
    The <strong>CheckboxValidator</strong> validates if a checkbox is activated of not. In case it is
    not activated, the control is marked as invalid.
@@ -1079,7 +1163,7 @@ The <strong>SimpleDateControlValidator</strong> validates the date control descr
 &lt;/html:form&gt;
 </gen:highlight>
 
-<h5 id="Chapter-4-1-16-TimeCaptchaValidator"><a href="#Chapter-4-1-16-TimeCaptchaValidator">4.1.16. TimeCaptchaValidator</a></h5>
+<h5 id="Chapter-4-1-15-TimeCaptchaValidator"><a href="#Chapter-4-1-15-TimeCaptchaValidator">4.1.15. TimeCaptchaValidator</a></h5>
 <p>
    The <strong>TimeCaptchaValidator</strong> can be used in combination with the
    <a href="#Chapter-3-21-TimeCaptcha">&lt;form:timecaptcha /&gt;</a> taglib to defeat (spam-)bots
@@ -1097,6 +1181,22 @@ The <strong>SimpleDateControlValidator</strong> validates the date control descr
       control="timecaptcha"
    />
    <form:button name="send" value="Send"/>
+&lt;/html:form&gt;
+</gen:highlight>
+
+<h5 id="Chapter-4-1-16-IntegerValidator"><a href="#Chapter-4-1-16-IntegerValidator">4.1.16. IntegerValidator</a></h5>
+<p>
+   The <em>IntegerValidator</em> validates whether the value entered is a valid interger number:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="..."&gt;
+   &lt;form:text name="age" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="IntegerValidator"
+      button="send"
+      control="age"
+   /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
 

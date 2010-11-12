@@ -2,23 +2,18 @@
   The 'my first website' tutorial shows you, how easy it is to build a website with the adventure
   php framework (apf). Futher chapters of this page describe the dynamic content generation.
 </doku:title>
-<div class="warn">
-   This page contains deprecated components, that are not contained in
-   <int:link pageid="126" params="/release/1.11">release 1.11</int:link>. Thus, this page now is
-   under development until this message is removed. If you have, any question, please create a new
-   thread in our
-   <a class="forum" href="http://forum.adventure-php-framework.org/en/">support forum</a>.
-</div>
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
 The present tutorial describes - based on the <a href="./?Page=013-Basics" title="basics">basics</a>
 - how to build a website with the adventure php framework. To make things easy the design of the
 example page is not too complex.
 
 <h3 id="Chapter-2-Requirements"><a href="#Chapter-2-Requirements">2. Requirements</a></h3>
-The website shuold provide space for a key visual, a header, a menu and an area where content and
-footer can be placed. The content view should be filled with dynamic content dependent on the request
-parameters given. The site should have the following appearance:
-<img src="http://media.adventure-php-framework.org/content/tutorial_webseiteerstellen_design_webseite.png" style="border: 1px dashed gray; padding: 10px;" alt="Website example" />
+<p>
+   The website shuold provide space for a key visual, a header, a menu and an area where content and
+   footer can be placed. The content view should be filled with dynamic content dependent on the request
+   parameters given. The site should have the following appearance:
+</p>
+<img src="http://media.adventure-php-framework.org/content/tutorial_webseiteerstellen_design_webseite.png" alt="Website example" />
 
 <h3 id="Chapter-3-Installation-configuration"><a href="#Chapter-3-Installation-configuration">3. Installation and configuration</a></h3>
 The author assumes that you have downloaded the <em>code pack</em> on the
@@ -71,6 +66,7 @@ require_once('./apps/core/pagecontroller/pagecontroller.php');
 
 // create page object
 $page = new Page();
+$page->setContext('projectone');
 
 // load initial template
 $page->loadDesign('sites::testwebsite::pres::templates','website');
@@ -263,32 +259,30 @@ in english language the files
   <li>./frontend/content/c_en_home.html</li>
   <li>./frontend/content/c_en_impress.html</li>
 </ul>
-must be created. Due to the fact, that the content wants to be displayed in the content view the file
-<strong>content.html</strong> must be changed to
-<br />
-<br />
-<strong>content.html</strong>
+<p>
+   must be created. Due to the fact, that the content wants to be displayed in the content view the
+   file <em>content.html</em> must be changed to
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib namespace="tools::html::taglib" prefix="doc" class="createobject" /&gt;
 &lt;doc:createobject requestparam="Page" defaultvalue="Home" /&gt;
 </gen:highlight>
-<br />
-<strong>Note:</strong>
-<br />
-The taglib class expects the file names in lower letters only. On Windows machines other dictions
-don't matter, but operating the application on LINUX-link operating systems, the desired file cannot
-be found.
-<br />
-<br />
-<br />
+<div class="hint">
+   The taglib class expects the file names in lower letters only. On Windows machines other dictions
+   don't matter, but operating the application on LINUX-link operating systems, the desired file cannot
+   be found.
+</div>
+
 <h4 id="Chapter-5-2-Database-content"><a href="#Chapter-5-2-Database-content">5.2. Content from a database</a></h4>
-Another possibility is to read content from a database table and integrate it into the content view.
-To achieve this the developer can make use of a document controller that reads and displays the
-content.
-<br />
-<br />
-For a start a database table must be created to store the content. The following SQL statement may be
-used to create such a table:
+<p>
+   Another possibility is to read content from a database table and integrate it into the content view.
+   To achieve this the developer can make use of a document controller that reads and displays the
+   content.
+</p>
+<p>
+   For a start a database table must be created to store the content. The following SQL statement
+   may be used to create such a table:
+</p>
 <gen:highlight type="apf-xml">
 CREATE TABLE demopage_content (
   PageID tinyint(5) NOT NULL auto_increment,
@@ -301,8 +295,10 @@ CREATE TABLE demopage_content (
 ) ENGINE=MyISAM;
 </gen:highlight>
 <br />
-As mentioned under section 5.1 the content view template (<strong>content.html</strong>) must be
-adapted as follows:
+<p>
+   As mentioned under section 5.1 the content view template (<em>content.html</em>) must be
+   adapted as follows:
+</p>
 <gen:highlight type="apf-xml">
 &lt;@controller
    namespace="sites::testwebsite::pres::documentcontroller"
@@ -310,36 +306,30 @@ adapted as follows:
    class="content_v1_controller"
 @&gt;
 </gen:highlight>
-This XML tag defines a document controller for the current DOM node. This controller is mentioned
-to be a MVC-pattern-style controller to the current node. As printed on the
-<a href="./?Page=006-Controller" title="controller">controller page</a> a <strong>document
-controller</strong> class must inherit from the <strong>base_controller</strong> class that is a
-standardized interface class to all document controller containing important methods to generate
-dynamic content during transformation of a DOM node.
-<br />
-<br />
-Because the content is read from a database (here: MySQL), the component <strong>MySQLHandler</strong>
-is beeing used. To apply this module an instance must be cerated via the private method
-<strong>__getServiceObject()</strong> of the document controller. The core functionality of the
-document controller must be implemented in the <strong>transformContent()</strong> function, because
-this method is called during transformation of a specific DOM node. The controller class file
-<strong>testwebsite/apps/sites/testwebsite/pres/documentcontroller/content_v1_controller.php</strong>
-must then be filled with the following content:
-<br />
+<p>
+   This XML tag defines a document controller for the current DOM node. This controller is mentioned
+   to be a MVC-pattern-style <int:link pageid="006" /> to the current node. The class itself
+   inherits from <em>base_controller</em> that is a standardized interface class to all document
+   controller containing important methods to generate dynamic content during transformation of a
+   DOM node.
+</p>
+<p>
+   Since the content is read from a database (here: MySQL), the component <int:link pageid="031" />
+   is beeing used. The controller class contained in
+</p>
+<gen:highlight type="code">
+testwebsite/apps/sites/testwebsite/pres/documentcontroller/content_v1_controller.php
+</gen:highlight>
+<p>
+   should be filled with the following code:
+</p>
 <gen:highlight type="php">
-// import the MySQLHandler component
-import('core::database','MySQLHandler');
-
-// define the controller class
 class content_v1_controller extends base_controller {
 
-   function content_v1_controller(){
-   }
+   public function transformContent(){
 
-   function transformContent(){
-
-      // create an instance of the database abstraction layer
-      $SQL = $this->__getServiceObject('core::database','MySQLHandler');
+      $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+      $SQL = &$cM->getConnection('content-databse');
 
       // define the URL parameter
       $page = RequestHandler::getValue('Page','Home');
@@ -362,78 +352,80 @@ class content_v1_controller extends base_controller {
 
 }
 </gen:highlight>
-The source code of the controller class should be self-explanatory. In general the functionality
-included there only fetches content from a database and displays the content found there.
-<br />
-<br />
-To use the MySQLHandler component a configuration file containing the database connnection data must
-be created. The file must be named
+<p>
+   The source code of the controller class should be self-explanatory. In general the functionality
+   included there only fetches content from a database and displays the content found there.
+</p>
+<p>
+   In order to access the database the connection manager expects the configuration file under
+</p>
 <gen:highlight type="code">
-testwebsite/apps/config/core/database/sites/testwebsite/DEFAULT_connections.ini
+testwebsite/apps/config/core/database/projectone/DEFAULT_connections.ini
 </gen:highlight>
-This name on the one hand contains the path definition:
+<p>The name of the file is concatinated by the path</p>
 <gen:highlight type="code">
 testwebsite/apps/config/core/database/{CONTEXT}/
 </gen:highlight>
-and the name of the configuration file:
+<p>and the name</p>
 <gen:highlight type="code">
 {ENVIRONMENT}_connections.ini
 </gen:highlight>
-The value of the place holder <strong>{CONTEXT}</strong> depends on the application context
-defined in the <em>index.php</em> file, that is set while loading the template implicitly. Within
-this tutorial's example the context of the application is <strong>sites::testwebsite</strong>. To
-get a deeper insight into configuration please refer to the
-<a href="./?Page=002-API-Documentation" title="API documentation">API documentation</a> of the <strong>Page</strong>
-class. Having a look at the code of the bootstrap file the line
-<gen:highlight type="php">
-$Page->loadDesign('sites::testwebsite::pres::templates','website');
-</gen:highlight>
-is responsible for setting the context of the present application. Here the first parameter if the
-<em>loadDesign()</em> function is taken as the application's context. The <strong>ENVIRONMENT</strong>
-value is stored in the registry and ist set to <strong>DEFAULT</strong> by default. The scheme of
-the configuration file looks like this:
+<p>
+   Please note, the <em>{CONTEXT}</em> is the application's context configured within the bootstrap
+   file above (<em>projectone</em>). Details on configuration can be taken from the
+   <int:link pageid="134" /> chapter.
+</p>
+<p>
+   The content of the file must be adapted to the current machine, but must contain the following
+   content:
+</p>
 <gen:highlight type="ini">
-[MySQL]
-DB.Host = "" ; Server name or IP address of the database
-DB.User = "" ; Username
-DB.Pass = "" ; Password
-DB.Name = "" ; Name of the database
+[content-database]
+DB.Host = "" ; Servername oder IP-Adresse der Datenbank
+DB.User = "" ; Benutzer
+DB.Pass = "" ; Passwort
+DB.Name = "" ; Name der Datenbank
+DB.Type = "MySQLx"
+[DB.DebugMode = "true|false"
+DB.Charset = "utf8"
+DB.Collation = "utf8_general_ci"]
 </gen:highlight>
-<br />
+
 <h3 id="Chapter-6-Conclusion"><a href="#Chapter-6-Conclusion">6. Conclusion</a></h3>
-The present tutorial described how to create a web page using the adventur php framework and display
-dynamic content from files or a database table. A deficiency of the implementing still lies in the
-fact that it is not checked whether contents really exist in the database. In the case of the solution
-discussed in chapter 5.2 a blank content page is displayed containing no error message if no content
-is available. By use of the file variation this is already implemented in the taglib.
-<br />
-<br />
-Moreover the chapter 5.2 solution lacks of the possibility to create, maintain and delete contents.
-This task can only be handled with database administration tools like
-<a class="external" href="http://www.phpmyadmin.net/home_page/index.php" title="PHPMyAdmin">PHPMyAdmin</a>
-or a tool created for this task seperately.
-<br />
-<br />
-To keep things simple the controller source code this tutorial was not implemented in the three tier
-architecture merely used in object orientated applications. This would have heightend the degree of
-complexity by the need to introduce a business and database layer to the application. The business
-layer normally returns so called domain objects to the presentation layer and takes care of situations
-where no content can be displayed. To complete the architecture discussion the business layer makes
-use of the database layer of the application to gather the database content. Within the database layer
-the database component utilizes the <em>MySQLHandler</em> class to have a generic database abstraction
-layer. More suggestions on this topic can be found in the tutorials
+<p>
+   The present tutorial described how to create a web page using the adventur php framework and display
+   dynamic content from files or a database table. A deficiency of the implementing still lies in the
+   fact that it is not checked whether contents really exist in the database. In the case of the solution
+   discussed in chapter 5.2 a blank content page is displayed containing no error message if no content
+   is available. By use of the file variation this is already implemented in the taglib.
+</p>
+<p>
+   Moreover the chapter 5.2 solution lacks of the possibility to create, maintain and delete contents.
+   This task can only be handled with database administration tools like
+   <a class="external" href="http://www.phpmyadmin.net/home_page/index.php" title="PHPMyAdmin">PHPMyAdmin</a>
+   or a tool created for this task seperately.
+</p>
+<p>
+   To keep things simple the controller source code this tutorial was not implemented in the three tier
+   architecture merely used in object orientated applications. This would have heightend the degree of
+   complexity by the need to introduce a business and database layer to the application. The business
+   layer normally returns so called domain objects to the presentation layer and takes care of situations
+   where no content can be displayed. To complete the architecture discussion the business layer makes
+   use of the database layer of the application to gather the database content. Within the database layer
+   the database component utilizes the <em>ConnectionManager</em> class to have a generic database
+   abstraction layer. More suggestions on this topic can be found in the tutorials
+</p>
 <ul>
-  <li><a href="./?Page=032-Comment-function" title="comment function">comment function</a></li>
-  <li><a href="./?Page=035-Contact-form-tutorial" title="contact form">contact form</a></li>
-  <li><a href="./?Page=057-Guestbook-tutorial" title="guestbook">guestbook</a></li>
+   <li><int:link pageid="032" /></li>
+   <li><int:link pageid="034" /></li>
+   <li><int:link pageid="057" lang="de"/> (German)</li>
 </ul>
-<br />
+
 <h3 id="Chapter-7-Source-code-downloads"><a href="#Chapter-7-Source-code-downloads">7. Source code downloads</a></h3>
-The source code provided in the present tutorial can be downloaded using the file
-<a href="http://media.adventure-php-framework.org/content/tutorial_testwebsite.zip" title="Code-Package">tutorial_testwebsite.zip</a>.
-The framework's core libraries are not included but can be obtained on the downloads page
-<a href="./?Page=008-Downloads" title="downloads page">downloads page</a>.
-<br />
-<br />
-<br />
+<p>
+   The source code provided in the present tutorial can be downloaded using the file
+   <a href="http://media.adventure-php-framework.org/content/tutorial_testwebsite.zip" title="Code-Package">tutorial_testwebsite.zip</a>.
+   The framework's core libraries are not included but can be obtained on the 
+   <int:link pageid="008" /> page.
+</p>
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_048" />
