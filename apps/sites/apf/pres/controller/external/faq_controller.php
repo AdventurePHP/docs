@@ -11,9 +11,6 @@
     */
    class faq_controller extends base_controller {
 
-      function faq_controller() {
-      }
-
       /**
        *  @public
        *
@@ -23,7 +20,7 @@
        *  @version
        *  Version 0.1, 10.01.2009<br />
        */
-      function transformContent() {
+      public function transformContent() {
 
          // get forum database connection
          $cM = &$this->__getServiceObject('core::database','ConnectionManager');

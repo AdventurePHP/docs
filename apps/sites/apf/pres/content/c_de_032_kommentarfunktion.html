@@ -698,7 +698,7 @@ eine Meldung auszugeben. In Quellcode gegossen kann das so gel&ouml;st werden:
 <gen:highlight type="php">
 class comment_listing_v1_controller extends commentBaseController {
 
-   function transformContent(){
+   public function transformContent(){
 
       $this->__loadCategoryKey();
       $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
@@ -928,33 +928,28 @@ werden muss. Hier der Controller in der &Uuml;bersicht:
 <gen:highlight type="php">
 class comment_form_v1_controller extends commentBaseController {
 
-      function transformContent(){
+   public function transformContent(){
 
-         $form = &$this->__getForm('AddComment');
+      $form = &$this->__getForm('AddComment');
 
-         if($form->get('isSent') == true){
+      if($form->get('isSent') == true){
 
-            $this->__loadCategoryKey();
-            $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
+         $this->__loadCategoryKey();
+         $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
 
-            if($form->get('isValid') == true){
+         if($form->get('isValid') == true){
 
-               $articleComment = new ArticleComment();
-               $name = &$form->getFormElementByName('Name');
-               $articleComment->set('Name',$name->getAttribute('value'));
+            $articleComment = new ArticleComment();
+            $name = &$form->getFormElementByName('Name');
+            $articleComment->set('Name',$name->getAttribute('value'));
 
-               $email = &$form->getFormElementByName('EMail');
-               $articleComment->set('EMail',$email->getAttribute('value'));
+            $email = &$form->getFormElementByName('EMail');
+            $articleComment->set('EMail',$email->getAttribute('value'));
 
-               $comment = &$form->getFormElementByName('Comment');
-               $articleComment->set('Comment',$comment->getContent());
+            $comment = &$form->getFormElementByName('Comment');
+            $articleComment->set('Comment',$comment->getContent());
 
-               $M->saveEntry($articleComment);
-
-            }
-            else{
-               $this->__buildForm();
-            }
+            $M->saveEntry($articleComment);
 
          }
          else{
@@ -962,24 +957,29 @@ class comment_form_v1_controller extends commentBaseController {
          }
 
       }
-
-      private function __buildForm(){
-
-         $form = &$this->__getForm('AddComment');
-         $form->setAttribute('action',$_SERVER['REQUEST_URI'].'#comments');
-
-         $config = $this->getConfiguration('modules::comments','language.ini');
-         $button = &$form->getFormElementByName('Save');
-         $button->setAttribute('value',$config->getSection($this->__Language)->getValue('form.button'));
-
-         $form->transformOnPlace();
-
-         $link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
-         $this->setPlaceHolder('back',$link);
-
+      else{
+         $this->__buildForm();
       }
 
    }
+
+   private function __buildForm(){
+
+      $form = &$this->__getForm('AddComment');
+      $form->setAttribute('action',$_SERVER['REQUEST_URI'].'#comments');
+
+      $config = $this->getConfiguration('modules::comments','language.ini');
+      $button = &$form->getFormElementByName('Save');
+      $button->setAttribute('value',$config->getSection($this->__Language)->getValue('form.button'));
+
+      $form->transformOnPlace();
+
+      $link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
+      $this->setPlaceHolder('back',$link);
+
+   }
+
+}
 </gen:highlight>
 <h4 id="Chapter-5-2-Businessschicht"><a href="#Chapter-5-2-Businessschicht">5.2. Business-Schicht</a></h4>
 In diesem Kapitel stellt sich nun die Aufgabe, die zuvor beschriebene Business-Schicht-Methode

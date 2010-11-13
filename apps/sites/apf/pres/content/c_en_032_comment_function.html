@@ -678,7 +678,7 @@ a message that no entries are made. This task can be solved like printed in the 
 <gen:highlight type="php">
 class comment_listing_v1_controller extends commentBaseController {
 
-   function transformContent(){
+   public function transformContent(){
 
       $this->__loadCategoryKey();
       $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
@@ -905,33 +905,28 @@ domain object as an argument. The code box shows the complete PHP code:
 <gen:highlight type="php">
 class comment_form_v1_controller extends commentBaseController {
 
-      function transformContent(){
+   public function transformContent(){
 
-         $form = &$this->__getForm('AddComment');
+      $form = &$this->__getForm('AddComment');
 
-         if($form->get('isSent') == true){
+      if($form->get('isSent') == true){
 
-            $this->__loadCategoryKey();
-            $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
+         $this->__loadCategoryKey();
+         $M = &$this->__getAndInitServiceObject('modules::comments::biz','commentManager',$this->__CategoryKey);
 
-            if($form->get('isValid') == true){
+         if($form->get('isValid') == true){
 
-               $articleComment = new ArticleComment();
-               $name = &$form->getFormElementByName('Name');
-               $articleComment->set('Name',$name->getAttribute('value'));
+            $articleComment = new ArticleComment();
+            $name = &$form->getFormElementByName('Name');
+            $articleComment->set('Name',$name->getAttribute('value'));
 
-               $email = &$form->getFormElementByName('EMail');
-               $articleComment->set('EMail',$email->getAttribute('value'));
+            $email = &$form->getFormElementByName('EMail');
+            $articleComment->set('EMail',$email->getAttribute('value'));
 
-               $comment = &$form->getFormElementByName('Comment');
-               $articleComment->set('Comment',$comment->getContent());
+            $comment = &$form->getFormElementByName('Comment');
+            $articleComment->set('Comment',$comment->getContent());
 
-               $M->saveEntry($articleComment);
-
-            }
-            else{
-               $this->__buildForm();
-            }
+            $M->saveEntry($articleComment);
 
          }
          else{
@@ -939,24 +934,29 @@ class comment_form_v1_controller extends commentBaseController {
          }
 
       }
-
-      private function __buildForm(){
-
-         $form = &$this->__getForm('AddComment');
-         $form->setAttribute('action',$_SERVER['REQUEST_URI'].'#comments');
-
-         $config = $this->getConfiguration('modules::comments','language.ini');
-         $button = &$form->getFormElementByName('Save');
-         $button->setAttribute('value',$config->getSection($this->__Language)->getValue('form.button'));
-
-         $form->transformOnPlace();
-
-         $link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
-         $this->setPlaceHolder('back',$link);
-
+      else{
+         $this->__buildForm();
       }
 
    }
+
+   private function __buildForm(){
+
+      $form = &$this->__getForm('AddComment');
+      $form->setAttribute('action',$_SERVER['REQUEST_URI'].'#comments');
+
+      $config = $this->getConfiguration('modules::comments','language.ini');
+      $button = &$form->getFormElementByName('Save');
+      $button->setAttribute('value',$config->getSection($this->__Language)->getValue('form.button'));
+
+      $form->transformOnPlace();
+
+      $link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
+      $this->setPlaceHolder('back',$link);
+
+   }
+
+}
 </gen:highlight>
 <h4 id="Chapter-5-2-Business-layer"><a href="#Chapter-5-2-Business-layer">5.2. Business layer</a></h4>
 In this chapter the task is to implement the <em>saveEntry()</em> function that was described in the
@@ -966,20 +966,20 @@ following code box shows how to save the comment by the the manager's
 <strong>saveArticleComment()</strong> method. To display the listing view the user is redirected to
 the desired URL.
 <gen:highlight type="php">
-   function saveEntry($ArticleComment){
+function saveEntry($ArticleComment){
 
-      // get the mapper
-      $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
+   // get the mapper
+   $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
 
-      // save article
-      $ArticleComment->set('CategoryKey',$this->__CategoryKey);
-      $M->saveArticleComment($ArticleComment);
+   // save article
+   $ArticleComment->set('CategoryKey',$this->__CategoryKey);
+   $M->saveArticleComment($ArticleComment);
 
-      // redirect to the listing view
-      $Link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
-      header('Location: '.$Link.'#comments');
+   // redirect to the listing view
+   $Link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('coview' => 'listing'));
+   header('Location: '.$Link.'#comments');
 
-   }
+}
 </gen:highlight>
 Line 6 (<em>$ArticleComment->set('CategoryKey'..</em>) shows how the business layer manipulates the
 domain object, that it is saved in the right category. Line 10 generates the redirect URL using the

@@ -11,9 +11,6 @@
     */
    class form_captcha_example_controller extends base_controller {
 
-      function form_captcha_example_controller() {
-      }
-
       /**
        *  @public
        *
@@ -23,7 +20,7 @@
        *  @version
        *  Version 0.1, 20.07.2008<br />
        */
-      function transformContent() {
+      public function transformContent() {
 
          // obtain a reference on the desired form (depends on the language of the document!)
          $Form__CaptchaExample = &$this->__getForm('CaptchaExample_'.$this->__Language);

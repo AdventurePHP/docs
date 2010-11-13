@@ -14,7 +14,7 @@
     */
    class api_controller extends release_base_controller {
 
-      function api_controller() {
+      public function __construct() {
          parent::release_base_controller();
       }
 
@@ -27,7 +27,7 @@
        * @version
        * Version 0.1, 10.01.2009<br />
        */
-      function transformContent() {
+      public function transformContent() {
 
          // get the desired releaes
          $releases = $this->getAllReleases();

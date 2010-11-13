@@ -11,10 +11,7 @@
     */
    class bugs_controller extends base_controller {
 
-      function bugs_controller(){
-      }
-
-      function transformContent(){
+      public function transformContent(){
 
          // get forum database connection
          $cM = &$this->__getServiceObject('core::database','ConnectionManager');
