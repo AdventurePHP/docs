@@ -3,7 +3,7 @@
 
    class LiveExceptionHandler extends DefaultExceptionHandler {
 
-      public function handleException($exception){
+      public function handleException(Exception $exception){
 
          // fill attributes
          $this->__ExceptionNumber = $exception->getCode();

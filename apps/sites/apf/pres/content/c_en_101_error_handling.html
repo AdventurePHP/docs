@@ -4,28 +4,27 @@
   the extension.
 </doku:title>
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
-The framework features the <strong>errorHandler</strong> function, that is intended to do global
-error handling. This function is used to catch and handle errors at a central place. For this
-reason, it uses a <strong>ErrorHandler</strong> component, that can be configured within the registry.
-The error handler itself is then responsible for the handling of the current error.
-<br />
-<br />
-The preconfigured APF error handler saves the error message into a log file and displays the nice
-error screen including the stacktrace. Details can be taken from the
-<a href="./?Page=002-API-documentation" title="API documentation">API documentation</a> of the
-<strong>DefaultErrorHandler</strong> class.
-<br />
-<br />
-<br />
+<p>
+   The framework features the <strong>errorHandler</strong> function, that is intended to do global
+   error handling. This function is used to catch and handle errors at a central place. For this
+   reason, it uses a <strong>ErrorHandler</strong> component, that can be configured within the registry.
+   The error handler itself is then responsible for the handling of the current error.
+</p>
+<p>
+   The preconfigured APF error handler saves the error message into a log file and displays the nice
+   error screen including the stacktrace. Details can be taken from the
+   <int:link pageid="002" /> of the <strong>DefaultErrorHandler</strong> class.
+</p>
+
 <h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration</a></h3>
-To replace the preconfigured <strong>DefaultErrorHandler</strong> with an own class, the registry offset
-<strong>ErrorHandler</strong> within the <strong>apf::core</strong> namespace must be filled with the
-desired <strong>ErrorHandlerDefinition</strong> instance. The configuration of the error handling
-component must be placed in the bootstrap file directly after the <em>pagecontroller.php</em> is
-included.
-<br />
-<br />
-The definition of a custom error handler looks as follows:
+<p>
+   To replace the preconfigured <strong>DefaultErrorHandler</strong> with an own class, the registry 
+   offset <strong>ErrorHandler</strong> within the <strong>apf::core</strong> namespace must be filled
+   with the desired <strong>ErrorHandlerDefinition</strong> instance. The configuration of the error
+   handling component must be placed in the bootstrap file directly after the <em>pagecontroller.php</em>
+   is included.
+</p>
+<p>The definition of a custom error handler looks as follows:</p>
 <gen:highlight type="php">
 Registry::register(
    'apf::core',
@@ -36,63 +35,131 @@ Registry::register(
    )
 );
 </gen:highlight>
-As you can take from the example, the desired <em>ErrorHandler</em> is referenced by it's
-namespace and it's class name.
-<br />
-<br />
-<strong>Note:</strong> if the registry offset does not contain a valid definition, the errors are
-displayed in text mode. You can identify the fallback mode by the prefix
-<gen:highlight type="apf-xml">
-APF catchable error:
-</gen:highlight>
-In this cases, the definition or the implementation of the error handler class must be checked.
-<br />
-<br />
+<p>
+   As you can take from the example, the desired <em>ErrorHandler</em> is referenced by it's
+   namespace and it's class name.
+</p>
 <div class="hint">
-   In order to deactivate the <em>ErrorHandler</em>, initilize the registry offset with
-   <strong>null</strong>.
-   <br />
-   <br />
+   If the registry offset does not contain a valid definition, the errors are
+   displayed in text mode. You can identify the fallback mode by the prefix
+   <gen:highlight type="apf-xml">
+   APF catchable error:
+   </gen:highlight>
+   In this cases, the definition or the implementation of the error handler class must be checked.
 </div>
-<br />
-<br />
+<div class="warn">
+   In order to deactivate the <em>ErrorHandler</em>, initalize the registry offset with
+   <strong>null</strong>. Please note, that this is not recommended because the APF then directly
+   prints the error information to screen. These may include sensible data!
+</div>
+
 <h3 id="Chapter-3-Enhancement"><a href="#Chapter-3-Enhancement">3. Enhancement</a></h3>
-To introduce a custom error handling, you must implement the <strong>AbstractErrorHandler</strong>.
-This class defines the following interface:
+<p>
+   To introduce a custom error handling, you must implement the <strong>AbstractErrorHandler</strong>.
+   This class defines the following interface:
+</p>
 <gen:highlight type="php">
 class AbstractErrorHandler extends APFObject {
 
-   function handleError($errorNumber,$errorMessage,$errorFile,$errorLine){
+   public function handleError($errorNumber,$errorMessage,$errorFile,$errorLine){
    }
 
 }
 </gen:highlight>
-If an error occures, the <strong>handleError</strong> is applied the following parameters:
+<p>If an error occures, the <strong>handleError</strong> is applied the following parameters:</p>
 <ul>
   <li>error number</li>
   <li>error message</li>
   <li>filename where the error occures</li>
   <li>line where the error occures</li>
 </ul>
-Due to the fact, that the error handling is done in an page controller independent class, that is
-not created by the service manager, the current <strong>Context</strong> and the current
-<strong>Language</strong> are <em>not</em> available!
-<br />
-<br />
-If these information are important for the error handling, the must be obtained from information
-containers available within an application or module (e.g. application model class). The environment
-param is available via the registry as mentioned in the corresponding documentation chapter.
-<br />
-<br />
-<br />
+<p>
+   Due to the fact, that the error handling is done in an page controller independent class, that is
+   not created by the service manager, the current <strong>Context</strong> and the current
+   <strong>Language</strong> are <em>not</em> available!
+</p>
+<p>
+   If these information are important for the error handling, the must be obtained from information
+   containers available within an application or module (e.g. application model class). The environment
+   param is available via the registry as mentioned in the corresponding documentation chapter.
+</p>
+
 <h3 id="Chapter-4-Usage"><a href="#Chapter-4-Usage">4. Usage</a></h3>
-The global error handling mechanism can be used by calling the PHP function
+<p>The global error handling mechanism can be used by calling the PHP function</p>
 <gen:highlight type="php">
 trigger_error();
 </gen:highlight>
-Details on the usage of the function can be taken from the online documentation under
-<doku:link>http://php.net/trigger_error</doku:link>.
-<br />
-<br />
-<br />
+<p>
+   Details on the usage of the function can be taken from the online documentation under
+   <a class="external" href="http://php.net/trigger_error">http://php.net/trigger_error</a>.
+</p>
+
+<h3 id="Chapter-5-Further-ErrorHandler"><a href="#Chapter-5-Further-ErrorHandler">5. Further ErrorHandler</a></h3>
+<p>
+   The 1.13 release shipps two new error handler implementations for productional use. Live systems
+   are very sensible, hence the must secured best way. To guarantee security with data collected
+   on error, the <em>ProductionErrorHandler</em> and <em>ConfigurableErrorHandler</em> are both
+   implemented to hide data from potential attacker.
+</p>
+
+<h4 id="Chapter-5-1-ProductionErrorHandler"><a href="#Chapter-5-1-ProductionErrorHandler">5.1. ProductionErrorHandler</a></h4>
+<p>
+   In case an error occurs, the <em>ProductionErrorHandler</em> appends information on the error to
+   the log file and then redirects to a pre-configured site. This hides error data from potential
+   hackers.
+</p>
+<p>
+   The configuration can be done after <em>pagecontroller.php</em> inclusion as follows:
+</p>
+<gen:highlight type="php">
+Registry::register(
+   'apf::core',
+   'ErrorHandler',
+   new ErrorHandlerDefinition(
+      'core::errorhandler',
+      'ProductionErrorHandler'
+   )
+);
+Registry::register(
+   'apf::core::errorhandler',
+   'ProductionErrorRedirectUrl',
+   '/pages/global-error'
+);
+</gen:highlight>
+<p>
+   In case the <em>ProductionErrorRedirectUrl</em> directive is not set, the error handler redirects
+   to &quot;/&quot;.
+</p>
+
+<h4 id="Chapter-5-2-ConfigurableErrorHandler"><a href="#Chapter-5-2-ConfigurableErrorHandler">5.2. ConfigurableErrorHandler</a></h4>
+<p>
+   The <em>ConfigurableErrorHandler</em> enables you to handle errors concerning their error level.
+   For this reason, you can define the threshold error level. Below this level, the handler
+   ignores the error, above the threshold it handles the error as you know from the
+   <em>DefaultErrorHandler</em>.
+</p>
+<p>
+   The configuration can be done after <em>pagecontroller.php</em> inclusion as follows:
+</p>
+<gen:highlight type="php">
+Registry::register(
+   'apf::core',
+   'ErrorHandler',
+   new ErrorHandlerDefinition(
+      'core::errorhandler',
+      'ConfigurableErrorHandler'
+   )
+);
+Registry::register(
+   'apf::core::errorhandler',
+   'ConfigurableErrorReportingLevel',
+   E_ALL ^ E_NOTICE
+);
+</gen:highlight>
+<p>
+   Using the configuration shown in the code box above all errors are handled by the error handler
+   except <em>E_NOTICE</em> errors. Details on the configuration of error levels can be taken from
+   the <a class="external" href="http://de.php.net/manual/en/errorfunc.constants.php">PHP documentation</a>.
+</p>
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_101" />

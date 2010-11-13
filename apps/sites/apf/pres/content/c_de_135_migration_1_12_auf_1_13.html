@@ -1,0 +1,148 @@
+<doku:title parent="119" tags="miration,1.12,1.13,url rewriting,cache manager,cache,front-conroller,pager" title="Migration von 1.12 auf 1.13" urlname="Migration-von-1-12-auf-1-13">
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 1.12),
+   damit diese mit Release 1.13 kompatibel ist.
+</doku:title>
+<p>
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 1.12),
+   damit diese mit Release 1.13 kompatibel ist.
+</p>
+
+<h3 id="Chapter-1-Pager"><a href="#Chapter-1-Pager">1. Pager</a></h3>
+<p>
+   Der Pager wurde im Rahmen der Erweiterung von <strong>Daniel Seemeier</strong> wie im Forum unter
+   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=1&amp;t=392" linkrewrite="false">Pager -> Weiterleitung auf die richtige Seite</a>
+   diskutiert erweitert. Dies umfasst:
+</p>
+<ul>
+   <li>Umstellung auf Seiten-Logik statt Start-Index</li>
+   <li>Refactoring des HTML-Markups</li>
+   <li>Refactoring der bestehenden PHP-Klassen</li>
+</ul>
+<p>
+   Zur Migration sind sie im folgenden beschriebenen Schritte notwendig.
+</p>
+
+<h4 id="Chapter-1-1-Umstellung-auf-Seiten-Logik"><a href="#Chapter-1-1-Umstellung-auf-Seiten-Logik">1.1. Umstellung auf Seiten-Logik</a></h4>
+<p>
+   Die Konfigurations-Sektion des eingesetzten Pagers muss nun statt
+</p>
+<gen:highlight type="ini">
+Pager.ParameterStartName = "start"
+</gen:highlight>
+<p>die Direktive</p>
+<gen:highlight type="ini">
+Pager.ParameterPageName = "page"
+</gen:highlight>
+<p>
+   definieren. Diese enthält dabei den Namen des URL-Parameters für die gewählte Seite.
+</p>
+
+<h4 id="Chapter-1-2-Neues-HTML-Markup"><a href="#Chapter-1-2-Neues-HTML-Markup">1.2. Neues HTML-Markup</a></h4>
+<p>
+   Um das Aussehen des Pagers aus der Version 1.12 wiederherzustellen, kann das unter
+   <em>/apps/modules/pager/pres/css/pager_2.css</em> mitgelieferte Stylesheet in die Webseite 
+   eingebaut werden. Durch die neue Struktur ist es darüber hinaus deutlich einfacher, das Aussehen
+   des Pagers via CSS anzupassen.
+</p>
+
+<h4 id="Chapter-1-3-Security"><a href="#Chapter-1-3-Security">1.3. Security</a></h4>
+<p>Mit der Überarbeitung des Pagers wurde die Konfigurations-Direktive</p>
+<gen:highlight type="ini">
+Pager.AllowDynamicEntriesPerPage = "true|false"
+</gen:highlight>
+<p>
+   eingeführt. Ist diese auf <em>false</em> gesetzt, akzeptiert der Pager keine dynamisch
+   definierten Seiten-Größen (Anzahl der Einträge pro Seite). Der Standard-Wert ist <em>false</em>,
+   das bedeutet, dass die Direktive vorhanden und auf ''true'' gesetzt sein muss um das Feature zu
+   aktivieren. Falls das Feature nicht aktiviert ist, wird im Template <em>pager_2.html</em> die
+   Auswahl für Einträge/Seite auch nicht angezeigt.
+</p>
+
+<h3 id="Chapter-2-Front-Controller"><a href="#Chapter-2-Front-Controller">2. Front-Controller</a></h3>
+
+
+<h4 id="Chapter-2-1-Konfigurations-Namespace"><a href="#Chapter-2-1-Konfigurations-Namespace">2.1. Konfigurations-Namespace</a></h4>
+<p>
+   Der Frontcontroller hat bis einschließtlich Version 1.12 ein Re-Mapping der
+   Konfigurations-Namespaces durchgeführt. An die übergebenen Namespaces wurde der syntetische
+   Sub-Namespace &quot;::actions&quot; angehängt. Diese veraltete Vorgehensweise wurde mit 1.13 
+   beseitigt und die Konfigurationen werden nun direkt unter dem angegebenen Namespace und dem
+   aktuellen Context erwartet.
+</p>
+<p>
+   Um die bestehenden Konfigurationen auf die neue Version zu heben, müssen alle Ordner mit
+   Namen &quot;actions&quot; entfernt und dessen Inhalt eine Ebene höher im Verzeichnisbaum
+   verschoben werden. Beispiel:
+</p>
+<strong>Vorher:</strong>
+<gen:highlight type="code">
+/apps/config/{namespace}/actions/{context}/DEFAULT_actionconfig.ini   
+</gen:highlight>
+<strong>Nachher:</strong>
+<gen:highlight type="code">
+ /apps/config/{namespace}/{context}/DEFAULT_actionconfig.ini
+</gen:highlight>
+
+<h4 id="Chapter-2-2-Ausgabe-Steuerung"><a href="#Chapter-2-2-Ausgabe-Steuerung">2.2. Ausgabe-Steuerung</a></h4>
+<p>
+   Um Unit-Testing zu ermöglichen oder die Ausgabe anderweitig umleiten zu können, wurde der
+   Front-Controller so angepasst, dass die Ausgabe nicht direkt in der Methode <em>start()</em> 
+   vorgenommen wird, sondern der generierte Inhalt wie beim Page-Controller (vgl. <em>transform()</em>)
+   zurückgegeben wird.
+</p>
+<p>In den Projekten muss daher der Aufruf von</p>
+<gen:highlight type="php">$fC->start('my::namespace','main');</gen:highlight>
+<p>zu</p>
+<gen:highlight type="php">echo $fC->start('my::namespace','main');</gen:highlight>
+<p>geändert werden.</p>
+<div class="warn">
+   Wird diese Umstellung nicht durchgeführt, bleibt die Seite nach einem Update auf die Version 1.13
+   leer!
+</div>
+
+<h3 id="Chapter-3-Url-Rewriting"><a href="#Chapter-3-Url-Rewriting">3. Url-Rewriting</a></h3>
+<p>
+   Die Anwendung des Url-Rewriting wurde hinsichtlich der Apache-Rewrite-Rule so geändert, dass der
+   Request- bzw. Query-Parameter &quot;query&quot; auch für bestehende Anwendung genutzt werden kann.
+   Bisher wurde dies dadurch verwehrt, dass die Rewrite-Rule den Request auf den Parameter 
+   &quot;query&quot; gemappt hat, der dann vom Input-Filter verarbeitet wurde. Dieser wurde in
+   &quot;apf-rewrited-query&quot; umbenannt.
+</p>
+<p>Aus diesem Grund muss die bisherige RewriteRule auf die Form</p>
+<gen:highlight type="apache">
+RewriteRule !(\.php|...)$ /index.php?apf-rewrited-query=%{REQUEST_URI}&%{QUERY_STRING} [NC,L]
+</gen:highlight>
+<p>geändert werden.</p>
+
+<h3 id="Chapter-4-CacheManager"><a href="#Chapter-4-CacheManager">4. CacheManager</a></h3>
+<p>
+   Der <em>CacheManager</em> wurde im Release 1.13 um komplexe Cache-Schlüssel erweitert worden. Das
+   bedeutet, dass die Methoden <em>getFromCache()</em>, <em>writeToCache()</em> und <em>clearCache()</em>
+   nur noch Schlüssel entgegen nehmen, die dem Interface <em>CacheKey</em> genügen.
+</p>
+<p>
+   Bisherige Aufrufe der Form
+</p>
+<gen:highlight type="php">
+$cache->getFromCache('my-key');
+</gen:highlight>
+<p>
+   müssen daher durch
+</p>
+<gen:highlight type="php">
+$cache->getFromCache(new SimpleCacheKey('my-key'));
+</gen:highlight>
+<p>
+   ersetzt werden. Dies gilt ebenso für die Methoden <em>writeToCache()</em> und
+   <em>clearCache()</em>. Sofern komplexere Cache-Abfragen notwendig sind, kann auch die Klasse
+   <em>AdvancedCacheKey</em> genutzt werden. Details können unter <int:link pageid="084" />
+   eingesehen werden.
+</p>
+
+<h3 id="Chapter-5-Kontakt-Formular"><a href="#Chapter-5-Kontakt-Formular">5. Kontakt-Formular</a></h3>
+<p>
+   Im Rahmen des Refactorings und der allgemeinen Verbesserung der Code-Qualität wurden die
+   Konfigurations-Datei des Kontakt-Formular-Moduls umbenannt. Die Empfänger werden nun in einer
+   Datei mit dem Namen <em>recipients.ini</em> statt <em>empfaenger.ini</em> konfiguriert. An der
+   Syntax wurden keine Änderungen vorgenommen.
+</p>
