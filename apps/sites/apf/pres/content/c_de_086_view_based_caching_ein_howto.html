@@ -34,18 +34,15 @@ Jeder Tag besteht dabei aus seiner Definition - etwa
 - und der Implementierung der Funktion des Tags, sog. TagLibs. Jede TagLib muss das folgende Interface
 implementieren:
 <gen:highlight type="php">
-class my_taglib_tag extends Document
-{
-   function my_taglib_tag(){
+class my_taglib_tag extends Document {
+
+   public function onParseTime(){
    }
 
-   function onParseTime(){
+   public function onAfterAppend(){
    }
 
-   function onAfterAppend(){
-   }
-
-   function transform(){
+   public function transform(){
    }
 
 }
@@ -154,19 +151,18 @@ if($cacheContent === null){
 Um den Inhalt eines Views cachen zu k&ouml;nnen, werden nun die beiden Teile aus Kapitel 3.1 und
 3.2 zusammengef&uuml;gt:
 <gen:highlight type="php">
-class cache_taglib_importdesign extends core_taglib_importdesign
-{
+class cache_taglib_importdesign extends core_taglib_importdesign {
 
-   var $__CacheContent = null;
+   private $__CacheContent = null;
 
-   function cache_taglib_importdesign(){
+   public function __contruct(){
 
       // call the parent's constructor to fill the known taglib list
-      parent::core_taglib_importdesign();
+      parent::__construct();
 
    }
 
-   function onParseTime(){
+   public function onParseTime(){
 
       // get the cache manager
       $cMF = &$this->__getServiceObject('tools::cache','CacheManagerFabric');
@@ -190,7 +186,7 @@ class cache_taglib_importdesign extends core_taglib_importdesign
 
    }
 
-   function transform(){
+   public function transform(){
 
       // generate the node's output or return the cached content
       if($this->__CacheContent === null){

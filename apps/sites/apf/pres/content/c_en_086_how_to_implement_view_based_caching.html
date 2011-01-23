@@ -32,18 +32,15 @@ Each tag consists of it's tag definition - something like
 and a class including the functionality of the tag. Each taglib must implemente the following
 methods, that are executed in the order presented in the code box:
 <gen:highlight type="php">
-class my_taglib_tag extends Document
-{
-   function my_taglib_tag(){
+class my_taglib_tag extends Document {
+
+   public function onParseTime(){
    }
 
-   function onParseTime(){
+   public function onAfterAppend(){
    }
 
-   function onAfterAppend(){
-   }
-
-   function transform(){
+   public function transform(){
    }
 
 }
@@ -149,16 +146,16 @@ To get things working, let's put the pieces together:
 <gen:highlight type="php">
 class cache_taglib_importdesign extends core_taglib_importdesign {
 
-   var $__CacheContent = null;
+   private $__CacheContent = null;
 
-   function cache_taglib_importdesign(){
+   public function __construct(){
 
       // call the parent's constructor to fill the known taglib list
-      parent::core_taglib_importdesign();
+      parent::__construct();
 
    }
 
-   function onParseTime(){
+   public function onParseTime(){
 
       // get the cache manager
       $cMF = &$this->__getServiceObject('tools::cache','CacheManagerFabric');
@@ -182,7 +179,7 @@ class cache_taglib_importdesign extends core_taglib_importdesign {
 
    }
 
-   function transform(){
+   public function transform(){
 
       // generate the node's output or return the cached content
       if($this->__CacheContent === null){

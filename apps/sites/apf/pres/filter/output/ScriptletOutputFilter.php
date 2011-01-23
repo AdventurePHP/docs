@@ -27,7 +27,6 @@
 
          return $input;
 
-       // end function
       }
 
     // end class
