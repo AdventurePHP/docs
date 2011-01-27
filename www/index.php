@@ -62,8 +62,7 @@
 
    // display benchmark report on demand
    if(isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true'){
-      $t = &Singleton::getInstance('BenchmarkTimer');
-      echo $t->createReport();
+      echo Singleton::getInstance('BenchmarkTimer')->createReport();
    }
 
    ob_end_flush();
