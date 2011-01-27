@@ -147,4 +147,44 @@ $cache->getFromCache(new SimpleCacheKey('my-key'));
    form definitions must be replaced.
 </p>
 
+<h3 id="Chapter-7-GORM"><a href="#Chapter-7-GORM">7. GORM</a></h3>
+<p>
+   Within a discussion about MySQL indices, we have found an inappropriate usage of the indiced of
+   the relation tables. For this reason, the definition was changed from
+</p>
+<gen:highlight type="sql">
+CREATE TABLE IF NOT EXISTS `ass_group2user` (
+  `ASSID` int(5) UNSIGNED NOT NULL auto_increment,
+  `GroupID` int(5) UNSIGNED NOT NULL default '0',
+  `UserID` int(5) UNSIGNED NOT NULL default '0',
+  PRIMARY KEY (`ASSID`),
+  KEY `JOININDEX` (`GroupID`,`UserID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+</gen:highlight>
+<p>to</p>
+<gen:highlight type="sql">
+CREATE TABLE IF NOT EXISTS `ass_group2user` (
+  `GroupID` int(5) UNSIGNED NOT NULL default '0',
+  `UserID` int(5) UNSIGNED NOT NULL default '0',
+  KEY `JOIN` (`GroupID`,`UserID`),
+  KEY `REVERSEJOIN` (`UserID`,`GroupID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+</gen:highlight>
+<p>
+   This ensures, that the optimizer uses indiced for both JOIN directions.
+</p>
+<p>
+   The setup and update tool have been adapted to this new structure, but existing tables must be
+   updated manually using the following statements (example):
+</p>
+<gen:highlight type="sql">
+ALTER TABLE `ass_group2user` DROP PRIMARY KEY;
+ALTER TABLE `ass_group2user` ADD INDEX (`GroupID`, `UserID`);
+ALTER TABLE `ass_group2user` ADD INDEX (`UserID`, `GroupID`);
+</gen:highlight>
+<p>
+   <em>ass_group2user</em>, <em>GroupID</em> and <em>UserID</em> have to be replaced by the appropriate
+   table name and the names of the object ids of the related objects.
+</p>
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_135" />

@@ -154,4 +154,45 @@ $cache->getFromCache(new SimpleCacheKey('my-key'));
    Formular-Definitionen müssen daher ersetzt werden.
 </p>
 
+<h3 id="Chapter-7-GORM"><a href="#Chapter-7-GORM">7. GORM</a></h3>
+<p>
+   In einer Diskussion über MySQL-Indizes konnte eine ungünstige Auslegung der Indizes der
+   Beziehungs-Tabellen ausgemacht werden. Aus diesem Grund wurde die Definition der Indizes von
+</p>
+<gen:highlight type="sql">
+CREATE TABLE IF NOT EXISTS `ass_group2user` (
+  `ASSID` int(5) UNSIGNED NOT NULL auto_increment,
+  `GroupID` int(5) UNSIGNED NOT NULL default '0',
+  `UserID` int(5) UNSIGNED NOT NULL default '0',
+  PRIMARY KEY (`ASSID`),
+  KEY `JOININDEX` (`GroupID`,`UserID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+</gen:highlight>
+<p>auf</p>
+<gen:highlight type="sql">
+CREATE TABLE IF NOT EXISTS `ass_group2user` (
+  `GroupID` int(5) UNSIGNED NOT NULL default '0',
+  `UserID` int(5) UNSIGNED NOT NULL default '0',
+  KEY `JOIN` (`GroupID`,`UserID`),
+  KEY `REVERSEJOIN` (`UserID`,`GroupID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+</gen:highlight>
+<p>
+   geändert. Damit ist sicher gestellt, dass der Optimizer bei JOINs in beide Richtungen einen
+   Index nutzt.
+</p>
+<p>
+   Das Setup- und Update-Tool wurde an die neue Struktur angepasst, bestehende Tabellen sollten mit
+   den folgenden Statements aktualisiert werden (Beispiel):
+</p>
+<gen:highlight type="sql">
+ALTER TABLE `ass_group2user` DROP PRIMARY KEY;
+ALTER TABLE `ass_group2user` ADD INDEX (`GroupID`, `UserID`);
+ALTER TABLE `ass_group2user` ADD INDEX (`UserID`, `GroupID`);
+</gen:highlight>
+<p>
+   <em>ass_group2user</em>, <em>GroupID</em> und <em>UserID</em> sind jeweils durch
+   den Tabellen-Namen und die Namen der Objekt-Ids der Objekte der Beziehung zu ersetzen sind.
+</p>
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_135" />
