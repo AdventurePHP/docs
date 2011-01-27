@@ -328,7 +328,7 @@
          $model->setAttribute('page.language',$lang);
 
          // create a page
-         $currentPage = new Page('SearchIndex',false);
+         $currentPage = new Page();
 
          // apply context and language
          $currentPage->setContext($this->__Context);
