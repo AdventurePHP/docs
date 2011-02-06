@@ -61,8 +61,43 @@ Pager.AllowDynamicEntriesPerPage = "true|false"
    bar.
 </p>
 
-<h3 id="Chapter-2-Front-controller"><a href="#Chapter-2-Front-controller">2. Front controller</a></h3>
+<h4 id="Chapter-1-4-Statement-configuration"><a href="#Chapter-1-4-Statement-configuration">1.4. Statement configuration</a></h4>
+<p>
+   To be able to handle statement files as &quot;normal&quot; configuration files the statement
+   handling was changed to have it's own
+   <int:link pageid="134" anchor="Chapter-2-2-Software-components">ConfigurationProvider</int:link>
+   during a bugfix. This enables you to save the statement files using the storage scheme of the new
+   configuration feature.
+</p>
+<p>
+   Nevertheless, the changes applied to the source code are not transparent. It requires changes to
+   the configuration of the pager. According to the configuration provider mapping, the extension
+   of the statement (<em>.sql</em>) file must be passed explicitly. Thus, the values of the
+   directives
+</p>
+<ul>
+   <li>Pager.CountStatement</li>
+   <li>Pager.EntriesStatement</li>
+</ul>
+<p>
+   must be changed upgrading to 1.13. To restore 1.12 behaviour, the values must be added the suffix
+   <em>.sql</em> (=extension of the SQL configuration files the provider uses). Sample:
+</p>
+<gen:highlight type="ini">
+; before 1.13
+Pager.StatementNamespace = "modules::comments"
+Pager.CountStatement = "load_entries_count"
+Pager.CountStatement.Params = "CategoryKey:standard"
+Pager.EntriesStatement = "load_entry_ids"
 
+; since 1.13
+Pager.StatementNamespace = "modules::comments"
+Pager.CountStatement = "load_entries_count.sql"
+Pager.CountStatement.Params = "CategoryKey:standard"
+Pager.EntriesStatement = "load_entry_ids.sql"
+</gen:highlight>
+
+<h3 id="Chapter-2-Front-controller"><a href="#Chapter-2-Front-controller">2. Front controller</a></h3>
 
 <h4 id="Chapter-2-1-Configuration-namespace"><a href="#Chapter-2-1-Configuration-namespace">2.1. Configuration namespace</a></h4>
 <p>
@@ -178,13 +213,34 @@ CREATE TABLE IF NOT EXISTS `ass_group2user` (
    updated manually using the following statements (example):
 </p>
 <gen:highlight type="sql">
+ALTER TABLE `ass_group2user` DROP `ASSID`;
 ALTER TABLE `ass_group2user` DROP PRIMARY KEY;
-ALTER TABLE `ass_group2user` ADD INDEX (`GroupID`, `UserID`);
-ALTER TABLE `ass_group2user` ADD INDEX (`UserID`, `GroupID`);
+ALTER TABLE `ass_group2user` ADD INDEX `JOIN` (`GroupID`, `UserID`);
+ALTER TABLE `ass_group2user` ADD INDEX `REVERSEJOIN` (`UserID`, `GroupID`);
 </gen:highlight>
 <p>
    <em>ass_group2user</em>, <em>GroupID</em> and <em>UserID</em> have to be replaced by the appropriate
    table name and the names of the object ids of the related objects.
 </p>
+
+<h3 id="Chapter-8-ConnectionManager"><a href="#Chapter-8-ConnectionManager">8. ConnectionManager</a></h3>
+<p>
+   The changes to the statement file loading described in chapter
+   <a href="#Chapter-1-4-Statement-configuration">statement configuration</a> affects all software 
+   components that make use of the <em>executeStatement()</em> and <em>executeBindStatement()</em>
+   of the appropriate
+   <int:link pageid="031" anchor="Chapter-4-Existing-abstraction-layers">datenbase connection implementation</int:link>.
+   Calling one of these methods, the extension of the statement files must be explicitly applied.
+   Example:
+</p>
+<gen:highlight type="php">
+// before 1.13
+$conn = $this->__getServiceObject('core::database', 'ConnectionManager')->getConnection('...');
+$conn->executeStatement('my::app::namespace', 'load_entries', ...);
+
+// since 1.13
+$conn = $this->__getServiceObject('core::database', 'ConnectionManager')->getConnection('...');
+$conn->executeStatement('my::app::namespace', 'load_entries.sql', ...);
+</gen:highlight>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_135" />

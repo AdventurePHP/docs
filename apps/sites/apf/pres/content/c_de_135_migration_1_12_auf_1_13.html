@@ -58,8 +58,43 @@ Pager.AllowDynamicEntriesPerPage = "true|false"
    Auswahl für Einträge/Seite auch nicht angezeigt.
 </p>
 
-<h3 id="Chapter-2-Front-Controller"><a href="#Chapter-2-Front-Controller">2. Front-Controller</a></h3>
+<h4 id="Chapter-1-4-Statement-Konfiguration"><a href="#Chapter-1-4-Statement-Konfiguration">1.4. Statement-Konfiguration</a></h4>
+<p>
+   Im Rahmen eines Bugfixes wurde das Laden von Statements auf einen eigenen
+   <int:link pageid="134" anchor="Chapter-2-2-Software-Komponenten">ConfigurationProvider</int:link>
+   umgestellt. Damit ist es nun möglich, Statements nach dem Ablage-Schema von &quot;normalen&quot;
+   Konfigurations-Dateien abzulegen.
+</p>
+<p>
+   Die Software-Änderung ist jedoch nicht transparent und erfordert daher eine Änderung der
+   Konfiguration des Pagers. Diese besteht darin, den Namen der Statements die Endung <em>.sql</em>
+   anzuhängen. Betroffen sind alle Konfigurationen mit Namen <em>*_pager.ini</em> und darin die
+   Direktiven
+</p>
+<ul>
+   <li>Pager.CountStatement</li>
+   <li>Pager.EntriesStatement</li>
+</ul>
+<p>
+   Um die die bisherige Funktionalität wiederherzustellen, müssen den dort definierten Werten das
+   Suffix <em>.sql</em> (=Endung der SQL-Konfigurations-Dateien, die der Provider nutzt) angehängt
+   werden. Ein Beispiel:
+</p>
+<gen:highlight type="ini">
+; vorher
+Pager.StatementNamespace = "modules::comments"
+Pager.CountStatement = "load_entries_count"
+Pager.CountStatement.Params = "CategoryKey:standard"
+Pager.EntriesStatement = "load_entry_ids"
 
+; nachher
+Pager.StatementNamespace = "modules::comments"
+Pager.CountStatement = "load_entries_count.sql"
+Pager.CountStatement.Params = "CategoryKey:standard"
+Pager.EntriesStatement = "load_entry_ids.sql"
+</gen:highlight>
+
+<h3 id="Chapter-2-Front-Controller"><a href="#Chapter-2-Front-Controller">2. Front-Controller</a></h3>
 
 <h4 id="Chapter-2-1-Konfigurations-Namespace"><a href="#Chapter-2-1-Konfigurations-Namespace">2.1. Konfigurations-Namespace</a></h4>
 <p>
@@ -186,13 +221,34 @@ CREATE TABLE IF NOT EXISTS `ass_group2user` (
    den folgenden Statements aktualisiert werden (Beispiel):
 </p>
 <gen:highlight type="sql">
+ALTER TABLE `ass_group2user` DROP `ASSID`;
 ALTER TABLE `ass_group2user` DROP PRIMARY KEY;
-ALTER TABLE `ass_group2user` ADD INDEX (`GroupID`, `UserID`);
-ALTER TABLE `ass_group2user` ADD INDEX (`UserID`, `GroupID`);
+ALTER TABLE `ass_group2user` ADD INDEX `JOIN` (`GroupID`, `UserID`);
+ALTER TABLE `ass_group2user` ADD INDEX `REVERSEJOIN` (`UserID`, `GroupID`);
 </gen:highlight>
 <p>
    <em>ass_group2user</em>, <em>GroupID</em> und <em>UserID</em> sind jeweils durch
    den Tabellen-Namen und die Namen der Objekt-Ids der Objekte der Beziehung zu ersetzen sind.
 </p>
+
+<h3 id="Chapter-8-ConnectionManager"><a href="#Chapter-8-ConnectionManager">8. ConnectionManager</a></h3>
+<p>
+   Die Änderung des Laden von Statement-Dateien wie sie im Kapitel
+   <a href="#Chapter-1-4-Statement-Konfiguration">Statement-Konfiguration</a> beschrieben ist, 
+   betrifft alle Komponenten, die die Methode <em>executeStatement()</em> und <em>executeBindStatement()</em>
+   der jeweiligen
+   <int:link pageid="031" anchor="Chapter-4-Vorhandene-Treiberschichten">Datenbank-Connection-Implementierungen</int:link>
+   nutzen. Bei Aufruf der genannten Methoden muss daher die Endung der Statement-Dateien nun
+   explizit mitgegeben werden. Beispiel:
+</p>
+<gen:highlight type="php">
+// vorher
+$conn = $this->__getServiceObject('core::database', 'ConnectionManager')->getConnection('...');
+$conn->executeStatement('my::app::namespace', 'load_entries', ...);
+
+// nachher
+$conn = $this->__getServiceObject('core::database', 'ConnectionManager')->getConnection('...');
+$conn->executeStatement('my::app::namespace', 'load_entries.sql', ...);
+</gen:highlight>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_135" />
