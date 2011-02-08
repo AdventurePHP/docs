@@ -81,10 +81,7 @@ eines Bildes zust&auml;ndig:
 <gen:highlight type="php">
 class ShowImageAction extends AbstractFrontcontrollerAction {
 
-   function ShowImageAction(){
-   }
-
-   function run(){
+   public function run(){
 
       // Bild aus dem Input-Objekt beenden
       $Image = APPS__PATH.'/modules/socialbookmark/pres/image/';
@@ -112,17 +109,13 @@ weiteren Parameter-Definitionen notwendig und folgender PHP-Code gen&uuml;gt um 
 Action zu komplettieren.
 <gen:highlight type="php">
 class ShowImageInput extends FrontcontrollerInput {
-
-   function ShowImageInput(){
-   }
-
 }
 </gen:highlight>
 <br />
 <h4 id="Chapter-2-4-Anwendung"><a href="#Chapter-2-4-Anwendung">2.4. Praktische Anwendung</a></h4>
 Im Socialbookmark-Modul werden die Symbole der Bookmark-Anbieter an den entsprechenden Stellen per
 <gen:highlight type="apf-xml">
-  &lt;img src="/~/modules_socialbookmark-action/showImage/imgext/png/img/bookmark_technorati" alt="" /&gt;
+&lt;img src="/~/modules_socialbookmark-action/showImage/imgext/png/img/bookmark_technorati" alt="" /&gt;
 </gen:highlight>
 eingebunden. Analysiert man den Aufruf der unter 2.2. dargestellten Action, so kommt den Parametern
 folgende Bedeutung zu:
@@ -194,7 +187,7 @@ das Beispiel einfache zu gestalten, werden nur folgende Model-Informationen beac
 <gen:highlight type="php">
 class ApplicationModel extends APFObject {
 
-   function ApplicationModel(){
+   public function __construct(){
 
       // Definiert den gerade anzuzeigenden View (login|welcome)
       $this->__Attributes['view.content.template'] = 'login';
@@ -239,99 +232,99 @@ FC.InputParams = ""
 Die eigentliche Funktionalit&auml;t der Action wird in der <strong>run()</strong>-Methode definiert.
 Folgender Code kann dazu eingesetzt werden:
 <gen:highlight type="php">
-      function run(){
+public function run(){
 
-         $_LOCALS = RequestHandler::getValues(array('Username','Password','ID'));
+   $_LOCALS = RequestHandler::getValues(array('Username','Password','ID'));
 
-         // Model der Anwendung holen
-         $Model = &$this->__getServiceObject('my::namespace','ApplicationModel');
+   // Model der Anwendung holen
+   $Model = &$this->__getServiceObject('my::namespace','ApplicationModel');
 
-         // SessionManager erzeugen
-         $Session = new SessionManager('MyApplication');
+   // SessionManager erzeugen
+   $Session = new SessionManager('MyApplication');
 
-         // Fall 1: (keine direkte Benutzerinteraktion)
-         //
-         //   a) Daten aus Session sind nicht leer und diese k&ouml;nnen erfolgreich
-         //      validiert werden.
-         //   b) Daten sind nicht in der Session enthalten.
-         //
-         if(!isset($_REQUEST['Login'])){
+   // Fall 1: (keine direkte Benutzerinteraktion)
+   //
+   //   a) Daten aus Session sind nicht leer und diese k&ouml;nnen erfolgreich
+   //      validiert werden.
+   //   b) Daten sind nicht in der Session enthalten.
+   //
+   if(!isset($_REQUEST['Login'])){
 
-            // Fall 1.1: Session-Daten auslesen und pr&uuml;fen
-            $Username = $Session->loadSessionData('Username');
-            $Password = $Session->loadSessionData('Password');
+      // Fall 1.1: Session-Daten auslesen und pr&uuml;fen
+      $Username = $Session->loadSessionData('Username');
+      $Password = $Session->loadSessionData('Password');
 
-            if(!empty($Username) && !empty($Password)){
+      if(!empty($Username) && !empty($Password)){
 
-               if($this->__validateCredentials($Username,$Password)){
+         if($this->__validateCredentials($Username,$Password)){
 
-                  // Fall 1.1.1: Daten aus Session gewonnen und erfolgreich eingeloggt
-                  $Model->setAttribute('view.content.template','content');
-
-               }
-               else{
-
-                  // Fall 1.1.2: Daten aus Session gewonnen und diese sind nicht valide
-                  $Model->setAttribute('view.content.template','login');
-
-               }
-
-            }
-            else{
-
-               // Fall 1.2: Keine Daten aus Session erh&auml;ltlich
-               $Model->setAttribute('view.content.template','login');
-
-            }
+            // Fall 1.1.1: Daten aus Session gewonnen und erfolgreich eingeloggt
+            $Model->setAttribute('view.content.template','content');
 
          }
          else{
 
-            if(myValidator::validateText($_LOCALS['Username']) && myValidator::validateText($_LOCALS['Password'])){
-
-               // Falls 2.1: Versuch eines Logins
-               if($this->__validateCredentials($_LOCALS['Username'],md5($_LOCALS['Password']))){
-
-                  // Fall 2.1.1. Login-Vorgang war erfolgreich
-                  $Model->setAttribute('view.content.template','content');
-
-               }
-               else{
-
-                  // Fall 2.1.2: Login-Vorgang war auf Grund falscher Benutzerdaten NICHT erfolgreich
-                  $Model->setAttribute('view.content.template','login');
-                  $Model->setAttribute('login.status','failed');
-
-               }
-
-            }
-            else{
-
-               // Fall Falls 2.2: Formular wurde unvollst&auml;ndig ausgef&uuml;llt
-               $Model->setAttribute('view.content.template','login');
-
-            }
-
-         }
-
-         // Fall 3: (Logout)
-         //
-         if($this->__Input->getAttribute('action') == 'logout'){
-
-            // Session-Daten l&ouml;schen
-            $Session->destroySession('MyApplication');
-
-            // Benutzerdaten aus lokalem Array l&ouml;schen
-            $_LOCALS['Username'] = '';
-            $_LOCALS['Password'] = '';
-            $_LOCALS['ID'] = '';
-
-            // Login-Formular erzeugen
+            // Fall 1.1.2: Daten aus Session gewonnen und diese sind nicht valide
             $Model->setAttribute('view.content.template','login');
 
          }
 
       }
+      else{
+
+         // Fall 1.2: Keine Daten aus Session erh&auml;ltlich
+         $Model->setAttribute('view.content.template','login');
+
+      }
+
+   }
+   else{
+
+      if(myValidator::validateText($_LOCALS['Username']) && myValidator::validateText($_LOCALS['Password'])){
+
+         // Falls 2.1: Versuch eines Logins
+         if($this->__validateCredentials($_LOCALS['Username'],md5($_LOCALS['Password']))){
+
+            // Fall 2.1.1. Login-Vorgang war erfolgreich
+            $Model->setAttribute('view.content.template','content');
+
+         }
+         else{
+
+            // Fall 2.1.2: Login-Vorgang war auf Grund falscher Benutzerdaten NICHT erfolgreich
+            $Model->setAttribute('view.content.template','login');
+            $Model->setAttribute('login.status','failed');
+
+         }
+
+      }
+      else{
+
+         // Fall Falls 2.2: Formular wurde unvollst&auml;ndig ausgef&uuml;llt
+         $Model->setAttribute('view.content.template','login');
+
+      }
+
+   }
+
+   // Fall 3: (Logout)
+   //
+   if($this->__Input->getAttribute('action') == 'logout'){
+
+      // Session-Daten l&ouml;schen
+      $Session->destroySession('MyApplication');
+
+      // Benutzerdaten aus lokalem Array l&ouml;schen
+      $_LOCALS['Username'] = '';
+      $_LOCALS['Password'] = '';
+      $_LOCALS['ID'] = '';
+
+      // Login-Formular erzeugen
+      $Model->setAttribute('view.content.template','login');
+
+   }
+
+}
 </gen:highlight>
 Die im Code-Beispiel verwendeten Framework-Komponenten wie
 <a href="./?Seite=019-Klassenreferenz-SessionManager" title="SessionManager">SessionManager</a>,
@@ -339,10 +332,10 @@ Die im Code-Beispiel verwendeten Framework-Komponenten wie
 und <a href="./?Seite=029-Klassenreferenz-myValidator" title="myValidator">myValidator</a>
 m&uuml;ssen nat&uuml;rlich zuvor per
 <gen:highlight type="php">
-   import('my::namespace','ApplicationModel');
-   import('core::session','SessionManager');
-   import('tools::request','RequestHandler'); 
-   import('tools::validator','myValidator');
+import('my::namespace','ApplicationModel');
+import('core::session','SessionManager');
+import('tools::request','RequestHandler'); 
+import('tools::validator','myValidator');
 </gen:highlight>
 eingebunden werden. Die private Methode <strong>__validateCredentials()</strong> kapselt die
 Pr&uuml;fung der Login-Daten mit Hilfe einer Business-Komponente.

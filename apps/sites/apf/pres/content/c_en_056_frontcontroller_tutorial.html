@@ -81,10 +81,7 @@ complete source code of the image delivery action is printed in the following co
 <gen:highlight type="php">
 class ShowImageAction extends AbstractFrontcontrollerAction {
 
-   function ShowImageAction(){
-   }
-
-   function run(){
+   public function run(){
 
       // get image from the action's input object
       $Image = APPS__PATH.'/modules/socialbookmark/pres/image/';
@@ -111,10 +108,6 @@ parameters applied to the action call. In case of the image delivery, no further
 be defined. The following class definition completes the action definition:
 <gen:highlight type="php">
 class ShowImageInput extends FrontcontrollerInput {
-
-   function ShowImageInput(){
-   }
-
 }
 </gen:highlight>
 <br />
@@ -190,7 +183,7 @@ model. To make the example not too complex, the model defines only few attribute
 <gen:highlight type="php">
 class ApplicationModel extends APFObject {
 
-   function ApplicationModel(){
+   public function __construct(){
 
       // defines the view that should be displayed (login|welcome)
       $this->__Attributes['view.content.template'] = 'login';
@@ -233,100 +226,99 @@ FC.InputParams = ""
 The core functionality of an action is defined in the <strong>run()</strong> method. The following
 source code can be used to fullfill the functionality described above:
 <gen:highlight type="php">
-      function run(){
+public function run(){
 
-         // register "normal" request variables
-         $_LOCALS = RequestHandler::getValues(array('Username','Password','ID'));
+   // register "normal" request variables
+   $_LOCALS = RequestHandler::getValues(array('Username','Password','ID'));
 
-         // instanciate the application model
-         $Model = &$this->__getServiceObject('my::namespace','ApplicationModel');
+   // instanciate the application model
+   $Model = &$this->__getServiceObject('my::namespace','ApplicationModel');
 
-         // create the SessionManager
-         $Session = new SessionManager('MyApplication');
+   // create the SessionManager
+   $Session = new SessionManager('MyApplication');
 
-         // case 1: (no direct user interaction)
-         //
-         //   a) data from session are not null and are valid.
-         //   b) data are not included in the session.
-         //
-         if(!isset($_REQUEST['Login'])){
+   // case 1: (no direct user interaction)
+   //
+   //   a) data from session are not null and are valid.
+   //   b) data are not included in the session.
+   //
+   if(!isset($_REQUEST['Login'])){
 
-            // case 1.1: extract data from session
-            $Username = $Session->loadSessionData('Username');
-            $Password = $Session->loadSessionData('Password');
+      // case 1.1: extract data from session
+      $Username = $Session->loadSessionData('Username');
+      $Password = $Session->loadSessionData('Password');
 
-            if(!empty($Username) && !empty($Password)){
+      if(!empty($Username) && !empty($Password)){
 
-               if($this->__validateCredentials($Username,$Password)){
+         if($this->__validateCredentials($Username,$Password)){
 
-                  // case 1.1.1: data from session is valid, user is logged in
-                  $Model->setAttribute('view.content.template','content');
-
-               }
-               else{
-
-                  // case 1.1.2: data from session are not valid
-                  $Model->setAttribute('view.content.template','login');
-
-               }
-
-            }
-            else{
-
-               // case 1.2: no data avalilable in session
-               $Model->setAttribute('view.content.template','login');
-
-            }
+            // case 1.1.1: data from session is valid, user is logged in
+            $Model->setAttribute('view.content.template','content');
 
          }
          else{
 
-            if(myValidator::validateText($_LOCALS['Username']) && myValidator::validateText($_LOCALS['Password'])){
-
-               // case 2.1: login form was sent
-               if($this->__validateCredentials($_LOCALS['Username'],md5($_LOCALS['Password']))){
-
-                  // case 2.1.1. login credentials are valid -> user is logged in
-                  $Model->setAttribute('view.content.template','content');
-
-               }
-               else{
-
-                  // case 2.1.2: login request failed due to wrong username and/or password
-                  $Model->setAttribute('view.content.template','login');
-                  $Model->setAttribute('login.status','failed');
-
-               }
-
-            }
-            else{
-
-               // case cases 2.2: form was submitted partial
-               $Model->setAttribute('view.content.template','login');
-
-            }
-
-         }
-
-
-         // case 3: logout
-         //
-         if($this->__Input->getAttribute('action') == 'logout'){
-
-            // destroy session data
-            $Session->destroySession('MyApplication');
-
-            // unset user data in the locally used array
-            $_LOCALS['Username'] = '';
-            $_LOCALS['Password'] = '';
-            $_LOCALS['ID'] = '';
-
-            // set view to "login"
+            // case 1.1.2: data from session are not valid
             $Model->setAttribute('view.content.template','login');
 
          }
 
       }
+      else{
+
+         // case 1.2: no data avalilable in session
+         $Model->setAttribute('view.content.template','login');
+
+      }
+
+   }
+   else{
+
+      if(myValidator::validateText($_LOCALS['Username']) && myValidator::validateText($_LOCALS['Password'])){
+
+         // case 2.1: login form was sent
+         if($this->__validateCredentials($_LOCALS['Username'],md5($_LOCALS['Password']))){
+
+            // case 2.1.1. login credentials are valid -> user is logged in
+            $Model->setAttribute('view.content.template','content');
+
+         }
+         else{
+
+            // case 2.1.2: login request failed due to wrong username and/or password
+            $Model->setAttribute('view.content.template','login');
+            $Model->setAttribute('login.status','failed');
+
+         }
+
+      }
+      else{
+
+         // case cases 2.2: form was submitted partial
+         $Model->setAttribute('view.content.template','login');
+
+      }
+
+   }
+
+   // case 3: logout
+   //
+   if($this->__Input->getAttribute('action') == 'logout'){
+
+      // destroy session data
+      $Session->destroySession('MyApplication');
+
+      // unset user data in the locally used array
+      $_LOCALS['Username'] = '';
+      $_LOCALS['Password'] = '';
+      $_LOCALS['ID'] = '';
+
+      // set view to "login"
+      $Model->setAttribute('view.content.template','login');
+
+   }
+
+}
 </gen:highlight>
 The code printed above uses the framework components
 <a href="./?Page=019-Class-reference-table-SessionManager" title="SessionManager">SessionManager</a>,
@@ -334,10 +326,10 @@ The code printed above uses the framework components
 and <a href="./?Page=029-Class-reference-table-myValidator" title="myValidator">myValidator</a>.
 Of corse, these libraries must be included via
 <gen:highlight type="php">
-   import('my::namespace','ApplicationModel');
-   import('core::session','SessionManager');
-   import('tools::request','RequestHandler'); 
-   import('tools::validator','myValidator');
+import('my::namespace','ApplicationModel');
+import('core::session','SessionManager');
+import('tools::request','RequestHandler'); 
+import('tools::validator','myValidator');
 </gen:highlight>
 before use. This private method <strong>__validateCredentials()</strong> encapsulates the validation
 of the login credentials, that must be implemented by the business component.
@@ -348,7 +340,7 @@ in SESSIONSINGLETON mode. This opens the possibility, to have the action only ex
 logout, because the login information is already available in the session. To mime this behavior,
 the model must be created as follows:
 <gen:highlight type="php">
-   $Model = &$this->__getServiceObject('my::namespace','ApplicationModel','SESSIONSINGLETON');
+$Model = &$this->__getServiceObject('my::namespace','ApplicationModel','SESSIONSINGLETON');
 </gen:highlight>
 <br />
 <h4 id="Chapter-3-3-Input-definition"><a href="#Chapter-3-3-Input-definition">3.3. Input definition</a></h4>
