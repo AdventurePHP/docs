@@ -120,6 +120,11 @@ The form tag itself takes three functional atributes, that are used for definiti
    This causes all forms to take this value in case the attribute is not specified within the local
    declaration. If the global default value is not explicitly specified, &quot;post&quot; is taken.
 </div>
+<div class="hint">
+   Please note, thet text fields do not support array name notation (example <em>text[de]</em>). The
+   reason for this is that text fields should only include scalar values. Concerning this contract,
+   the validators do only read scalar values and thus cannot handle arrays.
+</div>
 
 <h4 id="Chapter-3-1-Button"><a href="#Chapter-3-1-Button">3.1. Button</a></h4>
 This taglib represents a submit button. APF form elements are validated and filtered on button click
@@ -652,7 +657,7 @@ is displayed - if present in the form definition.
 <gen:highlight type="apf-xml">
 &lt;form:error [name=""]&gt;
   ...
-  [&lt;error:getstring namespace="" config="" key="" /&gt;]
+  [&lt;error:getstring namespace="" config="" entry="" /&gt;]
   [&lt;error:placeholder name="" /&gt;]
   ...
 &lt;/form:error&gt;
@@ -673,7 +678,7 @@ fields are maked valid. The definition of the tag is as follows:
 <gen:highlight type="apf-xml">
 &lt;form:success [name=""]&gt;
   ...
-  [&lt;success:getstring namespace="" config="" key="" /&gt;]
+  [&lt;success:getstring namespace="" config="" entry="" /&gt;]
   [&lt;success:placeholder name="" /&gt;]
   ...
 &lt;/form:success&gt;
@@ -752,13 +757,53 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
     <strong>salt</strong>: The salt that is used to calculate a more secure hash.
   </li>
   <li>
-     <strong>name</strong>: Der Name des Feldes (<strong>Zeichen</strong>: [A-Za-z0-9_]).
+     <strong>name</strong>: The name of the control. (<strong>Allowed characters</strong>: [A-Za-z0-9_]).
   </li>
   <li>
      <strong>namespace</strong>: The namespace of the hash provider.
   </li>
   <li>
      <strong>class</strong>: The class name of the hash provider.
+  </li>
+</ul>
+
+<h5 id="Chapter-3-23-Time-control"><a href="#Chapter-3-23-Time-control">3.23. Time control</a></h5>
+<p>
+   To ease creation of time selection controls the APF provides the time control. This form control
+   can be configured as desired using the following attributes:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:time
+   name=""
+   [hoursrange=""]
+   [offsetnames=""]
+   [showseconds="true|false"]
+   [minutesinterval=""]
+/&gt;
+</gen:highlight>
+<strong>Description of the attributes:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: The name of the time control that can be used to access it.
+    (<strong>Allowed characters</strong>: [A-Za-z0-9-_])
+  </li>
+  <li>
+     <strong>hoursrange</strong>: Range of the hour field. Example: <em>08-21</em>.
+     (<strong>Allowed characters</strong>: [0-9-])
+  </li>
+  <li>
+     <strong>offsetnames</strong>: Names of the fields for hour, minute, and second. The field names
+     must be separated by ";". Example: <em>Hour;Minute;Second</em>.
+     (<strong>Allowed characters</strong>: [A-Za-z;])
+  </li>
+  <li>
+     <strong>showseconds</strong>: Using this attribute, you can configure, whether a select box
+     for seconds should be displayed.
+  </li>
+  <li>
+     <strong>minutesinterval</strong>: With this attribute you can define the interval of the minutes
+     displayed in the minutes select box. Please note, that you should take care that the number provided
+     within this attribute is a suitable divisor of 60. Example: 5, 10, or 15.
   </li>
 </ul>
 
