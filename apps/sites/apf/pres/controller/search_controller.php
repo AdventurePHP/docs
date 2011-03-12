@@ -36,7 +36,7 @@
          $searchTerm = RequestHandler::getValue('search','');
 
          // display form
-         $form = &$this->__getForm('SearchV2');
+         $form = &$this->getForm('SearchV2');
          $form->transformOnPlace();
 
          // display results
@@ -55,7 +55,7 @@
             $buffer = (string)'';
 
             // get template
-            $template = &$this->__getTemplate('Result');
+            $template = &$this->getTemplate('Result');
 
             $count = count($searchResults);
             $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');
@@ -91,7 +91,7 @@
             if($count < 1){
 
                // get template
-               $Template__NoSearchResult = &$this->__getTemplate('NoSearchResult_'.$this->__Language);
+               $Template__NoSearchResult = &$this->getTemplate('NoSearchResult_'.$this->__Language);
 
                // add message to buffer
                $buffer .= $Template__NoSearchResult->transformTemplate();

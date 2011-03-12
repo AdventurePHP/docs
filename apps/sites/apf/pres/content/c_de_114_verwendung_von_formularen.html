@@ -24,7 +24,7 @@ Um ein Formular mit Hilfe eines Document-Controller auszugeben, ist folgender Co
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('Search');
+      $form = &$this->getForm('Search');
       $form->transformOnPlace();
    }
 }
@@ -173,7 +173,7 @@ Document-Controller kann der Zustand eines Formulars damit wie folgt abgefragt w
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('MyForm');
+      $form = &$this->getForm('MyForm');
       if($form->isSent()){
          echo 'Form was send');
       }
@@ -187,7 +187,7 @@ Ebenso ist es m&ouml;glich, den Status eines definierten Elements zu erfragen:
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('MyForm');
+      $form = &$this->getForm('MyForm');
       $searchField = &$form->getFormElementByName('searchterm');
       if($searchField->isValid()){
          echo 'Search field is valid';
@@ -199,7 +199,7 @@ Um den Klick-Status eines Buttons abzufragen, kann folgender Code genutzt werden
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('MyForm');
+      $form = &$this->getForm('MyForm');
       $button = &$form->getFormElementByID('button');
       if($button->isSent()){
          echo 'Search button was clicked';
@@ -248,7 +248,7 @@ valide ist. Dazu fragt er das Formular bei der Transformation nach seinem Status
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('product-form');
+      $form = &$this->getForm('product-form');
       $form->transformOnPlace();
    }
 }
@@ -292,20 +292,71 @@ angezeigt:
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('product-form');
+      $form = &$this->getForm('product-form');
       $form->transformOnPlace();
    }
 }
 </gen:highlight>
-Innerhalb des <strong>&lt;form:listener /&gt;</strong>-Tags k&ouml;nnen gem&auml;&szlig;
-<a href="./?Seite=113-Formulare#Chapter-3-18-Listener" title="Listener">Listener</a> noch weitere Tags zur
-Definition der Inhalte verwendet werden.
-<br />
-<br />
-<br />
+<p>
+   Innerhalb des <strong>&lt;form:listener /&gt;</strong>-Tags k&ouml;nnen gem&auml;&szlig;
+   <a href="./?Seite=113-Formulare#Chapter-3-18-Listener" title="Listener">Listener</a> noch weitere Tags zur
+   Definition der Inhalte verwendet werden.
+</p>
+
+<h4 id="Chapter-3-3-Nachtraegliche-Validierung"><a href="#Chapter-3-3-Nachtraegliche-Validierung">3.3. Nachträgliche Validierung im Controller</a></h4>
+<p>
+   In einigen Situationen kann es einfacher bzw. schneller sein, eine Formular-Validierung im
+   Controller durchzuführen anstatt einen eigenen Validator zu schreiben. Um auch in diesen Fällen
+   eine Markierung der Formular-Felder zu ermöglichen wurde in <strong>Version 1.14</strong> eine
+   neue Methode für Formular-Felder eingeführt.
+</p>
+<p>
+   Als Beispiel soll im folgenden Formular das Feld <em>searchterm</em> nach einer eigenen Regel
+   im Controller validiert werden:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="search">
+   <label for="searchterm">Suchbegriff:</label>
+   <form:text id="searchterm" name="searchterm" value="" />
+   <form:button name="search" value="GO" />
+</html:form>
+</gen:highlight>
+<p>
+   Der passende Controller beinhaltet folgenden Code zur Prüfung, dass das Suchfeld den Buchstaben
+   <em>e</em> nicht enthält:
+</p>
+<gen:highlight type="php">
+class search_controller extends base_controller {
+
+   public function transformContent() {
+
+      $form = &$this->getForm('search');
+      $searchTerm = &$form->getFormElementById('searchterm')
+
+      if(stripos($searchTerm->getAttribute('value'), 'e') !== false) {
+         $searchTerm->markAsInvalid();
+         $searchTerm->appendCssClass(AbstractFormValidator::$DEFAULT_MARKER_CLASS);
+      }
+
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Beim Abschicken des Formulars mit einem Wort, das den Buchstaben <em>e</em> beinhaltet, wird das
+   Feld <em>searchterm</em> technisch als invalid markiert und erhält die Standard-CSS-Klasse, die 
+   zur optischen Markierung eingesetzt wird. Sofern eine eigene Klasse genutzt werden soll, kann
+   diese entweder im Controller fest definiert werden oder aus einem Attribut des Formular-Feldes
+   bezogen werden (z.B. <em>valmarkerclass</em>).
+</p>
+
 <h3 id="Chapter-4-Auslesen-von-Formularen"><a href="#Chapter-4-Auslesen-von-Formularen">4. Auslesen von Formularen</a></h3>
-Eine h&auml;ufige Aufgabe beim Handling von Formularen stellt das Auslesen von Werte dar. Hierzu
-k&ouml;nnen im Document-Controller folgende Methoden genutzt werden:
+<p>
+   Eine h&auml;ufige Aufgabe beim Handling von Formularen stellt das Auslesen von Werte dar. Hierzu
+   k&ouml;nnen im Document-Controller folgende Methoden genutzt werden:
+</p>
 <ul>
    <li>
       <strong>getFormElementByID():</strong> Liefert ein Formular-Element an Hand seiner ID
@@ -332,7 +383,7 @@ ausgelesen werden, kann dies mit Hilfe des folgenden Controller-Codes erreicht w
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('product-form');
+      $form = &$this->getForm('product-form');
 
       if($form->isSent() && $form->isValid()){
 
@@ -370,7 +421,7 @@ folgender Controller-Code genutzt werden:
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('product-form');
+      $form = &$this->getForm('product-form');
       $error = &$form->getFormElementByName('error');
 
       // simple way:
@@ -401,7 +452,7 @@ kann die Methode genutzt werden um Formular-Felder auszulesen und direkt in ein
 <gen:highlight type="php">
 class edit_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('...');
+      $form = &$this->getForm('...');
       $textFields = &$form->getFormElementsByTagName('form:text');
       $user = new GenericDomainObject('User');
       $count = count($textFields);
@@ -435,14 +486,12 @@ Zur Vorbef&uuml;llung von Formularen (z.B. in einem Bearbeiten-Dialog) k&ouml;nn
    <li><strong>getFormElementByObjectID()</strong></li>
 </ul>
 eingesetzt werden um eine Referenz auf ein Formular-Element zu beziehen. Anschlie&szlig;end stehen
-die Standard-Methoden
+die Standard-Methode
 <ul>
-   <li><strong>get()</strong> und</li>
    <li><strong>getAttribute()</strong></li>
 </ul>
 bzw.
 <ul>
-   <li><strong>set()</strong> und </li>
    <li><strong>setAttribute()</strong></li>
 </ul>
 zur Verf&uuml;gung.
@@ -469,7 +518,7 @@ PHP-Code bef&uuml;llt wird:
 </gen:highlight>
 <em>Controller:</em>
 <gen:highlight type="php">
-$form = &$this->__getForm('UserEdit');
+$form = &$this->getForm('UserEdit');
 
 $userID = &$form->getFormElementByName('userid');
 $userID->setAttribute('value','...');
@@ -510,7 +559,7 @@ vorausgef&uuml;llt, das zus&auml;tzlich zu den Standard-Text-Felder auch Auswahl
 </gen:highlight>
 Der folgende PHP-Code bef&uuml;llt das Formular:
 <gen:highlight type="php">
-$form = &$this->__getForm('UserCreate');
+$form = &$this->getForm('UserCreate');
 $salutations = array(...);
 $salutation = &$form->getFormElementByName('Salutation');
 for($i = 0; $i < count($salutations); $i++){
@@ -533,7 +582,7 @@ ist aus dem im Release mitgelieferten
 <a href="./?Seite=095-Module-Usermanagement" title="Usermanagement-Modul">Usermanagement-Modul</a>
 entnommen.
 <gen:highlight type="php">
-$form = &$this->__getForm('PermissionSetEdit');
+$form = &$this->getForm('PermissionSetEdit');
 
 // load permissions and fill the select field
 $allPermissions = $uM->loadPermissionList();
@@ -555,7 +604,7 @@ Besonderheit stellen auch hier die Einfach- und Mehrfachselektionsfelder dar. Da
 zeigt, wie die Werte des unter 3.1 dargestellten Formulars im DocumentController ausgelesen werden
 k&ouml;nnen:
 <gen:highlight type="php">
-$form = &$this->__getForm('UserEdit');
+$form = &$this->getForm('UserEdit');
 
 $userID = &$form->getFormElementByName('userid');
 echo $userID->getAttribute('value');
@@ -570,7 +619,7 @@ Um die selektierten Optionen eines Einfach- oder Mehrfachselektionsfeldes auszul
 Methoden <strong>getSelectedOption()</strong> und <strong>getSelectedOptions()</strong> zur
 Verf&uuml;gung. Die folgende Codebox zeigt den Anwendungsfall:
 <gen:highlight type="php">
-$form = &$this->__getForm('UserCreate');
+$form = &$this->getForm('UserCreate');
 
 $salutations = array(...);
 $salutation = &$form->getFormElementByName('Salutation');
@@ -699,7 +748,7 @@ class select_controller extends base_controller {
    public function transformContent(){
 
       // get form reference
-      $form = &$this->__getForm('type');
+      $form = &$this->getForm('type');
 
       // get current decision
       $Select = &$form->getFormElementByName('type');
@@ -922,11 +971,11 @@ class HoneypotValidator extends TextFieldValidator {
 }
 </gen:highlight>
 Da die Klasse <strong>TextFieldValidator</strong> bereits die Benachrichtigung eines &quot;echten&quot;
-Text-Feldes &uuml;bernimmt wird das Feld im Fehlerfall mit einem roten Rahmen versehen. Dies ist im
-aktuellen Anwendungsfall nicht erforderlich und muss daher unterdr&uuml;ckt werden. Hierzu
-&uuml;berschreiben wir die Methode <strong>notify()</strong> der Klasse
-<strong>TextFieldValidator</strong>, die aufgerufen wird, sofern ein Feld nicht erfolgreich
-validiert werden konnte:
+Text-Feldes &uuml;bernimmt wird das Feld im Fehlerfall mit einer CSS-Klasse versehen, die zur
+optischen Markierung genutzt werden kann. Dies ist im aktuellen Anwendungsfall nicht erforderlich
+und muss daher unterdr&uuml;ckt werden. Hierzu &uuml;berschreiben wir die Methode
+<strong>notify()</strong> der Klasse <strong>TextFieldValidator</strong>, die aufgerufen wird,
+sofern ein Feld nicht erfolgreich validiert werden konnte:
 <gen:highlight type="php">
 class HoneypotValidator extends TextFieldValidator {
    public function validate($input){
@@ -945,10 +994,9 @@ class HoneypotValidator extends TextFieldValidator {
 Die Methode enth&auml;lt im Gegensatz zur Implementierung in der Klasse
 <strong>TextFieldValidator</strong> die Zeile
 <gen:highlight type="php">
-$this->__Control->addAttribute('style','; border: 2px solid red;');
+$this->markControl($this->__Control);
 </gen:highlight>
-nicht. Damit haben wir das Markieren des fehlerhaften Formular-Feldes durch einen roten Rahmen
-ausgeschaltet.
+nicht. Damit haben wir das optische Markieren des fehlerhaften Formular-Feldes ausgeschaltet.
 <br />
 <br />
 Die Anwendung des Validators gestaltet sich dann im Zusammenhang mit dem Honeypot-Textfeld wie folgt:

@@ -44,7 +44,7 @@
          $result = $wikiConn->executeTextStatement($select);
          
          // get template and prefill it
-         $article = &$this->__getTemplate('article_'.$this->__Language);
+         $article = &$this->getTemplate('article_'.$this->__Language);
 
          // create article list
          $buffer = (string)'';

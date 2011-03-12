@@ -51,9 +51,9 @@
          $result = $SQLForum->executeTextStatement($select);
 
          // get template and prefill it
-         $templatePostsForum = &$this->__getTemplate('PostsForum');
-         $templateAuthorLabel = &$this->__getTemplate('Author_'.$this->__Language);
-         $templateCreationDateLabel = &$this->__getTemplate('CreationDate_'.$this->__Language);
+         $templatePostsForum = &$this->getTemplate('PostsForum');
+         $templateAuthorLabel = &$this->getTemplate('Author_'.$this->__Language);
+         $templateCreationDateLabel = &$this->getTemplate('CreationDate_'.$this->__Language);
          $templatePostsForum->setPlaceHolder('AuthorLabel',$templateAuthorLabel->transformTemplate());
          $templatePostsForum->setPlaceHolder('CreationDateLabel',$templateCreationDateLabel->transformTemplate());
 

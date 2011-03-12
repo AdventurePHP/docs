@@ -21,7 +21,7 @@ In order to display a form, the following controller code can be used:
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('Search');
+      $form = &$this->getForm('Search');
       $form->transformOnPlace();
    }
 }
@@ -161,7 +161,7 @@ controller, you can get the form status as follows:
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('MyForm');
+      $form = &$this->getForm('MyForm');
       if($form->isSent()){
          echo 'Form was send');
       }
@@ -175,7 +175,7 @@ Further, you can ask a single form element to return it's status using the subse
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('MyForm');
+      $form = &$this->getForm('MyForm');
       $searchField = &$form->getFormElementByName('searchterm');
       if($searchField->isValid()){
          echo 'Search field is valid';
@@ -187,7 +187,7 @@ To decide, whether a button has been clicked, use the follwing code:
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('MyForm');
+      $form = &$this->getForm('MyForm');
       $button = &$form->getFormElementByID('button');
       if($button->isSent()){
          echo 'Search button was clicked';
@@ -237,7 +237,7 @@ time:
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('product-form');
+      $form = &$this->getForm('product-form');
       $form->transformOnPlace();
    }
 }
@@ -279,20 +279,70 @@ In the below, field specific messages are displayed in case a desired field is m
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('product-form');
+      $form = &$this->getForm('product-form');
       $form->transformOnPlace();
    }
 }
 </gen:highlight>
-Within the <strong>&lt;form:listener /&gt;</strong> tag, you may define further tags for formatting
-or content generation purposes as described in chapter
-<a href="./?Page=113-Forms#Chapter-3-18-Listener" title="Listener">Listener</a>.
-<br />
-<br />
-<br />
+<p>
+   Within the <strong>&lt;form:listener /&gt;</strong> tag, you may define further tags for formatting
+   or content generation purposes as described in chapter
+   <a href="./?Page=113-Forms#Chapter-3-18-Listener" title="Listener">Listener</a>.
+</p>
+
+<h4 id="Chapter-3-3-Manual-validation"><a href="#Chapter-3-3-Manual-validation">3.3. Manual validation within the document controller</a></h4>
+<p>
+   In some kind of situation it may be easier or faster to do form validation within a document
+   controller instead of writing a validator. In order to allow marking form controls a new form
+   control method was introduced in <strong>Version 1.14</strong>.
+</p>
+<p>
+   As an example, the form field <em>searchterm</em> contained in the subsequent form should be
+   validated using a custom rule within a document controller:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="search">
+   <label for="searchterm">Search term:</label>
+   <form:text id="searchterm" name="searchterm" value="" />
+   <form:button name="search" value="GO" />
+</html:form>
+</gen:highlight>
+<p>
+   The corresponding controller contains the following code to invalidate the search term field in
+   case it contains an <em>e</em>:
+</p>
+<gen:highlight type="php">
+class search_controller extends base_controller {
+
+   public function transformContent() {
+
+      $form = &$this->getForm('search');
+      $searchTerm = &$form->getFormElementById('searchterm')
+
+      if(stripos($searchTerm->getAttribute('value'), 'e') !== false) {
+         $searchTerm->markAsInvalid();
+         $searchTerm->appendCssClass(AbstractFormValidator::$DEFAULT_MARKER_CLASS);
+      }
+
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Sending the form including any word that contains the letter <em>e</em> the <em>searchterm</em>
+   field is technically and optically marked as invalid. The latter is done by adding the defaukt
+   validation marker css class. In case you want to apply your own css class you can do this by
+   applying a hard-coded class name or by taking it from the form control's attribute list
+   (e.g. <em>valmarkerclass</em>).
+</p>
+
 <h3 id="Chapter-4-Handle-form-content"><a href="#Chapter-4-Handle-form-content">4. Handle form content</a></h3>
-A frequent job with the handling of forms is the readout of values. To support this, the following
-methods can be used in the document controller:
+<p>
+   A frequent job with the handling of forms is the readout of values. To support this, the following
+   methods can be used in the document controller:
+</p>
 <ul>
    <li>
       <strong>getFormElementByID():</strong> Returns a form element selected by id
@@ -318,7 +368,7 @@ use the subsequent controller code:
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('product-form');
+      $form = &$this->getForm('product-form');
 
       if($form->isSent() && $form->isValid()){
 
@@ -357,7 +407,7 @@ controller code:
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('product-form');
+      $form = &$this->getForm('product-form');
       $error = &$form->getFormElementByName('error');
 
       // simple way:
@@ -389,7 +439,7 @@ the method can be used to read the content of the form elements and directly map
 <gen:highlight type="php">
 class edit_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('...');
+      $form = &$this->getForm('...');
       $textFields = &$form->getFormElementsByTagName('form:text');
       $user = new GenericDomainObject('User');
       $count = count($textFields);
@@ -422,14 +472,12 @@ To preset form controls (e.g. within an edit dialog) the
    <li><strong>getFormElementByObjectID()</strong></li>
 </ul>
 methods can be used to gather an instance of the desired form control. After that, you can take one
-of the standard methods
+of the standard method
 <ul>
-   <li><strong>get()</strong> und</li>
    <li><strong>getAttribute()</strong></li>
 </ul>
 or
 <ul>
-   <li><strong>set()</strong> und </li>
    <li><strong>setAttribute()</strong></li>
 </ul>
 respectively to retrieve or fill the content.
@@ -455,7 +503,7 @@ The subsequent code box defines a form, that is filled using the php code below:
 </gen:highlight>
 <em>Controller:</em>
 <gen:highlight type="php">
-$form = &$this->__getForm('UserEdit');
+$form = &$this->getForm('UserEdit');
 
 $userID = &$form->getFormElementByName('userid');
 $userID->setAttribute('value','...');
@@ -495,7 +543,7 @@ prefill a form, that contains select fields in addition to normal text fields:
 </gen:highlight>
 The below controller code prefills the form:
 <gen:highlight type="php">
-$form = &$this->__getForm('UserCreate');
+$form = &$this->getForm('UserCreate');
 $salutations = array(...);
 $salutation = &$form->getFormElementByName('Salutation');
 for($i = 0; $i < count($salutations); $i++){
@@ -515,7 +563,7 @@ The follwing code box gives presents an example taken from the
 <a href="./?Page=095-Module-usermanagement" title="Usermanagement module">usermanagement module</a>.
 The controller code first fills the select field and then preselects the desired option.
 <gen:highlight type="php">
-$form = &$this->__getForm('PermissionSetEdit');
+$form = &$this->getForm('PermissionSetEdit');
 
 // load permissions and fill the select field
 $allPermissions = $uM->loadPermissionList();
@@ -536,7 +584,7 @@ Readout of form controls is similar to prefilling. Please note, that simple and 
 are handled a little bit different. The following code example shows how the values can be read out
 from the form described in chapter 3.1:
 <gen:highlight type="php">
-$form = &$this->__getForm('UserEdit');
+$form = &$this->getForm('UserEdit');
 
 $userID = &$form->getFormElementByName('userid');
 echo $userID->getAttribute('value');
@@ -551,7 +599,7 @@ In order to get the selected options of simple and multi select fields,
 <strong>getSelectedOption()</strong> and <strong>getSelectedOptions()</strong> can be used. The
 subsequent code box describes how:
 <gen:highlight type="php">
-$form = &$this->__getForm('UserCreate');
+$form = &$this->getForm('UserCreate');
 
 $salutations = array(...);
 $salutation = &$form->getFormElementByName('Salutation');
@@ -676,7 +724,7 @@ class select_controller extends base_controller {
    pubic function transformContent(){
 
       // get form reference
-      $form = &$this->__getForm('type');
+      $form = &$this->getForm('type');
 
       // get current decision
       $Select = &$form->getFormElementByName('type');
@@ -888,10 +936,10 @@ class HoneypotValidator extends TextFieldValidator {
 }
 </gen:highlight>
 Due to the fact, that <strong>TextFieldValidator</strong> already contains the functionality that
-is necessary to notify a &quot;real&quot; text field and mark it with a red border in case of errors.
-As of this application case, we do not need this functionality and though we have to suppress it.
-For this reason, we are going to overwrite the <strong>notify()</strong> method (defined within
-<strong>TextFieldValidator</strong>), that is called when a field failed validation:
+is necessary to notify a &quot;real&quot; text field and mark it with a special css class in case
+of errors. As of this application case, we do not need this functionality and though we have to
+suppress it. For this reason, we are going to overwrite the <strong>notify()</strong> method
+(defined within <strong>TextFieldValidator</strong>), that is called when a field failed validation:
 <gen:highlight type="php">
 class HoneypotValidator extends TextFieldValidator {
    public function validate($input){
@@ -910,9 +958,9 @@ class HoneypotValidator extends TextFieldValidator {
 In contrast to the implementation of the <strong>TextFieldValidator</strong> class, the line
 <strong>TextFieldValidator</strong> die Zeile
 <gen:highlight type="php">
-$this->__Control->addAttribute('style','; border: 2px solid red;');
+$this->markControl($this->__Control);
 </gen:highlight>
-is not included. This disables the marking of the form element using a red CSS border.
+is not included. This disables the optical marking of the form element using a custom css class.
 <br />
 <br />
 The following code box describes the application of the validator together with the above honeypot

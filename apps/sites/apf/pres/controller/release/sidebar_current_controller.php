@@ -38,13 +38,13 @@
          $normalizedUnstable = release_base_controller::normalizeVersionNumber($unstableRelease);
          $normalizedStable = release_base_controller::normalizeVersionNumber($stableRelease);
          if($normalizedUnstable > $normalizedStable){
-            $tmpl = &$this->__getTemplate(self::$UNSTABLE);
+            $tmpl = &$this->getTemplate(self::$UNSTABLE);
             $tmpl->setPlaceHolder('release',$this->buildLink($unstableRelease,self::$UNSTABLE_PAGEID));
             $tmpl->transformOnPlace();
          }
 
          // handle stable releases
-         $tmpl = &$this->__getTemplate(self::$STABLE);
+         $tmpl = &$this->getTemplate(self::$STABLE);
          $tmpl->setPlaceHolder('release',$this->buildLink($stableRelease,self::$STABLE_PAGEID));
          $tmpl->transformOnPlace();
 

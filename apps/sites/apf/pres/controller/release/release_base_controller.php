@@ -264,8 +264,8 @@
       protected function displayRelease($releaseNumber){
 
          // get templates
-         $templateReleaseHead = &$this->__getTemplate('ReleaseHead');
-         $templateReleaseFile = &$this->__getTemplate('ReleaseFile');
+         $templateReleaseHead = &$this->getTemplate('ReleaseHead');
+         $templateReleaseFile = &$this->getTemplate('ReleaseFile');
 
          // gather version -------------------------------------------------------------------------
          $dashOffset = strpos($releaseNumber,'-');
@@ -309,11 +309,11 @@
 
          // choose new template for versions > 1.10
          if($version >= 110){
-            $templateOfflineDoku = &$this->__getTemplate('OfflineDoku_110');
+            $templateOfflineDoku = &$this->getTemplate('OfflineDoku_110');
           // end if
          }
          else {
-            $templateOfflineDoku = &$this->__getTemplate('OfflineDoku');
+            $templateOfflineDoku = &$this->getTemplate('OfflineDoku');
           // end else
          }
 
@@ -451,12 +451,12 @@
 
          // -- check version to be greater than 1.10, than display only one online api doku
          if($version >= 110){
-            $templateDocumentation = &$this->__getTemplate('Documentation_new');
+            $templateDocumentation = &$this->getTemplate('Documentation_new');
             $templateDocumentation->setPlaceHolder('DocsFolder',$docsFolder);
           // end if
          }
          else{
-            $templateDocumentation = &$this->__getTemplate('Documentation');
+            $templateDocumentation = &$this->getTemplate('Documentation');
           // end else
          }
          $templateDocumentation->setPlaceHolder('ReleaseVersion',$releaseNumber);

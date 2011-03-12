@@ -43,9 +43,9 @@
          $result = $forumConn->executeTextStatement($select);
 
          // get template and prefill it
-         $postsForum = &$this->__getTemplate('PostsForum');
-         $authorLabel = &$this->__getTemplate('Author_'.$this->__Language);
-         $creationDateLabel = &$this->__getTemplate('CreationDate_'.$this->__Language);
+         $postsForum = &$this->getTemplate('PostsForum');
+         $authorLabel = &$this->getTemplate('Author_'.$this->__Language);
+         $creationDateLabel = &$this->getTemplate('CreationDate_'.$this->__Language);
          $postsForum->setPlaceHolder('AuthorLabel',$authorLabel->transformTemplate());
          $postsForum->setPlaceHolder('CreationDateLabel',$creationDateLabel->transformTemplate());
 

@@ -17,22 +17,19 @@
        */
       var $__MaxLinkLength = 50;
 
-      function doku_taglib_link(){
-      }
-
       /**
        * @public
        *
        * Creates the link output.
        *
-       * @return $Link the desired link sting
+       * @return string The desired link sting
        *
        * @author Christian Achatz
        * @version
        * Version 0.1, 15.08.2007<br />
        * Version 0.2, 18.09.2008 (Translation and refactoring for new docu page)<br />
        */
-      function transform(){
+      public function transform(){
 
          // remove blanks
          $content = trim($this->__Content);

@@ -57,41 +57,48 @@ Zur Anzeige des Formulars ist folgender Code im Controller erforderlich:
 <gen:highlight type="php">
 class search_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('Search');
+      $form = &$this->getForm('Search');
       $form->transformOnPlace();
    }
 }
 </gen:highlight>
-Die folgenden Kapitel beschreiben nun die vorhandenen Formular-Elemente und deren Einsatzgebiet.
-<br />
-<br />
-<br />
+<p>Die folgenden Kapitel beschreiben nun die vorhandenen Formular-Elemente und deren Einsatzgebiet.</p>
+
 <h3 id="Chapter-3-Mitgelieferte-Tags"><a href="#Chapter-3-Mitgelieferte-Tags">3. Mitgelieferte Tags</a></h3>
-Das APF beinhaltet bereits einen umfangreichen Satz and Formular-Elementen, die nach Bedarf
-konfiguriert werden k&ouml;nnen. Sollten diese nicht ausreichen, k&ouml;nnen jederzeit eigene
-Formular-Elemente hinzugef&uuml;gt werden. Siehe hierzu Kapitel 
-<a href="./?Seite=114-Verwendung-von-Formularen" title="Verwendung von Formularen">Verwendung von Formularen</a>.
-<br />
-<br />
-Da das APF einen generischen Tag-Parser beinhaltet, k&ouml;nnen Formular-Tags mit beliebigen
-Attributen ausgestattet werden. Zu diesen z&auml;hlen insbesondere
+<p>
+   Das APF beinhaltet bereits einen umfangreichen Satz and Formular-Elementen, die nach Bedarf
+   konfiguriert werden k&ouml;nnen. Sollten diese nicht ausreichen, k&ouml;nnen jederzeit eigene
+   Formular-Elemente hinzugef&uuml;gt werden. Siehe hierzu Kapitel
+   <a href="./?Seite=114-Verwendung-von-Formularen" title="Verwendung von Formularen">Verwendung von Formularen</a>.
+</p>
+<p>
+   Da das APF einen generischen Tag-Parser beinhaltet, k&ouml;nnen Formular-Tags mit beliebigen
+   Attributen ausgestattet werden. Zu diesen z&auml;hlen insbesondere
+</p>
 <ul>
    <li><strong>id="..."</strong></li>
    <li><strong>class="..."</strong></li>
    <li><strong>style="..."</strong></li>
 </ul>
-zur Formatierung der Elemente. Aus diesem Grund werden diese in den Beschreibungen der Taglibs
-nicht weiter erw&auml;hnt, sondern es wird lediglich auf die f&uuml;r die Funktion des Tags
-relevanten Attribute eingegangen.
-<br />
-<br />
+<p>
+   zur Formatierung der Elemente. Aus diesem Grund werden diese in den Beschreibungen der Taglibs
+   nicht weiter erw&auml;hnt, sondern es wird lediglich auf die f&uuml;r die Funktion des Tags
+   relevanten Attribute eingegangen.
+</p>
+<div class="hint">
+   Ein weiteres generische Attribute ist <em>optional</em>, das zur Kennzeichnung von optionalen
+   Feldern hinsichtlich der Validierung genutzt wird. Details können im Kapitel
+   <int:link pageid="113" anchor="Chapter-4-1-Verfuegbare-Validatoren">Verfügbare Validatoren</int:link>
+   nachgelesen werden.
+</div>
 <div class="hint">
    Attribute, die mit "[" und "]" geklammert dargestellt sind, haben optionalen Charakter, die
    &uuml;brigen m&uuml;ssen verpflichtend angegeben werden.
 </div>
-<br />
-Das Formular-Tag selbst besitzt drei funktionale Attribute, die zur Definition und Konfiguration
-dienen:
+<p>
+   Das Formular-Tag selbst besitzt drei funktionale Attribute, die zur Definition und Konfiguration
+   dienen:
+</p>
 <gen:highlight type="apf-xml">
 &lt;html:form name="" [method=""] [action=""]&gt;
   ...
@@ -423,7 +430,7 @@ Der Platzhalter dieht dazu, dynamische Inhalte in das Formular einzubringen.
 Um einen Platzhalter eines Formulars zu f&uuml;llen, besitzt die Klasse <strong>html_taglib_form</strong>
 die Methode <strong>setPlaceHolder()</strong>:
 <gen:highlight type="php">
-$form = &$this->__getForm('MyForm');
+$form = &$this->getForm('MyForm');
 $form->setPlaceHolder('NameOfThePlaceHolder','...Value...');
 </gen:highlight>
 <br />
@@ -578,7 +585,7 @@ Zur Bef&uuml;llung eines Platzhalters in einem Document-Controller kann folgende
 <gen:highlight type="php">
 class form_controller extends base_controller {
    public function transformContent(){
-      $form = &$this->__getForm('name-form');
+      $form = &$this->getForm('name-form');
       $listener = &$form->getFormElementByName('name-listener');
       $listener->setPlaceHolder('field-name','name');
    }
@@ -885,6 +892,37 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
    Hinweise zu speziellen Validator-Listenern findet sich auch im Wiki-Artikel
    <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Spezielle_Validator-Listener" title="Spezielle Validator-Listener">Spezielle Validator-Listener</a>.
 </div>
+<p>
+   In der Version 1.12 wurde die Markierung von invaliden Formular-Elementen auf CSS-Klassen
+   umgestellt. Dies ermöglicht flexiblere Formatierung pro Formular oder Anwendungsfall. Das Proposal
+   zur Implementierung kann unter
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Weiterentwicklung_Formular-Validierung" title="Weiterentwicklung Formular-Validierung">Weiterentwicklung Formular-Validierung</a>
+   nachgelesen werden.
+</p>
+<p>
+   Im Standard-Fall werden von Validatoren als fehlerhaft markierte Felder mit der CSS-Klasse
+   <em>apf-form-error</em> ausgestattet. Ist dies nicht erwünscht, kann diese Klasse durch Setzen
+   des Attributs <em>valmarkerclass</em> beim jeweiligen Formular-Element beeinflusst werden:
+</p>
+<gen:highlight type="apf-xml">
+<form:text
+   name="age"
+   valmarkerclass="special-val-marker"
+/>
+</gen:highlight>
+<p>
+   Um alle fehlerhaften Formular-Elemente innerhalb eines Web-Projekts mit einem roten Rahmen zu
+   versehen, muss das CSS folgende Klassen-Definition enthalten:
+</p>
+<gen:highlight type="css">
+.apf-form-error {
+   border: 2px solid red;
+}
+</gen:highlight>
+<p>
+   Die speziellen Klassen-Definitionen müssen ebenfalls im CSS abgebildet werden. Andernfalls wird
+   ein als invalid gekennzeichnetes Feld u.U. optisch nicht als solches hervorgehoben.
+</p>
 
 <h4 id="Chapter-4-1-Verfuegbare-Validatoren"><a href="#Chapter-4-1-Verfuegbare-Validatoren">4.1. Verf&uuml;gbare Validatoren</a></h4>
 <p>

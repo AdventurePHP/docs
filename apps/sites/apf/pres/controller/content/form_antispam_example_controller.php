@@ -28,7 +28,7 @@
       public function transformContent() {
 
          // obtain a reference on the desired form (depends on the language of the document!)
-         $Form__AntiSpamExample = &$this->__getForm('AntiSpamExample_'.$this->__Language);
+         $Form__AntiSpamExample = &$this->getForm('AntiSpamExample_'.$this->__Language);
 
          // check if form is valid or not
          if($Form__AntiSpamExample->isValid() == true) {

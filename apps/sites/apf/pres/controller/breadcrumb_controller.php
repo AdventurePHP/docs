@@ -26,7 +26,7 @@
             $docuLink = $linkGen->generateLink($parent,$lang);
             $docuTitle = $linkGen->getPageTitle($parent,$lang);
 
-            $breadcrumb = $this->__getTemplate('breadcrumb');
+            $breadcrumb = $this->getTemplate('breadcrumb');
             $breadcrumb->setPlaceHolder('title',$model->getTitle());
             $breadcrumb->setPlaceHolder(
                     'mainpage',
