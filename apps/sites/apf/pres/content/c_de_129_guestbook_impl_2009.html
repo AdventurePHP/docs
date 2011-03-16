@@ -433,22 +433,31 @@ class GuestbookModel extends APFObject {
 </p>
 <gen:highlight type="php">
 class gb_taglib_import extends core_taglib_importdesign {
+
    public function __construct(){
-     parent::__construct();
+      parent::__construct();
    }
+
    public function onParseTime(){
-      $model = &$this->__getServiceObject(
-         'modules::guestbook2009::biz',
-         'GuestbookModel'
-      );
-      $model->set(
-         'GuestbookId',
-         $this->getAttribute('gbid')
-      );
+
+      $model = &$this->getServiceObject('modules::guestbook2009::biz','GuestbookModel');
+      $guestbookId = $this->getAttribute('gbid');
+
+      // do not include the guestbook, if gbid is not set/existent
+      if($guestbookId == null || ((int)$guestbookId) == 0){
+         throw new InvalidArgumentException('[gb_taglib_import::onParseTime()] The attribute '
+            .'"gbid" is empty or not present or the value is not an id. Please specify the '
+            .'attribute correctly in order to include the guestbook module!');
+      }
+
+      $model->setGuestbookId($guestbookId);
+
       $this->__Attributes['namespace'] = 'modules::guestbook2009::pres::templates';
       $this->__Attributes['template'] = 'guestbook';
       parent::onParseTime();
+
    }
+
 }
 </gen:highlight>
 <p>
@@ -1789,7 +1798,7 @@ final class GuestbookService extends APFObject {
 <gen:highlight type="php">
 public function loadPagedEntryList(){
    $pager = &$this->__getPager();
-   $model = &$this->__getServiceObject(
+   $model = &$this->getServiceObject(
       'modules::guestbook2009::biz',
       'GuestbookModel'
    );
@@ -1808,7 +1817,7 @@ public function loadPagedEntryList(){
    return $entries;
 }
 private function &__getPager(){
-   $pMF = &$this->__getServiceObject(
+   $pMF = &$this->getServiceObject(
       'modules::pager::biz',
       'PagerManagerFabric'
    );
@@ -1831,7 +1840,7 @@ public function validateCredentials(
    $mapper = &$this->__getMapper();
    if(
      $mapper->validateCredentials($user)){
-      $model = &$this->__getServiceObject(
+      $model = &$this->getServiceObject(
          'modules::guestbook2009::biz',
          'GuestbookModel'
       );
@@ -2006,7 +2015,7 @@ $user->setProperty('Email','');
 $orm->saveObject($user);
 Die Variable $orm beinhaltet dabei eine Instanz des Mappers, der durch
 $ormFactory =
-   &$this->__getServiceObject(
+   &$this->getServiceObject(
       'modules::genericormapper::data',
       'GenericORMapperFactory'
 );
@@ -2067,9 +2076,7 @@ import(
   'GenericORMapperSetup'
 );
 $setupMapper = new GenericORMapperSetup();
-$setupMapper->set(
-   'Context','testproject'
-);
+$setupMapper->setContext('testproject');
 $setupMapper->setupDatabase(
    'modules::guestbook2009::data',
    'guestbook2009',
@@ -2128,7 +2135,7 @@ public function loadEntryListForSelection(){
 <gen:highlight type="php">
 private function __getCurrentGuestbook(){
    $orm = &$this->__getGenericORMapper();
-   $model = &$this->__getServiceObject(
+   $model = &$this->getServiceObject(
       'modules::guestbook2009::biz',
       'GuestbookModel'
    );

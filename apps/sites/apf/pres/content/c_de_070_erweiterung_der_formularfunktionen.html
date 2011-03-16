@@ -63,49 +63,46 @@ Bedarf das Formular benachrichtigt werden. Der Code der Klasse stellt sich damit
 <gen:highlight type="php">
 class form_taglib_antispam extends form_control {
 
-   function form_taglib_antispam(){
-   }
+   public function onAfterAppend() {
 
-   function onAfterAppend(){
-
-      // Attribute validieren
-      if(!isset($this->__Attributes['minfilltime'])){
-         $FormName = $this->__ParentObject->getAttribute('name');
-         trigger_error('[form_taglib_antispam::onAfterAppend()] There is not attribute "minfilltime"
-         given in the anti spam tag definition in form "'.$FormName.'"! Please provide the attribute
-         mentioned containing the time in seconds the user needs to fill in the form.');
+      if ($this->getAttribute('minfilltime') === null) {
+         $formName = $this->getParentObject()->getAttribute('name');
+         throw new InvalidArgumentException('[form_taglib_antispam::onAfterAppend()] There is not '
+            .'attribute "minfilltime" given in the anti spam tag definition in form "' . $formName
+            . '"! Please provide the attribute mentioned containing the time in seconds the user '
+            .'needs to fill in the form.');
       }
 
-      // Formular als invalide markieren, falls die minimale Ausfuellzeit unterschritten wurde
-      $AntiSpamName = $this->__getAntiSpamName();
+      $antiSpamName = $this->getAntiSpamName();
 
-      if(isset($_REQUEST[$AntiSpamName])){
+      if (isset($_REQUEST[$antiSpamName])) {
 
-         // Informationen ueber die aktuelle und die Zeit des letzten Aufrufs sammeln
-         $CurrentTime = date('U');
-         $PreviousTime = $_REQUEST[$AntiSpamName];
-         $MinFillTime = $this->__Attributes['minfilltime'];
+         $currentTime = date('U');
+         $previousTime = $_REQUEST[$antiSpamName];
+         $minFillTime = $this->getAttribute('minfilltime');
 
-         // Formular als invalid markieren, falls notwenig
-         if(($CurrentTime - $MinFillTime) < $PreviousTime){
-            $this->__ParentObject->set('isValid',false);
+         // Formular-Element als invalid markieren fals die Zeit abgelaufen ist
+         if (($currentTime - $minFillTime) < $previousTime) {
+            $this->markAsInvalid();
          }
-
       }
-      
    }
 
-   function transform(){
-      return '<input type="hidden" name="'.$this->__getAntiSpamName().'" value="'.date('U').'" />';
+   public function transform() {
+      return '<input type="hidden" name="' . $this->getAntiSpamName() . '" value="' . date('U') . '" />';
    }
 
-   function __getAntiSpamName(){
-      return strtolower($this->__ParentObject->getAttribute('name')).'_antispam';
+   function getAntiSpamName() {
+      return strtolower($this->getParentObject()->getAttribute('name')) . '_antispam';
+   }
+
+   protected function __presetValue() {
+
    }
 
 }
 </gen:highlight>
-Die private Methode <strong>__getAntiSpamName()</strong> generiert den Namen des Feldes aus dem Namen
+Die private Methode <strong>getAntiSpamName()</strong> generiert den Namen des Feldes aus dem Namen
 des Formulars und dem Zusatz <strong>_antispam</strong>. Da der Name hart verdratet ist, darf das
 Anti-SPAM-Tag nur einmal pro Formular verwendet werden, da es sonst zu &Uuml;berlagerungen kommt.
 <br />

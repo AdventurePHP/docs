@@ -300,7 +300,7 @@ class commentMapper extends APFObject {
    }
 
    private function &__getConnection(){
-      $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+      $cM = &$this->getServiceObject('core::database','ConnectionManager');
       $config = $this->getConfiguration('modules::comments','comments.ini');
       $connectionKey = $config->getSection('Default')->getValue('Database.ConnectionKey');
       return $cM->getConnection($connectionKey);
@@ -418,7 +418,7 @@ Fabric muss dazu der Abschnitt der zu verwendenden Konfiguration und ein Initial
 mitgegeben werden. In PHP-Code funktioniert das wie folgt:
 <gen:highlight type="php">
    // Beziehen einer Singleton-Instanz der Fabric
-   $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+   $pMF = &$this->getServiceObject('modules::pager::biz','PagerManagerFabric');
 
    // Beziehen und initialisieren des PagerManagers
    $pM = &$pMF->getPagerManager('ArticleComments');
@@ -523,11 +523,11 @@ Kommen wir nun nach der Konfiguration des Pagers zu dessen Verwendung. Die Metho
    function loadEntries(){
 
       // pagerManager holen
-      $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+      $pMF = &$this->getServiceObject('modules::pager::biz','PagerManagerFabric');
       $pM = &$pMF->getPagerManager('ArticleComments');
 
       // Kommentare laden
-      $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
+      $M = &$this->getServiceObject('modules::comments::data','commentMapper');
       return $pM->loadEntriesByAppDataComponent($M,'loadArticleCommentByID',array('CategoryKey' => $this->__CategoryKey));
 
    }
@@ -542,14 +542,14 @@ die Objekte per Schleife mit Hilfe des Mappers zu laden. Das sieht in PHP-Code w
    function loadEntries(){
 
       // pagerManager holen
-      $pMF = &$this->__getServiceObject('modules::pager::biz','PagerManagerFabric');
+      $pMF = &$this->getServiceObject('modules::pager::biz','PagerManagerFabric');
       $pM = &$pMF->getPagerManager('ArticleComments');
 
       // Ids laden
       $EntryIDs = $pM->loadEntries(array('CategoryKey' => $this->__CategoryKey));
 
       // Kommentare laden
-      $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
+      $M = &$this->getServiceObject('modules::comments::data','commentMapper');
 
       $Entries = array();
 
@@ -710,7 +710,7 @@ class comment_listing_v1_controller extends commentBaseController {
       $template = &$this->getTemplate('ArticleComment');
 
       // init bb code parser (remove some provider, that we don't need configuration files)
-      $bP = &$this->__getServiceObject('tools::string','AdvancedBBCodeParser');
+      $bP = &$this->getServiceObject('tools::string','AdvancedBBCodeParser');
       $bP->removeProvider('standard.font.color');
       $bP->removeProvider('standard.font.size');
 
@@ -994,7 +994,7 @@ Seite auch wieder korrekt angezeigt wird.
    function saveEntry($ArticleComment){
 
       // Mapper holen
-      $M = &$this->__getServiceObject('modules::comments::data','commentMapper');
+      $M = &$this->getServiceObject('modules::comments::data','commentMapper');
 
       // Artikel speichern
       $ArticleComment->set('CategoryKey',$this->__CategoryKey);
