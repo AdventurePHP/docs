@@ -57,7 +57,7 @@
        * @return string The desired link to the release page.
        */
       private function buildLink($release,$pageId){
-         $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');
+         $urlMan = &$this->getServiceObject('sites::apf::biz','UrlManager');
          $link = $urlMan->generateLink($pageId,$this->__Language);
          return '<a href="'.$link.'" title="Get release '.$release.'!">APF '.$release.'</a>';
       }

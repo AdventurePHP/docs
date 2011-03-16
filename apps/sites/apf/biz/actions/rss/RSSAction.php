@@ -17,9 +17,6 @@
       private static $LANG = 'lang';
       private static $PROTOCOL_VERSION = 'proto';
       private static $CACHE_TIME_IN_MINUTES = 10080; // one week
-      
-      public function RSSAction(){
-      }
 
       /**
        * @public
@@ -41,7 +38,7 @@
          $page->loadDesign('sites::apf::pres::templates::news','rss');
          $items = $page->transform();
 
-         $urlMgr = &$this->__getServiceObject('sites::apf::biz','UrlManager');
+         $urlMgr = &$this->getServiceObject('sites::apf::biz','UrlManager');
          $link = 'http://adventure-php-framework.org'.$urlMgr->generateLink('124',$lang);
          echo '<?xml version="1.0" encoding="utf-8"?>
 <rss version="0.92">

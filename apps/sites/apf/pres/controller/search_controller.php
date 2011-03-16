@@ -43,7 +43,7 @@
          if(strlen($searchTerm) >= 3){
 
             // get manager
-            $m = &$this->__getServiceObject('sites::apf::biz','FulltextsearchManager');
+            $m = &$this->getServiceObject('sites::apf::biz','FulltextsearchManager');
 
             // load results
             $searchResults = $m->loadSearchResult($searchTerm);
@@ -58,7 +58,7 @@
             $template = &$this->getTemplate('Result');
 
             $count = count($searchResults);
-            $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');
+            $urlMan = &$this->getServiceObject('sites::apf::biz','UrlManager');
             $baseUrl = Registry::retrieve('apf::core','URLBasePath');
             for($i = 0; $i < $count; $i++){
 

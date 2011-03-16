@@ -21,13 +21,21 @@
        * @private
        * @var string Name of the log file.
        */
-      var $__LogFileName = 'fulltextsearchindexer';
+      private $logFileName = 'fulltextsearchindexer';
 
       /**
        * @private
        * @var string Content dir.
        */
-      var $__ContentFolder = '../apps/sites/apf/pres/content';
+      private $contentFolder = '../apps/sites/apf/pres/content';
+
+      public function setLogFileName($logFileName) {
+         $this->logFileName = $logFileName;
+      }
+
+      public function setContentFolder($contentFolder) {
+         $this->contentFolder = $contentFolder;
+      }
 
       /**
        *  @public
@@ -50,24 +58,24 @@
 
          $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
-         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+         $cM = &$this->getServiceObject('core::database','ConnectionManager');
          $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          // delete old articles
-         $L->logEntry($this->__LogFileName,'[DELETE] Delete articles ...');
+         $L->logEntry($this->logFileName,'[DELETE] Delete articles ...');
          $delete = 'TRUNCATE search_articles';
          $SQL->executeTextStatement($delete);
 
          // list content files
-         $Files = FilesystemManager::getFolderContent($this->__ContentFolder);
+         $Files = FilesystemManager::getFolderContent($this->contentFolder);
 
          // import files
          foreach($Files as $File) {
 
-            if(!is_dir($this->__ContentFolder.'/'.$File)) {
+            if(!is_dir($this->contentFolder.'/'.$File)) {
 
                // Log-Eintrag schreiben
-               $L->logEntry($this->__LogFileName,'[START] Create article from "'.$File.'" ...');
+               $L->logEntry($this->logFileName,'[START] Create article from "'.$File.'" ...');
 
                // Status-Cache l�schen
                clearstatcache();
@@ -76,10 +84,10 @@
                $Lang = substr($File,2,2);
                $FileName = substr($File,5,(strlen($File) - 10));
                $PageID = substr($FileName,0,3);
-               $ModStamp = date('Y-m-d H:i:s',filemtime($this->__ContentFolder.'/'.$File));
+               $ModStamp = date('Y-m-d H:i:s',filemtime($this->contentFolder.'/'.$File));
 
                // extract title and urlname
-               $content = file_get_contents($this->__ContentFolder.'/'.$File);
+               $content = file_get_contents($this->contentFolder.'/'.$File);
 
                preg_match('/title="([A-Za-z0-9\(\) \/\-&;,.:!\?]+)"/i',$content,$TitleMatches);
 
@@ -89,7 +97,7 @@
                }
                else {
                   $Title = '---';
-                  $L->logEntry($this->__LogFileName,'- File "'.$FileName.'" contains no title ...');
+                  $L->logEntry($this->logFileName,'- File "'.$FileName.'" contains no title ...');
                   // end else
                }
 
@@ -101,7 +109,7 @@
                }
                else {
                   $URLName = '---';
-                  $L->logEntry($this->__LogFileName,'- File "'.$FileName.'" contains no urlname ...');
+                  $L->logEntry($this->logFileName,'- File "'.$FileName.'" contains no urlname ...');
                   // end else
                }
 
@@ -112,7 +120,7 @@
                }
                else {
                   $ParentPage = '0';
-                  $L->logEntry($this->__LogFileName,'- File "'.$FileName.'" contains no parent page ...');
+                  $L->logEntry($this->logFileName,'- File "'.$FileName.'" contains no parent page ...');
                }
 
                // In Artikel-Datenbank einf�gen
@@ -123,7 +131,7 @@
                $SQL->executeTextStatement($insert);
 
                // Log-Eintrag schreiben
-               $L->logEntry($this->__LogFileName,'[FINISH] Create article from "'.$File.'" ...');
+               $L->logEntry($this->logFileName,'[FINISH] Create article from "'.$File.'" ...');
                $L->flushLogBuffer();
 
              // end if
@@ -154,7 +162,7 @@
          $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
          // get connection
-         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+         $cM = &$this->getServiceObject('core::database','ConnectionManager');
          $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          // delete the recent index
@@ -172,7 +180,7 @@
             //echo '<br /><br />ArticleID: '.$articleId.' (pageId: '.$data_articles['PageID'].', file: '.$data_articles['FileName'].', lang: '.$data_articles['Language'].')';
 
             // log index run
-            $l->logEntry($this->__LogFileName,'[START] Indexing article "'.$data_articles['FileName'].'" (ID: '.$articleId.', Lang: '.$data_articles['Language'].') ...');
+            $l->logEntry($this->logFileName,'[START] Indexing article "'.$data_articles['FileName'].'" (ID: '.$articleId.', Lang: '.$data_articles['Language'].') ...');
 
             // generate html code of the current content
             $content = $this->createPageOutput($data_articles['PageID'],$data_articles['FileName'],$data_articles['Language']);
@@ -188,7 +196,7 @@
             unset($content);
 
             // log word count
-            $l->logEntry($this->__LogFileName,'- Words in text: '.count($contentArray));
+            $l->logEntry($this->logFileName,'- Words in text: '.count($contentArray));
 
             // delete old index
             $delete_index = 'DELETE FROM search_index WHERE ArticleID = \''.$articleId.'\'';
@@ -232,7 +240,7 @@
             sort($index);
 
             // log word count
-            $l->logEntry($this->__LogFileName,'- Indexed words: '.count($index));
+            $l->logEntry($this->logFileName,'- Indexed words: '.count($index));
 
             // save result
             foreach($index as $wordId => $indexValues) {
@@ -250,8 +258,8 @@
             unset($index);
 
             // create log entry
-            $l->logEntry($this->__LogFileName,'[FINISH] Indexing article "'.$data_articles['FileName'].'".');
-            $l->logEntry($this->__LogFileName,'');
+            $l->logEntry($this->logFileName,'[FINISH] Indexing article "'.$data_articles['FileName'].'".');
+            $l->logEntry($this->logFileName,'');
             $l->flushLogBuffer();
 
           // end while
@@ -279,7 +287,7 @@
          $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
          // Connection holen
-         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+         $cM = &$this->getServiceObject('core::database','ConnectionManager');
          $sql = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          // Wort selektieren

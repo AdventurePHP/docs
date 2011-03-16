@@ -35,7 +35,7 @@
          $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
          // get database connection
-         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+         $cM = &$this->getServiceObject('core::database','ConnectionManager');
          $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          // make search string save (sql injection)

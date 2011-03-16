@@ -41,32 +41,26 @@
          );
 
          // check request parameters and set current language
-         if($currentPageIndicators[$pageIndicatorNameDe] != null){
+         if ($currentPageIndicators[$pageIndicatorNameDe] != null) {
             $language = 'de';
             $model->setLanguage($language);
-            $this->__ParentObject->setLanguage($language);
-            $this->__Language = $language;
-            $model->setAttribute('perspective.name','content');
-          // end if
-         }
-         elseif($currentPageIndicators[$pageIndicatorNameEn] != null){
+            $this->getFrontController()->setLanguage($language);
+            $this->setLanguage($language);
+            $model->setAttribute('perspective.name', 'content');
+         } elseif ($currentPageIndicators[$pageIndicatorNameEn] != null) {
             $language = 'en';
             $model->setLanguage($language);
-            $this->__ParentObject->setLanguage($language);
-            $this->__Language = $language;
-            $model->setAttribute('perspective.name','content');
-          // end if
-         }
-         else{
+            $this->getFrontController()->setLanguage($language);
+            $this->setLanguage($language);
+            $model->setAttribute('perspective.name', 'content');
+         } else {
 
             // use default language of the front controller (maybe a problem, perhaps use
             // a session instance to store the language)
-            $language = $this->__ParentObject->getLanguage();
-            $this->__Language = $language;
+            $language = $this->getFrontController()->getLanguage();
+            $this->setLanguage($language);
             $model->setLanguage($language);
-            $model->setAttribute('perspective.name','start');
-
-          // end else
+            $model->setAttribute('perspective.name', 'start');
          }
 
          // fill current page id
@@ -87,7 +81,6 @@
             $model->setDisplaySidebar(false);
          }
 
-       // end function
       }
 
       /**
@@ -105,18 +98,13 @@
          $contentFiles = glob($contentFilePath.'/'.$prefix.'_'.$language.'_'.$pageId.'*');
 
          // check, if appropriate file exists
-         if(!isset($contentFiles[0])){
-            return $prefix.'_'.$language.'_404.html';
-          // end if
-         }
-         else{
+         if (!isset($contentFiles[0])) {
+            return $prefix . '_' . $language . '_404.html';
+         } else {
             return basename($contentFiles[0]);
-          // end else
          }
 
-       // end function
       }
 
-    // end class
    }
 ?>

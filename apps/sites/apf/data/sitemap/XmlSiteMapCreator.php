@@ -7,13 +7,13 @@
 
          $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
 
-         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+         $cM = &$this->getServiceObject('core::database','ConnectionManager');
          $sql = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
          $select = 'SELECT PageID,URLName,Language,ModificationTimestamp,Title FROM search_articles ORDER BY PageID ASC';
          $result = $sql->executeTextStatement($select);
 
-         $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');
+         $urlMan = &$this->getServiceObject('sites::apf::biz','UrlManager');
          $urlMan = new UrlManager();
 
          $buffer = (string)'<?xml version="1.0" encoding="UTF-8"?>'.PHP_EOL;

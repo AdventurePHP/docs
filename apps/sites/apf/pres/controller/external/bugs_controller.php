@@ -14,7 +14,7 @@
       public function transformContent(){
 
          // get forum database connection
-         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+         $cM = &$this->getServiceObject('core::database','ConnectionManager');
          $forumConn = &$cM->getConnection('Forum');
 
          // get configuration from the registry

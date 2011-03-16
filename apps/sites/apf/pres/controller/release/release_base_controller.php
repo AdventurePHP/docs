@@ -469,7 +469,7 @@
          $title = $config->getSection($this->getLanguage())->getValue('downloads.changeset.text.linktext');
          $title .= $releaseNumber;
 
-         $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');
+         $urlMan = &$this->getServiceObject('sites::apf::biz','UrlManager');
          $link = $urlMan->generateLink(self::$REV_HISTORY_PAGEID,$this->__Language);
          $templateDocumentation->setPlaceHolder(
                  'HistoryLink',

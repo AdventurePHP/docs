@@ -34,7 +34,7 @@
          $targetLang = RequestHandler::getValue(self::$LANG);
          $targetPageId = RequestHandler::getValue(self::$PAGE_ID);
 
-         $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');
+         $urlMan = &$this->getServiceObject('sites::apf::biz','UrlManager');
          $forwardUrl = $urlMan->generateLink($targetPageId,$targetLang);
 
          HeaderManager::forward($forwardUrl);

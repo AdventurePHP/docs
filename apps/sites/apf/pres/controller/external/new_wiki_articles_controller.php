@@ -14,7 +14,7 @@
       public function transformContent(){
 
          // get wiki database connection
-         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+         $cM = &$this->getServiceObject('core::database','ConnectionManager');
          $wikiConn = &$cM->getConnection('Wiki');
 
          // get configuration from the registry

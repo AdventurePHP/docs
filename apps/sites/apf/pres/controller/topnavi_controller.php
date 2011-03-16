@@ -28,7 +28,7 @@ class topnavi_controller extends base_controller {
          $pageId = $this->getParentNodeId();
       }
 
-      $urlMan = &$this->__getServiceObject('sites::apf::biz', 'UrlManager');
+      $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
 
       $buffer = (string) '';
       foreach ($this->navi as $naviNode) {

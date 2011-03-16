@@ -119,11 +119,9 @@
        * @return AbstractDatabaseHandler The database connection.
        */
       private function &getConnection(){
-         $cM = &$this->__getServiceObject('core::database','ConnectionManager');
+         $cM = &$this->getServiceObject('core::database','ConnectionManager');
          return $cM->getConnection('FulltextSearch');
-       // end function
       }
 
-    // end class
    }
 ?>

@@ -12,11 +12,11 @@
 
       public function transformContent(){
 
-         $model = &$this->__getServiceObject('sites::apf::biz','APFModel');
+         $model = &$this->getServiceObject('sites::apf::biz','APFModel');
          $lang = $model->getLanguage();
          $pageId = $model->getPageId();
 
-         $urlMan = &$this->__getServiceObject('sites::apf::biz','UrlManager');
+         $urlMan = &$this->getServiceObject('sites::apf::biz','UrlManager');
          $linkDe = $urlMan->generateLink($pageId,'de');
          $linkEn = $urlMan->generateLink($pageId,'en');
 

@@ -29,7 +29,7 @@
    // create indexer
    $fSI = new FulltextsearchIndexer();
    $fSI->setContext('sites::apf');
-   $fSI->set('ContentFolder','../apps/sites/apf/pres/content');
+   $fSI->setContentFolder('../apps/sites/apf/pres/content');
 
    // execute desired job
    $nothing2do = false;

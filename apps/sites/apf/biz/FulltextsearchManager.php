@@ -16,9 +16,6 @@
     */
    class FulltextsearchManager extends APFObject {
 
-      function fulltextsearchManager() {
-      }
-
       /**
        * @public
        *
@@ -31,8 +28,8 @@
        * @version
        * Version 0.1, 10.03.2008<br />
        */
-      function loadSearchResult($SearchString) {
-         $m = &$this->__getServiceObject('sites::apf::data','FulltextsearchMapper');
+      public function loadSearchResult($SearchString) {
+         $m = &$this->getServiceObject('sites::apf::data','FulltextsearchMapper');
 
          // Suchwort protokollieren
          $l = &Singleton::getInstance('Logger');
@@ -40,9 +37,7 @@
 
          return $m->loadSearchResult($SearchString);
 
-       // end function
       }
 
-    // end class
    }
 ?>

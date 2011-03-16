@@ -17,9 +17,6 @@
       private static $REQUEST_URL_INDICATOR = '/url/';
       private static $REFERER_INDICATOR = '/referer/';
 
-      public function StatAction() {
-      }
-
       /**
        *  @public
        *
@@ -45,7 +42,7 @@
          $_SERVER['HTTP_REFERER'] = $referer; // fake referer
 
          // write statistic entry
-         $sM = &$this->__getServiceObject('3rdparty::statistics::biz','StatManager');
+         $sM = &$this->getServiceObject('3rdparty::statistics::biz','StatManager');
          $sM->writeStatistic($pageId.' - '.$pageName,$pageLang);
 
          // deliver non-cachable image
