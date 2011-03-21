@@ -249,7 +249,7 @@ AddIndices = "FirstName,LastName(INDEX)|Username(UNIQUE)|Password(INDEX)"
       ausgezeichnet. Mehrere Definitionen werden durch &quot;<em>|</em>&quot; (Pipe) getrennt.
    </li>
    <li>
-      Die zul&auml;ssigen Index-Typen sind: <em>INDEX</em> (normaler Index), <em>UNIQUE</em> (Spalte 
+      Die zul&auml;ssigen Index-Typen sind: <em>INDEX</em> (normaler Index), <em>UNIQUE</em> (Spalte
       darf nur eindeutige Werte enthalten) und <em>FULLTEXT</em> (Such-Index, der mit <em>MATCH
       AGAINST()</em> abgefragt werden kann). Die Index-Typen werden jeweils in Klammern notiert.
    </li>
@@ -591,7 +591,7 @@ $orm = &$ormFact->getGenericORMapper(
 </div>
 <h5 id="Chapter-4-1-2-Erzeugung-via-DI"><a href="#Chapter-4-1-2-Erzeugung-via-DI">4.1.2. Erzeugung via DI</a></h5>
 <p>
-   Seit dem Release 1.12 kann der GORM auch mit dem 
+   Seit dem Release 1.12 kann der GORM auch mit dem
    <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DIServiceManager</int:link>
    erzeugt werden. Diese Vorgehensweise hat deutliche Vorteile f&uuml;r die Testbarkeit einer
    Komponente und die Entkopplung der Business- von der Pr&auml;sentations-Schicht.
@@ -1032,13 +1032,13 @@ $orm->saveObject($app);
 <div class="warn">
    <p>
       Der GORM ist in der Lage, beliebig gro&szlig;e Objekt-B&auml;ume zu speichern. Hierbei gilt
-      es jedoch zu beachten, dass sehr gro&szlig;e B&auml;me aus Performance-Gr&uuml;nden etwas 
+      es jedoch zu beachten, dass sehr gro&szlig;e B&auml;me aus Performance-Gr&uuml;nden etwas
       anders behandelt werden sollten. Dies ist jedoch nur Anwendungen notwendig, die sehr hohen
       Performance-Anforderungen unterliegen. In der Regel ist die Performance des GORM in der
       oben beschriebenen Vorgehensweise absolut ausreichend.
    </p>
    <p>
-      Sofern die Anzahl der bei einer Speicherung involvierten Objekte sehr gro&szlig; wird (c.a. 
+      Sofern die Anzahl der bei einer Speicherung involvierten Objekte sehr gro&szlig; wird (c.a.
       20 Objekte mit jeweils mind. 1 Assoziations-Beziehung) ist zu empfehlen, die Objekte ohne das
       Aufbauen der Beziehungen mit einem Aufruf von <em>saveObject()</em> zu speichern und diese
       anschlie&szlig;end per <em>createAssociation()</em> anzulegen. Diese Art der Optimierung kann
@@ -1048,6 +1048,7 @@ $orm->saveObject($app);
 </div>
 
 <h3 id="Chapter-5-GenericCriterionObject"><a href="#Chapter-5-GenericCriterionObject">5. &Uuml;bersicht zum GenericCriterionObject</a></h3>
+<br />
 <p>
    Das vorliegende Kapitel m&ouml;chte einen zusammenfassenden &Uuml;berblick &uuml;ber die Nutzung des
    <strong>GenericCriterionObject</strong> geben. Wie in den vorherigen Kapiteln angedeutet, kann das
@@ -1055,6 +1056,7 @@ $orm->saveObject($app);
    Anwendungsfall zu konfigurieren. Das Objekt kann bei den <strong>load*ByCriterion()</strong>-Methoden
    und beim Nachladen von in Beziehung stehenden Objekten und Objektlisten genutzt werden.
 </p>
+<h4 id="Chapter-5-1-Grundlagen"><a href="#Chapter-5-1-Grundlagen">5.1. Grundlagen</a></h4>
 <p>
    Die folgende Code-Box zeigt einen &Uuml;berblick &uuml;ber die Einsatzm&ouml;glichkeiten des
    <strong>GenericCriterionObject</strong>s am Beispiel einer Benutzer-Liste, deren Benutzer zu einer
@@ -1145,6 +1147,133 @@ $criterion
     ->addPropertyIndicator($attributeName, $attributeValue);
 </gen:highlight>
    Weitere Hinweise finden sich unter <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Fluent_Interface_des_GenericCriterionObject">Fluent Interface des GenericCriterionObject</a>.
+</div>
+<br />
+<br />
+<br />
+<h4 id="Chapter-5-2-Verschachtelung"><a href="#Chapter-5-2-Verschachtelung">5.2. Verschachtelung</a></h4>
+<p>
+   Seit dem Release 1.14 bietet die Klasse <em>GenericCriterionObject</em> die Möglichkeit Bedingungen nicht
+   nur mit <strong>AND</strong>, sondern auch mit den anderen logischen Operatoren <strong>OR</strong>,
+   <strong>XOR</strong> und <strong>NOT</strong> zu verknüpfen. Hierbei war es notwendig eine Verschachtelung
+   zu integrieren, die einem die Möglichkeit gibt Abfragen mit einer Mischung verschiedener Operatoren zu
+   erstellen.
+</p>
+<p>
+   Zu diesem Zweck wurde die Methode <strong>setLogicalOperator()</strong> hinzugefügt. Standardmäßig
+   ist die Verknüpfungsart auf <strong>AND</strong> gesetzt, um eine abwärtskompatibilität zu
+   gewährleisten. Das Setzen des logischen Operators erfolgt als String:
+</p>
+<gen:highlight type="php">
+$criterion = new GenericCriterionObject();
+$criterion->setLogicalOperator('OR');
+</gen:highlight>
+<div class="hint">
+   Das in Version 1.13 eingeführte <em>fluent interface</em> findet natürlich auch in dieser Methode Anwendung.
+</div>
+<p>
+   Der logische Operator setzt allerdings nicht den globalen Operator für die komplette Instanz sondern wird
+   lediglich zwischengespeichert und erst beim Hinzufügen weiterer PropertyIndicator angewendet.
+</p>
+<gen:highlight type="php">
+$criterion = new GenericCriterionObject();
+$criterion->addPropertyIndicator('feld1','wert1')
+   ->addPropertyIndicator('feld2','wert2')
+   ->setLogicalOperator('OR')
+   ->addPropertyIndicator('feld3','wert3')
+   ->addPropertyIndicator('feld4','wert4');
+</gen:highlight>
+<p>
+   Dieser Code erzeugt dabei folgende Bedingung (Die Tabellenbezeichnung, die der <em>GORM</em> automatisch
+   hinzufügt lasse ich aus Gründen der Übersicht weg):
+</p>
+<gen:highlight type="code">
+[...] WHERE `feld1`='wert1' AND `feld2`='wert2' OR `feld3`='wert3' OR `feld4`='wert4'
+</gen:highlight>
+<p>
+   Der Operator bleibt also bis zur nächsten Änderung gespeichert.
+</p>
+<p>
+  Es ist aber nicht in allen Fällen sinnvoll die Verknüpfungen direkt hintereinander zu setzen, denn eine
+  Bedingung wie die obige würde auch zum Erfolg führen, wenn nur <strong>`feld4`</strong> dem Wert
+  <strong>'wert4'</strong> entspricht. Würde man die Bedingung aber gerne so aufbauen, dass <strong>`feld1`</strong>
+  immer dem Wert <strong>'wert1'</strong> entsprechen soll und von den Bedingungen der drei anderen Felder
+  <strong>mindestens eine</strong> wahr sein soll, müssten die Bedingungen der letzten drei Felder
+  eingeklammert werden. Dieses Ziel wird mit folgendem Code erreicht:
+</p>
+<gen:highlight type="php">
+$criterion1 = new GenericCriterionObject();
+$criterion2 = new GenericCriterionObject();
+
+$criterion2->setLogicalOperator('OR')
+   ->addPropertyIndicator('feld2','wert2')
+   ->addPropertyIndicator('feld3','wert3')
+   ->addPropertyIndicator('feld4','wert4');
+
+$criterion1->addPropertyIndicator('feld1','wert1')
+   ->addPropertyIndicator('feld2+feld3+feld4',$criterion2);
+</gen:highlight>
+<p>
+   Hier ist zu sehen, dass als zweiter Parameter der Methode <strong>addPropertyIndicator</strong> ein
+   Objekt der Klasse <em>GenericCriterionObject</em> übergeben wird. Diese Verschachtelung ist hierarchisch
+   nicht begrenzt und kann somit beliebig tief angewendet werden. Der oben gezeigte Code erzeugt also
+   den gewünschten SQL-Code:
+</p>
+<gen:highlight type="code">
+[...] WHERE `feld1`='wert1' AND (`feld2`='wert2' OR `feld3`='wert3' OR `feld4`='wert4')
+</gen:highlight>
+<div class="hint">
+   Die Methode <strong>addPropertyIndicator</strong> erwartet als zweiten Parameter normalerweise Text oder
+   Zahlenwerte weshalb dieser Parameter nicht als Referenz entgegengenommen wird. Grund hierfür ist, dass
+   ansonsten keine Werte direkt übergeben werden könnten sondern stattdessen jeder Wert erst in einer
+   Variablen gespeichert werden muss, um dann die Variable zu übergeben. Das wäre überaus unpraktisch,
+   weshalb an dieser Stelle bewusst auf eine Referenzierung verzichtet wird. Entsprechend muss man nun
+   allerdings beachten, dass die übergebene Instanz bei einer Verschachtelung <strong>ebenfalls nicht als
+   Referenz</strong> übergeben wird. Das bedeutet, dass alle Änderungen am GCO nach der Übergabe an die
+   Methode <strong>addPropertyIndicator</strong> nicht übernommen werden, bis man die Methode erneut aufruft
+   und unter dem gleichen Namen die Instanz erneut übergibt:
+</div>
+<gen:highlight type="php">
+$criterion1 = new GenericCriterionObject();
+$criterion2 = new GenericCriterionObject();
+
+$criterion2->setLogicalOperator('OR')
+   ->addPropertyIndicator('feld2','wert2')
+   ->addPropertyIndicator('feld3','wert3')
+   ->addPropertyIndicator('feld4','wert4');
+
+$criterion1->addPropertyIndicator('feld1','wert1')
+   ->addPropertyIndicator('feld2+feld3+feld4',$criterion2);
+
+$criterion2->addPropertyIndicator('feld4','wert4a'); // Änderung am GCO-Property-Wert für Feld 'feld4'
+
+$criterion1->addPropertyIndicator('feld1','wert1')
+   ->addPropertyIndicator('feld2+feld3+feld4',$criterion2); // Überschreiben des Wertes für 'feld2+feld3+feld4'
+</gen:highlight>
+<br />
+<br />
+<br />
+<h4 id="Chapter-5-3-Vergleichsoperator"><a href="#Chapter-5-3-Vergleichsoperator">5.3. Vergleichsoperator</a></h4>
+<p>
+   Seit dem Release 1.14 bietet die Klasse <em>GenericCriterionObject</em> die Möglichkeit den Vergleichsoperator
+   zu verändern. Bisher wurden alle Vergleiche immer mit '=' angestellt. Um dies zu ändern wurde der Methode
+   <strong>addPorpertyIndicator</strong> ein optionaler dritter Parameter hinzugefügt, über den der
+   Vergleichsoperator gesetzt werden kann.
+</p>
+<gen:highlight type="php">
+$criterion = new GenericCriterionObject();
+
+$criterion->addPropertyIndicator('feld1',15,'<');
+</gen:highlight>
+<p>
+   Das obige Beispiel zeigt, wie man einen Vergleich <strong>kleiner als</strong> nutzen kann. Nach obiger Maßgabe
+   können alle Vergleichsoperatoren verwendet werden, die für die konfigurierte Datenbank-Schnittstelle zur
+   Verfügung stehen.
+</p>
+<div class="hint">
+   Der übergebene Vergleichsoperator wird nicht auf Validität überprüft! Der Programmierer hat dafür Sorge zu
+   tragen, dass wirklich nur die Operatoren übergeben werden, die eine Datenbank verarbeiten kann, andernfalls
+   wird eine Exceptions geschmissen beim Versuch den SQL-Befehl auszuführen!
 </div>
 
 <h3 id="Chapter-6-Erweiterung-Mapping-und-Relation-Table"><a href="#Chapter-6-Erweiterung-Mapping-und-Relation-Table">6. Erweiterung des Mapping- und Relation-Table</a></h3>
