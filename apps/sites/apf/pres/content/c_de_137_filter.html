@@ -1,0 +1,377 @@
+<doku:title parent="119" tags="filter,url layout,url,input,output" title="Filter (ab 1.14)" urlname="Filter">
+   Das vorliegende Kapitel beschreibt Architektur und Funktion des Ein- und Ausgabe-Filter-Konzepts,
+   das ab Version 1.14 zur Verfügung steht.
+</doku:title>
+<h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einführung</a></h3>
+<p>
+   Ein wesentliches Konzept des Adventure PHP Framework ist die Trennung von URL bzw. URL-Layout und
+   Funktionalität einer Anwendung. Die in vielen vergleichbaren Produkten zu findende, engmaschige
+   Verquickung birgt den Nachteil, dass eine Änderung einer URL gleichbedeutend ist mit einer
+   Anpassung der Software. Weiterhin lässt sich durch direkte Adressierung von Software-Komponenten
+   über das URL-Layout keine ausreichende Granularität von Komponenten oder Elementen erreichen,
+   die in sich für weitere Projekte wiederverwendbar sind.
+</p>
+<p>
+   Ein weiterer Aspekt ist die HMVC-Implementierung des APF (siehe <int:link pageid="098" />),
+   die es ermöglicht, eine Software oder Webseite aus beliebig vielen, autonom lauffähigen
+   MVC-Elementen zu erstellen. Hier wäre eine Abbildung aller MVC-Document-Controller (siehe
+   <int:link pageid="006" />) nicht nur aufwändig, sondern auch hinsichtlich Lesbarkeits- und
+   SEO-Gesichtspunkten kontraptoduktiv.
+</p>
+<p>
+   Aus diesem Grund setzt das APF auf eine Entkopplung von Software und URL, die auf dem Prinzip
+   der Ein- und Ausgabe-Filter basiert. Diese sehen vor, dass eine (externe) Anfrage durch einen
+   oder mehrere <em>Input-Fiter</em> in ein internes Format transformiert wird, das in seiner
+   normalisierten Form von allen Software-Komponenten verarbeitet werden kann. Nach der Verarbeitung
+   überführt dann ein <em>Output-Filter</em> die interne Sicht wieder in die gewünschte Aussensicht,
+   damit die Applikation nach aussen die gewünschte Repräsentation erhält.
+</p>
+<p>
+   Neben dem klassischen Anwendungsfall <em>URL-Layout</em> existieren noch eine Reihe weiterer
+   Möglichkeiten, Ein- und Ausgabe-Filter einzusetzen. Ein Beispiel hierfür ist die Komprimierung
+   von HTML-Quellcode, das nachträgliche Injizieren von Inhalten, die während der
+   Transformations-Phase gesammelt wurden und die Absicherung gegen potentiell gefährliche Eingaben
+   des Benutzers.
+</p>
+
+<h3 id="Chapter-2-Architektur"><a href="#Chapter-2-Architektur">2. Architektur</a></h3>
+<p>
+   Das folgende Ablauf-Diagramm zeigt das Timing der Ein- und Ausgabe-Filter:
+</p>
+<img src="http://media.adventure-php-framework.org/content/filter_timing_model.png" alt="Filter Timing Modell" />
+<p>
+   Ein- und Ausgabe-Filter sind jeweils als Kette von Filtern ausgeführt, die gemäß ihrer Reihenfolge
+   ausgeführt werden. Innerhalb einer <em>FilterChain</em> kann jeder Filter entscheiden, ob der
+   ein weiterer Filter der Kette zur Ausführung gebracht wird und welche Eingabe er dabei erhalten
+   soll. Die mitgelieferten Standard-Filter unterbrechen die Kette nicht.
+</p>
+<p>
+   Die Chains für Eingabe- und Ausgabe-Filterung sind Singleton-Objekte (innerhalb eines Requests)
+   und können so in allen APF-Komponenten zugegriffen werden. Die Konfiguration erfolgt jedoch
+   üblicherweise in der Bootstrap-Datei (<em>index.php</em>).
+</p>
+<p>
+   Das <int:link pageid="012" anchor="Chapter-1-Einleitung">Timing-Modell des Front-Controllers</int:link>
+   beschriebt, dass die <em>FilterChain</em> für die Eingabe-Filter vom Front-Controller zu Beginn
+   der Request-Verarbeitung ausgeführt. Das stellt sicher, dass beim Start der eigentlichen
+   Front-Controller-Aufgaben alle eingehenden Information in eine intern verständliche Form
+   gebracht wurden.
+</p>
+<p>
+   Das Timing-Modell beschriebt ebenso, dass nach Ausführen alles Front-Controller-Aufgaben die
+   <em>FilterChain</em> auf die erzeugten HTML-Inhalte des Page-Controller angewendet werden. Damit
+   ist sichergestellt, dass die Inhalte wieder in die externe Repräsentation überführt werden können.
+</p>
+
+<h4 id="Chapter-2-1-FilterChain"><a href="#Chapter-2-1-FilterChain">2.1. FilterChain</a></h4>
+<p>
+   Aus Gründen der Konfiguration und um die unterschiedlichen Zwecke der <em>FilterChain</em>s
+   auch in der API auszudrücken, ist jeweils eine Chain für Ein- und Ausgabe vorhanden:
+   <em>InputFilterChain</em> und <em>OutputFilterChain</em>.
+</p>
+<p>
+   Diese erben von einer generischen <em>AbstractFilterChain</em>, die das <em>FilterChain</em>-Interface
+   implementiert:
+</p>
+<gen:highlight type="php">
+interface FilterChain {
+   public function filter($input);
+   public function addFilter(ChainedContentFilter $filter);
+   public function removeFilter($class);
+}
+
+abstract class AbstractFilterChain implements FilterChain {
+
+   ...
+
+   public function filter($input) {
+      ...
+   }
+
+   public function &addFilter(ChainedContentFilter $filter) {
+      ...
+   }
+
+   public function &removeFilter($class) {
+      ...
+   }
+
+   public function &reset() {
+      ...
+   }
+
+   public function &clear() {
+      ...
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-2-2-Filter"><a href="#Chapter-2-2-Filter">2.2. Filter</a></h4>
+<p>
+   Wie dem Code-Stub aus dem vorangegangenen Kapitel entnommen werden kann, verarbeiten die
+   Filter-Chains jeweils Filter vom Typ <em>ChainedContentFilter</em>. Diese erhalten im Gegensatz
+   zur Filter-Implementierung vor dem Release 1.14 nicht nur den zu verarbeitenden Input, sondern
+   auch die <em>FilterChain</em> zur weiteren Verarbeitung:
+</p>
+<gen:highlight type="php">
+interface ChainedContentFilter {
+   function filter(FilterChain &$chain, $input = null);
+}   
+</gen:highlight>
+<p>
+   Jeder Eingabe- und Ausgabe-Filter ist damit in der Lage, die Abarbeitung der Kette fortzusetzen
+   oder per direkter Rückgabe der gefilterten Inhalte zu unterbrechen. Es ist zudem jederzeit 
+   möglich, Filter in die Kette zu injizieren oder zu entfernen. 
+</p>
+<p>
+   Ein Anwendungsfall für das Hinzufügen von Filtern innerhalb einer Chain kann eine flexible
+   Konfiguration von Input-Filter sein, bei der je nach Eingabe ein eigener Filter genutzt werden
+   soll. Dieser &quot;RouterFilter&quot; könnte beispielsweise an Hand des ersten URL-Segments bzw.
+   Pfad-Abschnitts einen eigenen Filter zur Verarbeitung des gewünschten URL-Layouts hinzufügen (z.B.
+   <em>/shop</em> -> <em>ShopUrlLayoutInputFilter</em>, <em>/page</em> ->
+   <em>PagesUrlLayoutInputFilter</em>).
+</p>
+<div class="warn">
+   Bereits innerhalb der Kette ausgeführte Filter können während der Abarbeitung der 
+   <em>FilterChain</em> nicht mehr entfernt werden. Dies würde sonst zu einem inkonsistenten Zustand
+   führen.
+</div>
+<p>
+   Die Implementierung eines Filters kann mit dem Release 1.14 beliebige Basis-Implementierungen
+   (z.B. Funktionalität aus der Klasse <em>APFObject</em> o.a.) nutzen, muss aber das oben
+   beschriebene Interface erfüllen.
+</p>
+<p>
+   Der folgende Code-Block zeigt einen Filter, der alle unnötigen Zeichen aus dem erzeugten HTML-Code
+   entfernt:
+</p>
+<gen:highlight type="php">
+class WhitespaceOutputFilter implements ChainedContentFilter {
+
+   public function filter(FilterChain &$chain, $input = null) {
+
+      // Zeilenumbrüche und Leerzeichen entfernen
+      $input = preg_replace('/\r|\n|\t|\s{3,}/', '',$input);
+
+      // Restliche Filter ausführen
+      return $chain->filter($input);
+   }
+
+}
+</gen:highlight>
+
+<h3 id="Chapter-3-Konfiguration"><a href="#Chapter-3-Konfiguration">3. Konfiguration</a></h3>
+<h4 id="Chapter-3-1-Standard-Setup"><a href="#Chapter-3-1-Standard-Setup">3.1. Standard-Setup</a></h4>
+<p>
+   Im Auslieferungs-Zustand des APF werden die Filter-Chains vom Front-Controller bereits mit den
+   Standard-APF-Filtern vorbelegt. Mitgeliefert werden der <em>ChainedGenericInputFilter</em> als
+   Eingabe-Filter zur Auflösung des in Kapitel 4 beschriebenen URL-Layouts und der
+   <em>ChainedGenericOutputFilter</em> für das Umschreiben der Links in die externe Repräsentation
+   im Rewrite-URL-Fall.
+</p>
+
+<h4 id="Chapter-3-2-Angepasstes-Setup"><a href="#Chapter-3-2-Angepasstes-Setup">3.2. Angepasstes Setup</a></h4>
+<p>
+   Die Konfiguration der Chains erfolgt - wie bereits angesprochen - in der Bootstrap-Datei
+   (<em>index.php</em>), kann aber bei Bedarf auch in anderen Software-Komponenten <em>on-demand</em>
+   erfolgen. 
+</p>
+<p>
+   Die Konfiguration der <em>FilterChain</em> kann nach der Einbindung des Page- und Front-Controllers
+   wie folgt erledigt werden:
+</p>
+<gen:highlight type="php">
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
+
+// Konfiguration eines eigenen, zusätzlichen Input-Filters
+import('my::project::filters', 'AdditionalInputFilter');
+InputFilterChain::getInstance()->addFilter(new AdditionalInputFilter());
+
+// Konfiguration eines eigenen, zusätzlichen Output-Filters
+import('my::project::filters', 'AdditionalOutputFilter');
+OutputFilterChain::getInstance()->addFilter(new AdditionalOutputFilter());
+
+// Konfiguration eines eigenen, alleinigen Input-Filters
+import('my::project::filters', 'CustomInputFilter');
+InputFilterChain::getInstance()->clear()->addFilter(new CustomInputFilter());
+
+// Konfiguration eines eigenen, alleinigen Output-Filters
+import('my::project::filters', 'CustomOutputFilter');
+OutputFilterChain::getInstance()->clear()->addFilter(new CustomOutputFilter());
+</gen:highlight>
+<p>
+   Da beliebig viele Filter in einer Chain registriert werden können, ist auch eine Kombination der
+   beschriebenen Möglichkeiten machbar. Um mehrere eigene Input-Filter und einen zusätzlichen
+   eigenen Output-Filter zu konfigurieren, reicht folgender Code:
+</p>
+<gen:highlight type="php">
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
+
+// Konfiguration von eigenen Input-Filtern
+import('my::project::filters', 'AdditionalInputFilterOne');
+import('my::project::filters', 'AdditionalInputFilterTwo');
+InputFilterChain::getInstance()
+   ->clear()
+   ->addFilter(new AdditionalInputFilterOne())
+   ->addFilter(new AdditionalInputFilterTwo());
+
+// Konfiguration eines zusätzlichen Output-Filters
+import('my::project::filters', 'AdditionalOutputFilter');
+OutputFilterChain::getInstance()->addFilter(new AdditionalOutputFilter());
+</gen:highlight>
+<p>
+   Soll die Reihenfolge innerhalb einer Chain verändert werden, so kann das durch Leeren und
+   anschließender Neu-Befüllung der Chain erreicht werden.
+</p>
+
+<h4 id="Chapter-3-3-Abbrechen-der-Chain"><a href="#Chapter-3-3-Abbrechen-der-Chain">3.3. Abbrechen der Chain</a></h4>
+<p>
+   Wie in einem der vorangegangenen Kapitel angesprochen, kann die Abarbeitung der Chain durch die
+   Implementierung des Filters direkt beeinflusst werden. Wird der Output direkt zurück gegeben,
+   so wird die Abarbeitung von potentiell nach dem Filter in der Chain befindlichen Filter abgebrochen:
+</p>
+<gen:highlight type="php">
+class IgnorantOutputFilter implements ChainedContentFilter {
+
+   public function filter(FilterChain &$chain, $input = null) {
+      return $input;
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-4-Abschalten-der-Filter"><a href="#Chapter-3-4-Abschalten-der-Filter">3.4. Abschalten der Filter</a></h4>
+<p>
+   Um die standardmäßig konfigurierten Filter komplett abzuschalten ist folgender Code in der
+   Bootstrap-Datei notwendig:
+</p>
+<gen:highlight type="php">
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
+
+InputFilterChain::getInstance()->clear();
+OutputFilterChain::getInstance()->clear();
+</gen:highlight>
+
+<h4 id="Chapter-3-5-Entfernen-von-Filtern"><a href="#Chapter-3-5-Entfernen-von-Filtern">3.5. Entfernen von Filtern</a></h4>
+<p>
+   Die Implementierung der Filter-Chain bietet die Möglichkeit, Filter an Hand ihres <em>Klassen-Namen</em>
+   einzeln zu entfernen. Dies kann wie folgt erledigt werden:
+</p>
+<gen:highlight type="php">
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
+
+// Entfernen des Standard-Output-Filter
+OutputFilterChain::getInstance()->removeFilter('ChainedGenericOutputFilter');
+</gen:highlight>
+
+<h3 id="Chapter-4-URL-Layout"><a href="#Chapter-4-URL-Layout">4. URL-Layout</a></h3>
+<p>
+   Der klassischer Anwendungsfall für Ein- und Ausgabe-Filter im APF ist - wie bereits angesprochen
+   - das Auflösen von verschiedenen URL-Layouts und die Verarbeitung der Informationen (z.B.
+   <int:link pageid="012">Front-Controller Actions</int:link>). Eigene Filter können innerhalb einer
+   Verarbeitungs-Kette eingestellt oder durch Konfiguration als alleinige Filter zur Kontrolle der
+   Ein- und Ausgaben konfiguriert werden.
+</p>
+<p>
+   Das URL-Layout des APF behandelt zwei Fälle: normale URLs und so genannte <em>Rewrite-URLs</em>,
+   also URL-Pfade, die in Wirklichkeit eine andere Darstellung für normale URLs sind. Im Folgenden
+   werden die beiden Varianten näher beleuchtet:
+</p>
+
+<h4 id="Chapter-4-1-Normale-URLs"><a href="#Chapter-4-1-Normale-URLs">4.1. Normale URLs</a></h4>
+<p>
+   <em>Normale</em> URLs sind solche, die eine oder mehrere Bootstrap-Dateien adressieren und die
+   Parameter dort dynamisch angehängt werden. Beispiel:
+</p>
+<gen:highlight type="code">
+http://www.example.com/index.php?page=news&amp;news-page=2
+</gen:highlight>
+<p>
+   Die beschriebenen Parameter werden in diesem Fall bereits vom Webserver als solche verarbeitet und
+   an die PHP-Engine weiter gegeben. Eine konkrete Verarbeitung ist also nicht notwendig.
+</p>
+<p>
+   Normale URLs können jedoch ebenso Front-Controller-Anweisungen enthalten, die speziell codiert
+   sind:
+</p>
+<gen:highlight type="code">
+http://www.example.com/index.php?modules_captcha_biz-action:showCaptcha=name:0123456789|mode:transparent
+</gen:highlight>
+<p>
+   Die beschriebene URL adressiert eine Action unter dem Namespace <em>modules::captcha::biz</em>
+   mit dem Namen <em>showCaptcha</em>. Dieser werden die Paremeter <em>name</em> und <em>mode</em>
+   zur Ausführung mitgegeben. Jede dieser Action-Definitionen kann innerhalb einer URL beliebig
+   oft vorkommen und kann eine beliebige Anzahl von Parametern aufweisen. Weiterhin können
+   &quot;normale&quot; Paramter mit Front-Controller-Parametern gemischt werden.
+</p>
+<p>
+   Das Schema einer Action-Anweisung kann im Kapitel
+   <int:link pageid="012" anchor="Chapter-2-4-1-URL-Layout">URL-Layout</int:link> der
+   Front-Controller-Dokumentation nachgelesen werden.
+</p>
+<p>
+   Die Aufgabe des Filters besteht darin, die codierte Anweisung in ihre Bestandteile (Namespace,
+   Action-Bezeichner, Parameter) zu zerlegen und die so adressierte Action dem Front-Controller
+   mitzuteilen.
+</p>
+
+<h4 id="Chapter-4-2-Rewrite-URLs"><a href="#Chapter-4-2-Rewrite-URLs">4.2. Rewrite-URLs</a></h4>
+<p>
+   Rewrite-URLs unterscheiden sich zu normalen URLs durch die Trennung der Parameter. Sätze von
+   Parmetern werden nicht durch &quot;<em>&amp;</em>&quot; getrennt, sondern durch &quot;<em>/</em>&quot;;
+   Parameter-Namen und deren Werte ebenfalls durch &quot;<em>/</em>&quot;. Zur Auflösung ist eine
+   Konvention zur Semantik der Parameter notwendig, da einerseits normale Parameter-Pfade von
+   Front-Controller-Anweisungen getrennt werden müssen und andererseits Front-Controller-Anweisungen
+   untereinander.
+</p>
+<p>
+   Um dies zu bewerkstelligen wurde das Trennzeichen &quot;/~/&quot; vereinbart. An diesem unterscheiden
+   sich Parameter-Wert-Ketten und Front-Controller-Anweisungen, die getrennt behandelt werden.
+   Einfache Parameter-Wert-Zuweisungen werden aufgelöst und in das <em>$_REQUEST</em>-Array gefüllt,
+   Front-Controller-Anweisungen werden gemäß der unter
+   <int:link pageid="012" anchor="Chapter-2-4-1-URL-Layout">URL-Layout</int:link> beschriebenen
+   Semantik aufgelöst und wie im Fall der &quot;normalen&quot; URLs dem Front-Controller übergeben.
+</p>
+<p>
+   Damit ergibt sich für das im letzten Kapitel beschriebene Beispiel folgende URL für einfache
+   Parameter:
+</p>
+<gen:highlight type="code">
+http://www.example.com/page/news/news-page/2
+</gen:highlight>
+<p>
+   Die Front-Controller-Action versteht der Filter im URL-Rewrite-Fall wie folgt:
+</p>
+<gen:highlight type="code">
+http://www.example.com/~/modules_captcha_biz-action/showCaptcha/name/0123456789/mode/transparent
+</gen:highlight>
+<p>
+   Die notwendigen Anpassungen an der Konfiguration des APF können im Kapitel
+   <int:link pageid="069" /> nachgelesen werden.
+</p>
+<div class="hint">
+   Im Tutorial
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Implementierung_von_eigenen_URL-Layouts">Implementierung von eigenen URL-Layouts</a>
+   des APF Wiki finden sich noch weitere Implementierungs-Ansätze von URL-Layouts.
+</div>
+
+<h4 id="Chapter-4-3-Ausgabe-Formatierung"><a href="#Chapter-4-3-Ausgabe-Formatierung">4.3. Ausgabe-Formatierung</a></h4>
+<p>
+   Ein weiterer Bestandteil der mit dem APF mitgelieferten Filter zur Abstraktion des URL-Layouts
+   bildet der Output-Filter. Dieser ist dafür zuständig, &quot;normale&quot; URLs in das genannte
+   Layout zu transformieren. Der Filter wird dabei nach der Transformation der Seite und nach der
+   Ausführung aller Front-Controller-Actions auf den Inhalt der transformierten Seite angewendet.
+</p>
+<p>
+   Zur Unterstützung des Ausgabe-Filters - bzw. diesen für die URL-Formatierung nicht einsetzen zu
+   müssen - kann ein eigenes <int:link pageid="138">Link-Schema</int:link> implementiert und
+   konfiguriert werden. Auf diese Weise werden die Links bereits während der Transformations-Phase
+   korrekt formatiert.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_137" />

@@ -1,45 +1,60 @@
 <doku:title parent="119" tags="dokumentation,klassen referenz,klassen,referenz,logger" title="Logger" urlname="Logger">
   Die Klasse Logger ist ein Tool, mit dem Logging-Aufgaben einfach und zentral bewerkstelligt werden
-  k&ouml;nnen. Hierzu muss lediglich das LogDir in der Registry definiert werden.
+  können. Hierzu muss lediglich das LogDir in der Registry definiert werden.
 </doku:title>
-Die Klasse <strong>Logger</strong> ist ein Tool, mit dem Logging-Aufgaben einfach und zentral
-bewerkstelligt werden k&ouml;nnen. Um die Performance einer Anwendung nicht durch h&auml;ufige,
-verteilte und konkurrierende File-Zugriffe zu beeintr&auml;chtigen, sollte der Logger als
-Singleton-Instanz erzeugt und verwendet werden. Die Logfile-Eintr&auml;ge werden dann am Ende eines
-Requests gesammelt in das entsprechende Logfile geschrieben. Der <strong>Logger</strong> verwendet
-dazu den Registry-Wert <strong>LogDir</strong> aus dem Namespace <strong>apf::core</strong>. Dieser
-wird mit dem <strong>absoluten</strong> Pfad zum aktuellen Verzeichnis plus Unterordner
-<strong>logs</strong> initialisiert. Soll ein anderes Log-Verzeichnis verwendet werden, so kann
-der Pfad in der Bootstrap-Datei vor dem Erstellen der Page- oder des FrontController per
+<p>
+   Die Klasse <em>Logger</em> ist ein Tool, mit dem Logging-Aufgaben einfach und zentral
+   bewerkstelligt werden können. Um die Performance einer Anwendung nicht durch häufige,
+   verteilte und konkurrierende File-Zugriffe zu beeinträchtigen, sollte der Logger als
+   Singleton-Instanz erzeugt und verwendet werden. Die Logfile-Einträge werden dann am Ende eines
+   Requests gesammelt in das entsprechende Logfile geschrieben. Der <em>Logger</em> verwendet
+   dazu den Registry-Wert <em>LogDir</em> aus dem Namespace <em>apf::core</em>. Dieser
+   wird mit dem <em>absoluten</em> Pfad zum aktuellen Verzeichnis plus Unterordner
+   <em>logs</em> initialisiert. Soll ein anderes Log-Verzeichnis verwendet werden, so kann
+   der Pfad in der Bootstrap-Datei vor dem Erstellen der Page- oder des FrontController per
+</p>
 <gen:highlight type="php">
 Registry::register('apf::core','LogDir','/Pfad/zu/meinem/Log/Verzeichnis');
 </gen:highlight>
-angepasst werden. Der angegebene Pfad dient der Ablage aller Log-Dateien einer Applikation.
-<br />
-<br />
-<strong>Hinweis</strong>: um Fehler beim Zugriff auf das Log-Verzeichnis zu vermeiden, sollte der
-Pfad <strong>absolut</strong> definiert sein!
-<br />
-<br />
-<br />
-Zur Verwendung des Loggers muss dieser zun&auml;chst per
+<p>
+   angepasst werden. Der angegebene Pfad dient der Ablage aller Log-Dateien einer Applikation.
+</p>
+<div class="hint">
+   Um Fehler beim Zugriff auf das Log-Verzeichnis zu vermeiden, sollte der Pfad
+   <em>absolut</em> definiert sein!
+</div>
+<p>
+   Zur Verwendung des Loggers muss dieser zunächst per
+</p>
 <gen:highlight type="php">
-  import('core::logging','Logger');
+import('core::logging','Logger');
 </gen:highlight>
-eingebunden werden. Anschlie&szlig;end kann per
+<p>
+   eingebunden werden. Anschließend kann per
+</p>
 <gen:highlight type="php">
 $log = &Singleton::getInstance('Logger');
 </gen:highlight>
-eine Referenz auf die Instanz des Loggers im aktuellen G&uuml;ltigkeitsbereich erzeugt werden. Das
-Hinzuf&uuml;gen eines Eintrags mit dem Inhalt <strong>MESSAGE</strong> zu einem Logfile mit dem Namen
-<strong>FILENAME</strong> ist mit dem Aufruf
+<p>
+   eine Referenz auf die Instanz des Loggers im aktuellen Gültigkeitsbereich erzeugt werden. Das
+   Hinzufügen eines Eintrags mit dem Inhalt <em>MESSAGE</em> zu einem Logfile mit dem Namen
+   <em>FILENAME</em> ist mit dem Aufruf
+</p>
 <gen:highlight type="php">
-  $Log->logEntry('FILENAME','MESSAGE');
+$log->logEntry('FILENAME','MESSAGE');
 </gen:highlight>
-erledigt. Der dritte Parameter (optional) der Methode <strong>logEntry()</strong> definiert die
-<strong>SEVERITY</strong> der Meldung und kann frei definiert werden. F&uuml;r Fehler wird
-&uuml;blicherweise <strong>ERROR</strong> eingesetzt, Standard ist <strong>INFO</strong>.
-<br />
-<br />
-<br />
+<p>
+   erledigt. Der dritte Parameter (optional) der Methode <em>logEntry()</em> definiert die
+   <em>SEVERITY</em> der Meldung und kann frei definiert werden. Für Fehler wird
+   üblicherweise <em>ERROR</em> eingesetzt, Standard ist <em>INFO</em>.
+</p>
+<div class="hint">
+   Sollte die Applikation exzessives Logging betreiben, kann es sinnvoll sein zu Gunsten einer
+   geringeren Speicher-Auslastung den Log-Buffer innerhalb eines Requests mehrmals zu leeren. Hierzu
+   besitzt der <em>Logger</em> ab Version 1.14 eine Buffer-Größe, die mit der Methode
+   <em>setMaxBufferLength()</em> auch nachträglich definiert werden kann. Überschreitet der Puffer
+   die standardmäßig oder durch Aufruf der genannten Methode definierten Grenzwert, wird der Inhalt
+   in die entsprechende Log-Datei geschrieben und anschließend geleert. 
+</div>
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_023" />

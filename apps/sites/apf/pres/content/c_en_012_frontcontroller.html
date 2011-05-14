@@ -39,7 +39,7 @@
 <p>
    The front controller component of the application framework consists of a singleton component
    of the <em>Frontcontroller</em> class. Using the appropriate
-   <int:link pageid="087">input filter</int:link> the request url and the request parameters are
+   <int:link pageid="137">input filter</int:link> the request url and the request parameters are
    analyzed and the actions encoded in the url are executed concerning the timing modell.
 </p>
 <p>
@@ -76,7 +76,7 @@
 <gen:highlight type="php">
 class DemoAction extends AbstractFrontcontrollerAction {
 
-   public function run(){
+   public function run() {
       echo 'I am front controller action class! My Name is '.
            $this->input->getAttribute('Name').'!';
    }
@@ -85,7 +85,7 @@ class DemoAction extends AbstractFrontcontrollerAction {
 
 class DemoInput extends FrontcontrollerInput {
 
-   public function __construct(){
+   public function __construct() {
       $this->setAttribute('Name', 'Max Mueller');
    }
 
@@ -95,6 +95,12 @@ class DemoInput extends FrontcontrollerInput {
 <gen:highlight type="code">
 I am front controller action class! My name is James Blunt!
 </gen:highlight>
+<div class="hint">
+   Since release 1.14 input classes are optional. In case the logic of the input class is limited
+   to storing the input parameters it is not necessary to implement a custom one. Here, you can
+   instruct the front controller to use the <em>FrontcontrollerInput</em> class that is shipped
+   with the APF.
+</div>
 <p>
    Due to the fact that actions know the context of the entire application, actions can be used to
    encapsulate various parts of an application if reasonable. A popular example is user authentication.
@@ -129,12 +135,24 @@ I am front controller action class! My name is James Blunt!
    The file itself must at least contain one action definition like this:
 </p>
 <gen:highlight type="ini">
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; <= Version 1.13                                            ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [{ActionName}]
 FC.ActionNamespace = ""
 FC.ActionFile = ""
 FC.ActionClass = ""
 FC.InputFile = ""
 FC.InputClass = ""
+FC.InputParams = ""
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; > Version 1.13                                             ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[{ActionName}]
+FC.ActionNamespace = ""
+FC.ActionClass = ""
+[FC.InputClass = ""]
 FC.InputParams = ""
 </gen:highlight>
 <p>Besides, the listed parameters have the following meanings:</p>
@@ -150,7 +168,7 @@ FC.InputParams = ""
     <br />
     Namespace of the action's configuration file (Example: <em>sites::demosite::biz::actions</em>).
   </li>
-  <li>
+  <li class="del">
     <strong>FC.ActionFile</strong>:
     <br />
     Name of the file that contains the action class implementation (Example: <em>LoadModelAction</em>).
@@ -160,7 +178,7 @@ FC.InputParams = ""
     <br />
     Name of the action class (Example: <em>LoadModelAction</em>).
   </li>
-  <li>
+  <li class="del">
     <strong>FC.InputFile</strong>:
     <br />
     Name of the file, the input class resides (Example: <em>DemositeModel</em>).
@@ -179,6 +197,11 @@ FC.InputParams = ""
     pairs by "|").
   </li>
 </ul>
+<div class="hint">
+   In case no custom input implementation is needed you can leave out the <em>FC.InputClass</em>
+   parameter. Custom input class implementations are only necessary if it contains action parameter
+   processing.
+</div>
 
 <h4 id="Chapter-2-3-Bootstrapping"><a href="#Chapter-2-3-Bootstrapping">2.3. The bootstrap file</a></h4>
 <p>
@@ -186,6 +209,7 @@ FC.InputParams = ""
    must at least contain the following lines:
 </p>
 <gen:highlight type="php">
+require('./apps/core/pagecontroller/pagecontroller.php');
 import('core::frontcontroller','Frontcontroller');
 $fC = &Singleton::getInstance('Frontcontroller');
 $fC->setContext('sites::demosite');
@@ -199,8 +223,20 @@ echo $fC->start('sites::demosite::pres::templates','website');
 </div>
 <p>
    Since the front controller uses the <int:link pageid="098" /> the latter must be included
-   before using the front controller.
+   before using the front controller using <em>include()</em> or <em>require()</em>.
 </p>
+<p>
+   As you can take from the timing diagram in <a href="#Chapter-1-Introduction">chapter 1</a> the
+   <int:link pageid="137">input and output filters</int:link> are executed during the front controller
+   execution. The are intended to resolve the incoming request concerning the url layout and pass the
+   action instructions to the front controller. In case of a custom url layout this fact must be taken
+   into consideration.
+</p>
+<div class="warn">
+   Since version 1.14 input and output filters are only executed by the front controller. Thus, the
+   <int:link pageid="098"/> can be used to generate HTML but is no more the leading component for
+   request processing by concept.
+</div>
 <div class="hint">
    In case your process requires actions that are executed on every request, these actions can be
    added before starting the front controller by adding the line
@@ -219,10 +255,14 @@ echo $fC->start('sites::demosite::pres::templates','website');
 </p>
 <p>
    Management of the action calls is part of the front controller implementation. In contrast, the
-   registration is done by the the appropriate
-   <int:link pageid="087" anchor="Chapter-2-4-Frontcontroller-rewrite-urls"/> or by the developer
+   registration is done by the the appropriate <int:link pageid="137" /> or by the developer
    itself calling the <em>registerAction()</em> method.
 </p>
+<div class="warn">
+   Please note, that all informations in chapter 2.4.3 up to 2.4.6 are deprecated with release
+   1.14. Please use the link generating facility described in chapter <int:link pageid="138"/>
+   to generate action links!
+</div>
 
 <h5 id="Chapter-2-4-1-URL-layout"><a href="#Chapter-2-4-1-URL-layout">2.4.1. URL layout</a></h5>
 <p>
@@ -267,7 +307,10 @@ echo $fC->start('sites::demosite::pres::templates','website');
    This url approach is designed for generic use. If this layout is not sufficent concerning your
    SEO or other requirements it can be changed using a custom input filter. You are able to generate
    action calls with <em>RewriteRule</em>s as well as using an adapted input filter that decodes
-   your url layout.
+   your url layout. A tutorial on creating a custom url layout using input filters can be found
+   within the
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Implementierung_von_eigenen_URL-Layouts">Wiki</a>
+   (German).
 </div>
 
 <h5 id="Chapter-2-4-2-Managing-actions"><a href="#Chapter-2-4-2-Managing-actions">2.4.2. Managing actions</a></h5>
@@ -421,32 +464,42 @@ echo FrontcontrollerLinkHandler::generateLink($URL,$ChangeParams);
 </p>
 <ul>
   <li>
-    <strong>prepagecreate</strong>: Action is executed before the page object is created an the DOM
-    tree is created.
+    <strong>prepagecreate</strong> (<em>TYPE_PRE_PAGE_CREATE</em>): Action is executed before the
+    page object is created an the DOM tree is created.
   </li>
   <li>
-    <strong>postpagecreate</strong>: Action is executed after the creation of the page controller page.
+    <strong>postpagecreate</strong> (<em>TYPE_POST_PAGE_CREATE</em>): Action is executed after the
+    creation of the page controller page.
   </li>
   <li>
-    <strong>pretransform</strong>: Action is executed before transforming the page controller page.
+    <strong>pretransform</strong> (<em>TYPE_PRE_TRANSFORM</em>): Action is executed before
+    transforming the page controller page.
   </li>
   <li>
-    <strong>posttransform</strong>: Action is executed after transforming the page controller page.
+    <strong>posttransform</strong> (<em>TYPE_POST_TRANSFORM</em>): Action is executed after
+    transforming the page controller page.
   </li>
 </ul>
 <p>To define the right mode of your action, please define your action class as follows:</p>
 <gen:highlight type="php">
 class MyAction extends AbstractFrontcontrollerAction {
 
-   // set timing at class declaration
+   // set timing at class declaration for release <= 1.13
    protected $type = 'pretransform';
 
-   public function __construct(){
-      // set timing at construction
+   // set timing at class declaration for release > 1.13
+   protected $type = self::TYPE_PRE_PAGE_CREATE;
+
+   public function __construct() {
+
+      // set timing at construction for release <= 1.13
       $this->type = 'pretransform'
+
+      // set timing at construction for release > 1.13
+      $this->type = self::TYPE_PRE_PAGE_CREATE
    }
 
-   public function run(){
+   public function run() {
    }
 
 }

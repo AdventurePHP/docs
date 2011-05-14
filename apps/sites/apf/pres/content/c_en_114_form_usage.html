@@ -40,19 +40,16 @@ functionality included.
 <br />
 <br />
 <div class="hint">
-   It is recommended to have the
-   <a href="./?Page=002-API-documentation" title="API documentation">API documentation</a>
+   It is recommended to have the <int:link pageid="002"/>
    opened during development times. This eases work much, because each taglib has it's own API,
    that is described within the API documentation in detail.
 </div>
-<br />
-The basic form element is defined within the <strong>form_control</strong> class. There, the structure
-is defined as well as the basic functionality is included. Due to the fact, that all taglibs underly
-the
-<a href="./?Page=098-Pagecontroller#Chapter-2-1-Activity-diagram" title="Page controller lifecycle">page controller lifecycle</a>
-each form element must implement the methods, a &quot;normal&quot; taglib must implement, too.
-<br />
-<br />
+<p>
+   The basic form element is defined within the <strong>form_control</strong> class. There, the structure
+   is defined as well as the basic functionality is included. Due to the fact, that all taglibs underly
+   the <int:link pageid="098" anchor="Chapter-2-1-Activity-diagram">page controller lifecycle</int:link>
+   each form element must implement the methods, a &quot;normal&quot; taglib must implement, too.
+</p>
 <div class="hint">
    In contrast to form controls <strong>up to version 1.10</strong>, form elements <strong>since
    version 1.11</strong> know about their validation status. Hence, each element can be queried it's
@@ -878,7 +875,7 @@ code:
 class form_taglib_honeypot extends form_control {
    public function transform(){
       $htmlCode  = (string)'&lt;input ';
-      $htmlCode .= $this->__getAttributesAsString($this->__Attributes);
+      $htmlCode .= $this->getAttributesAsString($this->__Attributes);
       $htmlCode .= 'type="text" ';
       $htmlCode .= 'style="margin: 0px; padding: 0px; display: none; height: 0px; width: 0px;"';
       $htmlCode .= ' /&gt;';
@@ -886,13 +883,22 @@ class form_taglib_honeypot extends form_control {
    }
 }
 </gen:highlight>
-Due to the fact, that validation and filter attachment as well as the method returning the validity
-status of the tag is already included in the <strong>form_control</strong> class, the code printed
-above is all that you need by now.
-<br />
-<br />
-In order to use the newly created form control, the <strong>&lt;form:addtaglib /&gt;</strong> tag
-can be used to announce the tag to the form:
+<div class="hint">
+   Before release 1.14
+   <gen:highlight type="php">$htmlCode .= $this->getAttributesAsString($this->__Attributes);</gen:highlight>
+   must be replaced by
+   <gen:highlight type="php">$htmlCode .= $this->__getAttributesAsString($this->__Attributes);</gen:highlight>
+   due to API changes.
+</div>
+<p>
+   Due to the fact, that validation and filter attachment as well as the method returning the validity
+   status of the tag is already included in the <strong>form_control</strong> class, the code printed
+   above is all that you need by now.
+</p>
+<p>
+   In order to use the newly created form control, the <strong>&lt;form:addtaglib /&gt;</strong> tag
+   can be used to announce the tag to the form:
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib namespace="tools::html::form" prefix="html" class="form" /&gt;
 &lt;html:form name="CheckedForm"&gt;
@@ -986,7 +992,7 @@ other text fields. These are all text fields and text areas shipped with the APF
 <br />
 <h4 id="Chapter-7-3-Filter"><a href="#Chapter-7-3-Filter">7.3. Filter</a></h4>
 Applying the honeypot field no filter is needed. Hence, this chapter describes a filter, that
-substitutes German umlauts with their phoneme equivalents (e.g. &auml; -> ae).
+substitutes German umlauts with their phoneme equivalents (e.g. ä -> ae).
 <br />
 <br />
 The <strong>GermanUmlautsFilter</strong> thus implements the <strong>AbstractFormFilter</strong> class
@@ -995,9 +1001,8 @@ for validators. The abstract form filter class defines the interface for all con
 implementations.
 <br />
 <br />
-Further, each form filter implements <strong>filter()</strong> method described in the APF
-<a href="./?Page=087-Filter#Chapter-4-Design-and-function" title="Design and function of filters">filter api</a>.
-The function takes the content to filter as an argument and returns the filtered content.
+Further, each form filter implements <strong>filter()</strong> method. The function takes the
+content to filter as an argument and returns the filtered content.
 <br />
 <br />
 The skeleton of the filter is as follows:
@@ -1014,7 +1019,7 @@ The functionality of the filter is a simple string replace call using the PHP st
 class GermanUmlautsFilter extends AbstractFormFilter {
    public function filter($input){
       return str_replace(
-         array('&auml;','&ouml;','&uuml;','&Auml;','&Ouml;','&Uuml;','&szlig;'),
+         array('ä','ö','ü','Ä','Ö','Ü','ß'),
          array('ae','oe','ue','Ae','Oe','Ue','ss'),
          $input
       );

@@ -1,32 +1,36 @@
-<doku:title parent="119" tags="dokumentation,module,captcha,gaestebuch,pager,kommentar,social bookmarking,usermanagement" title="CAPTCHA-Taglib (f&uuml;r Formulare)" urlname="CAPTCHA-Taglib">
-  Mit dem Modul captcha ist es dem Entwickler m&ouml;glich, auf einfache Weise ein Formular mit
-  einem (Bild-)CAPTCHA zu sch&uuml;tzen. Hierzu muss die im Modul enthaltene TagLib lediglich in ein
-  Formular eingef&uuml;gt und eine FrontController-Konfiguration f&uuml;r die Auslieferung des Bildes
+<doku:title parent="119" tags="dokumentation,module,captcha,gaestebuch,pager,kommentar,social bookmarking,usermanagement" title="CAPTCHA-Taglib (für Formulare)" urlname="CAPTCHA-Taglib">
+  Mit dem Modul captcha ist es dem Entwickler möglich, auf einfache Weise ein Formular mit
+  einem (Bild-)CAPTCHA zu schützen. Hierzu muss die im Modul enthaltene TagLib lediglich in ein
+  Formular eingefügt und eine FrontController-Konfiguration für die Auslieferung des Bildes
   erstellt werden.
 </doku:title>
-Mit dem Modul <strong>captcha</strong> ist es dem Entwickler m&ouml;glich, auf einfache Weise ein
-Formular mit einem (Bild-)CAPTCHA zu sch&uuml;tzen. Hierzu muss die im Modul enthaltene TagLib
-lediglich in ein Formular eingef&uuml;gt und eine FrontController-Konfiguration f&uuml;r die
+Mit dem Modul <strong>captcha</strong> ist es dem Entwickler möglich, auf einfache Weise ein
+Formular mit einem (Bild-)CAPTCHA zu schützen. Hierzu muss die im Modul enthaltene TagLib
+lediglich in ein Formular eingefügt und eine FrontController-Konfiguration für die
 Auslieferung des Bildes erstellt werden. Die Implementierung zeigt zudem, wie die bestehenden
 Formular-TagLibs mit Hilfe des <strong>&lt;form:addtaglib /&gt;</strong>-Tags einfach erweitert
-werden k&ouml;nnen.
+werden können.
 <p>
-   Die folgenden Kapitel beschreiben, welche Vorarbeiten f&uuml;r den Einsatz der TagLib notwendig
+   Die folgenden Kapitel beschreiben, welche Vorarbeiten für den Einsatz der TagLib notwendig
    sind.
 </p>
 
 <h4 id="Chapter-1-Konfiguration"><a href="#Chapter-1-Konfiguration">1. Konfiguration der FrontController-Action</a></h4>
-Da die Auslieferung des CAPTCHA-Bildes &uuml;ber eine FrontController-Action stattfindet, ist es
-beim eingesetzten Projekt notwendig, die Auslieferung der Seite &uuml;ber den FrontController zu
-steuern. Sollte die Generierung bisher nur mit Hilfe des PageControllers passiert sein, so muss
-zun&auml;chst die Bootstrapdatei angepasst werden. Beinhaltet die <em>index.php</em> die Zeilen
+<p>
+   Da die Auslieferung des CAPTCHA-Bildes über eine FrontController-Action stattfindet, ist es
+   beim eingesetzten Projekt notwendig, die Auslieferung der Seite über den FrontController zu
+   steuern. Sollte die Generierung bisher nur mit Hilfe des Page-Controllers passiert sein, so muss
+   zunächst die Bootstrapdatei angepasst werden. Beinhaltet die <em>index.php</em> die Zeilen
+</p>
 <gen:highlight type="php">
 include_once('./apps/core/pagecontroller/pagecontroller.php');
 $page = new Page();
 $page->loadDesign('sites::demosite::pres::templates','website');
 echo $page->transform();
 </gen:highlight>
-so m&uuml;ssen diese zu
+<p>
+   so müssen diese zu
+</p>
 <gen:highlight type="php">
 include_once('./apps/core/pagecontroller/pagecontroller.php');
 import('core::frontcontroller','Frontcontroller');
@@ -34,12 +38,19 @@ $fC = &Singleton::getInstance('Frontcontroller');
 $fC->setContext('sites::demosite');
 echo $fC->start('sites::demosite::pres::templates','website');
 </gen:highlight>
-angepasst werden. Die Werte f&uuml;r den Context der Applikation, den Pfad und Namen des initialen
-Templates m&uuml;ssen entsprechend den Werten des jeweiligen Projektes angepasst werden.
-<br />
-<br />
-Sobald diese Anpassung wirksam ist, muss die zur Auslieferung des CAPTCHA-Bildes verwendete
-FrontController-Action konfiguriert werden. Dazu erwartet der FrontController bei Aufruf der URL
+<p>
+   angepasst werden. Die Werte für den Context der Applikation, den Pfad und Namen des initialen
+   Templates müssen entsprechend den Werten des jeweiligen Projektes angepasst werden.
+</p>
+<div class="hint">
+   Die hier angezeigte Anpassung ist nur für Versionen <=1.13 notwendig. Ab Version 1.14 wird
+   ausschließlich der <int:link pageid="012"/> für die Steuerung der Request-Verarbeitung in der
+   Bootstrap-Datei eingesetzt.
+</div>
+<p>
+   Sobald diese Anpassung wirksam ist, muss die zur Auslieferung des CAPTCHA-Bildes verwendete
+   FrontController-Action konfiguriert werden. Dazu erwartet der FrontController bei Aufruf der URL
+</p>
 <gen:highlight type="code">
 /?modules_captcha_biz-action:showCaptcha=name:...
 </gen:highlight>
@@ -52,7 +63,7 @@ oder im Fall von aktivem URL-Rewriting
 /config/modules/captcha/biz/{CONTEXT}/{ENVIRONMENT}_actionconfig.ini
 </gen:highlight>
 die Konfiguration der Action. Die Werte <strong>CONTEXT</strong> und <strong>ENVIRONMENT</strong>
-sind dabei durch die f&uuml;r das Projekt g&uuml;ltigen Werte zu ersetzen. Siehe hierzu auch
+sind dabei durch die für das Projekt gültigen Werte zu ersetzen. Siehe hierzu auch
 <int:link pageid="134" />.
 <br />
 <br />
@@ -67,16 +78,16 @@ FC.InputClass = "ShowCaptchaImageInput"
 FC.InputParams = ""
 </gen:highlight>
 Im <strong>apf-configpack-*</strong>-Releases ist zudem unter
-<strong>/config/modules/captcha/biz/actions</strong> eine Vorlage f&uuml;r die Konfigurationsdatei
+<strong>/config/modules/captcha/biz/actions</strong> eine Vorlage für die Konfigurationsdatei
 (<strong>EXAMPLE_actionconfig.ini</strong>) enthalten.
 <br />
 <br />
 <br />
 <h4 id="Chapter-2-Einbindung-des-Tags"><a href="#Chapter-2-Einbindung-des-Tags">2. Einbindung des Tags</a></h4>
-Um den Tag verwenden zu k&ouml;nnen, muss dieser innerhalb eines Formulares zun&auml;chst bekannt
+Um den Tag verwenden zu können, muss dieser innerhalb eines Formulares zunächst bekannt
 gemacht werden. Dies funktioniert mit Hilfe des <strong>&lt;form:addtaglib /&gt;</strong>-Tags,
-der sich analog zum <strong>&lt;core:addtaglib /&gt;</strong>-Tag verh&auml;lt. Anschlie&szlig;end
-ist das Tag innerhalb des gew&uuml;nschten Formulars verf&uuml;gbar. Die folgende Code-Box zeigt
+der sich analog zum <strong>&lt;core:addtaglib /&gt;</strong>-Tag verhält. Anschließend
+ist das Tag innerhalb des gewünschten Formulars verfügbar. Die folgende Code-Box zeigt
 einen Anwendungsfall, der die wichtigsten Attribute des Tags beinhaltet:
 <gen:highlight type="apf-xml">
 <html:form name="MeinFormular" action="post">
@@ -106,8 +117,8 @@ einen Anwendungsfall, der die wichtigsten Attribute des Tags beinhaltet:
    <em>CaptchaFilter</em> aus dem Package <em>modules::captcha::pres::filter</em> genutzt werden.
 </div>
 In der Ausgabe des Formulars erzeugt das Tag ein CAPTCHA-Bild und ein Textfeld, das vom Benutzer zur
-Eingabe des gezeigten Strings verwendet werden muss. Die folgende Liste gibt eine &Uuml;bersicht
-&uuml;ber die verf&uuml;gbaren Attribute und deren Bedeutung:
+Eingabe des gezeigten Strings verwendet werden muss. Die folgende Liste gibt eine Übersicht
+über die verfügbaren Attribute und deren Bedeutung:
 <ul>
   <li><strong>image_style</strong>: CSS-Stil-Angaben zum CAPTCHA-Bild</li>
   <li><strong>image_class</strong>: CSS-Klassen-Angaben zum CAPTCHA-Bild</li>
@@ -119,18 +130,18 @@ Eingabe des gezeigten Strings verwendet werden muss. Die folgende Liste gibt ein
   <li><strong>button</strong>: Name des Buttons, auf dessen Klick die Validierung stattfinden soll</li>
   <li>
     <strong>clearonerror</strong>: Das optionale Attribut definiert, ob das Feld bei falscher Eingabe
-    geleert werden soll. Enth&auml;lt das Attribut einen anderen Wert als "true" oder ist nicht
-    vorhanden, wird das Feld weiterhin vorausgef&uuml;llt.
+    geleert werden soll. Enthält das Attribut einen anderen Wert als "true" oder ist nicht
+    vorhanden, wird das Feld weiterhin vorausgefüllt.
   </li>
   <li>
     <strong>clearonformerror</strong>: Das optionale Attribut definiert, ob das Feld bei geleert
-    werden soll, wenn das Formular nicht erfolgreich validiert werden konnte. Enth&auml;lt das
+    werden soll, wenn das Formular nicht erfolgreich validiert werden konnte. Enthält das
     Attribut einen anderen Wert als "true" oder ist nicht vorhanden, wird das Feld weiterhin
-    vorausgef&uuml;llt.
+    vorausgefüllt.
   </li>
   <li>
      <strong>disable_inline</strong>: Ist das optionale Attribut auf <em>true</em> gesetzt, so
-     werden die Inline-CSS-Styles abgeschalten, die f&uuml;r die Formatierung des CAPTCHA-Bildes und
+     werden die Inline-CSS-Styles abgeschalten, die für die Formatierung des CAPTCHA-Bildes und
      dem Text-Feld eingesetzt werden, so dass diese nebeneinander erscheinen. Beinhaltet das Attribut
      einen anderen Wert oder ist nicht vorhanden, werden die angesprochenen Stile gesetzt.
   </li>
@@ -138,11 +149,11 @@ Eingabe des gezeigten Strings verwendet werden muss. Die folgende Liste gibt ein
 <br />
 <h4 id="Chapter-3-Funktion-des-Tags"><a href="#Chapter-3-Funktion-des-Tags">3. Funktion des Tags</a></h4>
 Durch die direkte Integration des CAPTCHA-Tags in das Formular kann der Tag direkten Einfluss auf die
-Validierung des Formulars nehmen. Wurde das CAPTCHA-Feld richtig ausgef&uuml;llt und sind alle
-&uuml;brigen Felder des Formulars valide, wird auch das Formular als valide gekennzeichnet. Ist das
-CAPTCHA-Feld nicht korrekt ausgef&uuml;llt, kann das Formular nicht abgesendet werden. Wichtig dabei
+Validierung des Formulars nehmen. Wurde das CAPTCHA-Feld richtig ausgefüllt und sind alle
+übrigen Felder des Formulars valide, wird auch das Formular als valide gekennzeichnet. Ist das
+CAPTCHA-Feld nicht korrekt ausgefüllt, kann das Formular nicht abgesendet werden. Wichtig dabei
 ist, dass das Formular im Controller sowohl auf <strong>isSent()</strong> als auch <strong>isValid()</strong>
-gepr&uuml;ft wird. Zur Sicherheit wird bei jedem Aufruf des Formulars das CAPTCHA-Bild neu generiert.
+geprüft wird. Zur Sicherheit wird bei jedem Aufruf des Formulars das CAPTCHA-Bild neu generiert.
 <br />
 <br />
 <br />

@@ -1,20 +1,20 @@
-<doku:title parent="072" tags="tutorial,gaestebuch,taglibs,wiederverwendbarkeit,mehrsprachigkeit,frontcontroller" title="G&auml;stebuch-Tutorial (2)" urlname="Gaestebuch-Tutorial-2">
-  Das G&auml;stebuch-Tutorial ist eine umfassendes Dokumentation &uuml;ber die moderne
+<doku:title parent="072" tags="tutorial,gaestebuch,taglibs,wiederverwendbarkeit,mehrsprachigkeit,frontcontroller" title="Gästebuch-Tutorial (2)" urlname="Gaestebuch-Tutorial-2">
+  Das Gästebuch-Tutorial ist eine umfassendes Dokumentation über die moderne
   Software-Architektur. Es behandelt den Entwicklungsprozess von der Erstellung der Anforderungen,
-  &uuml;ber die Modellierung bis hin zur Implementierung einer fertigen Anwendung. Das Modul liegt
+  über die Modellierung bis hin zur Implementierung einer fertigen Anwendung. Das Modul liegt
   dem Frameworkrelease im Ordner modules/guestbook bei.
 </doku:title>
-Die folgenden Kapiteln beschreiben die Implementierungsdatails des G&auml;stebuchs.
+Die folgenden Kapiteln beschreiben die Implementierungsdatails des Gästebuchs.
 <br />
 <br />
 <br />
 <h3 id="Chapter-6-Implementierung-Datenschicht"><a href="#Chapter-6-Implementierung-Datenschicht">6. Implementierung der Datenschicht</a></h3>
 Die Hauptaufgabe des <em>GuestbookMapper</em>'s ist es, Daten zwischen Datenhaltung und Anwendung zu
-&uuml;bersetzen. Im Fall des Lesens muss ein Resultset in ein Dom&auml;nen-Objekt &uuml;bersetzt werden,
-im Fall des Schreibens muss ein Dom&auml;nen-Objekt in seine Bestandteile zerlegt und in den zugeh&ouml;rigen
+übersetzen. Im Fall des Lesens muss ein Resultset in ein Domänen-Objekt übersetzt werden,
+im Fall des Schreibens muss ein Domänen-Objekt in seine Bestandteile zerlegt und in den zugehörigen
 Tabellen gespeichert werden. Dazu werden - wie im Design beschrieben - jeweils eine Mapping-Methode
-f&uuml;r jedes Objekt der Anwendung erstellt. Das Schreiben &uuml;bernehmen die <em>save*()</em>-Methoden.
-Hier zun&auml;chst der Quellcode des G&auml;stebuchs:
+für jedes Objekt der Anwendung erstellt. Das Schreiben übernehmen die <em>save*()</em>-Methoden.
+Hier zunächst der Quellcode des Gästebuchs:
 <br />
 <br />
 <strong>GuestbookMapper.php:</strong>
@@ -34,7 +34,7 @@ class GuestbookMapper extends APFObject {
       // Instanz des MySQLHandlers holen
       $SQL = &$this->getServiceObject('core::database','MySQLHandler');
 
-      // Daten lesen und zur&uuml;ckgeben
+      // Daten lesen und zurückgeben
       $T = &Singleton::getInstance('BenchmarkTimer');
       $T->start('loadEntryByID('.$EntryID.')');
       $select = 'SELECT * FROM entry WHERE EntryID = \''.$EntryID.'\';';
@@ -55,7 +55,7 @@ class GuestbookMapper extends APFObject {
       // Instanz des MySQLHandlers holen
       $SQL = &$this->getServiceObject('core::database','MySQLHandler');
 
-      // Daten lesen und zur&uuml;ckgeben
+      // Daten lesen und zurückgeben
       $select = 'SELECT * FROM comment WHERE CommentID = \''.$CommentID.'\';';
       $result = $SQL->executeTextStatement($select);
       return $this->__mapComment2DomainObject($SQL->fetchData($result));
@@ -67,7 +67,7 @@ class GuestbookMapper extends APFObject {
       // Instanz des MySQLHandlers holen
       $SQL = &$this->getServiceObject('core::database','MySQLHandler');
 
-      // Daten lesen und zur&uuml;ckgeben
+      // Daten lesen und zurückgeben
       $select = 'SELECT * FROM guestbook WHERE GuestbookID = \''.$GuestbookID.'\';';
       $result = $SQL->executeTextStatement($select);
       return $this->__mapGuestbook2DomainObject($SQL->fetchData($result));
@@ -105,7 +105,7 @@ class GuestbookMapper extends APFObject {
       // Instanz des MySQLHandlers holen
       $SQL = &$this->getServiceObject('core::database','MySQLHandler');
 
-      // G&auml;stebuch laden
+      // Gästebuch laden
       $Guestbook = $this->loadGuestbookByID($GuestbookID);
 
       // Kommentare hinzuladen
@@ -131,41 +131,40 @@ class GuestbookMapper extends APFObject {
 }
 </gen:highlight>
 <div class="hint">
-  Der hier abgedruckte Quellcode enth&auml;lt keine Sicherungen f&uuml;r SQL-Injections. Diese
+  Der hier abgedruckte Quellcode enthält keine Sicherungen für SQL-Injections. Diese
   sollten zur eigenen Sicherheit in echten Applikationen enthalten sein. Hierzu bietet die Klasse
   <em>MySQLxHandler</em> die Methode <em>escapeValue()</em>. Diese maskiert Steuerzeichen und
-  verhindert so in Verbindung mit den
-  <a href="./?Seite=087-Filter#Chapter-2-Eingabe-Filter" title="Input-Filter">Input-Filtern</a> eine
-  m&ouml;gliche Sicherheitsl&uuml;cke. Mehr zum Thema Sicherheit und den im Framework eingebauten
-  Ma&szlig;nahmen findet sich unter <a href="./?Seite=075-Security" title="Security">Security</a>.
+  verhindert so in Verbindung mit den <int:link pageid="137">Input-Filtern</int:link> eine
+  mögliche Sicherheitslücke. Mehr zum Thema Sicherheit und den im Framework eingebauten
+  Maßnahmen findet sich unter <a href="./?Seite=075-Security" title="Security">Security</a>.
 </div>
 <br />
 <br />
 <h4 id="Chapter-6-1-Lese-Mapper-Methoden"><a href="#Chapter-6-1-Lese-Mapper-Methoden">6.1. Lese-Mapper-Methoden</a></h4>
-Um der Business-Schicht Objekte zur Verf&uuml;gung stellen zu k&ouml;nnen muss ein Ergebnis einer
+Um der Business-Schicht Objekte zur Verfügung stellen zu können muss ein Ergebnis einer
 Datenbank-Abfrage in die Business-Objekte gemappt werden. Dazu wurden die Funktionen <strong>_mapEntry2DomainObject()</strong>,
 <strong>__mapGuestbook2DomainObject</strong> und <strong>__mapComment2DomainObject</strong> vorgesehen.
 Diese wiederum werden von den <em>load*ByID()</em>- und <em>load*WithEntries()</em>-Methoden verwendet.
-Jede dieser Methoden stellt der Business-Schicht einen Service zur Verf&uuml;gung, mit dem Daten aus
-der Datenquelle geladen werden k&ouml;nnen. Zur Kommunikation mit der Datenbank kommt der <strong>MySQLHandler</strong>
-zur Verf&uuml;gung. Dieses Service-Objekt kennt die Methoden <em>executeTextStatement()</em> um ein SQL-
-Statement auszuf&uuml;hren und <em>fetchData()</em> um Daten abzuholen. Der MySQLHandler stellt eine
-Abstraktionsschicht f&uuml;r den Datenzugriff dar.
+Jede dieser Methoden stellt der Business-Schicht einen Service zur Verfügung, mit dem Daten aus
+der Datenquelle geladen werden können. Zur Kommunikation mit der Datenbank kommt der <strong>MySQLHandler</strong>
+zur Verfügung. Dieses Service-Objekt kennt die Methoden <em>executeTextStatement()</em> um ein SQL-
+Statement auszuführen und <em>fetchData()</em> um Daten abzuholen. Der MySQLHandler stellt eine
+Abstraktionsschicht für den Datenzugriff dar.
 <br />
 <br />
 <br />
 <h4 id="Chapter-6-2-Schreibe-Mapper-Methoden"><a href="#Chapter-6-2-Schreibe-Mapper-Methoden">6.2. Schreibe-Mapper-Methoden</a></h4>
-Da das G&auml;stebuch keine rein lesenden Anwendung ist, muss die Anwendung Daten auch wieder persistieren
-k&ouml;nnen. Um sicherzustellen, dass sich die Anwendung nicht um die Spezifika der Datenschicht k&uuml;mmern
-muss werden <em>save*()</em>-Methoden angeboten. Mit diesen kann durch &Uuml;bergabe eines Objekts oder
-auch eines Objekt-Baums die Objekte oder B&auml;ume transparent f&uuml;r die Anwendung gespeichert werden.
-Beim Erstellen eines G&auml;stebuch-Eintrags beispielsweise muss lediglich das zugeh&ouml;rige
-G&auml;stebuch der Methode <em>saveGuestbook()</em> &uuml;bergeben werden und die Datenschicht k&uuml;mmert
-sich um die Speicherung des G&auml;stebuchs, bzw. der Eintr&auml;ge. Innerhalb dieser Funktion wird
-dann &uuml;berpr&uuml;ft, ob das &uuml;bergebene G&auml;stebuch bereits existiert. Wenn nein, wird es
-gespeichert, wenn ja nur upgedatet. Ebenso werden nur neue Eintr&auml;ge mit Hilfe der Funktion
-<em>saveEntry()</em> gespeichert. Damit die Zuordnung eines Eintrags zu deinem G&auml;stebuch konsistent
-bleibt, k&uuml;mmerst sich jede dieser Methoden darum, dass die Beziehungsinformationen richtig
+Da das Gästebuch keine rein lesenden Anwendung ist, muss die Anwendung Daten auch wieder persistieren
+können. Um sicherzustellen, dass sich die Anwendung nicht um die Spezifika der Datenschicht kümmern
+muss werden <em>save*()</em>-Methoden angeboten. Mit diesen kann durch Übergabe eines Objekts oder
+auch eines Objekt-Baums die Objekte oder Bäume transparent für die Anwendung gespeichert werden.
+Beim Erstellen eines Gästebuch-Eintrags beispielsweise muss lediglich das zugehörige
+Gästebuch der Methode <em>saveGuestbook()</em> übergeben werden und die Datenschicht kümmert
+sich um die Speicherung des Gästebuchs, bzw. der Einträge. Innerhalb dieser Funktion wird
+dann überprüft, ob das übergebene Gästebuch bereits existiert. Wenn nein, wird es
+gespeichert, wenn ja nur upgedatet. Ebenso werden nur neue Einträge mit Hilfe der Funktion
+<em>saveEntry()</em> gespeichert. Damit die Zuordnung eines Eintrags zu deinem Gästebuch konsistent
+bleibt, kümmerst sich jede dieser Methoden darum, dass die Beziehungsinformationen richtig
 gespeichert werden.
 <br />
 <br />
@@ -173,17 +172,17 @@ gespeichert werden.
 <br />
 <h3 id="Chapter-7-Businessschicht"><a href="#Chapter-7-Businessschicht">7. Implementierung der Business-Schicht</a></h3>
 In den Implementierungen des Frameworks werden die Business- und Datenschicht-Komponenten in der
-Regel als Service-Objekte verwendet. Um diese in einer Methode verwenden zu k&ouml;nnen ist in
-jeder Klasse, die direkt oder indirekt von APFObject erbt die Methode <em>__getServiceObject()</em>
-oder <em>__getAndInitServiceObject()</em>. Die beiden Funktionen liefern dabei jeweils eine Referenz
-auf die Instanz des spezifizierten Service-Objekts zur&uuml;ck. Um als Service-Objekt aufgerufen und
+Regel als Service-Objekte verwendet. Um diese in einer Methode verwenden zu können ist in
+jeder Klasse, die direkt oder indirekt von APFObject erbt die Methode <em>getServiceObject()</em>
+oder <em>getAndInitServiceObject()</em>. Die beiden Funktionen liefern dabei jeweils eine Referenz
+auf die Instanz des spezifizierten Service-Objekts zurück. Um als Service-Objekt aufgerufen und
 erzeugt zu werden muss diese Klasse direkt oder indirekt von <em>APFObject</em> erben und falls ein
-Service mit <em>__getAndInitServiceObject()</em> erstellt wird die Methode <em>init()</em> implementieren.
-Letzter dient dazu einen Service zu initialisieren. Dazu besitzt <em>__getAndInitServiceObject()</em>
+Service mit <em>getAndInitServiceObject()</em> erstellt wird die Methode <em>init()</em> implementieren.
+Letzter dient dazu einen Service zu initialisieren. Dazu besitzt <em>getAndInitServiceObject()</em>
 einen dritten Parameter, der als Initialisierungs-Parameter an die Methode <em>init()</em> weitergegeben
 wird. Wird jedes Service-Layer mit den genannten Funktionen erstellt, so ist sichergestellt, dass die
-Layer die f&uuml;r die Anwendung wichtigen Attribute wie <strong>Context</strong> und <strong>Language</strong>
-kennen. Dies ist insbesondere f&uuml;r das Auslesen von Konfigurations-Dateien wichtig.
+Layer die für die Anwendung wichtigen Attribute wie <strong>Context</strong> und <strong>Language</strong>
+kennen. Dies ist insbesondere für das Auslesen von Konfigurations-Dateien wichtig.
 <br />
 <br />
 <strong>GuestbookManager.php:</strong>
@@ -216,7 +215,7 @@ class GuestbookManager extends APFObject {
 
    function loadGuestbook(){
 
-      // Falls G&auml;stebuch noch nicht geladen wurde...
+      // Falls Gästebuch noch nicht geladen wurde...
       if($this->__Guestbook == null){
 
          // pagerManager holen
@@ -226,13 +225,13 @@ class GuestbookManager extends APFObject {
          // GuestbookMapper holen
          $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
-         // G&auml;stebuch laden
+         // Gästebuch laden
          $this->__Guestbook = $gM->loadGuestbookByID($this->__GuestbookID);
 
          // Eintrag-IDs, die angezeigt werden sollen laden
          $EntryIDs = $pM->loadEntries(array('GuestbookID' => $this->__GuestbookID));
 
-         // Eintr&auml;ge laden
+         // Einträge laden
          $Entries = array();
 
          for($i = 0; $i < count($EntryIDs); $i++){
@@ -241,7 +240,7 @@ class GuestbookManager extends APFObject {
          }
 
 
-         // Eintr&auml;ge zum G&auml;stebuch hinzuf&uuml;gen
+         // Einträge zum Gästebuch hinzufügen
          $this->__Guestbook->setEntries($Entries);
 
        // end if
@@ -256,7 +255,7 @@ class GuestbookManager extends APFObject {
       // GuestbookMapper holen
       $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
-      // G&auml;stebuch-Objekt laden
+      // Gästebuch-Objekt laden
       return $gM->loadGuestbookByID($this->__GuestbookID);
 
    }
@@ -267,7 +266,7 @@ class GuestbookManager extends APFObject {
       $pMF = &$this->getServiceObject('modules::pager::biz','PagerManagerFabric');
       $pM = &$pMF->getPagerManager('Guestbook');
 
-      // Pager-Ausgabe hinzuf&uuml;gen
+      // Pager-Ausgabe hinzufügen
       return $pM->getPagerURLParameters();
 
    }
@@ -278,7 +277,7 @@ class GuestbookManager extends APFObject {
       $pMF = &$this->getServiceObject('modules::pager::biz','PagerManagerFabric');
       $pM = &$pMF->getPagerManager('Guestbook');
 
-      // Pager-Ausgabe hinzuf&uuml;gen
+      // Pager-Ausgabe hinzufügen
       return $pM->getPager(array('GuestbookID' => $this->__GuestbookID));
 
    }
@@ -288,13 +287,13 @@ class GuestbookManager extends APFObject {
       // GuestbookMapper holen
       $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
-      // G&auml;stebuch laden
+      // Gästebuch laden
       $Guestbook = $gM->loadGuestbookByID($this->__GuestbookID);
 
-      // Eintrag hinzuf&uuml;gen
+      // Eintrag hinzufügen
       $Guestbook->addEntry($Entry);
 
-      // G&auml;stebuch speichern
+      // Gästebuch speichern
       $gM->saveGuestbook($Guestbook);
 
       // pagerManager holen
@@ -313,19 +312,19 @@ class GuestbookManager extends APFObject {
       // GuestbookMapper holen
       $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
-      // G&auml;stebuch laden
+      // Gästebuch laden
       $Guestbook = $gM->loadGuestbookByID($this->__GuestbookID);
 
       // Entry laden
       $Entry = $gM->loadEntryByID($EntryID);
 
-      // Comment zum Entry hinzuf&uuml;gen
+      // Comment zum Entry hinzufügen
       $Entry->addComment($Comment);
 
-      // Eintrag hinzuf&uuml;gen
+      // Eintrag hinzufügen
       $Guestbook->addEntry($Entry);
 
-      // G&auml;stebuch speichern
+      // Gästebuch speichern
       $gM->saveGuestbook($Guestbook);
 
       // pagerManager holen
@@ -361,7 +360,7 @@ class GuestbookManager extends APFObject {
 
    function validateCrendentials($Username,$Password){
 
-      // G&auml;stebuch-Objekt laden
+      // Gästebuch-Objekt laden
       $Guestbook = $this->loadGuestbookObject();
 
       // Zugangsdaten validieren
@@ -379,7 +378,7 @@ class GuestbookManager extends APFObject {
       // GuestbookMapper holen
       $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
-      // Eintrag l&ouml;schen
+      // Eintrag löschen
       $gM->deleteEntry($Entry);
 
    }
@@ -389,7 +388,7 @@ class GuestbookManager extends APFObject {
       // GuestbookMapper holen
       $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
-      // Eintrag l&ouml;schen
+      // Eintrag löschen
       $gM->deleteComment($Comment);
 
    }
@@ -397,57 +396,57 @@ class GuestbookManager extends APFObject {
 }
 </gen:highlight>
 <h4 id="Chapter-7-1-Initialisierung"><a href="#Chapter-7-1-Initialisierung">7.1. Initialisierung</a></h4>
-Da allein die Pr&auml;sentations-Schicht &uuml;ber den "&lt;core:importdesign /&gt;"-Tag die
-G&auml;stebuch-ID kennt, muss die Pr&auml;sentations-Schicht eine M&ouml;glichkeit haben diese dem
-Business-Layer mitzuteilen. Dazu wird die bereits genannte Methode <em>__getAndInitServiceObject()</em>
+Da allein die Präsentations-Schicht über den "&lt;core:importdesign /&gt;"-Tag die
+Gästebuch-ID kennt, muss die Präsentations-Schicht eine Möglichkeit haben diese dem
+Business-Layer mitzuteilen. Dazu wird die bereits genannte Methode <em>getAndInitServiceObject()</em>
 verwendet um die Business-Schicht zu initialisieren. Die Business-Schicht implementiert dazu die
 Funktion <em>init()</em>, die einen Parameter zur Initialisierung erwartet. Beim Aufrufen der Business-
-Schicht wird dann jeweils die ID des G&auml;stebuchs mitgegeben.
+Schicht wird dann jeweils die ID des Gästebuchs mitgegeben.
 <br />
 <br />
 <br />
-<h4 id="Chapter-7-2-Laden-von-Eintraegen"><a href="#Chapter-7-2-Laden-von-Eintraegen">7.2. Laden von Eintr&auml;gen</a></h4>
-Um das Anzeigen von Eintr&auml;gen zu erleichtern, wird die Pager-Komponente bereits in der Business-
-Schicht eingesetzt. So muss sich die Pr&auml;sentations-Schicht keine Gedanken zur Menge der darzustellenden
-Eintr&auml;ge machen. Die Pager-Komponente wird hier in Form des <em>pagerManager</em>'s aus dem
+<h4 id="Chapter-7-2-Laden-von-Eintraegen"><a href="#Chapter-7-2-Laden-von-Eintraegen">7.2. Laden von Einträgen</a></h4>
+Um das Anzeigen von Einträgen zu erleichtern, wird die Pager-Komponente bereits in der Business-
+Schicht eingesetzt. So muss sich die Präsentations-Schicht keine Gedanken zur Menge der darzustellenden
+Einträge machen. Die Pager-Komponente wird hier in Form des <em>pagerManager</em>'s aus dem
 Package <em>modules::pager</em> eingesetzt. Das ist eine bereits fertig implementierte Komponente, die
-lediglich f&uuml; den Einsatz konfiguriert werden muss. Um mehrere Instanzen des <em>pagerManager</em>'s
-innerhalb der Applikation verwenden zu k&ouml;nnen, wurde eine <em>PagerManagerFabric</em> implementiert.
+lediglich fü den Einsatz konfiguriert werden muss. Um mehrere Instanzen des <em>pagerManager</em>'s
+innerhalb der Applikation verwenden zu können, wurde eine <em>PagerManagerFabric</em> implementiert.
 Diese liefert bei Aufruf der Funktion <em>getPagerManager</em> die initialisierte Instanz eines
-<em>pagerManager</em>'s zur&uuml;ck. Der Pager gibt bei Aufruf der Methode <em>loadEntries()</em> die
-IDs der anzuzeigenden Eint&auml;ge zur&uuml;ck. Diese k&ouml;nnen dann mit Hilfe der Daten-Schicht geladen
-und an das G&auml;stebuch geh&auml;ngt werden.
+<em>pagerManager</em>'s zurück. Der Pager gibt bei Aufruf der Methode <em>loadEntries()</em> die
+IDs der anzuzeigenden Eintäge zurück. Diese können dann mit Hilfe der Daten-Schicht geladen
+und an das Gästebuch gehängt werden.
 <br />
 <br />
 <br />
 <h4 id="Chapter-7-3-Pager-Ausgabe"><a href="#Chapter-7-3-Pager-Ausgabe">7.3. Ausgabe des Pagers</a></h4>
-Die unter 7.2. eingef&uuml;hrte Pager-Komponente bietet die M&ouml;glichkeit eine HTML-Ausgabe auszugeben.
-Diese beinhaltet das Bl&auml;ttern in Seiten und die Wahl der Eintr&auml;ge pro Seite. Hierzu muss
-einfach die Methode <em>getPager()</em> aufgerufen werden. Diese gibt dei HTML-Ausgabe zur&uuml;ck, die
-in der Pr&auml;sentations-Schicht in die Seite oder ein Template eingesetzt werden kann.
+Die unter 7.2. eingeführte Pager-Komponente bietet die Möglichkeit eine HTML-Ausgabe auszugeben.
+Diese beinhaltet das Blättern in Seiten und die Wahl der Einträge pro Seite. Hierzu muss
+einfach die Methode <em>getPager()</em> aufgerufen werden. Diese gibt dei HTML-Ausgabe zurück, die
+in der Präsentations-Schicht in die Seite oder ein Template eingesetzt werden kann.
 <br />
 <br />
 <br />
-<h4 id="Chapter-7-4-Speichern-von-Eintraegen"><a href="#Chapter-7-4-Speichern-von-Eintraegen">7.4. Speichern von Eintr&auml;gen</a></h4>
-Der Pr&auml;sentations-Schicht wird mit der Methode <em>saveEntry()</em> ein weiterer Service bereit
-gestellt. Um diesen nutzen zu k&ouml;nnen muss die Pr&auml;sentations-Schicht die Methode aufrufen und
-ein Domain-Objekt <strong>Entry</strong> &uuml;bergeben. Dieses wird dann gespeichert und die Funktion
+<h4 id="Chapter-7-4-Speichern-von-Eintraegen"><a href="#Chapter-7-4-Speichern-von-Eintraegen">7.4. Speichern von Einträgen</a></h4>
+Der Präsentations-Schicht wird mit der Methode <em>saveEntry()</em> ein weiterer Service bereit
+gestellt. Um diesen nutzen zu können muss die Präsentations-Schicht die Methode aufrufen und
+ein Domain-Objekt <strong>Entry</strong> übergeben. Dieses wird dann gespeichert und die Funktion
 leitet den Benutzer auf den <em>display</em>-View weiter.
 <br />
 <br />
 <br />
 <br />
-<h3 id="Chapter-8-Praesentationsschicht"><a href="#Chapter-8-Praesentationsschicht">8. Implementierung der Pr&auml;sentations-Schicht</a></h3>
-Die Pr&auml;sentations-Schicht besteht aus zwei Views: der Anzeige der Eintr&auml;ge und dem Formular.
-Dies zwei Views werden durch jeweils eine Template- und eine Controller-Datei repr&auml;sentiert. Um
-die Anzeige der Views zu erleichtern, wird das G&auml;stebuch mit einem weiteren Wrapper-Template
-eingebunden: <strong>guestbook.html</strong>. Diese beinhaltet die globalen Ausgaben eines G&auml;stbuchs
-und verf&uuml;gt ebenfalls &uuml;ber einen Controller.
+<h3 id="Chapter-8-Praesentationsschicht"><a href="#Chapter-8-Praesentationsschicht">8. Implementierung der Präsentations-Schicht</a></h3>
+Die Präsentations-Schicht besteht aus zwei Views: der Anzeige der Einträge und dem Formular.
+Dies zwei Views werden durch jeweils eine Template- und eine Controller-Datei repräsentiert. Um
+die Anzeige der Views zu erleichtern, wird das Gästebuch mit einem weiteren Wrapper-Template
+eingebunden: <strong>guestbook.html</strong>. Diese beinhaltet die globalen Ausgaben eines Gästbuchs
+und verfügt ebenfalls über einen Controller.
 <br />
 <br />
 <br />
-<h4 id="Chapter-8-1-Design-Rahmen"><a href="#Chapter-8-1-Design-Rahmen">8.1. G&auml;stebuch Design-Rahmen</a></h4>
-Die Datei <em>guestbook.html</em> beinhaltet die globalen Ausgaben eines G&auml;stebuchs.
+<h4 id="Chapter-8-1-Design-Rahmen"><a href="#Chapter-8-1-Design-Rahmen">8.1. Gästebuch Design-Rahmen</a></h4>
+Die Datei <em>guestbook.html</em> beinhaltet die globalen Ausgaben eines Gästebuchs.
 <gen:highlight type="apf-xml">
 &lt;@controller namespace="modules::guestbook::pres::documentcontroller" class="guestbook_v1_controller" file="guestbook_v1_controller" @&gt;
 &lt;font style="font-size: 26px; font-weight: bold;"&gt;&lt;html:placeholder name="Name" /&gt;&lt;/font&gt;
@@ -457,9 +456,9 @@ Die Datei <em>guestbook.html</em> beinhaltet die globalen Ausgaben eines G&auml;
 &lt;br /&gt;
 &lt;core:importdesign namespace="modules::guestbook::pres::templates" template="[gbview=display]" incparam="gbview" /&gt;
 </gen:highlight>
-Hier werden Platzhalter f&uuml;r die Ausgabe des Namens und der Beschreibung sowie die Einbindung der
-oben genannten Views per "&lt;core:importdesign /&gt;"-Tag definiert. Der zugeh&ouml;rige Controller
-liest zur Generierung der Darstellung das G&auml;stebuch-Objekt aus und stellt die genannten Attribute
+Hier werden Platzhalter für die Ausgabe des Namens und der Beschreibung sowie die Einbindung der
+oben genannten Views per "&lt;core:importdesign /&gt;"-Tag definiert. Der zugehörige Controller
+liest zur Generierung der Darstellung das Gästebuch-Objekt aus und stellt die genannten Attribute
 dar.
 <gen:highlight type="php">
 import('modules::guestbook::biz','GuestbookManager');
@@ -471,8 +470,8 @@ class guestbook_v1_controller extends base_controller {
       // guestbookid holen
       $GuestbookID = $this->__Attributes['guestbookid'];
 
-      // G&auml;stebuch laden
-      $gM = &$this->__getAndInitServiceObject('modules::guestbook::biz','GuestbookManager',$GuestbookID);
+      // Gästebuch laden
+      $gM = &$this->getAndInitServiceObject('modules::guestbook::biz','GuestbookManager',$GuestbookID);
       $Guestbook = $gM->loadGuestbookObject();
 
       // Name und Beschreibung anzeigen
@@ -484,8 +483,8 @@ class guestbook_v1_controller extends base_controller {
 }
 </gen:highlight>
 <h4 id="Chapter-8-2-Display-View"><a href="#Chapter-8-2-Display-View">8.2. Display-View</a></h4>
-Der Display-View definiert Platzhalter f&uuml;r Pager, Link zum Formular und der Eintrags-Liste sowie
-Templates f&uuml;r die Darstellung der Domain-Objekte "Entry" und "Comment".
+Der Display-View definiert Platzhalter für Pager, Link zum Formular und der Eintrags-Liste sowie
+Templates für die Darstellung der Domain-Objekte "Entry" und "Comment".
 <gen:highlight type="apf-xml">
 &lt;@controller namespace="modules::guestbook::pres::documentcontroller" class="guestbook_display_v1_controller" file="guestbook_display_v1_controller" @&gt;
 &lt;html:placeholder name="Pager" /&gt;
@@ -499,10 +498,10 @@ Templates f&uuml;r die Darstellung der Domain-Objekte "Entry" und "Comment".
 
 &lt;html:template name="CreateEntry_de"&gt;
   &raquo; Klicken Sie
-  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Eintrag hinzuf&uuml;gen!"&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Eintrag hinzufügen!"&gt;
     hier
   &lt;/a&gt;
-  um einen Eintrag hinzuzuf&uuml;gen!
+  um einen Eintrag hinzuzufügen!
 &lt;/html:template&gt;
 
 &lt;html:template name="CreateEntry_en"&gt;
@@ -515,10 +514,10 @@ Templates f&uuml;r die Darstellung der Domain-Objekte "Entry" und "Comment".
 
 &lt;html:template name="ControlGuestbook_Login_de"&gt;
   &raquo; Klicken Sie
-  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="G&auml;stebuch administrieren!"&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Gästebuch administrieren!"&gt;
     hier
   &lt;/a&gt;
-  um das G&auml;stebuch zu administrieren!
+  um das Gästebuch zu administrieren!
 &lt;/html:template&gt;
 
 &lt;html:template name="ControlGuestbook_Login_en"&gt;
@@ -602,7 +601,7 @@ Templates f&uuml;r die Darstellung der Domain-Objekte "Entry" und "Comment".
 &lt;/html:template&gt;
 
 &lt;html:template name="AdminDelete"&gt;
-  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Beitrag l&ouml;schen!"&gt;&lt;strong&gt;[ del ]&lt;/strong&gt;&lt;/a&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Beitrag löschen!"&gt;&lt;strong&gt;[ del ]&lt;/strong&gt;&lt;/a&gt;
 &lt;/html:template&gt;
 
 &lt;html:template name="AdminEdit"&gt;
@@ -610,11 +609,11 @@ Templates f&uuml;r die Darstellung der Domain-Objekte "Entry" und "Comment".
 &lt;/html:template&gt;
 
 &lt;html:template name="AdminAddComment"&gt;
-  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Kommentar hinzuf&uuml;gen!"&gt;&lt;strong&gt;[ cmt ]&lt;/strong&gt;&lt;/a&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Kommentar hinzufügen!"&gt;&lt;strong&gt;[ cmt ]&lt;/strong&gt;&lt;/a&gt;
 &lt;/html:template&gt;
 
 &lt;html:template name="AdminDeleteComment"&gt;
-  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Kommentar l&ouml;schen!"&gt;&lt;strong&gt;[ del ]&lt;/strong&gt;&lt;/a&gt;
+  &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Kommentar löschen!"&gt;&lt;strong&gt;[ del ]&lt;/strong&gt;&lt;/a&gt;
 &lt;/html:template&gt;
 
 &lt;html:template name="AdminEditComment"&gt;
@@ -623,8 +622,8 @@ Templates f&uuml;r die Darstellung der Domain-Objekte "Entry" und "Comment".
 </gen:highlight>
 Im Controller werden dann auf generische Art und Weise die Inhalte mit den Methoden <em>__generateEntryList()</em>,
 <em>__createEntry()</em> und <em>__createComment()</em> zusammengesetzt und in der Funktion
-<em>transformContent()</em> ausgegeben. Das Laden der Eintr&auml;ge &uuml;bernimmt dabei die oben
-beschriebene Business-Schicht. Um die Eintr&auml;ge laden zu k&ouml;nnen wir der <em>GuestbookManager</em>
+<em>transformContent()</em> ausgegeben. Das Laden der Einträge übernimmt dabei die oben
+beschriebene Business-Schicht. Um die Einträge laden zu können wir der <em>GuestbookManager</em>
 mit Hilfe der Funktion <em>loadGuestbook()</em> angefragt.
 <gen:highlight type="php">
 import('modules::guestbook::biz','GuestbookManager');
@@ -647,7 +646,7 @@ class guestbook_display_v1_controller extends guestbookBaseController {
       // Manager holen
       $gM = &$this->__getGuestbookManager();
 
-      // Eintr&auml;ge ausgeben
+      // Einträge ausgeben
       $this->setPlaceHolder('Content',$this->__generateEntryList());
 
       // Pager ausgeben
@@ -670,14 +669,14 @@ class guestbook_display_v1_controller extends guestbookBaseController {
       $Link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'createentry','entryid' => ''));
       $Template__CreateEntry->setPlaceHolder('Link',$Link);
 
-      // Ausgabe zur&uuml;ckgeben
+      // Ausgabe zurückgeben
       return $Template__CreateEntry->transformTemplate();
 
    }
 
    private function __generateControlGuestbookLink(){
 
-      // Inhalte der Session zerst&ouml;ren
+      // Inhalte der Session zerstören
       $oSessMgr = new SessionManager('Module_Guestbook');
 
       if($oSessMgr->loadSessionData('AdminView') == 'true'){
@@ -689,7 +688,7 @@ class guestbook_display_v1_controller extends guestbookBaseController {
          $Link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'adminlogin','logout' => 'true','entryid' => ''));
          $Template__ControlGuestbook_Logout->setPlaceHolder('Link',$Link);
 
-         // Ausgabe zur&uuml;ckgeben
+         // Ausgabe zurückgeben
          return $Template__ControlGuestbook_Logout->transformTemplate();
 
       }
@@ -702,7 +701,7 @@ class guestbook_display_v1_controller extends guestbookBaseController {
          $Link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'adminlogin','entryid' => ''));
          $Template__ControlGuestbook_Login->setPlaceHolder('Link',$Link);
 
-         // Ausgabe zur&uuml;ckgeben
+         // Ausgabe zurückgeben
          return $Template__ControlGuestbook_Login->transformTemplate();
 
       }
@@ -714,7 +713,7 @@ class guestbook_display_v1_controller extends guestbookBaseController {
       // Manager holen
       $gM = &$this->__getGuestbookManager();
 
-      // Eintr&auml;ge holen
+      // Einträge holen
       $Guestbook = $gM->loadGuestbook();
       $Entries = $Guestbook->getEntries();
 
@@ -753,7 +752,7 @@ class guestbook_display_v1_controller extends guestbookBaseController {
       $Template__Entry->setPlaceHolder('Date',$Entry->get('Date'));
       $Template__Entry->setPlaceHolder('Time',$Entry->get('Time'));
 
-      // Comments einf&uuml;gen
+      // Comments einfügen
       $Comments = $Entry->getComments();
       $CommentBuffer = (string)'';
 
@@ -769,7 +768,7 @@ class guestbook_display_v1_controller extends guestbookBaseController {
 
       $Template__Entry->setPlaceHolder('Comments',$CommentBuffer);
 
-      // Ausgabe zur&uuml;ckgeben
+      // Ausgabe zurückgeben
       return $Template__Entry->transformTemplate();
 
    }
@@ -899,8 +898,8 @@ im Wesentlichen das Formular und dessen Verhalten hinsichtlich Validierung der F
   &lt;form:button name="CreateGuestbookEntryButton" value="Eintragen" class="eingabe_feld" /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-Der zugeh&ouml;rige DocumentController implementiert dazu lediglich die Methode <em>transformContent()</em>,
-in der abgefragt wird, ob das Formular korrekt ausgef&uuml;llt wurde. Ist das der Fall wird aus den
+Der zugehörige Document-Controller implementiert dazu lediglich die Methode <em>transformContent()</em>,
+in der abgefragt wird, ob das Formular korrekt ausgefüllt wurde. Ist das der Fall wird aus den
 Werten ein Entry-Domain-Objekt erstellt und dieses an die Business-Schicht zur Speicherung desselben
 weitergegeben.
 <gen:highlight type="php">
@@ -974,7 +973,7 @@ class guestbook_createentry_v1_controller extends guestbookBaseController {
 </gen:highlight>
 <strong>Fortsetzung:</strong>
 Die Implementierung des Frontends ist damit erledigt. <a href="./?Seite=059-Gaestebuch-Tutorial-3" title="Backend">Seite 3</a>
-besch&auml;ftigt sich nun mit der Erstellung des Backends.
+beschäftigt sich nun mit der Erstellung des Backends.
 <br />
 <br />
 <br />

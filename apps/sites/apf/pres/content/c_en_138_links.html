@@ -1,0 +1,544 @@
+<doku:title parent="119" tags="links,url layout,url,front controller" title="Links (since 1.14)" urlname="Links">
+   The link generatin mechanism introduced in 1.14 allows to adapt the url scheme to all application
+   cases easily.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   Url structures are a significent part of web applications. For this reasons the Adventure PHP
+   Framwork (APF) provides a framework-like solution to easily generate and manipulate urls.
+</p>
+<p>
+   Within the past (including release 1.13) the APF provided the <em>LinkHandler</em> and
+   <em>FrontcontrollerLinkHandler</em> components that have provided static methods to generate new
+   urls or provide existing ones. Manipulation of existing urls is the basis of loose coupling of
+   software components using the url. If every component just changes &quot;their&quot; own set of
+   parameters and remains the &quot;others&quot; un-touched several components can be managed within
+   one request at the same time.
+</p>
+<p>
+   One big disadvantage of the statical approach is that the url layout and the generation mechanism
+   must be kept synchronous for all komponents. As a last consequence, this breaks the separation of
+   url layout and software as described in the APF's
+   <int:link pageid="137" anchor="Chapter-1-Introduction">filter concept</int:link>.
+</p>
+<p>
+   For this reason, the link generation mechanism has been redesigned in 1.14 to easily implement
+   custom url layouts (see
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Implementierung_von_eigenen_URL-Layouts">wiki</a>
+   page) that can be injected to existing applications.
+</p>
+
+<h3 id="Chapter-2-Architecture"><a href="#Chapter-2-Architecture">2. Architecture</a></h3>
+<p>
+   The architecture of the link generation mechanism starting with release 1.14 introduces a
+   separation between the contruction of an url and the url itself (class <em>Url</em>). Beyond, the
+   <em>LinkGenerator</em> component is able to create &quot;normal&quot; and
+   <int:link pageid="012">front controller action</int:link> urls.
+</p>
+<p>
+   The real &quot;work&quot; is done by an <em>LinkScheme</em> implementation that is provided the
+   url representation created by the developer. The link scheme's code then formats the url as
+   described in the following picture:
+</p>
+<p>
+   <img src="http://media.adventure-php-framework.org/content/LinkGenerator.png" alt="Link generation with the APF" />
+</p>
+
+<h4 id="Chapter-2-1-Url"><a href="#Chapter-2-1-Url">2.1. Url</a></h4>
+<p>
+   The <em>Url</em> class represents any url according to
+   <a class="external" href="http://www.w3.org/Addressing/rfc1630.txt" title="RFC1630">RFC 1630</a>
+   which is independent from the formatting that is done later on. This enables you to generate every
+   link format out of the url representation or from any &quot;ordinary&quot; url.
+</p>
+<p>
+   The class looks as follows:
+</p>
+<gen:highlight type="php">
+final class Url {
+
+   const DEFAULT_HTTP_PORT = '80';
+   const DEFAULT_HTTPS_PORT = '443';
+
+   private $scheme;
+   private $host;
+   private $port;
+   private $path;
+   private $query = array();
+
+   public function __construct($scheme, $host, $port, $path, array $query = array()) {
+      $this->scheme = $scheme;
+      $this->host = $host;
+      $this->port = $port;
+      $this->path = $path;
+      $this->query = $query;
+   }
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   Please have a look at the following table to get an idea about the class' fields:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Scheme</td>
+         <td>Host</td>
+         <td>Port</td>
+         <td>Path</td>
+         <td>Query</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>http://</td>
+         <td>example.com</td>
+         <td>:80</td>
+         <td>/news-archive/2011</td>
+         <td>?id=123&amp;print=true</td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   Both for &quot;normal&quot; as for &quot;rewritten&quot; urls request parameters (&quot;Query&quot;)
+   can be defined as desired, since the url abstraction is format-independent.
+</p>
+
+<h4 id="Chapter-2-2-LinkGenerator"><a href="#Chapter-2-2-LinkGenerator">2.2. LinkGenerator</a></h4>
+<p>
+   The <em>LinkGenerator</em> class is responsible for link formatting. It delegates the real work
+   to the globally configured or applied <em>LinkScheme</em>.
+</p>
+<p>
+   Basically, the <em>LinkGenerator</em> is an abstraction component concerning the link generation.
+   In case each software component uses the link generator (as it is the case for all APF components)
+   changing the link scheme causes an on-the-fly adaption of the url layout.
+</p>
+<p>
+   The <em>LinkGenerator</em> looks like this:
+</p>
+<gen:highlight type="php">
+final class LinkGenerator {
+
+   private static $LINK_SCHEME;
+
+   ...
+
+   public static function setLinkScheme(LinkScheme $linkScheme) {
+      self::$LINK_SCHEME = $linkScheme;
+   }
+
+   ...
+
+   public static function generateUrl(Url $url, LinkScheme $scheme = null) {
+      return ...
+   }
+
+   public static function generateActionUrl(Url $url, $namespace, $name, array $params = array(), LinkScheme $scheme = null) {
+      return ...
+   }
+
+}
+</gen:highlight>
+<p>
+   As mentioned in the introduction the <em>LinkGenerator</em> features a special method to generate
+   action urls to explicitly address
+   <int:link pageid="012" anchor="Chapter-2-4-1-URL-layout">front controller actions</int:link>.
+</p>
+<div class="hint">
+   <em>generateActionUrl()</em> is intended to create an explicit front controller action call.
+   Actions that should remain within the url for consistency reasons are automatically embedded into 
+   the generated url by the link scheme implementations shipped with the APF. Details can be taken
+   from <int:link pageid="012" anchor="Chapter-2-4-3-FrontcontrollerLinkHandler">chapter 2.4.3</int:link>
+   within the front controller documentation.
+</div>
+
+<h4 id="Chapter-2-3-LinkScheme"><a href="#Chapter-2-3-LinkScheme">2.3. LinkScheme</a></h4>
+<p>
+   The <em>LinkScheme</em> interface defines the structure of every dedicated link formatting component.
+   Each implementation must be able to create a url by an applied <em>Url</em> or a <em>Url</em>
+   together with action parameters.
+</p>
+<p>
+   In other words: a <em>LinkScheme</em> represents the actual url layout concerning the generation
+   of links. Please note, that an url layout is only fully functional in combination with a suitable
+   <int:link pageid="137" anchor="Chapter-4-Url-layout">input filter</int:link>. This is because
+   urls must be interpreted to be able to control the application from the outside.
+</p>
+<p>
+   The interface's structure looks like this:
+</p>
+<gen:highlight type="php">
+interface LinkScheme {
+
+   function formatLink(Url $url);
+
+   function formatActionLink(Url $url, $namespace, $name, array $params = array());
+
+   function setEncodeAmpersands($encode);
+
+   function getEncodeAmpersands();
+}
+</gen:highlight>
+<p>
+   <em>formatLink()</em> is intended to generate &quot;normal&quot; urls, <em>formatActionLink()</em>
+   generates front controller urls. <em>setEncodeAmpersands()</em> and <em>getEncodeAmpersands()</em>
+   can be used to configure the link scheme.
+</p>
+<p>
+   Within the present version of the APF two implementations of the interface are included:
+   <em>DefaultLinkScheme</em> and <em>RewriteLinkScheme</em>. The former is used to format
+   &quot;default&quot; urls, the latter one handles rewritten urls according to the layout definition
+   within chapter <int:link pageid="137" anchor="Chapter-4-2-Rewrite-urls">rewrite urls</int:link> of the
+   filter documentation and or the <int:link pageid="012" anchor="Chapter-2-4-1-URL-layout">url layout</int:link>
+   section of the front controller documentation.
+</p>
+
+<h3 id="Chapter-3-Usage"><a href="#Chapter-3-Usage">3. Usage</a></h3>
+<p>
+   The following chapters present the usage of the shipped components as well as the link schemes.
+</p>
+
+<h4 id="Chapter-3-1-Creation-of-the-url-representation"><a href="#Chapter-3-1-Creation-of-the-url-representation">3.1. Creation of the url representation</a></h4>
+<p>
+   In order to create a formatted url <em>LinkGenerator::generateUrl()</em> expects an instance of
+   the <em>Url</em> class to be passed as an argument. To ease creation <em>Url</em> can be created
+   as follows:
+</p>
+<gen:highlight type="php">
+// creating the url abstraction from the current url
+$url = Url::fromCurrent();
+
+// creating an absolute url from the current one
+$url = Url::fromCurrent(true);
+
+// creating the url from a any string
+$url = Url::fromString('http://example.com/pages/news');
+$url = Url::fromString('http://example.com/pages/news?page=3');
+$url = Url::fromString('/pages/news?page=3');
+$url = Url::fromString('?page=news');
+
+// using the constructor to create the url representation
+$url = new Url('http', 'example.com', null, '/pages/news', array());
+$url = new Url('http', 'example.com', null, '/pages/news', array('page' => 3));
+$url = new Url(null, null, null, '/pages/news', array('page' => 3));
+$url = new Url(null, null, null, null, array('page' => 3));
+</gen:highlight>
+<p>
+   After creation, the url represetnation can be manipulated using the methods
+</p>
+<ul>
+   <li><em>setScheme()</em></li>
+   <li><em>setHost()</em></li>
+   <li><em>setPort()</em></li>
+   <li><em>setPath()</em></li>
+   <li><em>setQuery()</em></li>
+   <li><em>mergeQuery()</em></li>
+   <li><em>setQueryParameter()</em></li>
+</ul>
+
+<h4 id="Chapter-3-2-Generating-simple-links"><a href="#Chapter-3-2-Generating-simple-links">3.2. Generating simple links</a></h4>
+<p>
+   The usual application case of the link generation is the manipulation of an existing url. For this
+   reason, the current <em>Url</em> can be configured with the desired parameters. After that, it
+   can be passed to the <em>LinkGenerator</em> for formatting:
+</p>
+<gen:highlight type="php">
+// add or overwrite the current parameters using an ssociative array
+$link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
+            'page' => 5,
+            'print' => 'true')));
+
+// add or overwrite the current parameters using single statements
+$link = LinkGenerator::generateUrl(Url::fromCurrent()
+            ->setQueryParameter('page', 5)
+            ->setQueryParameter('print', 'true'));
+</gen:highlight>
+<div class="hint">
+   The <em>Url</em> class provides a <em>fluent interface</em> for all setter and factoty methods.
+   So, configuration can be done by combining various calls.
+</div>
+<p>
+   In addition, you can also use the creation methods described in the previous chapter since the
+   result is always an instance of the <em>Url</em> class. After creation the parameters and properties
+   can be adapted like this:
+</p>
+<gen:highlight type="php">
+$link = LinkGenerator::generateUrl(Url::fromString('/pages/news?page=3&print=true')
+            ->setScheme('https')
+            ->setHost('example.com')
+            ->setQueryParameter('page', 4)
+            ->setQueryParameter('print', null));
+
+$link = LinkGenerator::generateUrl(Url::fromString('/pages/news?page=3&print=true')
+            ->setScheme('https')
+            ->setHost('example.com')
+            ->mergeQuery(array('page' => 4, 'print' => null)));
+</gen:highlight>
+<p>
+   Using the <em>DefaultLinkScheme</em> the result in both cases is:
+</p>
+<gen:highlight type="code">
+https://example.com/pages/news?page=4
+</gen:highlight>
+<div class="hint">
+   The link schemes delivered with the APF include the logic to remove a parameter in case it's
+   value is <em>null</em>. Since this is a special interpretation of these link schemes this is no
+   common behaviour of all <em>LinkScheme</em> implementations!
+</div>
+<p>
+   If you intend to generate only few links using a dedicated link scheme (e.g. for AJAX or external
+   urls) you are able to pass a special link scheme to the <em>generateUrl()</em> call. This call
+   then overwrites the global link scheme:
+</p>
+<gen:highlight type="php">
+$ajaxUrl = LinkGenerator::generateUrl(Url::fromString('news.php')
+            ->setQueryParameter('page', 4), new AjaxLinkScheme());
+</gen:highlight>
+<p>
+   As you can take from the code block the second argument takes a newly generated link scheme. For
+   convenience, you can also re-use an existing link scheme to be configured for the current case:
+</p>
+<gen:highlight type="php">
+$scheme = LinkGenerator::cloneLinkScheme();
+$scheme->setSpecialParameter(true);
+
+$specialUrl = LinkGenerator::generateUrl(Url::fromCurrent()
+            ->setQueryParameter('page', 4), $scheme);
+</gen:highlight>
+
+<h4 id="Chapter-3-3-Generating-action-links"><a href="#Chapter-3-3-Generating-action-links">3.3. Generating action links</a></h4>
+<p>
+   Each front controller action has a property that defines whether the action's representation
+   should be kept in the url or not. This is - as described in
+   <int:link pageid="012" anchor="Chapter-2-4-3-FrontcontrollerLinkHandler">chapter 2.4.3</int:link>
+   - a technical way, the decoupling of software components via the url is realized for the APF.
+   For the developer this possibility is especially interesting in case an action should remain
+   within the url for application management purposes but the application executed &quot;within&quot;
+   this action should not know about that.
+</p>
+<div class="hint">
+   The functonality described in the last paragraph is already part of the APF link scheme
+   implementations. In case of custom link schemes the automatic inclusion of front controller
+   actions must be implemented as desired!
+</div>
+<p>
+   Nevertheless, this chapter mainly deals with links that address dedicated actions that are not
+   marked to be keept within each url. For this reason, the <em>LinkGenerator::generateActionUrl()</em>
+   is provided. This method can generate action links by a basic url, the action's namespace and
+   name as well as a set of parameters:
+</p>
+<gen:highlight type="php">
+$url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
+         'tools::media', 
+         'streamMedia',
+         array(
+            'namespace' => 'modules_usermanagement_pres_images',
+            'extension' => 'png',
+            'filebody' => 'icon_delete'
+         )
+);
+</gen:highlight>
+<p>
+   The resulting url consists of a base url (created from string) and a dedicated action instruction.
+   Using the <em>RewriteLinkScheme</em> results in the subsequent url:
+</p>
+<gen:highlight type="code">
+/pages/news/~/tools_media-action/streamMedia/namespace/modules_usermanagement_pres_images/extension/png/filebody/icon_delete
+</gen:highlight>
+<p>
+   Taking the <em>DefaultLinkScheme</em> the url is as follows:
+</p>
+<gen:highlight type="code">
+/pages/news?tools_media-action:streamMedia=namespace:modules_usermanagement_pres_images|extension:png|filebody:icon_delete
+</gen:highlight>
+<p>
+   In case te base url already contains a permanent action instruction the explicit action instruction
+   is added at the end. The main difference between the action link generation and the normal method
+   is the fact, that the action parameters are passed as independent arguments.
+</p>
+<p>
+   Moreover, the generation of action urls can be done using adapted base urls. For this reason all
+   methods described in <a href="#Chapter-3-2-Generating-simple-links">chapter 3.2</a> can be used.
+</p>
+<p>
+   As you have seen for <em>LinkGenerator::generateUrl()</em>,
+   <em>LinkGenerator::generateActionUrl()</em> accepts a custom link scheme, too:
+</p>
+<gen:highlight type="php">
+$url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
+         'tools::media', 
+         'streamMedia',
+         array(
+            'namespace' => 'modules_usermanagement_pres_images',
+            'extension' => 'png',
+            'filebody' => 'icon_delete'
+         ),
+         new SpecialLinkScheme()
+);
+</gen:highlight>
+
+<h4 id="Chapter-3-4-Configuration-of-link-schemes"><a href="#Chapter-3-4-Configuration-of-link-schemes">3.4. Configuration of link schemes</a></h4>
+<p>
+   As already mentioned in the previous chaoters the APF provides two link schemes:
+   <em>DefaultLinkScheme</em> and <em>RewriteLinkScheme</em>. They implement the
+   <em>LinkScheme</em> interface and can be configured for some special casess.
+</p>
+<p>
+   At present, the configuration switches regard the activation or deactivation of the ampersand
+   (&amp;) encoding feature. In case you do not want the ampersand to be encoded, you can do something
+   like this:
+</p>
+<gen:highlight type="php">
+// use dedicated link scheme with special configuration
+$scheme = LinkGenerator::cloneLinkScheme();
+$scheme->setEncodeAmpersands(true);
+$url = LinkGenerator::generateUrl(..., $scheme);
+
+// adapt global link scheme
+$scheme = LinkGenerator::getLinkScheme();
+$scheme->setEncodeAmpersands(true);
+LinkGenerator::getLinkScheme($scheme);
+$url = LinkGenerator::generateUrl(...);
+</gen:highlight>
+<p>
+   If you are using custom link schemes the two configuration possibilities can be used as well.
+</p>
+
+<h3 id="Chapter-4-Enhancement"><a href="#Chapter-4-Enhancement">4. Enhancement</a></h3>
+<p>
+   The above described concept has been designed for flexibility but also for enhancement.
+   Separation of the <em>LinkGenerator</em> from it's <em>LinkScheme</em>s enables you to inject
+   an absolutely new link scheme without having to change the functionality.
+</p>
+<p>
+   In order to guarantee such flexibility it is important to use a generic interal url layout that
+   can be transformed to the desired representation of the currently active link scheme.
+</p>
+<p>
+   The next two chapters describe the enhancement of the link generation mechanism of the APF.
+</p>
+
+<h4 id="Chapter-4-1-Implementation-of-link-schemes"><a href="#Chapter-4-1-Implementation-of-link-schemes">4.1. Implementation of link schemes</a></h4>
+<p>
+   A link scheme is defined by the <em>LinkScheme</em> interface. In order to implement a custom
+   scheme you have to implement the methods <em>formatLink()</em> and <em>formatActionLink()</em>
+   as well as <em>setEncodeAmpersands()</em> and <em>getEncodeAmpersands()</em>.
+</p>
+<p>
+   The former two functions are intended to generate the desired url layout from the applied url
+   abstraction. Having a look at the next code sample you can see an implementation, that uses the
+   current page identifier as an url path and adds all further paramaters as a &quot;real&quot; 
+   request parameters. Sample:
+</p>
+<gen:highlight type="code">/news?page=2</gen:highlight>
+<p>
+   The code to generate this layout is as follows:
+</p>
+<gen:highlight type="php">
+class SpecialLinkScheme implements LinkScheme {
+
+   private $encodeAmpersands = true;
+
+   public function __construct($encodeAmpersands = true) {
+      $this->encodeAmpersands = $encodeAmpersands;
+   }
+
+   public function formatLink(Url $url) {
+
+      $ampersand = $this->encodeAmpersands ? '&amp;' : '&';
+
+      $link = '/' . $url->getQueryParameter('page');
+
+      $params = array();
+      foreach ($url->getQuery() as $name => $value) {
+         if (!empty($value)) {
+            $params[] = $name . '=' . $value;
+         }
+      }
+
+      if (count($params) > 0) {
+         $link .= '?' . implode($ampersand, $params);
+      }
+
+      return $link;
+   }
+
+   public function formatActionLink(Url $url, $namespace, $name, array $params = array()) {
+
+      $link = $this->formatLink($url);
+      
+      $link .= strpos('?') !== false ? '&' : '?';
+      $link .= str_replace('::', '_', $namespace) . '-action:' . $name;
+
+      $actionParams = array();
+      foreach ($params as $name => $value) {
+         if (!empty($value)) {
+            $actionParams[] = $name . ':' . $value;
+         }
+      }
+
+      if (count($actionParams) > 0) {
+         $link .= '=' . implode('|', $actionParams);
+      }
+
+      return $link;
+   }
+
+   public function getEncodeAmpersands() {
+      return $this->encodeAmpersands;
+   }
+
+   public function setEncodeAmpersands($encodeAmpersands) {
+      $this->encodeAmpersands = $encodeAmpersands;
+   }
+
+}   
+</gen:highlight>
+<p>
+   Please note, that this implementation is only an example since it has the following limitations:
+</p>
+<ul>
+   <li>
+      Actions that have specified <em>$keepInUrl = true</em> are not automatically included in the
+      generated url.
+   </li>
+   <li>
+      Due to simplicity we have not included any checks on the <em>page</em> parameter.
+   </li>
+   <li>
+      Scheme, host, port, and path of the url abstraction are ignored.
+   </li>
+   <li>
+      The link scheme is only usable for &quot;normal&quot; urls but has currently no corresponding
+      <int:link pageid="137">input filter</int:link> to resolve this layout.
+   </li>
+</ul>
+
+<h4 id="Chapter-4-2-Configuration-of-custom-link-schemes"><a href="#Chapter-4-2-Configuration-of-custom-link-schemes">4.2. Configuration of custom link schemes</a></h4>
+<p>
+   In order to configure existing or custom link schemes for global use you can adapt your bootstrap
+   file as follows:
+</p>
+<gen:highlight type="php">
+// globale configuration using an existing link scheme
+include('../apps/core/pagecontroller/pagecontroller.php');
+import('tools::link', 'LinkGenerator');
+LinkGenerator::setLinkScheme(new RewriteLinkScheme(true));
+
+// globale configuration using a custom link scheme
+include('../apps/core/pagecontroller/pagecontroller.php');
+import('tools::link', 'LinkGenerator');
+import('...', 'SpecialLinkScheme');
+LinkGenerator::setLinkScheme(new SpecialLinkScheme());
+</gen:highlight>
+<p>
+   With no special cofiguration present within the bootstrap file the <em>DefaultLinkScheme</em>
+   will be used as long as the <em>URLRewriting</em> <int:link pageid="067">registry key</int:link>
+   from the <em>apf::core</em> namespace contains the value <em>false</em>. If you have activated
+   url rewriting through the registry the <em>RewriteLinkScheme</em> is used.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_138" />

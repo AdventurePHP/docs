@@ -1,19 +1,19 @@
 <doku:title parent="071" tags="tutorials,eigene webseite,erste webseite,einsteiger" title="Erstellen einer Webseite" urlname="Webseite-erstellen">
   Das Tutorial 'Webseite erstellen' zeigt, wie einfach eine Webseite mit dem Framework aufgebaut
-  werden kann. In weiterf&uuml;hrenden Kapiteln beschreibt der Autor, wie dynamische Inhalte in der
-  Seite angezeigt werden k&ouml;nnen.
+  werden kann. In weiterführenden Kapiteln beschreibt der Autor, wie dynamische Inhalte in der
+  Seite angezeigt werden können.
 </doku:title>
 <h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
-Das vorliegende Tutorial soll aufbauend auf den Ausf&uuml;hrungen in den <a href="./?Seite=013-Grundlagen" title="Grundlagen">Grundlagen</a>
+Das vorliegende Tutorial soll aufbauend auf den Ausführungen in den <a href="./?Seite=013-Grundlagen" title="Grundlagen">Grundlagen</a>
 zeigen, wie auf einfache Weise eine Webseite mit den Mitteln des Adventure PHP Frameworks erstellt
-werden kann. Um die Anleitung einfach zu gestalten wird von einem aufw&auml;ndigen Design Abstand
+werden kann. Um die Anleitung einfach zu gestalten wird von einem aufwändigen Design Abstand
 genommen.
 
 <h3 id="Chapter-2-Anforderungen"><a href="#Chapter-2-Anforderungen">2. Anforderungen</a></h3>
 <p>
-   Die zu erstellende Webseite soll Platz f&uuml;r ein Key-Visual, einen Header-Bereich, ein Men&uuml;
-   und einen Bereich f&uuml;r den Inhalt und einen Footer bieten. Im Content-Bereich soll dynamischer
-   Inhalt abh&auml;ngig von einem URL-Parameter angezeigt werden. Grafisch betrachtet soll die Seite
+   Die zu erstellende Webseite soll Platz für ein Key-Visual, einen Header-Bereich, ein Menü
+   und einen Bereich für den Inhalt und einen Footer bieten. Im Content-Bereich soll dynamischer
+   Inhalt abhängig von einem URL-Parameter angezeigt werden. Grafisch betrachtet soll die Seite
    dann folgendes Aussehen haben:
 </p>
 <img src="http://media.adventure-php-framework.org/content/tutorial_webseiteerstellen_design_webseite.png" style="width: 560px;" alt="Meine erste Webseite mit dem Adventure PHP Framework" />
@@ -25,10 +25,10 @@ dem Namen <strong>apf-codepack-*.[zip | tar.gz | tar.bz2]</strong>) auf der
 den Quellcode des Frameworks, die Strukturen einer Webseite bzw. die Konfigurationen werden nicht
 mitgeliefert. Nun muss das Paket in einen beliebigen Ordner unterhalb des DocumentRoot des lokalen
 Webservers entpackt werden. Um eine einheitliche Sprechweise zu haben, soll dieser Ordner
-<strong>apps/</strong> genannt werden. Aus Gr&uuml;nden der &Uuml;bersichtlichkeit wird der Ordner
+<strong>apps/</strong> genannt werden. Aus Gründen der Übersichtlichkeit wird der Ordner
 <strong>apps/</strong> in einen Ordner <strong>testwebsite/</strong>, der unter dem DocumentRoot des
-Webservers erstellt wurde verschoben werden. Als weitere Schritte m&uuml;ssen nun die Strukturen
-f&uuml;r die Webseite generiert und die nach <a href="./?Seite=013-Grundlagen" title="Grundlagen">Grundlagen</a>
+Webservers erstellt wurde verschoben werden. Als weitere Schritte müssen nun die Strukturen
+für die Webseite generiert und die nach <a href="./?Seite=013-Grundlagen" title="Grundlagen">Grundlagen</a>
 notwenigen Konfigurationsdateien erstellt werden. Dazu ist folgende Vorgehensweise ratsam:
 <br />
 <br />
@@ -43,48 +43,45 @@ sites/
                        templates/
                        documentcontroller/
 </gen:highlight>
-erstellt werden. Diese dient sp&auml;ter zur strukturierten Aufnahme der Template- und Controller-
-Dateien der Webseite.
-<br />
-<br />
-<br />
+<p>
+   erstellt werden. Diese dient später zur strukturierten Aufnahme der Template- und Controller-
+   Dateien der Webseite.
+</p>
+
 <h4 id="Chapter-3-2-Bootstrap-Datei"><a href="#Chapter-3-2-Bootstrap-Datei">3.2. Bootstrap-Datei anlegen</a></h4>
-Da das Framework f&uuml;r die Verwendung einer zentralen Bootstrap-Datei konzipiert wurde, &uuml;ber
-die alle Requests der Besucher abgehandelt werden, muss diese nun im Ordner <strong>testwebsite/</strong>
-angelegt werden. Der Inhalt der Datei kann aus der aktuellen <strong>index.php</strong> der
-Dokumentationswebseite kopiert und wie folgt angepasst werden. Der Einfachheit wegen wird auf die
-Verwendung des FrontControllers verzichtet, da auch dies die Handhabung f&uuml;r den Einsteiger
-erleichtert.
+<p>
+   Da das Framework für die Verwendung einer zentralen Bootstrap-Datei konzipiert wurde, über
+   die alle Requests der Besucher abgehandelt werden, muss diese nun im Ordner <strong>testwebsite/</strong>
+   angelegt werden. Der Inhalt der Datei kann aus der aktuellen <strong>index.php</strong> der
+   Dokumentationswebseite kopiert und wie folgt angepasst werden. Der Einfachheit wegen wird auf die
+   Verwendung des FrontControllers verzichtet, da auch dies die Handhabung für den Einsteiger
+   erleichtert.
+</p>
 <gen:highlight type="php">
-// Fehlermeldung konfigurieren (Es treten sonst Fehler wie unter
-// http://forum.adventure-php-framework.org/de/viewtopic.php?f=7&t=32
-// beschrieben auf!)
-ini_set('html_errors','off');
+// Page-Controller einbinden (APF-Core-Library)
+include_once('./apps/core/pagecontroller/pagecontroller.php');
 
-// PageController einbinden
-require_once('./apps/core/pagecontroller/pagecontroller.php');
+// Front-Controller einbinden
+import('core::frontcontroller', 'Frontcontroller');
 
-// Seite erzeugen und initialisieren
-$page = new Page();
-$page->setContext('projectone');
+// Front-Controller erzeugen und konfigurieren
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->setContext('projectone');
 
-// Template laden
-$page->loadDesign('sites::testwebsite::pres::templates','website');
-
-// Seite transformieren und ausgeben
-echo $page->transform();
+// Request-Abarbeitung starten und Ergebnis zum Client senden
+echo $fC->start('sites::testwebsite::pres::templates', 'website');
 </gen:highlight>
-In der Code-Darstellung sind bereits implizit weitere Vereinbarungen &uuml;ber die Struktur des
-Codes enthalten, die die weiteren Schritte beeinflussen.
-<br />
-<br />
-<br />
+<p>
+   In der Code-Darstellung sind bereits implizit weitere Vereinbarungen über die Struktur des
+   Codes enthalten, die die weiteren Schritte beeinflussen.
+</p>
+
 <h4 id="Chapter-3-3-Template-Dateien"><a href="#Chapter-3-3-Template-Dateien">3.3. Template-Dateien anlegen</a></h4>
 Wie im Code-Ausschnitt der <em>index.php</em> bereits festgelegt wurde, soll das zentrale Template
 der Webseite unter dem Ordner <strong>testwebsite/apps/sites/testwebsite/pres/templates</strong>
-liegen und <strong>website.html</strong> hei&szlig;en. In dieser Datei legen wir nun das unter
-Kapitel 2 beschriebene HTML-Ger&uuml;st an und sehen die einzelnen Bereichen darin vor. Die Datei
-hat damit - gek&uuml;rzt dargestellt - folgenden Inhalt:
+liegen und <strong>website.html</strong> heißen. In dieser Datei legen wir nun das unter
+Kapitel 2 beschriebene HTML-Gerüst an und sehen die einzelnen Bereichen darin vor. Die Datei
+hat damit - gekürzt dargestellt - folgenden Inhalt:
 <br />
 <gen:highlight type="apf-xml">
   &lt;html&gt;
@@ -137,8 +134,8 @@ die Test-Webseite bereits betrachtet werden.
 <br />
 <br />
 <h3 id="Chapter-4-Dynamische-Bereiche"><a href="#Chapter-4-Dynamische-Bereiche">4. Erstellen der dynamischen Bereiche</a></h3>
-Damit die zentralen Bereiche wie Header, Men&uuml; und Inhalt nicht auf jeder Inhaltsseite gepflegt
-werden m&uuml;ssen, werden diese in eigene Templates ausgelagert und an den entsprechenden Stellen
+Damit die zentralen Bereiche wie Header, Menü und Inhalt nicht auf jeder Inhaltsseite gepflegt
+werden müssen, werden diese in eigene Templates ausgelagert und an den entsprechenden Stellen
 eingebunden. Dazu werden drei weitere Template-Dateien unter <strong>testwebsite/apps/sites/testwebsite/pres/templates</strong>
 angelegt:
 <ul>
@@ -146,13 +143,13 @@ angelegt:
     <strong>header.html</strong>: Inhalte des Headers
   </li>
   <li>
-    <strong>menu.html</strong>: Inhalte des Men&uuml;s
+    <strong>menu.html</strong>: Inhalte des Menüs
   </li>
   <li>
     <strong>content.html</strong>: Inhalte der Webseite
   </li>
 </ul>
-Die Template-Datei <strong>website.html</strong> wird wie folgt ge&auml;ndert/erg&auml;nzt:
+Die Template-Datei <strong>website.html</strong> wird wie folgt geändert/ergänzt:
 <gen:highlight type="html">
 <html>
 <head>
@@ -222,8 +219,8 @@ Impressum
 <gen:highlight type="apf-xml">
   Content
 </gen:highlight>
-Damit sind die Vorkehrungen getroffen, zentrale Elemente und den Inhalte der Webseite unabh&auml;ngig
-vom Design derselben pflegen zu k&ouml;nnen. Der Aufruf der URL
+Damit sind die Vorkehrungen getroffen, zentrale Elemente und den Inhalte der Webseite unabhängig
+vom Design derselben pflegen zu können. Der Aufruf der URL
 <gen:highlight type="apf-xml">
 http://localhost/testwebsite/
 </gen:highlight>
@@ -233,10 +230,10 @@ sollte nun eine zu Kapitel 3.4. identische Ausgabe im Browser zeigen.
 <br />
 <h3 id="Chapter-5-Ausgabe-Inhalte"><a href="#Chapter-5-Ausgabe-Inhalte">5. Ausgabe der Inhalte</a></h3>
 Aufbauend auf der unter Kapitel 4 skizzierten Trennung der Webseite in einzelne Views, soll nun in
-einem weiteren Schritt aufgezeigt werden, wie es m&ouml;glich ist, die Webseite mit dynamischen
-Inhalten zu best&uuml;cken. Dabei sollen die Inhalte abh&auml;ngig vom URL-Parameter
-<strong>Page</strong> ausgegeben werden. Dazu muss zun&auml;chst das Men&uuml; angepasst werden,
-damit bei Klick auf die Men&uuml;-Punkte auch die gew&uuml;nschte Seite angefragt wird. Das
+einem weiteren Schritt aufgezeigt werden, wie es möglich ist, die Webseite mit dynamischen
+Inhalten zu bestücken. Dabei sollen die Inhalte abhängig vom URL-Parameter
+<strong>Page</strong> ausgegeben werden. Dazu muss zunächst das Menü angepasst werden,
+damit bei Klick auf die Menü-Punkte auch die gewünschte Seite angefragt wird. Das
 funktioniert nun wie folgt:
 <br />
 <br />
@@ -247,31 +244,31 @@ funktioniert nun wie folgt:
   &lt;br /&gt;
   &lt;a href="./?Seite=Impressum"&gt;Impressum&lt;/a&gt;
 </gen:highlight>
-Beim Klick auf die beiden Men&uuml;punkte wird die Seite selbst (Datei <em>index.php</em>) aufgerufen
-und mit dem Parameter <strong>Page</strong> ausgestattet. Um nun abh&auml;ngig der Request-Variable
-<strong>Page</strong> Inhalte im Inhaltsbereich anzeigen zu k&ouml;nnen bedarf es einer dynamischen
-Komponente. Hier stehen dem Entwickler zwei M&ouml;glichkeiten zur Verf&uuml;gung, die das Framework
+Beim Klick auf die beiden Menüpunkte wird die Seite selbst (Datei <em>index.php</em>) aufgerufen
+und mit dem Parameter <strong>Page</strong> ausgestattet. Um nun abhängig der Request-Variable
+<strong>Page</strong> Inhalte im Inhaltsbereich anzeigen zu können bedarf es einer dynamischen
+Komponente. Hier stehen dem Entwickler zwei Möglichkeiten zur Verfügung, die das Framework
 out-of-the-box bietet.
 <br />
 <br />
 <br />
 <h4 id="Chapter-5-1-Text-Inhalte"><a href="#Chapter-5-1-Text-Inhalte">5.1. Inhalte aus Text-Dateien</a></h4>
-Eine sehr einfache M&ouml;glichkeit ist es, dynamische Inhalte aus Text-Dateien im Inhaltsbereich
+Eine sehr einfache Möglichkeit ist es, dynamische Inhalte aus Text-Dateien im Inhaltsbereich
 darzustellen. Zu diesem Zweck bietet das Framework die unter
 <int:link pageid="046" anchor="Chapter-3-1-createobject">Standard-Taglibs, Kapitel 3.1</int:link>,
-dokumentierte TagLib <strong>&lt;doc:createobject /&gt;</strong>. Diese muss gem&auml;&szlig; den
+dokumentierte TagLib <strong>&lt;doc:createobject /&gt;</strong>. Diese muss gemäß den
 oben festgelegten Anforderungen entsprechend konfiguriert werden. Die Bibliothek erwartet, dass die
-sprachabh&auml;ngigen Inhaltsdateien unter dem Ordner <strong>./frontend/content/</strong> liegen,
+sprachabhängigen Inhaltsdateien unter dem Ordner <strong>./frontend/content/</strong> liegen,
 der parallel zur Bootstrap-Datei existieren muss. Vorrausgesetzt, die Inhalte sollen in deutscher
-Sprache angezeigt werden, ist es notwendig f&uuml;r die beiden Beispiele die Dateien
+Sprache angezeigt werden, ist es notwendig für die beiden Beispiele die Dateien
 <ul>
   <li>./frontend/content/c_de_startseite.html</li>
   <li>./frontend/content/c_de_impressum.html</li>
 </ul>
 <p>
-   mit den gew&uuml;nschten Inhalten anzulegen. Da der Content im Inhaltsbereich angezeigt werden
-   soll muss die daf&uuml;r verantwortliche Template-Datei <em>content.html</em> wie folgt
-   abge&auml;ndert werden:
+   mit den gewünschten Inhalten anzulegen. Da der Content im Inhaltsbereich angezeigt werden
+   soll muss die dafür verantwortliche Template-Datei <em>content.html</em> wie folgt
+   abgeändert werden:
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib namespace="tools::html::taglib" prefix="doc" class="createobject" /&gt;
@@ -279,18 +276,18 @@ Sprache angezeigt werden, ist es notwendig f&uuml;r die beiden Beispiele die Dat
 </gen:highlight>
 <div class="hint">
    Die TagLib erwartet, dass die Dateinamen nur Kleinbuchstaben enthalten. Auf Windows-Maschinen ist
-   dies zwar zun&auml;chst unerheblich, &uuml;bertr&auml;gt man die Applikation jedoch auf einen
+   dies zwar zunächst unerheblich, überträgt man die Applikation jedoch auf einen
    LINUX-Rechner, wird die angesprochene Datei nicht gefunden!
 </div>
 
 <h4 id="Chapter-5-2-Datenbank-Inhalte"><a href="#Chapter-5-2-Datenbank-Inhalte">5.2. Inhalte aus einer Datenbank</a></h4>
 <p>
-   Eine weitere M&ouml;glichkeit bietet die Variante, die Inhalte aus einer Datenbank zu lesen und in
+   Eine weitere Möglichkeit bietet die Variante, die Inhalte aus einer Datenbank zu lesen und in
    den Inhaltsbereich der Seite einzubetten. Hierzu kann der Entwickler Gebrauch von einem
-   DocumentController machen, der dazu gedacht ist, dynamischen Inhalt zu erzeugen.
+   Document-Controller machen, der dazu gedacht ist, dynamischen Inhalt zu erzeugen.
 </p>
 <p>
-   Zun&auml;chst muss dazu eine Tabelle in der Datenbank freier Wahl erzeugt werden, die den Inhalt
+   Zunächst muss dazu eine Tabelle in der Datenbank freier Wahl erzeugt werden, die den Inhalt
    aufnimmt. Diese kann mit folgendem SQL-Statement erzeugt werden:
 </p>
 <gen:highlight type="apf-xml">
@@ -305,7 +302,7 @@ CREATE TABLE demopage_content (
 ) ENGINE=MyISAM;
 </gen:highlight>
 <p>
-   &Auml;hnlich der unter 5.1. gezeigten &Auml;nderung muss nun die Datei <em>content.html</em>
+   Ähnlich der unter 5.1. gezeigten Änderung muss nun die Datei <em>content.html</em>
    angepasst werden:
 </p>
 <gen:highlight type="apf-xml">
@@ -319,7 +316,7 @@ CREATE TABLE demopage_content (
    Mit diesem XML-Tag wird dem Page-Controller bekannt gemacht, dass zur Verarbeitung des aktuellen
    Templates einen Controller im Sinne des MVC-Patterns zu verwenden ist. Hierzu setzen wir einen
    <int:link pageid="006" /> ein. Diese von <em>base_controller</em> abgeleitete PHP-Klasse ist dann
-   daf&uuml;r verantwortlich, dass der dynamische Inhalt geladen und an der gew&uuml;nschten Stelle
+   dafür verantwortlich, dass der dynamische Inhalt geladen und an der gewünschten Stelle
    ausgegeben wird.
 </p>
 <p>
@@ -330,9 +327,11 @@ CREATE TABLE demopage_content (
 testwebsite/apps/sites/testwebsite/pres/documentcontroller/content_v1_controller.php
 </gen:highlight>
 <p>
-   soll mit folgendem Inhalt gef&uuml;llt werden:
+   soll mit folgendem Inhalt gefüllt werden:
 </p>
 <gen:highlight type="php">
+import('tools::request', 'RequestHandler');
+
 class content_v1_controller extends base_controller {
 
    public function transformContent(){
@@ -363,10 +362,10 @@ class content_v1_controller extends base_controller {
 </gen:highlight>
 <p>
    Der Quelltext des Controllers sollte selbstredend sein. Im Groben beschrieben wird hier nichts
-   anderes in PHP-Code abgebildet, wie in einem herk&ouml;mmlichen Script auch stehen w&uuml;rde.
+   anderes in PHP-Code abgebildet, wie in einem herkömmlichen Script auch stehen würde.
 </p>
 <p>
-   Um auf die Datenbank zugreifen zu k&ouml;nnen erwartet die MySQL-Komponente eine
+   Um auf die Datenbank zugreifen zu können erwartet die MySQL-Komponente eine
    Konfigurationsdatei unter dem Pfad
 </p>
 <gen:highlight type="code">
@@ -382,12 +381,12 @@ testwebsite/apps/config/core/database/{CONTEXT}/
 </gen:highlight>
 <p>
    zusammen. Dabei entspricht <em>{CONTEXT}</em> dem Context der aktuellen Applikation und
-   <em>projectone</em> lautet. Details zur Konfiguration k&ouml;nnen dem Kapitel
+   <em>projectone</em> lautet. Details zur Konfiguration können dem Kapitel
    <int:link pageid="134" /> entnommen werden.
 </p>
 <p>
    Der Inhalt der Konfiguration muss an die lokale Datenbank-Installation angepasst werden,
-   gen&uuml;gt jedoch folgendem Schema:
+   genügt jedoch folgendem Schema:
 </p>
 <gen:highlight type="ini">
 [content-database]
@@ -405,25 +404,25 @@ DB.Collation = "utf8_general_ci"]
 <p>
    Die vorliegende Webseite zeigt nun aus einer Textdatei oder Datenbank stammende dynamische Inhalten
    an. Ein Manko der Implementierung liegt noch darin, dass nicht abgefangen wird, ob ein Inhalt
-   tats&auml;chlich in der Datenbank existiert. Im Fall eines nicht vorhandenen Datenbank-Inhalts wird
+   tatsächlich in der Datenbank existiert. Im Fall eines nicht vorhandenen Datenbank-Inhalts wird
    keine Fehlerseite ausgegeben, bei Verwendung der Datei-Variante ist dies bereits in der TagLib
    vorgesehen.
 </p>
 <p>
-   Dar&uuml;ber hinaus fehlt bei der in Kapitel 5.2 beschriebenen Vorgehensweise die M&ouml;glichkeit,
-   eine Seite zu erstellen, zu pflegen und zu l&ouml;schen. Diese Aufgabe kann im Moment lediglich mit
+   Darüber hinaus fehlt bei der in Kapitel 5.2 beschriebenen Vorgehensweise die Möglichkeit,
+   eine Seite zu erstellen, zu pflegen und zu löschen. Diese Aufgabe kann im Moment lediglich mit
    einem Datenbank-Administrationstool wie
    <a class="external" href="http://www.phpmyadmin.net/home_page/index.php" title="PHPMyAdmin">PHPMyAdmin</a>
-   oder einem daf&uuml;r erstelltes Tool erledigt werden.
+   oder einem dafür erstelltes Tool erledigt werden.
 </p>
 <p>
    Der Einfachheit wegen wurde in diesem Tutorial darauf verzichtet eine korrekte 3-Schicht-Implementierung
-   aufzuzeigen, da dies den Schwierigkeitsgrad erheblich erh&ouml;ht h&auml;tte. Fortgeschrittene
-   Benutzer sollten jedoch die Datenbank-Kommunikation nicht direkt in einem DocumentController vornehmen,
-   sondern eine Business-Komponente eingef&uuml;hren, die dem Controller ein "Inhalts-Domain-Objekt" liefert,
-   das dieser dann anzeigt. Diese k&uuml;mmert sich dann um die Bereitstellung einer Fehlerseite, sollte
-   die vom Benutzer gew&uuml;nschte Seite nicht existieren. Konsequenterweise greift die Business-Komponente
-   auf eine Service-Komponente der Daten-Schicht zur&uuml;ck, die schlie&szlig;lich die Daten physikalisch
+   aufzuzeigen, da dies den Schwierigkeitsgrad erheblich erhöht hätte. Fortgeschrittene
+   Benutzer sollten jedoch die Datenbank-Kommunikation nicht direkt in einem Document-Controller vornehmen,
+   sondern eine Business-Komponente eingeführen, die dem Controller ein "Inhalts-Domain-Objekt" liefert,
+   das dieser dann anzeigt. Diese kümmert sich dann um die Bereitstellung einer Fehlerseite, sollte
+   die vom Benutzer gewünschte Seite nicht existieren. Konsequenterweise greift die Business-Komponente
+   auf eine Service-Komponente der Daten-Schicht zurück, die schließlich die Daten physikalisch
    aus der Datenbank bezieht. Innerhalb der Datenschicht kann dann Gebrauch vom <em>ConectionManager</em>
    gemacht werden um die relevanten Daten aus der MySQL-Datenbank zu laden. Weitere Anregungen bieten
    hier die Tutorials
@@ -436,10 +435,10 @@ DB.Collation = "utf8_general_ci"]
 
 <h3 id="Chapter-7-Quellcode-Download"><a href="#Chapter-7-Quellcode-Download">7. Download der Quellcodes</a></h3>
 <p>
-   Die in diesem Tutorial erstellten Dateien k&ouml;nnen unter
+   Die in diesem Tutorial erstellten Dateien können unter
    <a href="http://media.adventure-php-framework.org/content/tutorial_testwebsite.zip" title="Code-Package">tutorial_testwebsite.zip</a>
    heruntergeladen werden. Nicht im Archiv enthalten sind die Quellcodes des Frameworks, da diese,
-   wie bereits erw&auml;hnt, auf der Seite <int:link pageid="008" /> bezogen werden k&ouml;nnen.
+   wie bereits erwähnt, auf der Seite <int:link pageid="008" /> bezogen werden können.
 </p>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_048" />

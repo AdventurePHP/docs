@@ -1,72 +1,72 @@
 <doku:title parent="071" tags="tutorials,module,erweiterung von funktionen,wrapping,social bookmark" title="Erweiterung bestehender Funktionen" urlname="Erweiterung-bestehender-Funktionen">
-  Das Tutorial zeigt, wie auf einfache Weise bestehende Funktionen erweitert und f&uuml;r den
-  speziellen Anwendungsfall tauglich gemacht werden k&ouml;nnen.
+  Das Tutorial zeigt, wie auf einfache Weise bestehende Funktionen erweitert und für den
+  speziellen Anwendungsfall tauglich gemacht werden können.
 </doku:title>
-<h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einf&uuml;hrung</a></h3>
-In der t&auml;glichen Arbeit tritt h&auml;ufig die Situation auf, dass eine bestehende Bibliothek
-die bisherigen Anforderungen erf&uuml;llt hat, der aktuell zu l&ouml;sende Spezialfall jedoch nicht.
-Viele Entwickler neigen in der geschilderten Situation dazu, die Funktion f&uuml;r den aktuellen
+<h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einführung</a></h3>
+In der täglichen Arbeit tritt häufig die Situation auf, dass eine bestehende Bibliothek
+die bisherigen Anforderungen erfüllt hat, der aktuell zu lösende Spezialfall jedoch nicht.
+Viele Entwickler neigen in der geschilderten Situation dazu, die Funktion für den aktuellen
 Anwendungsfall neu zu implementieren. Andere wiederum versuchen krampfhaft eine Bibliothek zu suchen,
-die diesen Spezialfall abdeckt. Diese M&ouml;glichkeiten f&uuml;hrt zwar sicher zum Ziel, verringern
+die diesen Spezialfall abdeckt. Diese Möglichkeiten führt zwar sicher zum Ziel, verringern
 jedoch entweder die Wartbarkeit, da weitere externe Bibliotheken eingebunden oder gar beliebig
-kombiniert werden, und erh&ouml;hen dabei gleichzeit die Fehleranf&auml;lligkeit. Dar&uuml;ber hinaus
-sollte sich jeder bewusst sein, dass eine API-&Auml;nderung automatisch bedeutet, sich vom
-Update-Pfad der eingesetzten Bibliothek zu entfernen, da in einer Version eingef&uuml;gte Quick-Hacks
-wom&ouml;glich in einer neueren Version nicht mehr funktionieren.
+kombiniert werden, und erhöhen dabei gleichzeit die Fehleranfälligkeit. Darüber hinaus
+sollte sich jeder bewusst sein, dass eine API-Änderung automatisch bedeutet, sich vom
+Update-Pfad der eingesetzten Bibliothek zu entfernen, da in einer Version eingefügte Quick-Hacks
+womöglich in einer neueren Version nicht mehr funktionieren.
 <br />
 <br />
-Dieses Tutorial m&ouml;chte daher eine Methode aufzeigen, wie bestehende Funktionen ohne Anpassung
-an der verwendeten Biblothek f&uuml;r den eigenen Bedarf "angepasst" und genutzt werden k&ouml;nnen.
+Dieses Tutorial möchte daher eine Methode aufzeigen, wie bestehende Funktionen ohne Anpassung
+an der verwendeten Biblothek für den eigenen Bedarf "angepasst" und genutzt werden können.
 Das Tutorial geht dabei davon aus, dass die behandelten Bibliotheken bzw. Module kein eigener Code
 ist, da diese Methode sonst keinen Sinn macht.
 <br />
 <br />
 Mancher Leser wird zurecht anmerken, dass eine Anpassung einer Bibliothek bedeutet, dass die Signatur
-- die API der Bibliothek, oder des Moduls - nicht allgemeing&uuml;ltig genug ausgelegt ist. In vielen
-F&auml;llen muss ich dem Leser Recht geben, es gibt jedoch erfahrungsgem&auml;&szlig; relativ viele
-API-Definitionen, die nicht f&uuml;r exakt jeden Anwendungsfall mit genau einer Methode verwendbar
+- die API der Bibliothek, oder des Moduls - nicht allgemeingültig genug ausgelegt ist. In vielen
+Fällen muss ich dem Leser Recht geben, es gibt jedoch erfahrungsgemäß relativ viele
+API-Definitionen, die nicht für exakt jeden Anwendungsfall mit genau einer Methode verwendbar
 sind.
 <br />
 <br />
 <br />
 <h3 id="Chapter-2-Beispiel-TagLib"><a href="#Chapter-2-Beispiel-TagLib">2. Beispiel einer TagLib</a></h3>
 Das folgende Beispiel soll an Hand des im Release des Frameworks enthaltenen Moduls
-<strong>socialbookmark</strong> zeigen, wie eine vorhandene Bibliothek f&uuml;r den eigenen Gebrauch
+<strong>socialbookmark</strong> zeigen, wie eine vorhandene Bibliothek für den eigenen Gebrauch
 erweitert werden kann.
 <br />
 <br />
 <br />
 <h4 id="Chapter-2-1-Aufgabenstellung"><a href="#Chapter-2-1-Aufgabenstellung">2.1. Aufgabenstellung</a></h4>
 Die im <strong>adventure-codepack-*</strong> enthaltenen Bibliotheken des Moduls, sehen die
-M&ouml;glichkeit vor, dieses per XML-Tag in den Inhaltsbereich einzubinden. Dazu enth&auml;lt das Modul
+Möglichkeit vor, dieses per XML-Tag in den Inhaltsbereich einzubinden. Dazu enthält das Modul
 eine TagLib, deren Eigenschaften unter <a href="./?Seite=039-Mitgelieferte-Module" title="Mitgelieferte Module">Mitgelieferte Module</a>,
 Kapitel 5, beschrieben werden. Die Tagdefinition sieht dabei vor, dass ein Titel der aktuellen Seiten,
-der beim Bookmarkservice als Linktitel verwendet wird, als Tag-Attribut &uuml;bergeben werden kann.
-Da die Definition jedoch statisch ist, ist es zun&auml;chst nicht m&ouml;glich einen dynamischen Titel
-an die TagLib zu &uuml;bergeben. Gerade in einer CMS-Seite, in der der Titel abh&auml;ngig der
+der beim Bookmarkservice als Linktitel verwendet wird, als Tag-Attribut übergeben werden kann.
+Da die Definition jedoch statisch ist, ist es zunächst nicht möglich einen dynamischen Titel
+an die TagLib zu übergeben. Gerade in einer CMS-Seite, in der der Titel abhängig der
 anzuzeigenden Seite dynamisch variiert, ist das problematisch!
 <br />
 <br />
 <br />
 <h4 id="Chapter-2-2-Analyse-der-API"><a href="#Chapter-2-2-Analyse-der-API">2.2. Analyse der bestehenden API</a></h4>
-Um die aktuell m&ouml;gliche Funktion zu analysieren, muss sich der Entwickler die Frage stellen:
-"<strong>Was ist schon m&ouml;glich und was fehlt wirklich?</strong>". Im Fall des
+Um die aktuell mögliche Funktion zu analysieren, muss sich der Entwickler die Frage stellen:
+"<strong>Was ist schon möglich und was fehlt wirklich?</strong>". Im Fall des
 Socialbookmarking-Moduls ist die Antwort denkbar einfach: statisches <strong>Anzeigen der
-Bookmark-Icons</strong> ist m&ouml;glich, <strong>dynamische Titel</strong> nicht!
+Bookmark-Icons</strong> ist möglich, <strong>dynamische Titel</strong> nicht!
 <br />
 <br />
 <br />
 <h4 id="Chapter-2-3-Erweiterung-durch-Wrapping"><a href="#Chapter-2-3-Erweiterung-durch-Wrapping">2.3. Erweiterung der API durch Wrapping</a></h4>
 Ein sehr beliebtes Mittel ist <strong>Wrapping</strong>. <em>Wrapping</em> in der Programmierung
 bedeutet, eine weitere Schicht um eine Bibliothek - oder hier eine Taglib - zu legen und dadurch die
-Funktionalit&auml;t <strong>ohne</strong> Ver&auml;nderung der eingesetzten Komponente zu erweitern.
+Funktionalität <strong>ohne</strong> Veränderung der eingesetzten Komponente zu erweitern.
 <br />
 <br />
-Betrachten wir zun&auml;chst die Funktionalit&auml;t der bisherigen TagLib-Klasse. Diese implementiert
+Betrachten wir zunächst die Funktionalität der bisherigen TagLib-Klasse. Diese implementiert
 eine <strong>transform()</strong>-Methode, die die Tag-Eigenschaften an den <strong>socialbookmarkManager</strong>
-&uuml;bergibt und diesen f&uuml;r die Ausgabe der Bookmarking-Elemente verwendet. Der Quellcode der
+übergibt und diesen für die Ausgabe der Bookmarking-Elemente verwendet. Der Quellcode der
 Klasse (im <em>adventure-codepack-*</em> zu finden unter <em>apps/modules/socialbookmark/pres/taglib</em>)
-wird im folgenden Kasten dargestellt (Kommentare wurden gek&uuml;rzt):
+wird im folgenden Kasten dargestellt (Kommentare wurden gekürzt):
 <gen:highlight type="php">
 class social_taglib_bookmark extends Document {
 
@@ -83,7 +83,7 @@ class social_taglib_bookmark extends Document {
       // Bookmark-Manager holen
       $sBM = &$this->getServiceObject('modules::socialbookmark::biz','socialBookmarkManager');
 
-      // Breite und H&ouml;he konfigurieren
+      // Breite und Höhe konfigurieren
       $sBM->set('Width',$this->__Attributes['width']);
       $sBM->set('Height',$this->__Attributes['height']);
 
@@ -101,7 +101,7 @@ class social_taglib_bookmark extends Document {
        // end if
       }
 
-      // Bookmark-Quelltext zur&uuml;ckliefern
+      // Bookmark-Quelltext zurückliefern
       return $sBM->getBookmarkCode();
 
    }
@@ -109,8 +109,8 @@ class social_taglib_bookmark extends Document {
 }
 </gen:highlight>
 Um den Titel der aktuell angezeigten Seite dynamisch zu gestalten, ist es nun ratsam, eine weitere
-TagLib zu definieren, die ausschlie&szlig;lich die neue Funktionalit&auml;t beinhaltet, jedoch Gebrauch
-der bereits bestehenden Funktion macht. Um ein konkretes Beispiel aufzeigen zu k&ouml;nnen, soll der
+TagLib zu definieren, die ausschließlich die neue Funktionalität beinhaltet, jedoch Gebrauch
+der bereits bestehenden Funktion macht. Um ein konkretes Beispiel aufzeigen zu können, soll der
 neu zu erstellende Tag <strong>my:bookmark</strong> genannt werden. Wie im Tutorial
 <a href="./?Seite=045-TagLibs-erstellen" title="TagLibs erstellen">TagLibs erstellen</a> beschrieben,
 ergibt sich dadurch der Klassenname <strong>my_taglib_bookmark</strong>. Diese beinhaltet dann
@@ -141,15 +141,15 @@ class my_taglib_bookmark extends social_taglib_bookmark {
 }
 </gen:highlight>
 In der Methode <strong>transform()</strong> wird dabei lediglich der Titel der Seite je nach
-Anwendungsfall erzeugt und dem daf&uuml;r vorgesehenen Attribut &uuml;bergeben. Die eigentliche
-Erzeugung der Ausgabe wird der bisherigen TagLib-Methode &uuml;berlassen. Durch diese &Auml;nderung
-bleibt es weiterhin m&ouml;glich, dem Tag die Attribute
+Anwendungsfall erzeugt und dem dafür vorgesehenen Attribut übergeben. Die eigentliche
+Erzeugung der Ausgabe wird der bisherigen TagLib-Methode überlassen. Durch diese Änderung
+bleibt es weiterhin möglich, dem Tag die Attribute
 <ul style="font-weight: bold;">
   <li>width</li>
   <li>height</li>
   <li>target</li>
 </ul>
-mitzugeben, ohne das Verhalten nochmals in der neuen Klasse implementieren zu m&uuml;ssen. Das
+mitzugeben, ohne das Verhalten nochmals in der neuen Klasse implementieren zu müssen. Das
 Einbinden der erweiterten TagLib funktioniert dann wie gewohnt mit
 <gen:highlight type="apf-xml">
   &lt;core:addtaglib namespace="dein::namespace" prefix="my" class="bookmark" /&gt;
@@ -157,12 +157,12 @@ Einbinden der erweiterten TagLib funktioniert dann wie gewohnt mit
 </gen:highlight>
 <br />
 <h4 id="Chapter-2-4-Umgang-mit-Updates"><a href="#Chapter-2-4-Umgang-mit-Updates">2.4. Umgang mit Updates</a></h4>
-Sollte die verwendete Bibliothek zuk&uuml;nftig eine andere API unterst&uuml;tzen, beschr&auml;nkt
-sich die Anpassung lediglich auf das F&uuml;llen des Attributes <em>title</em>, da der interne
-Ablauf der Methode <strong>transform()</strong> unber&uuml;hrt bleibt. Weiterer Vorteil ist, dass die
+Sollte die verwendete Bibliothek zukünftig eine andere API unterstützen, beschränkt
+sich die Anpassung lediglich auf das Füllen des Attributes <em>title</em>, da der interne
+Ablauf der Methode <strong>transform()</strong> unberührt bleibt. Weiterer Vorteil ist, dass die
 API der Wrapper-Klasse konstant bleibt und keine Anpassung im Gesamtsystem zur Einbindung des Moduls
 vorgenommen werden muss. Das in diesem Tutorial aufgezeigte Beispiel hat sich zwar "nur" auf die
-Erweiterung einer TagLib beschr&auml;nkt, das Prinzip ist jedoch auf andere Bereiche anwendbar.
+Erweiterung einer TagLib beschränkt, das Prinzip ist jedoch auf andere Bereiche anwendbar.
 <br />
 <br />
 <br />

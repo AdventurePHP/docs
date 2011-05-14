@@ -45,42 +45,40 @@ sites/
                        templates/
                        documentcontroller/
 </gen:highlight>
-The folders <em>templates</em> and <em>documentcontroller</em> are intended to be filled with the
-template and controller files responsible for the generation of the page.
-<br />
-<br />
-<br />
+<p>
+   The folders <em>templates</em> and <em>documentcontroller</em> are intended to be filled with the
+   template and controller files responsible for the generation of the page.
+</p>
+
 <h4 id="Chapter-3-2-Bootstrap-file"><a href="#Chapter-3-2-Bootstrap-file">3.2. Create bootstrap file</a></h4>
-The framework is designed to deliver any web application with just one file - the boottrap file. For
-this reason we have to create such a file in the <strong>testwebsite/</strong> folder. The content
-of that file can merely be copied from the code box provided below. To keep things simple again the
-application will be designed as a page controller application without front controller parts.
+<p>
+   The framework is designed to deliver any web application with just one file - the boottrap file. For
+   this reason we have to create such a file in the <strong>testwebsite/</strong> folder. The content
+   of that file can merely be copied from the code box provided below. To keep things simple again the
+   application will be designed as a page controller application without front controller parts.
+</p>
 <gen:highlight type="php">
-// define the style of php error messages (if not configured, there appear some strange
-// errors as described under
-// http://forum.adventure-php-framework.org/de/viewtopic.php?f=7&t=32!)
-ini_set('html_errors','off');
+// include the page controller (APF core library)
+include_once('./apps/core/pagecontroller/pagecontroller.php');
 
-// include ApplicationManager
-require_once('./apps/core/pagecontroller/pagecontroller.php');
+// include the front controller
+import('core::frontcontroller', 'Frontcontroller');
 
-// create page object
-$page = new Page();
-$page->setContext('projectone');
+// create and configure front controller
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->setContext('projectone');
 
-// load initial template
-$page->loadDesign('sites::testwebsite::pres::templates','website');
-
-// transform page and flush the output
-echo $page->transform();
+// start request processing and send result to the client
+echo $fC->start('sites::testwebsite::pres::templates', 'website');
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-3-3-Template-files"><a href="#Chapter-3-3-Template-files">3.3. Create template files</a></h4>
-As already defined within the code listing the initial template file must be stored in the
-<strong>testwebsite/apps/sites/testwebsite/pres/templates</strong> folder and named
-<strong>website.html</strong>. This file contains the basic HTML code that defines the HTML body and
-the views described in chapter 2. The file may have the following content (stripped-down):
-<br />
+<p>
+   As already defined within the code listing the initial template file must be stored in the
+   <strong>testwebsite/apps/sites/testwebsite/pres/templates</strong> folder and named
+   <strong>website.html</strong>. This file contains the basic HTML code that defines the HTML body and
+   the views described in chapter 2. The file may have the following content (stripped-down):
+</p>
 <gen:highlight type="html">
 <html>
 <head>
@@ -324,6 +322,8 @@ testwebsite/apps/sites/testwebsite/pres/documentcontroller/content_v1_controller
    should be filled with the following code:
 </p>
 <gen:highlight type="php">
+import('tools::request', 'RequestHandler');
+
 class content_v1_controller extends base_controller {
 
    public function transformContent(){

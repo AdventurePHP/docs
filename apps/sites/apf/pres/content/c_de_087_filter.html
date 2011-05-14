@@ -1,26 +1,32 @@
 <doku:title parent="119" tags="dokumentation,filter,security" title="Filter" urlname="Filter">
-  In diesem Dokumentationskapitel werden die im APF enthaltenen Filter-Mechanismen erkl&auml;rt. Es
+  In diesem Dokumentationskapitel werden die im APF enthaltenen Filter-Mechanismen erklärt. Es
   wird auf den Aufbau von Filter, der Verwendung und der Konfiguration der In- und Output-Filter
-  &uuml;ber die Registry eingegangen.
+  über die Registry eingegangen.
 </doku:title>
-<h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einf&uuml;hrung</a></h3>
+<div class="warn">
+   Die hier beschrieben Inhalte beziehen sich auf alle Versionen einschließlich 1.13, da die
+   Filter-Implementierung in Version 1.14 überarbeitet wurde. Die Dokumentation der Ein- und
+   Ausgabe-Filter ab Version 1.14 findet sich unter <int:link pageid="137" />.
+</div>
+
+<h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einführung</a></h3>
 Das Thema &quot;Filter&quot; spielt im Adventure PHP Framework eine zentrale Rolle. In den Releases
-inkl. 1.8 wurden diese bereits versteckt f&uuml;r die Sicherung der Ein- und Ausgaben genutzt, ab
-dem 1.9er-Zweig k&ouml;nnen diese vom Benutzer direkt beeinflusst und &uuml;ber die Registry verwaltet
-werden. Weiterhin stehen nun Filter f&uuml;r Formularfelder zur Verf&uuml;gung, die zus&auml;tzlich
-zu den Ein- und Ausgabe-Filtern zur Sicherung der Benutzereingaben verwendet werden k&ouml;nnen.
+inkl. 1.8 wurden diese bereits versteckt für die Sicherung der Ein- und Ausgaben genutzt, ab
+dem 1.9er-Zweig können diese vom Benutzer direkt beeinflusst und über die Registry verwaltet
+werden. Weiterhin stehen nun Filter für Formularfelder zur Verfügung, die zusätzlich
+zu den Ein- und Ausgabe-Filtern zur Sicherung der Benutzereingaben verwendet werden können.
 <br />
 <br />
 <br />
 <h3 id="Chapter-2-Eingabe-Filter"><a href="#Chapter-2-Eingabe-Filter">2. Eingabe-Filter</a></h3>
-Die Klasse der Eingabe-Filter k&uuml;mmern sich um die Auswertung der Benutzereingaben der in der
+Die Klasse der Eingabe-Filter kümmern sich um die Auswertung der Benutzereingaben der in der
 URL und der im HTTP-Protokoll eingebetteten Inhalte (aka POST-Daten). Dazu sind im Framework bereits
-vier allgemeing&uuml;ltige Filter-Typen enthalten, die sich um die Verarbeitung von Benutzer-Eingaben
-mit und ohne Rewrite-URLs k&uuml;mmern.
+vier allgemeingültige Filter-Typen enthalten, die sich um die Verarbeitung von Benutzer-Eingaben
+mit und ohne Rewrite-URLs kümmern.
 <br />
 <br />
-Da der Kern des Frameworks selbst keine Kenntnis vom URL-Layout hat, sondern ausschlie&szlig;lich
-mit dem <em>$_REQUEST</em>-Array arbeitet, erm&ouml;glichen erst die Filter ein so generisches
+Da der Kern des Frameworks selbst keine Kenntnis vom URL-Layout hat, sondern ausschließlich
+mit dem <em>$_REQUEST</em>-Array arbeitet, ermöglichen erst die Filter ein so generisches
 Rewrite-URL-Layout.
 <br />
 <br />
@@ -29,50 +35,50 @@ Die Filter gliedern sich in die folgenden Bereiche:
 <br />
 <br />
 <h4 id="Chapter-2-1-Pagecontroller-Standard-URLs"><a href="#Chapter-2-1-Pagecontroller-Standard-URLs">2.1. PageController mit Standard-URLs</a></h4>
-Der einfachste Typ wird beim Einsatz des PageControllers im normalen URL-Modus verwendet. Der
+Der einfachste Typ wird beim Einsatz des Page-Controllers im normalen URL-Modus verwendet. Der
 <strong>StandardRequestFilter</strong> aus dem Namespace <strong>core::filter::input</strong>
 ersetzt die eingegebenen Werte durch ihre HTML-codierten Entsprechungen (siehe
 <a class="external" href="http://php.net/htmlspecialchars" title="htmlspecialchars()">htmlspecialchars()</a>)
-und f&uuml;hrt ein
+und führt ein
 <a class="external" href="http://php.net/stripcslashes" title="stripcslashes()">stripcslashes()</a>
 aus, falls die Option <em>magic_quotes_gpc</em> auf den Wert <em>1</em> gesetzt wurde um Inhalte in
-Formularen korrekt darstellen zu k&ouml;nnen.
+Formularen korrekt darstellen zu können.
 <br />
 <br />
 <br />
 <h4 id="Chapter-2-2-Pagecontroller-Rewrite-URLs"><a href="#Chapter-2-2-Pagecontroller-Rewrite-URLs">2.2. PageController mit Rewrite-URLs</a></h4>
-Die Entgegennahme der Benutzer-Eingaben im Fall von Rewrite-URLs &uuml;bernimmt der Filter
+Die Entgegennahme der Benutzer-Eingaben im Fall von Rewrite-URLs übernimmt der Filter
 <strong>PagecontrollerRewriteRequestFilter</strong> aus dem Namespace <strong>core::filter::input</strong>.
 Dieser zerlegt die Rewrite-URL in seine Bestandteile und generiert aus diesen die Inhalte des
 <em>$_REQUEST</em>-Arrays neu. Der Filter geht dabei davon aus, dass die umgeschriebenen URLs eine
-Folge von durch &quot;/&quot; getrennte Parameter-Wert-Paare enthalten. Anschlie&szlig;end wird der
-<strong>StandardRequestFilter</strong> ausgef&uuml;hrt um die Eingaben zu sichern.
+Folge von durch &quot;/&quot; getrennte Parameter-Wert-Paare enthalten. Anschließend wird der
+<strong>StandardRequestFilter</strong> ausgeführt um die Eingaben zu sichern.
 <br />
 <br />
 <br />
 <h4 id="Chapter-2-3-Frontcontroller-Standard-URLs"><a href="#Chapter-2-3-Frontcontroller-Standard-URLs">2.3. FrontController mit Standard-URLs</a></h4>
-Der FrontController-Filter f&uuml;r Standard-URLs analysiert den Request, extrahiert die
+Der FrontController-Filter für Standard-URLs analysiert den Request, extrahiert die
 FrontController-Anweisungen und registriert die Actions beim FrontController. Normale Parameter
 werden identisch zu den beiden vorangegangenen Filtern mit den <strong>StandardRequestFilter</strong>
-behandelt. Hierf&uuml;r zeichnet sich der <strong>FrontcontrollerRequestFilter</strong> aus dem
+behandelt. Hierfür zeichnet sich der <strong>FrontcontrollerRequestFilter</strong> aus dem
 Namespace <strong>core::filter::input</strong> verantwortlich.
 <br />
 <br />
 <br />
 <h4 id="Chapter-2-4-Frontcontroller-Rewrite-URLs"><a href="#Chapter-2-4-Frontcontroller-Rewrite-URLs">2.4. FrontController mit Rewrite-URLs</a></h4>
-&Auml;hnlich dem <strong>PagecontrollerRewriteRequestFilter</strong> filtert der
+Ähnlich dem <strong>PagecontrollerRewriteRequestFilter</strong> filtert der
 <strong>FrontcontrollerRewriteRequestFilter</strong> aus dem Namespace <strong>core::filter::input</strong>
 die Eingaben bei Nutzung des Frontcontrollers in Verbindung mit Rewrite-URLs. Dabei werden ebenfalls
 die umgeschriebenen Action-Anweisungen und die normalen Parameter aus der URL extrahiert, in das
-<em>$_REQUEST</em>-Array gespeichert und die Actions an den Frontcontroller &uuml;bergeben.
+<em>$_REQUEST</em>-Array gespeichert und die Actions an den Frontcontroller übergeben.
 <br />
 <br />
 <br />
 <h3 id="Chapter-3-Ausgabe-Filter"><a href="#Chapter-3-Ausgabe-Filter">3. Ausgabe-Filter</a></h3>
-Die Ausgabe-Filter k&uuml;mmern sich um die Formatierung des erzeugten HTML-Codes. Da hier keine
-Unterscheidung zwischen Front- und PageController notwendig ist, beinhaltet das APF nur einen
+Die Ausgabe-Filter kümmern sich um die Formatierung des erzeugten HTML-Codes. Da hier keine
+Unterscheidung zwischen Front- und Page-Controller notwendig ist, beinhaltet das APF nur einen
 Ausgabe-Filter, der sich im Fall von aktiviertem URL-Rewriting um das Umschreiben der Links und
-Formular-Actions k&uuml;mmert. Diese Aufgabe &uuml;bernimmt der <strong>HtmlLinkRewriteFilter</strong>
+Formular-Actions kümmert. Diese Aufgabe übernimmt der <strong>HtmlLinkRewriteFilter</strong>
 aus dem Namespace <strong>core::filter::output</strong>. Um Links explizit davon auszunehmen, kann
 das Link-Attribut <strong>linkrewrite</strong> auf den Wert <strong>false</strong> gesetzt werden.
 <em>mailto:</em>-Links werden ab Release 1.10 automatisch ausgenommen.
@@ -91,9 +97,9 @@ das Link-Attribut <strong>linkrewrite</strong> auf den Wert <strong>false</stron
 <br />
 <h3 id="Chapter-4-Aufbau-und-Funktion"><a href="#Chapter-4-Aufbau-und-Funktion">4. Aufbau und Funktion</a></h3>
 Ein Filter im Adventure PHP Framework wird durch eine Klasse, die von <strong>AbstractFilter</strong>
-ableitet, repr&auml;sentiert. Diese muss die Methode <strong>filter()</strong> implementieren, die
-ein Argument tr&auml;gt: den <em>Input</em>. Am Ende der Funktion muss
-der <em>Output</em> zur&uuml;ckgegeben werden.
+ableitet, repräsentiert. Diese muss die Methode <strong>filter()</strong> implementieren, die
+ein Argument trägt: den <em>Input</em>. Am Ende der Funktion muss
+der <em>Output</em> zurückgegeben werden.
 <br />
 <br />
 In der folgenden Code-Box wird ein Beispiel beschrieben:
@@ -110,7 +116,7 @@ class MySpecialFilter extends AbstractFilter {
 
 }
 </gen:highlight>
-Um einen Filter nutzen zu k&ouml;nnen, muss dieser &uuml;ber die <strong>FilterFactory</strong>
+Um einen Filter nutzen zu können, muss dieser über die <strong>FilterFactory</strong>
 erzeugt werden. Die Methode <strong>getFilter()</strong> erwartet ein
 <strong>FilterDefinition</strong>-Objekt als Parameter. Die <strong>FilterDefinition</strong>
 beinhaltet dabei den Namespace und den (Klassen- bzw. Datei-)Namen des Filters.
@@ -130,7 +136,7 @@ $input = /* ... */
 // apply the filter
 $output = $filter->filter($input);
 </gen:highlight>
-Der interne Aufbau eines Filters ist dabei komplett dem Entwickler &uuml;berlassen.
+Der interne Aufbau eines Filters ist dabei komplett dem Entwickler überlassen.
 <br />
 <br />
 Details zu den enthaltenen Standard-Filtern kann der API-Dokumentation der jeweiligen Version unter
@@ -139,27 +145,27 @@ Details zu den enthaltenen Standard-Filtern kann der API-Dokumentation der jewei
 <br />
 <br />
 <h3 id="Chapter-5-Konfiguration"><a href="#Chapter-5-Konfiguration">5. Konfiguration</a></h3>
-Die Konfiguration der Ein- und Ausgabe-Filter wird &uuml;ber die Registry gesteuert. Hierzu existieren
-folgende Registry-Eintr&auml;ge im Namespace <strong>apf::core::filter</strong>:
+Die Konfiguration der Ein- und Ausgabe-Filter wird über die Registry gesteuert. Hierzu existieren
+folgende Registry-Einträge im Namespace <strong>apf::core::filter</strong>:
 <ul>
   <li>
     <strong>PageControllerInputFilter</strong>: wird bei Verwendung des PageControllers beim
-    Erstellen des <em>Page</em>-Objekts ausgef&uuml;hrt.
+    Erstellen des <em>Page</em>-Objekts ausgeführt.
   </li>
   <li>
     <strong>FrontControllerInputFilter</strong>: wird bei Verwendung des FrontControllers beim
-    Starten ausgef&uuml;hrt. Inkludiert die Funktionen des <em>PageControllerInputFilter</em>
+    Starten ausgeführt. Inkludiert die Funktionen des <em>PageControllerInputFilter</em>
     hinsichtlich URL-Rewriting.
   </li>
   <li>
-    <strong>OutputFilter</strong>: Wird bei der Transformation der PageController-Seite auf den
+    <strong>OutputFilter</strong>: Wird bei der Transformation der Page-Controller-Seite auf den
     generierten Quelltest angewendet.
   </li>
 </ul>
-M&ouml;chte der Entwickler sein eigenes URL-Layout definieren, so kann dies durch einen eigenen Filter
+Möchte der Entwickler sein eigenes URL-Layout definieren, so kann dies durch einen eigenen Filter
 abgebildet werden, der als Page- oder FrontController-Input-Filter definiert wird. Da die Konfiguration
-&uuml;ber die Registry erfolgt, kann dies in der Bootstrap-Datei vorgenommen werden. Die folgende
-Code-Box zeigt, wie die Konfiguration vorgenommen f&uuml;r den PageController werden kann:
+über die Registry erfolgt, kann dies in der Bootstrap-Datei vorgenommen werden. Die folgende
+Code-Box zeigt, wie die Konfiguration vorgenommen für den Page-Controller werden kann:
 <gen:highlight type="php">
 // include page controller
 include('./apps/core/pagecontroller/pagecontroller.php');
@@ -204,7 +210,7 @@ Hier muss jedoch der Registry-Eintrag <strong>OutputFilter</strong> mit einer ne
 belegt werden.
 <br />
 <br />
-Falls keine Filterung erw&uuml;nscht ist, k&ouml;nnen die oben aufgezeigten Konfigurationsdirektiven
+Falls keine Filterung erwünscht ist, können die oben aufgezeigten Konfigurationsdirektiven
 mit <em>null</em> belegt werden:
 <gen:highlight type="php">
 // include page controller
@@ -223,9 +229,9 @@ Registry::register('apf::core::filter','OutputFilter',null);
 <br />
 <h3 id="Chapter-6-Formular-Filter"><a href="#Chapter-6-Formular-Filter">6. Formular-Filter</a></h3>
 Aufbauend auf der oben gezeigten Definition von Filtern existieren Seit dem 1.9er-Branch auch Filter
-f&uuml;r Formular-Felder. Die Verwendung und Anpassung der Filter wird im Kapitel
+für Formular-Felder. Die Verwendung und Anpassung der Filter wird im Kapitel
 <a href="./?Seite=011-Formulare#Chapter-5-Formular-Filter" title="Verwendung von Formular-Filtern">Verwendung von Formular-Filtern</a>
-erl&auml;utert.
+erläutert.
 <br />
 <br />
 <br />

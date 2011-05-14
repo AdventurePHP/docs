@@ -117,7 +117,7 @@ content:
 <gen:highlight type="ini">
 [de]
 Contact.EMail.InputRequired = "Bitte geben Sie eine E-Mail-Adresse sein!"
-Contact.EMail.InputWrong = "Bitte geben Sie eine g&uuml;ltige E-Mail-Adresse sein!"
+Contact.EMail.InputWrong = "Bitte geben Sie eine gültige E-Mail-Adresse sein!"
 
 [en]
 Contact.EMail.InputRequired = "Please fill the field sender name!"
@@ -150,7 +150,7 @@ values:
 header.title = "Kontakt"
 
 ; Hinweise zum Formular
-formhint.text = "Wenn Sie mit mir in Kontakt treten m&ouml;chten, dann benutzen Sie einfach dieses Formular. Geben Sie Ihre Nachricht ein und schon kann es los gehen. Ich werden mich dann umgehend mit Ihnen in Verbindung setzten. <strong>Bitte f&uuml;llen Sie das Formular vollst&auml;ndig aus!</strong>"
+formhint.text = "Wenn Sie mit mir in Kontakt treten möchten, dann benutzen Sie einfach dieses Formular. Geben Sie Ihre Nachricht ein und schon kann es los gehen. Ich werden mich dann umgehend mit Ihnen in Verbindung setzten. <strong>Bitte füllen Sie das Formular vollständig aus!</strong>"
 
 ; Formular
 form.person = "Person / Gruppe: "
@@ -162,7 +162,7 @@ form.button = "Senden"
 form.captcha = "Bestätigungscode:"
 
 ; confirmation text
-message.text = "Vielen Danke f&uuml;r Ihre Anfrage. Ich werde mich umgehend mit Ihnen in Verbindung setzen!"
+message.text = "Vielen Danke für Ihre Anfrage. Ich werde mich umgehend mit Ihnen in Verbindung setzen!"
 
 ; validation messages
 form.name.error = "Bitte füllen Sie das Feld Absender-Name!"
@@ -557,7 +557,7 @@ Taking a closer look to the source code, you can see, that the controller class 
 components: the <em>RequestHandler</em> and the <em>contactManager</em>. The first class is a class
 integrated in the framework, that registers request variables in a locally used array and fills this
 offsets with default values if not present in the request. Details on this class can be seen on the
-<a href="./?Page=096-Class-reference-table-requesthandler" title="RequestHandler">class reference page</a>.
+<int:link pageid="096"/> page.
 The second component is the business layer class of the contact form. This class provides interfaces
 to load recipients or to submit the form.
 <br />
@@ -568,7 +568,7 @@ The method <em>transformContent()</em> takes over the generation of the view. Fo
 reference on the form object is fetched to check, wheather the form is sent and filled correctly. If
 not, the form is displayed in the current view. Is the user input considered ok, a form data domain
 object is created and filled. After that the business component is created by use of the
-<em>__getServiceObject()</em> method. The function <em>sendContactForm()</em> called with the
+<em>getServiceObject()</em> method. The function <em>sendContactForm()</em> called with the
 domain object <strong>oFormData</strong> as an argument then sends the data of the form via mail.
 The submission and the redirection to the thank-you-message is completely done by the business layer.
 <br />
@@ -634,89 +634,76 @@ methods: <em>sendContactForm()</em> to send the form and <em>loadRecipients()</e
 of recipients. The interface between the presentation and business layer is formed by the two domain
 objects <em>oFormData</em> and <em>oRecipient</em>.
 <gen:highlight type="php">
-import('modules::kontakt4::biz','oFormData');
-import('modules::kontakt4::biz','oRecipient');
-import('modules::kontakt4::data','contactMapper');
-import('tools::mail','mailSender');
-import('tools::link','LinkHandler');
+import('modules::kontakt4::biz', 'ContactFormData');
+import('modules::kontakt4::biz', 'ContactFormRecipient');
+import('tools::link', 'LinkGenerator');
+import('tools::http', 'HeaderManager');
 
-class contactManager extends APFObject {
+class ContactManager extends APFObject {
 
-   function sendContactForm($oFD){
+   public function sendContactForm(ContactFormData $formData) {
 
-      // get contactMapper
-      $cM = &$this->getServiceObject('modules::kontakt4::data','contactMapper');
+      $cM = &$this->getServiceObject('modules::kontakt4::data', 'ContactMapper');
 
-      // get mail sender
-      $MAIL = &$this->__getAndInitServiceObject('tools::mail','mailSender','Kontaktformular');
+      // set up the mail sender
+      $MAIL = &$this->getAndInitServiceObject('tools::mail', 'mailSender', 'ContactForm');
 
-      // fill recipient
-      $Recipient = $cM->loadRecipientPerId($oFD->get('RecipientID'));
-      $MAIL->setRecipient($Recipient->get('Adresse'),$Recipient->get('Name'));
+      $recipient = $cM->loadRecipientPerId($formData->getRecipientId());
+      $MAIL->setRecipient($recipient->getEmailAddress(), $recipient->getName());
 
-      // add text
-      $Text = 'Dear sir or madame,';
+      $Text = 'Sehr geehrter Empfänger, sehr geehrte Empfängerin,';
       $Text .= "\n\n";
-      $Text .= $oFD->get('SenderName').' (E-Mail: '.$oFD->get('SenderEMail')
-               .') has sent the following notice via the contact form:';
+      $Text .= $formData->getSenderName() . ' (E-Mail: ' . $formData->getSenderEmail() . ') hat Ihnen folgende Nachricht über das Kontaktformular zukommen lassen:';
       $Text .= "\n\n\n";
-      $Text .= $oFD->get('Text');
+      $Text .= $formData->getMessage();
       $MAIL->setContent($Text);
 
-      // add subject
-      $MAIL->setSubject($oFD->get('Subject'));
+      $MAIL->setSubject($formData->getSubject());
 
-      // send mail
+      // send mail to notify the recipient
       $MAIL->sendMail();
 
-      // setup new mail
       $MAIL->clearRecipients();
       $MAIL->clearCCRecipients();
       $MAIL->clearContent();
 
-      // set recipient
-      $MAIL->setRecipient($oFD->get('SenderEMail'),$oFD->get('SenderName'));
+      $MAIL->setRecipient($formData->getSenderEmail(), $formData->getSenderName());
 
-      // add text
-      $Text = 'Dear sir or madame,';
+      $Text = 'Sehr geehrter Empfänger, sehr geehrte Empfängerin,';
       $Text .= "\n\n";
-      $Text .= 'your request was forwared to "'.$Recipient->get('Name').'"
-               . We will send you an answer as soon as possible!';
+      $Text .= 'Ihre Anfrage wurde an die Kontaktperson "' . $recipient->getName() . '" weitergeleitet. Wir setzen uns baldmöglich mit Ihnen in Verbindung!';
       $Text .= "\n\n";
-      $Text .= 'Your message:';
+      $Text .= 'Hier nochmals Ihr Anfragetext:';
       $Text .= "\n";
-      $Text .= $oFD->get('Text');
+      $Text .= $formData->getMessage();
       $MAIL->setContent($Text);
 
-      // add subject
-      $MAIL->setSubject($oFD->get('Subject'));
+      $MAIL->setSubject($formData->getSubject());
 
-      // send mail
+      // send mail to notify the sender
       $MAIL->sendMail();
 
-      // redirect to thanks page
-      $Link = LinkHandler::generateLink($_SERVER['REQUEST_URI'],array('pagepart' => 'meldung'));
+      // redirect to the thanks page to avoid F5 bugs!
+      $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array('contactview' => 'thanks')));
 
-      $URLRewriting = Registry::retrieve('apf::core','URLRewriting');
+      $urlRewriting = Registry::retrieve('apf::core', 'URLRewriting');
 
-      if($URLRewriting != true){
-         $Link = str_replace('&amp;','&',$Link);
-       // end if
+      if ($urlRewriting != true) {
+         $link = str_replace('&amp;', '&', $link);
       }
 
-      header('Location: '.$Link);
-
+      HeaderManager::forward($link);
    }
 
-   function loadRecipients(){
-      $cM = & $this->getServiceObject('modules::kontakt4::data','contactMapper');
+   public function loadRecipients() {
+      $cM = & $this->getServiceObject('modules::kontakt4::data', 'ContactMapper');
       return $cM->loadRecipients();
    }
 
 }
 </gen:highlight>
 In the first two lines twoe more framework components are included to assist mail delivery
-(<strong>mailSender</strong>) and link generation (<strong>LinkHandler</strong>).
+(<strong>mailSender</strong>) and link generation (<strong>LinkGenerator</strong>).
 <br />
 Within the method <em>sendContactForm()</em> two service layers are instanciated, that are necessary
 for the delivery of the form data: the data layer to load the choosen recipient object and the
