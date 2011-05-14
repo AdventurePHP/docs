@@ -56,7 +56,7 @@ shop_taglib_basket
 <gen:highlight type="php">
 class shop_taglib_basket extends Document {
 
-   function shop_taglib_basket(){
+   public function __construct() {
       $this->__TagLibs[] = new TagLib('namespace::to::taglib','basket','title');
       $this->__TagLibs[] = new TagLib('namespace::to::taglib','basket','products');
    }
@@ -230,10 +230,7 @@ foreach($this->__Children as $objectId => $DUMMY){
 <gen:highlight type="php">
 class phpphp_taglib_highlight extends Document {
 
-   function phpphp_taglib_highlight(){
-   }
-
-   function transform(){
+   public function transform(){
 
       // count lines
       $LineCount = substr_count($this-&gt;__Content,"\n") - 1;
@@ -296,10 +293,7 @@ import('tools::string','stringAssistant');
 
 class html_taglib_entityencode extends Document {
 
-   function html_taglib_entityencode(){
-   }
-
-   function transform(){
+   public function transform(){
       return stringAssistant::encodeCharactersToHTML($this->__Content);
    }
 
@@ -327,43 +321,42 @@ class html_taglib_entityencode extends Document {
 </gen:highlight>
 <p>Betrachtet man den Quellcode der TagLib-Klasse näher wird dort folgende Logik gekapselt:</p>
 <gen:highlight type="php">
-import('tools::request','RequestHandler'); 
+import('tools::request','RequestHandler');
 
 class doc_taglib_createobject extends Document {
 
-   public function __construct(){
+   public function __construct() {
       parent::__construct();
    }
 
-   public function onParseTime(){
+   public function onParseTime() {
 
-      // Attribute auslesen
-      $RequestParameter = $this->__Attributes['requestparam'];
-      $DefaultValue = $this->__Attributes['defaultvalue'];
+      // get the attributes
+      $requestParameter = $this->getAttribute('requestparam');
+      $defaultValue = $this->getAttribute('defaultvalue');
 
-      // Parameter über RequestHandler initialisieren
-      $_LOCALS = RequestHandler::getValues(array($RequestParameter => $DefaultValue));
+      // get current request param
+      $currentRequestParameter = RequestHandler::getValue($requestParameter, $defaultValue);
 
-      // Aktuellen Parameter auslesen
-      $CurrentRequestParameter = $_LOCALS[$RequestParameter];
+      // fill content
+      $this->__Content = $this->loadContent($currentRequestParameter);
 
-      // Content des Objekts setzen
-      $this->__Content = $this->__getContent($CurrentRequestParameter);
-
-      // Tags extrahieren
+      // extract tags and document controller
       $this->__extractTagLibTags();
-
-      // Document-Controller extrahieren
       $this->__extractDocumentController();
 
    }
 
-   protected function __getContent($Seite){
-      $Datei = './frontend/content/c_'.$this->__Language.'_'.strtolower($Seite).'.html';
-      if(!file_exists($Datei)){
-         $Datei = './frontend/content/c_'.$this->__Language.'_404.html';
+   protected function loadContent($pageName) {
+
+      $file = './frontend/content/c_' . $this->__Language . '_' . strtolower($pageName) . '.html';
+
+      if (!file_exists($file)) {
+         $file = './frontend/content/c_' . $this->__Language . '_404.html';
       }
-      return file_get_contents($Datei);
+
+      return file_get_contents($file);
+
    }
 
 }
@@ -382,13 +375,13 @@ class doc_taglib_createobject extends Document {
   <li>
     In der Methode <em>onParseTime()</em> werden die Tag-Attribute eingelesen und der aktuelle
     Request-Parameter mit Hilfe der Klasse <em>RequestHandler</em> ermittelt. Anschließend
-    wird mit Hilfe der privaten Funktion <em>__getContent()</em> der Inhalt des Objekts gefüllt.
+    wird mit Hilfe der privaten Funktion <em>loadContent()</em> der Inhalt des Objekts gefüllt.
     Ist der Inhalt eingelesen, wird versucht, mit den Parser-Methoden <em>__extractTagLibTags()</em>
     und <em>__extractDocumentController()</em> enthaltene und bekannte Tags und Document-Controller
     zu extrahieren und als Kinder bzw. Attribut einzuhängen.
   </li>
   <li>
-    Innerhalb der Methode <em>__getContent()</em> wird lediglich der Inhalt der mit dem Übergabe-
+    Innerhalb der Methode <em>loadContent()</em> wird lediglich der Inhalt der mit dem Übergabe-
     Parameter spezifizierten Datei geladen und zurückzugeben. Ist die gewünschte Datei
     nicht vorhanden wird der Inhalt einer Standard-Fehler-Datei zurückgegeben.
   </li>

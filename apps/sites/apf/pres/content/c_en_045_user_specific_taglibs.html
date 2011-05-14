@@ -55,7 +55,7 @@ shop_taglib_basket
 <gen:highlight type="php">
 class shop_taglib_basket extends Document {
 
-   function shop_taglib_basket(){
+   public function __construct() {
       $this->__TagLibs[] = new TagLib('namespace::to::taglib','basket','title');
       $this->__TagLibs[] = new TagLib('namespace::to::taglib','basket','products');
    }
@@ -225,10 +225,7 @@ foreach($this->__Children as $objectId => $DUMMY){
 <gen:highlight type="php">
 class phpphp_taglib_highlight extends Document {
 
-   function phpphp_taglib_highlight(){
-   }
-
-   function transform(){
+   public function transform(){
 
       // count lines
       $LineCount = substr_count($this->__Content,"\n") - 1;
@@ -294,10 +291,7 @@ import('tools::string','stringAssistant');
 
 class html_taglib_entityencode extends Document {
 
-   function html_taglib_entityencode(){
-   }
-
-   function transform(){
+   public function transform(){
       return stringAssistant::encodeCharactersToHTML($this->__Content);
    }
 
@@ -326,39 +320,38 @@ import('tools::request','RequestHandler');
 
 class doc_taglib_createobject extends Document {
 
-   public function __construct(){
+   public function __construct() {
       parent::__construct();
    }
 
-   public function onParseTime(){
+   public function onParseTime() {
 
-      // get tag attributes
-      $RequestParameter = $this->__Attributes['requestparam'];
-      $DefaultValue = $this->__Attributes['defaultvalue'];
+      // get the attributes
+      $requestParameter = $this->getAttribute('requestparam');
+      $defaultValue = $this->getAttribute('defaultvalue');
 
-      // initialize request params
-      $_LOCALS = RequestHandler::getValues(array($RequestParameter => $DefaultValue));
+      // get current request param
+      $currentRequestParameter = RequestHandler::getValue($requestParameter, $defaultValue);
 
-      // gather current param value
-      $CurrentRequestParameter = $_LOCALS[$RequestParameter];
+      // fill content
+      $this->__Content = $this->loadContent($currentRequestParameter);
 
-      // fill the content of the tag
-      $this->__Content = $this->__getContent($CurrentRequestParameter);
-
-      // extract tags
+      // extract tags and document controller
       $this->__extractTagLibTags();
-
-      // check for document controller
       $this->__extractDocumentController();
 
    }
 
-   protected function __getContent($Page){
-      $File = './frontend/content/c_'.$this->__Language.'_'.strtolower($Page).'.html';
-      if(!file_exists($File)){
-         $File = './frontend/content/c_'.$this->__Language.'_404.html';
+   protected function loadContent($pageName) {
+
+      $file = './frontend/content/c_' . $this->__Language . '_' . strtolower($pageName) . '.html';
+
+      if (!file_exists($file)) {
+         $file = './frontend/content/c_' . $this->__Language . '_404.html';
       }
-      return file_get_contents($File);
+
+      return file_get_contents($file);
+
    }
 
 }
@@ -377,14 +370,14 @@ class doc_taglib_createobject extends Document {
   <li>
     The method <em>onParseTime()</em> is used to read the tag attributes and get the request
     parameters with aid of the <em>RequestHandler</em> to configure the tag. After that the content
-    of the desired file is read using the private function <em>__getContent()</em> and filled into
+    of the desired file is read using the private function <em>loadContent()</em> and filled into
     the content property. If done so the parser method <em>__extractTagLibTags()</em> is called to
     generate the document tree out of the known taglibs contained there. Moreover calling the
     <em>__extractDocumentContoller()</em> tries to find a document controller definition in the
     present content file.
   </li>
   <li>
-    Within the method <em>__getContent()</em> the content of the specified file is read from the
+    Within the method <em>loadContent()</em> the content of the specified file is read from the
     folder <em>./frontend/content</em> and given back at the end of the function. If the desired file
     is not found the content of a predefined error file is returned.
   </li>
