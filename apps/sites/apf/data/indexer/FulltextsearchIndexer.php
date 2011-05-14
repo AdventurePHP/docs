@@ -214,7 +214,7 @@
                if(!empty($word)) {
 
                   // retrieve word key (or save implicitly)
-                  $wordId = $this->__getWordID($word);
+                  $wordId = $this->getWordId($word);
 
                   // create index
                   if(isset($index[$wordId])) {
@@ -224,13 +224,10 @@
                   else {
                      $index[$wordId]['WordID'] = $wordId;
                      $index[$wordId]['WordCount'] = 1;
-                     // end else
                   }
 
-                  // end if
                }
 
-               // end else
             }
 
             // free memory
@@ -251,7 +248,6 @@
                                    VALUES
                                    (\''.$indexValues['WordID'].'\',\''.$articleId.'\',\''.$indexValues['WordCount'].'\')';
                $SQL->executeTextStatement($insert_index);
-             // end foreach
             }
 
             // free memory
@@ -262,10 +258,8 @@
             $l->logEntry($this->logFileName,'');
             $l->flushLogBuffer();
 
-          // end while
          }
 
-       // end function
       }
 
       /**
@@ -281,7 +275,7 @@
        *  @version
        *  Version 0.1, 06.03.2008<br />
        */
-      private function __getWordID($Word) {
+      private function getWordId($Word) {
 
          // Konfiguration holen
          $config = $this->getConfiguration('sites::apf::biz','fulltextsearch.ini');
