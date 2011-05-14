@@ -73,8 +73,8 @@
 
          // fill the current content and quicknavi file name
          $contentFilePath = $model->getAttribute('content.filepath');
-         $model->setAttribute('page.contentfilename',$this->__getFileName($contentFilePath.'/content','c',$language,$pageId));
-         $model->setAttribute('page.quicknavifilename',$this->__getFileName($contentFilePath.'/quicknavi','n',$language,$pageId));
+         $model->setAttribute('page.contentfilename', $this->getFileName($contentFilePath . '/content', 'c', $language, $pageId));
+         $model->setAttribute('page.quicknavifilename', $this->getFileName($contentFilePath . '/quicknavi', 'n', $language, $pageId));
 
          // initialize sidebar status
          if($pageId === self::$ABOUT_PAGEID){
@@ -92,7 +92,7 @@
        * @version
        * Version 0.1, 17.09.2008<br />
        */
-      function __getFileName($contentFilePath,$prefix,$language,$pageId){
+      private function getFileName($contentFilePath,$prefix,$language,$pageId){
 
          // read files from given directory
          $contentFiles = glob($contentFilePath.'/'.$prefix.'_'.$language.'_'.$pageId.'*');

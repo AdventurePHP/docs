@@ -20,9 +20,6 @@
    set_time_limit(0);
    ini_set('memory_limit','300M');
 
-   // include front controller
-   import('core::frontcontroller','Frontcontroller');
-
    // include indexer class
    import('sites::apf::data::indexer','FulltextsearchIndexer');
 

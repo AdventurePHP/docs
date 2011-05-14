@@ -8,7 +8,7 @@
    //ini_set('session.cache_limiter','none');
    date_default_timezone_set('Europe/Berlin');
    ob_start('ob_gzhandler');
-   
+
    ini_set('html_errors','off');
    include('../apps/core/pagecontroller/pagecontroller.php');
    import('core::frontcontroller','Frontcontroller');
@@ -39,11 +39,8 @@
    );*/
 
    // special output filter
-   Registry::register(
-      'apf::core::filter',
-      'OutputFilter',
-      new FilterDefinition('sites::apf::pres::filter::output','ScriptletOutputFilter')
-   );
+   import('sites::apf::pres::filter::output', 'ScriptletOutputFilter');
+   OutputFilterChain::getInstance()->addFilter(new ScriptletOutputFilter());
 
    // register downloads environment
    Registry::register('sites::apf','sitemap.env','dev');
