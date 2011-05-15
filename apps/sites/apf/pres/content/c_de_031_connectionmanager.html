@@ -71,7 +71,7 @@ $driver = &$cM->getConnection('Sektionsname');
 </p>
 
 <h3 id="Chapter-4-Vorhandene-Treiberschichten"><a href="#Chapter-4-Vorhandene-Treiberschichten">4. Vorhandene Treiberschichten</a></h3>
-<p>Das Framework liefert zwei Treiberschichten mit:</p>
+<p>Das Framework liefert drei Treiberschichten mit:</p>
 <ul>
   <li>MySQLx: MySQL-Treiberschicht. Setzt auf die mysql_*-Funktionen auf</li>
   <li>SQLite: SQLite-Treiberschicht. Setzt auf die sqlite_*-Funktionen. Hier ist PHP > 5.0.0 notwendig!</li>
@@ -228,5 +228,87 @@ WHERE
 <p>
    enthält.
 </p>
+
+<h3 id="Chapter-5-Statement-Dateien"><a href="#Chapter-5-Statement-Dateien">5. Statement-Dateien</a></h3>
+<p>
+   Jede Implementierung des <em>AbstractDatabaseHandler</em> bringt die Möglichkeit mit,
+   SQL-Statements in Konfigurations-Dateien auszulagern. Vorteil der der Vorgehensweise ist es, dass
+   die in den Statement-Dateien abgelegten Inhalte von mehreren Komponenten genutzt werden können.
+   Dies ist insbesondere im Zusammenhang mit dem <int:link pageid="092"/> interessant, da ein
+   Statement dann sowohl von diesem als auch von einer Daten-Schicht-Komponente genutzt werden kann.
+</p>
+
+<h4 id="Chapter-5-1-Konfiguration"><a href="#Chapter-5-1-Konfiguration">5.1. Konfiguration</a></h4>
+<p>
+   Da es sich bei Statement-Dateien - wie bereits angesprochen - ebenfalls um Konfigurations-Dateien
+   handelt, gelten alle Regeln des <int:link pageid="134">Konfigurations-Mechanismus</int:link>.
+   Hierzu bringt das APF den <em>StatementConfigurationProvider</em> und die Konfigurations-Repräsentation
+   <em>StatementConfiguration</em> mit, die in den jeweiligen Treiber-Implementierungen genutzt
+   werden.
+</p>
+<p>
+   Wie für Konfigurations-Dateien üblich besteht der Name einer Statement-Datei aus dem Umgebungs-Präfix,
+   dem Datei-Namen und einer Endung. Im Standard-Setup wird &quot;.sql&quot; als Endung definiert,
+   kann jedoch wie im Kapitel <int:link pageid="134" anchor="Chapter-5-Konfiguration-der-Provider"/>
+   beschrieben für jeden Anwendungsfall angepasst werden. Beispiel:
+</p>
+<gen:highlight type="code">
+DEFAULT_load_all_entries_for_category.sql
+</gen:highlight>
+<p>
+   Der Ablage-Ort des Statements ist ebenfalls wie bei &quot;normalen&quot; Konfigurations-Dateien
+   aus dem Namespace und dem aktuellen Context der Anwendung zusammengesetzt. Ein Statement mit dem
+   Namen <em>load_all_entries_for_category.sql</em> im Namespace <em>widgets::articles</em> wird in
+   der Standard-Konfiguration unter folgendem Pfad erwartet:
+</p>
+<gen:highlight type="code">
+/APF/config/widgets/articles/siteone/DEFAULT_load_all_entries_for_category.sql
+</gen:highlight>
+<p>
+   Der Context der aktuellen Applikation wurde für das Beispiel auf den Wert &quot;siteone&quot;
+   festgelegt.
+</p>
+
+<h4 id="Chapter-5-2-Anwendung"><a href="#Chapter-5-2-Anwendung">5.2. Anwendung</a></h4>
+<p>
+   Nach dem Anlegen einer Statement-Datei unter dem für die aktuelle Anwendung relevanten Pfad, kann
+   diese über die Methode <em>executeStatement()</em> bzw. <em>executeBindStatement()</em> (nur für
+   <a href="#Chapter-4-3-MySQLi-Treiberschicht">MySQLi-Connections</a>) genutzt werden:
+</p>
+<gen:highlight type="php">
+$conn = $this->getServiceObject('core::database', 'ConnectionManager')
+             ->getConnection('datastore');
+
+$params = array('somefield' => 'somevalue');
+$result = $conn->executeStatement(
+                     'widgets::articlese',
+                     'load_all_entries_for_category',
+                     $params);
+
+// für MySQLi-Verbindungen
+$data = $conn->executeBindStatement(
+                     'widgets::articlese',
+                     'load_all_entries_for_category',
+                     $params);
+</gen:highlight>
+<p>
+   Das dritte Argument der beiden Methoden definiert jeweils die dynamischen Statement-Parameter,
+   die zur Laufzeit an den Treiber übergeben werden können. Innerhalb eines Statements werden diese
+   durch Notation in eckigen Klammern definiert. Soll der Parameter <em>somefield</em> innerhalb des
+   Statements mit dem dynamisch übergebenen Wert gefüllt werden, so ist dieser im Statement wie folgt
+   zu definieren:
+</p>
+<gen:highlight type="sql">
+SELECT somefield, anotherfield
+FROM mytable
+WHERE somefield = '[somefield]';
+</gen:highlight>
+<p>
+   Pro Statement können beliebig viele dynamische Parameter an beliebigen Stellen definiert werden.
+   Diese können einen Wert oder auch dynamische Teile eines Statements enthalten.
+</p>
+<div class="hint">
+   Ein weiteres Anwendungs-Beispiel ist unter <int:link pageid="032"/> beschrieben.
+</div>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_031" />
