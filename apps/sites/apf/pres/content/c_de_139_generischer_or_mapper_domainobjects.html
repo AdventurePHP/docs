@@ -1,0 +1,247 @@
+<doku:title parent="119" tags="object,relational,mapping,or,mapper,generisch,objekte,domänen objekte,objektbäume,objekt strukturen,konfiguration,verwendung" title="Generischer O/R-Mapper - Eigene Domänen-Objekte" urlname="Generischer-OR-Mapper-Eigene-Domaenen-Objekte">
+  Das Modul genericormapper bietet einen generischen O/R-Mapper, der voll in das APF integriert ist
+  uns dessen Mechanismen - z.B. Konfiguration - nutzt um die gewünschten Objekte und deren
+  Beziehungen zu konfigurieren. Auf dieser Seite wird die Unterstützung für eigene Domänen-Objekte 
+  beschrieben.
+</doku:title>
+
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+Um einen zusätzlichen Schritt zur Objektorientierung zu gehen, wurde der genericormapper mit Version
+1.14 des APF um die optionale Möglichkeit erweitert, eigene <strong>Domänen-Objekte</strong> zu verwenden. 
+Durch eine zusätzliche Konfigurationsdatei kann festgelegt werden, welche Objekttypen (respektive 
+Datenbanktabellen) statt durch das <strong>GenericDomainObject</strong> durch ein eigenes Domänen-Objekt 
+abgebildet werden sollen, und wo dieses Objekt zu finden ist. <br />
+Hierdurch kann man dem Domänen-Objekt eigene, objektspezifische Methoden spendieren, um Funktionen, die 
+man früher über einen eigenen Manager abbilden musste, direkt im Objekt verankern zu können. Dies ist 
+vorteilhafter für die Lesbarkeit des Codes, und vereinfacht die Anwendung in vielen Fällen merklich.
+</p>
+
+<p>
+Mitgeliefert wird außerdem ein <strong>GenericORMapperDomainObjectGenerator</strong>, welcher in der Lage 
+ist anhand der Konfigurationsdateien des genericormapper ein fertiges Grundgerüst für ein Domänen-Objekt
+an der konfigurierten Stelle zu erzeugen. Das Grundgerüst besteht zum einen aus einem Basisobjekt, welches für jede
+in der Datenbank konfigurierte Eigenschaft eine Getter- und Setter-Methode beinhaltet, und zwingend vom
+<em>GenericDomainObject</em> erben muss <strong>oder</strong> von einem anderen Objekt, welches von diesem
+erbt. Dieses Basisobjekt kann durch die Konfiguration bestimmt werden, sodass nach korrekter Konfiguration 
+und Verwendung des <strong>GenericORMapperDomainObjectGenerator</strong> im einfachsten Fall keine weiteren
+Anpassungen notwendig sind. Desweiteren beinaltet das Grundgerüst das eigentliche Gerüst des Domänen-Objekts, 
+welches vom seinem jeweiligen Basisobjekt erbt.<br />
+Das Basisobjekt <strong>darf NICHT bearbeitet werden</strong>, da Änderungen an diesem durch erneutes
+ausführen des Generators (welcher gleichzeitig ein Updater darstellt, um beispielsweise neue Eigenschaften in 
+die API aufzunehmen) unwiederruflich gelöscht werden. Für Änderungen ist das eigentliche Domänen-Objekt
+zur Verfügung, dieses wird bei einem Updatevorgang nicht mehr bearbeitet.
+</p>
+
+<p>
+Als weiteres Feature kann das Domänen Objekt ein paar bestimmte <strong>"Event-Funktionen"</strong> implementieren,
+welche der GORM bei bestimmten Aktionen bei der Arbeit mit dem Objekt aufruft, beispielsweise vor und nach der 
+Speicherung eines Objekts. Dies kann <strong>beispielsweise</strong> verwendet werden, um Daten bei der Verwendung des Domänen-Objekts
+als Array/Objekt bereitzuhalten, diese vor der Speicherung in das besser speicherbare JSON-Format umzuwandeln, und um nach
+der Speicherung wieder das Array/Objekt zur Verfügung zu stellen. Somit muss sich die Anwendung nichtmehr um die Umwandlung
+der Daten in das benötigte Format kümmern, dies kann jetzt das Domänen-Objekt automatisch erledigen.<br />
+Eine Übersicht der verfügbaren Event-Methoden finden Sie im Kapitel <a href="#Chapter-5-Event-Methoden">Event Methoden</a>
+</p>
+
+<p>
+Die folgenden Kapitel zeigen, wie eigene Domänen-Objekte konfiguriert, generiert und verwendet werden können, und welche Events sie unterstützen.
+</p>
+
+<h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration der Domänen-Objekte</a></h3>
+<p>
+Wenn der O/R-Mapper Domänen-Objekte verwenden soll, muss am selben Speicherort der Mapper-Konfigurationen noch eine 
+zusätzliche Konfigurationsdatei angelegt werden:
+<ul>
+  <li>{ENVIRONMENT}_{NAMEAFFIX}_domainobjects.ini</li>
+</ul>
+Die Platzhalter <strong>{ENVIRONMENT}</strong> und <strong>{NAMEAFFIX}</strong> werden einfach an die bereits 
+bestehenden Konfigurationsdateien des O/R-Mapper angeglichen.
+</p>
+
+<p>
+In dieser Konfigurationsdatei wird für jedes Objekt, welches durch ein eigenes Domänen-Objekt abgebildet werden soll, eine  
+Sektion mit dem Name des Objektes, welcher in der <em>*_objects.ini</em> des O/R-Mappers definiert ist, angelegt.
+Objekte, die kein eigenes Domänen-Objekt benötigen, brauchen nicht konfiguriert werden, für diese wird automatisch
+das <em>GenericDomainObject</em> verwendet.
+</p>
+
+<p>
+Jede Sektion benötigt hier zwingend folgende Werte:
+<ul>
+	<li>Namespace: Den Namespace, unter welchem die Objektdefinition zu finden/anzulegen ist</li>
+	<li>Class: Den Klassen- und Dateinamen des Objektes</li>
+</ul>
+Falls ein Basisobjekt nicht direkt vom GenericDomainObject, sondern von einem anderen Objekt (welches wiederum vom GenericDomainObject erbt) 
+erben soll, und der Generator zum Erzeugen des Grundgerüstes verwendet werden soll, müssen noch folgende, ansonsten nicht benötigte,
+Werte definiert werden:
+<ul>
+	<li>Base.Namespace: Der Namespace, unter welchem die Objektdefinition des Basisobjektes zu finden ist</li>
+	<li>Base.Class: Der Klassen- und Dateinamen des zu verwendenden Basisobjektes</li>
+</ul>
+</p>
+
+<p>
+Nachfolgendes Beispiel ist ein Teil der Konfiguration der <a href="http://wiki.adventure-php-framework.org/de/Postbox_-_Nachrichtensystem" target="_blank">Postbox Extension</a>, in welcher die Domänen-Objekte 
+als erstes verwendet wurden, und welche daher auch als weiterführendes Beispiel für die Verwendung herangezogen werden kann.
+<gen:highlight type="ini">
+[Message]
+Namespace = "extensions::postbox::biz"
+Class = "Message"
+Base.Namespace = "extensions::postbox::biz"
+Base.Class = "AbstractMessage"
+
+[MessageChannel]
+Namespace = "extensions::postbox::biz"
+Class = "MessageChannel"
+Base.Namespace = "extensions::postbox::biz"
+Base.Class = "AbstractMessageChannel"
+</gen:highlight>
+Definiert wurden hier 2 Objekte, welche beide von einem speziellen Basisobjekt erben sollen.
+</p>
+
+
+<h3 id="Chapter-3-Objektgenerierung"><a href="#Chapter-3-Objektgenerierung">3. Generierung der Domänen-Objekte</a></h3>
+<p>
+Mithilfe des mitgelieferten <strong>GenericORMapperDomainObjectGenerator</strong> gestaltet sich das Erstellen der Domänen-Objekte
+sehr einfach. Sobald Sie nach obigem Schema die Konfigurationen angelegt haben, muss nurnoch ein kleines Script zur
+Generierung der Objekte angelegt und ausgeführt werden:
+
+<gen:highlight type="php">
+import('modules::genericormapper::data::tools','GenericORMapperDomainObjectGenerator');
+$generator = new GenericORMapperDomainObjectGenerator();
+$generator->setContext('{CONTEXT}'); // Set your context here
+$generator->generateServiceObjects('{NAMESPACE}', '{NAMEAFFIX}'); // set namespace and nameaffix of configuration files here
+</gen:highlight>
+Der Platzhalter <strong>{CONTEXT}</strong> muss durch ihren Context ersetzt werden, <strong>{NAMESPACE}</strong> durch
+den Namespace unter dem die Konfigurationsdatei abgelegt wurde (ohne Context) und <strong>{NAMEAFFIX}</strong> durch
+den im Dateinamen definierten Affix (siehe oben).
+</p>
+
+<p>
+Der <strong>GenericORMapperDomainObjectGenerator</strong> wird beim Aufruf dieses Scriptes für jedes definierte Objekt ein
+entsprechendes Domänen-Objekt am, in der Konfiguration definierten, Speicherort erzeugen. Sollte dort bereits eine Datei
+mit dem selben Namen gefunden werden, wird versucht das darin enthaltene Basisobjekt neu zu generieren, um API-Änderungen
+in der <em>*_objects.ini</em> zu übernehmen. Hierfür sind in der erzeugten Datei bestimmte, entsprechend gekennzeichnete, 
+Kommentare enthalten, die auf keinen Fall entfernt oder geändert werden dürfen, genausowenig wie alles zwischen diesen 
+Kommentaren, da sonst Datenverlust droht! Beim Update wird das Domänen-Objekt selber nichtmehr geändert, Änderungen an diesem 
+<strong>sollten</strong> nicht verloren gehen. Alle Änderungen am <strong>Basisobjekt</strong> werden unwiederruflich und ohne Warnung verworfen.
+</p>
+
+<div class="warn">
+   <p>
+      Achtung: Wir übernehmen generell keine Haftung für Fehler durch die automatische Generierung, trotz sorgfältiger Prüfung
+können Fehler immer unerwartet auftreten, daher ist eine vorherige Sicherung der bereits bestehenden Dateien anzuraten, um
+ diese im Fehlerfall wiederherstellen zu können!!
+   </p>
+</div>
+
+<p>
+Ein Beispiel für eine der erzeugten Dateien (hier für das Message-Objekt aus obiger Definition) könnte in etwa so aussehen:
+<gen:highlight type="php">
+//<*MessageBase:start*> DO NOT CHANGE THIS COMMENT!
+/**
+ * Automatically generated BaseObject for Message. !!DO NOT CHANGE THIS BASE-CLASS!!
+ * CHANGES WILL BE OVERWRITTEN WHEN UPDATING!!
+ * You can change class "Message" which will extend this base-class.
+ */
+import('extensions::postbox::biz', 'AbstractMessage');
+class MessageBase extends AbstractMessage {
+
+    public function __construct($objectName = null){
+        parent::__construct('Message');
+    }
+
+    public function getText() {
+        return $this->getProperty('Text');
+    }
+
+    public function setText($value) {
+        $this->setProperty('Text', $value);
+        return $this;
+    }
+
+    public function getAuthorNameFallback() {
+        return $this->getProperty('AuthorNameFallback');
+    }
+
+    public function setAuthorNameFallback($value) {
+        $this->setProperty('AuthorNameFallback', $value);
+        return $this;
+    }
+
+}
+// DO NOT CHANGE THIS COMMENT! <*MessageBase:end*>
+
+/**
+ * @package extensions::postbox::biz
+ * @class Message
+ *
+ * Domain object for "Message"
+ * Use this class to add your own functions.
+ */
+class Message extends MessageBase {
+    /**
+     * Call parent's function because the objectName needs to be set.
+     */
+    public function __construct($objectName = null){
+        parent::__construct();
+    }
+    
+}
+</gen:highlight>
+Das Basisobjeckt <em>MessageBase</em> erbt vom, explizit in der Konfiguration definierten, Objekt <em>AbstractMessage</em>.
+Auch um den Import der benötigten Datei hat der Generator sich natürlich selbst gekümmert.<br />
+In der <em>*_objects.ini</em> des O/R-Mapper wurden dem Message-Objekt die Eigenschaften <em>"Text"</em> und 
+<em>"AuthorNameFallback"</em> gegeben, dementsprechend wurden für diese beiden Eigenschaften Getter- und 
+Setter-Methoden generiert. Die Setter-Methoden erhalten dabei immer automatisch ein Fluent-Interface.<br />
+Zuletzt die Definition des <em>Message</em>-Objektes, welches vom Basisobjekt erbt. In dieser Klasse können
+sie nun Ihre eigenen Funktionen definieren, denkbar wäre in diesem Fall z.B. die Funktion "delete()" um die aktuelle 
+Nachricht zu löschen.
+</p>
+
+<div class="hint">
+   Sollten sie sich die Postbox-Extension einmal näher angesehen haben, werden sie feststellen, dass dort die delete-Methode 
+   bereits in <em>AbstractMessage</em> definiert wurde. Auch dies ist problemlos möglich, und im Falle der Postbox angewendet 
+   worden, im Normalfall aber nicht notwendig.
+</div>
+
+
+<h3 id="Chapter-4-Verwendung"><a href="#Chapter-4-Verwendung">4. Verwendung der Domänen-Objekte</a></h3>
+<p>
+Wenn die Objekte entsprechend obiger Anleitung angelegt wurden, kann es nun zur praktischen Verwendung gehen. Hierbei gibt 
+es eigentlich nichts zu beachten, da die Objekte immer zwingend vom <strong>GenericDomainObject</strong> (direkt oder indirekt 
+durch Weitervererbung ist egal) erben, können Sie auch wie jedes normale <em>GenericDomainObject</em> verwendet werden und sind somit 
+abwärtskompatibel. Dies ist besonders praktisch, da eine nachträgliche Verwendung der eigenen Domänen-Objekte keinerlei Anpassung 
+ihrer bereits vorhanden Codeteile benötigt. 
+</p>
+
+<p>
+Der O/R-Mapper erkennt beim Laden von Daten automatisch anhand der Konfiguration, dass er ein spezielles Domänen-Objekt verwenden 
+muss, und erzeugt dieses anstatt des <em>GenericDomainObject</em>. Laden Sie also ab sofort ein Message-Objekt aus der Datenbank,
+erhalten Sie ein Objekt vom Typ "Message", auf welches sie ihre eigenen Funktionen anwenden können.<br />
+Um ein neues Objekt zu erzeugen, müssen Sie lediglich die Objektdatei mittels eines import() einbinden, und danach eine Instanz 
+des Objektes erzeugen, anschließend können Sie wie gewohnt damit arbeiten:
+<gen:highlight type="php">
+import('extensions::postbox::biz', 'Message');
+$Message = new Message();
+$Message->setText('ExampleText');
+$Orm->saveObject($Message);
+</gen:highlight>
+</p>
+
+
+<h3 id="Chapter-5-Event-Methoden"><a href="#Chapter-5-Event-Methoden">5. Event Methoden</a></h3>
+<p>
+Wie bereits angesprochen beherrscht der O/R-Mapper auch ein paar "Events". Die Domänen-Objekte können für jedes Event
+eine Event-Methode definieren, welche bei entsprechender Aktion aufgerufen wird. Zur Verfügung stehen derzeit folgende Methoden, 
+welche der O/R-Mapper aufruft:
+<ul>
+	<li>afterLoad(): Wird nach dem Laden des Objektes aus der Datenbank aufgerufen.</li>
+	<li>beforeSave(): Wird direkt vor dem Speichern des Objektes in die Datenbank aufgerufen.</li>
+	<li>afterSave(): Wird direkt nach dem Speichern des Objektes in die Datenbank aufgerufen.</li>
+</ul>
+Ein mögliches Anwendungsbeispiel wäre das bereits in der <a href="#Chapter-1-Einleitung">Einleitung</a> erwähnte kodieren und 
+dekodieren von Arrays oder Objekten vor bzw. nach dem Speichern oder Laden.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_139" />
