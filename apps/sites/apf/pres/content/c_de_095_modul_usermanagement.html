@@ -134,7 +134,7 @@ Die Installation des Moduls umfasst folgende Schritte:
 </ul>
 <br />
 <h4 id="Chapter-2-1-Konfiguration-Modul"><a href="#Chapter-2-1-Konfiguration-Modul">2.1. Konfiguration des Moduls</a></h4>
-Die Konfiguration des Moduls umfasst drei Parameter: den Schlüssel der Datenbankverbindung,
+Die Konfiguration des Moduls umfasst mindestens drei Parameter: den Schlüssel der Datenbankverbindung,
 die ID des zu verwendenden Applikationscontainers und den Service-Mode, mit dem der O/R-Mapper erzeugt
 werden soll:
 <gen:highlight type="ini">
@@ -143,6 +143,16 @@ ConnectionKey = ""
 ApplicationID = ""
 ServiceMode = ""
 </gen:highlight>
+Mit 1.14 ist noch ein weiterer, optionaler Wert hinzugekommen, welcher als statischer Salt für den PasswordHashProvider 
+verwendet wird. Wird kein Salt definiert wird ein Standardsalt des APF verwendet. Zur Erhöhung der Sicherheit ist es jedoch 
+ratsam einen eigenen, langen und mit Sonderzeichen bestückten Salt zu definieren.
+<gen:highlight type="ini">
+Salt = ""
+</gen:highlight>
+<div class="warn">
+   ACHTUNG! Bei Verlust oder Änderung des Salts werden vorhandene Hashes in der Datenbank unbrauchbar! 
+   Ihre Benutzer können sich dann nicht mehr einloggen! Ein Backup des Salts ist daher unbedingt notwendig!
+</div>
 Im <em>apf-configpack-*</em>-Package ist eine Beispiel-Konfigurationsdatei mit einer Bescheibung
 der Werte enthalten.
 <br />
@@ -555,7 +565,7 @@ genauer beschrieben.
    wird jedoch im nächsten Kapitel besprochen.
 </div>
 <br />
-Die Business-Komponente nutzt aktuell das <strong>MD5</strong>-Verfahren um Passwort-Hashes zu
+Die Business-Komponente nutzt aktuell ein <strong>Crypt</strong>-Verfahren um Passwort-Hashes zu
 erzeugen. Soll dieses Verhalten geändert werden (z.B. auf <em>SHA1</em>), so kann dies durch
 ableiten von der Klasse <strong>UmgtManager</strong> und Überschreiben der privaten Methode
 <strong>createPasswordHash()</strong> erfolgen. Dabei ist darauf zu achten, dass die abgeleitete
@@ -578,7 +588,16 @@ $user = $umgt->loadUserByID(5);
 Die ab <strong>Version 1.11</strong> implementierte Ändeurung ermöglicht es, einen eigenen
 <strong>PasswordHashProvider</strong> in der Konfiguration des Moduls zu definieren. Dieser ist
 dafür zuständig, dem <strong>UmgtManager</strong> bei der Erstellung des Password
-Hash-Wertes behilflich zu sein. Im Standard-Fall wird weiterhin <strong>md5</strong> eingesetzt.
+Hash-Wertes behilflich zu sein. Bis einschließlich <strong>Version 1.13</strong> wurde hierbei <strong>md5</strong> eingesetzt. 
+Mit <strong>Version 1.14</strong> wurde diese, nichtmehr dem heutigen Sicherheitsstand entsprechende Methode, 
+durch einen komplexeren und sichereren Hash-Algorythmus ersetzt, der auf der Funktion <strong>crypt()</strong> in Verbindung 
+mit einem statischen und einem dynamischen Salt beruht. Es wird dringend empfohlen auf den Einsatz des 
+alten Algorythmus zu verzichten. Wie eine bestehende Anwendung auf den neuen Algorythmus migriert werden kann, lesen sie unter 
+<a href="#Chapter-4-1-3-PasswordHashProvider-Fallback">4.1.3. PasswordHashProvider Fallback</a>. <br />
+Für den in <strong>Version 1.14</strong> hinzugekommenen statischen Salt, ist ein neuer Konfigurationseintrag empfehlenswert, 
+Informationen hierzu finden Sie unter <a href="#Chapter-2-1-Konfiguration-Modul">Konfiguration des Moduls</a>.
+Desweiteren wird eine neue Spalte in der User-Tabelle benötigt, welche einen für jeden Benutzer unterschiedlichen, automatisch 
+generierten <em>DynamicSalt</em> beinhaltet.
 <br />
 <br />
 Um eine eigene Komponente zur Verfügung zu stellen, muss zunächst eine PHP-Klasse erstellt
@@ -601,6 +620,27 @@ PasswordHashProvider.Class = "Sha1PasswordHashProvider"
 </gen:highlight>
 Vollständige Beispiel-Konfigurationen für das Usermanagement finden sich in den
 <strong>apf-configpack-*</strong>-Paketen.
+<br />
+<h5 id="Chapter-4-1-3-PasswordHashProvider-Fallback"><a href="#Chapter-4-1-3-PasswordHashProvider-Fallback">4.1.3. PasswordHashProvider Fallback</a></h5>
+Seit <strong>Version 1.14</strong> ist es möglich mehrere PasswordHashProvider gleichzeitig einzusetzen, um von einem alten 
+Hash-Algorythmus auf einen neuen umsteigen zu können, da sich die Benutzer andernfalls nicht mehr einloggen könnten.<br />
+Hierfür werden mehrere PasswordHashProvider in der Konfiguration definiert. Der <strong>erste definierte Provider</strong> 
+entspricht dabei dem neuen, zu verwendenden Provider. Alle weiteren Provider werden als Fallback angesehen. Bei einem Login 
+wird zuerst versucht das übergebene Passwort mit dem neuen Provider zu hashen, und mit dem gespeicherten zu vergleichen. 
+Gibt es hierbei keine Übereinstimmung, werden der Reihe nach die Fallback-Provider probiert. Wird ein übereinstimmender Hash 
+mit einem der Fallback-Provider gefunden, wird im Hintergrund automatisch der Hashwert in der Datenbank auf das Format des neuen, 
+zuerst definierten Providers aktualisiert. Der Benutzer bekommt hierbei nichts mit, seine Logindaten werden natürlich akzeptiert.<br />
+Auf diesem Weg sollten, wenn sich jeder User mindestens ein mal eingeloggt hat, nach einer gewissen Zeit alle Hashwerte auf das 
+neue Verfahren umgestellt sein, und somit sicherer vor Bruteforce- und Rainbowtable-Attacken sein.<br />
+<br />
+Die Konfiguration muss wie folgt angepasst werden, hier am Beispiel der Migration vom alten APF Format (vor 1.14) auf das neue APF Format (ab 1.14):
+<gen:highlight type="ini">
+PasswordHashProvider.Default.Namespace = "modules::usermanagement::biz::provider::crypt"
+PasswordHashProvider.Default.Class = "CryptHardcodedSaltPasswordHashProvider"
+PasswordHashProvider.Fallback.Namespace = "modules::usermanagement::biz::provider::md5"
+PasswordHashProvider.Fallback.Class = "OldMD5PasswordHashProvider"
+</gen:highlight>
+Die Bezeichnung der Subsections (Hier <em>Default</em> und <em>Fallback</em>) ist dabei nicht relevant, die Reihenfolge ist ausschlaggebend.
 <br />
 <br />
 <br />
