@@ -185,24 +185,51 @@ class example_controller extends base_controller {
 
    public function transformContent(){
       $mediaStreamTag = &$this->getMediaStreamTagByID('PhoneIcon');
-      $mediaStreamTag->setAttribute($mediaStreamTag->getAttribute().'::'.$this->__Context);
+      $mediaStreamTag->setAttribute($mediaStreamTag->getAttribute('namespace').'::'.$this->getContext());
    }
 
    private function &getMediaStreamTagByID($id){
-      $children = &$this->__Document->getChildren();
+      $children = &$this->getDocument()->getChildren();
       foreach($children as $objectId => $DUMMY){
          if(get_class($children[$objectId]) == 'html_taglib_mediastream'){
             return $children[$objectId];
          }
       }
-      $null = null;
-      return $null;
+      throw new InvalidArgumentException('No media stream tag contained within the current document!');
+   }
+}
+</gen:highlight>
+  </li>
+  <li>
+      Manipulation des Datei-Namens innerhalb eines Templates:
+<gen:highlight type="php">
+class example_controller extends base_controller {
+
+   public function transformContent() {
+      $FileTemplate = &$this->getTemplate('file');
+      $mediaStreamTag = &$this->getMediaStreamTagByID('FileIconID', $FileTemplate);
+      $mediaStreamTag->setAttribute('extension', 'png');
+      $mediaStreamTag->setAttribute('filebody', 'dateinameOhneEndung');
+   }
+
+   private function &getMediaStreamTagByID($id, html_taglib_template &$template) {
+      $children = &$template->getChildren();
+
+      foreach ($children as $objectId => $DUMMY) {
+         if (get_class($children[$objectId]) == 'template_taglib_mediastream'
+             && $children[$objectId]->getAttribute('id') == $id
+         ) {
+            return $children[$objectId];
+         }
+      }
+      throw new InvalidArgumentException('No media stream tag contained within the current template "'
+                                         . $template->getAttribute('name') . '"!');
    }
 }
 </gen:highlight>
   </li>
 </ol>
-<br />
+
 <h3 id="Chapter-3-Generischer-importdesign-Tag"><a href="#Chapter-3-Generischer-importdesign-Tag">3. Generischer importdesign-Tag</a></h3>
 In komplexeren Applikationen ist es oft notwendig, die durch <strong>&lt;*:importdesign /&gt;</strong>-Tags
 definierten Views dynamisch füllen zu können. Vielfach möchte der Entwickler in
