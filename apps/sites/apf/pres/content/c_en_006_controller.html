@@ -1,15 +1,15 @@
 <doku:title parent="119" tags="controller,goal,mvc,templates,forms,dynamic lists,generic,flexibility" title="(Document-)Controller" urlname="Controller">
   A (document-) controller is the controller class of the MVC pattern. It can be used to dynamically
   generate content within a APF DOM node. Nevertheless, you are free to decide of you use controllers
-  or taglibs to dynamically generate content.
+  or tag libs to dynamically generate content.
 </doku:title>
 <h3 id="Chapter-1-Aim-of-a-controller"><a href="#Chapter-1-Aim-of-a-controller">1. Aim of a (document-)controller</a></h3>
 <p>
    As mentioned under <int:link pageid="046" /> and described on the
    <int:link pageid="047">templates page</int:link> controller according to the MVC
-   paradigma are userd to generate dynamic content. To be able to perceive this task a document
+   paradigma are used to generate dynamic content. To be able to perceive this task a document
    controller must be "announced" to a DOM node. This happens in the first line of a template file by
-   using the <strong>&lt;@controller @&gt;</strong> tag. The page controller then assigns the document
+   using the <em>&lt;@controller @&gt;</em> tag. The page controller then assigns the document
    controller given there to the topical DOM node and executes it within the transformation of the
    current node.
 </p>
@@ -18,17 +18,15 @@
 <p>
    Each document controller inherits from the basic document controller <em>base_controller</em>. This
    class implements a lot of helpful methods to generate dynamic content.
-   Example for this is the function <strong>getTemplate()</strong> that returns a reference of a
-   HTML template contained in the node, or the method <strong>setPlaceHolder()</strong> that can be used
-   to fill a place holder defined via the <strong>&lt;html:placeholder /&gt;</strong> tag.
+   Example for this is the function <em>getTemplate()</em> that returns a reference of a
+   HTML template contained in the node, or the method <em>setPlaceHolder()</em> that can be used
+   to fill a place holder defined via the <em>&lt;html:placeholder /&gt;</em> tag.
 </p>
 <p>The scaffolding of a document controller has the always following figure:</p>
 <gen:highlight type="php">
 class my_document_controller extends base_controller {
-
    public function transformContent(){
    }
-
 }
 </gen:highlight>
 <p>
@@ -38,40 +36,59 @@ class my_document_controller extends base_controller {
 </p>
 <p>
    As described in the <int:link pageid="002" /> the <em>base_controller</em> has four important
-   helper methodes:
+   helper methods:
 </p>
 <ul>
-  <li>
-    <strong>getTemplate():</strong>
-    <br />
-    Method to get a reference of a HTML template object.
-  </li>
-  <li>
-    <strong>getForm():</strong>
-    <br />
-    Function to get a reference of a form object defined within the current template file.
-  </li>
-  <li>
-    <strong>__placeholderExists():</strong>
-    <br />
-    This method checks whether a place holder tag exists in the current template file.
-  </li>
-  <li>
-    <strong>__templatePlaceholderExists():</strong>
-    <br />
-    Tests if a specific placeholder exists in a given template.
-  </li>
+   <li>
+      <em>getDocument():</em>
+      Returns a reference on the current DOM node. This enables you to access the entire tree using the methods
+      <em>getChildren()</em> and <em>getParentObject()</em>.
+   </li>
+   <li>
+      <em>getTemplate($name):</em>
+      Returns a reference on a template object defined within the current document.
+   </li>
+   <li>
+      <em>getForm($name):</em>
+      Returns a reference on a form object defined within the current document.
+   </li>
+
+   <li>
+      <em>placeHolderExists($name):</em>
+      Checks, whether a place holder exists within the current document.
+   </li>
+
+   <li>
+      <em>templatePlaceHolderExists(html_taglib_template &$template, $name):</em>
+      Checks, whether a place holder exists within the applied template instance of the current document.
+   </li>
+   <li>
+      <em>setPlaceHolder($key, $value):</em>
+      Fills a place holder with the applied value.
+   </li>
+   <li>
+      <em>setPlaceHolders(array $placeHolderValues):</em>
+      Fills a list of place holders with the applied values.
+   </li>
+   <li>
+      <em>setPlaceHolderIfExist($name, $value):</em>
+      Fills a place holder if it exists within the current document.
+   </li>
+   <li>
+      <em>setPlaceHoldersIfExist(array $placeHolderValues):</em>
+      Fills a list of place holders if they are defined within the current document.
+   </li>
 </ul>
 <p>
    Moreover, the <em>base_controller</em> inherits all attributes and functions of the class <em>APFObject</em>.
 </p>
 <div class="hint">
    <p>
-      Besindes, each document controller instance contains a reference on the current DOM node the
-      controller is responsible for transformation. The reference is stored in the 
-      <em>$this->__Document</em> variable. Using this reference, you can access the document's
+      Besides, each document controller instance contains a reference on the current DOM node the
+      controller is responsible for transformation. The reference can be retrieved using the
+      <em>$this->getDocument()</em> method. Using this reference, you can access the document's
       <em>foo</em> attribute via
-      <gen:highlight type="php">$this->__Document->getAttribute('foo')</gen:highlight>
+      <gen:highlight type="php">$this->getDocument()->getAttribute('foo')</gen:highlight>
    </p>
    <p>
       Due to usability reasons, the document controller also knows all attributes of the current
@@ -88,8 +105,11 @@ class my_document_controller extends base_controller {
    definition of the document controller at first and looks, hence, as follows:
 </p>
 <gen:highlight type="apf-xml">
-&lt;@controller namespace="sites::apfdocupage::pres::templates::documentcontroller" file="website_v1_controller"
-class="website_v1_controller" @&gt;
+&lt;@controller
+   namespace="sites::apfdocupage::pres::templates::documentcontroller"
+   file="website_v1_controller"
+   class="website_v1_controller"
+@&gt;
 [..]
 &lt;meta name="keywords" lang="de" content="PHP,Framework,Page-Controller,Front-Controller,Pattern,[..]" /&gt;
 &lt;meta name="date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
@@ -97,10 +117,11 @@ class="website_v1_controller" @&gt;
 &lt;meta name="revisit-after" content="5 days" /&gt;
 [..]
 </gen:highlight>
-In this case the accompanying document controller implements merely the method
-<strong>transformContent()</strong> which is called during the transformation. The source code of
-the class looks as follows:
-<br />
+<p>
+   In this case the accompanying document controller implements merely the method
+   <em>transformContent()</em> which is called during the transformation. The source code of
+   the class looks as follows:
+</p>
 <gen:highlight type="php">
 class website_v1_controller extends base_controller {
 
@@ -118,14 +139,17 @@ class website_v1_controller extends base_controller {
 </gen:highlight>
 <br />
 <h4 id="Chapter-3-2-Dynamic-lists"><a href="#Chapter-3-2-Dynamic-lists">3.2. Display of dynamic lists</a></h4>
-The following lines hak back on the example on the <a href="./?Page=047-Templates" title="templates">templates page</a>,
-chapter 2.2. The template described there aimed to generate a list. In addition the template -
-like above - must be extended by the definition the of document controller at first:
-<br />
-<br />
+<p>
+   The following lines hak back on the example on the <a href="./?Page=047-Templates" title="templates">templates page</a>,
+   chapter 2.2. The template described there aimed to generate a list. In addition the template -
+   like above - must be extended by the definition the of document controller at first:
+</p>
 <gen:highlight type="apf-xml">
-&lt;@controller namespace="sites::apfdocupage::pres::templates::documentcontroller" file="list_v1_controller"
-class="list_v1_controller" @&gt;
+&lt;@controller
+   namespace="sites::apfdocupage::pres::templates::documentcontroller"
+   file="list_v1_controller"
+   class="list_v1_controller"
+@&gt;
 [..]
 &lt;html:placeholder name="List" /&gt;
 
@@ -148,16 +172,17 @@ class="list_v1_controller" @&gt;
     &lt;/tr&gt;
 &lt;/html:template&gt;
 </gen:highlight>
-Now the corresponding document controller implements on the one hand the method <em>transformContent()</em>,
-however, and is extended with the private methods <strong>__buildList()</strong> and
-<strong>__buildListItem()</strong>. So the tasks are packed in own "helper methods" and the code
-gets more clear and better readably though.
-The loading of the list is delegated to a fictive business component called <strong>listLoader</strong>
-which returns a list (=array) of <strong>listItem</strong> objects. The latter is a data object which
-inherits from <em>APFObject</em> and exactly has one attribute with the name <strong>ListContent</strong>.
-To get the attribute of each object the generic <em>get()</em> methode can be used. Then the list
-is walked through and the HTML code is generated:
-<br />
+<p>
+   Now the corresponding document controller implements on the one hand the method <em>transformContent()</em>,
+   however, and is extended with the private methods <em>buildList()</em> and
+   <em>buildListItem()</em>. So the tasks are packed in own "helper methods" and the code
+   gets more clear and better readability though.
+   The loading of the list is delegated to a fictive business component called <em>listLoader</em>
+   which returns a list (=array) of <em>listItem</em> objects. The latter is a data object which
+   inherits from <em>APFObject</em> and exactly has one attribute with the name <em>ListContent</em>.
+   To get the attribute of each object the generic <em>get()</em> method can be used. Then the list
+   is walked through and the HTML code is generated:
+</p>
 <gen:highlight type="php">
 import('sites::demosite::biz','listLoader');
 

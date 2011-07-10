@@ -1,14 +1,14 @@
 <doku:title parent="119" tags="controller,zweck,mvc,templates,formulare,dynamische listen,generische einsetzbarkeit,flexibilität" title="(Document-)Controller" urlname="Controller">
-  (Document-)Controller sind Klassen, die nach dem MVC-Pattern für die Generierung des Inhalts
-  eines DOM-Knotens eingesetzt werden können. Neben den TagLib-Funktionalitäten sind diese
-  bei Bedarf einsetzbar.
+   (Document-)Controller sind Klassen, die nach dem MVC-Pattern für die Generierung des Inhalts
+   eines DOM-Knotens eingesetzt werden können. Neben den TagLib-Funktionalitäten sind diese
+   bei Bedarf einsetzbar.
 </doku:title>
 <h3 id="Chapter-1-Zweck-eines-Controllers"><a href="#Chapter-1-Zweck-eines-Controllers">1. Zweck eines (Document-)Controllers</a></h3>
 <p>
-   Wie unter <int:link pageid="046" /> und <int:link pageid="047" /> bereits mehrfach angesprochen, werden
+   Wie unter <int:link pageid="046"/> und <int:link pageid="047"/> bereits mehrfach angesprochen, werden
    (MVC-Document-)Controller zur Generierung von dynamischen Inhalten verwendet. Um diese Aufgabe wahr
    nehmen zu können muss ein Document-Controller einem DOM-Knoten bekannt gemacht werden. Dies
-   passiert in der ersten Zeile einer Template-Datei durch ein <strong>&lt;@controller @&gt;</strong>-Tag.
+   passiert in der ersten Zeile einer Template-Datei durch ein <em>&lt;@controller @&gt;</em>-Tag.
    Der Page-Controller weist dem aktuellen DOM-Knoten damit den dort angegebenen Document-Controller zu
    und führt diesen bei der Transformation des Knotens aus.
 </p>
@@ -17,17 +17,15 @@
 <p>
    Jeder Document-Controller erbt vom Basis-Controller <em>base_controller</em>. Dieser besitzt zur
    Verarbeitung der bekannten TagLib-Tags notwendige Methoden. Beispiel hierfür ist die Funktion
-   <strong>getTemplate()</strong> um eine Referenz auf ein im Knoten enthaltenes Template zugreifen zu
-   können, oder die Methode <strong>setPlaceHolder()</strong>, mit der ein
-   <strong>&lt;html:placeholder /&gt;</strong>-Tag gefüllt werden kann.
+   <em>getTemplate()</em> um eine Referenz auf ein im Knoten enthaltenes Template zugreifen zu
+   können, oder die Methode <em>setPlaceHolder()</em>, mit der ein
+   <em>&lt;html:placeholder /&gt;</em>-Tag gefüllt werden kann.
 </p>
 <p>Das Gerüst eines Document-Controllers hat immer folgende Gestalt:</p>
 <gen:highlight type="php">
 class my_document_controller extends base_controller {
-
    public function transformContent(){
    }
-
 }
 </gen:highlight>
 <p>
@@ -36,45 +34,59 @@ class my_document_controller extends base_controller {
    einzubinden. Wichtig ist nur, dass das zuvor gezeigte Interface eingehalten wird.
 </p>
 <p>
-   Wie der <int:link pageid="002" /> zu entnehmen ist verfügt der <em>base_controller</em>
-   über folgende Methoden:
+   Wie der <int:link pageid="002"/> zu entnehmen ist verfügt der <em>base_controller</em> über folgende Methoden:
 </p>
 <ul>
-  <li>
-    <strong>getTemplate():</strong>
-    <br />
-    Methode um eine Referenz auf ein Template-Objekt zu holen.
-  </li>
-  <li>
-    <strong>getForm():</strong>
-    <br />
-    Funktion um auf ein Formular-Objekt zuzugreifen.
-  </li>
+   <li>
+      <em>getDocument():</em>
+      Liefert eine Referenz auf den aktuellen DOM-Knoten zurück. Dies ermöglicht den Zugriff auf den kompletten Baum
+      über die Methoden <em>getChildren()</em> und <em>getParentObject()</em>.
+   </li>
+   <li>
+      <em>getTemplate($name):</em>
+      Liefert eine Referenz auf ein Template-Objekt das im aktuellen Dokument definiert ist.
+   </li>
+   <li>
+      <em>getForm($name):</em>
+      Liefert eine Referenz auf ein Formular-Objekt das im aktuellen Dokument definiert ist.
+   </li>
 
-  <li>
-    <strong>__placeholderExists():</strong>
-    <br />
-    Prüft, ob in der Seite ein Platzhalter-Tag mit dem übergebenen Namen existiert.
-  </li>
+   <li>
+      <em>placeHolderExists($name):</em>
+      Prüft, ob im aktuellen Dokument ein Platzhalter-Tag mit dem übergebenen Namen existiert.
+   </li>
 
-  <li>
-    <strong>__templatePlaceholderExists():</strong>
-    <br />
-    Prüft, ob in einem Template ein Platzhalter-Tag mit dem übergebenen Namen existiert.
-  </li>
+   <li>
+      <em>templatePlaceHolderExists(html_taglib_template &$template, $name):</em>
+      Prüft, ob im aktuellen Dokument in einem Template ein Platzhalter-Tag mit dem übergebenen Namen existiert.
+   </li>
+   <li>
+      <em>setPlaceHolder($key, $value):</em>
+      Füllt einen Platzhalter mit dem übergebenen Wert.
+   </li>
+   <li>
+      <em>setPlaceHolders(array $placeHolderValues):</em>
+      Füllt eine Liste von Platzhaltern mit den übergebenen Werten.
+   </li>
+   <li>
+      <em>setPlaceHolderIfExist($name, $value):</em>
+      Füllt einen Platzhalter mit dem gewünschten Wert, falls dieser existiert.
+   </li>
+   <li>
+      <em>setPlaceHoldersIfExist(array $placeHolderValues):</em>
+      Füllt eine Liste von Platzhaltern, falls diese existieren.
+   </li>
 </ul>
 <p>
-   Des Weiteren verfügt der <em>base_controller</em> über alle Methoden der Klasse
-   <em>APFObject</em>.
+   Des Weiteren verfügt der <em>base_controller</em> über alle Methoden der Klasse <em>APFObject</em>.
 </p>
 <div class="hint">
    <p>
-      Über die bisher genannten Methoden besitzt jeder Document-Controller eine Referenz auf das
-      Dokument im APF-DOM-Baum, für dessen Transformation er zuständig ist. Diese findet
-      sich in der Klassen-Variable <em>$this->__Document</em>. Mit Hilfe dieser Referenz kann
-      beispielsweise via
-      <gen:highlight type="php">$this->__Document->getAttribute('foo')</gen:highlight>
-      auf den Wert des Attributs <em>foo</em> zugegriffen werden.
+      Über die bisher genannten Methoden besitzt jeder Document-Controller eine Referenz auf das Dokument im
+      APF-DOM-Baum, für dessen Transformation er zuständig ist. Dieses kann mit Hilfe der Methode
+      <em>$this->getDocument()</em> bezogen werden. Anschließend ist es möglich, per
+      <gen:highlight type="php">$this->getDocument()->getAttribute('foo')</gen:highlight> auf den Wert des
+      Attributs <em>foo</em> zuzugriffen.
    </p>
    <p>
       Aus Gründen der Einfachheit besitzt ein Document-Controller auch alle Attribute des
@@ -87,13 +99,15 @@ class my_document_controller extends base_controller {
 <h4 id="Chapter-3-1-Dynamische-META-Tags"><a href="#Chapter-3-1-Dynamische-META-Tags">3.1. Darstellung dynamischer Inhalte in Meta-Tags</a></h4>
 <p>
    In diesem Kapitel soll nun die Implementierung eines Document-Controllers erläutert werden, der das
-   in <int:link pageid="047" />, Kapitel 2.1, aufgeführte
-   Template mit Inhalten füllt. Dazu ist das Template zunächst um die Definition des
-   Document-Controllers zu erweitern und sieht daher wie folgt aus:
+   in <int:link pageid="047"/>, Kapitel 2.1, aufgeführte Template mit Inhalten füllt. Dazu ist das Template zunächst um
+   die Definition des Document-Controllers zu erweitern und sieht daher wie folgt aus:
 </p>
 <gen:highlight type="apf-xml">
-&lt;@controller namespace="sites::apfdocupage::pres::documentcontroller" file="website_v1_controller"
-class="website_v1_controller" @&gt;
+&lt;@controller
+   namespace="sites::apfdocupage::pres::documentcontroller"
+   file="website_v1_controller"
+   class="website_v1_controller"
+@&gt;
 [..]
 &lt;meta name="keywords" lang="de" content="PHP,Framework,Page-Controller,Front-Controller,Pattern,[..]" /&gt;
 &lt;meta name="date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
@@ -101,10 +115,11 @@ class="website_v1_controller" @&gt;
 &lt;meta name="revisit-after" content="5 days" /&gt;
 [..]
 </gen:highlight>
-Der zugehörige Document-Controller implementiert in diesem Fall lediglich die Methode
-<strong>transformContent()</strong> die bei der Transformation aufgerufen wird. Der Quellcode der
-Klasse sieht dann wie folgt aus:
-<br />
+<p>
+   Der zugehörige Document-Controller implementiert in diesem Fall lediglich die Methode
+   <em>transformContent()</em> die bei der Transformation aufgerufen wird. Der Quellcode der
+   Klasse sieht dann wie folgt aus:
+</p>
 <gen:highlight type="php">
 class website_v1_controller extends base_controller {
 
@@ -123,54 +138,56 @@ class website_v1_controller extends base_controller {
 
 <h4 id="Chapter-3-2-Dynamische-Listen"><a href="#Chapter-3-2-Dynamische-Listen">3.2. Darstellung dynamischer Listen</a></h4>
 <p>
-   Die folgenden Zeilen greifen das in <int:link pageid="047" />, Kapitel 2.2, aufgeführte
+   Die folgenden Zeilen greifen das in <int:link pageid="047"/>, Kapitel 2.2, aufgeführte
    Template zur Darstellung einer Liste. Dazu wird das Template - wie oben - zunächst um die
    Definition desc Document-Controllers erweitert:
 </p>
 <gen:highlight type="apf-xml">
-&lt;@controller namespace="sites::apfdocupage::pres::documentcontroller" file="list_v1_controller"
-class="list_v1_controller" @&gt;
+&lt;@controller
+   namespace="sites::apfdocupage::pres::documentcontroller"
+   file="list_v1_controller"
+   class="list_v1_controller"
+@&gt;
 [..]
 &lt;html:placeholder name="List" /&gt;
 
 &lt;html:template name="ListHeader"&gt;
-  &lt;table cellpadding="0" cellspacing="0" border="0"&gt;
-    &lt;tr&gt;
-      &lt;td&gt;
-         &lt;strong&gt;ExampleList&lt;/strong&gt;
-      &lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;template:placeholder name="TableElements" /&gt;
-  &lt;/table&gt;
+&lt;table cellpadding="0" cellspacing="0" border="0"&gt;
+&lt;tr&gt;
+&lt;td&gt;
+&lt;strong&gt;ExampleList&lt;/strong&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;template:placeholder name="TableElements" /&gt;
+&lt;/table&gt;
 &lt;/html:template&gt;
 
 &lt;html:template name="ListItem"&gt;
-    &lt;tr&gt;
-      &lt;td&gt;
-         &lt;template:placeholder name="ItemValue" /&gt;
-      &lt;/td&gt;
-    &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;
+&lt;template:placeholder name="ItemValue" /&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/html:template&gt;
 </gen:highlight>
-Der zugehörige Document-Controller implementiert nun einerseits die Methode <em>transformContent()</em>,
-wird aber die privaten Methoden <strong>__buildList()</strong> und <strong>__buildListItem()</strong>
-erweitert. Somit werden die Tasks nochmal in eigene "Helper-Methoden" verpackt und der Code gestaltet
-sich übersichtlicher und besser lesbar. Das Laden der Liste übernimmt eine fiktive
-Business-Komponente (<strong>listLoader</strong>), die eine Liste (=Array) von <strong>listItem</strong>-
-Objekten zurückgibt. Letzters ist ein Daten-Objekt, das von <em>APFObject</em> erbt und genau
-eine Eigenschaft mit dem Namen <strong>ListContent</strong> besitzt das mit <em>get()</em> abgefragt
-werden kann. Die Liste wird dann iteriert und daraus eine HTML-Ausgabe generiert:
-<br />
+<p>
+   Der zugehörige Document-Controller implementiert nun einerseits die Methode <em>transformContent()</em>,
+   wird aber die privaten Methoden <em>__buildList()</em> und <em>__buildListItem()</em>
+   erweitert. Somit werden die Tasks nochmal in eigene "Helper-Methoden" verpackt und der Code gestaltet
+   sich übersichtlicher und besser lesbar. Das Laden der Liste übernimmt eine fiktive
+   Business-Komponente (<em>listLoader</em>), die eine Liste (=Array) von <em>listItem</em>-
+   Objekten zurückgibt. Letzters ist ein Daten-Objekt, das von <em>APFObject</em> erbt und genau
+   eine Eigenschaft mit dem Namen <em>ListContent</em> besitzt das mit <em>get()</em> abgefragt
+   werden kann. Die Liste wird dann iteriert und daraus eine HTML-Ausgabe generiert:
+</p>
 <gen:highlight type="php">
 import('sites::demosite::biz','listLoader');
 
 class list_v1_controller extends base_controller {
 
    public function transformContent(){
-
       // Liste in Platzhalter-Tag "List" einsetzen
       $this->setPlaceHolder('List',$this->buildList());
-
    }
 
    private function buildList(){
@@ -221,9 +238,8 @@ class list_v1_controller extends base_controller {
 
 <h4 id="Chapter-3-3-Weitere-Beispiele"><a href="#Chapter-3-3-Weitere-Beispiele">3.3. Weiterführende Beispiele</a></h4>
 <p>
-   Weiterführende Controller-Beispiele sind unter <int:link pageid="057" /> und
-   <int:link pageid="035" /> zu finden. Das Thema Formulare wird auf der Seite
-   <int:link pageid="113" /> nochmals genauer behandelt.
+   Weiterführende Controller-Beispiele sind unter <int:link pageid="057"/> und <int:link pageid="035"/> zu finden.
+   Das Thema Formulare wird auf der Seite <int:link pageid="113"/> nochmals genauer behandelt.
 </p>
 
-<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_006" />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_006"/>
