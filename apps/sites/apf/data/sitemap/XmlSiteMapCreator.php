@@ -32,6 +32,5 @@
          return $buffer;
       }
 
-    // end class
    }
 ?>
