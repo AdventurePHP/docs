@@ -154,8 +154,19 @@ Registry::register('apf::core', 'Enviroment', 'TESTBOX');
 <p>
    To ease reading and writing configurations the <em>getConfiguration()</em> and
    <em>saveConfiguration()</em> convenience methods are provides within classes that derive from
-   <em>APFObject</em>.
+   <em>APFObject</em>. Deleting configurations can be done using the <em>deleteConfiguration()</em> method.
 </p>
+<div class="warn">
+   Since your configuration files contain sensitive data the <em>/config</em> folder and your APF installation should
+   not be accessible via HTTP. Thus, we recommend to store these files outside of your web root or to place a
+   <em>.htaccess</em> file with the following content to your <em>/config</em> directory:
+<gen:highlight type="code">
+&lt;Location "/path/to/APF/installation/config"&gt;
+Order Allow,Deny
+Deny from all
+&lt;/Location&gt;
+</gen:highlight>
+</div>
 
 <h3 id="Chapter-3-Existing-providers"><a href="#Chapter-3-Existing-providers">3. Existing providers</a></h3>
 <p>
@@ -773,6 +784,10 @@ $config = ConfigurationManager::loadConfiguration(
 // saving a configuration
 ConfigurationManager::saveConfiguration(
                $namespace, $context, $language, $environment, $name, $config);
+
+// delete a configuration
+ConfigurationManager::deleteConfiguration(
+               $namespace, $context, $language, $environment, $name);
 </gen:highlight>
 <p>
    In order to load the same configuration files as using the convenience methods within classes
