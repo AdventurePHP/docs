@@ -40,7 +40,7 @@ Registry::register('sites::apf', 'WikiBaseURL', 'http://wiki.adventure-php-frame
 
 // special output filter
 import('sites::apf::pres::filter::output', 'ScriptletOutputFilter');
-OutputFilterChain::getInstance()->addFilter(new ScriptletOutputFilter());
+OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 
 // register downloads environment
 Registry::register('sites::apf', 'sitemap.env', 'dev');

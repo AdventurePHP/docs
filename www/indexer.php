@@ -12,7 +12,7 @@ Registry::register('sites::apf', 'WikiBaseURL', 'http://wiki.adventure-php-frame
 
 // special output filter (to filter scriptlet tags out of the index!)
 import('sites::apf::pres::filter::output', 'ScriptletOutputFilter');
-OutputFilterChain::getInstance()->addFilter(new ScriptletOutputFilter());
+OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 
 import('sites::apf::data::indexer', 'indexer');
 ?>
