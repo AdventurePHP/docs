@@ -22,9 +22,9 @@ by the document controller with the desired data. The definition of the tag look
  [&lt;iterator:placeholder name="" /&gt;]
  ...
  &lt;iterator:item [getter=""]&gt;
-   &lt;item:placeholder name="" /&gt;
-  [<item:getstring namespace="" config="" entry="" />]
-  [<item:addtaglib namespace="" prefix="" class="" />]
+   &lt;item:placeholder [name=""][getter=""] /&gt;
+  [&lt;item:getstring namespace="" config="" entry="" /&gt;]
+  [&lt;item:addtaglib namespace="" prefix="" class="" /&gt;]
  &lt;/iterator:item&gt;
  ...
 &lt;/html:iterator&gt;
@@ -54,7 +54,46 @@ uses the <strong>get()</strong> function as the default getter.
     (<strong>Allowed characters</strong>: <code>[A-Za-z0-9]</code>)
   </li>
 </ul>
-To use the tag it must be announced using the
+<div class="hint">
+   Retrieving an object's attribute can be done in two ways since release 1.14:
+   <ul>
+      <li>
+         Using the <em>&lt;iterator:item/&gt;</em> tag you can define a generic method for all place holders. Doning so,
+         you can specify the name of the attribute within the <em>&lt;item:placeholder/&gt;</em> tag using the
+         <em>name</em> attribute. The value of this attribute then refers the object's property to display. Example:
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="..."&gt;
+ &lt;iterator:item getter="getProperty"&gt;
+   &lt;item:placeholder name="DisplayName" /&gt;
+ &lt;/iterator:item&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+         Within this mode the tag expects the current object to implement a method like
+         <gen:highlight type="php">public function getProperty($name)</gen:highlight>
+         that returns the value of the property (here <em>DisplayName</em>). This is the default behaviour for release
+         before 1.14.
+      </li>
+      <li>
+         In case no generic method is available for retrieving the desired object attributes, you are now able to
+         define a getter method using the <em>&lt;item:placeholder/&gt;</em> tag for each place holder. Example:
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="..."&gt;
+ &lt;iterator:item&gt;
+   &lt;item:placeholder getter="getDisplayName" /&gt;
+ &lt;/iterator:item&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+         Within this mode the tag expects the current object to implement a method like
+         <gen:highlight type="php">public function getDisplayName()</gen:highlight>
+         that returns the value of the property. This possibility has been introduced in release 1.14.
+      </li>
+   </ul>
+   You can also mix the possibilities described above. In case a generic method as well as a dedicated method is
+   specified, the local one will win the race.
+</div>            
+<p>
+   To use the tag it must be announced using the
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="iterator" /&gt;
 </gen:highlight>

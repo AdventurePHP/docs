@@ -23,9 +23,9 @@ gestaltet sich wie folgt:
  [&lt;iterator:placeholder name="" /&gt;]
  ...
  &lt;iterator:item [getter=""]&gt;
-   &lt;item:placeholder name="" /&gt;
-  [<item:getstring namespace="" config="" entry="" />]
-  [<item:addtaglib namespace="" prefix="" class="" />]
+   &lt;item:placeholder [name=""][getter=""] /&gt;
+  [&lt;item:getstring namespace="" config="" entry="" /&gt;]
+  [&lt;item:addtaglib namespace="" prefix="" class="" /&gt;]
  &lt;/iterator:item&gt;
  ...
 &lt;/html:iterator&gt;
@@ -55,7 +55,46 @@ kann. Im Standard-Fall wird die Methode <strong>get()</strong> als "Getter" verw
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9]</code>)
   </li>
 </ul>
-Um den Iterator verwenden zu können muss das Tag zuerst per
+<div class="hint">
+   Das Auslesen eines Attributes eines Objektes kann seit dem Release 1.14 auf zwei Arten stattfinden:
+   <ul>
+      <li>
+         Auf Ebene des <em>&lt;iterator:item/&gt;</em>-Tag wird eine für alle Platzhalter gültige Methode definiert.
+         Ist das der Fall, kann innerhalb des <em>&lt;item:placeholder/&gt;</em>-Tags über das Attribut <em>name</em>
+         der Name des Attributes angegeben werden, über den die Eigenschaft des Objekts referenziert wird. Beispiel:
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="..."&gt;
+ &lt;iterator:item getter="getProperty"&gt;
+   &lt;item:placeholder name="DisplayName" /&gt;
+ &lt;/iterator:item&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+         In dieser Konstellation erwartet das Tag, dass das auszugebende Objekt eine Methode
+         <gen:highlight type="php">public function getProperty($name)</gen:highlight>
+         implementiert, die den Wert des Attributes (hier <em>DisplayName</em>) zurück liefert. Dies ist das
+         Standard-Verhalten in allen Releases vor 1.14.
+      </li>
+      <li>
+         Ist keine generische Methode für das Abrufen von Objekt-Eigenschaften vorhanden, kann diese auf der Ebene des
+         <em>&lt;item:placeholder/&gt;</em>-Tag granular für jeden Platzhalter definiert werden. Beispiel:
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="..."&gt;
+ &lt;iterator:item&gt;
+   &lt;item:placeholder getter="getDisplayName" /&gt;
+ &lt;/iterator:item&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+         In dieser Konstellation erwartet das Tag, dass das auszugebende Objekt eine Methode
+         <gen:highlight type="php">public function getDisplayName()</gen:highlight>
+         implementiert, die den Wert des Attributes zurück liefert. Diese Möglichkeit wurde in Release 1.14 eingeführt.
+      </li>
+   </ul>
+   Eine Mischung der der beiden Varianten ist ebenso möglich. Sollte sowohl eine generische als auch eine dedizierte
+   Getter-Methode definiert sein, so wird die lokale bevorzugt.
+</div>
+<p>
+   Um den Iterator verwenden zu können muss das Tag zuerst per
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="iterator" /&gt;
 </gen:highlight>
