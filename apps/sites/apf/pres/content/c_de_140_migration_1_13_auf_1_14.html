@@ -1,0 +1,578 @@
+<doku:title parent="100" tags="migration,1.13,1.14,gorm,servicemanager,domänen objekte,url generierung,front-controller,frontcontroller,page-controller,pagecontroller" title="Migration von 1.13 auf 1.14" urlname="Migration-von-1-13-auf-1-14">
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 1.13),
+   damit diese mit Release 1.14 kompatibel ist.
+</doku:title>
+<p>
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 1.13),
+   damit diese mit Release 1.14 kompatibel ist.
+</p>
+
+<h3>1. Initialisierung GORM mit DIServiceManager</h3>
+<p>
+   Der O/R-Mapper <int:link pageid="036"/> kann nun nativ mit dem
+   <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DIServiceManager</int:link>
+   bezogen werden. Ein ausführliches Anwendungsbeispiel findet sich im
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Erzeugen_des_GORM_mit_dem_DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>.
+</p>
+<div class="hint">
+   Diese Anpassung ist für das Release 1.14 optional, da der O/R-Mapper weiterhin über die <em>GenericORMapperFactory</em>
+   bezogen werden kann.
+</div>
+
+<h3>2. Beziehungs-Layout GORM</h3>
+<p>
+   Mit der Version 1.14 wurde die Möglichkeit eingeführt, Selbst-Referenzen auf Objekte zu definieren. Dies
+   bedingt eine Anpassung des Tabellen-Layouts der Beziehungs-Tabellen hinsichtlich Quell- und Ziel-Objekt-Identifieren.
+   Hierzu wurde der Referenz-Spalte für das Quell-Objekt das Präfix <em>Source_</em> gegeben und der Spalte für das
+   Ziel-Objekt das Präfix <em>Target_</em>.
+</p>
+<p>
+   Da diese Änderung nicht abwärtskompatibel ist, muss eine Anpassung der bestehenden Datenbank-Tabellen vorgenommen
+   werden. Hierzu muss jeder Spalte einer Objekt-Definition, die als Quell-Objekt-Id angegeben ist ein
+   <em>Source_</em> vorangestellt werden, jeder Spalte, die als Ziel-Objekt-Id gilt ein <em>Target_</em>.
+</p>
+
+<h4>2.1. UserManagement-Modul</h4>
+<p>
+   Als Beispiel soll das mit dem APF mitgelieferte <int:link pageid="095" /> dienen. Dieses hat folgende
+   Beziehungs-Definitionen:
+</p>
+<gen:highlight type="ini">
+[Application2Group]
+Type = "COMPOSITION"
+SourceObject = "Application"
+TargetObject = "Group"
+
+[Group2User]
+Type = "ASSOCIATION"
+SourceObject = "Group"
+TargetObject = "User"
+
+[Role2User]
+Type = "ASSOCIATION"
+SourceObject = "Role"
+TargetObject = "User"
+
+[Role2PermissionSet]
+Type = "ASSOCIATION"
+SourceObject = "Role"
+TargetObject = "PermissionSet"
+
+[Application2User]
+Type = "COMPOSITION"
+SourceObject = "Application"
+TargetObject = "User"
+
+[Application2Role]
+Type = "COMPOSITION"
+SourceObject = "Application"
+TargetObject = "Role"
+
+[Application2PermissionSet]
+Type = "COMPOSITION"
+SourceObject = "Application"
+TargetObject = "PermissionSet"
+
+[PermissionSet2Permission]
+Type = "ASSOCIATION"
+SourceObject = "PermissionSet"
+TargetObject = "Permission"
+
+[Application2Permission]
+Type = "COMPOSITION"
+SourceObject = "Application"
+TargetObject = "Permission"
+
+[Application2AppProxy]
+Type = "COMPOSITION"
+SourceObject = "Application"
+TargetObject = "AppProxy"
+
+[Application2AppProxyType]
+Type = "COMPOSITION"
+SourceObject = "Application"
+TargetObject = "AppProxyType"
+
+[AppProxy2User]
+Type = "ASSOCIATION"
+SourceObject = "AppProxy"
+TargetObject = "User"
+
+[AppProxy2Group]
+Type = "ASSOCIATION"
+SourceObject = "AppProxy"
+TargetObject = "Group"
+
+[AppProxy2AppProxyType]
+Type = "ASSOCIATION"
+SourceObject = "AppProxy"
+TargetObject = "AppProxyType"
+</gen:highlight>
+<p>
+   Daraus ergeben sich folgende Update-Statements für die Datenbank-Tabellen:
+</p>
+<gen:highlight type="sql">
+ALTER TABLE `ass_appproxy2appproxytype` CHANGE `AppProxyID` `Source_AppProxyID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `AppProxyTypeID` `Target_AppProxyTypeID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `ass_appproxy2group` CHANGE `AppProxyID` `Source_AppProxyID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `GroupID` `Target_GroupID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `ass_appproxy2user` CHANGE `AppProxyID` `Source_AppProxyID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `UserID` `Target_UserID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `ass_group2user` CHANGE `GroupID` `Source_GroupID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `UserID` `Target_UserID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `ass_permissionset2permission` CHANGE `PermissionSetID` `Source_PermissionSetID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `PermissionID` `Target_PermissionID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `ass_role2permissionset` CHANGE `RoleID` `Source_RoleID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `PermissionSetID` `Target_PermissionSetID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `ass_role2user` CHANGE `RoleID` `Source_RoleID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `UserID` `Target_UserID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `cmp_application2appproxy` CHANGE `ApplicationID` `Source_ApplicationID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `AppProxyID` `Target_AppProxyID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `cmp_application2appproxytype` CHANGE `ApplicationID` `Source_ApplicationID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `AppProxyTypeID` `Target_AppProxyTypeID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `cmp_application2group` CHANGE `ApplicationID` `Source_ApplicationID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `GroupID` `Target_GroupID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `cmp_application2permission` CHANGE `ApplicationID` `Source_ApplicationID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `PermissionID` `Target_PermissionID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `cmp_application2permissionset` CHANGE `ApplicationID` `Source_ApplicationID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `PermissionSetID` `Target_PermissionSetID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `cmp_application2role` CHANGE `ApplicationID` `Source_ApplicationID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `RoleID` `Target_RoleID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `cmp_application2user` CHANGE `ApplicationID` `Source_ApplicationID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `UserID` `Target_UserID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0';
+</gen:highlight>
+
+<h4>2.2. Gästebuch 2009</h4>
+<p>
+   Als weiteres Beispiel dient das mit dem APF mitgelieferte Gästebuch-Modul in der Version 2009
+   (<em>guestbook2009</em>). Dieses besitzt folgender Objekt-Relationen
+</p>
+<gen:highlight type="ini">
+[Guestbook2LangDepValues]
+Type = "COMPOSITION"
+SourceObject = "Guestbook"
+TargetObject = "Attribute"
+
+[Entry2LangDepValues]
+Type = "COMPOSITION"
+SourceObject = "Entry"
+TargetObject = "Attribute"
+
+[Guestbook2Adminstrator]
+Type = "ASSOCIATION"
+SourceObject = "Guestbook"
+TargetObject = "User"
+
+[Editor2Entry]
+Type = "ASSOCIATION"
+SourceObject = "User"
+TargetObject = "Entry"
+
+[Guestbook2Entry]
+Type = "COMPOSITION"
+SourceObject = "Guestbook"
+TargetObject = "Entry"
+
+[Attribute2Language]
+Type = "ASSOCIATION"
+SourceObject = "Attribute"
+TargetObject = "Language"
+</gen:highlight>
+<p>
+   Hieraus resultieren folgende Update-Statements:
+</p>
+<gen:highlight type="sql">
+ALTER TABLE `ass_attribute2language` CHANGE `AttributeID` `Source_AttributeID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `LanguageID` `Target_LanguageID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0'
+
+ALTER TABLE `ass_editor2entry` CHANGE `UserID` `Source_UserID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `EntryID` `Target_EntryID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0'
+
+ALTER TABLE `ass_guestbook2adminstrator` CHANGE `GuestbookID` `Source_GuestbookID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `UserID` `Guestbook_UserID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0'
+
+ALTER TABLE `cmp_entry2langdepvalues` CHANGE `EntryID` `Source_EntryID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `AttributeID` `Target_AttributeID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0'
+
+ALTER TABLE `cmp_guestbook2entry` CHANGE `GuestbookID` `Source_GuestbookID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `EntryID` `Target_EntryID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0'
+
+ALTER TABLE `cmp_guestbook2langdepvalues` CHANGE `GuestbookID` `Source_GuestbookID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0', CHANGE `AttributeID` `Target_AttributeID` INT( 5 ) UNSIGNED NOT NULL DEFAULT '0'
+</gen:highlight>
+
+<h3>3. API</h3>
+<p>
+   Auch in Version 1.14 wurden Aufräum-Arbeiten und Optimierungen an der API des Adventure PHP Framework vorgenommen
+   um veraltete Elemente zu entfernen oder den Weg für neue Features zu bereiten. Die folgenden Kapitel beschreiben die
+   Änderungen an der API, die Ihre darauf aufsetzenden Software-Komponenten direkt oder indirekt betreffen.
+</p>
+
+<h4>3.1. Veraltete Methoden</h4>
+<p>
+   Folgende Methoden wurden als veraltet markiert und durch die in Klammern notierten Methoden ersetzt:
+</p>
+<ul>
+   <li>APFObject::__getAttributesAsString() (<em>APFObject::getAttributesAsString()</em>)</li>
+   <li>APFObject::__getServiceObject() (<em>APFObject::getServiceObject()</em>)</li>
+   <li>APFObject::__getAndInitServiceObject() (<em>APFObject::getAndInitServiceObject()</em>)</li>
+   <li>APFObject::__getDIServiceObject() (<em>APFObject::getDIServiceObject()</em>)</li>
+   <li>base_controller::__getForm() (<em>base_controller::getForm()</em>)</li>
+   <li>base_controller::__getTemplate() (<em>base_controller::getTemplate()</em>)</li>
+   <li>base_controller::__placeholderExists() (<em>base_controller::placeHolderExists()</em>)</li>
+   <li>base_controller::__templatePlaceholderExists() (<em>base_controller::templatePlaceHolderExists()</em>)</li>
+   <li>iteratorBaseController::__getIterator() (<em>iteratorBaseController::getIterator()</em>)</li>
+</ul>
+<p>
+   Die veralteten Methoden werden in Release 1.15 komplett aus dem APF entfernt.
+</p>
+<div class="hint">
+   Um die Migration zu erleichtern, wird bei der Verwendung der veralteten Methoden ein Fehler geworfen. Über den
+   Stacktrace kann die betreffende Stelle dann leicht herausgefunden werden.
+</div>
+
+<h4>3.2. Refactoring</h4>
+<p>
+   Aus Konsistenz-Gründen wurden einige Methoden und Attribute aus der Klasse <em>APFObject</em> in die Klasse
+   <em>Document</em> umgezogen. Hintergrund ist die thematische Zuordnung zu entweder einem Service im Sinne einer
+   Service-orientierten Applikation oder einem APF-DOM-Objekt. Diese Trennung wurde in den bisherigen Releases noch
+   nicht 100% sauber vollzogen.
+</p>
+<p>
+   Hier von betroffen sind die Attribute
+</p>
+<ul>
+   <li>__ObjectID</li>
+   <li>__Children</li>
+   <li>__ParentObject</li>
+</ul>
+<p>
+   Diese sind nun nur noch in der Klasse <em>Document</em> bzw. deren Kinder verfügbar. Sollten die Attribute in
+   <em>__sleep()</em>- oder <em>__wakeup()</em>-Methoden eingesetzt worden sein, müssen diese entfernt werden.
+   Andernfalls können Objekte nicht mehr serialisiert werden. Letzteres ist insbesondere für
+   <em>SessionSingleton</em>-Objekte wichtig, die mit dem <em>ServiceManager</em> erzeugt werden.
+</p>
+
+<h3>4. ServiceManager</h3>
+<p>
+   Der <int:link pageid="107" anchor="Chapter-3-2-1-ServiceManager-Einfache-Services">ServiceManager</int:link> wird ab
+   dem Release 1.14 als statische Komponente addressiert. Vorteile dieses Vorgehens sind bessere Performance und der
+   einfachere Zugriff auf die Komponente.
+</p>
+<p>
+   Sie können ab Version 1.14 Services wie gewohnt über die Methoden <em>APFObject::getServiceObject()</em> und
+   <em>APFObject::getAndInitServiceObject()</em> beziehen als auch wie im folgenden Kasten beschrieben:
+</p>
+<gen:highlight type="php">
+$service = ServiceManager::getServiceObject(
+   'my::namespace',
+   'ClassNameOfService',
+   'application-context',
+   'de',
+   APFObject::SERVICE_TYPE_SINGLETON
+);
+$initializedService = ServiceManager::getAndInitServiceObject(
+   'my::namespace',
+   'ClassNameOfService',
+   'application-context',
+   'de',
+   $initParam,
+   APFObject::SERVICE_TYPE_SINGLETON
+);
+</gen:highlight>
+
+<h3>5. MySQLiHandler</h3>
+<p>
+   Der Datenbank-Treiber <int:link pageid="031" anchor="Chapter-4-3-MySQLi-Treiberschicht">MySQLiHandler</int:link>
+   wirft ab der Version 1.14 Exceptions statt einen Error im Fall von Verbindungsfehlern. Dies erleichtert den Umgang
+   mit Fehler im Code. Beim Update auf die neue Version ist es daher notwendig, die Exception <em>DatabaseHandlerException</em>
+   zu fangen um eine Fehlerbehandlung stattfinden lassen zu können.
+</p>
+
+<h3>6. Domänen-Objekte mit dem GORM</h3>
+<p>
+   Der generische O/R-Mapper des APF beherrscht nun den Umgang mit <int:link pageid="139">Domänen-Objekten</int:link>.
+   Diese können analog der Objekt- und Beziehungs-Definition beschrieben und generiert werden. Hierzu steht ein
+   Quellcode-Generator zu Verfügung, der eine initiale Erzeugung und ein Update der Klassen ausführen kann.
+</p>
+<p>
+   Die zum Feature gehörende Diskussion kann im
+   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=550" linkrewrite="false">Forum</a>
+   nachgelesen werden.
+</p>
+
+<h3>7. Link-Generierung</h3>
+<p>
+   Die Link-Generierung wurde in der Version 1.14 konzeptionell überarbeitet. Die bestehenden Komponenten
+   <em>LinkHandler</em> und <em>FrontcontrollerLinkHandler</em> werden zwar bis zur Version 1.15 mit ausgeliefert,
+   der Kern wurde jedoch komplett ersetzt.
+</p>
+
+<h4>7.1. FrontcontrollerLinkHandler</h4>
+<p>
+   Für die Migration auf 1.14 bedeutet diese Änderung, dass die Methode <em>FrontcontrollerLinkHandler::generateURLParams()</em>
+   nicht mehr verfügbar ist. Diese wurde durch die Funktionalität der beiden Link-Schemen ersetzt. Die URL-Generierung
+   über
+</p>
+<gen:highlight type="php">
+import('tools::link', 'FrontcontrollerLinkHandler');
+...
+$actionParams = array('image' => $image, 'ext' => $ext, 'path' => 'MediaPath', 'size' => $matches[2]);
+$params = FrontcontrollerLinkHandler::generateURLParams('3rdparty::imageresizer', 'showImage', $actionParams);
+
+$urlBasePath = Registry::retrieve('apf::core', 'CurrentRequestURL');
+
+$url = FrontcontrollerLinkHandler::generateLink($urlBasePath, $params);
+</gen:highlight>
+<p>
+   muss ab Version 1.14 durch
+</p>
+<gen:highlight type="php">
+import('tools::link', 'LinkGenerator');
+...
+
+$urlBasePath = Registry::retrieve('apf::core', 'CurrentRequestURL');
+
+$url = LinkGenerator::generateActionUrl(Url::fromString($urlBasePath), '3rdparty::imageresizer', 'showImage', array(
+            'image' => $image,
+            'ext' => $ext,
+            'path' => 'MediaPath',
+            'size' => $matches[2]
+        ));
+</gen:highlight>
+<p>
+   ersetzt werden.
+</p>
+
+<h4>7.2. Allgemeine Verwendung</h4>
+<p>
+   Wie im letzten Kapitel beschrieben, wurde die Link-Generierung auf die Klasse <em>LinkGenerator</em> umgestellt.
+   Aus diesem Grund sollten alle Stellen, an denen der <em>LinkHandler</em> oder <em>FrontcontrollerLinkHandler</em>
+   verwendet werden auf diesen umgestellt werden. Ab Version 1.15 müssen die Stellen umgestellt werden, da die
+   genannten Klassen ab dieser Version entfernt werden.
+</p>
+<p>
+   Die Url-Generierung über den <em>LinkHandler</em> in Version <= 1.13 per
+</p>
+<gen:highlight type="php">
+$url = LinkHandler::generateLink($_SERVER['REQUEST_URI'], array('gbview' => 'admindelete', 'entryid' => $entryId));
+</gen:highlight>
+<p>
+   kann ab 1.14 wie folgt realisiert werden:
+</p>
+<gen:highlight type="php">
+$url = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array('gbview' => 'admindelete', 'entryid' => $entryId)));
+</gen:highlight>
+<p>
+   Weitere Methoden der Klasse <em>Url</em> können der <int:link pageid="002"/> entnommen werden.
+</p>
+<p>
+   Die Generierung von Action-Urls in Version <= 1.13 per
+</p>
+<gen:highlight type="php">
+$namespace = str_replace('::', '_', $namespace);
+
+if ($urlRewriting) {
+   $actionParam = array(
+       'extensions_jscssinclusion_biz-action/sGCJ' => 'path/' . $namespace . '/type/' . $type . '/file/' . $filename
+   );
+} else {
+
+   $actionParam = array(
+       'extensions_jscssinclusion_biz-action:sGCJ' => 'path:' . $namespace . '|type:' . $type . '|file:' . $filename
+   );
+}
+
+$url = FrontcontrollerLinkHandler::generateLink($url, $actionParam);
+</gen:highlight>
+<p>
+   kann ab 1.14 wie folgt realisiert werden:
+</p>
+<gen:highlight type="php">
+$url =  LinkGenenerator::generateActionUrl(Url::fromString($url), 'extensions::jscssinclusion::biz', 'sGCJ', array(
+    'path' => str_replace('::', '_', $namespace),
+    'type' => $type,
+    'file' => $filename
+));
+</gen:highlight>
+<p>
+   Weitere Beispiele finden sich in der Dokumentation unter <int:link pageid="138"/>.
+</p>
+
+<h3>8. Front-Controller</h3>
+<h4>8.1. Allgemeine Konfiguration</h4>
+<p>
+   Im Rahmen des Releases 1.14 wurden die Konfigurations-Attribute <em>FC.ActionFile</em> und <em>FC.InputFile</em>
+   entfernt, da die Information bereits in <em>FC.ActionClass</em> und <em>FC.InputClass</em> enthalten ist.
+</p>
+<p>
+   Dies ermöglicht die Konvention des APF, dass der Name der Datei gleich dem Klassen-Namen sein soll.
+</p>
+
+<h4>8.2. Input-Klassen</h4>
+<p>
+   Mit dem Release 1.14 ist es nicht mehr notwendig, eine eigene Input-Implementierung vorzuhalten. Bisher musste diese
+   aus Gründen der Konvention vorgehalten werden auch wenn es sich nur einen Stub handelte. Sofern das
+   Attribut <em>FC.InputClass</em> in der Konfiguration keine eigene Input-Implementierung im referenzierten Namespace
+   besitzt wird die Eingabe-Parameter-Abstraktion durch die Klasse <em>FrontcontrollerInput</em> abgebildet. Eine
+   minimale Konfiguration hat daher folgende Gestalt:
+</p>
+<gen:highlight type="ini">
+[showCaptcha]
+FC.ActionNamespace = "modules::captcha::biz::actions"
+FC.ActionClass = "ShowCaptchaImageAction"
+FC.InputParams = ""
+</gen:highlight>
+
+<h4>8.3. Action-Klassen</h4>
+<p>
+   Im Rahmen des Refactorings wurde die interne Nutzung von <em>$this->__ParentObject</em> entfernt. Diese verwies bis
+   zum Release 1.13 auf die Instanz des Front-Controllers. Ab 1.14 kann die Instanz mit der Methode
+   <em>AbstractFrontcontrollerAction::getFrontController()</em> bezogen werden.
+</p>
+
+<h4>8.4. Bootstrap-Datei</h4>
+<p>
+   Mit dem Release 1.14 wurden die <int:link pageid="137">Eingabe- und Ausgabe-Filter</int:link> einer Überarbeitung
+   unterzogen, die bereis in Release 1.13 begonnen wurde. Ein Teil des Redesigns betrifft die Ausführung der
+   Filter-Ketten, die ab Version 1.14 ausschließlich vom Front-Controller vorgenommen wird. Dies ist darin begründet,
+   dass der Front-Controller ab 1.14 konzeptionell die führende Rolle hinsichtlich der Request-Verarbeitung einnimmt
+   und sich der Page-Controller auf die für ihn wesentlichen Aufgaben beschränken kann (separation of concerns).
+</p>
+<p>
+   Dazu ist es für die Migration auf die Version 1.14 notwendig, die Bootstrap-Dateien (<em>index.php</em>) von Page-
+   auf Front-Controller umzustellen.
+</p>
+<div class="warn">
+   Wird dies nicht vorgenommen, werden nach einem Update keine Filter mehr ausgeführt, was u.U. zu einem unerwarteten
+   Verhalten führen kann. Sofern der Front-Controller auch bisher schon eingesetzt ist, sind keine Anpassungen notwendig.
+</div>
+<p>
+   Eine Bootstrap-Datei der Form
+</p>
+<gen:highlight type="php">
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+$page = new Page();
+$page->loadDesign('custom-modules::calc::pres::templates', 'calc');
+echo $page->transform();
+</gen:highlight>
+<p>
+   muss nun durch folgenden Code ersetzt werden:
+</p>
+<gen:highlight type="php">
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
+$fC = &Singleton::getInstance('Frontcontroller');
+echo $fC->start('custom-modules::calc::pres::templates', 'calc');
+</gen:highlight>
+<p>
+   Die Konfiguration von Context und Sprache kann auf identische Weise auch beim Front-Controller vorgenommen werden:
+</p>
+<gen:highlight type="php">
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->setContext('...');
+$fC->setLanguage('...');
+echo $fC->start('custom-modules::calc::pres::templates', 'calc');
+</gen:highlight>
+
+<h3>9. Usermanagement</h3>
+<p>
+   Mit 1.14 wurde die Art, wie das Usermanagement seine Passwörter standardmäßig speichert auf ein sichereres Verfahren
+   umgestellt, da der bisher verwendete md5-Algorithmus für das Hashen des Passworts keinen ausreichenden Schutz vor
+   Bruteforce- oder Rainbowtable-Angriffen mehr bietet. Aus diesem Grund wurde ein neuer PasswordHashProvider
+   implementiert, welcher die <em>crypt()</em> Funktion in Verbindung mit einem statischen und einem dynamischen Salt
+   verwendet. Es ist zwar weiterhin möglich, den alten Provider in der Konfigurationsdatei zu definieren, davon wird
+   jedoch dringend abgeraten. Stattdessen wurde eine Möglichkeit implementiert, wie bereits vorhandene Systeme ohne
+   großen Aufwand und während des Betriebs on-the-fly auf das neue Hash-Verfahren umgestellt werden können.
+</p>
+<p>
+   Da das neue Verfahren auch einen statischen Salt verwendet, sollte dieser für jede Anwendung eigens definiert
+   werden. Wird keiner definiert, wird ein Standardsalt des APF verwendet. Um einen eigenen Salt zu definieren,
+   fügen Sie in der <em>*_umgtconfig.ini</em> den Eintrag
+</p>
+<gen:highlight type="ini">Salt = ""</gen:highlight> 
+<p>
+   hinzu, und geben einen ausreichend langen Salt mit Sonderzeichen an.
+</p>
+<div class="err">
+   Bei Verlust oder Änderung des Salts werden bisher mit diesem Verfahren gehashte Passwörter in der Datenbank
+   unbrauchbar, ein einloggen ist dann nicht mehr möglich. Ein Backup des Salts ist daher unbedingt notwendig!
+</div>
+<p>
+   Um eine bestehende Anwendung, welche den alten Hash-Algorythmus einsetzt, auf das neue Verfahren zu migrieren,
+   werden 2 PasswordHashProvider in der Konfiguration definiert. Der erste Provider wird als der neue angesehen, alle
+   Folgenden werden als Fallback verwendet. Die Benennung der Subsections ist beliebig, ausschlaggebend ist die
+   Reihenfolge.
+</p>
+<gen:highlight type="ini">
+PasswordHashProvider.Default.Namespace = "modules::usermanagement::biz::provider::crypt"
+PasswordHashProvider.Default.Class = "CryptHardcodedSaltPasswordHashProvider"
+PasswordHashProvider.Fallback.Namespace = "modules::usermanagement::biz::provider::md5"
+PasswordHashProvider.Fallback.Class = "OldMD5PasswordHashProvider"
+</gen:highlight>
+<p>
+   Ab sofort wird dann bei einem Login probiert, ob der Hash in der Datenbank mit dem Hash aus dem übergebenen Passwort
+   (unter Verwendung des 1. Providers) übereinstimmt. Sollte dies nicht der Fall sein, werden der Reihe nach alle
+   Fallback Provider durchprobiert. Findet einer der Provider eine Übereinstimmung, wird das Passwort akzeptiert, und
+   automatisch im Hintergrund der Hash in der Datenbank durch einen Hash nach dem neuen Verfahren ersetzt. Nach einiger
+   Zeit sollten daher alle Benutzer, die sich eingeloggt haben seit der Änderung, vom neuen Hash Verfahren profitieren.
+</p>
+<div class="hint">
+   Die Namen der Provider (hier <em>Default</em> und <em>Fallback</em>) sind zufällig gewählt und folgen keiner
+   Namenskonvention. Sie können diese daher für die aufgezeigten und weitere Provider frei wählen.
+</div>
+<p>
+   Desweiteren ist es notwendig, dass eine zusätzliche Spalte in der User-Tabelle und der Umgt-config für das User
+   Objekt angelegt wird, in der der dynamische Salt gespeichert wird, welcher für jeden User automatisch und zufällig
+   generiert wird.
+</p>
+<p>
+   Hierfür muss in der <em>*_umgt_objects.ini</em> (oder in der Datei welche ihr verwendet, sollte es eine andere sein)
+   in der Sektion <em>User</em> folgendes angefügt werden:
+</p>
+<gen:highlight type="ini">
+DynamicSalt = "VARCHAR(50)"
+</gen:highlight>
+<p>
+   Ferner muss entsprechend eine neue Spalte in der Tabelle <em>ent_user</em> angelegt werden. Dies kann manuell
+   oder mit dem <int:link pageid="128">GORM-Update Tool</int:link> geschehen.
+</p>
+<p>
+   Für ein manuelles Update kann folgendes Statement ausgeführt werden:
+</p>
+<gen:highlight type="sql">
+ALTER TABLE ent_user ADD `DynamicSalt` varchar(50) NOT NULL DEFAULT '' AFTER `Password`;
+</gen:highlight>
+
+<h3>10. Page-Controller</h3>
+<p>
+   Aus Konsistenz-Gründen wurde die Definition eines <int:link pageid="006"/> in einer Template-Datei auf eine
+   konsistente Adressierung über Namespace und Klassen-Namen des Controllers umgestellt. Sofern der Name der
+   Controller-Klasse unterschiedlich zum Datei-Namen ist, so muss dies beim Update auf die Version 1.14 bereinigt
+   werden.
+</p>
+<p>
+   Definitionen der Form
+</p>
+<gen:highlight type="apf-xml">
+<@controller
+   namespace="my::namespace::pres::controller"
+   file="bar_controller"
+   class="foo_controller"
+@>
+</gen:highlight>
+<p>
+   sind ab der Version wie folgt zu notieren:
+</p>
+<gen:highlight type="apf-xml">
+<@controller
+   namespace="my::namespace::pres::controller"
+   class="foo_controller"
+@>
+</gen:highlight>
+<p>
+   Sofern notwendig, ist die Datei, die die Controller-Implementierung beinhaltet (hier: <em>bar_controller.php</em>) in
+   <em>foo_controller.php</em> umzubenennen.
+</p>
+<div class="hint">
+   Diese Änderung wurde in 1.14 abwärtskompatibel zu 1.13 umgesetzt. Das bedeutet, dass die Funktion für zum
+   Klassen-Namen unterschiedliche Dateien weiter funktioniert. Bitte beachten Sie jedoch, dass diese Möglichkeit in
+   1.15 komplett entfernt wird. Aus diesem Grund empfiehlt es sich, die Migration bereits mit 1.14 durchzuführen.
+</div>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_140" />
