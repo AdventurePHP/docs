@@ -50,6 +50,7 @@ import('sites::apf::pres::http', 'HttpCacheManager');
 HttpCacheManager::sendHtmlCacheHeaders();
 
 $fC = Singleton::getInstance('Frontcontroller');
+/* @var $fC Frontcontroller */
 $fC->setContext('sites::apf');
 $fC->setLanguage('de');
 
