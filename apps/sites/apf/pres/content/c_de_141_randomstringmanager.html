@@ -1,0 +1,126 @@
+<doku:title parent="119" tags="zufall,zufallsstring,random,randomstring,zufallstext,hash" title="RandomStringManager" urlname="RandomStringManager">
+   Mit dem RandomStringManager zufällige Hashes erzeugen.
+</doku:title>
+
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Der <em>RandomStringManager</em> ist ein einfach zu handhabendes Tool des APF, womit der Entwickler schnell und
+   einfach zufällige Zeichenfolgen erzeugen kann. Die zu verwendenen Zeichen sowie die Länge des Endergebnisse können
+   vom Entwickler konfiguriert werden. Sofern keine Konfiguration mitgegeben wird, wird ein interner Standartwert
+   genutzt.
+</p>
+
+<div class="warn">
+   Sonderzeichen werden immer UTF-8 codiert zurück gegeben. Eine individuelle Einstellung ist im Moment nicht möglich.
+</div>
+
+<h3 id="Chapter-2-Standardwerte"><a href="#Chapter-2-Standardwerte">2. Die Standardwerte</a></h3>
+<p>
+   Werden dem <em>RandomStringManager</em> keine speziellen Definitionen über den Initialisierungs-Parameter
+   übergeben, verwendet er folgende Standartwerte:
+<ul>
+   <li>Zeichenfolge: 1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</li>
+   <li>Länge: 16</li>
+</ul>
+<p>
+   Das bedeutet, dass eine Zeichenfolge der Länge <em>16 Zeichen</em> aus den möglichen Zeichen
+   <em>1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</em> erstellt wird.
+</p>
+
+<h3 id="Chapter-3-Methodenuebersicht"><a href="#Chapter-3-Methodenuebersicht">3. Methodenübersicht</a></h3>
+<p>
+   Der <em>RandomStringManager</em> bietet zwei Methoden an:
+</p>
+<ul>
+   <li>
+      <em>createHash()</em>:
+      Diese Methode erstellt einen zufälligen String anhand Ihrer Vorgaben
+   </li>
+   <li>
+      <em>advancedCreateHash()</em>:
+      Diese Methode erstellt einen zufälligen String in Anlehnung an eine Datenbank. Somit können doppelte
+      Einträge vermieden werden
+   </li>
+</ul>
+
+<h3 id="Chapter-4-createHash"><a href="#Chapter-4-createHash">4. Einen einfachen Zufalls-String erzeugen</a></h3>
+<p>
+   Die Methode <em>createHash()</em> erstellt bei jedem neuen Aufruf der Funktion eine zufällige Zeichenkette und gibt
+   diese zurück. Nachfolgend ein Anwendungsbeispiel:
+</p>
+<gen:highlight type="php">
+// Initialisierung des Managers
+$randomString = &$this->getAndInitServiceObject(
+   'tools::randomstring',
+   'RandomStringManager',
+   array('chars' => '', 'lenght' => '10')
+);
+
+// Zeichenkette erstellen
+$hash = $randomString->createHash();
+</gen:highlight>
+<p>
+   Die obige Code-Box kann wie folgt interpretiert werden:
+</p>
+<p>
+   Zur Erstellung werden die Zeichen <em>1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</em> verwendet.
+   Dies entspricht dem Standardwert da keine andere Konfiguration vergegeben wurde. Die Länge ist auf <em>10 Zeichen</em>
+   festgelegt. Ein Ergebnis wäre damit beispielsweise <em>kJ9i7zjC98</em>.
+</p>
+
+<h3 id="Chapter-5-advancedCreateHash"><a href="#Chapter-5-advancedCreateHash">5. Ist der String bereits vorhanden?</a></h3>
+<p>
+   Ein weiterer Anwendungsfall ist die Erzeugung eines für die Applikation tatsächlich eindeutigen Schlüssels. Das ist
+   zwar durch die zufällige Erzeugung und eine entsprechend groß gewählte Länge bereits sichergestellt, trotzdem ist ein
+   doppeltes Vorkommen möglich.
+</p>
+<p>
+   Möchte der Entwickler wirklich sicher gehen, dass es den zufälligen String nur einmal gibt, kann die erweitere
+   <em>advancedCreateHash()</em>-Methode verwendet werden. Diese führt nach der Erstellung des String eine
+   Datenbankabfrage nach den vorgegebenen Kriterien durch. Ist das Ergebins positiv wird ein neuer String erstellt.
+   Erst ein negatives Ergebnis wird von der Methode zurück gegeben. Somit kann der Entwickler sicher sein, dass es den
+   String nur einmal gibt.
+</p>
+<p>
+   Die folgende Box zeigt die Anwendung der genannten Methode:
+</p>
+<gen:highlight type="php">
+// Initialisierung des Managers
+$randomString = &$this->getAndInitServiceObject(
+   'tools::randomstring',
+   'RandomStringManager',
+   array('chars' => '0123456789ABCDEF', 'lenght' => 3)
+);
+
+// Zeichenkette erstellen und Abgleich mit Datenbank
+$hash = $randomString->advancedCreateHash('SELECT id,allHex FROM hexcode WHERE allHex =', 'database-1');
+</gen:highlight>
+<p>
+   Die obige Code-Box kann wie folgt interpretiert werden:
+</p>
+<p>
+   Der Methode <em>advancedCreateHash()</em> müssen zwei weitere Parameter übergeben werden. Das erste Statement ist
+   die SQL-Abfrage, die durchgeführt wird, um zu überprüfen, ob der String bereits existiert. Das zweite Statement
+   legt den <em>ConnectionKey</em> für die Datenbank-Verbindung fest. Details dazu können Sie im Kapitel
+   <int:link pageid="031" /> nachlesen.
+</p>
+<p>
+   Zur Erstellung werden die Zeichen verwendet <em>0123456789ABCDEF</em> verwendet. Die Länge ist auf <em>3 Zeichen</em>
+   festgelegt. Ein Ergebnis wäre damit beispielsweise <em>0DF</em>.
+</p>
+
+<h3 id="Chapter-6-Weiterfuehrende-Link"><a href="#Chapter-6-Weiterfuehrende-Link">6. Weiterführende Links</a></h3>
+<p>
+   Im Forum gibt es eine Diskussion zur Entstehung des <em>RandomStringManager</em> mit anschliessenden Umlaute- und
+   Sonderzeichen-Problematik:
+</p>
+<ul>
+   <li>
+      <a linkrewrite="false" class="external" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=617" title="Zufallstext im Forum">Zufallstext im Forum</a>
+   </li>
+   <li>
+      <a linkrewrite="false" class="wiki" href="http://wiki.adventure-php-framework.org/de/RandomStringManager" title="RandomStringManager im Wiki">RandomStringManager im Wiki</a>
+   </li>
+</ul>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_141" />
