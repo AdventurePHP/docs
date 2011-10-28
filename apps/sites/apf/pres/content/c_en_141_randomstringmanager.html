@@ -1,0 +1,117 @@
+<doku:title parent="119" tags="random,randomstring,hash" title="RandomStringManager" urlname="RandomStringManager">
+   Creating random hashes and strings with the RandomStringManager.
+</doku:title>
+
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   The <em>RandomStringManager</em> is an easy to use tool of the APF to create quick and easy random hashes and
+   strings. The devoloper can configure the chars to use for creating the hash and the lenght of the resulting hash.
+   If no configuration was given, a default configaration is used for creating the hash.
+</p>
+
+<div class="warn">
+   Symbols and special characters will be ancoded as UTF-8. A particular configuration is not available at the moment.
+</div>
+
+<h3 id="Chapter-2-Default-Configuration"><a href="#Chapter-2-Default-Configuration">2. The Default Configuration</a></h3>
+<p>
+   By default the <em>RandomStringManager</em> is using the following configuration:
+<ul>
+   <li>Chars: 1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</li>
+   <li>Lenght: 16</li>
+</ul>
+<p>
+   That means: A string will be created with the lenght of <em>16 chars</em> out of the possible chars
+   <em>1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</em>.
+</p>
+
+<h3 id="Chapter-3-Overview"><a href="#Chapter-3-Overview">3. Overview of methods</a></h3>
+<p>
+   The <em>RandomStringManager</em> is providing 2 methods:
+</p>
+<ul>
+   <li>
+      <em>createHash()</em>:
+      This method creates a random string by using your configuration
+   </li>
+   <li>
+      <em>advancedCreateHash()</em>:
+      This method creates a random string in dependence on a database. As a result of this you can prevent double entries.
+   </li>
+</ul>
+
+<h3 id="Chapter-4-createHash"><a href="#Chapter-4-createHash">4. Create an easy random string</a></h3>
+<p>
+   Each time you call the method <em>createHash()</em> the function create and return a random string. The following is an example application:
+</p>
+<gen:highlight type="php">
+// Initialisation of the manager
+$randomString = &$this->getAndInitServiceObject(
+   'tools::randomstring',
+   'RandomStringManager',
+   array('chars' => '', 'lenght' => '10')
+);
+
+// create string
+$hash = $randomString->createHash();
+</gen:highlight>
+<p>
+   The code-box above can be interpreted as follows:
+</p>
+<p>
+   For creating the hash the chars <em>1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</em> are used.
+   This corresponds to the defaultconfiguration because no other configuration is specified. The lenght was set to <em>10 chars</em>.
+   A result could be for example <em>kJ9i7zjC98</em>.
+</p>
+
+<h3 id="Chapter-5-advancedCreateHash"><a href="#Chapter-5-advancedCreateHash">5. If the string is already available ...</a></h3>
+<p>
+   A different application is to generate a unique key for the application. Although this is due to the random generation
+   and a correspondingly large selected length already unlikely, but a double occurrence is possible.
+</p>
+<p>
+   If the developer wants ensure that is the random string only once, the extended <em>advancedCreateHash()</ em>
+   method can be used. This function is creating a database query after the hash was created. If the reasult is true, a different
+   hash is created. Only a negative result is returned by the method. Thus the developer can be sure this is a really unique string.
+</p>
+<p>
+   The following box shows the use of that method:
+</p>
+<gen:highlight type="php">
+// Initialisation of the manager
+$randomString = &$this->getAndInitServiceObject(
+   'tools::randomstring',
+   'RandomStringManager',
+   array('chars' => '0123456789ABCDEF', 'lenght' => 3)
+);
+
+// create string and check with database
+$hash = $randomString->advancedCreateHash('SELECT id,allHex FROM hexcode WHERE allHex =', 'database-1');
+</gen:highlight>
+<p>
+   The code-box above can be interpreted as follows:
+</p>
+<p>
+   For the <em>advancedCreateHash()</em>  method u have to provide two more parameter. The first statement is the SQL-queryto check for
+   an existing string. The second statement defines the <em>ConnectionKey</em> of the database. Details can be found here
+   <int:link pageid="031" />.
+</p>
+<p>
+   For creating the hash the chars <em>0123456789ABCDEF</em> are used. The lenght is set to <em>3 chars</em>.
+   A result could be for example <em>0DF</em>.
+</p>
+
+<h3 id="Chapter-6-Links"><a href="#Chapter-6-Links">6. Further links and informations</a></h3>
+<p>
+   A discussion about the birth of the <em>RandomStringManager</em> with problems of using special characters: (German only)
+</p>
+<ul>
+   <li>
+      <a linkrewrite="false" class="external" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=617" title="Zufallstext im Forum">Zufallstext im Forum</a>
+   </li>
+   <li>
+      <a linkrewrite="false" class="wiki" href="http://wiki.adventure-php-framework.org/de/RandomStringManager" title="RandomStringManager im Wiki">RandomStringManager im Wiki</a>
+   </li>
+</ul>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_141" />
