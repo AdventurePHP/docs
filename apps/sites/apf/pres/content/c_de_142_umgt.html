@@ -1,0 +1,684 @@
+<doku:title parent="119" tags="benutzer-management," title="Benutzer-Management" urlname="Benutzer-Management-Modul">
+   Fertiges APF-Modul zur Verwaltung von Benutzern für beliebige Applikationen.
+</doku:title>
+
+<pre>
+* Einleitung
+* Konzepte
+** Benutzer
+** Gruppen
+** Sichtbarkeits-Berechtigungen
+** Funktions-Berechtigungen
+* Komponenten
+* Installation inkl. Backend
+** Sandbox
+** Manuell
+* Implementierung Redirect Url Provider
+* Bedienung / Funktion Backend
+* Entwicklung
+** Einsatz von fertigen Komponenten
+*** Login
+*** Registrierung
+*** User dep content
+** Einbau in eigene Applikationen (UmgtManager) / Anwendung
+*** Beziehen des Managers
+*** Login
+*** Auslesen von Permissions
+*** Anlegen von Benutzern
+*** Anlegen von Gruppen
+*** Anlegen von Sichtbarkeits-Berechtigungen
+* Passwort-Verschlüsselung
+* Datenmodell
+** Bild
+** Beschreibung der Entitäten
+** Beschreibung der Domänen-Objekte
+</pre>
+
+<p>
+   Das <em>usermanagement</em>-Modul ist eine umfassende und direkt einsetzbare Komponente, die dem Entwickler bei der
+   Verwaltung von Benutzern, Gruppen und Berechtigungen unterstützt.
+</p>
+<p>
+   Es ist dafür konzeptioniert, als Basis für beliebige Anwendungen direkt und ohne Anpassung eingesetzt zu werden.
+   Hierzu werden ein Management-Backend und eine Reihe von Komponenten (z.B. Login, Registrierung, Verwaltungsservice)
+   angeboten. Diese helfen dem Entwickler helfen, Benutzer-basierte Anwendungen schnell und effizient umzusetzen.
+</p>
+<p>
+   Die folgenden Kapitel beschreiben nun die zugrundeliegenden Konzepte, das Datenmodell und die Anwendung.
+</p>
+
+<h3 id="Chapter-1-Konzepte"><a href="#Chapter-1-Konzepte">1. Konzepte</a></h3>
+<p>
+   Das vorliegende Kapitel beschreibt die Konzepte, die als Basis für die Implementierung des Moduls genutzt wurden
+   und geht jeweils auf deren Bedeutung und Anwendung ein.
+</p>
+<p>
+   Grundsätzlich: Rollen-basierte Benutzer-Verwaltung mit Sichtbarkeits-Berechtigungen um Zugriff auf Objekte einer
+   Anwendung getrennt halten zu können. Vorteil: Einsetzbar und integrierbar mit jeder Anwendung.
+</p>
+<p>
+   Mehrfaches Setup möglich, da Applikation als eigene Entität vorhanden ist.
+</p>
+
+<h4 id="Chapter-1-1-Benutzer"><a href="#Chapter-1-1-Benutzer">1.1. Benutzer</a></h4>
+<p>
+   Benutzer bilden das zentrale Element des Benutzer-Verwaltungs-Moduls. Auf Basis eines Benutzers passiert eine
+   Registrierung und ein Login bzw. eine personalisierte Anzeige von Funktionen und Inhalten.
+</p>
+<p>
+   Der Benutzer steht also im Fokus der Anwendung...
+</p>
+
+<h4 id="Chapter-1-2-Gruppen"><a href="#Chapter-1-2-Gruppen">1.2. Gruppen</a></h4>
+<p>
+   Gruppen dienen zunächst als Container für einen oder mehrere Benutzer. Dabei kann jeder Benutzer einer beliebigen
+   Anzahl von Gruppen zugeordnet sein.
+</p>
+<p>
+   Weitehin dienen Gruppen dazu, Funktions- und Sichtbarkeits-Berechtigungen schnell und einfach an mehrere Benutzer
+   zuzuweisen. Dies erleichtert zum einen die Administration und ermöglicht zum anderen bei der Entwicklung einer
+   konkreten Funtktionalität das Zuweisen von bestimmten Berechtigungen einfacher vornehmen zu können.
+</p>
+<p>
+   Gruppen können kein Mitglied einer weiteren Gruppe sein.
+</p>
+
+<h4 id="Chapter-1-3-Funktions-Berechtigungen"><a href="#Chapter-1-3-Funktions-Berechtigungen">1.3. Funktions-Berechtigungen</a></h4>
+<p>
+   Wiki-Text...
+</p>
+
+<h4 id="Chapter-1-4-Sichtbarkeits-Berechtigungen"><a href="#Chapter-1-4-Sichtbarkeits-Berechtigungen">1.4. Sichtbarkeits-Berechtigungen</a></h4>
+<p>
+   Wiki-Text...
+</p>
+
+<h3 id="Chapter-2-Komponenten"><a href="#Chapter-2-Komponenten">2. Komponenten</a></h3>
+<p>
+   Das Benutzer-Verwaltungs-Modul besteht aus mehreren Komponenten: ==> als eigene Kapitel auslagern.
+</p>
+<ul>
+   <li>Einem Verwaltungs-Frontend</li>
+   <li>Einer Datenhaltung basierend auf dem GORM</li>
+   <li>Einen Service für die Integration in Applikationen</li>
+   <li>Registrierung und Login</li>
+   <li>Taglibs zur Benutzer-abhängigen Steuerung von Inhalten</li>
+</ul>
+<p>
+   Das Verwaltungs-Frontend dient der Pflege der Benutzer, Gruppen und Berechtigungen. Es beinhaltet bereits alle
+   Funktionen, die notwendig sind, um Administratoren ein Backend zur Verfügung zu stellen.
+</p>
+<p>
+   Die Datenhaltung basiert auf dem GORM. Das bedeutet, dass die Attribute eines Benutzers jederzeit erweitert
+   oder neue Beziehungen erzeugt werden können. Durch die Konfiguration per DI-Container bleiben diese Änderungen vor
+   der konkreten Applikation versteckt, können aber trotzdem vom GORM im Hintergrund verwaltet werden. Ein Beispiel
+   hierfür ist ein Objekt mit Einstellungen für eine konkrete Applikation, die mit einer Assoziation an einen Benutzer
+   gebunden werden soll. Hierzu kann die Konfiguration des GORM für das UMGT entsprechend angepasst werden ohne dass
+   eine Änderung des Codes notwendig ist.
+</p>
+<p>
+   Als zentraler Service steht der <em>UmgtManager</em> zur Verfügung. Dieser wird sowohl im Frontend als auch in den
+   GUI-Komponenten eingesetzt. Nutzen Sie das UMGT innerhalb einer Applikation, so stellt Ihnen der Service alle
+   notwenigen Funktionalitäten zur Verwaltung von Benutzern, Gruppen und Berechtigungen zur Verfügung.
+</p>
+<p>
+   Des Weiteren bringt das Modul bereits einige direkt einsetzbare Komponenten mit. Diese erleichtern den Einsatz des
+   Moduls und implementieren oft benötigte Funktionalitäten, damit Sie Ihre Anwendung schnell, sicher und einfach
+   realisieren können. Inkludiert ist Registrierung eines neuen Benutzer-Accounts und das Login. Diese können ohne
+   Code-Anpassung in die bestehende Applikation eingebunden und durch CSS-Styles entsprechend formatiert werden.
+</p>
+<p>
+   Zur Steuerung von Inhalten auf Ihrer Webseite oder Web-Applikation stehen eine Reihe von Taglibs zur Verfügung.
+   Diese basieren im Wesentlichen auf den Funktionalitäten des <em>UmgtManager</em> und werden durch eine Evaluierungs-
+   sowie Login-Logik erweitert. Hiermit lassen sich beispielsweise die Benutzer-abhängige Anzeige von Inhalts-Bereichen
+   und Navigations-Elementen oder auch eine Layout-Steuerung realisieren.
+</p>
+
+<h3 id="Chapter-3-Installation"><a href="#Chapter-3-Installation">3. Installation</a></h3>
+<p>
+   Die Installation des Moduls kann auf zwei verschiedene Arten erfolgen: automatisiert per Wizzard in der Sandbox und
+   manuell.
+</p>
+<p>
+   Nachdem das Setup abgeschlossen ist, können sowohl die Verwaltungs-Oberfläche als auch Registrierung und Login direkt
+   in der Applikation genutzt werden.
+</p>
+
+<h4 id="Chapter-3-1-Installation-via-Sandbox"><a href="#Chapter-3-1-Installation-via-Sandbox">3.1. Installation via Sandbox</a></h4>
+<p>
+   Die <int:link pageid="074"/> des APF (Sie können die <em>apf-demopack-*</em>-Pakete jederzeit unter
+   <int:link pageid="008"/> herunterladen) beinhaltet einen Wizzard, der es ermöglicht, das Modul in mehreren Schritten
+   zu konfigurieren und zu initialisieren.
+</p>
+<p>
+   Der Wizzard erstellt die notwendigen Datenbank- und Service-Konfigurationen und erstellt die Tabellen des Moduls
+   in einer von Ihnen gewählten Datenbank. Anschließend ist das Modul innerhalb der Sandbox fertig einsetzbar. Sie
+   können sich einloggen, das Benutzer-Verwaltungs-Oberfläche nutzen und erhalten je nach Konfiguration
+   Benutzer-spezifische Inhalte (z.B. Navigations-Punkte) angezeigt.
+</p>
+<p>
+   Nachteil dieser Methode ist, dass das Modul lediglich innerhalb der Sandbox vollständig lauffähig ist und die
+   erstellten Konfigurationen und die Einbindung in die GUI dann in das jeweilige Webseiten-Projekt übernommen werden
+   muss.
+</p>
+<p>
+   Die folgenden Kapitel beschreiben das Setup des Moduls innerhalb der Sandbox Schritt für Schritt.
+</p>
+
+<h5 id="Chapter-3-1-1-Sandbox-Uebersicht"><a href="#Chapter-3-1-1-Sandbox-Uebersicht">3.1.1. Übersicht</a></h5>
+<p>
+   Wo findet sich der Wizzard? Wo ist das UMGT eingebaut? 
+</p>
+<img src="http://media.adventure-php-framework.org/content/umgt_sandbox_wizzard_01.png" alt="Benutzer-Verwaltungs-Wizzard des APF"/>
+
+<h5 id="Chapter-3-1-2-Datenbank-Konfiguration"><a href="#Chapter-3-1-2-Datenbank-Konfiguration">3.1.2. Datenbank-Konfiguration</a></h5>
+<p>
+   Nutzt Config-Feature, definiert die Datenbank-Verbindung (<em>Sandbox-UMGT</em>) und speichert diese in der Datei
+   <em>/config/core/database/{CONTEXT}/{ENVIRONMENT}_connections.ini</em>.
+</p>
+<img src="http://media.adventure-php-framework.org/content/umgt_sandbox_wizzard_02.png" alt="Datenbank-Setup der Benutzer-Verwaltungs-Wizzard des APF"/>
+
+<h5 id="Chapter-3-1-3-Datenbank-Setup"><a href="#Chapter-3-1-3-Datenbank-Setup">3.1.3. Datenbank-Setup</a></h5>
+<p>
+   Nach Setup der DB-Config muss die DB initialisiert werden. Da der <int:link pageid="063"/> eingesetzt wird kann das
+   dort enthaltene Setup-Tool (<em>GenericORMapperSetup</em>) genutzt werden.
+</p>
+<p>
+   Die Konfigurationen für das UMGT sind in der Sandbox bereits vorhanden und müssen nicht per Hand angelegt werden.
+</p>
+
+<img src="http://media.adventure-php-framework.org/content/umgt_sandbox_wizzard_03.png" alt="Datenbank-Initialsierung der Benutzer-Verwaltungs-Wizzard des APF"/>
+
+<h5 id="Chapter-3-1-4-Benutzer-anlegen"><a href="#Chapter-3-1-4-Benutzer-anlegen">3.1.4. Benutzer anlegen</a></h5>
+<p>
+   Nachdem die Datenbank initialisiert ist, haben Sie die Möglichkeit, initiale Benutzer anzulegen. Mit diesen können
+   Sie sich dann an der Sandbox anmelden.
+</p>
+<img src="http://media.adventure-php-framework.org/content/umgt_sandbox_wizzard_04.png" alt="Benutzer anlegen in der Benutzer-Verwaltungs-Wizzard des APF"/>
+<p>
+   Das Formular deckt nur Benutzer-Namen und Passwort ab. Alle weiteren Konfigurationen können entweder direkt in der
+   ADMIN-GUI erledigt werden oder zum Anlegen des Benutzers wird das Registrieren-Formular genutzt.
+</p>
+
+<h5 id="Chapter-3-1-5-Backend-nutzen"><a href="#Chapter-3-1-5-Backend-nutzen">3.1.5. Backend nutzen</a></h5>
+<p>
+   Zur Administration kann das mit dem Modul mitgelieferte Backend genutzt werden. Dieses verfügt über alle
+   Funktionalitäten, die für die Verwaltung von Benutzern, Gruppen und Berechtigungen notwendig sind.
+</p>
+<p>
+   Sie können nun die im Wizzard angelegten Benutzer konfigurieren. Details zu Bedienung im Kapitel ...
+</p>
+
+<h5 id="Chapter-3-1-6-Login"><a href="#Chapter-3-1-6-Login">3.1.6. Login</a></h5>
+<p>
+   Mit dem neu angelegten Benutzer ist es nun möglich, sich an der Sandbox einzuloggen. Hierzu wird die mitgelieferte
+   Komponente genutzt. Diese stellt ein Login-Formular, den Auth-Mechanismus und eine Action bereit, mit der sich ein
+   Benutzer wieder abmelden kann.
+</p>
+<img src="http://media.adventure-php-framework.org/content/umgt_sandbox_wizzard_05.png" alt="Login in der Benutzer-Verwaltungs-Wizzard des APF"/>
+<p>
+   Mit Hilfe der Benutzer-abhängigen Tags erhalten Sie den Login/Logout-Button je nach Zustand angezeigt.
+</p>
+
+
+<h4 id="Chapter-3-2-Manuelle-Installation"><a href="#Chapter-3-2-Manuelle-Installation">3.2. Manuelle Installation</a></h4>
+<p>
+   Möchten Sie das Setup für ein Webseiten-Projekt oder eine Applikation einsetzen, wird das manuelle Setup empfohlen.
+   Mit diesem haben Sie die volle Kontrolle über die erstellten Konfigurationen und können jederzeit steuernd eingreifen.
+</p>
+<p>
+   Nachteil der Methode ist jedoch, dass Sie alle Konfigurations-Dateien manuell anlegen müssen. Details siehe
+   <a href="#Chapter-3-1-3-Datenbank-Setup">Datenbank-Setup</a>.
+</p>
+
+<h5 id="Chapter-3-2-1-Datenbank-Konfiguration"><a href="#Chapter-3-2-1-Datenbank-Konfiguration">3.2.1. Datenbank-Konfiguration</a></h5>
+<p>
+   Das Modul basiert - wie bereits angesprochen - auf dem <int:link pageid="063" /> zur Verwaltung der Benutzer-Daten.
+   Zur Konnektierung der Datenbank kann eine bestehende oder neu erstellte Sektion in der Datei
+</p>
+<gen:highlight type="text">
+/config/core/database/{CONTEXT}/{ENVIRONMENT}_connections.ini
+</gen:highlight>
+<p>
+   verwendet werden.
+</p>
+<p>
+   Details zur Konfiguration von Datenbank-Verbindungen finden Sie unter <int:link pageid="031"/>. Für die weitere
+   Dokumentation nutzen wir folgendes Beispiel:
+</p>
+<gen:highlight type="ini">
+[Sandbox-UMGT]
+DB.Host = "localhost"
+DB.Port = "3306"
+DB.User = "root"
+DB.Pass = ""
+DB.Name = "umgt_sandbox"
+DB.Collation = "utf8_general_ci"
+DB.Charset = "utf8"
+DB.Type = "MySQLx"
+</gen:highlight>
+
+<h5 id="Chapter-3-2-2-Modul-Konfiguration"><a href="#Chapter-3-2-2-Modul-Konfiguration">3.2.2. Modul-Konfiguration</a></h5>
+<p>
+   Im nächsten Schritt werden nun die Konfigurationen des Moduls angelegt. Diese sind:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Pfad</td>
+         <td>Name</td>
+         <td>Beschreibung</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>/config/modules/usermanagement/data/{CONTEXT}/</td>
+         <td>{ENVIRONMENT}_umgt_objects.ini</td>
+         <td>
+            Definition der Benutzer-Verwaltungs-Objekte (z.B. Benutzer) für den <int:link pageid="063"/>.
+         </td>
+      </tr>
+      <tr>
+         <td>/config/modules/usermanagement/data/{CONTEXT}/</td>
+         <td>{ENVIRONMENT}_umgt_relations.ini</td>
+         <td>
+            Definition der Beziehungen zwischen den Objekten für den <int:link pageid="063"/>.
+         </td>
+      </tr>
+      <tr>
+         <td>/config/modules/usermanagement/data/{CONTEXT}/</td>
+         <td>{ENVIRONMENT}_umgt_domainobjects.ini</td>
+         <td>
+            Definition der Domänen-Objekte für den <int:link pageid="063"/>. Details können dem Kapitel
+            <int:link pageid="139"/> entnommen werden.
+         </td>
+      </tr>
+      <tr>
+         <td>/config/modules/usermanagement/biz/{CONTEXT}/</td>
+         <td>{ENVIRONMENT}_serviceobjects.ini</td>
+         <td>
+            Konfiguration des <em>UmgtManager</em>-Service über den
+            <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DIServiceManager</int:link>.
+         </td>
+      </tr>
+      <tr>
+         <td>/config/modules/usermanagement/biz/{CONTEXT}/</td>
+         <td>{ENVIRONMENT}_umgtconfig.ini</td>
+         <td>
+            Konfiguration der Password-Hash-Provider (TODO: Link auf das entsprechende Kapitel).
+         </td>
+      </tr>
+      <tr>
+         <td>/config/modules/usermanagement/biz/{CONTEXT}/</td>
+         <td>{ENVIRONMENT}_actionconfig.ini</td>
+         <td>
+            Konfiguration für die <int:link pageid="012"/>-Actions des Moduls (Logout).
+         </td>
+      </tr>
+      <tr>
+         <td>/config/modules/usermanagement/pres/{CONTEXT}/</td>
+         <td>{ENVIRONMENT}_login.ini</td>
+         <td>
+            Konfiguration der Login-Funktionalität hinsichtlich der Login-Methode (E-Mail oder Benutzer-Name).
+         </td>
+      </tr>
+      <tr>
+         <td>/config/modules/usermanagement/pres/{CONTEXT}/</td>
+         <td>{ENVIRONMENT}_labels.ini</td>
+         <td>
+            Konfiguration der Beschriftung der GUI-Komponenten (Login, Registrierung).
+         </td>
+      </tr>
+   </tbody>
+</table>
+
+<h6 id="Chapter-3-2-2-1-Konfiguration-der-Daten-Schicht"><a href="#Chapter-3-2-2-1-Konfiguration-der-Daten-Schicht">3.2.2.1. Konfiguration der Daten-Schicht</a></h6>
+<p>
+   Bitte legen Sie die für die ersten drei Dateien die in der Tabelle genannten Ordner an und beziehen eine
+   <em>apf-configpack-*</em>-Datei unter <int:link pageid="008"/>.
+</p>
+<p>
+   Die Vorlage für die Datei
+</p>
+<gen:highlight type="text">
+/config/modules/usermanagement/data/{CONTEXT}/{ENVIRONMENT}_umgt_objects.ini
+</gen:highlight>
+<p>
+   finden Sie beispielsweise unter
+</p>
+<gen:highlight type="text">
+/config/modules/usermanagement/data/EXAMPLE_umgt_objects.ini
+</gen:highlight>
+<p>
+   Diese müssen dann in den entsprechenden Ordner kopiert und gemäß der aktuellen Umgebungs-Konfiguration umbenannt
+   werden. Details zum Konfigurations-Schema finden sind unter <int:link pageid="134"/>.
+</p>
+
+<h6 id="Chapter-3-2-2-2-Konfiguration-der-Business-Services"><a href="#Chapter-3-2-2-2-Konfiguration-der-Business-Services">3.2.2.2. Konfiguration der Business-Services</a></h6>
+<p>
+   Die Konfiguration der Business-Services umfasst - wie in der obigen Tabelle beschrieben - drei Konfigurationen.
+</p>
+<p>
+   Die Datei <em>{ENVIRONMENT}_serviceobjects.ini</em> definiert den <em>UmgtManager</em>-Service, der als zentrale
+   Anlaufstelle für die Benutzer-Verwaltung eingesetzt wird. Bitte nutzen Sie die Datei
+</p>
+<gen:highlight type="text">
+/config/modules/usermanagement/biz/EXAMPLE_serviceobjects.ini
+</gen:highlight>
+<p>
+   als Basis für die Konfiguration Ihrer Applikation und kopieren diese in den entsprechenden Ordner. Details zum
+   Konfigurations-Schema finden sind unter <int:link pageid="134"/>. Die Datei beinhaltet folgende Service-Definitionen:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Name</td>
+         <td>Beschreibung</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>LoginRedirectUrlProvider</td>
+         <td>
+            <p>
+               Die mit dem Modul mitgelieferte Login-Komponente leitet den Benutzer nach dem erfolgreichen Login auf
+               eine dedizierte Seite weiter. Mit Hilfe des <em>LoginRedirectUrlProvider</em> kann für den konkreten
+               Einsatz des Benutzer-Verwaltungs-Moduls definiert werden, wohin der Benutzer im aktuellen Projekt geleitet
+               wird.
+            </p>
+            <p>
+               Der hier erwartete Service muss das Interface <em>UmgtRedirectUrlProvider</em> implementieren.
+            </p>
+         </td>
+      </tr>
+      <tr>
+         <td>LogoutRedirectUrlProvider</td>
+         <td>
+            <p>
+               Analog zum <em>LoginRedirectUrlProvider</em> ist dieser Servive dafür verantwortlich, diejenige Url zu
+               generieren, zu der der Benutzer nach dem Logout geleitet wird.
+            </p>
+            <p>
+               Der hier erwartete Service muss ebenfalls das Interface <em>UmgtRedirectUrlProvider</em> implementieren.
+            </p>
+         </td>
+      </tr>
+      <tr>
+         <td>UmgtManager</td>
+         <td>
+            Der <em>UmgtManager</em> ist der zentrale Service des Benutzer-Management-Moduls. Er findet sowohl in der
+            mitgelieferten Verwaltungs-Oberfläche als auch in den einzelnen Benutzer-Komponenten wie Login und
+            Registrierung Anwendung.
+         </td>
+      </tr>
+      <tr>
+         <td>GORM</td>
+         <td>
+            <p>
+               Der <int:link pageid="063"/> wird zur Abstraktion der Datenhaltung eingesetzt und dient dem
+               <em>UmgtManager</em> als Datenquelle. Um eine Trennung zwischen Konfiguration und Code zu erreichen, wird
+               der Mapper über den <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DIServiceManager</int:link>
+               konfiguriert und dem <em>UmgtManager</em> injiziert.
+            </p>
+            <p>
+               Durch diese Art der Konfiguration kann die Instanz des <em>GORM</em> jederzeit um weitere Mapping- und
+               Beziehungs-Konfigurationen transparent erweitert werden. Dies kann beispielsweise für die Verwaltung von
+               weiteren Applikations-spezifischen Objekten sein.
+            </p>
+         </td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   Die Implementierung eines <em>UmgtRedirectUrlProvider</em> für Login und Logout muss dem Interface
+</p>
+<gen:highlight type="php">
+interface UmgtRedirectUrlProvider {
+   function getRedirectUrl();
+}
+</gen:highlight>
+<p>
+   genügen. Das Login in der <int:link pageid="074"/> sieht vor, dass der Benutzer nach einem erfolgreichen Login
+   wieder auf die Login-Seite geleitet wird. Grund dafür ist, dass das Login-Formular in seinem zweiten Status
+   repräsentiert werden soll.
+</p>
+<p>
+   Der dafür notwendige Code gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+class SandboxLoginRedirectProvider extends APFObject implements UmgtRedirectUrlProvider {
+
+   public function getRedirectUrl() {
+      return '?page=login';
+   }
+
+}
+</gen:highlight>
+<p>
+   Da der Provider über den <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DIServiceManager</int:link>
+   bezogen wird, kann für die Implementierung auch die Signatur
+</p>
+<gen:highlight type="php">
+class SandboxLoginRedirectProvider implements UmgtRedirectUrlProvider, APFDIService {
+   ...
+}
+</gen:highlight>
+<p>
+   verwendet werden. Eine &quot;manuelle&quot; Implementierung ist jedoch nicht notwendig, da die Klasse <em>APFObject</em>
+   bereits alle notwendigen Funktionen für einen Service gemäß der Interface-Definition von <em>APFDIService</em> mitbringt
+   (z.B. Injektion des Contextes).
+</p>
+<p>
+   Nutzen Sie de Beispiel-Konfiguration aus dem <em>apf-configpack-*</em> muss bei der Konfiguration des
+   <int:link pageid="063"/> lediglich die notwendige Datenbank-Verbindung im Attribut <em>conf.db.value</em> angegeben
+   werden.
+</p>
+<p>
+   Die fertige Konfiguration für die Sandbox sieht wie folgt aus:
+</p>
+<gen:highlight type="ini">
+[LoginRedirectUrlProvider]
+servicetype = "NORMAL"
+namespace = "sandbox::pres::provider"
+class = "SandboxLoginRedirectProvider"
+
+[LogoutRedirectUrlProvider]
+servicetype = "NORMAL"
+namespace = "sandbox::pres::provider"
+class = "SandboxLogoutRedirectProvider"
+
+[UmgtManager]
+servicetype = "SINGLETON"
+namespace = "modules::usermanagement::biz"
+class = "UmgtManager"
+setupmethod = "setup"
+init.orm.method = "setORMapper"
+init.orm.namespace = "modules::usermanagement::biz"
+init.orm.name = "GORM"
+conf.app-id.method = "setApplicationId"
+conf.app-id.value = "1"
+
+[GORM]
+servicetype = "SINGLETON"
+namespace = "modules::genericormapper::data"
+class = "GenericORRelationMapper"
+setupmethod = "setup"
+conf.namespace.method = "setConfigNamespace"
+conf.namespace.value = "modules::usermanagement::data"
+conf.affix.method = "setConfigNameAffix"
+conf.affix.value = "umgt"
+conf.db.method = "setConnectionName"
+conf.db.value = "Sandbox-UMGT"
+</gen:highlight>
+
+<h6 id="Chapter-3-2-2-3-Konfiguration-der-Password-Hash-Provider"><a href="#Chapter-3-2-2-3-Konfiguration-der-Password-Hash-Provider">3.2.2.3. Konfiguration der Password-Hash-Provider</a></h6>
+<p>
+   Die Verschlüsselung von Passwörtern wird im <em>UmgtManager</em> über ein oder mehrere
+   <em>PasswordHashProvider</em>-Implementierungen realisiert. Dies bietet die Möglichkeit, je nach Anwendungsfall und
+   Sicherheitsanforderungen die Implementierung auszutauschen.
+</p>
+<p>
+   Die Zuweisung der jeweils gültigen Implementierung(en) erfolgt in der Datei <em>{ENVIRONMENT}_umgtconfig.ini</em>.
+   Als Vorlage können Sie die Datei
+</p>
+<gen:highlight type="text">
+/config/modules/usermanagement/biz/EXAMPLE_umgtconfig.ini
+</gen:highlight>
+<p>
+   aus dem <em>apf-configpack-*</em> nutzen. Kopieren Sie diese dazu zunächst an den für Ihre Applikation gültigen Ort.
+   Details zum Konfigurations-Schema finden sind unter <int:link pageid="134"/>.
+</p>
+<p>
+   Mit <em>Version 1.14</em> wurde der bisher mit dem APF ausgelieferte Verschlüsselungsmechanismus durch einen
+   komplexeren und sichereren ersetzt. Dieser nutzt die Funktion <em>crypt()</em> in Verbindung mit einem statischen
+   und einem dynamischen Salt.
+</p>
+<div class="warn">
+   Es wird dringend empfohlen auf den Einsatz von als unsicher eingestuften Algorithmen (z.B. <em>md5</em>) zu
+   verzichten um die Daten Ihrer Benutzer bestmöglich zu schützen.
+</div>
+<p>
+   Sollte es notwendig sein, im Betrieb von einem alten Format auf ein neues zu migrieren oder von einem beliebigen
+   sicheren Format auf ein anderes zu wechseln, bietet das Modul bereits einen Standard-Mechanismus an. Dieser wird
+   unter
+   <a href="#Chapter-3-2-2-4-Konfiguration-des-Password-Hash-Provider-Fallbacks">Konfiguration der Password-Hash-Provider Fallbacks</a>
+   näher beschrieben.
+</p>
+<p>
+   Konfigurieren Sie nun den statischen Salt mit Hilfe des Attributs <em>Salt</em>. Die Konfiguration sieht damit
+   beispielsweise wie folgt aus:
+</p>
+<gen:highlight type="ini">
+[Default]
+PasswordHashProvider.Default.Namespace = "modules::usermanagement::biz::provider::crypt"
+PasswordHashProvider.Default.Class = "CryptHardcodedSaltPasswordHashProvider"
+
+Salt = "...mein statischer Salt..."
+</gen:highlight>
+<p>
+   Desweiteren wird in der Benutzer-Tabelle automatisch für jeden Benutzer ein eindeutiger und dynamisch generierter
+   <em>DynamicSalt</em> gespeichert um dedizierte Angriffe auf den Authentifizierungs-Mechanismus geziehlt abzuwehren.
+</p>
+<p>
+   Das APF bringt im Auslieferungszustand zwei Implementierungen mit: <em>CryptHardcodedSaltPasswordHashProvider</em>
+   (neuer, sicherer Mechanismus) und <em>OldMD5PasswordHashProvider</em> (alter, unsicherer Mechanismus). Um eine
+   eigene Komponente für die Verschlüsselung von Passwörtern zu nutzen, muss zunächst eine PHP-Klasse erstellt
+   werden, die das <em>PasswordHashProvider</em> Interface implemeniert. Dieses definiert eine Methode,
+   die ein übergebenes Password in einen Hash umwandeln soll. Für die Nutzung des SHA1-Algorithmus ist die Implementierung
+   wie folgt:
+</p>
+<gen:highlight type="php">
+import('modules::usermanagement::biz', 'PasswordHashProvider');
+class Sha1PasswordHashProvider extends DefaultPasswordHashProvider {
+
+   public function createPasswordHash($password, $dynamicSalt) {
+      return sha1($password);
+   }
+
+}
+</gen:highlight>
+<p>
+   Soll die oben gezeigte Konfiguration ersetzt werden, muss Ihre <em>{ENVIRONMENT}_umgtconfig.ini</em> folgende
+   Zeilen beinhalten:
+</p>
+<gen:highlight type="ini">
+[Default]
+PasswordHashProvider.Default.Namespace = "my::namespace"
+PasswordHashProvider.Defaul.Class = "Sha1PasswordHashProvider"
+</gen:highlight>
+<p>
+   Die Direktive <em>Salt</em> wurde nicht definiert, da der Provider keinen statischen Salt nutzt.
+</p>
+
+<h6 id="Chapter-3-2-2-4-Konfiguration-des-Password-Hash-Provider-Fallbacks"><a href="#Chapter-3-2-2-4-Konfiguration-des-Password-Hash-Provider-Fallbacks">3.2.2.4. Konfiguration der Password-Hash-Provider Fallbacks</a></h6>
+<p>
+   Seit <em>Version 1.14</em> ist es möglich mehrere <em>PasswordHashProvider</em> gleichzeitig einzusetzen, um von
+   einem (alten) Hash-Algorythmus auf einen neuen bzw. anderen umsteigen zu können. Dieser Mechanismus bietet dne Vorteil,
+   dass Benutzer Ihre Passwörter nicht ändern müssen, sondern der Update-Prozess transparent im Hintergrund passiert.
+</p>
+<div class="warn">
+   Nutzen Sie die Soft-Migration nicht, können sich Ihre Benutzer nach einer Umstellung des Hash-Algorithmus nicht mehr
+   einloggen.
+</div>
+<p>
+   Um den Fallback zu realisieren, werden mehrere <em>PasswordHashProvider</em> in der Konfiguration definiert. Der
+   <em>zuerst definierte Provider</em> entspricht dabei dem &quot;neuen&quot; bzw. aktuell gültigen Provider. Alle
+   Weiteren werden als Fallback angesehen. Bei einem Login wird zuerst versucht das übergebene Passwort mit dem
+   &quot;neuen&quot; bzw. aktuell gültigen Provider zu verschlüsseln und mit dem gespeicherten zu vergleichen.
+   Gibt es hierbei keine Übereinstimmung, werden der Reihe nach die übrigen Provider genutzt. Wird ein übereinstimmender
+   Hash mit einem der Fallback-Provider gefunden, aktualisiert der <em>UmgtManager</em> im Hintergrund automatisch den
+   Hashwert in der Datenbank auf das Format des neuen, zuerst definierten Providers. Für den Benutzer ist dieser Prozess
+   transparent und sein Login-Versuch wird natürlich akzeptiert.
+</p>
+<p>
+   Auf diesem Weg sollten unter der Voraussetzung, dass sich jeder Benutezr mindestens einmal eingeloggt, nach einer
+   gewissen Zeit alle Hashwerte auf das neue Verfahren umgestellt sein.
+</p>
+<p>
+   Um einen Fallback von der &quot;alten&quot; Implementierung des APF auf den <em>CryptHardcodedSaltPasswordHashProvider</em>
+   zu realisieren, ist folgende Konfiguration notwendig:
+</p>
+<gen:highlight type="ini">
+PasswordHashProvider.Default.Namespace = "modules::usermanagement::biz::provider::crypt"
+PasswordHashProvider.Default.Class = "CryptHardcodedSaltPasswordHashProvider"
+PasswordHashProvider.Fallback.Namespace = "modules::usermanagement::biz::provider::md5"
+PasswordHashProvider.Fallback.Class = "OldMD5PasswordHashProvider"
+</gen:highlight>
+<div class="hint">
+   Die Bezeichnung der Subsections (hier <em>Default</em> und <em>Fallback</em>) ist dabei nicht relevant, die
+   Reihenfolge ist ausschlaggebend.
+</div>
+
+<h6 id="Chapter-3-2-2-5-Konfiguration-der-Front-Controller-Actions"><a href="#Chapter-3-2-2-5-Konfiguration-der-Front-Controller-Actions">3.2.2.5. Konfiguration der Front-Controller-Actions</a></h6>
+<p>
+   Die Logout-Funktionalität ist über eine eigene <int:link pageid="012" />-Action realisiert. Hierzu ist eine
+   Konfiguration der Action-Implementierung notwendig.
+</p>
+<p>
+   Kopieren Sie daher die Datei
+</p>
+<gen:highlight type="text">
+/config/modules/usermanagement/biz/EXAMPLE_actionconfig.ini
+</gen:highlight>
+<p>
+   aus dem <em>apf-configpack-*</em> an den für Ihre Applikation gültigen Ort. Details zum Konfigurations-Schema finden
+   sind unter <int:link pageid="134"/>.
+</p>
+<p>
+   Da die Definition der Action keine dynamischen Parameter beinhaltet, ist keine weitere Anpassung notwendig. Der
+   Inhalt der Datei gestaltet sich wie folgt:
+</p>
+<gen:highlight type="ini">
+[logout]
+FC.ActionNamespace = "modules::usermanagement::biz::login"
+FC.ActionClass = "UmgtLogoutAction"
+</gen:highlight>
+
+<h6 id="Chapter-3-2-2-6-Konfiguration-des-Login"><a href="#Chapter-3-2-2-6-Konfiguration-des-Login">3.2.2.6. Konfiguration des Login</a></h6>
+<p>
+   Für die Konfiguration das Login kopieren Sie bitte die Datei
+</p>
+<gen:highlight type="text">
+/config/modules/usermanagement/pres/EXAMPLE_login.ini
+</gen:highlight>
+<p>
+   aus dem <em>apf-configpack-*</em> an den für Ihre Applikation gültigen Ort. Details zum Konfigurations-Schema finden
+   sind unter <int:link pageid="134"/>.
+</p>
+<p>
+   Innerhalb der Datei haben Sie die Möglichkeit, zwischen einer Authentifizierung durch
+</p>
+<ul>
+   <li>Benutzer-Name und Passwort (Schlüssel: <em>username</em>) sowie</li>
+   <li>E-Mail-Adresse und Passwort (Schlüssel: <em>email</em>)</li>
+</ul>
+<p>
+   zu wählen. Hinweise zu den entsprechenden Werten finden Sie in der Beispiel-Konfiguration.
+</p>
+
+<h6 id="Chapter-3-2-2-7-Konfiguration-der-Beschriftung"><a href="#Chapter-3-2-2-6-Konfiguration-des-Login">3.2.2.6. Konfiguration des Login</a></h6>
+
+
+      <!--Im Benutzer-Verwaltungs-Modul kommt das
+            <int:link pageid="139">Domänen-Objekt</int:link>-Feature des <em>GORM</em> zum Einsatz. Dadurch werden alle
+            Objekte des Moduls in entsprechenden-->
