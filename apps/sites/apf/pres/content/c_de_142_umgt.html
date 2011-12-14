@@ -13,7 +13,7 @@
 * Installation inkl. Backend
 ** Sandbox
 ** Manuell
-* Implementierung Redirect Url Provider
+*** Implementierung Redirect Url Provider
 * Bedienung / Funktion Backend
 * Entwicklung
 ** Einsatz von fertigen Komponenten
@@ -327,6 +327,13 @@ DB.Type = "MySQLx"
          <td>{ENVIRONMENT}_labels.ini</td>
          <td>
             Konfiguration der Beschriftung der GUI-Komponenten (Login, Registrierung).
+         </td>
+      </tr>
+      <tr>
+         <td>/config/modules/usermanagement/pres/{CONTEXT}/</td>
+         <td>{ENVIRONMENT}_registration.ini</td>
+         <td>
+            Konfiguration der Registrierung hinsichtlich der automatischen Zuweisung von Gruppen und Rollen.
          </td>
       </tr>
    </tbody>
@@ -676,9 +683,85 @@ FC.ActionClass = "UmgtLogoutAction"
    zu wählen. Hinweise zu den entsprechenden Werten finden Sie in der Beispiel-Konfiguration.
 </p>
 
-<h6 id="Chapter-3-2-2-7-Konfiguration-der-Beschriftung"><a href="#Chapter-3-2-2-6-Konfiguration-des-Login">3.2.2.6. Konfiguration des Login</a></h6>
+<h6 id="Chapter-3-2-2-7-Konfiguration-der-Registrierung"><a href="#Chapter-3-2-2-7-Konfiguration-der-Registrierung">3.2.2.7. Konfiguration der Registrierung</a></h6>
+<p>
+   Im Zuge der Registrierung können einem neuen Benutzer direkt Gruppen und Rollen zugewiesen werden. Um dieses Feature 
+   zu nutzen, wird die optionale Konfiguration <em>{ENVIRONMENT}_registration.ini</em> benötigt. 
+</p>
+<div class="hint">
+   Die Konfiguration ist optional. Ist diese nicht vorhanden oder finden sich darin Konfigurationsfehler, wird ein
+   Hinweis im <em>*_registration.log</em> erstellt.
+</div>
+<p>
+   Kopieren Sie dazu die Beispiel-Datei   
+</p>
+<gen:highlight type="text">
+/config/modules/usermanagement/pres/EXAMPLE_registration.ini
+</gen:highlight>
+<p>
+   aus dem <em>apf-configpack-*</em> an den für Ihre Applikation gültigen Ort. Details zum Konfigurations-Schema finden
+   sind unter <int:link pageid="134"/>. Anschließend können Sie in der Sektion <em>Default</em> eine beliebige Anzahl
+   an Gruppen und Rollen definieren, zu denen der registrierte Benutzer zugewiesen wird.
+</p>
+<div class="warn">
+   Bitte beachten Sie, dass die Gruppen und Rollen bereits vorhanden sein müssen, da eine Zuweisung sonst nicht möglich 
+   ist!
+</div>
+<p>
+   Die Definition der Gruppen und Rollen erfolgt nach dem folgenden Schema:
+</p>
+<gen:highlight type="ini">
+[Default]
+group.{IDENTIFIER_1} = "..."
+group.{IDENTIFIER_2} = "..."
+
+role.{IDENTIFIER_3} = "..."
+role.{IDENTIFIER_4} = "..."
+</gen:highlight>
+<p>
+   Gruppen werden unter der Sub-Sektion <em>group</em> definiert und erhalten jeweils ein eindeutiges Kennzeichen.
+   Rollen sind unter <em>role</em> gruppiert und auch hier trägt jede Rollen-Definition ihre eigenes Kennzeichen. Die
+   Kennzeichen müssen innerhalb jeder Sub-Sektion, jedoch nicht Sub-Sektion-übergreifend eindeutig sein. Als Kennzeichen
+   kann eine beliebige Zeichenkette genutzt werden. Beispiel:
+</p>
+<gen:highlight type="ini">
+[Default]
+group.one = "Registered users"
+group.two = "Beginner"
+
+role.a = "Account functionality"
+role.b = "Editorial functionality"
+</gen:highlight>
 
 
-      <!--Im Benutzer-Verwaltungs-Modul kommt das
-            <int:link pageid="139">Domänen-Objekt</int:link>-Feature des <em>GORM</em> zum Einsatz. Dadurch werden alle
-            Objekte des Moduls in entsprechenden-->
+<h3 id="Chapter-4-Bedienung-des-Verwaltungs-Frontends"><a href="#Chapter-4-Bedienung-des-Verwaltungs-Frontends">4. Bedienung des Verwaltungs-Frontends</a></h3>
+<p>
+   Die Benutzer-Verwaltung des APF bringt ein voll funktionsfähiges Verwaltungs-Frontends mit, das für eine bestehende
+   Applikation direkt eingesetzt werden kann.
+</p>
+
+<h4 id="Chapter-4-1-Verwaltung-von-Benutzern"><a href="#Chapter-4-1-Verwaltung-von-Benutzern">4.1. Verwaltung von Benutzern</a></h4>
+<p>
+   Für einfache Mittel (Unterscheidung Login/Nicht-Login) reichen Benutzer...
+</p>
+
+<h4 id="Chapter-4-2-Verwaltung-von-Gruppen"><a href="#Chapter-4-2-Verwaltung-von-Gruppen">4.2. Verwaltung von Gruppen</a></h4>
+<p>
+   Gruppen, wenn einheitliche, fachliche Behandlung von Benutzern in Applikationen (Beispiel?) oder Zusammenfassung zur 
+   Zuweisung von Funktions- oder Sichtbarkeitsberechtigungen (siehe Folge-Kapitel).
+</p>
+   
+<h4 id="Chapter-4-3-Verwaltung-von-Rollen"><a href="#Chapter-4-3-Verwaltung-von-Rollen">4.3. Verwaltung von Rollen</a></h4>
+<p>
+   Rolle drückt Verantwortung eines Benutzers innerhalb einer Applikation etc. aus.
+</p>
+
+<h4 id="Chapter-4-4-Verwaltung-von-Funktionsberechtigungen"><a href="#Chapter-4-4-Verwaltung-von-Funktionsberechtigungen">4.4. Verwaltung von Funktionsberechtigungen</a></h4>
+<p>
+   Explizite Berechtigungen innerhalb einer Applikation (Ausführen eines Sub-Wfx, etc.)
+</p>
+
+<h4 id="Chapter-4-5-Verwaltung-von-Sichtbarkeitsberechtigungen"><a href="#Chapter-4-5-Verwaltung-von-Sichtbarkeitsberechtigungen">4.5. Verwaltung von Sichtbarkeitsberechtigungen</a></h4>
+<p>
+   Sichtbarkeit von Objekten innerhalb einer Applikation für bestimmte Benutzer/Gruppen.
+</p>
