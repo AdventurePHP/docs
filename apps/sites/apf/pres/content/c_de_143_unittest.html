@@ -1,0 +1,153 @@
+<doku:title parent="119" tags="unittest,phpunit,test driven development,tdd,continuous integration,continuous development" title="Unittest" urlname="Unittest">
+  Der folgende Inhalt beschreibt die Verwendung von Unittests bzw. Komponententests
+  im Adventure PHP Framework mittels PHPUnit.
+</doku:title>
+
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+  PHPUnit ist ein Framework zum 
+  Erstellen von Unittests und deren Ausführung, mit der Möglichkeit zur 
+  Automatisierung und der Ansprechung über eine CLI. Einzelne Tests bis hin zu
+  größeren Test-Suites (Eine Test-Suite beinhaltet normalerweise mehrere Tests,
+  die in einer gewissen vorgegebenen Reihenfolge ablaufen) sind möglich und 
+  erhöhen die Stabilität und Wartbarkeit einer Anwendung. Es gehört zum 
+  Grundgerüst der Continous Development/Integration, erstellte Tests mehr als nur
+  einmal auszuführen und zu testen, ob Änderungen am Quellcode Auswirkungen auf
+  Teile der Applikation haben, an die man als Entwickler selbst gar nicht gedacht
+  hat. Natürlich stecken noch viel mehr an Möglichkeiten in Unittests, dies ist 
+  aber der grundlegende Zweck, um das äußere Verhalten einer Implementierung
+  auf ihre korrekte Funktionsweise zu prüfen.
+<br />
+<br />
+<br />
+
+<h3 id="Chapter-2-Installation"><a href="#Chapter-2-Installation">2. Installation</a></h3>
+<p>
+   Voraussetzung für das Durchführen von Unittests mit dem Adventure PHP Framework
+   ist das PHPUnit-Framework. Dieses gibt es frei verfügbar über mehrere Quellen.
+   Im Folgenden werden zwei mögliche Bezugsquellen erläutert.
+</p>
+
+<h3 id="Chapter-2-1-PEAR"><a href="#Chapter-2-1-PEAR">2. Installation mittels PEAR</a></h3>
+<p>
+   Eine bequeme Möglichkeit, sich das PHPUnit-Framework zu besorgen, ist PEAR. 
+   Neben der einfachen Bereitstellung ist ein Aktualisieren der Daten bequem über
+   die PEAR-CLI möglich. Die meisten All-In-One Lösungen wie beispielsweise XAMPP
+   bieten zumindest den PEAR-Installer, wenn nicht sogar schon teilweise vorinstallierte
+   PEAR-Pakete an. Im Folgenden wird von einer installierten PEAR-Umgebung ausgegangen,
+   mehr Informationen gibt es unter <a href="http://pear.php.net/manual/en/installation.php" title="PEAR-Installation">PEAR-Installation</a>.
+</p>
+
+<p>
+    Die <a href="http://www.phpunit.de/manual/3.6/en/installation.html" title="Installation des PHPUnit-Framework">Installation des PHPUnit-Framework</a> 
+    läuft nun einfach und schnell ab. Dazu ruft  man lediglich die Kommandozeile 
+    auf und gibt folgende Eingaben ein:
+</p>
+
+<gen:highlight type="shell">
+pear config-set auto_discover 1
+pear install pear.phpunit.de/File_Iterator
+pear install pear.phpunit.de/Text_Template
+pear install pear.phpunit.de/PHP_CodeCoverage
+pear install pear.phpunit.de/PHP_Timer
+pear install pear.phpunit.de/PHPUnit_MockObject
+pear install pear.phpunit.de/PHPUnit
+</gen:highlight>
+
+<p>
+    Folgende Pakete kann man sich noch optional dazu herunterladen:
+</p>
+
+<gen:highlight type="shell">
+pear install phpunit/DbUnit
+pear install phpunit/PHPUnit_Selenium
+pear install phpunit/PHPUnit_Story
+pear install phpunit/PHPUnit_TestListener_DBUS
+pear install phpunit/PHPUnit_TestListener_XHProf
+pear install phpunit/PHPUnit_TicketListener_Fogbugz
+pear install phpunit/PHPUnit_TicketListener_GitHub
+pear install phpunit/PHPUnit_TicketListener_GoogleCode
+pear install phpunit/PHPUnit_TicketListener_Trac
+pear install phpunit/PHP_Invoker
+</gen:highlight>
+
+
+<h3 id="Chapter-2-1-GIT"><a href="#Chapter-2-1-GIT">2. Installation mittels GIT</a></h3>
+<p>
+   Eine zweite Möglichkeit ist das Herunterladen von GIT. Weiter Inforamtionen
+   findet man unter der <a href="https://github.com/sebastianbergmann/phpunit/blob/master/README.markdown" title="PHPUnit via GIT">offiziellen Anleitung</a>.
+   Hat man einen GIT-Client, so kann man mit folgenden Befehlen über die Kommandozeile sich einfach
+   das PHPUnit-Framework laden:
+</p>
+
+<gen:highlight type="shell">
+mkdir phpunit && cd phpunit
+git clone git://github.com/sebastianbergmann/phpunit.git
+git clone git://github.com/sebastianbergmann/dbunit.git
+git clone git://github.com/sebastianbergmann/php-file-iterator.git
+git clone git://github.com/sebastianbergmann/php-text-template.git
+git clone git://github.com/sebastianbergmann/php-code-coverage.git
+git clone git://github.com/sebastianbergmann/php-token-stream.git
+git clone git://github.com/sebastianbergmann/php-timer.git
+git clone git://github.com/sebastianbergmann/phpunit-mock-objects.git
+git clone git://github.com/sebastianbergmann/phpunit-selenium.git
+git clone git://github.com/sebastianbergmann/phpunit-story.git
+git clone git://github.com/sebastianbergmann/php-invoker.git
+</gen:highlight>
+
+
+
+<h3 id="Chapter-3-Konfiguration"><a href="#Chapter-3-Konfiguration">3. Konfiguraton</a></h3>
+<p>
+   Hat man nun das PHPUnit-Framework, gibt es nicht mehr viel zu tun, um endlich 
+   die Unittests über das Adventure PHP Framework zum Laufen zu bringen.
+</p>
+
+<p>
+    Zunächst wechselt man in das Unterverzeichnis <em>tests</em>. Dort liegen
+    unter anderem zwei Dateien, die kopiert und umbenannt werden.
+</p>
+
+<gen:highlight type="shell">
+cp phpunit.dist.xml phpunit.xml
+cp phpunit.dist phpunit
+</gen:highlight>
+
+<p>
+    Die Datei <em>phpunit</em> ist das Skript, welches von der Kommandozeile 
+    aufgerufen wird und die PHPUnit-Applikation anlaufen lässt. Bevor man das
+    Skript erfolgreich aufrufen kann, muss zunächst die Datei geöffnet werden und
+    der Wert der Konstante <strong>PHPUNIT_INCLUDE_PATH</strong> mit dem korrekten
+    Pfad zum PHPUnit-Framework angepasst werden.<br/>
+    Auf Windows-basierten System empfiehlt es sich, den Wert der zweiten Konstante
+    <strong>PHP_BIN_FILENAME</strong> in <em>php.exe</em> umzuändern.
+</p>
+
+
+
+<h3 id="Chapter-4-Ausführung"><a href="#Chapter-4-Ausführung">4. Ausführung</a></h3>
+<p>
+   Nun ist es möglich, das Skript von der Kommandozeile wie folgt im Verzeichnis
+   <em>../branches/php5/1.15/</em> auszuführen:
+</p>
+
+<gen:highlight type="shell">
+php phpunit
+</gen:highlight>
+
+<p>
+    Das Skript prüft automatisch auf die Standard-Konfigurationsdatei <em>phpunit.xml</em>,
+    welche bereits im aktuellen Verzeichnis existiert.<br/>
+    Wenn alles korrekt konfiguriert wurde, läuft nun das Skript an und führt die
+    in der Konfiguration angegebenen Tests durch.
+</p>
+
+
+
+<h3 id="Chapter-5-Eigene-Unittests"><a href="#Chapter-5-Eigene-Unittests">5. Eigene Unittests</a></h3>
+<p>
+   Falls eigene Tests oder Erweiterungen der Bestehenden ausgeführt werden soll, 
+   muss lediglich die Konfigurationsdatei <em>phpunit.xml</em> angepasst werden
+   (und natürlich der jeweilige Test geschrieben werden).
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_143" />
