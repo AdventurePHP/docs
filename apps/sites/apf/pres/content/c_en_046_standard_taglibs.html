@@ -137,26 +137,38 @@ introduced.
 <br />
 To fill a place holder with contents you can insert the following instruction in a document controller:
 <gen:highlight type="php">
-  $this->setPlaceHolder('NameOfThePlaceHolder','ContentOfThePlaceHolder');
+$this->setPlaceHolder('NameOfThePlaceHolder','ContentOfThePlaceHolder');
 </gen:highlight>
-<br />
+
 <h5 id="Chapter-2-2-Getstring"><a href="#Chapter-2-2-Getstring">2.2. Getstring</a></h5>
-The tag "&lt;html:getstring /&gt;" gives the opportunity to read a configuration string from a
-language-dependent configuration file and so create multi-language GUIs. The behavior is identical to
-the "&lt;template:getstring /&gt;" tag described in chapter 2.2.3.
+<p>
+   The tag <em>&lt;html:getstring /&gt;</em> gives the opportunity to read a configuration string from a
+   language-dependent configuration file and so create multi-language GUIs. The behavior is identical to
+   the <em>&lt;template:getstring /&gt;</em> tag described in chapter 2.2.3.
+</p>
 <gen:highlight type="apf-xml">
-&lt;html:getstring namespace="" config="" entry="" /&gt;
+&lt;html:getstring
+   [name=""]
+   namespace=""
+   config=""
+   entry="" /&gt;
 </gen:highlight>
-To use the tag it must be announced using the
+<p>
+   To use the tag it must be announced using the
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
 </gen:highlight>
-directive.
-<br />
-<br />
+<p>
+   directive.
+</p>
 <strong>Description of the attributes:</strong>
 <ul>
-  <li>
+   <li>
+      <strong>name</strong>: Name of the place holder as identifier for the <em>getLabel()</em> method
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-]</code>)
+   </li>
+   <li>
     <strong>namespace</strong>: Namespace of the configuration file.
     (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-:]</code>)
   </li>
@@ -169,18 +181,27 @@ directive.
     (<strong>Allowed characters</strong>: <code>[A-Za-z0-9-_.]</code>)
   </li>
 </ul>
-<br />
-The language dependent configuration file must contain one section per language (two-letter ISO
-country code) and the configuration keys used in the tag within each of the language sections. If
-the tag
+<div class="warn">
+   Please note, that the <em>name</em> attribute can be used as of version 1.15 earliest and in conjunction with the
+   <em>getLabel()</em> methode.
+</div>
+<p>
+   The language dependent configuration file must contain one section per language (two-letter ISO
+   country code) and the configuration keys used in the tag within each of the language sections. If
+   the tag
+</p>
 <gen:highlight type="apf-xml">
 &lt;html:getstring namespace="modules::mymodule" config="language.ini" entry="title" /&gt;
 </gen:highlight>
-should display a multilangual title within a template, the configuration file
+<p>
+   should display a multilangual title within a template, the configuration file
+</p>
 <gen:highlight type="code">
 /config/modules/mymodule/{CONTEXT}/{ENVIRONMENT}_language.ini
 </gen:highlight>
-must be filled with the content
+<p>
+   must be filled with the content
+</p>
 <gen:highlight type="ini">
 [de]
 title = "Mein Modul"
@@ -188,11 +209,91 @@ title = "Mein Modul"
 [en]
 title = "My module"
 </gen:highlight>
-This description of this tag can also be applied to the tags <strong>&lt;form:getstring /&gt;</strong>
-(chapter 2.4.19.) and <strong>&lt;template:getstring /&gt;</strong> (chapter 2.3.3.).
-<br />
-<br />
-<br />
+
+
+<p>
+   Since release 1.15 language-dependent texts can be added place holders that can be filled dynamically within a
+   <int:link pageid="006"/> at runtime. The place holder is defined by it's name enclosed by brackets:
+</p>
+<gen:highlight type="code">
+{user-name}
+</gen:highlight>
+<p>
+   This place holder can be referred to by it's key <em>user-name</em> later on. Please note the subsequent language
+   text file that defines three keys including one or more place holders:
+</p>
+<gen:highlight type="ini">
+[en]
+headline = "This is a {word}"
+intro.text = "This is a text with {count} place holder."
+message = "This is a message from {user-name} sent at {date}."
+...
+</gen:highlight>
+<p>
+   The values defined above can be used within your template files as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;h3&gt;&lt;html:getstring
+       name="headline"
+       namespace="..."
+       config="..."
+       entry="headline"/&gt;&lt;/h3&gt;
+&lt;html:form name="Form"&gt;
+   &lt;p&gt;
+      &lt;form:getstring
+             name="intro-text"
+             namespace="..."
+             config="..."
+             entry="intro.text"/&gt;
+   &lt;/p&gt;
+   ...
+&lt;/html:form&gt;
+&lt;html:template name="Message"&gt;
+   ...
+   &lt;p&gt;
+      &lt;template:getstring
+            name="message"
+            namespace="..."
+            config="..."
+            entry="message"/&gt;
+   &lt;/p&gt;
+   &lt;/html:template>
+</gen:highlight>
+<p>
+   To fill the place holders you are provided several possibilities as you can take from the below document controller.
+   They all use the <em>getLabel()</em> method to obtain an instance of the appropriate label tag. The instance itself
+   provides the <em>setPlaceHolder()</em> function that takes the name and the value as it's arguments. You may use the
+   method in <em>fluid interface</em> style to add more than one place holder:
+</p>
+<gen:highlight type="php">
+class sample_controller extends base_controller {
+   public function transformContent() {
+
+      // Fill place holder within a < html:getstring /> directly within the template:
+      $this->getLabel('headline')->setPlaceHolder('word', 'Headline');
+
+      // Fill place holder within a < form:getstring /> within a form:
+      $form = &$this->getForm('Form');
+      $form->getLabel('intro-text')->setPlaceHolder('count', 'one');
+
+      // Fill place holder within a < template:getstring /> within a template tag:
+      $tmpl = &$this->getTemplate('Message');
+      $tmpl->getLabel('message')
+           ->setPlaceHolder('user-name', 'John')
+           ->setPlaceHolder('date', date('d.m.Y H:i:s'));
+   }
+}
+</gen:highlight>
+<div class="hint">
+   The number of place holders per language key is not restricted. Place holders that are not filled are displayed
+   literally within the output.
+</div>
+<p>
+   This description of this tag can also be applied to the tags <em>&lt;form:getstring /&gt;</em>
+   (<int:link pageid="113" anchor="Chapter-3-17-Getstring"/>) and <em>&lt;template:getstring /&gt;</em>
+   (<a href="Chapter-2-3-3-Getstring">chapter 2.3.3.</a>).
+</p>
+
 <h4 id="Chapter-2-3-Template"><a href="#Chapter-2-3-Template">2.3. Template</a></h4>
 <h5 id="Chapter-2-3-1-Basic-functions"><a href="#Chapter-2-3-1-Basic-functions">2.3.1. Basic functions</a></h5>
 To be able to define further reusable elements the so-called templates are introduces. These can be

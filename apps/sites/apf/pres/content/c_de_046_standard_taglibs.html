@@ -137,23 +137,34 @@ Um einen Platzhalter mit Inhalt zu füllen kann man in einem Document-Controller
 <gen:highlight type="php">
   $this->setPlaceHolder('NameDesPlatzhalters','InhaltDesPlatzHalters');
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-2-2-Getstring"><a href="#Chapter-2-2-Getstring">2.2. Getstring</a></h4>
-Der Tag "html:getstring" dient dazu einen Konfigurations-String aus einer sprachabhängigen
-Konfigurations-Datei auszulesen und anzuzeigen. So können auf einfache Weise mehrsprachige
-Anwendungen aufgebaut werden.
+<p>
+   Der Tag <em>&lt;html:getstring/&gt;</em> dient dazu einen Wert aus einer sprachabhängigen Konfigurations-Datei
+   auszulesen und anzuzeigen. So können Sie auf einfache Weise mehrsprachige Anwendungen bauen.
+</p>
 <gen:highlight type="apf-xml">
-&lt;html:getstring namespace="" config="" entry="" /&gt;
+&lt;html:getstring
+   [name=""]
+   namespace=""
+   config=""
+   entry="" /&gt;
 </gen:highlight>
-Um das Tag verwenden zu können muss die TagLib "html:getstring" erst via
+<p>
+   Um den Tag verwenden zu können muss die TagLib "html:getstring" erst via
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib namespace="tools::html::taglib" prefix="html" class="getstring" /&gt;
 </gen:highlight>
-eingebunden werden.
-<br />
-<br />
+<p>
+   eingebunden werden.
+</p>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
+   <li>
+      <strong>name</strong>: Name des Platzhalters zur Referenz in der <em>getLabel()</em>-Methode
+      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-]</code>)
+   </li>
   <li>
     <strong>namespace</strong>: Namespace der Konfigurationsdatei.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-:]</code>)
@@ -167,19 +178,28 @@ eingebunden werden.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_.]</code>)
   </li>
 </ul>
-<br />
-Die sprachabhängige Konfigurationsdatei muss jeweils eine Sektion pro Sprache (zweistelliger
-ISO-Länder-Code) und die verwendeten Konfigurationsschlüssel in den Sektionen enthalten
-sein. Soll der Tag
+<div class="warn">
+   Bitte beachten Sie, dass das Attribut <em>name</em> erst ab der Version 1.15 in Verbindung mit der Methode
+   <em>getLabel()</em> genutzt werden kann.
+</div>
+<p>
+   Die sprachabhängige Konfigurationsdatei muss jeweils eine Sektion pro Sprache (zweistelliger
+   ISO-Länder-Code) und die verwendeten Konfigurationsschlüssel in den Sektionen enthalten
+   sein. Soll der Tag
+</p>
 <gen:highlight type="apf-xml">
   &lt;html:getstring namespace="modules::mymodule" config="language.ini" entry="title" /&gt;
 </gen:highlight>
-zur Anzeige eines sprachabhängigen Titels in einem Template genutzt werden, muss die
-Konfigurationsdatei
+<p>
+   zur Anzeige eines sprachabhängigen Titels in einem Template genutzt werden, muss die
+   Konfigurationsdatei
+</p>
 <gen:highlight type="code">
 /config/modules/mymodule/{CONTEXT}/{ENVIRONMENT}_language.ini
 </gen:highlight>
-mit dem Inhalt
+<p>
+   mit dem Inhalt
+</p>
 <gen:highlight type="ini">
 [de]
 title = "Mein Modul"
@@ -187,12 +207,93 @@ title = "Mein Modul"
 [en]
 title = "My module"
 </gen:highlight>
-gefüllt werden. Diese Beschreibung gilt ebenso für die Tags
-<strong>&lt;form:getstring /&gt;</strong> (Kapitel 2.4.19.) und <strong>&lt;template:getstring /&gt;</strong>
-(Kapitel 2.3.3.).
-<br />
-<br />
-<br />
+<p>
+   gefüllt werden.
+</p>
+<p>
+   Seit dem Release 1.15 lassen sich sprachabhängige Werte zusätzlich mit Platzhaltern versehen, die mittels
+   <int:link pageid="006"/> zur Ausführungszeit dynamisch gefüllt werden können. Ein Platzhalter definiert sich durch
+   seinen Namen, der durch Klammern eingefasst ist:
+</p>
+<gen:highlight type="code">
+{user-name}
+</gen:highlight>      
+<p>
+   Dieser Platzhalter kann später mit dem Schlüssel <em>user-name</em> referenziert werden. Die nachfolgend aufgeführte
+   Sprach-Datei definiert drei Schlüssel, die jeweils einen oder mehrere Platzhalter beinhalten:
+</p>
+<gen:highlight type="ini">
+[de]
+headline = "Dies ist eine {word}"
+intro.text = "Dies ist ein Text mit {count} Platzhalter."
+message = "Dies ist eine Nachricht von {user-name}, die am {date} gesendet wurde."
+...
+</gen:highlight>
+<p>
+   Die dort definierten Werte, könnten wie folgt in einem Template genutzt werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;h3&gt;&lt;html:getstring
+       name="headline"
+       namespace="..."
+       config="..."
+       entry="headline"/&gt;&lt;/h3&gt;
+&lt;html:form name="Form"&gt;
+   &lt;p&gt;
+      &lt;form:getstring
+             name="intro-text"
+             namespace="..."
+             config="..."
+             entry="intro.text"/&gt;
+   &lt;/p&gt;
+   ...
+&lt;/html:form&gt;
+&lt;html:template name="Message"&gt;
+   ...
+   &lt;p&gt;
+      &lt;template:getstring
+            name="message"
+            namespace="..."
+            config="..."
+            entry="message"/&gt;
+   &lt;/p&gt;
+   &lt;/html:template>
+</gen:highlight>
+<p>
+   Zur Befüllung der Platzhalter stehen nun verschiedene Möglichkeiten zur Verfügung, die im nachfolgend abgebildeten
+   Document-Controller beschrieben sind. Diese nutzen jeweils die Methode <em>getLabel()</em> um die jeweilige Instanz
+   zu beziehen. Diese bietet dann die Methode <em>setPlaceHolder()</em> an, die den Namen und den Wert des Platzhalters
+   entgegen nimmt. Die Methode kann im <em>fluid interface</em>-Stil genutzt werden um mehrere Platzhalter zu setzen:
+</p>
+<gen:highlight type="php">
+class sample_controller extends base_controller {
+   public function transformContent() {
+
+      // Platzhalter in einem < html:getstring /> direkt im Template füllen:
+      $this->getLabel('headline')->setPlaceHolder('word', 'Überschrift');
+
+      // Platzhalter in einem < form:getstring /> im Formular füllen:
+      $form = &$this->getForm('Form');
+      $form->getLabel('intro-text')->setPlaceHolder('count', 'eine');
+
+      // Platzhalter in einem < template:getstring /> in einem Template füllen:
+      $tmpl = &$this->getTemplate('Message');
+      $tmpl->getLabel('message')
+           ->setPlaceHolder('user-name', 'Hans')
+           ->setPlaceHolder('date', date('d.m.Y H:i:s'));
+   }
+}
+</gen:highlight>
+<div class="hint">
+   Die Anzahl der Platzhalter pro Schlüssel ist nicht begrenzt. Nicht gesetzte Platzhalter werden bei der Ausgabe nicht
+   ersetzt und erscheinen im Klartext in der Ausgabe.
+</div>
+<p>
+   Diese Beschreibung gilt ebenso für die Tags <em>&lt;form:getstring /&gt;</em>
+   (<int:link pageid="113" anchor="Chapter-3-17-Getstring"/>) und
+   <em>&lt;template:getstring /&gt;</em> (<a href="Chapter-2-3-3-Getstring">Kapitel 2.3.3.</a>).
+</p>
+
 <h4 id="Chapter-2-3-Template"><a href="#Chapter-2-3-Template">2.3. Template</a></h4>
 <h5 id="Chapter-2-3-1-Basis-Funktionen"><a href="#Chapter-2-3-1-Basis-Funktionen">2.3.1. Basis-Funktionen</a></h5>
 Um weitere Elemente für die Ausgabe-Steuerung definieren zu können gibt es so genannte
