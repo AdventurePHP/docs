@@ -9,7 +9,7 @@ BUILDPATH=$BASEPATH/build
 JSPATH=$(pwd)
 TEMPJSFILE="apf-combined.js"
 COMBINEDJSFILE="apf.js"
-JQUERYJSFILE="jquery-1-4-1-min.js"
+JQUERYJSFILE="jquery-1-7-1-min.js"
 
 # build classpath
 CLASSPATH=
