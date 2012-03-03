@@ -1,5 +1,4 @@
 <?php
-   import('tools::datetime','dateTimeManager');
    import('core::database','ConnectionManager');
    import('3rdparty::statistics::biz','SimpleStatSection');
    import('3rdparty::statistics::biz','TableStatSection');
