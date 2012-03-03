@@ -5,7 +5,8 @@
    *  Represents a single stat entry within a stat section.
    *
    */
-   class StatEntry extends APFObject {
+   class StatEntry extends APFObject
+   {
 
       function StatEntry(){
          $this->__Attributes['DisplayText'] = (string)'n/a';

@@ -1,5 +1,4 @@
 <?php
-
 import('sites::apf::biz', 'APFModel');
 
 /**
@@ -57,9 +56,7 @@ class main_controller extends base_controller {
       // description
       $this->setPlaceHolder('Description', $model->getAttribute('page.description'));
 
-      // Alte Werte setzen
-      $PageIndicators = $model->getAttribute('page.indicator');
-      $RequestParam = $PageIndicators[$this->__Language];
+      // set old values
       $DefaultPageName['de'] = '001-Startseite';
       $DefaultPageName['en'] = '001-Home';
 
@@ -92,9 +89,9 @@ class main_controller extends base_controller {
       // we need manual link generation gere to ensure correct transmission
       // of the referer and current url.
       $url = $baseUrl . '/3rdparty_statistics-action/stat/lang/'
-              . $pageLang . '/title/' . urlencode($pageName) . '/id/' . $pageId
-              . '/url/' . urlencode(urlencode($requestUrl))
-              . '/referer/' . urlencode(urlencode($referer)) . '/';
+            . $pageLang . '/title/' . urlencode($pageName) . '/id/' . $pageId
+            . '/url/' . urlencode(urlencode($requestUrl))
+            . '/referer/' . urlencode(urlencode($referer)) . '/';
 
       $this->setPlaceHolder('TrackingPixelUrl', $url);
    }
