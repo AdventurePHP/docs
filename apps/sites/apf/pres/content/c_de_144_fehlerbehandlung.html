@@ -1,0 +1,179 @@
+<doku:title parent="119" tags="fehler,behandlung,fehlerbehandlung,errorhandler,globalerrorhandler" title="Fehlerbehandlung (ab 1.15)" urlname="Fehlerbehandlung">
+  Das Kapitel Fehlerbehandlung beschreibt das ab Release 1.15 im Framework enthaltene Fehlerhandling-Konzept und
+  zeigt die Verwendung sowie die Erweiterung auf.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Das APF bringt im Auslieferungszustand eine eigene, globale Fehler-Bahandlung mit. Diese setzt auf dem in PHP
+   enthaltenen Mechanism auf und zeigt eine Fehlerseite an, die alle Parameter des Fehlers sowie einen Stacktrace
+   anzeigt.
+</p>
+<p>
+   Die Architektur der APF-Fehlerbehandlung basiert auf einem zentralen Anlaufpunkt (<em>GlobalErrorHandler</em>), der
+   die konkreten Fehler annimmt und an einen registrierten <em>ErrorHandler</em> weiter gibt. Das Interface
+   <em>ErrorHandler</em> besitzt mehrere Standard-Implementierungen (siehe unten) und kann jederzeit dazu genutzt werden,
+   Implementierungen für den eigenen Anwendungsfall zu schaffen.
+</p>
+
+<h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration</a></h3>
+<h4 id="Chapter-2-1-Eigener-ErrorHandler"><a href="#Chapter-2-1-Eigener-ErrorHandler">2.1. Eigener ErrorHandler</a></h4>
+<p>
+   Der <em>GlobalErrorHandler</em> ist im Auslieferungszustand des APF bereits aktiviert. Als Standard-Handler ist der
+   <em>DefaultErrorHandler</em> registriert. 
+</p>
+<p>
+   Um den vorkonfigurierten Zustand durch einen eigenen zu ersetzen kan folgender Code nach dem Einbinden der
+   <em>pagecontroller.php</em> genutzt werden:
+</p>
+<gen:highlight type="php">
+import('my::project', 'CustomErrorHandler');
+GlobalErrorHandler::registerErrorHandler(new CustomErrorHandler());
+</gen:highlight>
+<p>
+   Sofern notwendig, können Sie der Instanz des <em>ErrorHandler</em> beliebige Informationen (z.B. <em>Context</em>)
+   mitgeben.
+</p>  
+
+<h4 id="Chapter-2-2-Aktivierung -und-Deaktivierung"><a href="#Chapter-2-2-Aktivierung -und-Deaktivierung">2.1. Aktivierung und Deaktivierung</a></h4>
+<p>
+   Soll der APF-Mechamismus deaktiviert oder nach einer Deaktivierung wieder aktiviert werden, so können Sie dies mit
+   Hilfe des <em>GlobalErrorHandler</em> sehr einfach nach dem Einbinden der <em>pagecontroller.php</em> erledigen:
+</p>
+<gen:highlight type="php">
+// Deaktivieren der APF Fehlerbehandlung
+GlobalErrorHandler::disable();
+
+// Erneute Aktivierung der APF Fehlerbehandlung
+GlobalErrorHandler::disable();
+</gen:highlight>
+
+<h3 id="Chapter-3-Implementierung-eines-ErrorHandler"><a href="#Chapter-3-Implementierung-eines-ErrorHandler">3. Implementierung eines ErrorHandler</a></h3>
+<p>
+   Um eine eigene Fehlerbehandlung einzuführen, muss das Interface <strong>ErrorHandler</strong> implementiert werden.
+   Diese definiert die folgende Methode:
+</p>
+<gen:highlight type="php">
+interface ErrorHandler {
+
+   public function handleError(
+      $errorNumber,
+      $errorMessage,
+      $errorFile,
+      $errorLine,
+      array $errorContext);
+
+}
+</gen:highlight>
+<p>
+   Bei Auftreten eines Fehlers werden der Methode <strong>handleError</strong> die Parameter</p>
+<ul>
+  <li>Fehler-Nummer</li>
+  <li>Fehler-Meldung</li>
+  <li>Datei, in der der Fehler auftritt</li>
+  <li>Zeile, in der der Fehler auftritt</li>
+  <li>Variable-Scope während des Fehlers</li>
+</ul>
+<p>
+   übergeben.
+</p>
+<div class="hint">
+   <p>
+      Da die Fehlerbehandlung in einer eigenen Klasse (z.B. <em>DefaultErrorHandler</em>) stattfindet, die nicht mit dem
+      ServiceManager erzeugt wurde, steht der Zugriff auf den aktuellen <em>Context</em> und die
+      aktuelle <em>Sprache</em> nicht zur Verfügung!
+   </p>
+   <p>
+      Werden diese Informationen benötigt, können Sie Ihrer Implementierung beliebige Attribute über den Konstruktor
+      oder getter-Methoden mitgeben. Beispiel:
+<gen:highlight type="php">
+class CustomErrorHandler implements ErrorHandler {
+
+   private $context;
+
+   public function __construct($context) {
+      $this->context = $context;
+   }
+
+   public function handleError($errorNumber, $errorMessage, $errorFile, $errorLine, array $errorContext) {
+      ...
+   }
+
+}
+
+GlobalErrorHandler::registerErrorHandler(new CustomErrorHandler('foo'));
+</gen:highlight>
+   </p>
+</div>
+<p>
+   Als Implementierungsbeispiele für eigene <em>ErrorHandler</em> können Sie die Klassen <em>DefaultErrorHandler</em>,
+   <em>ConfigurableErrorHandler</em> und <em>ProductionErrorHandler</em> heranziehen.
+</p>
+
+<h3 id="Chapter-4-Anwendung"><a href="#Chapter-4-Anwendung">4. Anwendung</a></h3>
+<p>
+   Der globale Fehler-Behandlungsmechanismus kann einfach durch Aufrufen der PHP-Funktion
+</p>
+<gen:highlight type="php">
+trigger_error();
+</gen:highlight>
+<p>
+   genutzt werden. Details können der Online-Dokumentation unter
+   <a class="external" href="http://php.net/trigger_error">http://php.net/trigger_error</a> entnommen werden.
+</p>
+
+<h3 id="Chapter-5-Verfuegbare-ErrorHandler"><a href="#Chapter-5-Verfuegbare-ErrorHandler">5. Verfügbare ErrorHandler</a></h3>
+<p>
+   Das APF bringt zwei weitere ErrorHandler-Implementierungen mit, die für den Einsatz in Live-Umgebungen empfohlen
+   werden. Live-Systeme gilt es im besonderen vor Kompromittierung zu schützen. Daher sind der
+   <em>ProductionErrorHandler</em> und <em>ConfigurableErrorHandler</em> dafür ausgelegt, möglichst die bei einem Fehler
+   gesammelten Daten vor dem potentiellen Angreifer zu verstecken.
+</p>
+
+<h4 id="Chapter-5-1-ProductionErrorHandler"><a href="#Chapter-5-1-ProductionErrorHandler">5.1. ProductionErrorHandler</a></h4>
+<p>
+   Tritt ein Fehler auf, fügt der <em>ProductionErrorHandler</em> diesen an die globale Log-Datei an
+   und leitet auf eine zuvor konfigurierte Seite weiter. Damit schützt er vor der Veröffentlichung
+   von Daten, die zum Zeitpunkt des Fehlers gesammelt wurden.
+</p>
+<p>
+   Die Konfiguration kann nach Einbinden der Datei <em>pagecontroller.php</em> wie folgt vorgenommen
+   werden:
+</p>
+<gen:highlight type="php">
+import('core::errorhandler', 'ProductionErrorHandler');
+GlobalErrorHandler::registerErrorHandler(
+   new ProductionErrorHandler('/pages/global-error')
+);
+</gen:highlight>
+<p>
+   Das Konstruktor-Argument definiert diejenige Url zu der der Benutzer im Falle eines Fehlers weitergeleitet wird.
+</p>
+<div class="warn">
+   Bitte stellen Sie sicher, dass die Fehlerseite keine weiteren Fehler produziert. Andernfalls erzeugen Sie dadurch
+   eine Umleitungsschleife, die keine Abbruchbedingung besitzt!
+</div>
+
+<h4 id="Chapter-5-2-ConfigurableErrorHandler"><a href="#Chapter-5-2-ConfigurableErrorHandler">5.2. ConfigurableErrorHandler</a></h4>
+<p>
+   Der <em>ConfigurableErrorHandler</em> ermöglicht es, Fehler unter einem gewissen Level getrennt zu behandeln. Hierzu
+   kann über ein Konstruktor-Argument ein Level fest gelegt werden unterhalb dessen der <em>ErrorHandler</em> den Fehler
+   ignoriert. Ist dieser Level überschritten, verhält er sich wie der <em>DefaultErrorHandler</em>.
+</p>
+<p>
+   Die Einbindung des <em>ConfigurableErrorHandler</em> gestaltet nach Einbinden der Datei <em>pagecontroller.php</em>
+   wie folgt:
+</p>
+<gen:highlight type="php">
+import('core::errorhandler', 'ConfigurableErrorHandler');
+GlobalErrorHandler::registerErrorHandler(
+   new ConfigurableErrorHandler(E_ALL ^ E_NOTICE)
+);
+</gen:highlight>
+<p>
+   Mit der gewählten Konfiguration werden alle Fehler ausser <em>E_NOTICE</em>-Fehler behandelt. Details zur
+   Konfiguration von Fehler-Leveln kann der
+   <a class="external" href="http://de.php.net/manual/en/errorfunc.constants.php">PHP-Dokumentation</a>
+   entnommen werden.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_144" />
