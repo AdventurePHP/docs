@@ -1,0 +1,173 @@
+<doku:title parent="119" tags="error,handling,error handling,errorhandler,globalerrorhandler" title="Error handling (since 1.15)" urlname="Error-handling">
+  This chapter describes the error handlin mechanism as of release 1.15. It describes the concept as well as the usage
+   ans the extension.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   The APF brings it's own global error handling mechanism. This features is built on top of PHP's default error
+   handling and displays a nice error page including all parameters of the error as well as a stack trace to ease
+   error analysis.
+</p>
+<p>
+   The architecture of the APF error handling is based on a central entry point (<em>GlobalErrorHandler</em>) that takes
+   the current error and passes it to the registered <em>ErrorHandler</em>. The interface <em>ErrorHandler</em> brings
+   multiple standard implementations (see below) and can be used to create your custom error handler that fit's your
+   specific requirements.
+</p>
+
+<h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration</a></h3>
+<h4 id="Chapter-2-1-Custom-error-handler"><a href="#Chapter-2-1-Custom-error-handler">2.1. Custom error handler</a></h4>
+<p>
+   The <em>GlobalErrorHandler</em> is activated by default and the <em>DefaultErrorHandler</em> is registered to handle
+   upcoming errors.
+</p>
+<p>
+   In order to replace the pre-configured state with your own error handler, please add the follwing code to your
+   bootstrap file after inclusion of the <em>pagecontroller.php</em>:
+</p>
+<gen:highlight type="php">
+import('my::project', 'CustomErrorHandler');
+GlobalErrorHandler::registerErrorHandler(new CustomErrorHandler());
+</gen:highlight>
+<p>
+   If necessary, you may pass any information to the instance of your custom <em>ErrorHandler</em> (e.g. <em>Context</em>).
+</p>
+
+<h4 id="Chapter-2-2-Activation-and-deactivation"><a href="#Chapter-2-2-Activation-and-deactivation">2.2. Activation and deactivation</a></h4>
+<p>
+   In case the APF mechanism should be deactivated for some reason or you intend to re-activate it, you can use the
+   <em>GlobalErrorHandler</em> after inclusion of the <em>pagecontroller.php</em>:
+</p>
+<gen:highlight type="php">
+// deactivation of the APF error handling
+GlobalErrorHandler::disable();
+
+// reactivation of the APF error handling
+GlobalErrorHandler::enable();
+</gen:highlight>
+
+<h3 id="Chapter-3-Implementation-of-an-error-handler"><a href="#Chapter-3-Implementation-of-an-error-handler">3. Implementation of an error handler</a></h3>
+<p>
+   To introduce your custom error management the interface <em>ErrorHandler</em> must be implemented to register it with
+   the <em>GlobalErrorHandler</em>. The interface defines the floowing method:
+</p>
+<gen:highlight type="php">
+interface ErrorHandler {
+
+   public function handleError(
+      $errorNumber,
+      $errorMessage,
+      $errorFile,
+      $errorLine,
+      array $errorContext);
+
+}
+</gen:highlight>
+<p>
+   In case an error occures, the <em>handleError()</em> method is passed the follwing parameters:
+</p>
+<ul>
+  <li>Error number</li>
+  <li>Error message</li>
+  <li>File the error occured in</li>
+  <li>Line the error occured at</li>
+  <li>Variable scope during the error</li>
+</ul>
+<div class="hint">
+   <p>
+      Since the error handling is done within a class (e.g. <em>DefaultErrorHandler</em>) that is not created with the
+      ServiceManager <em>Context</em> and <em>Language</em> cannot be accessed as known from taglib classes or document
+      controllers!
+   </p>
+   <p>
+      In case more information are needed to process the error event, you may pass any attribute to the constructor or
+      to any getter method of the error handler instance. Sample:
+<gen:highlight type="php">
+class CustomErrorHandler implements ErrorHandler {
+
+   private $context;
+
+   public function __construct($context) {
+      $this->context = $context;
+   }
+
+   public function handleError($errorNumber, $errorMessage, $errorFile, $errorLine, array $errorContext) {
+      ...
+   }
+
+}
+
+GlobalErrorHandler::registerErrorHandler(new CustomErrorHandler('foo'));
+</gen:highlight>
+   </p>
+</div>
+<p>
+   You may use the <em>DefaultErrorHandler</em>, <em>ConfigurableErrorHandler</em>, and <em>ProductionErrorHandler</em>
+   as a basis for the implementation of your custom <em>ErrorHandler</em>.
+</p>
+
+<h3 id="Chapter-4-Usage"><a href="#Chapter-4-Usage">4. Usage</a></h3>
+<p>
+   The APF global error handling mechanism can be triggered by adding PHP's
+</p>
+<gen:highlight type="php">
+trigger_error();
+</gen:highlight>
+<p>
+   function to your sources. Details can be gathered from the online documentation under
+   <a class="external" href="http://php.net/trigger_error">http://php.net/trigger_error</a>.
+</p>
+
+<h3 id="Chapter-5-Shipped-error-handlers"><a href="#Chapter-5-Shipped-error-handlers">5. Shipped error handlers</a></h3>
+<p>
+   The APF brings two more ErrorHandler implementations that are recommended for production environments. It is very
+   important to hide information about your production environment from potential hackers. For this reason, the
+   <em>ProductionErrorHandler</em> and <em>ConfigurableErrorHandler</em> are built to hide the error data from attackers.
+</p>
+
+<h4 id="Chapter-5-1-ProductionErrorHandler"><a href="#Chapter-5-1-ProductionErrorHandler">5.1. ProductionErrorHandler</a></h4>
+<p>
+   In case an error occures the <em>ProductionErrorHandler</em> appends an entry to the global log file and redirects
+   the user to the previously defined page. This prevents error detail data from beeing viewed from the outside.
+</p>
+<p>
+   The configuration of this error handler can be done within the bootstrap file after inclusion of the
+   <em>pagecontroller.php</em>:
+</p>
+<gen:highlight type="php">
+import('core::errorhandler', 'ProductionErrorHandler');
+GlobalErrorHandler::registerErrorHandler(
+   new ProductionErrorHandler('/pages/global-error')
+);
+</gen:highlight>
+<p>
+   The constructor argument takes the url the visitor is redirected to in case of errors.
+</p>
+<div class="warn">
+   Please ensure, that the error page does not trigger further errors. Otherwise, you may create a redirect loop that
+   has not exit condition!
+</div>
+
+<h4 id="Chapter-5-2-ConfigurableErrorHandler"><a href="#Chapter-5-2-ConfigurableErrorHandler">5.2. ConfigurableErrorHandler</a></h4>
+<p>
+   The <em>ConfigurableErrorHandler</em> enables you to ignore errors below a certain error level. For this reason, the
+   constructor takes the error level that defines the threshold. Below this value, the <em>ErrorHandler</em> will ignore
+   the error. Above it, it acts as the <em>DefaultErrorHandler</em>.
+</p>
+<p>
+   The configuration of the <em>ConfigurableErrorHandler</em> can be done within the bootstrap file after inclusion of
+   the <em>pagecontroller.php</em>:
+</p>
+<gen:highlight type="php">
+import('core::errorhandler', 'ConfigurableErrorHandler');
+GlobalErrorHandler::registerErrorHandler(
+   new ConfigurableErrorHandler(E_ALL ^ E_NOTICE)
+);
+</gen:highlight>
+<p>
+   Having a look at the above configuration all errors except <em>E_NOTICE</em> are handled. Details on the configuration
+   of error levels can be taken from the
+   <a class="external" href="http://de.php.net/manual/en/errorfunc.constants.php">PHP documentation</a>.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_144" />
