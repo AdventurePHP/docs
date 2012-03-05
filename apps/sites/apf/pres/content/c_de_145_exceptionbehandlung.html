@@ -1,0 +1,158 @@
+<doku:title parent="119" tags="exception,behandlung,exceptionbehandlung,exceptionhandler,globalexceptionhandler" title="Exception-Behandlung (ab 1.15)" urlname="Exception-Behandlung">
+  Das Kapitel Exception-Behandlung beschreibt das ab Release 1.15 im Framework enthaltene Exception-Behandlungs-Konzept
+  und zeigt die Verwendung sowie die Erweiterung auf.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Analog zu <int:link pageid="144"/> verfügt das APF ebenfalls über einen globalen Mechanismus zur Behandlung von
+   in der Applikation nicht abgefangenen Exceptions. Auch in diesem Fall wird eine Fehlerseite angezeigt, die alle
+   Parameter der Exception sowie einen Stacktrace beinhaltet.
+</p>
+<p>
+   Die Architektur der APF-Exception-Behandlung ist identisch zur Fehler-Behandlung und wird über den zentralen
+   Anlaufpunkt <em>GlobalExceptionHandler</em> gesteuert. Dieser nimmt eine Exception entgegen und delegiert die
+   Behandlung an den registrierten <em>ExceptionHandler</em>. Dieser Mechanismus lässt sich sehr einfach dazu nutzen
+   um schwerwiegende Exceptions (z.B. der Abbruch einer Verbindung zu einem Middle-Tier-System) zentral behandeln zu
+   können. Hierdurch verschlankt sich zudem der Quellcode einer konkreten Funktionalität.
+</p>
+<p>
+   Das Interface <em>ExceptionHandler</em> besitzt eine zusätzliche Standard-Implementierungen (siehe unten) und kann
+   jederzeit dazu genutzt werden, Implementierungen für den eigenen Anwendungsfall zu schaffen.
+</p>
+
+<h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration</a></h3>
+<h4 id="Chapter-2-1-Eigener-ExceptionHandler"><a href="#Chapter-2-1-Eigener-ExceptionHandler">2.1. Eigener ExceptionHandler</a></h4>
+<p>
+   Der <em>GlobalExceptionHandler</em> ist im Auslieferungszustand des APF bereits aktiviert. Als Standard-Handler ist der
+   <em>DefaultExceptionHandler</em> registriert.
+</p>
+<p>
+   Um den vorkonfigurierten Zustand durch einen eigenen zu ersetzen kann folgender Code nach dem Einbinden der
+   <em>pagecontroller.php</em> genutzt werden:
+</p>
+<gen:highlight type="php">
+import('my::project', 'CustomExceptionHandler');
+GlobalExceptionHandler::registerExceptionHandler(new CustomExceptionHandler());
+</gen:highlight>
+<p>
+   Sofern notwendig, können Sie der Instanz des <em>ExceptionHandler</em> beliebige Informationen (z.B. <em>Context</em>)
+   mitgeben.
+</p>  
+
+<h4 id="Chapter-2-2-Aktivierung-und-Deaktivierung"><a href="#Chapter-2-2-Aktivierung-und-Deaktivierung">2.2. Aktivierung und Deaktivierung</a></h4>
+<p>
+   Soll der APF-Mechamismus deaktiviert oder nach einer Deaktivierung wieder aktiviert werden, so können Sie dies mit
+   Hilfe des <em>GlobalExceptionHandler</em> sehr einfach nach dem Einbinden der <em>pagecontroller.php</em> erledigen:
+</p>
+<gen:highlight type="php">
+// Deaktivieren der APF Exception-Behandlung
+GlobalExceptionHandler::disable();
+
+// Erneute Aktivierung der APF Exception-Behandlung
+GlobalExceptionHandler::enable();
+</gen:highlight>
+
+<h3 id="Chapter-3-Implementierung-eines-ExceptionHandler"><a href="#Chapter-3-Implementierung-eines-ExceptionHandler">3. Implementierung eines ExceptionHandler</a></h3>
+<p>
+   Um eine eigene Exception-Behandlung einzuführen, muss das Interface <em>ExceptionHandler</em> implementiert werden.
+   Diese definiert die folgende Methode:
+</p>
+<gen:highlight type="php">
+interface ExceptionHandler {
+
+   public function handleException(Exception $exception);
+
+}
+</gen:highlight>
+<p>
+   Bei Auftreten einer Exception wird diese an die Methode <em>handleException()</em> übergeben.
+</p>
+<div class="hint">
+   <p>
+      Da die Exception-Behandlung in einer eigenen Klasse (z.B. <em>DefaultExceptionHandler</em>) stattfindet, die nicht
+      mit dem ServiceManager erzeugt wurde, steht der Zugriff auf den aktuellen <em>Context</em> und die aktuelle
+      <em>Sprache</em> nicht zur Verfügung!
+   </p>
+   <p>
+      Werden diese Informationen benötigt, können Sie Ihrer Implementierung beliebige Attribute über den Konstruktor
+      oder getter-Methoden mitgeben. Beispiel:
+<gen:highlight type="php">
+class CustomExceptionHandler implements ExceptionHandler {
+
+   private $context;
+
+   public function __construct($context) {
+      $this->context = $context;
+   }
+
+   public function handleException(Exception $exception) {
+      ...
+   }
+
+}
+
+GlobalExceptionHandler::registerExceptionHandler(new CustomExceptionHandler('foo'));
+</gen:highlight>
+   </p>
+</div>
+<p>
+   Als Implementierungsbeispiele für eigene <em>ExceptionHandler</em> können Sie die Klassen <em>DefaultExceptionHandler</em>
+   und <em>ProductionExceptionHandler</em> heranziehen.
+</p>
+
+<h3 id="Chapter-4-Anwendung"><a href="#Chapter-4-Anwendung">4. Anwendung</a></h3>
+<p>
+   Der globale Exception-Behandlungsmechanismus greift immer dann, wenn eine Exception im Applikationscode nicht behandelt
+   wird. Dies kann konzeptionell absichtlich vorgesehen sein um Exceptions oder unerwartet auftreten.
+</p>
+<p>
+   Sollte unabsichtlich eine Exception auftreten, so handelt es sich dabei meist um eine Exception während der 
+   Entwicklung. Hier bietet die angezeigte Fehler-Seite ausreichend Informationen um den Grund zu analysieren.  
+</p>
+<p>
+   Die konzeptionelle Nutzung des Mechanismus bietet sich immer dann an, wenn eine Exception einen Zustand repräsentiert,
+   der von der Applikation nicht sinnvoll abgefangen werden kann (z.B. Verbindungsabbruch zu einem Middle-Tier-System).
+   Hier kann beispielsweise der <em>ProductionExceptionHandler</em> genutzt werden um den Benutzer auf eine dedizierte
+   Fehler-Seite zu lenken.
+</p>
+<p>
+   Um den Mechanismus zu triggern, genügt es im Code die Zeile
+</p>
+<gen:highlight type="php">
+throw new Exception();
+</gen:highlight>
+<p>
+   zu platzieren und diese anschließend nicht anzufangen.
+</p>
+
+<h3 id="Chapter-5-Verfuegbare-ExceptionHandler"><a href="#Chapter-5-Verfuegbare-ExceptionHandler">5. Verfügbare ExceptionHandler</a></h3>
+<p>
+   Das APF bringt mit dem <em>ProductionExceptionHandler</em> eine weitere ExceptionHandler-Implementierungen mit. Diese
+   ist für den Einsatz in Live-Umgebungen gedacht. Live-Systeme gilt es im besonderen vor Kompromittierung zu schützen.
+   Daher ist der <em>ProductionExceptionHandler</em> dafür ausgelegt, möglichst die bei einem Fehler gesammelten Daten
+   vor dem potentiellen Angreifer zu verstecken.
+</p>
+<p>
+   Tritt eine Exception auf, fügt der <em>ProductionExceptionHandler</em> diesen an die globale Log-Datei an
+   und leitet auf eine zuvor konfigurierte Seite weiter. Damit schützt er vor der Veröffentlichung
+   von Daten, die zum Zeitpunkt des Fehlers gesammelt wurden.
+</p>
+<p>
+   Die Konfiguration kann nach Einbinden der Datei <em>pagecontroller.php</em> wie folgt vorgenommen
+   werden:
+</p>
+<gen:highlight type="php">
+import('core::exceptionhandler', 'ProductionExceptionHandler');
+GlobalExceptionHandler::registerExceptionHandler(
+   new ProductionExceptionHandler('/pages/global-error')
+);
+</gen:highlight>
+<p>
+   Das Konstruktor-Argument definiert diejenige Url zu der der Benutzer im Falle eines Fehlers weitergeleitet wird.
+</p>
+<div class="warn">
+   Bitte stellen Sie sicher, dass die Fehlerseite keine weiteren Exceptions produziert. Andernfalls erzeugen Sie dadurch
+   eine Umleitungsschleife, die keine Abbruchbedingung besitzt!
+</div>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_145" />
