@@ -21,22 +21,10 @@ Registry::register('sites::apf', 'ForumBaseURL', 'http://forum.adventure-php-fra
 Registry::register('sites::apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
 
 // special script kiddie error handler ;)
-/* Registry::register(
-  'apf::core',
-  'ErrorHandler',
-  new ErrorHandlerDefinition(
-  'sites::apf::biz::errorhandler',
-  'LiveErrorHandler'
-  )
-  );
-  Registry::register(
-  'apf::core',
-  'ExceptionHandler',
-  new ExceptionHandlerDefinition(
-  'sites::apf::biz::exceptionhandler',
-  'LiveExceptionHandler'
-  )
-  ); */
+import('sites::apf::biz::errorhandler', 'LiveErrorHandler');
+import('sites::apf::biz::exceptionhandler', 'LiveExceptionHandler');
+GlobalErrorHandler::registerErrorHandler(new LiveErrorHandler());
+GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());
 
 // special output filter
 import('sites::apf::pres::filter::output', 'ScriptletOutputFilter');
