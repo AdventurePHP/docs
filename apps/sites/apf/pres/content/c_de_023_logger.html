@@ -1,36 +1,103 @@
 <doku:title parent="119" tags="dokumentation,klassen referenz,klassen,referenz,logger" title="Logger" urlname="Logger">
-  Die Klasse Logger ist ein Tool, mit dem Logging-Aufgaben einfach und zentral bewerkstelligt werden
-  können. Hierzu muss lediglich das LogDir in der Registry definiert werden.
+   Die Klasse Logger ist ein Tool, mit dem Applikationsinformationen einfach und zentral aufgenommen werden
+   können. Er unterstützt die Ausgabe in mehrere Log-Dateien, die Definition von Prioritäten (log severity) pro
+   Eintrag und die Konfiguration von Schwellwerten.
 </doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
 <p>
-   Die Klasse <em>Logger</em> ist ein Tool, mit dem Logging-Aufgaben einfach und zentral
-   bewerkstelligt werden können. Um die Performance einer Anwendung nicht durch häufige,
-   verteilte und konkurrierende File-Zugriffe zu beeinträchtigen, sollte der Logger als
-   Singleton-Instanz erzeugt und verwendet werden. Die Logfile-Einträge werden dann am Ende eines
-   Requests gesammelt in das entsprechende Logfile geschrieben. Der <em>Logger</em> verwendet
-   dazu den Registry-Wert <em>LogDir</em> aus dem Namespace <em>apf::core</em>. Dieser
-   wird mit dem <em>absoluten</em> Pfad zum aktuellen Verzeichnis plus Unterordner
-   <em>logs</em> initialisiert. Soll ein anderes Log-Verzeichnis verwendet werden, so kann
-   der Pfad in der Bootstrap-Datei vor dem Erstellen der Page- oder des FrontController per
+   Die Klasse <em>Logger</em> ist ein Tool, mit dem Applikationsinformationen einfach und zentral aufgenommen werden
+   können. Er unterstützt die Ausgabe in mehrere Log-Dateien, die Definition von Prioritäten (<em>log severity</em>) pro
+   Eintrag und die Konfiguration von Schwellwerten. Letztere dienen vor allem dazu, im Produktionsbetrieb nicht benötigte
+   Debug- oder Trace-Ausgabe auszublenden.
+</p>
+<div class="hint">
+   Die Definition von Schwellwerten wurde im Release 1.15 eingeführt und kann erst ab dieser Version verwendet werden.
+</div>
+<p>
+   Um die Performance einer Anwendung nicht durch häufige, verteilte und konkurrierende File-Zugriffe zu beeinträchtigen,
+   muss der <em>Logger</em> als Singleton-Instanz erzeugt und verwendet. Die Logfile-Einträge werden dann am Ende eines
+   Requests gesammelt in das entsprechende Logfile geschrieben.
+</p>
+
+<h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration</a></h3>
+<h4 id="Chapter-2-1-Log-Verzeichnis"><a href="#Chapter-2-1-Log-Verzeichnis">2.1. Log-Verzeichnis</a></h4>
+<p>
+   Zur Konfiguration des Log-Verzeichnisses nutzen Sie bitte den Registry-Wert <em>LogDir</em> aus dem Namespace
+   <em>apf::core</em>. Dieser wird zunächst mit dem <em>absoluten</em> Pfad zum aktuellen Verzeichnis plus Unterordner
+   <em>logs</em> initialisiert. Soll ein anderes Log-Verzeichnis verwendet werden, so kann der Pfad in der
+   Bootstrap-Datei vor dem Erstellen des Front-Controller per
 </p>
 <gen:highlight type="php">
-Registry::register('apf::core','LogDir','/Pfad/zu/meinem/Log/Verzeichnis');
+Registry::register('apf::core', 'LogDir', '/Pfad/zu/meinem/Log/Verzeichnis');
 </gen:highlight>
 <p>
    angepasst werden. Der angegebene Pfad dient der Ablage aller Log-Dateien einer Applikation.
 </p>
 <div class="hint">
-   Um Fehler beim Zugriff auf das Log-Verzeichnis zu vermeiden, sollte der Pfad
-   <em>absolut</em> definiert sein!
+   Um Fehler beim Zugriff auf das Log-Verzeichnis zu vermeiden, sollte der Pfad <em>absolut</em> definiert sein!
 </div>
+
+<h4 id="Chapter-2-2-Puffer-Laenge"><a href="#Chapter-2-2-Puffer-Laenge">2.2. Puffer-Länge</a></h4>
 <p>
-   Zur Verwendung des Loggers muss dieser zunächst per
+   Wie bereits in der Einleitung angesprochen, sammelt der <em>Logger</em> zunächst alle Einträge und persistiert diese
+   erst am Ende des Requests. Bei hohem Log-Aufkommen kann es daher zu hohem Speicherverbrauch der Applikation kommen,
+   die mit den System-Einstellungen von PHP kollidiert (z.B. <em>memory_limit</em>).
+</p>
+<p>
+   Um den Speicherverbrauch zu reduzieren bzw. zu restringieren kann die maximale Puffer-Länge definiert werden. Der
+   Standardwert ist <em>300</em>, kann jedoch jederzeit durch
+</p>
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setMaxBufferLength(500);
+</gen:highlight>
+<p>
+   adaptiert werden.
+</p>
+
+<h4 id="Chapter-2-3-Schwellwert"><a href="#Chapter-2-3-Schwellwert">2.3. Schwellwert</a></h4>
+<p>
+   Mit dem Release 1.15 ist es möglich, Schwellwerte bzw. Profile für Log-Einträge zu definieren. Liegt ein Eintrag mit
+   einer definierten <em>severity</em> oberhalb des definierten Schwellwertes bzw. innerhalb des gewählten Profils, so
+   wird der Eintrag in die Log-Datei geschrieben. Falls dies nicht zutrifft, wird er verworfen.
+</p>
+<p>
+   Um den Schwellwert zu definieren, können Sie folgenden Code nutzen:
+</p>
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setLogThreshold(Logger::$LOGGER_THRESHOLD_WARN);
+</gen:highlight>
+<p>
+   Wie dem Beispiel zu entnehmen ist, definiert der <em>Logger</em> bereits eine Auswahl an Standard-Schwellwerten bzw.
+   -Profilen. Darüber hinaus können Sie beliebige eigene Profile erstellen. Hierzu nutzen Sie bitte die
+   <em>severity</em>-Definitionen des Interfaces <em>LogEntry</em>. 
+</p>
+<p>
+   Der folgende Code-Block zeigt ein Beispiel, in dem nur <em>INFO</em>- und <em>TRACE</em>-Einträge in die Log-Datei
+   geschrieben werden:
+</p>
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setLogThreshold(array(
+   LogEntry::SEVERITY_TRACE,
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight>
+<div class="hint">
+   Bitte beachten Sie, dass die mit der Methode <em>setLogThreshold()</em> definierten Schwellwerte nicht an eine
+   Hierarchie gebunden sind. Sie können daher frei definieren, welche Einträge geschrieben und welche verworfen werden.
+</div>
+
+<h3 id="Chapter-3-Verwendung"><a href="#Chapter-3-Verwendung">3. Verwendung</a></h3>
+<p>
+   Zur Verwendung des Loggers muss dieser zunächst via
 </p>
 <gen:highlight type="php">
 import('core::logging','Logger');
 </gen:highlight>
 <p>
-   eingebunden werden. Anschließend kann per
+   eingebunden werden. Dies gilt auch für die in Kapitel 2 gezeiten Beispiele. Anschließend kann mit
 </p>
 <gen:highlight type="php">
 $log = &Singleton::getInstance('Logger');
@@ -45,8 +112,8 @@ $log->logEntry('FILENAME','MESSAGE');
 </gen:highlight>
 <p>
    erledigt. Der dritte Parameter (optional) der Methode <em>logEntry()</em> definiert die
-   <em>SEVERITY</em> der Meldung und kann frei definiert werden. Für Fehler wird
-   üblicherweise <em>ERROR</em> eingesetzt, Standard ist <em>INFO</em>.
+   <em>SEVERITY</em> der Meldung. Die verfügbaren Werte für den Schweregrad sind im Interface
+   <em>LogEntry</em> definiert.
 </p>
 <div class="hint">
    Sollte die Applikation exzessives Logging betreiben, kann es sinnvoll sein zu Gunsten einer

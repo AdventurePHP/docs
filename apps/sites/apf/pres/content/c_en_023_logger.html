@@ -1,27 +1,86 @@
 <doku:title parent="119" tags="documentation,class reference,classes,reference,logger" title="Logger" urlname="Logger">
-  The class Logger is a tool to accomplish logging issues. For configuration issues, the registry
-  directive LogDir must be changed as desired.
+   The class Logger is a tool to record application information easily and within a central store. It supports
+   multiple log files and threashold configuration.
 </doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
 <p>
-   The class <em>Logger</em> is a tool to accomplish logging issues. To not influence the
-   performance of an web application in a negavive way the logger must be used in singleton flavour. The
-   component ensures that every log entry is flushed into a logfile at the end of a request. The
-   <em>Logger</em> uses the registry value <em>LogDir</em> from the registry namespace
-   <em>apf::core</em> as a it's log directory. The value of the registry entry is initialized
-   with the <em>absulute</em> path to the current directory plus the subfolder <em>logs</em>
-   by default. In order to adjust the log directory to meet your needs, the desired path must be commited
-   to the registry before instanciating the page or frontcontroller. This can be achieved by using the
-   following code snippet:
-</p>
-<gen:highlight type="php">
-Registry::register('apf::core','LogDir','/path/to/my/log/dir');
-</gen:highlight>
-<p>
-   The path defined there characterizes the central logging path for all logfiles within one application.
+   The class <em>Logger</em> is a tool to record application information easily and within a central store. It supports
+   multiple log files and threashold configuration. Thresholds are useful to filter entries that are not meant for
+   production environments.
 </p>
 <div class="hint">
-   To avoid log dir access errors, please define <em>absolut</em> log paths only!
+   Threshold definition has been introduced in release 1.15 and may be used since this version only.
 </div>
+<p>
+   To not influence the performance of an web application in a negative way the logger must be used in singleton flavour.
+   The component ensures that every log entry is flushed into a logfile at the end of a request.
+</p>
+
+<h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration</a></h3>
+<h4 id="Chapter-2-1-Log-dir"><a href="#Chapter-2-1-Log-dir">2.1. Log directory</a></h4>
+<p>
+   The log directory is configured within the registry value <em>LogDir</em> from the registry namespace
+   <em>apf::core</em>. The value is initialized with the <em>absolute</em> path to the current directory plus the
+   <em>logs</em> subfolder on startup. In case you intend to use another directory, you may adapte the path within your
+   bootstrap file before creation of the front controller:
+</p>
+<gen:highlight type="php">
+Registry::register('apf::core', 'LogDir', '/path/to/my/log/dir');
+</gen:highlight>
+<p>
+   This path is used to place all log files of the entire application.
+</p>
+<div class="hint">
+   To avoid issues with accessing the log directory the path should be defined as <em>absolute</em>!
+</div>
+
+<h4 id="Chapter-2-2-Buffer-length"><a href="#Chapter-2-2-Buffer-length">2.2. Buffer length</a></h4>
+<p>
+   As noted above, the <em>Logger</em> collects all entries to write them to the log file at the end of the request.
+   Facing high log traffic, the memory consumption of your application may collide with PHP's system configuration
+   (e.g. <em>memory_limit</em>).
+</p>
+<p>
+   To reduce memory consumption the maximum buffer length can be defined as desired. By default, 300 entries are collected
+   until the buffer is flushed. To adapt this value, call
+</p>
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setMaxBufferLength(500);
+</gen:highlight>
+
+<h4 id="Chapter-2-3-Threshold"><a href="#Chapter-2-3-Threshold">2.3. Threshold</a></h4>
+<p>
+   Since release 1.15 thresholds - or profiles - for log entries can be defined. In case the <em>severity</em> of the
+   log entry is above the threshold - or matches the profile - it is added to the log file. Otherwise it is skipped.
+</p>
+<p>
+   To define the threshold, please use the following lines:
+</p>
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setLogThreshold(Logger::$LOGGER_THRESHOLD_WARN);
+</gen:highlight>
+<p>
+   As you may take from the example, the <em>Logger</em> already defines standard thresholds. Furthermore, you can
+   create custom profiles using the <em>severity</em> definitionens of the <em>LogEntry</em> interface.
+</p>
+<p>
+   The follwing code block describes how to define a custom threshold - or create a custim profile:
+</p>
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setLogThreshold(array(
+   LogEntry::SEVERITY_TRACE,
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight>
+<div class="hint">
+   Please note, that defining thresholds with the <em>setLogThreshold()</em> method are not restricted to any hierachy.
+   This means, that you can define which log entries are written to the log file or not freely.
+</div>
+
+<h3 id="Chapter-3-Usage"><a href="#Chapter-3-Usage">3. Usage</a></h3>
 <p>
    To use the logger it must be imported using
 </p>
@@ -44,8 +103,8 @@ $log->logEntry('FILENAME','MESSAGE');
 </gen:highlight>
 <p>
    can be used. The third parameter of the method <em>logEntry()</em> (optional) specifies
-   the <em>SEVERITY</em> of the message provided. This parameter can be filled with any string.
-   Merely <em>ERROR</em> is used for error messages, default value is <em>INFO</em>.
+   the <em>SEVERITY</em> of the message provided. Please find the available severity levels within the
+   <em>LogEntry</em> interface.
 </p>
 <div class="hint">
    In case the application does excessive logging it may be good to save memory to flush the log
