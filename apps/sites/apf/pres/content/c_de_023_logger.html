@@ -89,6 +89,35 @@ $log->setLogThreshold(array(
    Hierarchie gebunden sind. Sie können daher frei definieren, welche Einträge geschrieben und welche verworfen werden.
 </div>
 
+<h4 id="Chapter-2-4-Host-Praefix"><a href="#Chapter-2-4-Host-Praefix">2.4. Host-Präfix</a></h4>
+<p>
+   In geclusterten Umgebungen werden Log-Dateien von verschiedenen Servern oft auf ein gemeinsames Datei-System
+   geschrieben. Vorteil dieser Vorgehensweise ist, dass Log-Dateien zentral ausgewertet und archiviert werden können.
+   Der Nachteil besteht darin, dass die Server des Clusters beim Schreiben der Dateien um Zugriff konkurrieren und sich
+   so die Performance der Anwendung durch langes Warten oder erhöhten Log-Traffic (erfahrungsgemäß) verringert.
+</p>
+<p>
+   Eine oft eingesetzte Lösung ist, in geclusterten Umgebungen die einzelnen Log-Dateien mit einem Präfix zu verstehen,
+   das den Server-Namen enthält. So sind die Dateinamen nicht nur eindeutig, sondern lassen auch die Analyse einer
+   Anwendung auf einem dedizierten Server zu.
+</p>
+<p>
+   Mit dem in Release 1.15 eingeführten <em>host prefix</em> haben Sie die Möglichkeit, einen Server-abhängigen Präfix
+   für eine Log-Datei zu definieren:
+</p>
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setHostPrefix('node1');
+</gen:highlight>
+<div class="hint">
+   Um die Konfiguration des Präfix möglichst einfach zu gestalten empfiehlt es sich, Umgebungs- oder Server-Konfigurationen
+   auszulesen. Der folgende Code zeigt dies an Hand der <em>$_SERVER</em>-Superglobal-Variable:
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setHostPrefix($_SERVER['SERVER_ADDR']);
+</gen:highlight>
+</div>
+
 <h3 id="Chapter-3-Verwendung"><a href="#Chapter-3-Verwendung">3. Verwendung</a></h3>
 <p>
    Zur Verwendung des Loggers muss dieser zunächst via
