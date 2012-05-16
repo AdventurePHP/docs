@@ -76,7 +76,8 @@
 <gen:highlight type="php">
 interface FilterChain {
    public function filter($input);
-   public function addFilter(ChainedContentFilter $filter);
+   public function appendFilter(ChainedContentFilter $filter);
+   public function prependFilter(ChainedContentFilter $filter);
    public function removeFilter($class);
 }
 
@@ -88,7 +89,11 @@ abstract class AbstractFilterChain implements FilterChain {
       ...
    }
 
-   public function &addFilter(ChainedContentFilter $filter) {
+   public function &appendFilter(ChainedContentFilter $filter) {
+      ...
+   }
+
+   public function &prependFilter(ChainedContentFilter $filter) {
       ...
    }
 
@@ -160,6 +165,16 @@ class WhitespaceOutputFilter implements ChainedContentFilter {
 
 }
 </gen:highlight>
+<div class="hint">
+   <p>
+      Ab dem Release 1.15 ist es sowohl vor als auch während der Ausführung einer <em>FilterChain</em> möglich Filter
+      an den Anfang oder das Ende der Kette hinzuzufügen. Hierzu stehen die Methoden <em>appendFilter()</em> (Anhängen
+      eines Filters an das Ende) und <em>prependFilter()</em> (Voranstellen eines Filters) zur Verfügung.
+   </p>
+   <p>
+      Bitte beachten Sie, dass während der Ausführung vorangestellte Filter nicht mehr ausgeführt werden könnten.
+   </p>
+</div>
 
 <h3 id="Chapter-3-Konfiguration"><a href="#Chapter-3-Konfiguration">3. Konfiguration</a></h3>
 <h4 id="Chapter-3-1-Standard-Setup"><a href="#Chapter-3-1-Standard-Setup">3.1. Standard-Setup</a></h4>
@@ -187,19 +202,19 @@ import('core::frontcontroller', 'Frontcontroller');
 
 // Konfiguration eines eigenen, zusätzlichen Input-Filters
 import('my::project::filters', 'AdditionalInputFilter');
-InputFilterChain::getInstance()->addFilter(new AdditionalInputFilter());
+InputFilterChain::getInstance()->appendFilter(new AdditionalInputFilter());
 
 // Konfiguration eines eigenen, zusätzlichen Output-Filters
 import('my::project::filters', 'AdditionalOutputFilter');
-OutputFilterChain::getInstance()->addFilter(new AdditionalOutputFilter());
+OutputFilterChain::getInstance()->appendFilter(new AdditionalOutputFilter());
 
 // Konfiguration eines eigenen, alleinigen Input-Filters
 import('my::project::filters', 'CustomInputFilter');
-InputFilterChain::getInstance()->clear()->addFilter(new CustomInputFilter());
+InputFilterChain::getInstance()->clear()->appendFilter(new CustomInputFilter());
 
 // Konfiguration eines eigenen, alleinigen Output-Filters
 import('my::project::filters', 'CustomOutputFilter');
-OutputFilterChain::getInstance()->clear()->addFilter(new CustomOutputFilter());
+OutputFilterChain::getInstance()->clear()->appendFilter(new CustomOutputFilter());
 </gen:highlight>
 <p>
    Da beliebig viele Filter in einer Chain registriert werden können, ist auch eine Kombination der
@@ -215,12 +230,12 @@ import('my::project::filters', 'AdditionalInputFilterOne');
 import('my::project::filters', 'AdditionalInputFilterTwo');
 InputFilterChain::getInstance()
    ->clear()
-   ->addFilter(new AdditionalInputFilterOne())
-   ->addFilter(new AdditionalInputFilterTwo());
+   ->appendFilter(new AdditionalInputFilterOne())
+   ->appendFilter(new AdditionalInputFilterTwo());
 
 // Konfiguration eines zusätzlichen Output-Filters
 import('my::project::filters', 'AdditionalOutputFilter');
-OutputFilterChain::getInstance()->addFilter(new AdditionalOutputFilter());
+OutputFilterChain::getInstance()->appendFilter(new AdditionalOutputFilter());
 </gen:highlight>
 <p>
    Soll die Reihenfolge innerhalb einer Chain verändert werden, so kann das durch Leeren und
