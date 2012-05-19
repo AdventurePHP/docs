@@ -249,4 +249,79 @@ $Orm->saveObject($Message);
    dekodieren von Arrays oder Objekten vor bzw. nach dem Speichern oder Laden.
 </p>
 
+<h3 id="Chapter-6-Objekt-Trees"><a href="#Chapter-6-Objekt-Trees">6. Objekt-Bäume</a></h3>
+<p>
+    Seit der Version 1.15 bietet der Generische O/R-Mapper einen Mechanismus, mittels dem sich hierarchische 
+    Objekt-Listen - also Objekt-Bäume - erstellen lassen. Dieses Feature ist vergleichbar mit dem Nested-Sets- oder
+    ParentID-Prinzip.    
+</p>
+
+<p>
+    Um dieses Feature nutzen zu können, muss in der Datei <em>{ENVIRONMENT}_{NAMEAFFIX}_domainobjects.ini</em> ein Domain-Objekt
+    definiert sein, welches als Basis-Klasse die Klasse <em>TreeItem</em> verwendet oder aber man definiert direkt die Klasse 
+    <em>TreeItem</em> als Domain-Object:
+<gen:highlight type="ini">
+; Variante 1
+[NavigationNode]
+Namespace = "namespace::to"
+Class = "NavigationNode"
+Base.Namespace = "modules::genericormapper::data"
+Base.Class = "TreeItem"
+
+; Variante 2
+[NavigationNode]
+Namespace = "modules::genericormapper::data"
+Class = "TreeItem"   
+</gen:highlight>    
+</p>
+
+<p>
+    Die Hierarchie der Objekte muss über eine Kompositions-Tabelle abgebildet werden:
+<gen:highlight type="ini">
+[NavigationNode2NavigationNode]
+Type = "COMPOSITION"
+SourceObject = "NavigationNode"
+TargetObject = "NavigationNode"
+</gen:highlight>
+</p>
+
+<p>
+    Einen Objekt-Baum erhält man nun durch den Aufrauf der Methode <em>loadObjectTree()</em> des <em>GenericORRelationMapper()</em>:
+<gen:highlight type="php">
+$ObjectTree = $ORM->loadObjectTree('NavigationNode', 'NavigationNode2NavigationNode');
+</gen:highlight>
+    Diese Methode kennt noch 3 weitere, optionale Parameter:   
+</p>
+<ul>
+    <li><em>criterion</em>: Hier kann ein GenericCriterionObject übergeben werden, um die Abfrage der Objekte, die für den
+    Baum verwendet werden, zu beinflussen.</li>
+    <li><em>rootObjectId</em>: Wird hier eine ID eine Objektes übergeben, wird dieses Objekt als Wurzel-Objekt für den Baum verwendet.</li>
+    <li><em>maxDepth</em>: Mit diesem Parameter lässt sich die Tiefe des Baumes begrenzen.</li>
+</ul>
+
+<p>Sobald ein Objekt-Baum erstellt/abgefragt wurde, ist es möglich über zwei Methoden, welche in der Klasse <em>TreeItem</em> definiert sind,
+ die Kind- bzw. das Eltern-Objekt des aktuellen Tree-Items abzufragen. Üer Rekursion wäre es nun möglich, den Objekt-Baum bspw. mittels einer
+ verschachtelten ungeordneten Liste auszuzeichen.
+<gen:highlight type="php">
+function printChildObjects($objects) {
+    echo '&lt;ul&gt;';
+    foreach ($objects as $object) {
+        echo '&lt;li&gt;';
+        echo $object->getProperty('DisplayName');
+        
+        $children = $object->getChildren();
+        if (count($children) > 0) {
+            printChildObjects($children);
+        }
+        
+        echo '&lt;/li&gt;';
+    }
+    echo '&lt;/ul&gt;';    
+}
+
+$ObjectTree = $ORM->loadObjectTree('NavigationNode', 'NavigationNode2NavigationNode');
+printChildObjects($ObjectTree);
+</gen:highlight> 
+</p>
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_139" />
