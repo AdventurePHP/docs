@@ -1,0 +1,339 @@
+<doku:title parent="100" tags="migration,1.14,1.16,gorm,generic or mapper,servicemanager,usermanagement,umgt" title="Migration from 1.14 to 1.15" urlname="Migration-from-1-14-to-1-15">
+   This page describes the adaptions of your current software (up to release 1.14) to be compatible with release 1.15
+   of the APF.
+</doku:title>
+<p>
+   This page describes all changes to your current code to update your APF installation from 1.14 to 1.15.
+</p>
+
+<h3 id="Chapter-1-ConnectionManager"><a href="#Chapter-1-ConnectionManager">1. ConnectionManager</a></h3>
+<p>
+   To be able to define database ports and sockets individually, the configuration of the database connection has changed.
+   You may now specify the DB.Port and DB.Socket and old definitions (e.g. for your mysqli connection) such as
+</p>
+<gen:highlight type="code">
+DB.Host = "localhost:1234"
+</gen:highlight> 
+<p>
+   are no longer supported. Updating to 1.15, ports must be defined separately:
+</p>
+<gen:highlight type="code">
+DB.Host = "localhost"
+DB.Port = "1234"
+</gen:highlight> 
+
+<h3 id="Chapter-2-Url-rewriting"><a href="#Chapter-2-Url-rewriting">2. Url rewriting</a></h3>
+<p>
+   In 1.15 the request parameter containg the full url has been renamed from &quot;apf-rewrited-query&quot; to
+   &quot;apf-rewritten-query&quot;. To update to this version, please adapt all rewrite rules for your existing projects.
+</p>
+
+<h3 id="Chapter-3-User-management"><a href="#Chapter-3-User-management">3. User management</a></h3>
+<h4 id="Chapter-3-1-Configuration"><a href="#Chapter-3-1-Configuration">3.1. Configuration</a></h4>
+<p>
+   The configuration of the user namagement module is now completely built on <em>dependency injection</em>. This applies
+   to creating and configuring the <em>UmgtManager</em>.
+</p>
+
+<h5 id="Chapter-3-1-1-Ablage der Konfigurationen"><a href="#Chapter-3-1-1-Ablage der Konfigurationen">3.2.1. Ablage der Konfigurationen</a></h5>
+<p>
+   In order to update to release 1.15, the following configuration scheme must be created/adapted:
+</p>
+<gen:highlight type="code">
+/APF/config/modules/usermanagement/
+                                   biz/{Context}/
+                                                 {ENVIRONMENT}_actionconfig.ini
+                                                 {ENVIRONMENT}_serviceobjects.ini
+                                                 {ENVIRONMENT}_umgtconfig.ini
+                                   data/{Context}/
+                                                 {ENVIRONMENT}_umgt_domainobjects.ini
+                                                 {ENVIRONMENT}_umgt_objects.ini
+                                                 {ENVIRONMENT}_umgt_relations.ini
+                                   pres/{Context}/
+                                                 {ENVIRONMENT}_labels.ini
+                                                 {ENVIRONMENT}_login.ini
+</gen:highlight>
+<p>
+   Templates for these configuration files can be found in the <em>apf-configpack-*</em> release files. Details on the
+   content and the meaning can be found under <int:link pageid="142"/>.
+<p>
+
+<h5 id="Chapter-3-1-2-Configuration-of-the-UmgtManager-service"><a href="#Chapter-3-1-2-Configuration-of-the-UmgtManager-service">3.1.2. Configuration of the UmgtManager service</a></h5>
+<p>
+   The <em>UmgtManager</em> and it's same-name implementation is created and managed by the
+   <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Complex-services">DIServiceManager</int:link> only as
+   of release 1.15. Thus, the manager is provided all configuration and dependencies via <em>dependency injection container</em>.
+</p>
+<p>
+   To retrieve the <em>UmgtManager</em> via
+</p>
+<gen:highlight type="php"> 
+$umgt = &$this->getDIServiceObject('modules::usermanagement::biz', 'UmgtManager');
+</gen:highlight>
+<p>
+   from the container, the configuration file <em>*_serviceobjects.ini</em> must be present under
+   <em>modules::usermanagement::biz</em> plus the appropriate context path:
+</p>
+<gen:highlight type="ini">
+[UmgtManager]
+servicetype = "SESSIONSINGLETON"
+namespace = "modules::usermanagement::biz"
+class = "UmgtManager"
+setupmethod = "setup"
+init.orm.method = "setORMapper"
+init.orm.namespace = "modules::usermanagement::biz"
+init.orm.name = "GORM"
+conf.app-id.method = "setApplicationId"
+conf.app-id.value = "1"
+
+[GORM]
+servicetype = "SESSIONSINGLETON"
+namespace = "modules::genericormapper::data"
+class = "GenericORRelationMapper"
+setupmethod = "setup"
+conf.namespace.method = "setConfigNamespace"
+conf.namespace.value = "modules::usermanagement::data"
+conf.affix.method = "setConfigNameAffix"
+conf.affix.value = "umgt"
+conf.db.method = "setConnectionName"
+conf.db.value = "Umgt"
+conf.debug.method = "setLogStatements"
+conf.debug.value = "false"
+</gen:highlight>
+<p>
+   Moreover, a login and logout redirect url provider must be configured as you can take from the sample configuration
+   files.
+<p>
+<div class="warn">
+   Please note, that <em>conf.db.value</em> must be adapted to your local database. This value refers to the
+   database configuration file <em>{ENVIRONMENT}_connections.ini</em> located under
+   <em>/apps/config/core/database/{CONTEXT}/</em>. Details in database configuration can be taken from
+   <int:link pageid="031"/>.
+</div>
+
+<h4 id="Chapter-3-2-Domainen-objects"><a href="#Chapter-3-2-Domainen-objects">3.2. Domain objects</a></h4>
+<p>
+   As noted above, the user management module is now built on the <int:link pageid="139">domain object feature</int:link>
+   of the <int:link pageid="063"/>. This means, that the GORM returns dedicated object types defined within the
+   <em>*_umgt_objects.ini</em> instead of <em>GenericDomainObject</em> instances. For your day-to-day work, this means
+   ease of use and makes the API of the <em>UmgtManager</em> more valuable.
+</p>
+<p>
+   Migrating to the new version it is necessary to create the <em>EXAMPLE_umgt_domainobjects.ini</em> file under
+   <em>config/modules/usermanagement/data/</em>. In case the configuration is missing, you are facing issues with
+   incompatible object types e.g. accessing methods that are only defined for <em>UmgtUser</em> on an instance of
+   <em>GenericDomainObject</em>.
+</p>
+
+<h4 id="Chapter-3-3-Update-of-the-data-model"><a href="#Chapter-3-3-Update-of-the-data-model">3.3. Update of the data model</a></h4>
+<p>
+   Together with updates to the functionality of the user management module the data model has been enhanced. To update
+   an existing installation to the new scheme, you can use th <int:link pageid="128">Update-Tool</int:link> of the
+   GORM.
+</p>
+
+<div class="warn">
+   Please note: it is strongly recommended to create a backup of your existing database. In case of missing or wrong
+   configuration data may get corrupted or get lost. Moreover, the below code sample must be adapted to your application
+   case!
+</div>
+<p>
+   Sample:
+</p>
+<gen:highlight type="php">
+require('./apps/core/pagecontroller/pagecontroller.php');
+
+import('modules::genericormapper::data::tools', 'GenericORMapperUpdate');
+$update = new GenericORMapperUpdate();
+$update->setContext('xyz');
+$update->updateDatabase('modules::usermanagement::data', 'umgt', 'Umgt', true);
+</gen:highlight> 
+<p>
+   Executing the above code will update your database schema. You can now use the user management of the 1.15 release.
+</p>
+
+<h3 id="Chapter-4-API"><a href="#Chapter-4-API">4. API</a></h3>
+<p>
+   This release contains several API changes. Please refer to the following list to apply the changes to your projects:
+</p>
+<ul>
+   <li>
+      <em>AbstractFilterChain::addFilter()</em> has been renamed to <em>AbstractFilterChain::appendFilter()</em>.
+      In addition, the <em>AbstractFilterChain::prependFilter()</em> has been added. Details can be taken from the
+      documentation under <int:link pageid="137"/>.
+   </li>
+   <li>
+      The support for the <em>file</em> attribute within document controllers has been removed to guarantee consistent
+      addressing of APF-based classes. This means, that class and file names must be equal until now.
+   </li>
+   <li>
+      <em>stringAssistant</em> has been renamed to <em>StringAssistant</em>.
+   </li>
+   <li>
+      <em>stringEncryptor</em> has been renamed to <em>StringEncryptor</em>.
+   </li>
+</ul>
+
+<h3 id="Chapter-5-Contact-form-module"><a href="#Chapter-5-Contact-form-module">5. Contact form module</a></h3>
+<p>
+   The contact form module now supports language-dependent templates for confirmation and notification emails. Updating
+   to 1.15 you need to add a template configuration for your application.
+</p>
+<p>
+   You may use the <em>EXAMPLE_mail_templates.ini</em> under <em>/config/modules/kontakt4/</em> delivered with the
+   <em>apf-configpack-*</em> release file as a basis for your configuration. It's content is like this:
+<p>
+<gen:highlight type="ini">
+[de]
+confirmation.namespace = "modules::kontakt4::pres::templates::mail"
+confirmation.template = "confirmation_de"
+
+notification.namespace = "modules::kontakt4::pres::templates::mail"
+notification.template = "notification_de"
+
+[en]
+confirmation.namespace = "modules::kontakt4::pres::templates::mail"
+confirmation.template = "confirmation_en"
+
+notification.namespace = "modules::kontakt4::pres::templates::mail"
+notification.template = "notification_en"
+</gen:highlight> 
+<p>
+   The contact form module expects the configuration file under
+</p>
+<gen:highlight type="code">
+/APF/config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_mail_templates.ini
+</gen:highlight> 
+
+<h3 id="Chapter-6-Refactoring-of-the-getstring-tags"><a href="#Chapter-6-Refactoring-of-the-getstring-tags">6. Refactoring of the getstring tags</a></h3>
+<p>
+   In 1.15 the <em>*:getstring</em> tag family has been refactored to ease usage. Therefore, the tag implementations
+   have been moved from <em>tools</em> to <em>core</em>.
+</p>
+<p>
+   Updating from 1.14 to 1.15 this means, that all occurrences of
+</p>
+<gen:highlight type="html">
+<*:addtaglib
+   namespace="*"
+   prefix="*"
+   class="getstring"
+/>
+</gen:highlight>
+<p>
+   must be removed from the code. The tags are now automatically available for usage.
+</p>
+
+<h3 id="Chapter-7-Custom-ErrorHandler"><a href="#Chapter-7-Custom-ErrorHandler">7. Custom ErrorHandler</a></h3>
+<p>
+   Within release 1.15 the global error handling mechanism has been reworked. Configuration is now done by the
+   GlobalErrorHandler class within your bootstrap file.
+</p>
+<p>
+   Custom error handlers are no longer defined via
+</p>
+<gen:highlight type="php">
+Registry::register(
+   'apf::core',
+   'ErrorHandler',
+   new ErrorHandlerDefinition(
+      'my::errorhandler::namespace',
+      'MyErrorHandler'
+   )
+);
+</gen:highlight> 
+<p>
+   but using the following code:
+</p>
+<gen:highlight type="php">
+import('my::errorhandler::namespace', 'MyErrorHandler');
+GlobalErrorHandler::registerErrorHandler(new MyErrorHandler());
+</gen:highlight> 
+<p>
+   Please note, that the configuration must be placed after inclusion of the <em>pagecontroller.php</em>.
+</p>
+<p>
+   Details can be taken from <int:link pageid="144"/>.
+</p>
+
+<h3 id="Chapter-8-Eigene-ExceptionHandler"><a href="#Chapter-8-Eigene-ExceptionHandler">8. Eigene ExceptionHandler</a></h3>
+<p>
+   Wie im vorangegangenen Kapitel für die globale Fehlerbehandlung beschrieben, wurde auch die globale
+   Exception-Behandlung im Release 1.15 refactored. Die Konfiguration eines eigenen ExceptionHandler funktioniert
+   damit nicht mehr über die Registry, sondern über die Klasse GlobalExceptionHandler innerhalb der Boostrap-Datei.
+</p>
+<p>
+   Eigene ExceptionHandler werden nicht wie bisher per
+</p>
+<gen:highlight type="php">
+Registry::register(
+   'apf::core',
+   'ExceptionHandler',
+   new ExceptionHandlerDefinition(
+      'my::exceptionhandler::namespace',
+      'MyExceptionHandler'
+   )
+);
+</gen:highlight> 
+<p>
+   sondern via
+</p>
+<gen:highlight type="php">
+import('my::exceptionhandler::namespace', 'MyExceptionHandler');
+GlobalExceptionHandler::registerExceptionHandler(new MyExceptionHandler());
+</gen:highlight> 
+<p>
+   nach dem Einbinden der <em>pagecontroller.php</em> konfiguriert.
+</p>
+<p>
+   Details können der Dokumentation unter <int:link pageid="145"/> entnommen werden.
+</p>
+
+<h3 id="Chapter-9-Konfiguration-Logger"><a href="#Chapter-9-Konfiguration-Logger">9. Konfiguration Logger</a></h3>
+<p>
+   Mit dem vorliegenden Release wurde der <em>Logger</em> um die Konfiguration von Schwellwerten bzw. Profilen für
+   Log-Einträge erweitert. Liegt ein Eintrag mit einer definierten <em>severity</em> oberhalb des definierten
+   Schwellwertes bzw. innerhalb des gewählten Profils, so wird der Eintrag in die Log-Datei geschrieben. Falls dies
+   nicht zutrifft, wird er verworfen.
+</p>
+<p>
+   Im Auslieferungszustand werden die <em>severities</em>
+</p>
+<ul>
+   <li>LogEntry::SEVERITY_WARNING</li>
+   <li>LogEntry::SEVERITY_INFO</li>
+   <li>LogEntry::SEVERITY_ERROR</li>
+   <li>LogEntry::SEVERITY_FATAL</li>
+</ul>
+<p>
+   als gültige Eintragstypen definiert.
+</p>
+<div class="hint">
+   DEBUG-Ausgaben (z.B. aus den Datenbank-Verbindungs-Klassen) werden daher ohne Anpassung der Konfiguration zunächst
+   nicht mehr in die Log-Dateien geschrieben.
+</div>
+<p>
+   Um den Zustand vor 1.15 wiederherzustellen, ist folgender Code in der Bootstrap-Datei nach dem Einbinden der
+   <em>pagecontroller.php</em> notwendig:
+</p>
+<gen:highlight type="php">
+import('core::logging', 'Logger');
+$log = &Singleton::getInstance('Logger');
+$log->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
+</gen:highlight> 
+<p>
+   Alternativ dazu können Sie eigene Profile z.B. per
+</p>
+<gen:highlight type="php">
+import('core::logging', 'Logger');
+$log = &Singleton::getInstance('Logger');
+$log->setLogThreshold(array(
+   LogEntry::SEVERITY_TRACE,
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight> 
+<p>
+   definieren.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_146" />
