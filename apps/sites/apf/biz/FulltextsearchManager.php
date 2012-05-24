@@ -1,43 +1,42 @@
 <?php
-   import('modules::pager::biz','PagerManagerFabric');
-   import('sites::apf::biz','SearchResult');
-   import('sites::apf::data','FulltextsearchMapper');
-   import('core::logging','Logger');
+import('modules::pager::biz', 'PagerManagerFabric');
+import('sites::apf::biz', 'SearchResult');
+import('sites::apf::data', 'FulltextsearchMapper');
+import('core::logging', 'Logger');
+
+/**
+ * @package sites::apf::biz
+ * @class FulltextsearchManager
+ *
+ * Business component of the full text search feature.
+ *
+ * @author Christian Achatz
+ * @version
+ * Version 0.1, 10.03.2008<br />
+ */
+class FulltextsearchManager extends APFObject {
 
    /**
-    * @package sites::apf::biz
-    * @class FulltextsearchManager
+    * @public
     *
-    * Implementiert die Business-Schicht f�r die Volltextsuche.<br />
+    * L�d Ergebnis-Objekte gem�� einem Suchwort.<br />
+    *
+    * @param string $SearchString; Suchwort, oder mehrere W�rter per Space getrennt
+    * @return array $SearchResults; Liste von Such-Ergebnis-Objekten
     *
     * @author Christian Achatz
     * @version
     * Version 0.1, 10.03.2008<br />
     */
-   class FulltextsearchManager extends APFObject {
+   public function loadSearchResult($SearchString) {
+      $m = &$this->getServiceObject('sites::apf::data', 'FulltextsearchMapper');
 
-      /**
-       * @public
-       *
-       * L�d Ergebnis-Objekte gem�� einem Suchwort.<br />
-       *
-       * @param string $SearchString; Suchwort, oder mehrere W�rter per Space getrennt
-       * @return array $SearchResults; Liste von Such-Ergebnis-Objekten
-       *
-       * @author Christian Achatz
-       * @version
-       * Version 0.1, 10.03.2008<br />
-       */
-      public function loadSearchResult($SearchString) {
-         $m = &$this->getServiceObject('sites::apf::data','FulltextsearchMapper');
+      // Suchwort protokollieren
+      $l = &Singleton::getInstance('Logger');
+      $l->logEntry('searchlog', 'SearchString: "' . $SearchString . '"', 'LOG');
 
-         // Suchwort protokollieren
-         $l = &Singleton::getInstance('Logger');
-         $l->logEntry('searchlog','SearchString: "'.$SearchString.'"','LOG');
-
-         return $m->loadSearchResult($SearchString);
-
-      }
+      return $m->loadSearchResult($SearchString);
 
    }
-?>
+
+}
