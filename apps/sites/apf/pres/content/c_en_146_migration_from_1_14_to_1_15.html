@@ -227,7 +227,7 @@ notification.template = "notification_en"
 <h3 id="Chapter-7-Custom-ErrorHandler"><a href="#Chapter-7-Custom-ErrorHandler">7. Custom ErrorHandler</a></h3>
 <p>
    Within release 1.15 the global error handling mechanism has been reworked. Configuration is now done by the
-   GlobalErrorHandler class within your bootstrap file.
+   <em>GlobalErrorHandler</em> class within your bootstrap file.
 </p>
 <p>
    Custom error handlers are no longer defined via
@@ -258,12 +258,11 @@ GlobalErrorHandler::registerErrorHandler(new MyErrorHandler());
 
 <h3 id="Chapter-8-Eigene-ExceptionHandler"><a href="#Chapter-8-Eigene-ExceptionHandler">8. Eigene ExceptionHandler</a></h3>
 <p>
-   Wie im vorangegangenen Kapitel für die globale Fehlerbehandlung beschrieben, wurde auch die globale
-   Exception-Behandlung im Release 1.15 refactored. Die Konfiguration eines eigenen ExceptionHandler funktioniert
-   damit nicht mehr über die Registry, sondern über die Klasse GlobalExceptionHandler innerhalb der Boostrap-Datei.
+   Along with the error handler changes described in the previous chapter the exception handling mechanism has been
+   reworked, too. Configuration is now done by the <em>GlobalExceptionHandler</em> class within your bootstrap file.
 </p>
 <p>
-   Eigene ExceptionHandler werden nicht wie bisher per
+   Custom exception handlers are no longer defined via
 </p>
 <gen:highlight type="php">
 Registry::register(
@@ -276,28 +275,27 @@ Registry::register(
 );
 </gen:highlight> 
 <p>
-   sondern via
+   but using the following code.
 </p>
 <gen:highlight type="php">
 import('my::exceptionhandler::namespace', 'MyExceptionHandler');
 GlobalExceptionHandler::registerExceptionHandler(new MyExceptionHandler());
 </gen:highlight> 
 <p>
-   nach dem Einbinden der <em>pagecontroller.php</em> konfiguriert.
+   Please note, that the configuration must be placed after inclusion of the <em>pagecontroller.php</em>.
 </p>
 <p>
-   Details können der Dokumentation unter <int:link pageid="145"/> entnommen werden.
+   Details can be taken from <int:link pageid="145"/>.
 </p>
 
-<h3 id="Chapter-9-Konfiguration-Logger"><a href="#Chapter-9-Konfiguration-Logger">9. Konfiguration Logger</a></h3>
+<h3 id="Chapter-9-Configuration-of-the-Logger"><a href="#Chapter-9-Configuration-of-the-Logger">9. Configuration of the Logger</a></h3>
 <p>
-   Mit dem vorliegenden Release wurde der <em>Logger</em> um die Konfiguration von Schwellwerten bzw. Profilen für
-   Log-Einträge erweitert. Liegt ein Eintrag mit einer definierten <em>severity</em> oberhalb des definierten
-   Schwellwertes bzw. innerhalb des gewählten Profils, so wird der Eintrag in die Log-Datei geschrieben. Falls dies
-   nicht zutrifft, wird er verworfen.
+   The <em>Logger</em> now supports threshold definition (a.k.a. severity profiles) for log severities. In case a log
+   statement's <em>severity</em> is above the threshold level (a.k.a. matches the profile) it is passed to the log file.
+   Otherwise, the entry is discarded.
 </p>
 <p>
-   Im Auslieferungszustand werden die <em>severities</em>
+   By default the following <em>severities</em> are included in the standard profile:
 </p>
 <ul>
    <li>LogEntry::SEVERITY_WARNING</li>
@@ -305,16 +303,13 @@ GlobalExceptionHandler::registerExceptionHandler(new MyExceptionHandler());
    <li>LogEntry::SEVERITY_ERROR</li>
    <li>LogEntry::SEVERITY_FATAL</li>
 </ul>
-<p>
-   als gültige Eintragstypen definiert.
-</p>
 <div class="hint">
-   DEBUG-Ausgaben (z.B. aus den Datenbank-Verbindungs-Klassen) werden daher ohne Anpassung der Konfiguration zunächst
-   nicht mehr in die Log-Dateien geschrieben.
+   Compared to 1.14, DEBUG messages (e.g. from the database connection classes) are not written to the log file without
+   adaption of the log threshold.
 </div>
 <p>
-   Um den Zustand vor 1.15 wiederherzustellen, ist folgender Code in der Bootstrap-Datei nach dem Einbinden der
-   <em>pagecontroller.php</em> notwendig:
+   In order to restore the APF's behaviour before 1.15, you may add the follwing code to your bootstrap file after
+   inclusion of the <em>pagecontroller.php</em>:
 </p>
 <gen:highlight type="php">
 import('core::logging', 'Logger');
@@ -322,7 +317,7 @@ $log = &Singleton::getInstance('Logger');
 $log->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 </gen:highlight> 
 <p>
-   Alternativ dazu können Sie eigene Profile z.B. per
+   Further, you may define your own profile like this:
 </p>
 <gen:highlight type="php">
 import('core::logging', 'Logger');
@@ -332,8 +327,5 @@ $log->setLogThreshold(array(
    LogEntry::SEVERITY_INFO
 ));
 </gen:highlight> 
-<p>
-   definieren.
-</p>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_146" />
