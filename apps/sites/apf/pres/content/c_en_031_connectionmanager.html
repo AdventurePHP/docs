@@ -229,7 +229,100 @@ FROM notepad
 WHERE
    save_date BETWEEN [date_from] AND [date_until]
 </gen:highlight>
-
+<h4 id="Chapter-4-4-PDO-Driver"><a href="#Chapter-4-4-PDO-Driver">4.4. PDO Driver</a></h4>
+<p>
+    Since version 1.15 it's possible to create a <em>PDO</em>-driver instance.
+    An additional configuration parameter is needed.
+</p>
+<gen:highlight type="ini">
+[MySQL]
+DB.Host = "host"
+DB.User = "user"
+DB.Pass = "pass"
+DB.Name = "name"
+DB.Type = "PDO"
+DB.PDO = "MySQL"
+[DB.Port = "3306"]
+[DB.Socket = "/tmp/mysql.sock"]
+[DB.DebugMode = "true|false"]
+[DB.Charset = ""]
+[DB.Collation = ""]
+</gen:highlight>
+The parameter <strong>DB.Type</strong> is used to inform the framework to use the PDOHandler.
+The additional parameter <strong>DB.PDO</strong> is used to inform PDO which specific driver should be used.
+<div class="hint">
+    With the current state (version 1.15) only the <em>PDO</em>_MYSQL-Driver is supported.
+</div>
+<p>
+    To configure ports/sockets, charset and collation use the documentation chapter of <a href="#Chapter-4-1-MySQL-Driver">MySQLx</a>
+</p>
+<p>
+    A special feature of the <em>PDO</em>-driver is, that the <em>execute*()</em>-methods returns a PDOStatement, therefore it is possible
+    to use the APF-methods or the methods described under <a href="http://de3.php.net/manual/en/class.pdostatement.php">PHP.net PDOStatement</a>
+</p>
+<div class="hint">
+    The PDOStatement is directly executed with a <em>execute*()</em>-method, so no PDO specific placeholder parameters could be used. To use PDO placeholders
+    in the statement there is a <em>prepareStatement()</em>-method. There is no need to call the <em>execute</em>-method of the PDOStatement object.
+</div>
+<p>
+    In addition to the methods of the <em>MySQLx</em>-driver there are additional methods implemented.
+</p>
+<ul>
+    <li>beginTransaction()</li>
+    <li>commit()</li>
+    <li>rollBack()</li>
+    <li>inTransaction()</li>
+    <li>prepareStatement()</li>
+</ul>
+<p>
+    <em>beginTransaction()</em> starts a transaction, this means the autocommit mode is turned off. Changes made to the database 
+    are not executed directly. With the methods <em>commit()</em> and <em>rollBack()</em> the changes a executed or dropped.
+</p>
+<p>
+    With <em>commit()</em> all changes within a transaction are executed and the autocommit mode is turned on.
+</p>
+<p>
+    With <em>rollBack()</em> all changes within a transaction are dropped and the autocommit mode is turned on.
+</p>
+<p>
+    <em>inTransaction()</em> checks if a transaction is active or not.
+</p>
+<p>
+    <em>prepareStatement()</em> returns a PDOStatement. PDO placeholders can be within the statement. To execute the statement the
+    <em>execute()</em>-method of the PDOStatement object must be called. The placeholders could be set via <em>bindParam()</em>-method
+    or via an array as first parameter of the <em>execute</em>-method.
+</p>
+<p>
+    Here are some examples of using the <em>PDO</em>-driver:
+</p>
+<gen:highlight type="php">
+    //retrieve db connection
+    $cm = $this->getServiceObject('core::database', 'ConnectionManager');
+    $conn = $cm->getConnection('PDO');
+    
+    $statement = $conn->executeTextStatement("SELECT * FROM `ent_user`");
+    
+    //apf methods
+    while ($row = $conn->fetchData($statement)) {
+        
+    }
+    
+    // or PDO methods
+    while ($row = $statement->fetch()) {
+    
+    }
+    
+    
+    // prepare a statement
+    $statement = $conn->prepare("SELECT * FROM `ent_user` WHERE `FirstName` = :firstname");
+    
+    // bind params and execute
+    $statement->bindParam(':firstname', 'Christian');
+    $statement->execute();
+    
+    // or execute with param array
+    $statement->execute(array(':firstname' => 'Christian'));
+</gen:highlight>
 <h3 id="Chapter-5-Statement-files"><a href="#Chapter-5-Statement-files">5. Statement files</a></h3>
 <p>
    Each implementation of the <em>AbstractDatabaseHandler</em> provides the possibility to handle

@@ -242,7 +242,106 @@ WHERE
 <p>
    enthält.
 </p>
-
+<h4 id="Chapter-4-4-PDO-Treiberschicht"><a href="#Chapter-4-4-PDO-Treiberschicht">4.4. PDO Treiberschicht</a></h4>
+<p>
+    Seit Version 1.15 besteht die Möglichkeit, eine <em>PDO</em>-Treiber Instanz zu erstellen.
+    Dabei wird ein zusätzlicher Konfigurationsparameter benötigt.
+</p>
+<gen:highlight type="ini">
+[MySQL]
+DB.Host = "host"
+DB.User = "user"
+DB.Pass = "pass"
+DB.Name = "name"
+DB.Type = "PDO"
+DB.PDO = "MySQL"
+[DB.Port = "3306"]
+[DB.Socket = "/tmp/mysql.sock"]
+[DB.DebugMode = "true|false"]
+[DB.Charset = ""]
+[DB.Collation = ""]
+</gen:highlight>
+Mit dem Parameter <strong>DB.Type</strong> legt man fest, dass der <em>PDO</em>-Treiber verwendet werden soll.
+Mit dem zusätzlichen Parameter <strong>DB.PDO</strong> teilt man dem <em>PDO</em>-Treiber mit, welche Treiberschicht dieser verwenden soll.
+<div class="hint">
+    Mit dem aktuellen Stand (Version 1.15) wird nur der <em>PDO</em>_MYSQL-Treiber unterstützt, weitere werden allerdings folgen!
+</div>
+<p>
+   Für die Konfiguration des Ports/Sockets, des Zeichensatz und der Collation gelten die selben Bedingungen wie
+   für eine <a href="#Chapter-4-1-MySQL-Treiberschicht">MySQLx</a>-Connection.
+</p>
+<p>
+    Die Besonderheit beim <em>PDO</em>-Treiber sind, dass die <em>execute*()</em>-Methoden ein PDOStatement zurückliefern,
+    dadurch ist es möglich, sowohl die APF-Methoden, als auch die unter <a href="http://de3.php.net/manual/de/class.pdostatement.php">PHP.net PDOStatement</a>
+    beschriebenen Methoden zu verwenden.
+</p>
+<div class="hint">
+    Bei Verwendung einer <em>execute*()</em>-Methode, wird das PDOStatement direkt ausgeführt, d.h. es können keine PDO spezifischen Platzhalter-Parameter verwenden
+    werden, dafür dient die <em>prepareStatement()</em>-Methode. Außerdem muss die <em>execute</em>-Methode des PDOStatement Objekts nicht mehr aufgerufen werden.
+</div>
+<p>
+    Zusätzlich zu den Methoden aus dem <em>MySQLx</em>-Treiber sind weitere Methoden implementiert.
+</p>
+<ul>
+    <li>beginTransaction()</li>
+    <li>commit()</li>
+    <li>rollBack()</li>
+    <li>inTransaction()</li>
+    <li>prepareStatement()</li>
+</ul>
+<p>
+    Die Methode <em>beginTransaction()</em> startet eine Transaktion (d.h. der autocommit-Modus wird ausgeschaltet), 
+    sodass Änderungen an der Datenbank nicht direkt ausgeführt werden. Mit den Methoden <em>commit()</em> und <em>rollBack()</em>
+    kann gesteuert werden, ob die Änderungen übernommen oder verworfen werden.
+</p>
+<p>
+    Mit <em>commit()</em> werden alle Änderungen, die innerhalb einer Transaction durchgeführt wurden, endgültig in die
+    Datenbank geschrieben. Außerdem wird die laufende Transaktion beendet (d.h. autocommit-Modus wird eingeschaltet).
+</p>
+<p>
+    Mit <em>rollBack()</em> werden alle Änderungen innerhalb einer Transaktion verworfen. Außerdem wird die laufende Transaktion
+    beendet (d.h. autocommit-Modus wird eingeschaltet).
+</p>
+<p>
+    Die Methode <em>inTransaction()</em> prüft, ob aktuell eine Transaktion aktiv ist oder nicht.
+</p>
+<p>
+    Die Methode <em>prepareStatement()</em> gibt ein PDOStatement Objekt zurück. Im Statement können Parameter-Platzhalter enthalten sein.
+    Das Statement wird erst ausgeführt, wenn man die <em>execute()</em>-Methode des PDOStatement Objekts aufgerufen wird! 
+    Die Platzhalter können per <em>bindParam()</em>-Methode gesetzt werden oder man übergibt der <em>execute()</em>-Methode ein Array als
+    ersten Parameter.
+</p>
+<p>
+    Nachfolgend ein paar Beispiele zur Verwendung des <em>PDO</em>-Treibers:
+</p>
+<gen:highlight type="php">
+    //retrieve db connection
+    $cm = $this->getServiceObject('core::database', 'ConnectionManager');
+    $conn = $cm->getConnection('PDO');
+    
+    $statement = $conn->executeTextStatement("SELECT * FROM `ent_user`");
+    
+    //apf methods
+    while ($row = $conn->fetchData($statement)) {
+        
+    }
+    
+    // or PDO methods
+    while ($row = $statement->fetch()) {
+    
+    }
+    
+    
+    // prepare a statement
+    $statement = $conn->prepare("SELECT * FROM `ent_user` WHERE `FirstName` = :firstname");
+    
+    // bind params and execute
+    $statement->bindParam(':firstname', 'Christian');
+    $statement->execute();
+    
+    // or execute with param array
+    $statement->execute(array(':firstname' => 'Christian'));
+</gen:highlight>
 <h3 id="Chapter-5-Statement-Dateien"><a href="#Chapter-5-Statement-Dateien">5. Statement-Dateien</a></h3>
 <p>
    Jede Implementierung des <em>AbstractDatabaseHandler</em> bringt die Möglichkeit mit,
