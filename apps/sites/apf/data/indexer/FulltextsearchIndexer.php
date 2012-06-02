@@ -22,12 +22,18 @@ class FulltextsearchIndexer extends APFObject {
     * @var string Name of the log file.
     */
    private $logFileName = 'fulltextsearchindexer';
-   
+
    /**
     * @private
     * @var string Content dir.
     */
    private $contentFolder = '../apps/sites/apf/pres/content';
+
+   private $charset;
+
+   public function __construct() {
+      $this->charset = Registry::retrieve('apf::core', 'Charset');
+   }
 
    public function setLogFileName($logFileName) {
       $this->logFileName = $logFileName;
@@ -38,12 +44,12 @@ class FulltextsearchIndexer extends APFObject {
    }
 
    /**
-    *  @public
+    * @public
     *
     *  Imports the articles from the content directory.
     *
-    *  @author Christian Achatz
-    *  @version
+    * @author Christian Achatz
+    * @version
     *  Version 0.1, 16.03.2008<br />
     *  Version 0.2, 02.10.2008 (Changed to fit new documentation page)<br />
     *  Version 0.3, 03.10.2008 (Added some new characters to the title regexp)<br />
@@ -53,10 +59,13 @@ class FulltextsearchIndexer extends APFObject {
    public function importArticles() {
 
       $T = &Singleton::getInstance('BenchmarkTimer');
+
+      /* @var $L Logger */
       $L = &Singleton::getInstance('Logger');
 
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
+      /* @var $cM ConnectionManager */
       $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
       $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
@@ -113,7 +122,7 @@ class FulltextsearchIndexer extends APFObject {
                $L->logEntry($this->logFileName, '- File "' . $fileName . '" contains no parent page ...');
             }
 
-            // In Artikel-Datenbank einf�gen
+            // In Artikel-Datenbank einfügen
             $insert = 'INSERT INTO search_articles
                              (Title,PageID,ParentPage,URLName,Language,FileName,ModificationTimestamp)
                              VALUES
@@ -127,24 +136,24 @@ class FulltextsearchIndexer extends APFObject {
    }
 
    /**
-    *  @public
+    * @public
     *
     *  Creates the index out of the articles in database.
     *
-    *  @author Christian Achatz
-    *  @version
+    * @author Christian Achatz
+    * @version
     *  Version 0.1, 09.03.2008<br />
     *  Version 0.2, 03.20.2008 (Changed some details to fit new page structure)<br />
     */
    public function createIndex() {
 
-      // create logger instance
+      /* @var $l Logger */
       $l = &Singleton::getInstance('Logger');
 
       // get configuration
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
-      // get connection
+      /* @var $cM ConnectionManager */
       $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
       $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
@@ -170,7 +179,7 @@ class FulltextsearchIndexer extends APFObject {
          // normalize content
          $content = $this->normalizeContent($content, $data_articles['Language']);
 
-         // Noch vorhandene W�rter in ein Array verpacken, so dass es duchlaufen werden kann
+         // Noch vorhandene Wörter in ein Array verpacken, so dass es duchlaufen werden kann
          // Trennung an Hand von Leer-, Satz- oder Sonderzeichen
          $contentArray = preg_split('[\s|-|,|;|:|/|!|\?|\.|\n|\r|\t]', $content);
 
@@ -195,16 +204,20 @@ class FulltextsearchIndexer extends APFObject {
             // inly indev non empty words
             if (!empty($word)) {
 
-               // retrieve word key (or save implicitly)
-               $wordId = $this->getWordId($word);
+               try {
+                  // retrieve word key (or save implicitly)
+                  $wordId = $this->getWordId($word);
 
-               // create index
-               if (isset($index[$wordId])) {
-                  $index[$wordId]['WordCount'] = $index[$wordId]['WordCount'] + 1;
-                  // end if
-               } else {
-                  $index[$wordId]['WordID'] = $wordId;
-                  $index[$wordId]['WordCount'] = 1;
+                  // create index
+                  if (isset($index[$wordId])) {
+                     $index[$wordId]['WordCount'] = $index[$wordId]['WordCount'] + 1;
+                     // end if
+                  } else {
+                     $index[$wordId]['WordID'] = $wordId;
+                     $index[$wordId]['WordCount'] = 1;
+                  }
+               } catch (DatabaseHandlerException $e) {
+                  $l->logEntry($this->logFileName, 'Word "' . $word . '" cannot be added to index. Details: ' . $e, LogEntry::SEVERITY_ERROR);
                }
             }
          }
@@ -240,57 +253,55 @@ class FulltextsearchIndexer extends APFObject {
    }
 
    /**
-    *  @private
+    * @private
     *
     *  Liefert die ID eines Suchwortes zur�ck. Falls das Wort noch nicht<br />
     *  in der Datenbank gespeichert ist, wird dieses gespeichert.<br />
     *
-    *  @param string $Word; Wort f�r den Suchindex
-    *  @return int $WordID; ID des Suchwortes
+    * @param string $word; Wort f�r den Suchindex
+    * @return int $WordID; ID des Suchwortes
     *
-    *  @author Christian Achatz
-    *  @version
+    * @author Christian Achatz
+    * @version
     *  Version 0.1, 06.03.2008<br />
     */
-   private function getWordId($Word) {
+   private function getWordId($word) {
 
-      // Konfiguration holen
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
-      // Connection holen
+      /* @var $cM ConnectionManager */
       $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
       $sql = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       // Wort selektieren
-      $select_word = 'SELECT WordID FROM search_word WHERE Word = \'' . $Word . '\'';
+      $select_word = 'SELECT WordID FROM search_word WHERE Word = \'' . $word . '\'';
       $result_word = $sql->executeTextStatement($select_word);
       $data_word = $sql->fetchData($result_word);
 
       // ID auslesen
       if (!isset($data_word['WordID'])) {
-         $insert_word = 'INSERT INTO search_word (Word) VALUES (\'' . $Word . '\')';
-         $result_word = $sql->executeTextStatement($insert_word);
-         $ID = $sql->getLastID();
+         $insert_word = 'INSERT INTO search_word (Word) VALUES (\'' . $word . '\')';
+         $sql->executeTextStatement($insert_word);
+         $id = $sql->getLastID();
       } else {
-         $ID = $data_word['WordID'];
+         $id = $data_word['WordID'];
       }
 
-      return $ID;
-
+      return $id;
    }
 
    /**
-    *  @private
+    * @private
     *
     *  Erzeugt den HTML-Code einer Seite.<br />
     *
-    *  @param string $pageId id of the current page
-    *  @param string $fileName URL name of the content page's file
-    *  @param string $lang language of the page
-    *  @return string $PageOutput HTML code of the content page
+    * @param string $pageId id of the current page
+    * @param string $fileName URL name of the content page's file
+    * @param string $lang language of the page
+    * @return string $PageOutput HTML code of the content page
     *
-    *  @author Christian Achatz
-    *  @version
+    * @author Christian Achatz
+    * @version
     *  Version 0.1, 09.03.2008<br />
     *  Version 0.2, 03.10.2008 (Introduced the APFModel to be able to use the html:content tag)<br />
     */
@@ -306,7 +317,7 @@ class FulltextsearchIndexer extends APFObject {
       $currentPage = new Page();
 
       // apply context and language
-      $currentPage->setContext($this->__Context);
+      $currentPage->setContext($this->getContext());
       $currentPage->setLanguage($lang);
 
       // load indexer template
@@ -318,31 +329,37 @@ class FulltextsearchIndexer extends APFObject {
    }
 
    /**
-    *  @private
+    * @private
     *
     *  Normalisiert den Inhalt und entfernt Stopw�rter.<br />
     *
-    *  @param string $Content; Inhalt einer Seite (HTML-Code)
-    *  @param string $Language; Sprache der Seite
-    *  @return string $NormalizedContent; Normalisierter Inhalt der Seite
+    * @param string $content; Inhalt einer Seite (HTML-Code)
+    * @param string $language; Sprache der Seite
+    * @return string $NormalizedContent; Normalisierter Inhalt der Seite
     *
-    *  @author Christian Achatz
-    *  @version
+    * @author Christian Achatz
+    * @version
     *  Version 0.1, 09.03.2008<br />
     */
-   private function normalizeContent($Content, $Language) {
+   private function normalizeContent($content, $language) {
 
       // Sonderzeichen ersetzen und normalisieren
-      $locSearch[] = '/�/i';
-      $locSearch[] = '/�/i';
-      $locSearch[] = '/�/i';
-      $locSearch[] = '/�/i';
+      $locSearch[] = '/ß/';
+      $locSearch[] = '/ä/';
+      $locSearch[] = '/ö/';
+      $locSearch[] = '/ü/';
+      $locSearch[] = '/Ä/';
+      $locSearch[] = '/Ö/';
+      $locSearch[] = '/Ü/';
       $locSearch[] = '/\|/i';
-      $locSearch[] = '/�|�|<|>|\{|\}|\[|\]|\(|\)/i';
+      $locSearch[] = '/<|>|\{|\}|\[|\]|\(|\)/i';
       $locSearch[] = '/\'|\"/';
       $locSearch[] = '/=/';
 
       $locReplace[] = 'ss';
+      $locReplace[] = 'ae';
+      $locReplace[] = 'oe';
+      $locReplace[] = 'ue';
       $locReplace[] = 'ae';
       $locReplace[] = 'oe';
       $locReplace[] = 'ue';
@@ -351,23 +368,22 @@ class FulltextsearchIndexer extends APFObject {
       $locReplace[] = '';
       $locReplace[] = '';
 
-      $Content = strip_tags($Content);
-      $Content = stripslashes($Content);
-      $Content = html_entity_decode($Content);
-      $Content = strtolower($Content);
-      $Content = trim($Content);
-      $Content = preg_replace($locSearch, $locReplace, $Content);
+      $content = strip_tags($content);
+      $content = stripslashes($content);
+      $content = html_entity_decode($content, ENT_QUOTES, $this->charset);
+      $content = strtolower($content);
+      $content = trim($content);
+      $content = preg_replace($locSearch, $locReplace, $content);
 
       // Stopwords löschen und gegen Leerzeichen ersetzen
       include(APPS__PATH . '/sites/apf/data/indexer/stopwords.php');
-      foreach ($Stopwords[$Language] as $Stopword) {
-         $Content = preg_replace('/ ' . $Stopword . ' /', ' ', $Content);
+      foreach ($Stopwords[$language] as $Stopword) {
+         $content = preg_replace('/ ' . $Stopword . ' /', ' ', $content);
       }
 
       // Wörter mit nur zwei Buchstaben entfernen
-      return preg_replace('/(\s[A-Za-z]{1,2})\s/', '', $Content);
+      return preg_replace('/(\s[A-Za-z]{1,2})\s/', '', $content);
 
    }
 
 }
-?>

@@ -3,6 +3,11 @@ include_once('../apps/core/pagecontroller/pagecontroller.php');
 
 // include front controller
 import('core::frontcontroller', 'Frontcontroller');
+import('core::logging', 'Logger');
+
+/* @var $l Logger */
+$l = &Singleton::getInstance('Logger');
+$l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
 // configure page values (to avoid rendering errors during index creation!)
 Registry::register('sites::apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumentation/Build/RELEASES');
@@ -15,4 +20,3 @@ import('sites::apf::pres::filter::output', 'ScriptletOutputFilter');
 OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 
 import('sites::apf::data::indexer', 'indexer');
-?>
