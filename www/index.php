@@ -12,6 +12,11 @@ ob_start('ob_gzhandler');
 ini_set('html_errors', 'off');
 include('../apps/core/pagecontroller/pagecontroller.php');
 import('core::frontcontroller', 'Frontcontroller');
+import('core::logging', 'Logger');
+
+/* @var $l Logger */
+$l = &Singleton::getInstance('Logger');
+$l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
 // configure page values
 Registry::register('apf::core', 'URLRewriting', true);
@@ -52,4 +57,3 @@ if (isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true
 }
 
 ob_end_flush();
-?>
