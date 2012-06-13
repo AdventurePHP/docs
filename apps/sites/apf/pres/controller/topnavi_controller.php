@@ -30,7 +30,7 @@ class topnavi_controller extends base_controller {
 
       $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
 
-      $buffer = (string) '';
+      $buffer = (string)'';
       foreach ($this->navi as $naviNode) {
          $buffer .= '<li>';
          $title = $urlMan->getPageTitle($naviNode, $this->__Language);
@@ -52,7 +52,7 @@ class topnavi_controller extends base_controller {
     * Checks, whether the current page is a top level navi node.
     *
     * @param string $pageId The current page id.
-    * @return true, in case it is, false otherwise.
+    * @return bool true, in case it is, false otherwise.
     *
     * @author Christian Achatz
     * @version
@@ -85,4 +85,3 @@ class topnavi_controller extends base_controller {
    }
 
 }
-?>

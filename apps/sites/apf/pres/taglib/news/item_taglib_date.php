@@ -1,4 +1,3 @@
 <?php
-   class item_taglib_date extends Document {
-   }
-?>
+class item_taglib_date extends Document {
+}

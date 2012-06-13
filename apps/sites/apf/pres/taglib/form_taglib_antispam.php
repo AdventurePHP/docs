@@ -2,27 +2,27 @@
 import('tools::form::taglib', 'form_control');
 
 /**
- *  @package sites::demosite::prea::taglib
- *  @class form_taglib_antispam
+ * @package sites::demosite::prea::taglib
+ * @class form_taglib_antispam
  *
  *  Implements an anti spam function, that marks a form as invalid, when it is posted within
  *  a configured amount of time.
  *
- *  @author Christian Achatz
- *  @version
+ * @author Christian Achatz
+ * @version
  *  Version 0.1, 17.07.2008<br />
  */
 class form_taglib_antispam extends form_control {
 
    /**
-    *  @public
+    * @public
     *
     *  Implements the transform() method of the APFObject class. Returns the field's html code.
     *
-    *  @return string $TagCode code if the tag
+    * @return string $TagCode code if the tag
     *
-    *  @author Christian Achatz
-    *  @version
+    * @author Christian Achatz
+    * @version
     *  Version 0.1, 17.07.2008<br />
     */
    public function onAfterAppend() {
@@ -49,14 +49,14 @@ class form_taglib_antispam extends form_control {
    }
 
    /**
-    *  @public
+    * @public
     *
-    *  Implements the transform() method of the APFObject class. Returns the field's html code.
+    * Implements the transform() method of the APFObject class. Returns the field's html code.
     *
-    *  @return string $TagCode code if the tag
+    * @return string $TagCode code if the tag
     *
-    *  @author Christian Achatz
-    *  @version
+    * @author Christian Achatz
+    * @version
     *  Version 0.1, 17.07.2008<br />
     */
    public function transform() {
@@ -64,23 +64,21 @@ class form_taglib_antispam extends form_control {
    }
 
    /**
-    *  @private
+    * @private
     *
     *  Returns the name of the anti spam field.
     *
-    *  @return string $AntiSpamName name of the anti spam field
+    * @return string $AntiSpamName name of the anti spam field
     *
-    *  @author Christian Achatz
-    *  @version
+    * @author Christian Achatz
+    * @version
     *  Version 0.1, 17.07.2008<br />
     */
-   function getAntiSpamName() {
+   private function getAntiSpamName() {
       return strtolower($this->getParentObject()->getAttribute('name')) . '_antispam';
    }
 
    protected function __presetValue() {
-      
    }
 
 }
-?>

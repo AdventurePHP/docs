@@ -1,5 +1,5 @@
 <?php
-   import('sites::apf::biz', 'APFModel');
+import('sites::apf::biz', 'APFModel');
 
 /**
  * @package sites::apf::biz
@@ -126,5 +126,3 @@ final class UrlManager extends APFObject {
    }
 
 }
-
-?>

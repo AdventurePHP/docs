@@ -1,72 +1,57 @@
 <?php
+/**
+ * @package sites::apf::pres::controller::content
+ * @class form_antispam_example_controller
+ *
+ *  Implements the document controller for the anti spam form example.
+ *
+ * @author Christian Achatz
+ * @version
+ *  Version 0.1, 17.07.2008<br />
+ */
+class form_antispam_example_controller extends base_controller {
+
    /**
-    *  @package sites::apf::pres::controller::content
-    *  @class form_antispam_example_controller
+    * @public
     *
-    *  Implements the document controller for the anti spam form example.
+    *  Implements the transformContent() method of the base_controller class. Creates the document's html code.
     *
-    *  @author Christian Achatz
-    *  @version
+    * @return string $DocCode code of the current document
+    *
+    * @author Christian Achatz
+    * @version
     *  Version 0.1, 17.07.2008<br />
     */
-   class form_antispam_example_controller extends base_controller {
+   public function transformContent() {
 
-      function form_antispam_example_controller() {
-      }
+      // obtain a reference on the desired form (depends on the language of the document!)
+      $Form__AntiSpamExample = &$this->getForm('AntiSpamExample_' . $this->__Language);
 
-      /**
-       *  @public
-       *
-       *  Implements the transformContent() method of the base_controller class. Creates the document's html code.
-       *
-       *  @return string $DocCode code of the current document
-       *
-       *  @author Christian Achatz
-       *  @version
-       *  Version 0.1, 17.07.2008<br />
-       */
-      public function transformContent() {
+      // check if form is valid or not
+      if ($Form__AntiSpamExample->isValid() == true) {
 
-         // obtain a reference on the desired form (depends on the language of the document!)
-         $Form__AntiSpamExample = &$this->getForm('AntiSpamExample_'.$this->__Language);
-
-         // check if form is valid or not
-         if($Form__AntiSpamExample->isValid() == true) {
-
-            // print "valid" state
-            if($this->__Language == 'de') {
-               $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid','valide');
-               // end if
-            }
-            else {
-               $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid','valid');
-               // end if
-            }
-
-            // end if
-         }
-         else {
-
-            // print "invalid" state
-            if($this->__Language == 'de') {
-               $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid','nicht valide');
-               // end if
-            }
-            else {
-               $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid','invalid');
-               // end if
-            }
-
-            // end else
+         // print "valid" state
+         if ($this->__Language == 'de') {
+            $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid', 'valide');
+         } else {
+            $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid', 'valid');
          }
 
-         // display form on the place of definition
-         $Form__AntiSpamExample->setAttribute('action','#Chapter-antispam');
-         $Form__AntiSpamExample->transformOnPlace();
+      } else {
 
-         // end function
+         // print "invalid" state
+         if ($this->__Language == 'de') {
+            $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid', 'nicht valide');
+         } else {
+            $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid', 'invalid');
+         }
+
       }
 
-      // end class
+      // display form on the place of definition
+      $Form__AntiSpamExample->setAttribute('action', '#Chapter-antispam');
+      $Form__AntiSpamExample->transformOnPlace();
+
    }
-?>
+
+}

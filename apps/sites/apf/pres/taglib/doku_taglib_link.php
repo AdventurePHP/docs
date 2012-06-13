@@ -1,95 +1,86 @@
 <?php
+/**
+ * @package sites::apf::pres::taglib
+ * @class doku_taglib_link
+ *
+ * Implements a tag library for creating HTML links out of normal URLs.
+ *
+ * @author Christian Achatz
+ * @version
+ * Version 0.1, 15.08.2007<br />
+ */
+class doku_taglib_link extends Document {
+
    /**
-    * @package sites::apf::pres::taglib
-    * @class doku_taglib_link
+    * @private
+    *  Defines the maximum length of a link name.
+    */
+   var $__MaxLinkLength = 50;
+
+   /**
+    * @public
     *
-    * Implements a tag library for creating HTML links out of normal URLs.
+    * Creates the link output.
+    *
+    * @return string The desired link sting
     *
     * @author Christian Achatz
     * @version
     * Version 0.1, 15.08.2007<br />
+    * Version 0.2, 18.09.2008 (Translation and refactoring for new docu page)<br />
     */
-   class doku_taglib_link extends Document {
+   public function transform() {
 
-      /**
-       *  @private
-       *  Defines the maximum length of a link name.
-       */
-      var $__MaxLinkLength = 50;
+      // remove blanks
+      $content = trim($this->__Content);
 
-      /**
-       * @public
-       *
-       * Creates the link output.
-       *
-       * @return string The desired link sting
-       *
-       * @author Christian Achatz
-       * @version
-       * Version 0.1, 15.08.2007<br />
-       * Version 0.2, 18.09.2008 (Translation and refactoring for new docu page)<br />
-       */
-      public function transform(){
+      // initialize return value
+      $link = (string)'';
 
-         // remove blanks
-         $content = trim($this->__Content);
+      // check, if content is present
+      if (strlen($content) > 0) {
 
-         // initialize return value
-         $link = (string)'';
+         // add link tag to the buffer
+         $link .= '<a ';
 
-         // check, if content is present
-         if(strlen($content) > 0){
+         // add link to the buffer
+         $link .= 'href="' . $content . '" ';
 
-            // add link tag to the buffer
-            $link .= '<a ';
+         // add title the buffer
+         $link .= 'title="' . $content . '" ';
 
-            // add link to the buffer
-            $link .= 'href="'.$content.'" ';
-
-            // add title the buffer
-            $link .= 'title="'.$content.'" ';
-
-            // add css class
-            if(isset($this->__Attributes['class'])){
-               $link .= 'class="'.$this->__Attributes['class'].'" ';
-             // end if
-            }
-
-            // add css style
-            if(isset($this->__Attributes['style'])){
-               $link .= 'style="'.$this->__Attributes['style'].'" ';
-             // end if
-            }
-
-            // add link rewrite protection
-            $link .= 'linkrewrite="false"';
-
-            // close link attribute list
-            $link .= '>';
-
-            // add link text:
-            // behaviour like PHPBB. Links are limited to a certain number of letters and are
-            // displayed as {PART1}..{10 letters from the end}
-            if(strlen($content) > $this->__MaxLinkLength){
-               $link .= substr($content,0,$this->__MaxLinkLength - 20).'...'.substr($content,strlen($content) - 10 ,10);
-             // end if
-            }
-            else{
-               $link .= $content;
-             // end else
-            }
-
-            // close link
-            $link .= '</a>';
-
-          // end if
+         // add css class
+         if (isset($this->__Attributes['class'])) {
+            $link .= 'class="' . $this->__Attributes['class'] . '" ';
          }
 
-         return $link;
+         // add css style
+         if (isset($this->__Attributes['style'])) {
+            $link .= 'style="' . $this->__Attributes['style'] . '" ';
+         }
 
-       // end function
+         // add link rewrite protection
+         $link .= 'linkrewrite="false"';
+
+         // close link attribute list
+         $link .= '>';
+
+         // add link text:
+         // behaviour like PHPBB. Links are limited to a certain number of letters and are
+         // displayed as {PART1}..{10 letters from the end}
+         if (strlen($content) > $this->__MaxLinkLength) {
+            $link .= substr($content, 0, $this->__MaxLinkLength - 20) . '...' . substr($content, strlen($content) - 10, 10);
+         } else {
+            $link .= $content;
+         }
+
+         // close link
+         $link .= '</a>';
+
       }
 
-    // end class
+      return $link;
+
    }
-?>
+
+}
