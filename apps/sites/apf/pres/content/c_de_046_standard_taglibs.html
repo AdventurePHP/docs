@@ -4,48 +4,90 @@
   eines Controllers gemäß MVC, ein Model-based View-Konzept über den FrontController
   und die Beschreibung des Iterator-Tags.
 </doku:title>
-Folgende TagLib-Tags stehen zur Verfügung. In nicht selbstschließenden Tags sind alle HTML-
+<p>
+   Folgende TagLib-Tags stehen zur Verfügung. In nicht selbstschließenden Tags sind alle HTML-
 Tags und -Formatierungen erlaubt. Die Tags können mit den üblichen HTML-Attributen ausgestattet
 werden, sofern diese für die Ausgabe oder Funktion relevant sind.
-<br />
-<br />
+</p>
 <div class="hint">
-<strong>Hinweis:</strong> Bitte beachten Sie, dass innerhalb von Tag-Definitionen ausschließlich
-Leerzeichen eingesetzt werden dürfen. Tabs oder Zeilenumbrüche werden nicht erkannt und es
-kommt u.U. zu Fehlern beim Auslesen der Tag-Definitionen!
+   <strong>Hinweis:</strong> Bitte beachten Sie, dass innerhalb von Tag-Definitionen ausschließlich
+   Leerzeichen eingesetzt werden dürfen. Tabs oder Zeilenumbrüche werden nicht erkannt und es
+   kommt u.U. zu Fehlern beim Auslesen der Tag-Definitionen!
 </div>
-<br />
+
 <h3 id="Chapter-1-Core"><a href="#Chapter-1-Core">1. Core</a></h3>
 <h4 id="Chapter-1-1-Addtaglib"><a href="#Chapter-1-1-Addtaglib">1.1. Addtaglib</a></h4>
-TagLibs sind nur innerhalb eines Dokuments des Objektbaums gültig. Um eine selbst implementierte
-TagLib im aktuellen Dokument einbinden zu können wird folgender Tag verwendet. Dieser sollte
-möglichst am Anfang des Dokuments plaziert sein, da Tags erst nach erfolgreicher Einbindung einer
-TagLib geparst werden können.
+<p>
+   Der <int:link pageid="098"/> des APF ist nach dem <em>HMVC-Pattern</em> entworfen und verwaltet die einzelnen
+   Elemente und Komponenten Ihrer Software in Dokumenten. Jedes dieser Dokumente - auch <em>Knoten</em> genannt - kann
+   weitere Knoten enthalten. Ein Knoten wird im APF durch die Klasse <em>Document</em> und davon erbenden Klassen
+   repräsentiert. Dabei definiert jede Klasse die möglichen Kind-Typen über die interne Liste <em>$this->__TagLibs</em>.
+</p>
+<p>
+   Der APF-Parser ist aus Komplexitäts- und Performance-Gründen so entworfen, dass er nur diejenigen Tags innerhalb
+   eines Dokuments verarbeitet, die auch dort als mögliche Kind-Elemente bekannt sind. Möchten Sie einen Tag nutzen,
+   der im aktuellen Dokument noch nicht bekannt ist, können Sie den <em>&lt;core:addtaglib /&gt;</em>-Tag nutzen. Der
+   so bekannt gegebene Tag kann unmittelbar danach genutzt werden.
+</p>
 <gen:highlight type="apf-xml">
-&lt;core:addtaglib namespace="" prefix="" class="" /&gt;
+&lt;core:addtaglib
+   namespace=""
+   class=""
+   prefix=""
+   name=""
+/&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
   <li>
-    <strong>namespace</strong>: Ein mit "::" getrennter Namespace-Pfad.
+    <strong>namespace</strong>: Der Namespace der Tag-Implementierung.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-:]</code>)
   </li>
+   <li>
+      <strong>class</strong>: Der Klassen-Name der Tag-Implementierung.
+      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+   </li>
   <li>
-    <strong>prefix</strong>: XML-Prefix
+    <strong>prefix</strong>: XML-Prefix.
     (<strong>Zeichen</strong>: <code>[a-z]</code>)
   </li>
   <li>
-    <strong>class</strong>: XML-Klasse
+    <strong>name</strong>: XML-Tag-Name.
     (<strong>Zeichen</strong>: <code>[a-z]</code>)
   </li>
 </ul>
-Die vom Entwickler erzeugte TagLib-Klasse muss die Form "&lt;prefix&gt;_taglib_&lt;class&gt;" haben. Die
-innerhalb der Klasse zu implementierenden Methoden sind der API-Dokumentation zu entnehmen. In der Regel
-wird das Tag für die Einbindung der Form-TagLib verwendet. Eigene Taglibs machen vor allem dann Sinn,
-wenn eigene abgetrennte Bereiche einer Applikation mehrfach verwendbar gemacht werden wollen (z.B. Warenkorb).
-<br />
-<br />
-<br />
+<div class="warn">
+   <p>
+      In APF-Releases vor 1.16 wurde das Attribut <em>class</em> zur Definition des XML-Tag-Namens verwendet. Die
+      Signatur des Tags war in diesen Versionen wie folgt:
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   namespace=""
+   prefix=""
+   class=""
+/&gt;
+</gen:highlight>
+      Die vom Entwickler erzeugte TagLib-Klasse musste dabei in der Form <em>&lt;prefix&gt;_taglib_&lt;class&gt;</em>
+      benannt sein.
+   </p>
+   <p>
+      In Release 1.16 wird die bisherige Notation übergangsweise weiter unterstützt und ab Version 1.17 entfernt. Ab
+      dann muss eine Tag-Definition explizit den Namen der Tag-Implementierung im Attribut <em>class</em> benannen.
+   </p>
+</div>
+<p>
+   Die innerhalb der Klasse zu implementierenden Methoden können der <int:link pageid="002" /> oder dem Tutorial
+   <int:link pageid="045" /> entnommen werden. Die Bennenung der Tag-Implementierung kann ab Release 1.16 frei durch das
+   Attribut <em>class</em> definiert werden. Dabei ist es möglich, eine Implementierung mit unterschiedlichen Präfixen
+   und unterschiedlichen Tag-Namen zu registrieren. Diese Funktionalität wird beispielswiese genutzt um die
+   Implementierung des <em>&lt;html:placeholder /&gt;</em>-Tags auch innerhalb eines <em>&lt;html:template /&gt;</em>
+   wiederverwenden zu können.
+</p>
+<p>
+   Die Implementierung von eigenen Tags wird empfohlen, wenn Funktionalitäten in mehreren Projekten wiederverwendet
+   werden sollen oder die Funktionalität mit einem <int:link pageid="006"/> nicht mehr abgebildet werden können.
+</p>
+
 <h4 id="Chapter-1-2-Importdesign"><a href="#Chapter-1-2-Importdesign">1.2. Importdesign</a></h4>
 Möchte der Template-Bauer an einer definierten Stelle ein weiteres Document einfügen, so
 kann der Tag
@@ -281,8 +323,9 @@ Templates. Diese können innerhalb eines Document-Controllers manipuliert und ve
 In einem Template gibt es wiederum Platzhalter, die dynamisch gesetzt werden können.
 <gen:highlight type="apf-xml">
 &lt;html:template name=""&gt;
-  [&lt;template:placeholder name="" /&gt;]
-  [&lt;template:addtaglib namespace="" prefix="" class="" /&gt;]
+   [&lt;template:placeholder name="" /&gt;]
+   [&lt;template:addtaglib namespace="" prefix="" class="" /&gt;]
+   [&lt;template:getstring namespace="" config="" entry="" /&gt;]
 &lt;/html:template&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
@@ -329,7 +372,7 @@ eingesetzt.
 <br />
 <h5 id="Chapter-2-3-2-Template-Erweiterungen"><a href="#Chapter-2-3-2-Template-Erweiterungen">2.3.2. Template-Erweiterungen</a></h5>
 Um die Funktionalitäten innerhalb eines Templates mit weiteren TagLibs erweitern zu können
-steht der Tag "&lt;template:addtaglib /&gt;" zur Verfügung. Ähnlich dem "&lt;core:addtaglib /&gt;"-
+steht der Tag "&lt;template:addtaglib /&gt;" zur Verfügung. Ähnlich dem <em>&lt;core:addtaglib /&gt;</em>-
 Tag können hier innerhalb eines Templates weitere TagLibs hinzugefügt werden.
 <gen:highlight type="apf-xml">
 &lt;template:addtaglib namespace="" prefix="" class="" /&gt;

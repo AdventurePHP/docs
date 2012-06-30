@@ -1,0 +1,260 @@
+<doku:title parent="100" tags="taglib,taglibs,tag,parser" title="Implementierung von Tags" urlname="Implementierung von Tags">
+   Dieses Kapitel beschreibt die Bedeutung und die Implementierung von eigenen Tags/Taglibs.
+</doku:title>
+<h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einführung</a></h3>
+<p>
+   Dieses Kapitel widmet sich den APF-Tags (a.k.a. Taglibs), deren Bedeutung und Implementierung.
+</p>
+<p>
+   Der <int:link pageid="098"/> basiert auf dem gleichnamigen Software-Entwurfsmuster und ist ein zentraler Bestandteil
+   des APF. Er ermöglicht dem Entwickler über das Tag-Konzept, eigene Funktionalitäten zur Erzeugung und Transformation
+   des HMVC-DOM-Baumes zu injizieren. Tags bilden damit nicht nur die Basis des APF-HMVC-Konzepts, sondern können auch
+   zur Erweiterung desselben genutzt werden.
+</p>
+<p>
+   Des Weiteren können Tags dazu verwendet werden um darin enthaltene Funktionalitäten in unterschiedlichen Projekten
+   wiederzuverwenden. APF-Templates verarbeiten - als Schutz vor unkontrollierter Verteilung von Logik - lediglich Tags
+   und keinen PHP-Code. Damit ist der Entwickler gezwungen, View-Logik in Tags oder Controller zu verpacken.
+</p>
+
+<h4 id="Chapter-1-1-Page-Controller"><a href="#Chapter-1-1-Page-Controller">1.1. Page-Controller</a></h4>
+<p>
+   Aufgabe des <int:link pageid="098"/> ist der Aufbau und die Transformation der internen Template-Struktur.
+   Hierzu bietet er ein Tag-API, die einem definierten Timing-Modell folgend Tags einliest, daraus Dokumente im Baum
+   erzeugt und aus dem Baum anschließend eine HTML-Ausgabe erzeugt. Andere Formate wie beispielsweise XML sind ebenfalls
+   möglich. Der Parser ist kein &quot;echter&quot; XML-Parser, beherrscht jedoch die Auflösung von explizit- und
+   selbst-schließenden Tags sowie die Schachtelung von Tags in beliebig tiefen Hierarchien.
+</p>
+<div class="warn">
+   Bitte beachten Sie die Hinweise im Kapitel <a href="#Chapter-6-Tag-Hierarchie">Tag-Hierarchie</a> zu den Restriktionen
+   des Parsers.
+</div>
+<p>
+   Die mit dem APF ausgelieferten <int:link pageid="046"/> bieten bereits eine Reihe an Standard-Funktionalitäten wie
+   das Einbinden einer weiteren Template-Datei, die Definition von wiederverwendbaren Template-Fragmenten und das
+   Bekanntgeben von eigenen Tags an.
+</p>
+
+<h4 id="Chapter-1-2-XML-Parser"><a href="#Chapter-1-2-XML-Parser">1.2. XML-Parser</a></h4>
+<p>
+   Der <em>XMLParser</em> dient dem Page-Controller zur Analyse einer Tag-Definition im Template und wird bei der
+   Erstellung von <em>Document</em>-Instanzen genutzt.
+</p>
+<div class="warn">
+   Der <em>XMLParser</em> verarbeitet aus Performance-Gründen nur durch Leerzeichen getrennte Attribute. Die Werte von
+   Attributen müssen mit doppelten Anführungszeichen umschlossen sein.
+</div>
+
+<h3 id="Chapter-2-Definition-eines-Tags"><a href="#Chapter-2-Definition-eines-Tags">2. Definition eines Tags</a></h3>
+<p>
+   Ein APF-Tag definiert sich durch folgende Bestandteile:
+</p>
+<ul>
+   <li>
+      <strong>Prefix</strong>: das <em>Prefix</em> des Tags dient im Allgemeinen zur Strukturierung der Tags in Gruppen
+      (z.B. <em>core</em> für Tags, die mit dem APF mitgeliefert werden). Dieser Teil ist mit XML-Namespaces vergleichbar.
+   </li>
+   <li>
+      <strong>Name</strong>: der <em>Name</em> des Tags bezeichnet den Tag selbst. Dieser Teil ist mit XML-Tag-Namen
+      vergleichbar.
+   </li>
+   <li>
+      <strong>Attribute</strong>: die Attribute des Tags können zur Konfiguration des Tags genutzt werden. Sie dürfen
+      keine weiteren Tags enthalten.
+   </li>
+   <li>
+      <strong>Inhalt</strong>: der Inhaltsbereich des Tags kann weitere Tags oder Text enthalten. Der APF-Parser löst
+      dort enthaltene Tags entsprechend auf und hängt diese als Kinder in die aktuelle Hierarchie ein. Einfacher Text
+      ist später ebenfalls in der Tag-Instanz verfügbar.
+   </li>
+</ul>
+<p>
+   Folgende Tag-Definition könnte zur Ausgabe des aktuellen Datums in einem Template genutzt werden:
+</p>
+<gen:highlight type="apf-xml">
+<current:date format="H:i" />
+</gen:highlight>
+<p>
+   Dabei ist <em>current</em> das Prefix des Tags, <em>date</em> der Name und das Attribut <em>date</em> beinhaltet das
+   Ausgabe-Format. Der Tag definiert keinen Inhalt.
+</p>
+<p>
+   Zur Darstellung einer Bildergalerie könnte folgendes Tag genutzt werden:
+</p>
+<gen:highlight type="apf-xml">
+<img:gallery>
+   <h3>Mein Urlaub 2012</h3>
+   <p>
+      Diese Bilder stammen aus meinem Urlaub im Jahr 2012:
+   </p>
+   <gallery:datasource
+      namspace="..."
+      class="..."
+   />
+</img:gallery>
+</gen:highlight>
+<p>
+   In diesem Beispiel beinhaltet der <em>&lt;img:gallery /&gt;</em>-Tag statisches HTML, was später zur Formatierung der
+   Ausgabe genutzt werden kann und einen weiteren Tag zur Angabe der Datenquelle (z.B. aus einer Datenbank). Zur
+   Verwendung des Tags muss auch dieses zunächst dem APF-Parser bekannt gegeben werden.
+</p>
+
+<h3 id="Chapter-3-DOM-Struktur"><a href="#Chapter-3-DOM-Struktur">3. DOM-Struktur</a></h3>
+<p>
+   Wie im Kapitel <a href="#Chapter-1-1-Page-Controller">Kapitel 2</a> angesprochen erzeugt der <int:link pageid="098"/>
+   aus der Tag-Struktur in den Template-Dateien einen DOM-Baum. Dieser ähnelt dem eines Browsers, der aus den HTML-Tags
+   ebenfalls eine Speicherstruktur erzeugt.
+</p>
+<p>
+   Der Unterschied zur DOM-Struktur eines Browsers besteht darin, dass die einzelnen Knoten jeweils eigene Funktionalität
+   zur Transformation bzw. Darstellung beinhalten, die der Page-Controller während der Transformationsphase nutze. Details
+   zum Timing-Modell des Page-Controller finden Sie <int:link pageid="098" anchor="Chapter-2-1-Ablaufdiagramm">hier</int:link>.
+</p>
+<p>
+   Jeder Tag bzw. ab einem definierten Zeitpunkt seine Instanz durchläuft einen definierten Zyklus. Zunächst wird die
+   Struktur des Tags analysiert, dann seine Substanz (Attribute und Inhalt). Anschließend wird gemäß der Tag-Definition
+   eine Instanz des Tags erstellt und mit dem vom <em>XMLParser</em> analysierten Inhalt initialisiert.
+</p>
+<div class="hint">
+   Der Page-Controller verarbeitet Tags nur dann, wenn sie im aktuellen Knoten bekannt sind. Aus diesem Grund müssen
+   eigene Tags zunächst bekannt gegeben werden. Dies kann mit Hilfe des <em>&lt;core:addtaglib /&gt;</em>-Tag oder einem
+<gen:highlight type="php">
+$this->__TagLibs[] = new TagLib(...);
+</gen:highlight>
+   in einem eigenen Tag erreicht werden. Die Nutzung des <em>&lt;core:addtaglib /&gt;</em>-Tags ist immer dann notwendig,
+   wenn Sie innerhalb eines Templates einen eigenen Tag bekannt geben wollen, das PHP-Code-Beispiel nutzen Sie, wenn Sie
+   innerhalb eines eigenen Tags eine weitere Hierarchie-Stufe bekannt geben wollen.
+</div>
+<p>
+   Zur Bekanntgabe eines Tags werden <em>Präfix</em> und <em>Name</em> sowie <em>Namespace</em> und
+   <em>Klassen-Name</em> der Tag-Implementierung beschrieben. Dabei kann eine Implementierung über unterschiedliche
+   <em>Präfix</em>- und <em>Namens</em>-Angaben mehrfach in unterschiedlichen Hierarchien oder Projekten genutzt werden.
+   Die Klasse <em>TagLib</em> besitzt folgende Signatur (gekürzt):
+</p>
+<gen:highlight type="php">
+final class TagLib {
+
+   private $namespace;
+   private $class;
+   private $prefix;
+   private $name;
+
+   public function __construct($namespace, $class, $prefix, $name) {
+   }
+
+}
+</gen:highlight>
+<p>
+   Details zu unterschiedlichen Ebenen von Tags können Sie im Kapitel <a href="#Chapter-6-Tag-Hierarchie">Tag-Hierarchie</a>
+   nachlesen.
+</p>
+
+<h3 id="Chapter-4-Klassenstruktur-eines-Tags"><a href="#Chapter-4-Klassenstruktur-eines-Tags">4. Klassenstruktur eines Tags</a></h3>
+<p>
+   Die Struktur eines Tags beschreibt die Klasse <em>Document</em>. Diese ist die Mutter aller Tag-Implementierungen des
+   APF und definiert eine Reihe von Methoden, die innerhalb des Timing-Modells des Page-Controllers zu unterschiedlichen
+   Zwecken aufgerufen werden.
+</p>
+<p>
+   Die Signatur de Klasse <em>Document</em> ist wie folgt (gekürzt):
+</p>
+<gen:highlight type="php">
+class Document extends APFObject {
+
+   protected $__ObjectID = null;
+   protected $__ParentObject = null;
+   protected $__Children = array();
+   protected $__Content;
+   protected $__TagLibs = array();
+
+   public function __construct() {
+   }
+
+   public function onParseTime() {
+   }
+
+   public function onAfterAppend() {
+   }
+
+   public function transform() {
+   }
+
+}
+</gen:highlight>
+<p>
+   Den aufgeführten Elementen kommt dabei folgende Bedeutung zu:
+</p>
+<ul>
+   <li>
+      Im Feld <em>__ObjectID</em> wird die eindeutige interne Objekt-Id gespeichert, die jeder Tag vom APF-Parser bei
+      Erzeugen erhält. Diese wird u.a. bei der Vergabe von <int:link pageid="004"/>-Tags genutzt um jedes DOM-Element
+      eindeutig zu referenzieren.
+   </li>
+   <li>
+      <em>__ParentObject</em> referenziert auf das Vater-Objekt innerhalb des DOM-Baumes. Diese Referenz kann zur
+      Traversierung des DOM-Baumes genutzt werden. Der Root-Knoten hat keinen Vater.
+   </li>
+   <li>
+      In der Liste <em>__Children</em> finden sich alle Kind-Knoten des aktuellen DOM-Elements. Diese Liste kann zur
+      Traversierung des DOM-Baumes genutzt werden. Hat ein DOM-Knoten keine Kinder, ist die Liste leer.
+   </li>
+   <li>
+      Die Variable <em>__Content</em> beinhaltet den textuellen Inhalt eines Tags und die Platzhalter, die der
+      Page-Controller bei der Erzeugung des DOM-Baumes hinterlässt um den exakten Zusammenbau des HTML-Quelltextes
+      sicher zu stellen.
+   </li>
+   <li>
+      In der Variable <em>__Attributes</em> - aus der Klasse <em>APFObject</em> vererbt - findet sich eine assoziative
+      Liste der Tag-Attribute wieder. Besitzt das Tag keine Attribute, ist die Liste leer.
+   </li>
+   <li>
+      Die <em>__TagLibs</em>-Liste beinhaltet die für den aktuellen Knoten bekannte Tags. Wie im vorangegangenen Kapitel
+      angesprochen, verarbeitet der APF-Parser nur bekannte Tags innerhalb einer Hierarchie-Stufe bzw. innerhalb eines
+      DOM-Elements. Welche Tags bekannt oder eben nicht bekannt sind, bestimmt demnach der Inhalt dieser Liste.
+      <div class="hint">
+         Die <em>__TagLibs</em>-Liste kann in eigenen Tag-Implementierungen dazu genutzt werden, neue Tags bekannt zu geben
+         oder bereits bekannte Tags zu entfernen. Da die Manipulation der Liste in die eine oder die andere Richtung direkte
+         Auswirkung auf die Verarbeitung von Tags hat, behalten Sie bitte die Bedeutung stets im Hinterkopf!
+      </div>
+   </li>
+   <li>
+      Der Konstruktor einer Tag-Klasse wird bei der Erzeugung der Tag-Instanz aufgerufen. Der Parser übergibt jedoch
+      keine Argumente. Die Methode kann dazu genutzt werden, weitere Tags für die vorliegende Hierarchie bekannt zu
+      geben oder Standard-Werte zu belegen.
+      <div class="warn">
+         Zum Zeitpunkt der Ausführung des Konstruktors sind weder die Attribute des Tags noch der Inhalt verfügbar.
+         Ebenso sind der Kontext und die Sprache des Tags noch nicht initialisiert.
+      </div>
+   </li>
+   <li>
+      Nachdem der Tag geparst wurde wird die Methode <em>onParseTime()</em> aufgerufen. Zu diesem Zeitpunkt sind die
+      Attribute des Tags und der Inhalt in der Instanz verfügbar. Auch Kontext und Sprache des Tags sind initialisiert.
+      Diese Methode kann dazu genutzt werden, den Tag mit Hilfe der verfügbaren Informationen weiter zu initialsieren
+      oder den Tag-Inhalt weitere zu analysieren (z.B. enthaltene Kind-Tags parsen.
+   </li>
+   <li>
+      Ist der Knoten in den DOM-Baum eingehangen - sprich sind Vater und Kinder bekannt - wird die Methode
+      <em>onAfterAppend()</em> aufgerufen. Innerhalb dieser Methode können Sie nun Logik platzieren, die auf Vater und
+      Kinder Auswirkung hat.
+   </li>
+   <li>
+      Soll der aktuelle DOM-Knoten transformiert werden, ruft der Page-Controller die Methode <em>transform()</em> Ihres
+      Tags auf. Platzieren Sie hier bitte diejenige Logik, die zur Erzeugung von HTML-Quelltext benötigt wird. Tags, die
+      innerhalb des DOM-Baumes lediglich zur Konfiguration oder Initialisierung dienen generieren oft keine Ausgabe (z.B.
+      <em>&lt;core:addtaglib /&gt;</em>). Wie sich Ihr Tag letztlich verhält bleibt Ihrer Implementierung überlassen.
+   </li>
+</ul>
+
+<h3 id="Chapter-5-Implementierung"><a href="#Chapter-5-Implementierung">5. Implementierung</a></h3>
+* Hinweise auf Convenience-Methoden (z.B. getAttribute())
+* Kind-Tags parsen --> Platzhalter
+* Transformation von Kindern, wenn Document::transform() überschrieben wird.
+
+
+<h3 id="Chapter-6-Tag-Hierarchie"><a href="#Chapter-6-Tag-Hierarchie">6. Tag-Hierarchie</a></h3>
+<p>
+   * Restriktion des Parsers!!!
+</p>
+
+
+<h3 id="Chapter-7-Anwendungsbeispiele"><a href="#Chapter-7-Anwendungsbeispiele">Anwendungsbeispiele</a></h3>
