@@ -242,19 +242,480 @@ class Document extends APFObject {
       Tags auf. Platzieren Sie hier bitte diejenige Logik, die zur Erzeugung von HTML-Quelltext benötigt wird. Tags, die
       innerhalb des DOM-Baumes lediglich zur Konfiguration oder Initialisierung dienen generieren oft keine Ausgabe (z.B.
       <em>&lt;core:addtaglib /&gt;</em>). Wie sich Ihr Tag letztlich verhält bleibt Ihrer Implementierung überlassen.
+      <div class="hint">
+         Sofern die Methode <em>transform()</em> in eigenen TagLibs überschrieben wird, muss
+         sich der Entwickler selbst um die Transformation der Kind-Knoten kümmern. Dies kann im
+         einfachsten Fall durch
+<gen:highlight type="php">
+foreach($this->__Children as $objectId => $DUMMY){
+   $this->__Content = str_replace(
+      '<'.$objectId.' />',
+      $this->__Children[$objectId]->transform(),
+      $this->__Content
+   );
+}
+</gen:highlight>
+         erreicht werden, wenn in den Methoden <em>onParseTime()</em> oder <em>onAfterAppend()</em> die
+         Parser-Funktion <em>__extractTagLibTags()</em> aufgerufen wurde. Weitere Hinweise können dem
+         Foren-Beitrag
+         <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=191" title="transform() von eigenem taglib nicht ausgeführt">transform() von eigenem taglib nicht ausgeführt</a>
+         entnommen werden.
+      </div>
    </li>
 </ul>
 
 <h3 id="Chapter-5-Implementierung"><a href="#Chapter-5-Implementierung">5. Implementierung</a></h3>
-* Hinweise auf Convenience-Methoden (z.B. getAttribute())
-* Kind-Tags parsen --> Platzhalter
-* Transformation von Kindern, wenn Document::transform() überschrieben wird.
 
+<h4 id="Chapter-5-1-Einfacher-Tag"><a href="#Chapter-5-1-Einfacher-Tag">5.1. Einfacher Tag</a></h4>
+<p>
+   Dieses Kapitel beschäftigt sich mit einfachen Tags. &quot;Einfach&quot; meint in diesem Zusammenhang einen Tag, der
+   eine bestimmte Aufgabe erledigt, jedoch keine weitere Hierarchie erzeugt - sprich keine Kind-Tags besitzt.
+</p>
+<p>
+   Als Beispiel soll die Ausgabe der aktuellen Uhrzeit aus <a href="#Chapter-2-Definition-eines-Tags">Kapitel 2</a>
+   dienen. Hierzu muss der Tag lediglich zur Transformatinszeit die Uhrzeit im gewünschten Format zurückgeben.
+   Abhängigkeiten zu anderen Tags im Baum und die Notwendigkeit der Initialisierung bestehen nicht. Der Quellcode des
+   Tags gestaltet sich damit wie folgt (Namespace: <em>examples::tags::pres</em>):
+</p>
+<gen:highlight type="php">
+class HourDisplayTag extends Document {
+
+   public function transform() {
+     return date($this->getAttribute('format'));
+   }
+
+}
+</gen:highlight>
+<p>
+   Innerhalb eines Templates lässt er sich wie anschließend gezeigt verwenden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   namespace="examples::tags::pres"
+   class="HourDisplayTag"
+   prefix="current"
+   name="date"
+/>&gt;
+<current:date format="H:i:s" />
+</gen:highlight>
+<div class="hint">
+   Der Konstruktor der Klasse <em>Document</em> gibt mögliche Kind-Tags bekannt, die in der aktuellen Implementierung
+   nicht benötit werden. Insofern könnte als mögliche Speicherverbrauchsoptimierung ebenso der Konstruktor überschrieben
+   werden damit sichergestellt ist, dass der Tag keine weiteren Kinder verarbeiten kann.
+</div>
+
+<h4 id="Chapter-5-2-Komplexer-Tag"><a href="#Chapter-5-2-Komplexer-Tag">5.2. Komplexer Tag</a></h4>
+<p>
+   Als &quot;komplexer&quot; Tag versteht das APF einen Tag mit weiteren - in der Hierarchie nicht eingeschränkten -
+   Kind-Knoten.
+</p>
+<p>
+   Als Beispiel soll die Ausgabe einer Bildergalerie aus <a href="#Chapter-2-Definition-eines-Tags">Kapitel 2</a> dienen.
+   Dieser Tag definiert zunächst statischen Inhalt, der zur Ausgabe einer Überschrift und eines Einleitungstextes
+   genutzt wird. Die Generierung der Ausgabe selbst wird vom <em>&lt;img:gallery /&gt;</em>-Tag mit Hilfe eines
+   <em>Content-Providers</em>, der durch den <em>&lt;gallery:datasource /&gt;</em>-Tag definiert wird.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass die Struktur des Beispiels willkürlich gewählt und nicht für Ihre Implementierungen bindend
+   ist. Es wäre sowohl denk- als auch realisierbar den Content-Provider über Tag-Attribute zu definieren und die
+   Formatierung der Galerie über weitere Elemente (siehe z.B. <int:link pageid="078" anchor="Chapter-1-Iterator">Iterator</int:link>)
+   zu realisieren.
+</div>
+
+<h5 id="Chapter-5-2-1-Basis"><a href="#Chapter-5-2-1-Basis">5.2.1. Basis</a></h5>
+<p>
+   Die Basis-Struktur des Tags gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+import('examples::tags::pres', 'GalleryDataSourceTag');
+
+class GalleryTag extends Document {
+
+   public function __construct() {
+      $this->__TagLibs[] = new TagLib(
+         'examples::tags::pres',
+         'GalleryDataSourceTag',
+         'gallery',
+         'datasource'
+      );
+   }
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   Im Konstruktor des Tags wird dem Parser der <em>&lt;gallery:datasource /&gt;</em>-Tag bekannt gegeben. Damit der
+   Parser die Klasse <em>GalleryDataSourceTag</em> findet, wird sie per <em>import()</em> eingebunden.
+</p>
+
+<h5 id="Chapter-5-2-2-Konfiguration-des-Content-Provider"><a href="#Chapter-5-2-2-Konfiguration-des-Content-Provider">5.2.2. Konfiguration des Content-Provider</a></h5>
+<p>
+   Widmen wir uns nun zunächst der Konfiguration des <em>Content-Providers</em>. Hierzu spendieren wir dem
+   <em>&lt;img:gallery /&gt;</em>-Tag ein privates Feld und einen Setter, damit der <em>&lt;gallery:datasource /&gt;</em>-Tag
+   die Instanz übergeben kann:
+</p>
+<gen:highlight type="php">
+class GalleryTag extends Document {
+
+   private $contentProvider;
+
+   ...
+
+   public function setContentProvider(ImageGalleryContentProvider $provider) {
+     $this->contentProvider = $provider;
+   }
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   Der Provider selbst definiert sich durch folgendes Interface:
+</p>
+<gen:highlight type="php">
+interface ImageGalleryContentProvider {
+   /**
+    * @return GalleryImage[]
+    */
+   public function getImages();
+}
+
+class GalleryImage {
+
+   private $title;
+   private $description;
+   private $imageUrl;
+
+   public function __construct($title, $description, $imageUrl) {
+      $this->title = $title;
+      $this->description = $description;
+      $this->imageUrl = $imageUrl;
+   }
+
+   public function getDescription() {
+      return $this->description;
+   }
+
+   public function getImageUrl() {
+      return $this->imageUrl;
+   }
+
+   public function getTitle() {
+     return $this->title;
+   }
+
+}
+</gen:highlight>
+<p>
+   Gemäß unseres Beispieles ist der <em>&lt;gallery:datasource /&gt;</em>-Tag dafür zuständig den gewünschten Provider
+   zu erzeugen und dem <em>GalleryTag</em> mitzugeben. Dies lässt sich innerhalb der <em>onAfterAppend()</em>-Methode
+   erledigen, da zu diesem Zeitpunkt der Vater-Knoten bekannt ist:
+</p>
+<gen:highlight type="php">
+class GalleryDataSourceTag extends Document {
+
+   public function __construct() {
+   }
+
+   public function onAfterAppend() {
+      $provider = &$this->getServiceObject(
+         $this->getAttribute('namespace'),
+         $this->getAttribute('class')
+      );
+      /* @var $parent GalleryTag */
+      $parent = &$this->getParentObject();
+      $parent->setContentProvider($provider);
+   }
+
+   public function transform() {
+      return '';
+   }
+
+}
+</gen:highlight>
+<p>
+   Da der <em>GalleryDataSourceTag</em> keine weiteren Kinder erwartet, wurde der Konstruktor von <em>Document</em> leer
+   überschrieben. In der Methode <em>onAfterAppend()</em> erzeugt das Tag den gewünschten Provider mit Hilfe des
+   <int:link pageid="107" anchor="Chapter-3-2-1-ServiceManager-Einfache-Services">ServiceManager</int:link> um der Instanz
+   Kontext und Sprache des aktuellen Elements mitzugeben. Anschließend wird dem Vater-Element des DOM-Baumes - hier
+   eine Instanz der Klasse <em>GalleryTag</em> wie mit dem Type-Hint angegeben wird - der Provider injiziert.
+</p>
+<p>
+   Die leer überschriebene <em>transform()</em>-Methode sorgt dafür, dass keine weiteren Kind-Elemente transformiert oder
+   eine Ausgabe erzeugt wird. Dies ist im aktuellen Beispiel nicht notwendig.
+</p>
+
+<h5 id="Chapter-5-2-4-Parsen-des-GalleryDataSourceTag"><a href="#Chapter-5-2-4-Parsen-des-GalleryDataSourceTag">5.2.4. Parsen des GalleryDataSourceTag</a></h5>
+<p>
+   Damit der <em>GalleryDataSourceTag</em> seine Arbeit verrichten kann muss der <em>GalleryTag</em> dafür sorgen, dass
+   er auch vom Page-Controller erfasst und ausgeführt wird. Dazu bringt der Page-Controller bereits eine Parser-Methode
+   mit, die in jeder von <em>Document</em> erbenden Klasse ausgeführt werden kann - <em>__extractTagLibTags()</em>.
+</p>
+<p>
+   Zu welchem Zeitpunkt diese aufgerufen werden soll entscheiden zunächst Sie selbst. Beachten Sie dabei jedoch immer das
+   <int:link pageid="098" anchor="Chapter-2-1-Ablaufdiagramm">Ablaufdiagramm des Page-Controller</int:link> um den für
+   den Anwendungsfall richtigen Zeitpunkt zu wählen. In unserem Fall ist lediglich wichtig, dass der Provider <em>vor</em>
+   der Erzeugung der Inhalte ausgeführt wird. Damit sind theoretisch drei Möglichkeiten denkbar:
+</p>
+<ul>
+   <li>In einer eigenen <em>onParseTime()</em>-Methode.</li>
+   <li>In einer eigenen <em>onAfterAppend()</em>-Methode.</li>
+   <li>Zu Beginn der <em>transform()</em>-Methode.</li>
+</ul>
+<p>
+   Üblicherweise schickt es sich für die Analyse von weiteren Kind-Strukturen die <em>onParseTime()</em>-Methode zu
+   nutzen, da Sie damit sicherstellen, dass die weiteren Elemente im Baum ebenfalls die Möglichkeit haben, Kind-Knoten
+   zeitlich korrekt zu erzeugen.
+</p>
+<p>
+   Um den <em>GalleryDataSourceTag</em> zu erzeugen und auszuführen, reicht folgender Quellcode:
+</p>
+<gen:highlight type="php">
+class GalleryTag extends Document {
+
+   ...
+
+   public function onParseTime() {
+      $this->__extractTagLibTags();
+   }
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   Alles Weitere erledigt der APF-Parser für Sie gemäß den bekannten Tags.
+</p>
+
+<h5 id="Chapter-5-2-3-Erzeugen-der-Ausgabe"><a href="#Chapter-5-2-3-Erzeugen-der-Ausgabe">5.2.3. Erzeugen der Ausgabe</a></h5>
+<p>
+   Die Ausgabe der Bildergalerie erfolgt in der Methode <em>transform()</em>, die vom Page-Controller bei der Transformation
+   des Baumes aufgerufen wird. Diese muss nun dafür sorgen, dass die Bilder, die vom Provider geliefert werden
+   entsprechend ausgegeben werden.
+</p>
+<p>
+   Unter der Annahme, dass alle Bilder als ungeordnete Liste mit entsprechendem Platz für Beschreibungen ausgegeben werden,
+   gestaltet sich die Methode <em>transform()</em> wie folgt:
+</p>
+<gen:highlight type="php">
+class GalleryTag extends Document {
+
+   ...
+
+   public function transform() {
+      $images = $this->contentProvider->getImages();
+
+      $buffer = '<' . 'ul class="gallery-images">';
+      foreach ($images as $image) {
+         $buffer .= '<' . 'li>'
+            . '<' . 'img src="' . $image->getImageUrl() . '" alt="' . $image->getTitle() . '" />'
+            . '<' . 'p>' . $image->getDescription() . '<' . '/p>'
+            . '<' . '/li>';
+      }
+      $buffer .= '<' . '/ul>';
+
+      $this->setContent($this->getContent() . $buffer);
+   }
+
+}
+</gen:highlight>
+<p>
+   Mit der aktuellen Implementierung werden alle Bilder als Listen-Elemente nach dem im <em>&lt;img:gallery /&gt;</em>-Tag
+   vorhandenen statischen Inhalt angezeigt.
+</p>
+<div class="hint">
+   Soll in einem Tag kein statischer Inhalt zugelassen werden, so kann dieser in der <em>transform()</em>-Methode durch
+   <em>setContent()</em> durch einen dynamisch erzeugten überschrieben werden.
+</div>
+<div class="hint">
+   Damit bei der Transformation die Inhalte eines Tags an der korrekten Stelle ausgegeben werden,
+   erzeugt die Methode <em>__extractTagLibTags()</em> Platzhalter der Form
+   <gen:highlight type="apf-xml">&lt;{OBJECT_ID} /&gt;</gen:highlight> Dabei entspricht <em>{OBJECT_ID}</em>
+   dem Wert der Klassen-Variable <em>$this->__ObjectID</em> und dem Array-Offset, in dem die
+   Kind-Tags gespeichert werden (<em>$this->__Children</em>). Dieser Wert kann dann bei der
+   Implementierung von eigenen <em>transform()</em>-Methoden für die Ersetzung des Inhalts
+   genutzt werden.
+</div>
+<p>
+   Im Fall des <em>&lt;img:gallery /&gt;</em>-Tags sollen die Kind-Tags keine Ausgabe erzeugen, was prinzipiell mit der
+   <em>GalleryDataSourceTag::transform()</em>-Methode sichergestellt. Da der APF-Parser jedoch zur Positionierung der
+   Ausgabe Platzhalter erzeugt, müssen diese in unserem Beispiel dennoch ersetzt werden. Dies kann durch folgende
+   Erweiterung passieren:
+</p>
+<gen:highlight type="php">
+class GalleryTag extends Document {
+
+   ...
+
+   public function transform() {
+      $images = $this->contentProvider->getImages();
+
+      $buffer = '<' . 'ul class="gallery-images">';
+      foreach ($images as $image) {
+         $buffer .= '<' . 'li>'
+         . '<' . 'img src="' . $image->getImageUrl() . '" alt="' . $image->getTitle() . '" />'
+         . '<' . 'p>' . $image->getDescription() . '<' . '/p>'
+         . '<' . '/li>';
+      }
+      $buffer .= '<' . '/ul>';
+
+      $this->setContent($this->getContent() . $buffer);
+
+      foreach ($this->__Children as $objectId => $DUMMY) {
+         $this->__Content = str_replace(
+            '<' . $objectId . ' />',
+            $this->__Children[$objectId]->transform(),
+            $this->__Content
+         );
+      }
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-5-3-Document-API"><a href="#Chapter-5-3-Document-API">5.3. Document-API</a></h4>
+<p>
+   Zur Implementierung von Tag-Logik stehen zahlreiche Methoden zur Verfügung. Diese umfassen das Parsen von Tag-Strukturen,
+   das Traversieren des Baumes und das Manipulieren oder Auslesen von Tag-Informationen. Diese sind:
+</p>
+<ul>
+   <li>
+      <strong>__extractTagLibTags()</strong>:
+      Analysiert die bekannten Kind-Tags und erstellen den DOM-Baum daraus.
+   </li>
+   <li>
+      <strong>getParentObject()</strong>:
+      Liefert die Instanz des Vater-Tags im DOM-Baum. Sofern kein Vater vorhanden ist, liefert die Methode <em>null</em>.
+   </li>
+   <li>
+      <strong>setParentObject()</strong>:
+      Injiziert eine Instanz als Vater-Tags des entsprechenden DOM-Knotens..
+   </li>
+   <li>
+      <strong>getChildren()</strong>:
+      Liefert die Liste aller Kinder des Tags. Sofern keine Kinder vorhanden sind, wird eine leere Liste zurückgegeben.
+   </li>
+   <li>
+      <strong>getContent()</strong>:
+      Liefert den Inhalt des befragten DOM-Elements.
+   </li>
+   <li>
+      <strong>setContent()</strong>:
+      Beschreibt den Inhalt des entsprechenden DOM-Elements.
+   </li>
+   <li>
+      <strong>getChildNode()</strong>:
+      Liefert einen Kind-Knoten, der einem definierten Selektor genügt.
+   </li>
+   <li>
+      <strong>getAttribute()</strong>:
+      Liefert den Wert eines Attributes.
+   </li>
+   <li>
+      <strong>setAttribute()</strong>:
+      Definiert den Wert eines Attributes.
+   </li>
+   <li>
+      <strong>getAttributes()</strong>:
+      Liefert die Liste der aktuellen Attribute.
+   </li>
+   <li>
+      <strong>getAttributesAsString()</strong>:
+      Generiert eine XML-Repräsentation der übergebenen Attribute an Hand einer optionalen Whitelist.
+   </li>
+</ul>
+<p>
+   Weitere Methoden der Klasse <em>Document</em> oder der Basis-Klasse ihres aktuellen Tags finden Sie in der
+   <int:link pageid="002"/>.
+</p>
 
 <h3 id="Chapter-6-Tag-Hierarchie"><a href="#Chapter-6-Tag-Hierarchie">6. Tag-Hierarchie</a></h3>
 <p>
-   * Restriktion des Parsers!!!
+   Der Tag-Parser des APF besitzt aus Performance- und Konsistenz-Gründen einigen Restriktionen gegenüber einem
+   &quot;echten&quot; XML-Parser. Diese sind:
+</p>
+<ul>
+   <li>Tag-Attribute können nur durch Leerzeichen getrennt werden. Tab-Zeichen nicht nicht möglich.</li>
+   <li>Der Inhalt von Tag-Attribute wird nur in doppelten Anführungszeichen erkannt.</li>
+   <li>
+      Tag-Hierarchien werden nur dann richtig aufgelöst, wenn ein Tag - bestehend aus Präfix und Namen - nur in einer
+      Ebene bekannt sind. Dies erfordert die Registrierung einer Tag-Implementierung in unterschiedlichen Ebenen mit
+      einer anderen Präfix-Name-Kombination.
+      <div class="warn">
+         Möchten Sie einen Tag auf &quot;höchster&quot; Ebene in einer Template-Datei und gleichzitig in einer tiefer
+         gelegenen Struktur verwenden, ordnet der Parser die Instanzen falsch zu. Beispiel:
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   namespace="..."
+   class="FooBarTag"
+   prefix="foo"
+   name="tag"
+/&gt;
+&lt;foo:bar id="..."/&gt;
+&lt;html:template name="..."&gt;
+   &lt;template:addtaglib
+      namespace="..."
+      class="FooBarTag"
+      prefix="foo"
+      name="tag"
+   /&gt;
+&lt;foo:bar id="..."/&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+         In diesem Fall ordnet der Parser die Instanz des Tags <em>&lt;foo:bar /&gt;</em> der obersten Ebene zu. Im
+         <em>&lt;html:template /&gt;</em>-Tag ist kein <em>&lt;foo:bar /&gt;</em> vorhanden, sondern lediglich ein
+         Platzhalter und es kommt bei der Transformation zu einem Fehler bzw. einem nicht nachvollziehbaren.
+      </div>
+   </li>
+   <li>
+      Als verarbeitbare Tags werden nur APF-Tags erkannt. Einfache HTML-Tags können nicht erfasst werden und dies
+      erfordert u.U. die Implementierung von Wrapper-Tags für die Abstraktion.
+   </li>
+</ul>
+
+<h4 id="Chapter-6-1-Einfache-Hierarchien"><a href="#Chapter-6-1-Einfache-Hierarchien">6.1. Einfache Hierarchien</a></h4>
+<p>
+   Einfache Tag-Hierarchien sind solche, bei denen Tags in unterschiedlichen Ebenen nur einmal vorkommen. Die Einschränkung
+   des Tag-Parsers wirkt sich dabei vor allem auf den aktuell verarbeiteten Knoten - in der Regel das aktuelle Template -
+   aus.
 </p>
 
+<h4 id="Chapter-6-2-Komplexe-Hierarchien"><a href="#Chapter-6-2-Komplexe-Hierarchien">6.2. Komplexe Hierarchien</a></h4>
+<p>
 
-<h3 id="Chapter-7-Anwendungsbeispiele"><a href="#Chapter-7-Anwendungsbeispiele">Anwendungsbeispiele</a></h3>
+</p>
+
+<a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=4&amp;t=38">Schachtelung TagLibs</a>
+
+<h3 id="Chapter-7-Anwendungsbeispiele"><a href="#Chapter-7-Anwendungsbeispiele">7. Anwendungsbeispiele</a></h3>
+
+* Wann Tag wann Controller?
+==> Generell gilt als Daumenregel: schreibe eine Taglib, wenn du mit einem Template plus Controller nicht mehr weiter kommst. Das sollte an und für sich selten der Fall sein, aber es schadet z.B. nicht, eigene und immer wieder verwendete Elemente (z.B. die Anzeige, ob jemand neue Elemente im Posteingang hat oder nicht) als Taglib abzufassen. Dann kannst du sie bequem in beliebige Templates einbinden ohne den Code nochmals schreiben zu müssen.
+
+<h3 id="Chapter-8-Weiterfuehrende-Links"><a href="#Chapter-8-Weiterfuehrende-Links">8. Weiterführende Links</a></h3>
+<p>
+   Sofern Sie weitere Informationen benötigen, können Sie folgende Threads aus dem Forum nutzen:
+</p>
+<ul>
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=1126">TagLib unterschiedliche Zustände</a></li> 
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=982">Taglib innerhalb eines Templates</a></li> 
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=827">Taglib der Template rundherum läd</a></li> 
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=540">Taglibs</a></li> 
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=505">Mehrere Checkboxes taglib aus DB holen und ausgeben</a></li> 
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=456">Taglib-Call innerhalb eines Taglib-Call</a></li> 
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=191">transform() von eigenem taglib nicht ausgeführt</a></li> 
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=177">Menü taglib-modul</a></li> 
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=122">Performance TagLibs</a></li> 
+   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=37">Taglibs vs. Templates</a></li> 
+</ul>
+<p>
+   Im Wiki finden sich folgende Seiten zu den APF-Tags:
+</p>
+<ul>
+   <li><a class="wiki" href="http://wiki.adventure-php-framework.org/de/All-in-one_Include-Tag">All-in-one Include-Tag</a></li> 
+   <li><a class="wiki" href="http://wiki.adventure-php-framework.org/de/Timing-Modell_des_Page-Controller">Timing-Modell des Page-Controller</a></li> 
+   <li><a class="wiki" href="http://wiki.adventure-php-framework.org/de/WYSIWYG_%2B_APF-Formulare">WYSIWYG + APF-Formulare</a></li> 
+</ul>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_147" />
