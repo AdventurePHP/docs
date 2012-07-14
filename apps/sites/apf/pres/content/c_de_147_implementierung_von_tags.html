@@ -295,12 +295,12 @@ class HourDisplayTag extends Document {
    class="HourDisplayTag"
    prefix="current"
    name="date"
-/>&gt;
+/&gt;
 <current:date format="H:i:s" />
 </gen:highlight>
 <div class="hint">
    Der Konstruktor der Klasse <em>Document</em> gibt mögliche Kind-Tags bekannt, die in der aktuellen Implementierung
-   nicht benötit werden. Insofern könnte als mögliche Speicherverbrauchsoptimierung ebenso der Konstruktor überschrieben
+   nicht benötigt werden. Insofern könnte als mögliche Speicherverbrauchsoptimierung ebenso der Konstruktor überschrieben
    werden damit sichergestellt ist, dass der Tag keine weiteren Kinder verarbeiten kann.
 </div>
 
@@ -363,7 +363,7 @@ class GalleryTag extends Document {
    ...
 
    public function setContentProvider(ImageGalleryContentProvider $provider) {
-     $this->contentProvider = $provider;
+      $this->contentProvider = $provider;
    }
 
    ...
@@ -660,12 +660,12 @@ class GalleryTag extends Document {
       prefix="foo"
       name="tag"
    /&gt;
-&lt;foo:bar id="..."/&gt;
+   &lt;foo:bar id="..."/&gt;
 &lt;/html:template&gt;
 </gen:highlight>
          In diesem Fall ordnet der Parser die Instanz des Tags <em>&lt;foo:bar /&gt;</em> der obersten Ebene zu. Im
          <em>&lt;html:template /&gt;</em>-Tag ist kein <em>&lt;foo:bar /&gt;</em> vorhanden, sondern lediglich ein
-         Platzhalter und es kommt bei der Transformation zu einem Fehler bzw. einem nicht nachvollziehbaren.
+         Platzhalter und es kommt bei der Transformation zu einem Fehler bzw. einem nicht nachvollziehbaren Verhalten.
       </div>
    </li>
    <li>
@@ -680,18 +680,309 @@ class GalleryTag extends Document {
    des Tag-Parsers wirkt sich dabei vor allem auf den aktuell verarbeiteten Knoten - in der Regel das aktuelle Template -
    aus.
 </p>
+<p>
+   Als Beispiel soll uns folgendes Template dienen, in dem ein weiteres eingebunden wird:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="..." /&gt;
+&lt;core:importdesign
+   namespace=""
+   template="template2"
+/&gt;
+</gen:highlight>
+<p>
+   Das per <em>template2</em> eingebundene Template - dieses stellt die nächste Hierarchie-Stufe im DOM-Baum dar - hat
+   folgenden Inhalt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="" /&gt;
+&lt;html:template name="..."&gt;
+   ...
+&lt;/html:template&gt;
+</gen:highlight>
+<p>
+   Da die beiden <em>&lt;html:placeholder /&gt;</em>-Tags in unterschiedlichen Template-Dateien definiert sind, werden
+   sie den jeweiligen Hierarchien korrekt zugeordnet.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass APF-Tags nur dann verarbeitet werden können, wenn sie dem APF-Parser bekannt sind.
+   Benutzen Sie eigene Tags, geben Sie diese bitte mit Hilfe der <em>&lt;*:addtaglib /&gt;</em>-Tags bekannt.
+</div>
+<div class="warn">
+   Ein per <em>&lt;*:addtaglib /&gt;</em>-Tag bekannt gegebener Tag gilt nur innerhalb des aktuellen DOM-Knotens!
+   Beabsichtigen Sie einen eigenen Tag sowohl in der ersten Hierarchie - quasi &quot;direkt&quot; in der Template-Datei
+   - als auch einer tiefer gelegenen zu verwenden, so muss der Tag in beiden bekannt gegeben werden. Beachten Sie hierzu
+   bitte die Hinweise im nächsten Kapitel.
+</div>
 
 <h4 id="Chapter-6-2-Komplexe-Hierarchien"><a href="#Chapter-6-2-Komplexe-Hierarchien">6.2. Komplexe Hierarchien</a></h4>
 <p>
-
+   Als Beispiel für komplexe Hierarchien, soll ein Tag dienen, der auf Basis eines Schlüssels Übersetzungen für die
+   aktuell gewählte Sprache ausgibt. Er soll auf Ebene einer Template-Datei, innerhalb eines
+   <em>&lt;html:template /&gt;</em>-Tags und in einem eigenen Tag eingesetzt werden.
 </p>
+<p>
+   Als Basis für die weitere Diskussion soll folgende Template-Datei dienen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   namespace="..."
+   class="GetTextTag"
+   prefix="html"
+   name="text"
+/&gt;
+&lt;html:text key="..." /&gt;
 
-<a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=4&amp;t=38">Schachtelung TagLibs</a>
+&lt;html:template name=""&gt;
+   &lt;core:addtaglib
+         namespace="..."
+         class="GetTextTag"
+         prefix="template"
+         name="text"
+      /&gt;
+   &lt;template:text key="..." /&gt;
+&lt;/html:template&gt;
+
+&lt;user:control-panel&gt;
+   &lt;control-panel:text key="..." /&gt;
+   &lt;control-panel:navi /&gt;
+&lt;/user:control-panel&gt;
+</gen:highlight>
+<p>
+   Der <em>GetTextTag</em> wird innerhalb der ersten Hierarchie und im <em>&lt;html:template /&gt;</em>-Tag durch einen
+   <em>&lt;*:addtaglib /&gt;</em>-Tag bekannt gegeben, im <em>&lt;user:control-panel /&gt;</em>-Tag ist er bereits durch
+   die Implementierung bekannt.
+</p>
+<div class="warn">
+   Durch die in <a href="#Chapter-6-Tag-Hierarchie">Kapitel 6</a> beschriebene Einschränkungen des APF-Parsers ist es
+   notwendig für die Verwendung des <em>&lt;*:text /&gt;</em>-Tags innerhalb von <em>&lt;html:template /&gt;</em> und
+   <em>&lt;user:control-panel /&gt;</em> ein eigenes Präfix zu wählen. Sind Präfix und Name des <em>&lt;*:text /&gt;</em>-Tags
+   in allen Hierarchien identisch wird der Parser die Instanzen derjenigen Hierarchie zuweisen in der er zuerst bekannt
+   gegeben wurde - in diesem Fall der ersten.
+</div>
+<div class="hint">
+   Aus den oben genannten Gründen und um die Zugehörigkeit eines Tags zu einer Hierarchie auszudrücken empfiehlt es sich,
+   Präfix und Namen eines Tags gemäß der Hierarchie zu vergeben. Im obigen Beispiel wurden die Kind-Tags des
+   <em>&lt;user:control-panel /&gt;</em> mit dem Präfix <em>control-panel</em> ausgestattet. Für tiefer strukturierte
+   Hierarchien kann folgendes Beispiel als Vorlage dienen:
+<gen:highlight type="apf-xml">
+&lt;shop:basket&gt;
+   &lt;basket:title /&gt;
+   &lt;basket:products&gt;
+      &lt;products:listing /&gt;
+      &lt;products:sum /&gt;
+   &lt;/basket:products&gt;
+&lt;/shop:basket&gt;
+</gen:highlight>
+   Weitere Hinweise finden Sie im Forum unter
+   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=4&amp;t=38">Schachtelung TagLibs</a>.
+</div>
 
 <h3 id="Chapter-7-Anwendungsbeispiele"><a href="#Chapter-7-Anwendungsbeispiele">7. Anwendungsbeispiele</a></h3>
+<p>
+   In diesem Kapitel finden Sie Anwendungsbeispiele für Tags, die Sie in Ihrer täglichen Arbeit mit dem APF als
+   Vorlage für eigene Implementierungen bzw. als Coding-Guideline nutzen können. Als Daumenregel gilt:
+</p>
+<div class="hint">
+   Ein Tag wird erst notwendig, wenn die Anforderung mit Hilfe eines <int:link pageid="047"/> - inkl. aller
+   <int:link pageid="046" /> - und einem <int:link pageid="006" /> nicht mehr zu realisieren ist (z.B. Manipulationen
+   des DOM-Baums). Weiterhin empfielt es sich, Funktionalität in Tags abzufassen, wenn immer wieder verwendete Elemente
+   in unterschiedlichen Templates genutzt werden soll ohne den Code zu duplizieren oder unnötige Vererbungshierarchien
+   zu erzeugen.
+</div>
 
-* Wann Tag wann Controller?
-==> Generell gilt als Daumenregel: schreibe eine Taglib, wenn du mit einem Template plus Controller nicht mehr weiter kommst. Das sollte an und für sich selten der Fall sein, aber es schadet z.B. nicht, eigene und immer wieder verwendete Elemente (z.B. die Anzeige, ob jemand neue Elemente im Posteingang hat oder nicht) als Taglib abzufassen. Dann kannst du sie bequem in beliebige Templates einbinden ohne den Code nochmals schreiben zu müssen.
+<h4 id="Chapter-7-1-Einfacher-Tag-mit-Attributen"><a href="#Chapter-7-1-Einfacher-Tag-mit-Attributen">7.1. Einfacher Tag mit Attributen</a></h4>
+<p>
+   Als Beispiel für einen einfachen Tag soll uns der <em>&lt;html:text /&gt;</em>-Tag aus
+   <a href="#Chapter-6-2-Komplexe-Hierarchien">Kapitel 6.2</a> dienen. Dieser gibt einen sprachabhängigen Text aus, der
+   an Hand eines Attributs definiert wird. Beispiel:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:text key="log-in.mousover.text" /&gt;
+</gen:highlight>
+<p>
+   Die Implementierung des Tags beinhaltet die Verarbeitung des Attributs und die Ausgabe des Textes zur
+   Transformationszeit. Dies kann mit folgender Implementierung bewerkstelligt werden:
+</p>
+<gen:highlight type="php">
+class TranslationTextTag extends Document {
+
+   public function transform() {
+     return gettext($this->getAttribute('key'));
+   }
+
+}
+</gen:highlight>
+<p>
+   Sollen die Attribute eines Tags bei der Generierung der Ausgabe einbezogen werden, kann die Methode
+   <em>getAttributesAsString()</em> genutzt werden. Als Beispiel soll ein Tag genutzt werden, der die Ausgabe eines
+   Bildes aus einer Medien-Datenbank an Hand einer externen ID erzeugt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:img
+   key="IMG-12345"
+   width="100"
+   height="120"
+   alt="Diese Bild zeigt ein rotes Auto"
+/&gt;
+</gen:highlight>
+<p>
+   Die zugehörige Implementierung kann wie folgt aussehen:
+</p>
+<gen:highlight type="php">
+class MAMImageTag extends Document {
+
+   public function transform() {
+
+      $width = $this->getAttribute('width', '50');
+      $height = $this->getAttribute('height', '50');
+      $key = $this->getAttribute('key');
+
+      $whiteList = array(
+         'alt',
+         'height',
+         'width',
+         'id',
+         'style',
+         'title'
+      );
+
+      return '<' . 'img src="'
+            . $this->getImageUrl($key, $width, $height) . '" '
+            . $this->getAttributesAsString($this->getAttributes(), $whiteList)
+            . ' />';
+   }
+
+   private function getImageUrl($key, $width, $height) {
+     ...
+   }
+
+}
+</gen:highlight>
+<p>
+   In der obigen Code-Box wird die Methode <em>getAttribute()</em> dazu genutzt um die Werte der angegebenen Attribute
+   auszulesen. Da einige der Attribute für die Ausgabe wiederverwendet werden sollen, wird der Methode
+   <em>getAttributesAsString()</em> eine Liste an erlaubten Attributen - in diesem Fall kompatibel zur XHTML- bzw.
+   HTML5-Spezifikation - mitgegeben. Die Ausgabe des Tags ist damit ein Image-Tag, der mit Hilfe der (HTML-)Attribute
+   <em>id</em>, <em>style</em> und <em>class</em> formatiert werden kann.
+</p>
+
+<h4 id="Chapter-7-2-Einfacher-Tag-mit-Inhalt"><a href="#Chapter-7-2-Einfacher-Tag-mit-Inhalt">7.2. Einfacher Tag mit Inhalt</a></h4>
+<p>
+   Neben den Attributen eines Tags kann dieser auch einfachen und komplexen Inhalt definieren. Als Implementierungsbeispiel
+   soll in diesem Kapitel folgender Tag genutzt werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:entityencode&gt;nobody@example.com&lt;/html:entityencode&gt;
+</gen:highlight>
+<p>
+   Ausgabe des Tags soll eine in HTML-Entitäten codierte E-Mail-Adresse sein, um sie vor Bots oder Spidern zu schützen.
+   Hierzu muss der Inhalt des Tags ausgelesen und im Rahmen der Transformation des Tags ausgegeben werden. Dies führt
+   zu folgender Implementierung:
+</p>
+<gen:highlight type="php">
+import('tools::string', 'StringAssistant');
+
+class EntityEncodeTag extends Document {
+
+   public function transform() {
+      return StringAssistant::encodeCharactersToHTML($this->getContent());
+   }
+
+}
+</gen:highlight>
+<p>
+   Mit der Methode <em>getContent()</em> kann auf den Inhalt des Tags zugegriffen werden. Dieser wird mit Hilfe des
+   <em>StringAssistant</em> in HTML-Entitäten umgewandelt.
+</p>
+
+<h4 id="Chapter-7-3-Zugriff-auf-den-umliegenden-DOM-Baum"><a href="#Chapter-7-3-Zugriff-auf-den-umliegenden-DOM-Baum">7.3. Zugriff auf den umliegenden DOM-Baum</a></h4>
+<p>
+   Wie im <a href="#Chapter-1-Einfuehrung">Kapitel 1</a> angesprochen erzeugt der <int:link pageid="098" /> aus den
+   genutzten Templates und den darin enthaltenen Tags einen DOM-Baum. Das Verhalten ist - bis auf die Art der Erzeugung
+   - mit dem eines Browsers vergleichbar, der ebenfalls aus dem angelieferten HTML einen DOM-Baum erzeugt und diesen
+   grafisch aufbereitet.
+</p>
+<p>
+   Da Tags und <int:link pageid="006" /> Teil des Baumes sind haben Sie dort die Möglichkeit auf alle umliegenden Knoten
+   zuzugreifen. Hierzu gibt es im Wesentlichen zwei Methoden:
+</p>
+<ul>
+   <li><em>getParentObject()</em></li>
+   <li><em>getChildren()</em></li>
+</ul>
+<p>
+   Innerhalb eines Tags können Sie mit diesen Methoden direkt auf die umliegenden Elemente zugreifen, innerhalb eines
+   <int:link pageid="006" /> beziehen Sie mit <em>getDocument()</em> eine Referenz auf den aktuellen DOM-Knoten und
+   können ab diesem mit den oben genannten Methoden navigieren.
+</p>
+<p>
+   Als Beispiel für den Zugriff auf soll folgendes Template dienen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:template name="test1"&gt;
+   ...
+&lt;/html:template&gt;
+&lt;html:template name="test2"&gt;
+   &lt;template:addtaglib
+      namespace="..."
+      class="TemplateNameDisplayTag"
+      prefix="template"
+      name="display-name"
+   /&gt;
+   ...
+&lt;/html:template&gt;
+</gen:highlight>
+<p>
+   Der <em>TemplateNameDisplayTag</em> hat dabei die Aufgabe, die Namen aller Templates auszugeben, die im Baum auf
+   gleicher Ebene hängen wie sein Vater. Hierzu kann folgende Implementierung genutzt werden:
+</p>
+<gen:highlight type="php">
+
+</gen:highlight>
+<p>
+   Ein weiterführendes Beispiel finden Sie im Forum unter
+   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=1152">Placeholder über Taglib füllen</a>.
+</p>
+
+<h4 id="Chapter-7-4-Komplexer-Tag-mit-Attributen-und-Inhalt"><a href="#Chapter-7-4-Komplexer-Tag-mit-Attributen-und-Inhalt">7.4. Komplexer Tag mit Attributen und Inhalt</a></h4>
+<p>
+   Die vorangegangenen Kapitel haben sich mit dem Zugriff auf Attribute, der Ausgabe von Attributen und dem Zugriff und
+   der Verarbeitung von Tag-Inhalten beschäftigt. In diesem Abschnitt beschäftigen wir uns mit komplexeren Tags, die
+   weitere Strukturen definieren und Inhalte sowie Attribute in die Abbildung ihrer Logik einbeziehen.
+</p>
+<p>
+   Als Beispiel soll
+</p>
+<gen:highlight type="apf-xml">
+<navi:template id="main-navi">
+   <ul id="main-navigation">
+      <navi:item level="1">
+         <item:template status="active">
+            <li class="active"><item:content /></li>
+         </item:template>
+         <item:template status="inactive">
+            <li><item:content /></li>
+         </item:template>
+      </navi:item>
+      <navi:item level="2">
+         <li>
+            <ul>
+               <item:template status="active">
+                  <li class="active"><item:content /></li>
+               </item:template>
+               <item:template status="inactive">
+                  <li><item:content /></li>
+               </item:template>
+            </ul>
+         </li>
+      </navi:item>
+   </ul>
+</navi:template>
+</gen:highlight>
+
+
+
 
 <h3 id="Chapter-8-Weiterfuehrende-Links"><a href="#Chapter-8-Weiterfuehrende-Links">8. Weiterführende Links</a></h3>
 <p>
