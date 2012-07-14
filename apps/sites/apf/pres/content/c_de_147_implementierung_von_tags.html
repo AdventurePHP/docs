@@ -1,5 +1,5 @@
 <doku:title parent="100" tags="taglib,taglibs,tag,parser" title="Implementierung von Tags" urlname="Implementierung von Tags">
-   Dieses Kapitel beschreibt die Bedeutung und die Implementierung von eigenen Tags/Taglibs.
+   Dieses Kapitel beschreibt die Bedeutung und die Implementierung von eigenen Tags/Taglibs mit dem APF.
 </doku:title>
 <h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einführung</a></h3>
 <p>
@@ -938,7 +938,21 @@ class EntityEncodeTag extends Document {
    gleicher Ebene hängen wie sein Vater. Hierzu kann folgende Implementierung genutzt werden:
 </p>
 <gen:highlight type="php">
+class TemplateNameDisplayTag extends Document {
+   public function transform() {
+      $template = &$this->getParentObject();
+      $grandFather = &$template->getParentObject();
 
+      $nodes = $grandFather->getChildren();
+
+      $buffer = '<' . 'ul>';
+      foreach ($nodes as $objectId => $DUMMY) {
+         $buffer .= '<' . 'li>' . $nodes[$objectId]->getAttribute('name') . '<' . '/li>';
+      }
+
+      return $buffer . '<' . '/ul>';
+   }
+}
 </gen:highlight>
 <p>
    Ein weiterführendes Beispiel finden Sie im Forum unter
@@ -952,37 +966,237 @@ class EntityEncodeTag extends Document {
    weitere Strukturen definieren und Inhalte sowie Attribute in die Abbildung ihrer Logik einbeziehen.
 </p>
 <p>
-   Als Beispiel soll
+   Als Beispiel soll uns ein Tag dienen, der Navigationsknoten vom Typ <em>NavigationNode</em> ausgibt:
 </p>
 <gen:highlight type="apf-xml">
-<navi:template id="main-navi">
-   <ul id="main-navigation">
-      <navi:item level="1">
-         <item:template status="active">
-            <li class="active"><item:content /></li>
-         </item:template>
-         <item:template status="inactive">
-            <li><item:content /></li>
-         </item:template>
-      </navi:item>
-      <navi:item level="2">
-         <li>
-            <ul>
-               <item:template status="active">
-                  <li class="active"><item:content /></li>
-               </item:template>
-               <item:template status="inactive">
-                  <li><item:content /></li>
-               </item:template>
-            </ul>
-         </li>
-      </navi:item>
-   </ul>
-</navi:template>
+&lt;core:addtaglib
+   namespace="extensions::navigation::pres::tags"
+   class="NavigationNodeTag"
+   prefix="navi"
+   name="template"
+/&gt;
+&lt;navi:template id="main-navi"&gt;&lt;!-- NavigationNodeTag --&gt;
+   &lt;navi:item status="active"&gt;&lt;!-- NavigationItemTag --&gt;
+      &lt;li class="active"&gt;
+         &lt;item:content/&gt;&lt;!-- ItemTemplateContentTag --&gt;
+      &lt;/li&gt;
+   &lt;/navi:item&gt;
+   &lt;navi:item status="inactive"&gt;
+      &lt;li&gt;
+         &lt;item:content/&gt;
+      &lt;/li&gt;
+   &lt;/navi:item&gt;
+
+   &lt;ul id="main-navigation"&gt;
+      &lt;navi:content/&gt;&lt;!-- NavigationContentTag --&gt;
+   &lt;/ul&gt;
+&lt;/navi:template&gt;
 </gen:highlight>
+<p>
+   Der Tag wird in einem <int:link pageid="006" /> gefüllt und stellt die Liste der Kinder des übergebenen
+   Navigationsknotens gemäß den definierten Formatierungen dar. Dabei beschreiben die <em>&lt;navi:item /&gt;</em>-Tags
+   die aktiven und inaktiven Zustände der Navigationsknotens und mit Hilfe von <em>&lt;navi:content/&gt;</em> lässt sich
+   die Ausgabe in ein HTML-Gerüst packen. Der Tag <em>&lt;item:content/&gt;</em> platziert die Ausgabe eines konkreten
+   Knotens und kann ebenfalls mit eigenem HTML versehen werden. Zur Erläuterung der Tag-Hierarchie sind die Namen der
+   korrespondierenden Tags als HTML-Kommentar angefügt.
+</p>
+<p>
+   Zur Befüllung des <em>&lt;navi:template /&gt;</em>-Tags in einem Template lässt sich folgender Controller nutzen:
+</p>
+<gen:highlight type="php">
+import('extensions::navigation::biz', 'SimpleNavigationNode');
 
+class NavigationTagExampleController extends base_controller {
+   public function transformContent() {
+      $root = new SimpleNavigationNode(null, null, null);
+      $levelOne = new SimpleNavigationNode('Level 1', '#');
 
+      $root->setChildren(array(
+         clone $levelOne->setInactive(),
+         clone $levelOne->setActive(),
+         clone $levelOne->setInactive()
+      ));
 
+      $navi = $this->getDocument()->getChildNode('id', 'main-navi', 'NavigationNodeTag');
+      $navi->setNode($root);
+   }
+}
+</gen:highlight>
+<p>
+   Die folgende Code-Box zeigt nun die Implementierung der Tags:
+</p>
+<gen:highlight type="php">
+interface NavigationNode {
+   public function getLabel();
+   public function getUrl();
+   public function getParent();
+   public function getChildren();
+}
+
+class SimpleNavigationNode implements NavigationNode {
+
+   private $label;
+   private $url;
+   private $isActive = false;
+   private $parent;
+   private $children = array();
+
+   public function __construct($label, $url) {
+      $this->label = $label;
+      $this->url = $url;
+   }
+
+   public function getLabel() {
+      return $this->label;
+   }
+
+   public function getUrl() {
+      return $this->url;
+   }
+
+   public function isActive() {
+      return $this->isActive;
+   }
+
+   public function setActive() {
+      $this->isActive = true;
+      return $this;
+   }
+
+   public function setInactive() {
+      $this->isActive = false;
+      return $this;
+   }
+
+   public function getParent() {
+      return $this->parent;
+   }
+
+   public function getChildren() {
+      return $this->children;
+   }
+
+   public function setParent(NavigationNode $node) {
+      $this->parent = $node;
+   }
+
+   public function setChildren(array $nodes) {
+      $this->children = $nodes;
+   }
+
+}
+
+class NavigationNodeTag extends Document {
+
+   private $node;
+
+   public function __construct() {
+      $this->__TagLibs = array(
+         new TagLib('extensions::navigation::pres::tags', 'NavigationItemTag', 'navi', 'item'),
+         new TagLib('extensions::navigation::pres::tags', 'NavigationContentTag', 'navi', 'content')
+      );
+   }
+
+   public function setNode(NavigationNode $node) {
+      $this->node = $node;
+   }
+
+   public function onParseTime() {
+      $this->__extractTagLibTags();
+   }
+
+   public function transform() {
+
+      $buffer = '';
+
+      $navigationNodes = $this->node->getChildren();
+      if (count($navigationNodes) > 0) {
+         foreach ($navigationNodes as $node) {
+            $buffer .= $this
+               ->getTemplate($node->isActive() ? 'active' : 'inactive')
+               ->getOutput($node);
+         }
+      }
+
+      $content = $this->getContent();
+      $children = &$this->getChildren();
+      foreach ($children as $objectId => $DUMMY) {
+         if ($children[$objectId] instanceof NavigationContentTag) {
+            // fill the navi:content place holder if we get him
+            $content = str_replace('<' . $objectId . ' />', $buffer, $content);
+         } else {
+            // replace parser marker to avoid direct tag output
+            $content = str_replace('<' . $objectId . ' />', '', $content);
+         }
+      }
+
+      return $content;
+   }
+
+   private function getTemplate($status) {
+      return $this->getChildNode('status', $status, 'NavigationItemTag');
+   }
+
+}
+
+class NavigationItemTag extends Document {
+
+   public function __construct() {
+      $this->__TagLibs = array(
+         new TagLib('extensions::navigation::pres::tags', 'ItemTemplateContentTag', 'item', 'content')
+      );
+   }
+
+   public function onParseTime() {
+      $this->__extractTagLibTags();
+   }
+
+   public function getOutput(NavigationNode $node) {
+      $content = $this->getContent();
+      $children = &$this->getChildren();
+      foreach ($children as $objectId => $DUMMY) {
+         if ($children[$objectId] instanceof ItemTemplateContentTag) {
+            // fill the item:content place holder if we get him
+            $content = str_replace('<' . $objectId . ' />', $children[$objectId]->setNode($node)->transform(), $content);
+         } else {
+            // replace parser marker to avoid direct tag output
+            $content = str_replace('<' . $objectId . ' />', '', $content);
+         }
+      }
+      return $content;
+   }
+
+   public function transform() {
+      return '';
+   }
+
+}
+
+class ItemTemplateContentTag extends Document {
+
+   private $node;
+
+   public function setNode(NavigationNode $node) {
+      $this->node = $node;
+      return $this;
+   }
+
+   public function transform() {
+      if ($this->node === null) {
+         return '';
+      }
+      return '<' . 'a href="' . $this->node->getUrl() . '">' . $this->node->getLabel() . '<' . '/a>';
+   }
+
+}
+
+class NavigationContentTag extends Document {
+}
+</gen:highlight>
+<div class="warn">
+   Das hier beschriebene Beispiel dient dazu, die Möglichkeiten des APF aufzuzeigen und ist nicht als
+   Referenz-Implementierung für die Ausgabe von Navigationen gedacht.
+</div>
 
 <h3 id="Chapter-8-Weiterfuehrende-Links"><a href="#Chapter-8-Weiterfuehrende-Links">8. Weiterführende Links</a></h3>
 <p>
