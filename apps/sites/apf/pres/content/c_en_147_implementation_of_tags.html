@@ -1,91 +1,87 @@
 <doku:title parent="100" tags="taglib,taglibs,tag,parser" title="Implementation of tags" urlname="Implementation-of-tags">
-   Dieses Kapitel beschreibt die Bedeutung und die Implementierung von eigenen Tags/Taglibs mit dem APF.
+   This chapter describes the concepts and the usage of tags/taglibs within the APF.
 </doku:title>
-<h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einführung</a></h3>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
 <p>
-   Dieses Kapitel widmet sich den APF-Tags (a.k.a. Taglibs), deren Bedeutung und Implementierung.
+   This chapter focuses on APF tags (a.k.a. Taglibs). It describes the concepts and supports development of custom tags.
 </p>
 <p>
-   Der <int:link pageid="098"/> basiert auf dem gleichnamigen Software-Entwurfsmuster und ist ein zentraler Bestandteil
-   des APF. Er ermöglicht dem Entwickler über das Tag-Konzept, eigene Funktionalitäten zur Erzeugung und Transformation
-   des HMVC-DOM-Baumes zu injizieren. Tags bilden damit nicht nur die Basis des APF-HMVC-Konzepts, sondern können auch
-   zur Erweiterung desselben genutzt werden.
+   The <int:link pageid="098"/> is based on the same-name pattern and is one of the central elements of the APF. It
+   enables you - as a developer - to inject custom functionality for the creation and transformation of the APF DOM tree.
+   Thus, tags are not only a basis for the APF's HMVC concept but can be used to enhance it easily.
 </p>
 <p>
-   Des Weiteren können Tags dazu verwendet werden um darin enthaltene Funktionalitäten in unterschiedlichen Projekten
-   wiederzuverwenden. APF-Templates verarbeiten - als Schutz vor unkontrollierter Verteilung von Logik - lediglich Tags
-   und keinen PHP-Code. Damit ist der Entwickler gezwungen, View-Logik in Tags oder Controller zu verpacken.
+   Further, tags may be used to re-use functionality encapsulated within a tag within several projects. Since APF
+   templates only process tags and no PHP code un-controlled spread of logic is prevented automatically. This means, that
+   view logic can only reside within tags and controllers.
 </p>
 
-<h4 id="Chapter-1-1-Page-Controller"><a href="#Chapter-1-1-Page-Controller">1.1. Page-Controller</a></h4>
+<h4 id="Chapter-1-1-Page-controller"><a href="#Chapter-1-1-Page-controller">1.1. Page controller</a></h4>
 <p>
-   Aufgabe des <int:link pageid="098"/> ist der Aufbau und die Transformation der internen Template-Struktur.
-   Hierzu bietet er ein Tag-API, die einem definierten Timing-Modell folgend Tags einliest, daraus Dokumente im Baum
-   erzeugt und aus dem Baum anschließend eine HTML-Ausgabe erzeugt. Andere Formate wie beispielsweise XML sind ebenfalls
-   möglich. Der Parser ist kein &quot;echter&quot; XML-Parser, beherrscht jedoch die Auflösung von explizit- und
-   selbst-schließenden Tags sowie die Schachtelung von Tags in beliebig tiefen Hierarchien.
+   The <int:link pageid="098"/> is responsible for creating and transforming of the internal template structure. For this
+   reason he provides a tag API that parses tags - following a dedicated timing model -, creates documents within the
+   DOM tree and finally creates the HTML output. Different formats such as XML can be produced, too. The parser itself
+   is no &quot;real&quot; XML parser but resolves explicitly and self closing tags as well as unlimited tag hierarchies.
 </p>
 <div class="warn">
-   Bitte beachten Sie die Hinweise im Kapitel <a href="#Chapter-6-Tag-Hierarchie">Tag-Hierarchie</a> zu den Restriktionen
-   des Parsers.
+   Please note the restrictions of the APF parser within the <a href="#Chapter-6-Tag-hierarchies">Tag-Hierarchie</a>
+   chapter.
 </div>
 <p>
-   Die mit dem APF ausgelieferten <int:link pageid="046"/> bieten bereits eine Reihe an Standard-Funktionalitäten wie
-   das Einbinden einer weiteren Template-Datei, die Definition von wiederverwendbaren Template-Fragmenten und das
-   Bekanntgeben von eigenen Tags an.
+   The <int:link pageid="046"/> shipped with the APF provide a series of standard functionality such as inclusion of
+   further templates, definition of reusable template fragments and inclusion of custom tags.
 </p>
 
-<h4 id="Chapter-1-2-XML-Parser"><a href="#Chapter-1-2-XML-Parser">1.2. XML-Parser</a></h4>
+<h4 id="Chapter-1-2-XML-parser"><a href="#Chapter-1-2-XML-parser">1.2. XML parser</a></h4>
 <p>
-   Der <em>XMLParser</em> dient dem Page-Controller zur Analyse einer Tag-Definition im Template und wird bei der
-   Erstellung von <em>Document</em>-Instanzen genutzt.
+   The <em>XMLParser</em> used by the page controller during creation of the <em>Document</em> instances is intended for
+   analyzing tag definitions.
 </p>
 <div class="warn">
-   Der <em>XMLParser</em> verarbeitet aus Performance-Gründen nur durch Leerzeichen getrennte Attribute. Die Werte von
-   Attributen müssen mit doppelten Anführungszeichen umschlossen sein.
+   Due to performance reasonsn, the <em>XMLParser</em> only processes tag attributes that are separated by blanks.
+   Further, values must be delimited by double-quotes.
 </div>
 
-<h3 id="Chapter-2-Definition-eines-Tags"><a href="#Chapter-2-Definition-eines-Tags">2. Definition eines Tags</a></h3>
+<h3 id="Chapter-2-Definition-of-a-tag"><a href="#Chapter-2-Definition-of-a-tag">2. Definition of a tag</a></h3>
 <p>
-   Ein APF-Tag definiert sich durch folgende Bestandteile:
+   An APF tag is defined by the following parts:
 </p>
 <ul>
    <li>
-      <strong>Prefix</strong>: das <em>Prefix</em> des Tags dient im Allgemeinen zur Strukturierung der Tags in Gruppen
-      (z.B. <em>core</em> für Tags, die mit dem APF mitgeliefert werden). Dieser Teil ist mit XML-Namespaces vergleichbar.
+      <strong>Prefix</strong>: the <em>prefix</em> is commonly used to group tags (e.g. <em>core</em> for tags that are
+      shipped with the APF). This part is similar to XML namespaces.
    </li>
    <li>
-      <strong>Name</strong>: der <em>Name</em> des Tags bezeichnet den Tag selbst. Dieser Teil ist mit XML-Tag-Namen
-      vergleichbar.
+      <strong>Name</strong>: the <em>Name</em> can be considered as declaration. This part is similar to XML tag names.
    </li>
    <li>
-      <strong>Attribute</strong>: die Attribute des Tags können zur Konfiguration des Tags genutzt werden. Sie dürfen
-      keine weiteren Tags enthalten.
+      <strong>Attributes</strong>: the attributes of a tag can be used for configuration. Attribute vales must not
+      contain further tags.
    </li>
    <li>
-      <strong>Inhalt</strong>: der Inhaltsbereich des Tags kann weitere Tags oder Text enthalten. Der APF-Parser löst
-      dort enthaltene Tags entsprechend auf und hängt diese als Kinder in die aktuelle Hierarchie ein. Einfacher Text
-      ist später ebenfalls in der Tag-Instanz verfügbar.
+      <strong>Content</strong>: the content area can contain further tags or simple text. The APF parser resolves tags
+      defined there and adds them to the current hierarchy level. Simple text is also available within the tag for
+      further usage.
    </li>
 </ul>
 <p>
-   Folgende Tag-Definition könnte zur Ausgabe des aktuellen Datums in einem Template genutzt werden:
+   The tag contained in the subsequent code box can be used to print the current date to the template it is contained in:
 </p>
 <gen:highlight type="apf-xml">
 <current:date format="H:i" />
 </gen:highlight>
 <p>
-   Dabei ist <em>current</em> das Prefix des Tags, <em>date</em> der Name und das Attribut <em>format</em> beinhaltet
-   das Ausgabe-Format. Der Tag definiert keinen Inhalt.
+   Within this declaration, <em>current</em> is the prefix, <em>date</em> is the name, and the attribute <em>format</em>
+   contains the output format. This tag does not define any content.
 </p>
 <p>
-   Zur Darstellung einer Bildergalerie könnte folgendes Tag genutzt werden:
+   To display an image gallery the following tag definition can be used:
 </p>
 <gen:highlight type="apf-xml">
 <img:gallery>
-   <h3>Mein Urlaub 2012</h3>
+   <h3>My holiday in 2012</h3>
    <p>
-      Diese Bilder stammen aus meinem Urlaub im Jahr 2012:
+      These pictures are from my holiday in 2012:
    </p>
    <gallery:datasource
       namspace="..."
@@ -94,42 +90,43 @@
 </img:gallery>
 </gen:highlight>
 <p>
-   In diesem Beispiel beinhaltet der <em>&lt;img:gallery /&gt;</em>-Tag statisches HTML, was später zur Formatierung der
-   Ausgabe genutzt werden kann und einen weiteren Tag zur Angabe der Datenquelle (z.B. aus einer Datenbank). Zur
-   Verwendung des Tags muss auch dieses zunächst dem APF-Parser bekannt gegeben werden.
+   In the above example the <em>&lt;img:gallery /&gt;</em> tag contains static HTML - that is used for formatting later
+   on - as well as a further tag that defines the data source (z.B. database). Using this tag it must be made known to
+   the APF parser.
 </p>
 
-<h3 id="Chapter-3-DOM-Struktur"><a href="#Chapter-3-DOM-Struktur">3. DOM-Struktur</a></h3>
+<h3 id="Chapter-3-DOM-structure"><a href="#Chapter-3-DOM-structure">3. DOM structure</a></h3>
 <p>
-   Wie im Kapitel <a href="#Chapter-1-1-Page-Controller">Kapitel 2</a> angesprochen erzeugt der <int:link pageid="098"/>
-   aus der Tag-Struktur in den Template-Dateien einen DOM-Baum. Dieser ähnelt dem eines Browsers, der aus den HTML-Tags
-   ebenfalls eine Speicherstruktur erzeugt.
+   As mentioned in <a href="#Chapter-1-1-Page-controller">chapter 2</a> the <int:link pageid="098"/> creates a DOM tree
+   out of the tag structure within the template files. This tree is similar to a browser's DOM tree that creates a memory
+   reference out of HTML tags.
 </p>
 <p>
-   Der Unterschied zur DOM-Struktur eines Browsers besteht darin, dass die einzelnen Knoten jeweils eigene Funktionalität
-   zur Transformation bzw. Darstellung beinhalten, die der Page-Controller während der Transformationsphase nutze. Details
-   zum Timing-Modell des Page-Controller finden Sie <int:link pageid="098" anchor="Chapter-2-1-Ablaufdiagramm">hier</int:link>.
+   The difference between the DOM tree of a browser and the APF implementation is that each node provides logic for
+   transformation and displaying that the page controller uses during the transformation phase.
+   Details on the timing model of the page controller can be found <int:link pageid="098" anchor="Chapter-2-1-Activity-diagram">here</int:link>.
 </p>
 <p>
-   Jeder Tag bzw. ab einem definierten Zeitpunkt seine Instanz durchläuft einen definierten Zyklus. Zunächst wird die
-   Struktur des Tags analysiert, dann seine Substanz (Attribute und Inhalt). Anschließend wird gemäß der Tag-Definition
-   eine Instanz des Tags erstellt und mit dem vom <em>XMLParser</em> analysierten Inhalt initialisiert.
+   Each tag - or from a particular point in time it's instance - passes the same life cycle. At the beginning, the
+   structure of the tag is analyzed, then it's substance (attributes and content). After that, a DOM node instance is
+   created regarding the tag definition and the substance the <em>XMLParser</em> has extracted from the template.
 </p>
 <div class="hint">
-   Der Page-Controller verarbeitet Tags nur dann, wenn sie im aktuellen Knoten bekannt sind. Aus diesem Grund müssen
-   eigene Tags zunächst bekannt gegeben werden. Dies kann mit Hilfe des <em>&lt;core:addtaglib /&gt;</em>-Tag oder einem
+   Please note that the page controller only processes tags that are known within the current node. For this reason,
+   custom tags must be published to the current node. You can do so using the <em>&lt;core:addtaglib /&gt;</em> tag or
+   adding
 <gen:highlight type="php">
 $this->__TagLibs[] = new TagLib(...);
 </gen:highlight>
-   in einem eigenen Tag erreicht werden. Die Nutzung des <em>&lt;core:addtaglib /&gt;</em>-Tags ist immer dann notwendig,
-   wenn Sie innerhalb eines Templates einen eigenen Tag bekannt geben wollen, das PHP-Code-Beispiel nutzen Sie, wenn Sie
-   innerhalb eines eigenen Tags eine weitere Hierarchie-Stufe bekannt geben wollen.
+   to the constructor of your custom tag. Using the <em>&lt;core:addtaglib /&gt;</em> tag is necessary if you intend to
+   add a custom tag within a template file, the PHP code sample can be used within custom tags to publish further
+   hierarchies to the APF parser.
 </div>
 <p>
-   Zur Bekanntgabe eines Tags werden <em>Präfix</em> und <em>Name</em> sowie <em>Namespace</em> und
-   <em>Klassen-Name</em> der Tag-Implementierung beschrieben. Dabei kann eine Implementierung über unterschiedliche
-   <em>Präfix</em>- und <em>Namens</em>-Angaben mehrfach in unterschiedlichen Hierarchien oder Projekten genutzt werden.
-   Die Klasse <em>TagLib</em> besitzt folgende Signatur (gekürzt):
+   Publishing your tag you need to specify <em>prefix</em> and <em>name</em> as well as <em>namespace</em> and
+   <em>class name</em> of the tag implementation. Thereby, you can re-use one implementation in different hierarchy
+   levels or projects using a different <em>prefix</em> and <em>name</em> declaration. The tag declaration class -
+   <em>TagLib</em> - has the following signature (condensed):
 </p>
 <gen:highlight type="php">
 final class TagLib {
@@ -145,18 +142,17 @@ final class TagLib {
 }
 </gen:highlight>
 <p>
-   Details zu unterschiedlichen Ebenen von Tags können Sie im Kapitel <a href="#Chapter-6-Tag-Hierarchie">Tag-Hierarchie</a>
-   nachlesen.
+   Details on tag hierarchies can be found in the <a href="#Chapter-6-Tag-hierarchies">tag hierarchies</a> chapter.
 </p>
 
-<h3 id="Chapter-4-Klassenstruktur-eines-Tags"><a href="#Chapter-4-Klassenstruktur-eines-Tags">4. Klassenstruktur eines Tags</a></h3>
+<h3 id="Chapter-4-Class-structure-of-tags"><a href="#Chapter-4-Class-structure-of-tags">4. Class structure of tags</a></h3>
 <p>
-   Die Struktur eines Tags beschreibt die Klasse <em>Document</em>. Diese ist die Mutter aller Tag-Implementierungen des
-   APF und definiert eine Reihe von Methoden, die innerhalb des Timing-Modells des Page-Controllers zu unterschiedlichen
-   Zwecken aufgerufen werden.
+   The structure of tags is defined by the <em>Document</em> class. This class is the mother of all tag implementations
+   of the APF. It defines several methods that are used within the timing model of the page controller for different
+   reasons.
 </p>
 <p>
-   Die Signatur de Klasse <em>Document</em> ist wie folgt (gekürzt):
+   Please note the following signature (condensed):
 </p>
 <gen:highlight type="php">
 class Document extends APFObject {
@@ -182,70 +178,66 @@ class Document extends APFObject {
 }
 </gen:highlight>
 <p>
-   Den aufgeführten Elementen kommt dabei folgende Bedeutung zu:
+   The items from the code box have the following meaning:
 </p>
 <ul>
    <li>
-      Im Feld <em>__ObjectID</em> wird die eindeutige interne Objekt-Id gespeichert, die jeder Tag vom APF-Parser bei
-      Erzeugen erhält. Diese wird u.a. bei der Vergabe von <int:link pageid="004"/>-Tags genutzt um jedes DOM-Element
-      eindeutig zu referenzieren.
+      The field <em>__ObjectID</em> stores the internal unique object id the object receives from the APF parser during
+      creation. The value is e.g. used for <int:link pageid="004"/> tags or to refer a DOM element by it's unique
+      identifier.
    </li>
    <li>
-      <em>__ParentObject</em> referenziert auf das Vater-Objekt innerhalb des DOM-Baumes. Diese Referenz kann zur
-      Traversierung des DOM-Baumes genutzt werden. Der Root-Knoten hat keinen Vater.
+      <em>__ParentObject</em> refers to the father object within the DOM tree. This reference can be used to navigate
+      the DOM tree. The root node does not have a father.
    </li>
    <li>
-      In der Liste <em>__Children</em> finden sich alle Kind-Knoten des aktuellen DOM-Elements. Diese Liste kann zur
-      Traversierung des DOM-Baumes genutzt werden. Hat ein DOM-Knoten keine Kinder, ist die Liste leer.
+      The list of <em>__Children</em> contains all child nodes of the current DOM node. This list can be used to navigate
+      the DOM tree. In case a DOM node does not have children, the list is empty.
    </li>
    <li>
-      Die Variable <em>__Content</em> beinhaltet den textuellen Inhalt eines Tags und die Platzhalter, die der
-      Page-Controller bei der Erzeugung des DOM-Baumes hinterlässt um den exakten Zusammenbau des HTML-Quelltextes
-      sicher zu stellen.
+      The <em>__Content</em> field contains the textual content of the node as well as place holder tags created by the
+      page controller during DOM tree creation in order to guarantee correct assembling of the HTML source code.
    </li>
    <li>
-      In der Variable <em>__Attributes</em> - aus der Klasse <em>APFObject</em> vererbt - findet sich eine assoziative
-      Liste der Tag-Attribute wieder. Besitzt das Tag keine Attribute, ist die Liste leer.
+      The <em>__Attributes</em> list - inherited from <em>APFObject</em> - contains a list of tag attributes and their
+      respective values. In case a tag defines no attributes the list is empty.
    </li>
    <li>
-      Die <em>__TagLibs</em>-Liste beinhaltet die für den aktuellen Knoten bekannte Tags. Wie im vorangegangenen Kapitel
-      angesprochen, verarbeitet der APF-Parser nur bekannte Tags innerhalb einer Hierarchie-Stufe bzw. innerhalb eines
-      DOM-Elements. Welche Tags bekannt oder eben nicht bekannt sind, bestimmt demnach der Inhalt dieser Liste.
+      The <em>__TagLibs</em> list contains all known tags for the current node. As mentioned in the previous chapter,
+      the APF parser only processes tags that are known within a particular hierarchy level or within a DOM element
+      respectively. Which tags are known and which are not is thus defined by this list.
       <div class="hint">
-         Die <em>__TagLibs</em>-Liste kann in eigenen Tag-Implementierungen dazu genutzt werden, neue Tags bekannt zu geben
-         oder bereits bekannte Tags zu entfernen. Da die Manipulation der Liste in die eine oder die andere Richtung direkte
-         Auswirkung auf die Verarbeitung von Tags hat, behalten Sie bitte die Bedeutung stets im Hinterkopf!
+         The <em>__TagLibs</em> list can be used in custom tag implementations to publish new tags or to remove some or
+         all of them. Since manipulation of this list directly influences the parser, please be careful!
       </div>
    </li>
    <li>
-      Der Konstruktor einer Tag-Klasse wird bei der Erzeugung der Tag-Instanz aufgerufen. Der Parser übergibt jedoch
-      keine Argumente. Die Methode kann dazu genutzt werden, weitere Tags für die vorliegende Hierarchie bekannt zu
-      geben oder Standard-Werte zu belegen.
+      The constructor of the tag class is callen when creating the tag instance. But the parser does not apply arguments.
+      It can be used to add known tags to the current hierarchy or to initialize default values.
       <div class="warn">
-         Zum Zeitpunkt der Ausführung des Konstruktors sind weder die Attribute des Tags noch der Inhalt verfügbar.
-         Ebenso sind der Kontext und die Sprache des Tags noch nicht initialisiert.
+         On execution time of the constructor neither tag attributes nor content has been initialized within the tag.
+         Further, context and language are not available at this time, too.
       </div>
    </li>
    <li>
-      Nachdem der Tag geparst wurde wird die Methode <em>onParseTime()</em> aufgerufen. Zu diesem Zeitpunkt sind die
-      Attribute des Tags und der Inhalt in der Instanz verfügbar. Auch Kontext und Sprache des Tags sind initialisiert.
-      Diese Methode kann dazu genutzt werden, den Tag mit Hilfe der verfügbaren Informationen weiter zu initialsieren
-      oder den Tag-Inhalt weitere zu analysieren (z.B. enthaltene Kind-Tags parsen.
+      After the tag has been parsed, the <em>onParseTime()</em> is called. At this particular point in time, the
+      attributes and the content of the tag are available. Moreover, context and language are initialized. This method
+      can be used the initialize the tag with the information available or to analyze the content of the tag (e.g. parse
+      child tags).
    </li>
    <li>
-      Ist der Knoten in den DOM-Baum eingehangen - sprich sind Vater und Kinder bekannt - wird die Methode
-      <em>onAfterAppend()</em> aufgerufen. Innerhalb dieser Methode können Sie nun Logik platzieren, die auf Vater und
-      Kinder Auswirkung hat.
+      After the node has been added to the DOM tree - this means that the father node and the children are initialized -
+      the <em>onAfterAppend()</em> is called. Within this method you may execute logic that affects father and child
+      nodes.
    </li>
    <li>
-      Soll der aktuelle DOM-Knoten transformiert werden, ruft der Page-Controller die Methode <em>transform()</em> Ihres
-      Tags auf. Platzieren Sie hier bitte diejenige Logik, die zur Erzeugung von HTML-Quelltext benötigt wird. Tags, die
-      innerhalb des DOM-Baumes lediglich zur Konfiguration oder Initialisierung dienen generieren oft keine Ausgabe (z.B.
-      <em>&lt;core:addtaglib /&gt;</em>). Wie sich Ihr Tag letztlich verhält bleibt Ihrer Implementierung überlassen.
+      During transformation, the page controller calls the <em>transform()</em> method of your tag. Please place all
+      logic needed for creating the appropriate HTML source code within this method. Tags that are intended for
+      configuration or initialization often generate no output (e.g. the <em>&lt;core:addtaglib /&gt;</em> tag). However,
+      it is up to you how your tag acts.
       <div class="hint">
-         Sofern die Methode <em>transform()</em> in eigenen TagLibs überschrieben wird, muss
-         sich der Entwickler selbst um die Transformation der Kind-Knoten kümmern. Dies kann im
-         einfachsten Fall durch
+         In case the <em>transform()</em> method is overwritten by your custom tag, you have to take care of the
+         transformation of the child nodes by yourself. This may be done as follows:
 <gen:highlight type="php">
 foreach($this->__Children as $objectId => $DUMMY){
    $this->__Content = str_replace(
@@ -255,18 +247,16 @@ foreach($this->__Children as $objectId => $DUMMY){
    );
 }
 </gen:highlight>
-         erreicht werden, wenn in den Methoden <em>onParseTime()</em> oder <em>onAfterAppend()</em> die
-         Parser-Funktion <em>__extractTagLibTags()</em> aufgerufen wurde. Weitere Hinweise können dem
-         Foren-Beitrag
-         <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=191" title="transform() von eigenem taglib nicht ausgeführt">transform() von eigenem taglib nicht ausgeführt</a>
-         entnommen werden.
+         You can use the snippet above in case the parser function <em>__extractTagLibTags()</em> has been called within
+         <em>onParseTime()</em> or <em>onAfterAppend()</em>. Further notes can be taken from the forum post
+         <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=191" title="transform() von eigenem taglib nicht ausgeführt">transform() von eigenem taglib nicht ausgeführt</a> (German).
       </div>
    </li>
 </ul>
 
-<h3 id="Chapter-5-Implementierung"><a href="#Chapter-5-Implementierung">5. Implementierung</a></h3>
+<h3 id="Chapter-5-Implementation"><a href="#Chapter-5-Implementation">5. Implementation</a></h3>
 
-<h4 id="Chapter-5-1-Einfacher-Tag"><a href="#Chapter-5-1-Einfacher-Tag">5.1. Einfacher Tag</a></h4>
+<h4 id="Chapter-5-1-Simple-tag"><a href="#Chapter-5-1-Simple-tag">5.1. Simple tag</a></h4>
 <p>
    Dieses Kapitel beschäftigt sich mit einfachen Tags. &quot;Einfach&quot; meint in diesem Zusammenhang einen Tag, der
    eine bestimmte Aufgabe erledigt, jedoch keine weitere Hierarchie erzeugt - sprich keine Kind-Tags besitzt.
@@ -630,7 +620,7 @@ class GalleryTag extends Document {
    <int:link pageid="002"/>.
 </p>
 
-<h3 id="Chapter-6-Tag-Hierarchie"><a href="#Chapter-6-Tag-Hierarchie">6. Tag-Hierarchie</a></h3>
+<h3 id="Chapter-6-Tag-hierarchies"><a href="#Chapter-6-Tag-hierarchies">6. Tag hierarchies</a></h3>
 <p>
    Der Tag-Parser des APF besitzt aus Performance- und Konsistenz-Gründen einigen Restriktionen gegenüber einem
    &quot;echten&quot; XML-Parser. Diese sind:
@@ -775,7 +765,7 @@ class GalleryTag extends Document {
 &lt;/shop:basket&gt;
 </gen:highlight>
    Weitere Hinweise finden Sie im Forum unter
-   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=4&amp;t=38">Schachtelung TagLibs</a>.
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=4&amp;t=38">Schachtelung TagLibs</a>.
 </div>
 
 <h3 id="Chapter-7-Anwendungsbeispiele"><a href="#Chapter-7-Anwendungsbeispiele">7. Anwendungsbeispiele</a></h3>
@@ -956,7 +946,7 @@ class TemplateNameDisplayTag extends Document {
 </gen:highlight>
 <p>
    Ein weiterführendes Beispiel finden Sie im Forum unter
-   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=1152">Placeholder über Taglib füllen</a>.
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=1152">Placeholder über Taglib füllen</a>.
 </p>
 
 <h4 id="Chapter-7-4-Komplexer-Tag-mit-Attributen-und-Inhalt"><a href="#Chapter-7-4-Komplexer-Tag-mit-Attributen-und-Inhalt">7.4. Komplexer Tag mit Attributen und Inhalt</a></h4>
@@ -1203,24 +1193,24 @@ class NavigationContentTag extends Document {
    Sofern Sie weitere Informationen benötigen, können Sie folgende Threads aus dem Forum nutzen:
 </p>
 <ul>
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=1126">TagLib unterschiedliche Zustände</a></li> 
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=982">Taglib innerhalb eines Templates</a></li> 
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=827">Taglib der Template rundherum läd</a></li> 
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=540">Taglibs</a></li> 
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=505">Mehrere Checkboxes taglib aus DB holen und ausgeben</a></li> 
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=456">Taglib-Call innerhalb eines Taglib-Call</a></li> 
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=191">transform() von eigenem taglib nicht ausgeführt</a></li> 
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=177">Menü taglib-modul</a></li> 
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=122">Performance TagLibs</a></li> 
-   <li><a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=37">Taglibs vs. Templates</a></li> 
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=1126">TagLib unterschiedliche Zustände</a></li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=982">Taglib innerhalb eines Templates</a></li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=827">Taglib der Template rundherum läd</a></li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=540">Taglibs</a></li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=505">Mehrere Checkboxes taglib aus DB holen und ausgeben</a></li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=456">Taglib-Call innerhalb eines Taglib-Call</a></li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=191">transform() von eigenem taglib nicht ausgeführt</a></li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=177">Menü taglib-modul</a></li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=122">Performance TagLibs</a></li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=37">Taglibs vs. Templates</a></li>
 </ul>
 <p>
    Im Wiki finden sich folgende Seiten zu den APF-Tags:
 </p>
 <ul>
-   <li><a class="wiki" href="http://wiki.adventure-php-framework.org/de/All-in-one_Include-Tag">All-in-one Include-Tag</a></li> 
-   <li><a class="wiki" href="http://wiki.adventure-php-framework.org/de/Timing-Modell_des_Page-Controller">Timing-Modell des Page-Controller</a></li> 
-   <li><a class="wiki" href="http://wiki.adventure-php-framework.org/de/WYSIWYG_%2B_APF-Formulare">WYSIWYG + APF-Formulare</a></li> 
+   <li><a linkrewrite="false" class="wiki" href="http://wiki.adventure-php-framework.org/de/All-in-one_Include-Tag">All-in-one Include-Tag</a></li>
+   <li><a linkrewrite="false" class="wiki" href="http://wiki.adventure-php-framework.org/de/Timing-Modell_des_Page-Controller">Timing-Modell des Page-Controller</a></li>
+   <li><a linkrewrite="false" class="wiki" href="http://wiki.adventure-php-framework.org/de/WYSIWYG_%2B_APF-Formulare">WYSIWYG + APF-Formulare</a></li>
 </ul>
 
-<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_147" />
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_147" />
