@@ -258,14 +258,14 @@ foreach($this->__Children as $objectId => $DUMMY){
 
 <h4 id="Chapter-5-1-Simple-tag"><a href="#Chapter-5-1-Simple-tag">5.1. Simple tag</a></h4>
 <p>
-   Dieses Kapitel beschäftigt sich mit einfachen Tags. &quot;Einfach&quot; meint in diesem Zusammenhang einen Tag, der
-   eine bestimmte Aufgabe erledigt, jedoch keine weitere Hierarchie erzeugt - sprich keine Kind-Tags besitzt.
+   This chapter deals with a simple tag. &quot;Simple&quot; in this case means that the tag does a dedicated job but
+   creates no extra hierarchy - precisely he has no children.
 </p>
 <p>
-   Als Beispiel soll die Ausgabe der aktuellen Uhrzeit aus <a href="#Chapter-2-Definition-eines-Tags">Kapitel 2</a>
-   dienen. Hierzu muss der Tag lediglich zur Transformatinszeit die Uhrzeit im gewünschten Format zurückgeben.
-   Abhängigkeiten zu anderen Tags im Baum und die Notwendigkeit der Initialisierung bestehen nicht. Der Quellcode des
-   Tags gestaltet sich damit wie folgt (Namespace: <em>examples::tags::pres</em>):
+   As an example we use the tag from <a href="#Chapter-2-Definition-of-a-tag">chapter 2</a> that displays the current
+   time. The functionality of the tag is just to return the current time using the applied format at transformation time.
+   There is no dependency to other tags within the DOM tree and there is no need for further initialization. The source
+   code of the tag might be as follows (namespace: <em>examples::tags::pres</em>):
 </p>
 <gen:highlight type="php">
 class HourDisplayTag extends Document {
@@ -277,7 +277,7 @@ class HourDisplayTag extends Document {
 }
 </gen:highlight>
 <p>
-   Innerhalb eines Templates lässt er sich wie anschließend gezeigt verwenden:
+   Within a template, the tag can be used as follows:
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
@@ -289,32 +289,32 @@ class HourDisplayTag extends Document {
 <current:date format="H:i:s" />
 </gen:highlight>
 <div class="hint">
-   Der Konstruktor der Klasse <em>Document</em> gibt mögliche Kind-Tags bekannt, die in der aktuellen Implementierung
-   nicht benötigt werden. Insofern könnte als mögliche Speicherverbrauchsoptimierung ebenso der Konstruktor überschrieben
-   werden damit sichergestellt ist, dass der Tag keine weiteren Kinder verarbeiten kann.
+   The constructor of the <em>Document</em> class defines a standard set of known tags that are not necessary in the
+   current implementation. Hence, the constructor may be overwritten by your implementation to optimize memory
+   consumption. This can be done because the tag has no need for further children.
 </div>
 
-<h4 id="Chapter-5-2-Komplexer-Tag"><a href="#Chapter-5-2-Komplexer-Tag">5.2. Komplexer Tag</a></h4>
+<h4 id="Chapter-5-2-Complex-tag"><a href="#Chapter-5-2-Complex-tag">5.2. Complex tag</a></h4>
 <p>
-   Als &quot;komplexer&quot; Tag versteht das APF einen Tag mit weiteren - in der Hierarchie nicht eingeschränkten -
-   Kind-Knoten.
+   A &quot;complex&quot; tag is a tag that defines further child nodes - not limited in their hierarchy.
 </p>
 <p>
-   Als Beispiel soll die Ausgabe einer Bildergalerie aus <a href="#Chapter-2-Definition-eines-Tags">Kapitel 2</a> dienen.
-   Dieser Tag definiert zunächst statischen Inhalt, der zur Ausgabe einer Überschrift und eines Einleitungstextes
-   genutzt wird. Die Generierung der Ausgabe selbst wird vom <em>&lt;img:gallery /&gt;</em>-Tag mit Hilfe eines
-   <em>Content-Providers</em>, der durch den <em>&lt;gallery:datasource /&gt;</em>-Tag definiert wird.
+   As an example we take the image gallery tag from <a href="#Chapter-2-Definition-of-a-tag">chapter 2</a>. This tag
+   defines static content that includes a headline and an introduction text. The content of the gallery itself is
+   - represented by the <em>&lt;img:gallery /&gt;</em> tag - is created by the <em>&lt;gallery:datasource /&gt;</em> tag
+   using a <em>Content-Providers</em>.
 </p>
 <div class="hint">
-   Bitte beachten Sie, dass die Struktur des Beispiels willkürlich gewählt und nicht für Ihre Implementierungen bindend
-   ist. Es wäre sowohl denk- als auch realisierbar den Content-Provider über Tag-Attribute zu definieren und die
-   Formatierung der Galerie über weitere Elemente (siehe z.B. <int:link pageid="078" anchor="Chapter-1-Iterator">Iterator</int:link>)
-   zu realisieren.
+   Please note that the structure of this example has been chosen to depict essential attributes of the APF tag
+   implementation. It is not a rule of how your tags and applications must be structured. To realize this particular
+   use case, you may also define the content provider within the gallery tag using attributes and use a further formatting
+   element to generate the output (e.g. using a mechanism like the <int:link pageid="078" anchor="Chapter-1-Iterator">Iterator</int:link>
+   tag).
 </div>
 
 <h5 id="Chapter-5-2-1-Basis"><a href="#Chapter-5-2-1-Basis">5.2.1. Basis</a></h5>
 <p>
-   Die Basis-Struktur des Tags gestaltet sich wie folgt:
+   The basic structure of the tag is as follows:
 </p>
 <gen:highlight type="php">
 import('examples::tags::pres', 'GalleryDataSourceTag');
@@ -335,13 +335,16 @@ class GalleryTag extends Document {
 }
 </gen:highlight>
 <p>
-   Im Konstruktor des Tags wird dem Parser der <em>&lt;gallery:datasource /&gt;</em>-Tag bekannt gegeben. Damit der
-   Parser die Klasse <em>GalleryDataSourceTag</em> findet, wird sie per <em>import()</em> eingebunden.
+   Within the constructor the <em>&lt;gallery:datasource /&gt;</em> tag is published to the parser. In order to let the
+   APF parser create child nodes, you need to include the implementation via <em>import()</em>.
 </p>
 
-<h5 id="Chapter-5-2-2-Konfiguration-des-Content-Provider"><a href="#Chapter-5-2-2-Konfiguration-des-Content-Provider">5.2.2. Konfiguration des Content-Provider</a></h5>
+<h5 id="Chapter-5-2-2-Configuration-of-the-content-provider"><a href="#Chapter-5-2-2-Configuration-of-the-content-provider">5.2.2. Configuration of the content provider</a></h5>
 <p>
-   Widmen wir uns nun zunächst der Konfiguration des <em>Content-Providers</em>. Hierzu spendieren wir dem
+   Let us now turn to the configuration of the <em>Content-Providers</em>.
+
+
+   Hierzu spendieren wir dem
    <em>&lt;img:gallery /&gt;</em>-Tag ein privates Feld und einen Setter, damit der <em>&lt;gallery:datasource /&gt;</em>-Tag
    die Instanz übergeben kann:
 </p>
