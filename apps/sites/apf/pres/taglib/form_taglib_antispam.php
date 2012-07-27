@@ -14,17 +14,6 @@ import('tools::form::taglib', 'form_control');
  */
 class form_taglib_antispam extends form_control {
 
-   /**
-    * @public
-    *
-    *  Implements the transform() method of the APFObject class. Returns the field's html code.
-    *
-    * @return string $TagCode code if the tag
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 17.07.2008<br />
-    */
    public function onAfterAppend() {
 
       // validate the given attributes

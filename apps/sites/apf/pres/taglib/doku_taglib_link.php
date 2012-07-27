@@ -15,7 +15,7 @@ class doku_taglib_link extends Document {
     * @private
     *  Defines the maximum length of a link name.
     */
-   var $__MaxLinkLength = 50;
+   private $maxLinkLength = 50;
 
    /**
     * @public
@@ -68,8 +68,8 @@ class doku_taglib_link extends Document {
          // add link text:
          // behaviour like PHPBB. Links are limited to a certain number of letters and are
          // displayed as {PART1}..{10 letters from the end}
-         if (strlen($content) > $this->__MaxLinkLength) {
-            $link .= substr($content, 0, $this->__MaxLinkLength - 20) . '...' . substr($content, strlen($content) - 10, 10);
+         if (strlen($content) > $this->maxLinkLength) {
+            $link .= substr($content, 0, $this->maxLinkLength - 20) . '...' . substr($content, strlen($content) - 10, 10);
          } else {
             $link .= $content;
          }

@@ -9,4 +9,3 @@ $fC = Singleton::getInstance('Frontcontroller');
 /* @var $fC Frontcontroller */
 $fC->setContext('sites::apf');
 $fC->start('foo::bar', 'baz'); // pseudo template, because we do not need one!
-?>

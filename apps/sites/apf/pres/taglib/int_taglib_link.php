@@ -33,6 +33,7 @@ class int_taglib_link extends Document {
       }
 
       // setup link text
+      /* @var $urlMan UrlManager */
       $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
       $linkText = $this->getLinkText();
       if ($linkText === null) {

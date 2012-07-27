@@ -26,5 +26,3 @@ class news_taglib_appendnode extends core_taglib_appendnode {
    }
 
 }
-
-?>

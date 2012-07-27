@@ -1,21 +1,17 @@
 <?php
-   import('3rdparty::statistics::biz','BaseStatSection');
+import('3rdparty::statistics::biz', 'BaseStatSection');
 
 
-   /**
-   *  @class TableStatSection
-   *
-   *  Implements the simple stat section.
-   *
-   */
-   class TableStatSection extends BaseStatSection
-   {
+/**
+ * @class TableStatSection
+ *
+ * Implements the simple stat section.
+ *
+ */
+class TableStatSection extends BaseStatSection {
 
-      function TableStatSection(){
-         parent::BaseStatSection();
-       // end function
-      }
-
-    // end class
+   public function __construct() {
+      parent::__construct();
    }
-?>
+
+}

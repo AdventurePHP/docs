@@ -16,9 +16,6 @@ class JsCssInput extends FrontcontrollerInput {
    private static $EXT_CSS = 'css';
    private static $EXT_JS = 'js';
 
-   public function JsCssInput() {
-   }
-
    public function getFileName() {
       if ($this->isCssFileRequested()) {
          $ext = self::$EXT_CSS;
