@@ -141,13 +141,13 @@ Layout-Template nicht unterstützt, wurde die Layout-Library wie folgt erweitert
        var $obj;
        var $layout;
 
-       function Layout($layout)
+       public function Layout($layout)
        {
            $this->obj =& get_instance();
            $this->layout = $layout;
        }
 
-       function view($view, $layoutvar = 'content_for_layout',$data=null, $return=true)
+       public function view($view, $layoutvar = 'content_for_layout',$data=null, $return=true)
        {
            $data[$layoutvar] = $this->obj->load->view($view,$data,true);
 
@@ -196,26 +196,26 @@ füllen.
 <gen:highlight type="php">
  class Seite extends Controller {
 
-    function Seite(){
+    public function Seite(){
        parent::Controller();
        $this->load->library('layout','demosite/basic_layout');
        $this->layout->view('demosite/menu','content_for_menu');
        $this->layout->view('demosite/topmenu','content_for_topmenu');
     }
 
-    function index(){
+    public function index(){
        $this->Startseite();
     }
 
-    function Startseite(){
+   public function Startseite(){
        echo $this->layout->view('demosite/content/startseite');
     }
 
-    function Benchmark(){
+   public function Benchmark(){
        echo $this->layout->view('demosite/content/benchmark');
     }
 
- }
+}
 </gen:highlight>
 Die Methode <strong>index()</strong> wird immer dann vom Dispatcher aufgerufen, wenn keine Methode in
 der URL angegeben ist. Wird eine Methode in der URL angegeben, die nicht im Controller existert wird
@@ -227,7 +227,7 @@ die alle Aufrufe, in denen lediglich Inhalte per URL-Parameter geladen werden m�
 Auf Grund der URL-Struktur kann dies beispielsweise über den URL-Helper in der Methode
 <strong>index()</strong> realisiert werden:
 <gen:highlight type="php">
-   function index(){
+   public function index(){
 
       // Action-Parameter holen
       $Action = $this->uri->segment(2);
@@ -237,7 +237,6 @@ Auf Grund der URL-Struktur kann dies beispielsweise über den URL-Helper in der 
          // Action-Methode ausführen
          $this->{$Action}();
 
-       // end if
       }
       else{
 
@@ -246,20 +245,16 @@ Auf Grund der URL-Struktur kann dies beispielsweise über den URL-Helper in der 
             // View rendern
             $this->_output($this->layout->view('views/demosite/content/'.strtolower($Action));
 
-          // end if
          }
          else{
 
             // Zur Startseite leiten
             redirect('Seite');
 
-          // end else
          }
 
-       // end else
       }
 
-   // end function
   }
 </gen:highlight>
 Um den Test zu komplettieren, wurden - wie bereits im Code des Controllers zu sehen ist - die Seiten
@@ -279,57 +274,54 @@ zu wählen, da dies sonst den Rahmen der Evaluierung sprengen würde. Die Bereic
 innerhalb des Dokumentationsbereich wurde nicht als Tag, sondern als zusätzlicher View realisiert,
 damit die Codierung nicht zu stark vom CodeIgniter-Standard abweicht:
 <gen:highlight type="php">
-	function _output($output){
+public function _output($output){
 
-      // load helper
-      $this->load->helper('highlight');
+   // load helper
+   $this->load->helper('highlight');
 
-      // Include Tag parsing
-      // We could go so far to include a generic tag-parser, that can be configured in any
-      // configuration file, but i refrain from doing that. this is just a non generic parser
-      echo highlight($output);
+   // Include Tag parsing
+   // We could go so far to include a generic tag-parser, that can be configured in any
+   // configuration file, but i refrain from doing that. this is just a non generic parser
+   echo highlight($output);
 
-    // end function
-	}
+}
 </gen:highlight>
 Um die Funktion des Parsens auszulagern wurde ein Helper programmiert, der das Tag-Parsen über
 Ersetzung regulärer Such-Strings realisiert. Die Datei
 <strong>/system/application/helpers/highlight_helper.php</strong> hat demnach folgenden Inhalt:
 <gen:highlight type="php">
-   function highlight($content){
+public function highlight($content){
 
-      // Quelltext parsen
-      return preg_replace_callback('=\<php\:highlight\>(.*?)\<\/php\:highlight\>=si','highlight_it',$content);
+   // Quelltext parsen
+   return preg_replace_callback('=\<php\:highlight\>(.*?)\<\/php\:highlight\>=si','highlight_it',$content);
 
-    // end function
-   }
+}
 
-   function highlight_it($content){
+public function highlight_it($content){
 
-      $HighlightedContent = highlight_string(trim('<?php'.ltrim(rtrim($content[1]),"\x0A..\x0D").' ?>'),true);
+   $HighlightedContent = highlight_string(trim('<?php'.ltrim(rtrim($content[1]),"\x0A..\x0D").' ?>'),true);
 
-      // PHP-Anfangstag ersetzen
-      $HighlightedContent = str_replace('< font color="#007700">&lt;?< /font>',
-                                        '',
-                                        $HighlightedContent);
-      $HighlightedContent = str_replace('< font color="#0000BB">&lt;?php&nbsp;',
-                                        '< font color="#0000BB">',
-                                        $HighlightedContent);
-      $HighlightedContent = str_replace('< font color="#0000BB">php',
-                                        '< font color="#0000BB">',
-                                        $HighlightedContent);
-      $HighlightedContent = str_replace('< font color="#0000BB">&nbsp;< /font>',
-                                        '',
-                                        $HighlightedContent);
+   // PHP-Anfangstag ersetzen
+   $HighlightedContent = str_replace('< font color="#007700">&lt;?< /font>',
+                                     '',
+                                     $HighlightedContent);
+   $HighlightedContent = str_replace('< font color="#0000BB">&lt;?php&nbsp;',
+                                     '< font color="#0000BB">',
+                                     $HighlightedContent);
+   $HighlightedContent = str_replace('< font color="#0000BB">php',
+                                     '< font color="#0000BB">',
+                                     $HighlightedContent);
+   $HighlightedContent = str_replace('< font color="#0000BB">&nbsp;< /font>',
+                                     '',
+                                     $HighlightedContent);
 
-      // PHP-Endtag ersetzen
-      $HighlightedContent = str_replace('< font color="#0000BB">?&gt;< /font>','',$HighlightedContent);
+   // PHP-Endtag ersetzen
+   $HighlightedContent = str_replace('< font color="#0000BB">?&gt;< /font>','',$HighlightedContent);
 
-      // Code im DIV zurückgeben
-      return '< div class="phpcode">'.$HighlightedContent.'< /div>';
+   // Code im DIV zurückgeben
+   return '< div class="phpcode">'.$HighlightedContent.'< /div>';
 
-    // end function
-   }
+}
 </gen:highlight>
 <br />
 <br />
@@ -446,64 +438,61 @@ Im Gegensatz zu CakePHP verfügt das Framework CodeIgniter über eine eingebaute
 Validierung mit sehr vielseitigen Einstellungsmöglichkeiten. Der Quellcode der zugehörigen
 Controller-Methode zeigt die Anwendung:
 <gen:highlight type="php">
-	function Kontakt(){
+public function Kontakt(){
 
-      // Libraries und Helper laden
-   	$this->load->helper('form');
-   	$this->load->helper('url');
-		$this->load->library('validation');
+   // Libraries und Helper laden
+   $this->load->helper('form');
+   $this->load->helper('url');
+   $this->load->library('validation');
 
-   	// View-Daten vorbereiten
-      $data['ContactNameStyle'] = '';
-      $data['ContactEMailStyle'] = '';
-      $data['ContactSubjectStyle'] = '';
-      $data['ContactNoteStyle'] = '';
+   // View-Daten vorbereiten
+   $data['ContactNameStyle'] = '';
+   $data['ContactEMailStyle'] = '';
+   $data['ContactSubjectStyle'] = '';
+   $data['ContactNoteStyle'] = '';
 
-      // Validierung konfigurieren
-		$rules['person'] = 'required|empty';
-		$rules['name']	= 'required|min_length[3]';
-		$rules['email'] = 'required|valid_email';
-		$rules['subject']	= 'required|min_length[3]';
-		$rules['note'] = 'required|min_length[5]';
-		$this->validation->set_rules($rules);
+   // Validierung konfigurieren
+   $rules['person'] = 'required|empty';
+   $rules['name']	= 'required|min_length[3]';
+   $rules['email'] = 'required|valid_email';
+   $rules['subject']	= 'required|min_length[3]';
+   $rules['note'] = 'required|min_length[5]';
+   $this->validation->set_rules($rules);
 
-		// Feldernamen für Validierung bezeichnen
-   	$fields['person'] = 'Person';
-   	$fields['name'] = 'Name';
-   	$fields['email'] = 'E-Mail';
-   	$fields['subject'] = 'Betreff';
-   	$fields['note'] = 'Notiz';
-   	$this->validation->set_fields($fields);
+   // Feldernamen für Validierung bezeichnen
+   $fields['person'] = 'Person';
+   $fields['name'] = 'Name';
+   $fields['email'] = 'E-Mail';
+   $fields['subject'] = 'Betreff';
+   $fields['note'] = 'Notiz';
+   $this->validation->set_fields($fields);
 
-      // Validierung starten
-      if($this->validation->run() == FALSE){
+   // Validierung starten
+   if($this->validation->run() == FALSE){
 
-         // Falls die Error-Member-Variable gesetzt ist, roten Rahmen zeichnen
-         if($this->validation->name_error){
-            $data['ContactNameStyle'] = 'border: 2px solid red;';
-         }
-         if($this->validation->email_error){
-            $data['ContactEMailStyle'] = 'border: 2px solid red;';
-         }
-         if($this->validation->subject_error){
-            $data['ContactSubjectStyle'] = 'border: 2px solid red;';
-         }
-         if($this->validation->note_error){
-            $data['ContactNoteStyle'] = 'border: 2px solid red;';
-         }
-
-			// View rendern
-         $this->_output($this->layout->view('demosite/content/kontakt','content_for_layout',$data));
-
-       // end else
-		}
-		else{
-      	$this->_output($this->layout->view('demosite/content/kontakt_success','content_for_layout',$data));
-       // end else
+      // Falls die Error-Member-Variable gesetzt ist, roten Rahmen zeichnen
+      if($this->validation->name_error){
+         $data['ContactNameStyle'] = 'border: 2px solid red;';
+      }
+      if($this->validation->email_error){
+         $data['ContactEMailStyle'] = 'border: 2px solid red;';
+      }
+      if($this->validation->subject_error){
+         $data['ContactSubjectStyle'] = 'border: 2px solid red;';
+      }
+      if($this->validation->note_error){
+         $data['ContactNoteStyle'] = 'border: 2px solid red;';
       }
 
-    // end function
-	}
+      // View rendern
+      $this->_output($this->layout->view('demosite/content/kontakt','content_for_layout',$data));
+
+   }
+   else{
+      $this->_output($this->layout->view('demosite/content/kontakt_success','content_for_layout',$data));
+   }
+
+}
 </gen:highlight>
 Im ersten Anweisungsblock werden die Helper und Libraries geladen, die zur Validierung benötigt
 werden. Der zweite Block definiert einen Satz von Daten, die an den Formular-View übergeben

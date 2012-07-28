@@ -143,7 +143,7 @@ sieht wie folgt aus:
 class SeiteController extends Zend_Controller_Action {
 
    // Abfangen von falschen / nicht vorhandenen Actions
-   function __call($method, $args){
+   public function __call($method, $args){
 
       // indexAction
       if($method == 'indexAction'){
@@ -183,19 +183,18 @@ die Methode <em>benchmarkAction()</em> aus. Diese ist im Moment noch nicht imple
 Seite wird angezeigt. Legt der Benutzer nun die Datei <strong>benchmark.phtml</strong> im Ordner
 <em>/myapp/application/views/scripts/seite</em> an und erweitert den Controller um die Methode
 <gen:highlight type="php">
-   function benchmarkAction(){
-   }
+public function benchmarkAction(){
+}
 </gen:highlight>
 so wird die Benchmark-Seite angezeigt. Die Template-Datei für die Benchmark-Seite ist dabei wie
 folgt aufgebaut:
-<gen:highlight type="html">
+<gen:highlight type="php">
 <?php
-   $view = new Zend_View();
-   $view->setScriptPath('../application/views/scripts/seite/design');
+$view = new Zend_View();
+$view->setScriptPath('../application/views/scripts/seite/design');
 
-   // Header ausgeben
-   echo $view->render('header.phtml');
-?>
+// Header ausgeben
+echo $view->render('header.phtml');
 <font style="font-size: 26px; font-weight: bold;">Benchmark</font>
 <br />
 <br />
@@ -376,7 +375,7 @@ require_once 'Zend/Controller/Action/Helper/Abstract.php';
 
 class Helper_Highligh extends Zend_Controller_Action_Helper_Abstract {
 
-   function postDispatch(){
+   public function postDispatch(){
 
       // Response-Objekt holen
       $Response = $this->getResponse();
@@ -392,7 +391,7 @@ class Helper_Highligh extends Zend_Controller_Action_Helper_Abstract {
 
    }
 
-   function highlight($content){
+   public function highlight($content){
 
       // Quelltext parsen
       return preg_replace_callback(
@@ -403,7 +402,7 @@ class Helper_Highligh extends Zend_Controller_Action_Helper_Abstract {
 
    }
 
-   function highlight_it($content){
+   public function highlight_it($content){
 
       $HighlightedContent = highlight_string(trim('<?php'.ltrim(rtrim($content[1]),"\x0A..\x0D").' ?>'),true);
 
@@ -440,7 +439,7 @@ class Helper_DokuNavi extends Zend_Controller_Action_Helper_Abstract {
 
    private $__DokuSites = array();
 
-   function postDispatch(){
+   public function postDispatch(){
 
       //
       // Navigation erzeugen
@@ -492,11 +491,11 @@ class Helper_DokuNavi extends Zend_Controller_Action_Helper_Abstract {
 
    }
 
-   function __fillSitesArray(){
+   private function __fillSitesArray(){
       [..]
    }
 
-   function __getNeighborPageName($CurrentPage,$Type = 'previous'){
+   private function __getNeighborPageName($CurrentPage,$Type = 'previous'){
       [..]
    }
 
@@ -624,86 +623,86 @@ das reagieren auf Fehleingaben erledigt. Dabei wird von der Möglichkeit Gebrauc
 dem View beliebige Variablen zur Verwendung durch Setzen der Attribute des aktuellen View-Objekts
 zugewiesen werden können. Der Quelltext der Methode ist folgender:
 <gen:highlight type="php">
-   function kontaktAction(){
+public function kontaktAction(){
 
-      // View-Variablen setzen
-      $this->view->Person = (string)'';
-      $this->view->Name = (string)'';
-      $this->view->EMail = (string)'';
-      $this->view->Subject = (string)'';
-      $this->view->Comment = (string)'';
-
-
-      // Variablen zur Ausgabe-Steuerung setzen
-      $this->view->PersonStyle = (string)'';
-      $this->view->NameStyle = (string)'';
-      $this->view->EMailStyle = (string)'';
-      $this->view->SubjectStyle = (string)'';
-      $this->view->CommentStyle = (string)'';
+   // View-Variablen setzen
+   $this->view->Person = (string)'';
+   $this->view->Name = (string)'';
+   $this->view->EMail = (string)'';
+   $this->view->Subject = (string)'';
+   $this->view->Comment = (string)'';
 
 
-      // Variablen für Fehlermeldungen setzen
-      $this->view->PersonError = (string)'';
-      $this->view->NameError = (string)'';
-      $this->view->EMailError = (string)'';
-      $this->view->SubjectError = (string)'';
-      $this->view->CommentError = (string)'';
+   // Variablen zur Ausgabe-Steuerung setzen
+   $this->view->PersonStyle = (string)'';
+   $this->view->NameStyle = (string)'';
+   $this->view->EMailStyle = (string)'';
+   $this->view->SubjectStyle = (string)'';
+   $this->view->CommentStyle = (string)'';
 
 
-      // Prüfen, ob Formular abgeschickt wurde
-      if(isset($_POST['Absenden']) && $_POST['Absenden'] == 'Absenden'){
+   // Variablen für Fehlermeldungen setzen
+   $this->view->PersonError = (string)'';
+   $this->view->NameError = (string)'';
+   $this->view->EMailError = (string)'';
+   $this->view->SubjectError = (string)'';
+   $this->view->CommentError = (string)'';
 
-         // Validatoren erstellen
-         $Val_StrLen = new Zend_Validate_StringLength(3);
-         $Val_EMail = new Zend_Validate_EmailAddress();
 
-         // Werte des Formulars presetten
-         $this->view->Person = $_POST['Person'];
-         $this->view->Name = $_POST['Name'];
-         $this->view->EMail = $_POST['EMail'];
-         $this->view->Subject = $_POST['Subject'];
-         $this->view->Comment = $_POST['Comment'];
+   // Prüfen, ob Formular abgeschickt wurde
+   if(isset($_POST['Absenden']) && $_POST['Absenden'] == 'Absenden'){
 
-         // Post-Daten prüfen
-         $FormValid = true;
+      // Validatoren erstellen
+      $Val_StrLen = new Zend_Validate_StringLength(3);
+      $Val_EMail = new Zend_Validate_EmailAddress();
 
-         if(empty($_POST['Person'])){
-            $this->view->PersonStyle = ' background-color: red; border: 2px solid red;';
-            $this->view->PersonError = 'Bitte wählen Sie eine Kontakt-Person aus!';
-            $FormValid = false;
-         }
-         if(!$Val_StrLen->isValid($_POST['Name'])){
-            $this->view->NameStyle = ' border: 2px solid red;';
-            $this->view->NameError = 'Bitte geben Sie einen Namen ein!';
-            $FormValid = false;
-         }
-         if(!$Val_EMail->isValid($_POST['EMail'])){
-            $this->view->EMailStyle = ' border: 2px solid red;';
-            $this->view->EMailError = 'Bitte geben Sie eine korrekte E-Mail-Adresse ein!';
-            $FormValid = false;
-         }
-         if(!$Val_StrLen->isValid($_POST['Subject'])){
-            $this->view->SubjectStyle = ' border: 2px solid red;';
-            $this->view->SubjectError = 'Bitte geben Sie ein Betreff ein!';
-            $FormValid = false;
-         }
-         if(!$Val_StrLen->isValid($_POST['Comment'])){
-            $this->view->CommentStyle = ' border: 2px solid red;';
-            $this->view->CommentError = 'Bitte geben Sie einen Kommentar ein!';
-            $FormValid = false;
-         }
+      // Werte des Formulars presetten
+      $this->view->Person = $_POST['Person'];
+      $this->view->Name = $_POST['Name'];
+      $this->view->EMail = $_POST['EMail'];
+      $this->view->Subject = $_POST['Subject'];
+      $this->view->Comment = $_POST['Comment'];
 
-         // Formular absenden, fals Valide ausgefüllt
-         if($FormValid == true){
-            header('Location: /Seite/Danke');
-         }
+      // Post-Daten prüfen
+      $FormValid = true;
 
+      if(empty($_POST['Person'])){
+         $this->view->PersonStyle = ' background-color: red; border: 2px solid red;';
+         $this->view->PersonError = 'Bitte wählen Sie eine Kontakt-Person aus!';
+         $FormValid = false;
+      }
+      if(!$Val_StrLen->isValid($_POST['Name'])){
+         $this->view->NameStyle = ' border: 2px solid red;';
+         $this->view->NameError = 'Bitte geben Sie einen Namen ein!';
+         $FormValid = false;
+      }
+      if(!$Val_EMail->isValid($_POST['EMail'])){
+         $this->view->EMailStyle = ' border: 2px solid red;';
+         $this->view->EMailError = 'Bitte geben Sie eine korrekte E-Mail-Adresse ein!';
+         $FormValid = false;
+      }
+      if(!$Val_StrLen->isValid($_POST['Subject'])){
+         $this->view->SubjectStyle = ' border: 2px solid red;';
+         $this->view->SubjectError = 'Bitte geben Sie ein Betreff ein!';
+         $FormValid = false;
+      }
+      if(!$Val_StrLen->isValid($_POST['Comment'])){
+         $this->view->CommentStyle = ' border: 2px solid red;';
+         $this->view->CommentError = 'Bitte geben Sie einen Kommentar ein!';
+         $FormValid = false;
       }
 
-      // Formular anzeigen
-      $this->render('kontakt');
+      // Formular absenden, fals Valide ausgefüllt
+      if($FormValid == true){
+         header('Location: /Seite/Danke');
+      }
 
    }
+
+   // Formular anzeigen
+   $this->render('kontakt');
+
+}
 </gen:highlight>
 Das Zend Framework bringt - wie unschwer zu erkennen ist - einen Satz von Validatoren mit, die einfach
 zur Validierung der Benutzereingaben verwendet werden können. Das Presetting von Benutzer-Eingaben
