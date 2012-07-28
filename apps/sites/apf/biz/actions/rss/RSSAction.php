@@ -38,6 +38,7 @@ class RSSAction extends AbstractFrontcontrollerAction {
       $page->loadDesign('sites::apf::pres::templates::news', 'rss');
       $items = $page->transform();
 
+      /* @var $urlMgr UrlManager */
       $urlMgr = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
       $link = 'http://adventure-php-framework.org' . $urlMgr->generateLink('124', $lang);
       echo '<?xml version="1.0" encoding="utf-8"?>
@@ -67,7 +68,6 @@ class RSSAction extends AbstractFrontcontrollerAction {
             . '</channel>
 </rss>';
       exit(0);
-      // end function
    }
 
    private function getChannelDescription($lang) {
@@ -79,6 +79,7 @@ class RSSAction extends AbstractFrontcontrollerAction {
    }
 
    /**
+    * @param string $lang The current language.
     * @return string An RFC822 date defining the last news notification.
     */
    private function getLastBuildDate($lang) {

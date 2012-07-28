@@ -211,7 +211,6 @@ class FulltextsearchIndexer extends APFObject {
                   // create index
                   if (isset($index[$wordId])) {
                      $index[$wordId]['WordCount'] = $index[$wordId]['WordCount'] + 1;
-                     // end if
                   } else {
                      $index[$wordId]['WordID'] = $wordId;
                      $index[$wordId]['WordCount'] = 1;

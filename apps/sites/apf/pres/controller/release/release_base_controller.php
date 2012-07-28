@@ -87,6 +87,7 @@ abstract class release_base_controller extends base_controller {
     * Version 0.1, 29.12.2009<br />
     */
    protected function getAllReleases() {
+      /* @var $t BenchmarkTimer */
       $t = &Singleton::getInstance('BenchmarkTimer');
       $id = 'release_base_controller::getAllReleases()';
       $t->start($id);
@@ -104,6 +105,7 @@ abstract class release_base_controller extends base_controller {
     *
     * @param string $offsetOne Release 1 to compare with release 2.
     * @param string $offsetTwo Release 2 to compare with release 1.
+    * @return int Comparison result.
     *
     * @author Christian Achatz
     * @version
@@ -182,7 +184,6 @@ abstract class release_base_controller extends base_controller {
 
          if ($offsetOneValue == $offsetTwoValue) {
             $return = 0;
-            // end if
          } else {
             $return = ($offsetOneValue < $offsetTwoValue) ? 1 : -1;
          }
@@ -296,7 +297,6 @@ abstract class release_base_controller extends base_controller {
                if ($this->__Language == 'de') {
                   $libType = 'Gepackte HTML-Seiten';
                   $dokuType = 'Komplette Dokumentation';
-                  // end if
                } else {
                   $libType = 'Packed html files';
                   $dokuType = 'Complete docs';
@@ -321,18 +321,14 @@ abstract class release_base_controller extends base_controller {
 
                   if ($this->__Language == 'de') {
                      $dokuType = 'Core';
-                     // end if
                   } else {
                      $dokuType = 'core';
-                     // end else
                   }
 
-                  // end if
                } elseif (substr_count($dokuFiles[$k], '-modules-') > 0) {
 
                   if ($this->__Language == 'de') {
                      $dokuType = 'Modules';
-                     // end if
                   } else {
                      $dokuType = 'module';
                   }
@@ -374,7 +370,6 @@ abstract class release_base_controller extends base_controller {
             if ($version < 110) {
                $templateOfflineDoku->setPlaceHolder('LibType', $libType);
                $templateOfflineDoku->setPlaceHolder('DokuType', $dokuType);
-               // end if
             }
             $templateOfflineDoku->setPlaceHolder('BuildDate', $buildDate);
             $templateOfflineDoku->setPlaceHolder('DokuFileFull', $dokuFiles[$k]);

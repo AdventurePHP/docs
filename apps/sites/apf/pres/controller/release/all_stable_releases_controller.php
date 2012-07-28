@@ -10,7 +10,7 @@ import('sites::apf::pres::controller::release', 'release_base_controller');
  * @author Christian Achatz
  * @version
  * Version 0.1, 16.08.2007<br />
- * Version 0.2, 19.09.2008 (Refactoring for the new documenation page)<br />
+ * Version 0.2, 19.09.2008 (Refactoring for the new documentation page)<br />
  */
 class all_stable_releases_controller extends release_base_controller {
 
@@ -18,8 +18,8 @@ class all_stable_releases_controller extends release_base_controller {
    private static $PHP4 = 'php4';
    private static $PHP5 = 'php5';
 
-   function all_stable_releases_controller() {
-      parent::release_base_controller();
+   public function __construct() {
+      parent::__construct();
    }
 
    /**
@@ -36,7 +36,7 @@ class all_stable_releases_controller extends release_base_controller {
     * Version 0.3, 19.09.2008 (Refactoring for the new documenation page)<br />
     * Version 0.4, 29.12.2009 (Displays only stable versions now)<br />
     */
-   function transformContent() {
+   public function transformContent() {
 
       // resolve the packages to display using the attributes of the document
       $type = $this->getAttribute(self::$TYPE);

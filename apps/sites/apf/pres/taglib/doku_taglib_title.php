@@ -82,7 +82,7 @@ class doku_taglib_title extends Document {
     * Version 0.1, 18.09.2008<br />
     * Version 0.2, 03.10.2008 (Introduced the "display" attribute. If present and set to false, the title will not be displayed)<br />
     */
-   function transform() {
+   public function transform() {
       $display = $this->getAttribute('display');
       if ($display == 'false') {
          return (string)'';
