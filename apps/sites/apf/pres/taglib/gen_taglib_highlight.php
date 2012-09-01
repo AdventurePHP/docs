@@ -3,7 +3,7 @@
  * @package sites::apf::pres::taglib
  * @class gen_taglib_highlight
  *
- * Implements a generic code highlight taglib.
+ * Implements a generic code highlighting taglib.
  *
  * @author Christian Achatz
  * @version
@@ -38,10 +38,9 @@ class gen_taglib_highlight extends Document {
       // gather the type of the code box
       $type = $this->getAttribute('type');
 
-      $title = (string)'Code';
-      $cssClass = (string)self::$GENERIC;
-      //$cssClass = (string) self::$PHP;
-      $content = (string)trim($this->__Content);
+      $title = 'Code';
+      $cssClass = self::$GENERIC;
+      $content = trim($this->__Content);
       switch ($type) {
 
          case self::$HTML:
@@ -64,7 +63,7 @@ class gen_taglib_highlight extends Document {
          case self::$PHP:
             $title = 'PHP-Code';
             $cssClass = self::$PHP;
-            $content = str_replace('&', '&amp;', trim($this->__Content));
+            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->__Content)));
             break;
 
          case self::$XML:
