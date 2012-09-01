@@ -1,0 +1,580 @@
+<doku:title parent="119" tags="soap" title="ExtendedSoapClientService" urlname="ExtendedSoapClientService">
+   Das APF enthält seit Version 1.15 eine eigene SOAP-Client-Implementierung. Diese baut auf der in PHP enthaltenen
+   SOAP-Extension auf und integriert diese in das APF. Ein weiterer Pluspunkt ist die gegenüber der Standard-Implementierung
+   vereinfachte API.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Das APF enthält seit Version 1.15 eine eigene SOAP-Client-Implementierung. Diese baut auf der in PHP enthaltenen
+   <a class="external" href="http://www.php.net/soap">SOAP-Extension</a> auf und integriert diese in das APF. Ein
+   weiterer Pluspunkt ist die gegenüber der Standard-Implementierung vereinfachte API.
+</p>
+<p>
+   Die APF-SOAP-Client-Implementierung bietet dabei alle Funktionen des nativen <em>SoapClient</em>, vereinfacht jedoch
+   die Konfiguration des <em>ExtendedSoapClientService</em> über den APF DI-Container.
+</p>
+
+<h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration</a></h3>
+<p>
+   Die Konfiguration des <em>ExtendesSoapClientService</em> kann auf zwei Arten erfolgen: direkt im Code oder über den
+   <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DIServiceManager</int:link>.
+</p>
+
+<h4 id="Chapter-2-1-Konfiguration-im-Code"><a href="#Chapter-2-1-Konfiguration-im-Code">2.1. Konfiguration im Code</a></h4>
+<p>
+   Die Anwendung des <em>ExtendedSoapClientService</em> im Code erfordert im einfachsten Fall die Angabe einer WSDL oder
+   einer WSDL und einer Service-Url. Um einen Login-Aufruf gegen einen SOAP-Service abzusenden, kann folgendes Beispiel
+   genutzt werden:
+</p>
+<gen:highlight type="php">
+$service = new ExtendedSoapClientService();
+$service->setWsdlUrl('./login-service.wsdl');
+$service->setLocation('https://example-com/services/login/soap');
+
+$result = $service->Login(array(
+   'user' => $user,
+   'pass' => $pass
+));
+</gen:highlight>
+<p>
+   In den ersten beiden Zeilen wird die initiale Konfiguration des SOAP-Clients erstellt. Das Beispiel geht von einer
+   lokal abgelegten WSDL-Datei aus. Ebenso möglich ist die Angabe einer entfernt abgelegten WSDL.
+</p>
+<p>
+   Sofern der Service-Endpunkt direkt in der WSDL definiert ist, wird die Angabe in Zeile 3 nicht benötigt. Zeile 5 zeigt
+   den Aufruf des in der WSDL definierten Login-Service.
+</p>
+<div class="hint">
+   Um die Konstruktionszeit des <em>ExtendedSoapClientService</em> zu optimieren, ist eine lokal abgelegte WSDL
+   empfehlenswert. Sofern dies nicht möglich oder nicht gewünscht ist, kann die Option <em>soap.wsdl_cache_enabled</em>
+   in der <em>php.ini</em> aktiviert werden. Um optimale Ergebnisse zu erzielen sollten die Optionen
+   <em>soap.wsdl_cache_ttl</em> und <em>soap.wsdl_cache_limit</em> mit sinnvollen Werten belegt werden.
+</div>
+
+<h4 id="Chapter-2-2-Konfiguration-per-DIServiceManager"><a href="#Chapter-2-2-Konfiguration-per-DIServiceManager">2.2. Konfiguration per DIServiceManager</a></h4>
+<p>
+   Der Einsatz des <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DIServiceManager</int:link>
+   zur Erzeugung des SOAP-Client hat zwei wesentliche Vorteile: Konfiguration und Anwendung können auf einfache Weise
+   getrennt werden und der Einsatz von MOCK-Schichten für Entwicklung und/oder Tests wird deutlich einfacher.
+</p>
+<p>
+   Zur Erzeugung und Konfiguration des <em>ExtendedSoapClientService</em> ist folgende minimale Konfiguration
+   notwendig:
+</p>
+<gen:highlight type="ini">
+[LoginService]
+servicetype = "..."
+namespace = "tools::soap"
+class = "ExtendedSoapClientService"
+
+conf.wsdl.method = "setWsdlUrl"
+conf.wsdl.value = "./login-service.wsdl"
+
+conf.service.method = "setLocation"
+conf.service.value = "https://example-com/services/login/soap"
+</gen:highlight>
+<p>
+   Sie können den <em>LoginService</em> nun innerhalb eines Controllers oder einer anderen Komponente Ihrer Software wie
+   folgt beziehen und verwenden:
+</p>
+<gen:highlight type="php">
+$service = $this->getDIServiceObject('...', 'LoginService');
+
+$result = $service->Login(array(
+   'user' => $user,
+   'pass' => $pass
+));
+</gen:highlight>
+<p>
+   Die Namespace-Angabe im <em>getDIServiceObject()</em>-Aufruf richtet sich nach der Konfiguration Ihrer Applikation.
+   Details zur Konfiguration von Services finden Sie unter
+   <int:link pageid="107" anchor="Chapter-4-3-DIServiceManager-Komplexe-Services">Komplexe Services</int:link>,
+   im Kapitel <int:link pageid="134"/> finden Sie Hinweise zur Definition von Konfigurationen mit dem APF.
+</p>
+<div class="hint">
+   <p>
+      Ein ausführliches Beispiel kann der Datei <em>config/tools/soap/EXAMPLE_serviceobjects.ini</em> im
+      <em>apf-configpack-*</em>-Paket entnommen werden.
+   </p>
+   <p>
+      Um weitere Einstellungen zu treffen, nutzen Sie bitte die im <a href="#Chapter-2-3-Uebersicht-der-Parameter">Kapitel 2.3</a>
+      beschriebenen Methoden im Rahmen einer weiteren
+<gen:highlight type="ini">
+conf.xyz.method = "..."
+conf.xyz.value = "..."
+</gen:highlight>
+      Sektion in Ihrer Service-Definition.
+   </p>
+</div>
+
+<h4 id="Chapter-2-3-Uebersicht-der-Parameter"><a href="#Chapter-2-3-Uebersicht-der-Parameter">2.3. Übersicht der Paramater</a></h4>
+<p>
+   In der folgenden Liste finden Sie die Konfigurationsmöglichkeiten des <em>ExtendedSoapClientService</em>. Diese
+   können sowohl zur direkten Konfiguration als auch in Verbindung mit einer Service-Definition verwendet werden:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Parameter</td>
+         <td>Methode</td>
+         <td>Beschreibung</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>wsdlUrl</td>
+         <td><em>setWsdlUrl()</em></td>
+         <td>
+            Mit diesem Parameter wird der Service-Vertrag definiert (WSDL-Datei). Diese kann entweder lokal abgelegt
+            oder vom Service-Endpunkt bezogen werden.
+         </td>
+      </tr>
+      <tr>
+         <td>location</td>
+         <td><em>setLocation()</em></td>
+         <td>
+            Definiert die Url des Service-Endpunkts. Dieser kann entweder explizit oder in der WSDL definiert werden.
+         </td>
+      </tr>
+      <tr>
+         <td>login</td>
+         <td><em>setHttpAuthUsername()</em></td>
+         <td>
+            Definiert den Benutzer für <em>HTTP base authentication</em>-geschützte Services.
+         </td>
+      </tr>
+      <tr>
+         <td>password</td>
+         <td><em>setHttpAuthPassword()</em></td>
+         <td>
+            Definiert das Password für <em>HTTP base authentication</em>-geschützte Services.
+         </td>
+      </tr>
+      <tr>
+         <td>compression</td>
+         <td><em>setCompressionLevel()</em></td>
+         <td>
+            Aktiviert die komprimierte Übertragung der Nutzlast der SOAP-Anfragen und -Antworten. Als mögliche Werte
+            können die Konstanten <em>SOAP_COMPRESSION_ACCEPT</em>, <em>SOAP_COMPRESSION_GZIP</em>,
+            <em>SOAP_COMPRESSION_DEFLATE</em> oder eine Kombination übergeben werden.
+         </td>
+      </tr>
+      <tr>
+         <td>connection_timeout</td>
+         <td><em>setConnectionTimeout()</em></td>
+         <td>
+            Definiert den Timeout für die Verbindung zu einem SOAP-Service. Dieser Wert greift nicht für Services mit
+            langsamer Antwortzeit. Um die maximale Zeit für Anfragen zu definieren, nutzen Sie bitte die Direktive
+            <em>default_socket_timeout</em> in der <em>php.ini</em>.
+         </td>
+      </tr>
+      <tr>
+         <td>cache_wsdl</td>
+         <td><em>setCacheWsdl()</em></td>
+         <td>
+            Aktiviert das Caching einer entfernt angebotenen WSDL-Datei. Bitte beachten Sie die Einstellungsmöglichkeiten
+            dazu in der <em>php.ini</em>!
+         </td>
+      </tr>
+      <tr>
+         <td>encoding</td>
+         <td><em>setEncoding()</em></td>
+         <td>
+            Legt den Zeichensatz der übergebenen und zurückgelieferten Zeichen fest. Als Standardwert wird <em>UTF-8</em> gesetzt.
+         </td>
+      </tr>
+      <tr>
+         <td>soap_version</td>
+         <td><em>setSoapVersion()</em></td>
+         <td>
+            Definiert die verwendete SOAP-Version. Als mögliche Werte können die Konstanten <em>SOAP_1_1</em> und
+            <em>SOAP_1_2</em> werden.
+         </td>
+      </tr>
+      <tr>
+         <td>classmap</td>
+         <td><em>registerWsdlObjectMapping()</em></td>
+         <td>
+            Mit dieser Methode haben Sie die Möglichkeit Objekt-Mapping-Definitionen zu definieren. Als Argument wird
+            eine Instanz der Klasse <em>WsdlObjectMapping</em> erwartet. Details können dem
+            <a href="#">Kapitel XYZ</a> entnehmen.
+         </td>
+      </tr>
+      <tr>
+         <td>proxy_host</td>
+         <td><em>setProxyHost()</em></td>
+         <td>
+            Sofern die Kommunikation mit einem SOAP-Service über einen Proxy stattfinden soll, definieren Sie mit dieser
+            Methode bitte den Proxy-Server.
+         </td>
+      </tr>
+      <tr>
+         <td>proxy_port</td>
+         <td><em>setProxyPort()</em></td>
+         <td>
+            Für die Kommunikation mit einem Proxy-Server können Sie mit dieser Methode den Port des Proxy-Servers
+            festlegen.
+         </td>
+      </tr>
+      <tr>
+         <td>proxy_login</td>
+         <td><em>setProxyUsername()</em></td>
+         <td>
+            Erfordert der Proxy-Server eine Authentifizierung, übergeben Sie bitte in dieser Methode den Benutzer-Namen.
+         </td>
+      </tr>
+      <tr>
+         <td>proxy_password</td>
+         <td><em>setProxyPassword()</em></td>
+         <td>
+            Erfordert der Proxy-Server eine Authentifizierung, übergeben Sie bitte in dieser Methode das Passwort.
+         </td>
+      </tr>
+      <tr>
+         <td>user_agent</td>
+         <td><em>setUserAgent()</em></td>
+         <td>
+            Mit der vorliegenden Option können Sie eine Identifikation ihres Clients definieren. Dieser wird bei der
+            SOAP-Anfrage mit dem <em>UserAgent</em>-Header übertragen.
+         </td>
+      </tr>
+      <tr>
+         <td>features</td>
+         <td><em>enableFeature()</em></td>
+         <td>
+            Die PHP SOAP-Client-Implementierung unterstützt einige weitere Features. Details können der Dokumentation
+            auf <a class="external" href="http://www.php.net/soap">php.net/soap</a> entnommen werden.
+         </td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   Details zur Signatur der Methoden entnehmen Sie bitte der <int:link pageid="002"/>.
+</p>
+<div class="hint">
+   Die Konfigurationsmethoden unterstützen das <em>fluent interface</em>. Bei manueller Konfiguration können Parameter
+   daher einfach in der Form
+<gen:highlight type="php">
+$service = new ExtendedSoapClientService();
+$service
+   ->setProxyHost('proxy-server')
+   ->setProxyPort(8080)
+   ->setProxyUsername('foo')
+   ->setProxyPassword('bar');
+</gen:highlight>
+   definiert werden.
+</div>
+<p>
+   Details zu den in der Tabelle aufgeführten Features der PHP-SOAP-Extension finden Sie unter
+   <a class="external" href="http://de2.php.net/manual/de/soapclient.soapclient.php">php.net/manual/de/soapclient.soapclient.php</a>.
+</p>
+
+<h3 id="Chapter-3-Anwendung"><a href="#Chapter-3-Anwendung">3. Anwendung</a></h3>
+<p>
+   Mit dem <em>ExtendendSoapClientService</em> lassen sich zwei Arten der SOAP-Kommunikation abbilden: auf XML- und
+   Objekt-Basis. Die folgenden Kapitel beschreiben die beiden Möglichkeiten in der Anwendung.
+</p>
+<div class="hint">
+   Um eine einfache Verwendung der von einer SOAP-Anfrage zurückgegebenen Daten sicherzustellen, empfiehlt sich die
+   Kommunikation basierend auf Objekten (DTOs). Diese können helfen, die Signaturen der Methoden Ihrer Anwendung besser
+   zu typisieren.
+</div>
+
+<h4 id="Chapter-3-1-Kommunikation-per-XML"><a href="#Chapter-3-1-Kommunikation-per-XML">3.1. Kommunikation per XML</a></h4>
+<p>
+   Nutzen Sie die <em>executeRequest()</em>-Methode des <em>ExtendedSoapClientService</em>, so wird die gewünschte
+   Anfrage im XML-Format erwartet. Hierzu ist es empfehlenswert, <a class="external" href="http://soapui.org">SoapUI</a>
+   einzusetzen. Mit Hilfe dieses Tools lassen sich mit der gewünschten WSDL-Datei sehr einfach Beispiel-Anfragen generieren
+   und testen. Diese können Sie dann anschließend direkt in Ihren Quellcode übernehmen und mit den entsprechenden Werten
+   befüllen.
+</p>
+<p>
+   Die Methode <em>executeRequest()</em> nimmt dabei die auszuführende SOAP-Action und ein Anfrage-XML entgegen. Als
+   Ergebnis wird ein XML-Dokument basierend auf einem <em>SimpleXMLElement</em> zurückgeliefert. Beispiel:
+</p>
+<gen:highlight type="php">
+$request = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+               <soapenv:Header/>
+               <soapenv:Body>
+                  <type:AuthenticateRequest>
+                     <type:ConsumerIdentification>
+                        <type:ConsumerAuthentication>
+                           <type:Principal>...</type:Principal>
+                           <type:Credential>...</type:Credential>
+                        </type:ConsumerAuthentication>
+                     </type:ConsumerIdentification>
+                     <type:Authentication>
+                        <type:Identification>
+                           <type:Alias>...</type:Alias>
+                        </type:Identification>
+                        <type:Security>
+                           <type:SecretType>...</type:SecretType>
+                           <type:Secret>...</type:Secret>
+                        </type:Security>
+                     </type:Authentication>
+                  </type:AuthenticateRequest>
+               </soapenv:Body>
+            </soapenv:Envelope>';
+$client = new ExtendedSoapClientService();
+$client->setWsdlUrl('https://example.com/services/v1?wsdl');
+$client->setLocation('https://example.com/services/v1');
+$responseXml = $client->executeRequest('Authenticate', $request);
+</gen:highlight>
+<p>
+   Der Inhalt der Variable <em>$responseXml</em> (Instanz eines <em>SimpleXMLElement</em>) kann nun innerhalb Ihrer
+   Applikation direkt weiter verwendet werden.
+</p>
+
+<h4 id="Chapter-3-2-Kommunikation-ueber-DTOs"><a href="#Chapter-3-2-Kommunikation-ueber-DTOs">3.2. Kommunikation über DTOs</a></h4>
+<p>
+   Nutzen Sie die <em>__call()</em>-Methode des <em>ExtendedSoapClientService</em> haben Sie die Möglichkeit, das
+   Objekt-Mapping-Feature zu nutzen. Dabei wird eine Anfrage als assoziatives Array formuliert und das Ergebnis Ihrer
+   Anfrage als DTO(s) zurück gegeben.
+</p>
+<p>
+   Die Methode <em>__call()</em> - bzw. die entsprechende SOAP-Methode - nimmt ein assoziatives Array der
+   Anfrage-Parameter entgegen. Als Antwort erhalten Sie die Struktur der Antwort in Form der zuvor definierten DTOs
+   zurück. Beispiel:
+</p>
+<gen:highlight type="php">
+$request = array(
+   'ConsumerIdentification' => array(
+      'ConsumerAuthentication' => array(
+         'Principal' => '...',
+         'Credential' => '...'
+      )
+   ),
+   'Authentication' => array(
+      'Identification' => array(
+         'Alias' => '...'
+      ),
+      'Security' => array(
+         'SecretType' => '...',
+         'Secret' => '...'
+      )
+   )
+);
+$client = new ExtendedSoapClientService();
+$client->setWsdlUrl('https://example.com/services/v1?wsdl');
+$client->setLocation('https://example.com/services/v1');
+$response = $client->Authenticate($request);
+</gen:highlight>
+<div class="warn">
+   <p>
+      Bitte beachten Sie, dass der Aufbau des Anfrage-Arrays hinsichlich der Hierarchie mit der Typ-Definition in der
+      WSDL übereinstimmen muss. Andernfalls kann die PHP SOAP-Entension die Werte nicht korrekt zuordnen und es kommt
+      zu Fehlern.
+   </p>
+   <p>
+      Die Namen der Array-Offsets müssen mit den XSD-Daten-Typ-Namen übereinstimmen (vergleiche Anfrage-Struktur aus
+      <a href="#Chapter-3-1-Kommunikation-per-XML">Kapitel 3.1</a>).
+   </p>
+</div>
+<p>
+   In der Variable <em>$response</em> steckt nun die Instanz einer DTO-Klasse. Bitte beachten Sie die Hinweise zur
+   Konfiguration von Objekt-Mappings in <a href="#">Kapitel 3.3</a>.
+</p>
+
+<h4 id="Chapter-3-3-Konfiguration-Objekt-Mapping"><a href="#Chapter-3-3-Konfiguration-Objekt-Mapping">3.3. Konfiguration Objekt-Mapping</a></h4>
+<p>
+   Das Mapping von XSD-Typen auf PHP-Objekte ist ein mächtiges Werkzeug das jedoch gleichzeitig einige Tücken besitzt.
+   Aus diesem Grund stellt der <em>ExtendedSoapClientService</em> ein einfaches Interface für die Konfiguration zur
+   Verfügung. Dieses basiert auf der Klasse <em>WsdlObjectMapping</em>, die folgende Signatur besitzt:
+</p>
+<gen:highlight type="php">
+class WsdlObjectMapping extends APFObject {
+
+   public function __construct($wsdlType = null,
+                               $phpClassNamespace = null,
+                               $phpClassName = null) {
+      ...
+   }
+
+   public function setPhpClassName($phpClassName) {
+      ...
+   }
+
+   public function getPhpClassName() {
+      ...
+   }
+
+   public function setPhpClassNamespace($phpClassNamespace) {
+      ...
+   }
+
+   public function getPhpClassNamespace() {
+      ...
+   }
+
+   public function setWsdlType($wsdlType) {
+      ...
+   }
+
+   public function getWsdlType() {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   Zur Konstruktion einer Mapping-Definition ist die Typ-Deklaration aus der WSDL bzw. XSD, der Namespace der PHP-Klasse
+   und deren Namen notwendig.
+</p>
+<div class="warn">
+   Der Name der Typ-Deklaration muss dem Namen des WSDL- bzw. XSD-Typs entsprechen, nicht dem Tag-Namen bei der
+   Verwendung desselben. Wird im Rahmen einer Anfrage eine Struktur der Form
+<gen:highlight type="xml">
+<type:Identification>
+   <type:Alias>...</type:Alias>
+</type:Identification>
+</gen:highlight>
+   verwendet und liegt eine Typ-Deklaration von
+<gen:highlight type="xml">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+   <xs:element name="MemberIdentificationType">
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element type="xs:string" name="Alias"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>
+</gen:highlight>
+   vor, so ist <em>$wsdlType</em> mit dem Wert <em>MemberIdentificationType</em> zu belegen. Verwenden Sie statt dessen
+   <em>Identification</em> oder <em>type:Identification</em> schlägt das Mapping fehl.
+</div>
+<p>
+   Die Konfiguration von Mapping-Definitionen kann entweder über die Service-Konfiguration bei Verwendung des
+   <a href="#Chapter-2-2-Konfiguration-per-DIServiceManager">DIServiceManager</a> und zusätzlich oder ausschließlich
+   durch Nutzung der <em>registerWsdlObjectMapping()</em>-Methode erledigt werden.
+</p>
+
+<h5 id="Chapter-3-3-1-Konfiguration-ueber-Service-Konfiguration"><a href="#Chapter-3-3-1-Konfiguration-ueber-Service-Konfiguration">3.3.1. Konfiguration über Service-Konfiguration</a></h5>
+<p>
+   Der APF DI-Container bietet die Möglichkeit, Services mit anderen Services zu konfigurieren. Dies lässt sich im
+   Fall des <em>ExtendedSoapClientService</em> dazu nutzen, um Mapping-Definitionen zu injitieren.
+</p>
+<p>
+   Soll der im vorangegangenen Kapitel beschriebene Typ bei der Konstruktion des Services hinzugefügt werden, kann dies
+   mit folgender Service-Definition erfolgen:
+</p>
+<gen:highlight type="ini">
+[LoginService]
+servicetype = "..."
+namespace = "tools::soap"
+class = "ExtendedSoapClientService"
+
+conf.wsdl.method = "setWsdlUrl"
+conf.wsdl.value = "./login-service.wsdl"
+
+conf.service.method = "setLocation"
+conf.service.value = "https://example-com/services/login/soap"
+
+init.auth-response.method = "registerWsdlObjectMapping"
+init.auth-response.namespace = "..."
+init.auth-response.name = "AuthenticationResponseMapping"
+
+[AuthenticationResponseMapping]
+servicetype = "NORMAL"
+namespace = "tools::soap"
+class = "WsdlObjectMapping"
+
+conf.type.method = "setWsdlType"
+conf.type.value = "AuthenticationResponseType"
+conf.ns.method = "setPhpClassNamespace"
+conf.ns.value = "sample::namespace"
+conf.class.method = "setPhpClassName"
+conf.class.value = "AuthenticationResponse"
+</gen:highlight>
+<p>
+   Der &quot;Service&quot; <em>AuthenticationResponseMapping</em> definiert dabei über die Klasse <em>WsdlObjectMapping</em>
+   das Objekt-Mapping für den XSD-Typ <em>AuthenticationResponseType</em>. Bei der Konstruktion des Service
+   <em>LoginService</em> wird dieser injiziert und steht bei der Verwendung zur Verfügung. Die Anzahl der
+   Mapping-Definitionen ist nicht begrenzt.
+</p>
+<p>
+   Damit Antworten mit einer Instanz der Klasse <em>AuthenticationResponse</em> repräsentiert werden kann, muss diese
+   erstellt werden. Die Klasse selbst ist dabei eine einfache PHP-Klasse mit entsprechenden Variablen für die Inhalte
+   der Antwort. Das folgende Beispiel geht davon aus, dass bei einem erfolgreichen Login das Datum der letzten Anmeldung
+   und bei einem Fehler eine Exception zurückgegeben wird. Die erfolgreiche Antwort hat folgende XML-Struktur:
+</p>
+<gen:highlight type="xml">
+<type:AuthenticateResponse>
+   <type:LastLoginDate>...</type:LastLoginDate>
+</type:AuthenticateResponse>
+</gen:highlight>
+<p>
+   Die zugehörige PHP-Klasse hat damit folgende Signatur:
+</p>
+<gen:highlight type="php">
+class AuthenticationResponse {
+
+   private $LastLoginDate;
+
+   public function getLastLoginDate() {
+      ...
+   }
+
+}
+</gen:highlight>
+<div class="warn">
+   <p>
+      Das obenstehende Beispiel geht davon aus, dass die Antwort keine komplexen Typen beinhaltet. Sofern dies der Fall
+      ist, ist es erforderlich, die Typen aller Ergebnis-Typen zu registrieren. Ferner müssen die DTO-Klassen die Struktur
+      der zurückgelieferten Typen beachten. Dies bedeutet beispielsweise, dass für das komplexe Ergebnis innerhalb des
+      <em>AuthenticationResponse</em> eine Variable für einen komplexen Typen vorgesehen werden muss.
+   </p>
+   <p>
+      Ist das Mapping hinsichtlich der Hierarchie unterbrochen oder wurde kein Mapping definiert, liefert PHP eine
+      Struktur bestehend aus Instanzen von <em>stdClass</em> zurück.
+   </p>
+</div>
+<div class="hint">
+   Wird eine Instanz des <em>ExtendedSoapClientService</em> für mehrere Anwendungsfälle genutzt und dies beziehen sich
+   auf gleiche XSD-Typen empfiehlt sich ebenso die Konfiguration der Objekt-Mappings per Service-Konfiguration. Die
+   übrigen Typen können dann pro Anwendungsfall wie im folgenden Kapitel beschrieben nachgereicht werden.
+</div>
+
+<h5 id="Chapter-3-3-2-Konfiguration-ueber-registerWsdlObjectMapping"><a href="#Chapter-3-3-2-Konfiguration-ueber-registerWsdlObjectMapping">3.3.2. Konfiguration über registerWsdlObjectMapping()</a></h5>
+<p>
+   Soll für eine SOAP-Anfrage ein Datentyp oder ein zusätzlicher Datentyp registriert werden, können Sie wie folgt
+   vorgehen:
+</p>
+<gen:highlight type="php">
+$client->registerWsdlObjectMapping(
+   new WsdlObjectMapping(
+      'AuthenticationResponseType',
+      '...',
+      'AuthenticationResponse'
+   )
+);
+</gen:highlight>
+<p>
+   <em>$client</em> ist dabei eine Instanz des <em>ExtendedSoapClientService</em> der wie in
+   <a href="#Chapter-2-Konfiguration">Kapitel 2</a> beschrienen erzeugt wurde. Der Namespace des DTOs (zweites Argument
+   der Klasse <em>WsdlObjectMapping</em>) ist dabei abhängig von Ihrer Projekt-Struktur.
+</p>
+<p>
+   Durch mehrfachen Aufruf von <em>registerWsdlObjectMapping()</em> ist es analog zu mehrfach vorhandenen
+   Konfigurationssektionen möglich, mehrere Typen zu registrieren.
+</p>
+
+<h3 id="Chapter-4-Beispiele"><a href="#Chapter-4-Beispiele">4. Beispiele</a></h3>
+<p>
+   * Abstraktion eines Authentifizierungsservices (analog PAYBACK AuthenticationFacade?)
+   * Methoden und Typen vom Client ziehen (evtl. für Debugging)
+   * Request- und Response-Logging (für Betriebszwecke)
+   ** logging & tracing (last request/response, definierte typen und methoden)
+</p>
+
+<h3 id="Chapter-5-Tipps-und-Tricks"><a href="#Chapter-5-Tipps-und-Tricks">5. Tipps und Tricks</a></h3>
+<p>
+   * Allgemeine Fallen/Tipps & Tricks
+   * Anfragen per XML mit executeRequest() benötigen ein vollständiges SOAP-XML. Nur Body ist nicht zulässig
+   ** Mapping von einzel-elementen in listen auf listen --> features aktivieren
+   ** Vererbung funktioniert nicht!!! --> PHP-Bug <xsd:redefine /> --> https://bugs.php.net/bug.php?id=61343
+   ** Übergabe der Parameter als Assoziatives array, das zur hierarchie der XSD-Struktur passt
+   ** objekt-mapping geht nur mit dem magic call __call() feature!!!
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_148"/>

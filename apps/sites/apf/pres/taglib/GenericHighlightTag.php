@@ -1,7 +1,7 @@
 <?php
 /**
  * @package sites::apf::pres::taglib
- * @class gen_taglib_highlight
+ * @class GenericHighlightTag
  *
  * Implements a generic code highlighting taglib.
  *
@@ -9,7 +9,7 @@
  * @version
  * Version 0.1, 03.01.2010<br />
  */
-class gen_taglib_highlight extends Document {
+class GenericHighlightTag extends Document {
 
    private static $CSS = 'css';
    private static $SHELL = 'shell';
@@ -69,6 +69,7 @@ class gen_taglib_highlight extends Document {
          case self::$XML:
             $title = 'XML-Code';
             $cssClass = self::$XML;
+            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->__Content)));
             break;
 
          case self::$INI:

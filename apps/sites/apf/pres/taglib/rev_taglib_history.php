@@ -28,7 +28,7 @@ class rev_taglib_history extends Document {
       parent::__construct();
       $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'int_taglib_link', 'int', 'link');
       $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'doku_taglib_link', 'doku', 'link');
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'gen_taglib_highlight', 'gen', 'highlight');
+      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'GenericHighlightTag', 'gen', 'highlight');
    }
 
    public function onParseTime() {

@@ -1,6 +1,6 @@
 <?php
 import('sites::apf::biz', 'APFModel');
-import('sites::apf::pres::taglib', 'gen_taglib_highlight');
+import('sites::apf::pres::taglib', 'GenericHighlightTag');
 import('sites::apf::pres::taglib', 'doku_taglib_link');
 import('sites::apf::pres::taglib', 'doku_taglib_title');
 import('sites::apf::pres::taglib', 'int_taglib_link');
@@ -33,7 +33,7 @@ class html_taglib_content extends Document {
       parent::__construct();
 
       // include the additional tag libs
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'gen_taglib_highlight', 'gen', 'highlight');
+      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'GenericHighlightTag', 'gen', 'highlight');
       $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'doku_taglib_link', 'doku', 'link');
       $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'int_taglib_link', 'int', 'link');
       $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'doku_taglib_title', 'doku', 'title');
