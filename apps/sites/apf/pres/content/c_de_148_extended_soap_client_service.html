@@ -560,21 +560,302 @@ $client->registerWsdlObjectMapping(
 </p>
 
 <h3 id="Chapter-4-Beispiele"><a href="#Chapter-4-Beispiele">4. Beispiele</a></h3>
+
+<h4 id="Chapter-4-1-Logging"><a href="#Chapter-4-1-Logging">4.1. Logging</a></h4>
 <p>
-   * Abstraktion eines Authentifizierungsservices (analog PAYBACK AuthenticationFacade?)
-   * Methoden und Typen vom Client ziehen (evtl. für Debugging)
-   * Request- und Response-Logging (für Betriebszwecke)
-   ** logging & tracing (last request/response, definierte typen und methoden)
+   Bei der Nutzung eines SOAP-Interface können unterschiedliche Arten von Störungen auftreten: fachliche und technische.
+   Damit während des Betriebs ausreichend Informationen für eine Fehleranalyse zur Verfügung stehen, ist es empfehlenswert
+   die wesentlichen Informationen in Log-Dateien zu schreiben.
+</p>
+<p>
+   Hierzu können Sie die Möglichkeiten des <int:link pageid="023" /> und die Methoden <em>getLastRequest()</em> und
+   <em>getLastResponse()</em> des <em>ExtendedSoapClientService</em> nutzen. Führen wir das Beispiel aus
+   <a href="#Chapter-3-Anwendung">Kapitel 3</a> weiter, so können Sie im Fehlerfall die relevanten Funktionen wie
+   folgt in eine Log-Datei schreiben:
+</p>
+<gen:highlight type="php">
+/* @var $client ExtendedSoapClientService */
+$client = $this->getDIServiceObject('...', 'LoginService');
+
+/* @var $logger Logger */
+$logger = Singleton::getInstance('Logger');
+
+try {
+   $response = $client->Authenticate($request);
+} catch (Exception $e) {
+   $logger->logEntry(
+                     'service_calls',
+                     $e->getMessage() . ' Details: ' . $e,
+                     LogEntry::SEVERITY_ERROR);
+}
+</gen:highlight>
+<p>
+   Sollen zusätzlich die Anfrage und Antwort der Anfrage aufgezeichnet werden, lässt sich das Schwellwert-Feature des
+   <em>Logger</em>s nutzen:
+</p>
+<gen:highlight type="php">
+/* @var $client ExtendedSoapClientService */
+$client = $this->getDIServiceObject('...', 'LoginService');
+
+/* @var $logger Logger */
+$logger = Singleton::getInstance('Logger');
+
+$logFileName = 'service_calls';
+try {
+   $response = $client->Authenticate($request);
+   $logger->logEntry(
+                     $logFileName,
+                     $client->getLastRequest(),
+                     LogEntry::SEVERITY_TRACE);
+   $logger->logEntry(
+                     $logFileName,
+                     $client->getLastResponse(),
+                     LogEntry::SEVERITY_TRACE);
+} catch (Exception $e) {
+   $logger->logEntry(
+                     $logFileName,
+                     $e->getMessage() . ' Details: ' . $e,
+                     LogEntry::SEVERITY_ERROR);
+   $logger->logEntry(
+                     $logFileName,
+                     $client->getLastRequest(),
+                     LogEntry::SEVERITY_INFO);
+   $logger->logEntry(
+                     $logFileName,
+                     $client->getLastResponse(),
+                     LogEntry::SEVERITY_INFO);
+}
+</gen:highlight>
+<p>
+   Die Inhalte der aktuellen Anfrage und der zugehörigen Antwort werden innerhalb der <em>try</em>-Klammer nur dann
+   in die Log-Datei geschrieben, wenn der Schwellwert entsprechend konfiguriert ist. In jedem Fall wird die Anfrage bei
+   einer fehlerbehafteten Antwort aufgezeichnet.
+</p>
+<p>
+   Um das beschriebene Verhalten zu erreichen, muss die Einstellung
+</p>
+<gen:highlight type="php">
+$logger->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
+</gen:highlight>
+<p>
+   für den Entwicklungsbetrieb und
+</p>
+<gen:highlight type="php">
+$logger->setLogThreshold(Logger::$LOGGER_THRESHOLD_INFO);
+</gen:highlight>
+<p>
+   für den Produktionsbetrieb vorgenommen werden.
+</p>
+
+<h4 id="Chapter-4-2-Auslesen-von-registrierten-Typen-und-Funktionen"><a href="#Chapter-4-2-Auslesen-von-registrierten-Typen-und-Funktionen">4.2. Auslesen von registrierten Typen und Funktionen</a></h4>
+<p>
+   Die PHP SOAP-Implementierung unterstützt die Ausgabe von für einen Service definierte Daten-Typen und Methoden. Dies
+   ist nicht nur für die Definition von <a href="#Chapter-3-3-Konfiguration-Objekt-Mapping">Objekt-Mappings</a> interessant,
+   sondern gibt auch auskunft darüber, ob PHP die geladene WSDL korrekt verarbeitet hat.
+</p>
+<p>
+   Um die für einen Service definierten Typen auszugeben, nutzen Sie bitte
+</p>
+<gen:highlight type="php">
+echo $client->getTypes();
+</gen:highlight>
+<p>
+   für die registrierten Methoden
+</p>
+<gen:highlight type="php">
+echo $client->getFunctions();
+</gen:highlight>
+<p>
+   Um die Lesbarkeit zu verbessern können die zurückgegebenen Arrays mit Hilfe von <em>var_dump()</em>, <em>print_r()</em>
+   oder der APF-Funktion <em>printObject()</em> ausgegeben werden.
+</p>
+
+<h4 id="Chapter-4-3-Kapselung-eines-SOAP-Services"><a href="#Chapter-4-3-Kapselung-eines-SOAP-Services">4.3. Kapselung eines SOAP-Services</a></h4>
+<p>
+   Die Kapselung von Funktionen gilt gemeinhin als Vorteil für die Wartbarkeit und Austauschbarkeit von Funktionalitäten
+   innerhalb einer Software. Im Sinne einer mehrschichtigen Architektur ist es daher sinnvoll, eine externe Schnittstelle
+   vom Rest der Anwendung zu kapseln. Damit lässt sich nicht nur die Schnittstelle eigenständig implementieren und testen,
+   sondern bei Bedarf auch gegen eine andere Implementierung oder Technologie austauschen.
+</p>
+<p>
+   Zur Unterstützung bietet das APF die Nutzung des APF
+   <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DI-Containers</int:link>
+   in Verbindung mit Interfaces an. Damit lässt sich die genutzte Service-Implementierung per Konfiguration austauschen
+   und gegebenenfalls gegen eine MOCK-Implementierung austauschen. Erstellen Sie einen Service nach den genannten
+   Prinzipien und Techniken, lässt sich der erstellte Code zumeist einfacher mit Unit-Tests validieren.
+</p>
+<p>
+   Ein weiterer Vorteil dieser Vorgehensweise ist ebenso, dass sich die Service-Implementierung nicht mehr um die
+   Erstellung und Konfiguration des SOAP-Client kümmern muss. Dies übernimmt der DI-Container und stellt der Anwendung
+   einen sofort einsetzbaren Service zur Verfügung.
+</p>
+<p>
+   Als Beispiel für dieses Kapitel soll die oben beschrieben Authentifizierungsschnittstelle genutzt werden. Aufgabe ist
+   es nun, einer Anwendung einen Service zur Verfügung zu stellen, der eine Authentifizierung gegegüber einem Dritten -
+   in diesem Fall unserem SOAP-Interface - durchführt.
+</p>
+
+<h5 id="Chapter-4-3-1-Definition-des-Interfaces"><a href="#Chapter-4-3-1-Definition-des-Interfaces">4.3.1. Definition des Interfaces</a></h5>
+<p>
+   Zur internen Repräsentation des Authentifizierungsservice (=&quot;Wahrnehmung&quot; des Services innerhalb der
+   Applikation) soll folgendes Interface dienen:
+</p>
+<gen:highlight type="php">
+interface AuthenticationService {
+
+   /**
+    * @param string $username The user's name.
+    * @param string $password The user's password.
+    * @return bool True in case the authentication succeeded, false if it fails.
+    */
+   public function authenticate($username, $password);
+}
+</gen:highlight>
+
+<h5 id="Chapter-4-3-2-Implementierung-des-Service"><a href="#Chapter-4-3-2-Implementierung-des-Service">4.3.2. Implementierung des Service</a></h5>
+<p>
+   Ausgehend von der Interface-Definition aus dem vorangegangenen Kapitel kann nun der Service implementiert werden. Da
+   dieser den <em>ExtendedSoapClientService</em> nutzt und über den DI-Container konfiguriert wird, muss eine entsprechende
+   Methode zur Injektion des SOAP-Client bereitestellt werden.
+</p>
+<gen:highlight type="php">
+class AuthenticationServiceImpl implements AuthenticationService {
+
+   /**
+    * @var ExtendedSoapClientService
+    */
+   private $client;
+
+   public function setClient(ExtendedSoapClientService $client) {
+     $this->client = $client;
+   }
+
+   public function authenticate($username, $password) {
+      /* @var $logger Logger */
+      $logger = &Singleton::getInstance('Logger');
+
+      $request = array(
+         'ConsumerIdentification' => array(
+            'ConsumerAuthentication' => array(
+               'Principal' => '...',
+               'Credential' => '...'
+            )
+         ),
+         'Authentication' => array(
+            'Identification' => array(
+               'Alias' => $username
+            ),
+            'Security' => array(
+               'SecretType' => 'Password',
+               'Secret' => $password
+            )
+         )
+      );
+
+      try {
+         $this->client->Authenticate($request);
+         return true;
+      } catch (Exception $e) {
+         $logger->logEntry(
+                           'service_calls',
+                           'Authentication failed: ' . $e->getMessage(),
+                           LogEntry::SEVERITY_ERROR);
+         return false;
+      }
+   }
+}
+</gen:highlight>
+
+<h5 id="Chapter-4-3-3-Konfiguration-des-Service"><a href="#Chapter-4-3-3-Konfiguration-des-Service">4.3.3. Konfiguration des Service</a></h5>
+<p>
+   Um den Login-Service nutzen zu können, ist eine Konfiguration für den DI-Container erforderlich. Diese übernimmt die
+   Konfiguration des <em>AuthenticationService</em> und die Parametrisierung des SOAP-Clients.
+</p>
+<p>
+   Der APF DI-Container bietet Ihnen die Möglichkeit, Services als abhängige Resource von weiteren Services zu verwenden.
+   Der <em>AuthenticationService</em> ist im aktuellen Beispiel vom SOAP-Service abhänigig. Damit könnte der SOAP-Service
+   in weiteren Interface-Implementierungen genutzt werden.
+</p>
+<p>
+   Um die Komplexität der Konfiguration zu begrenzen, wird im weiteren davon ausgegangen, dass beide Service-Definitionen
+   in einer Datei abgebildet werden. Dies beschränkt die Wiederverwendung nicht, erhöht jedoch die Übersichtlichkeit
+   des Beispiels.
+</p>
+<p>
+   Die Konfiguration des <em>LoginService</em> gestaltet sich damit wie folgt:
+</p>
+<gen:highlight type="ini">
+[LoginService]
+servicetype = "SINGLETON"
+namespace = "projects::foo::biz"
+class = "AuthenticationServiceImpl"
+
+init.soap-client.method = "setClient"
+init.soap-client.namespace = "projects::foo::biz"
+init.soap-client.name = "SoapService"
+
+[SoapService]
+servicetype = "SINGLETON"
+namespace = "tools::soap"
+class = "ExtendedSoapClientService"
+
+conf.wsdl.method = "setWsdlUrl"
+conf.wsdl.value = "http://example.com/.../soap?wsdl"
+
+conf.service.method = "setLocation"
+conf.service.value = "http://example.com/.../soap"
+</gen:highlight>
+
+<h5 id="Chapter-4-3-4-Nutzung-des-Service"><a href="#Chapter-4-3-4-Nutzung-des-Service">4.3.4. Nutzung des Service</a></h5>
+<p>
+   Unter der Annahme, dass die Konfiguration im Namespace <em>projects::foo::biz</em> abgelegt ist, kann der
+   <em>LoginService</em> wie folgt verwendet werden:
+</p>
+<gen:highlight type="php">
+/* @var $service AuthenticationServiceImpl */
+$service = &$this->getDIServiceObject('projects::foo::biz', 'LoginService');
+
+if ($service->authenticate($username, $password)) {
+   echo 'Login succeeded!';
+} else {
+   echo 'Login failed!';
+}
+</gen:highlight>
+<p>
+   Details zur Definition von Konfigurationen mit dem APF entnehmen Sie bitte dem Kapitel <int:link pageid="134" />,
+   mehr Informationen zur Service-Konfiguration über den DI-Container finden sich im Kapitel <int:link pageid="107" />.
 </p>
 
 <h3 id="Chapter-5-Tipps-und-Tricks"><a href="#Chapter-5-Tipps-und-Tricks">5. Tipps und Tricks</a></h3>
 <p>
-   * Allgemeine Fallen/Tipps & Tricks
-   * Anfragen per XML mit executeRequest() benötigen ein vollständiges SOAP-XML. Nur Body ist nicht zulässig
-   ** Mapping von einzel-elementen in listen auf listen --> features aktivieren
-   ** Vererbung funktioniert nicht!!! --> PHP-Bug <xsd:redefine /> --> https://bugs.php.net/bug.php?id=61343
-   ** Übergabe der Parameter als Assoziatives array, das zur hierarchie der XSD-Struktur passt
-   ** objekt-mapping geht nur mit dem magic call __call() feature!!!
+   Dieses Kapitel stellt aus der Entwicklung gewonnene Erfahrungen zusammen. Diese sollen die Arbeit mit der
+   PHP-SOAP-Extension erleichtern und Sie auf bekannten Hürden hinweisen.
 </p>
+<ul>
+   <li>
+      <strong><em>executeRequest()</em> erwartet eine vollständige XML-Anfrage</strong>:
+      Nutzen Sie die Methode <em>executeRequest()</em>, so erwartet die PHP-SOAP-Extension wie im
+      <a href="#Chapter-3-1-Kommunikation-per-XML">Kapitel 3.1</a> beschrieben ein vollständiges Anfrage-XML. Wird nur
+      der Inhalt des Body gesendet schlägt die Anfrage fehl.
+   </li>
+   <li>
+      <strong>Abbildung Einzelelemente auf Arrays</strong>:
+      Beinhaltet das XSD-Schema des konsumierten Services Listen, die auch Einzelelemente beinhalten können, so es
+      empfehlenswert das Feature <em>SOAP_SINGLE_ELEMENT_ARRAYS</em> zu aktivieren. Damit werden auch Einzelelemente als
+      Liste abgebildet und führt innerhalb einer Anwendung (z.B. in einer <em>foreach</em>-Schleife) nicht zu Fehlern.
+   </li>
+   <li>
+      <strong>Vererbung nicht implementiert</strong>:
+      Die PHP-SOAP-Extension unterstützt keine Vererbung von Typen innerhalb einer Schema-Definition (siehe
+      <em>&lt;xsd:redefine /&gt;</em>). Hierzu existiert bereits ein Bug unter
+      <a class="external" href="https://bugs.php.net/bug.php?id=61343">bugs.php.net</a>.
+   </li>
+   <li>
+      <strong>Objekt-Mapping nur per magic call nutzbar</strong>:
+      Die PHP-SOAP-Extension führt das Objekt-Mapping nur in Verbindung mit der Nutzung der <em>__call()</em>-Methode
+      des <em>ExtendedSoapClientService</em> aus. Dieses Verhalten lässt sich auch bei nativer Nutzung des
+      <em>SoapClient</em> feststellen.
+   </li>
+</ul>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_148"/>
