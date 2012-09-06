@@ -275,16 +275,14 @@ $service
 
 <h4 id="Chapter-3-1-Communication-via-XML"><a href="#Chapter-3-1-Communication-via-XML">3.1. Communication via XML</a></h4>
 <p>
-
-   Nutzen Sie die <em>executeRequest()</em>-Methode des <em>ExtendedSoapClientService</em>, so wird die gewünschte
-   Anfrage im XML-Format erwartet. Hierzu ist es empfehlenswert, <a class="external" href="http://soapui.org">SoapUI</a>
-   einzusetzen. Mit Hilfe dieses Tools lassen sich mit der gewünschten WSDL-Datei sehr einfach Beispiel-Anfragen generieren
-   und testen. Diese können Sie dann anschließend direkt in Ihren Quellcode übernehmen und mit den entsprechenden Werten
-   befüllen.
+   In case you intend to use the <em>executeRequest()</em> method of the <em>ExtendedSoapClientService</em> communication
+   is done in pure XML. For this approach it is recommended to use <a class="external" href="http://soapui.org">SoapUI</a>.
+   With this tool, sample requests can be generated easily from the desired WSDL file. Having finished with testing, you
+   can directly copy the requests to your source code and replace the dynamic values.
 </p>
 <p>
-   Die Methode <em>executeRequest()</em> nimmt dabei die auszuführende SOAP-Action und ein Anfrage-XML entgegen. Als
-   Ergebnis wird ein XML-Dokument basierend auf einem <em>SimpleXMLElement</em> zurückgeliefert. Beispiel:
+   <em>executeRequest()</em> takes the SOAP action and a request XML as it's arguments. As as result, you will receive
+   an XML document based on <em>SimpleXMLElement</em>. Example:
 </p>
 <gen:highlight type="php">
 $request = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
@@ -315,20 +313,18 @@ $client->setLocation('https://example.com/services/v1');
 $responseXml = $client->executeRequest('Authenticate', $request);
 </gen:highlight>
 <p>
-   Der Inhalt der Variable <em>$responseXml</em> (Instanz eines <em>SimpleXMLElement</em>) kann nun innerhalb Ihrer
-   Applikation direkt weiter verwendet werden.
+   The content of the <em>$responseXml</em> variable (instance of <em>SimpleXMLElement</em>) can be used within your
+   application directly.
 </p>
 
-<h4 id="Chapter-3-2-Kommunikation-ueber-DTOs"><a href="#Chapter-3-2-Kommunikation-ueber-DTOs">3.2. Kommunikation über DTOs</a></h4>
+<h4 id="Chapter-3-2-Communication-by-DTOs"><a href="#Chapter-3-2-Communication-by-DTOs">3.2. Communication by DTOs</a></h4>
 <p>
-   Nutzen Sie die <em>__call()</em>-Methode des <em>ExtendedSoapClientService</em> haben Sie die Möglichkeit, das
-   Objekt-Mapping-Feature zu nutzen. Dabei wird eine Anfrage als assoziatives Array formuliert und das Ergebnis Ihrer
-   Anfrage als DTO(s) zurück gegeben.
+   Using the <em>__call()</em> method of the <em>ExtendedSoapClientService</em> you are given the possibility to use the
+   object mapping feature.
 </p>
 <p>
-   Die Methode <em>__call()</em> - bzw. die entsprechende SOAP-Methode - nimmt ein assoziatives Array der
-   Anfrage-Parameter entgegen. Als Antwort erhalten Sie die Struktur der Antwort in Form der zuvor definierten DTOs
-   zurück. Beispiel:
+   The <em>__call()</em> method - or the desired SOAP method respectively - takes an associative array as it's request
+   definition. The result is returned as DTOs (if configured!). Example:
 </p>
 <gen:highlight type="php">
 $request = array(
@@ -355,25 +351,46 @@ $response = $client->Authenticate($request);
 </gen:highlight>
 <div class="warn">
    <p>
-      Bitte beachten Sie, dass der Aufbau des Anfrage-Arrays hinsichlich der Hierarchie mit der Typ-Definition in der
-      WSDL übereinstimmen muss. Andernfalls kann die PHP SOAP-Entension die Werte nicht korrekt zuordnen und es kommt
-      zu Fehlern.
+      Please note, that the structure of the request array must be equal to the hierarchy of the type definition within
+      the WSDL file. Otherwise, PHP will not assign the values correctly and it comes to an error.
    </p>
    <p>
-      Die Namen der Array-Offsets müssen mit den XSD-Daten-Typ-Namen übereinstimmen (vergleiche Anfrage-Struktur aus
-      <a href="#Chapter-3-1-Kommunikation-per-XML">Kapitel 3.1</a>).
+      The names of the array offsets must comply with the XSD typ names (see request structure in
+      <a href="#Chapter-3-1-Communication-via-XML">chapter 3.1</a>).
    </p>
 </div>
 <p>
-   In der Variable <em>$response</em> steckt nun die Instanz einer DTO-Klasse. Bitte beachten Sie die Hinweise zur
-   Konfiguration von Objekt-Mappings in <a href="#">Kapitel 3.3</a>.
+   The content of the <em>$response</em> variable is no an instance of an DTO class. Please note the configuration of
+   object mappings in <a href="#Chapter-3-3-Configuration-of-object-mappings">chapter 3.3</a>.
 </p>
+<div class="hint">
+   The request may also be defined as an object structure based on <em>stdClass</em> instances instead of an associative
+   array. The above request then looks like this:
+<gen:highlight type="php">
+$request = new stdClass();
+
+$request->ConsumerIdentification = new stdClass();
+
+$request->ConsumerIdentification->ConsumerAuthentication = new stdClass();
+$request->ConsumerIdentification->ConsumerAuthentication->Principal = '...';
+$request->ConsumerIdentification->ConsumerAuthentication->Credential = '...';
+
+$request->Authentication = new stdClass();
+
+$request->Authentication->Identification = new stdClass();
+$request->Authentication->Identification->Alias = '...';
+
+$request->Authentication->Security = new stdClass();
+$request->Authentication->Security->SecretType = '...';
+$request->Authentication->Security->Secret = '...';
+</gen:highlight>
+</div>
 
 <h4 id="Chapter-3-3-Configuration-of-object-mappings"><a href="#Chapter-3-3-Configuration-of-object-mappings">3.3. Configuration of object mappings</a></h4>
 <p>
-   Das Mapping von XSD-Typen auf PHP-Objekte ist ein mächtiges Werkzeug das jedoch gleichzeitig einige Tücken besitzt.
-   Aus diesem Grund stellt der <em>ExtendedSoapClientService</em> ein einfaches Interface für die Konfiguration zur
-   Verfügung. Dieses basiert auf der Klasse <em>WsdlObjectMapping</em>, die folgende Signatur besitzt:
+   Mapping of XSD types to PHP objects is a powerful tool that in turn has various pitfalls. For this reason the
+   <em>ExtendedSoapClientService</em> exposes a simple configuration mechanism based on the <em>WsdlObjectMapping</em>
+   class:
 </p>
 <gen:highlight type="php">
 class WsdlObjectMapping extends APFObject {
@@ -411,18 +428,18 @@ class WsdlObjectMapping extends APFObject {
 }
 </gen:highlight>
 <p>
-   Zur Konstruktion einer Mapping-Definition ist die Typ-Deklaration aus der WSDL bzw. XSD, der Namespace der PHP-Klasse
-   und deren Namen notwendig.
+   Creating a mapping definition the WSDL or XSD type declaration, the namespace of the PHP class, and it's name is
+   necessary.
 </p>
 <div class="warn">
-   Der Name der Typ-Deklaration muss dem Namen des WSDL- bzw. XSD-Typs entsprechen, nicht dem Tag-Namen bei der
-   Verwendung desselben. Wird im Rahmen einer Anfrage eine Struktur der Form
+   The name of the type declaration must be the name from the WSDL or XSD type and is not equal to the name of the
+   XML tag of the response. In case the response contains a structure like
 <gen:highlight type="xml">
 <type:Identification>
    <type:Alias>...</type:Alias>
 </type:Identification>
 </gen:highlight>
-   verwendet und liegt eine Typ-Deklaration von
+   with an underlying type declaration of
 <gen:highlight type="xml">
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
    <xs:element name="MemberIdentificationType">
@@ -434,23 +451,23 @@ class WsdlObjectMapping extends APFObject {
    </xs:element>
 </xs:schema>
 </gen:highlight>
-   vor, so ist <em>$wsdlType</em> mit dem Wert <em>MemberIdentificationType</em> zu belegen. Verwenden Sie statt dessen
-   <em>Identification</em> oder <em>type:Identification</em> schlägt das Mapping fehl.
+   the value of <em>$wsdlType</em> must be <em>MemberIdentificationType</em>. Trying to use <em>Identification</em> or
+   <em>type:Identification</em> mapping will fail.
 </div>
 <p>
-   Die Konfiguration von Mapping-Definitionen kann entweder über die Service-Konfiguration bei Verwendung des
-   <a href="#Chapter-2-2-Konfiguration-per-DIServiceManager">DIServiceManager</a> und zusätzlich oder ausschließlich
-   durch Nutzung der <em>registerWsdlObjectMapping()</em>-Methode erledigt werden.
+   Adding mapping definitions may be done via service configuration using the
+   <a href="#Chapter-2-2-Configuration-by-DIServiceManager">DIServiceManager</a> or additionally or exclusively using
+   the <em>registerWsdlObjectMapping()</em> Method within your lines of code.
 </p>
 
-<h5 id="Chapter-3-3-1-Konfiguration-ueber-Service-Konfiguration"><a href="#Chapter-3-3-1-Konfiguration-ueber-Service-Konfiguration">3.3.1. Konfiguration über Service-Konfiguration</a></h5>
+<h5 id="Chapter-3-3-1-Configuration-via-service-configuration"><a href="#Chapter-3-3-1-Configuration-via-service-configuration">3.3.1. Configuration via service configuration</a></h5>
 <p>
-   Der APF DI-Container bietet die Möglichkeit, Services mit anderen Services zu konfigurieren. Dies lässt sich im
-   Fall des <em>ExtendedSoapClientService</em> dazu nutzen, um Mapping-Definitionen zu injitieren.
+   The APF DI container is able to configure a particular service using another one. This can be used as a basis for
+   injecting desired mapping definitions into the <em>ExtendedSoapClientService</em>.
 </p>
 <p>
-   Soll der im vorangegangenen Kapitel beschriebene Typ bei der Konstruktion des Services hinzugefügt werden, kann dies
-   mit folgender Service-Definition erfolgen:
+   In case the the mapping type mentioned in the last chapter should be added to the service, you may want to use the
+   following configuration:
 </p>
 <gen:highlight type="ini">
 [LoginService]
@@ -481,16 +498,16 @@ conf.class.method = "setPhpClassName"
 conf.class.value = "AuthenticationResponse"
 </gen:highlight>
 <p>
-   Der &quot;Service&quot; <em>AuthenticationResponseMapping</em> definiert dabei über die Klasse <em>WsdlObjectMapping</em>
-   das Objekt-Mapping für den XSD-Typ <em>AuthenticationResponseType</em>. Bei der Konstruktion des Service
-   <em>LoginService</em> wird dieser injiziert und steht bei der Verwendung zur Verfügung. Die Anzahl der
-   Mapping-Definitionen ist nicht begrenzt.
+   The &quot;service&quot; <em>AuthenticationResponseMapping</em> defines an object mapping for the
+   <em>AuthenticationResponseType</em> XSD type using the <em>WsdlObjectMapping</em> class. During initialization of the
+   <em>LoginService</em> the object mapping service is injected and is available during usage. The number of object
+   mapping definitions is not limited.
 </p>
 <p>
-   Damit Antworten mit einer Instanz der Klasse <em>AuthenticationResponse</em> repräsentiert werden kann, muss diese
-   erstellt werden. Die Klasse selbst ist dabei eine einfache PHP-Klasse mit entsprechenden Variablen für die Inhalte
-   der Antwort. Das folgende Beispiel geht davon aus, dass bei einem erfolgreichen Login das Datum der letzten Anmeldung
-   und bei einem Fehler eine Exception zurückgegeben wird. Die erfolgreiche Antwort hat folgende XML-Struktur:
+   In order to represent the response of an authentication call using the <em>AuthenticationResponse</em> the class must
+   be created. The class itself is a simple PHP class that contains variables for the content of the answer. The
+   following example assumes that each successful login returns the date of the last login. In case of errors, an
+   exception is thrown. The response XML is as follows:
 </p>
 <gen:highlight type="xml">
 <type:AuthenticateResponse>
@@ -498,7 +515,7 @@ conf.class.value = "AuthenticationResponse"
 </type:AuthenticateResponse>
 </gen:highlight>
 <p>
-   Die zugehörige PHP-Klasse hat damit folgende Signatur:
+   The signature of the appropriate PHP class is as follows:
 </p>
 <gen:highlight type="php">
 class AuthenticationResponse {
@@ -513,14 +530,14 @@ class AuthenticationResponse {
 </gen:highlight>
 <div class="warn">
    <p>
-      Das obenstehende Beispiel geht davon aus, dass die Antwort keine komplexen Typen beinhaltet. Sofern dies der Fall
-      ist, ist es erforderlich, die Typen aller Ergebnis-Typen zu registrieren. Ferner müssen die DTO-Klassen die Struktur
-      der zurückgelieferten Typen beachten. Dies bedeutet beispielsweise, dass für das komplexe Ergebnis innerhalb des
-      <em>AuthenticationResponse</em> eine Variable für einen komplexen Typen vorgesehen werden muss.
+      The above sample does not contain complex types. In case a response XML contains complex data structures all
+      levels have to be registered as an object mapping. Further, all DTO classes must be aware of the response structure.
+      This means, that complex data types must be represented by an internal variable within the DTO classes within the
+      <em>AuthenticationResponse</em>.
    </p>
    <p>
-      Ist das Mapping hinsichtlich der Hierarchie unterbrochen oder wurde kein Mapping definiert, liefert PHP eine
-      Struktur bestehend aus Instanzen von <em>stdClass</em> zurück.
+      In case the mapping is not defined for each hierarchy level continuously or no mapping has been defined, PHP
+      returns a structure of <em>stdClass</em> instances.
    </p>
 </div>
 <div class="hint">

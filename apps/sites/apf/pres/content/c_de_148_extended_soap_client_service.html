@@ -329,13 +329,12 @@ $responseXml = $client->executeRequest('Authenticate', $request);
 <h4 id="Chapter-3-2-Kommunikation-ueber-DTOs"><a href="#Chapter-3-2-Kommunikation-ueber-DTOs">3.2. Kommunikation über DTOs</a></h4>
 <p>
    Nutzen Sie die <em>__call()</em>-Methode des <em>ExtendedSoapClientService</em> haben Sie die Möglichkeit, das
-   Objekt-Mapping-Feature zu nutzen. Dabei wird eine Anfrage als assoziatives Array formuliert und das Ergebnis Ihrer
-   Anfrage als DTO(s) zurück gegeben.
+   Objekt-Mapping-Feature zu nutzen.
 </p>
 <p>
    Die Methode <em>__call()</em> - bzw. die entsprechende SOAP-Methode - nimmt ein assoziatives Array der
    Anfrage-Parameter entgegen. Als Antwort erhalten Sie die Struktur der Antwort in Form der zuvor definierten DTOs
-   zurück. Beispiel:
+   zurück (sofern konfiguriert!). Beispiel:
 </p>
 <gen:highlight type="php">
 $request = array(
@@ -363,7 +362,7 @@ $response = $client->Authenticate($request);
 <div class="warn">
    <p>
       Bitte beachten Sie, dass der Aufbau des Anfrage-Arrays hinsichlich der Hierarchie mit der Typ-Definition in der
-      WSDL übereinstimmen muss. Andernfalls kann die PHP SOAP-Entension die Werte nicht korrekt zuordnen und es kommt
+      WSDL übereinstimmen muss. Andernfalls kann die PHP SOAP-Extension die Werte nicht korrekt zuordnen und es kommt
       zu Fehlern.
    </p>
    <p>
@@ -373,8 +372,30 @@ $response = $client->Authenticate($request);
 </div>
 <p>
    In der Variable <em>$response</em> steckt nun die Instanz einer DTO-Klasse. Bitte beachten Sie die Hinweise zur
-   Konfiguration von Objekt-Mappings in <a href="#">Kapitel 3.3</a>.
+   Konfiguration von Objekt-Mappings in <a href="#Chapter-3-3-Konfiguration-Objekt-Mapping">Kapitel 3.3</a>.
 </p>
+<div class="hint">
+   Die Definition der Anfrage kann statt einem assoziativen Array auch mit Hilfe einer Objekt-Struktur bestehend aus
+   Instanzen der Klasse <em>stdClass</em> formuliert werden. Die zuvor genutzte Anfrage gestaltet sich damit wie folgt:
+<gen:highlight type="php">
+$request = new stdClass();
+
+$request->ConsumerIdentification = new stdClass();
+
+$request->ConsumerIdentification->ConsumerAuthentication = new stdClass();
+$request->ConsumerIdentification->ConsumerAuthentication->Principal = '...';
+$request->ConsumerIdentification->ConsumerAuthentication->Credential = '...';
+
+$request->Authentication = new stdClass();
+
+$request->Authentication->Identification = new stdClass();
+$request->Authentication->Identification->Alias = '...';
+
+$request->Authentication->Security = new stdClass();
+$request->Authentication->Security->SecretType = '...';
+$request->Authentication->Security->Secret = '...';
+</gen:highlight>
+</div>
 
 <h4 id="Chapter-3-3-Konfiguration-Objekt-Mapping"><a href="#Chapter-3-3-Konfiguration-Objekt-Mapping">3.3. Konfiguration Objekt-Mapping</a></h4>
 <p>
@@ -423,7 +444,7 @@ class WsdlObjectMapping extends APFObject {
 </p>
 <div class="warn">
    Der Name der Typ-Deklaration muss dem Namen des WSDL- bzw. XSD-Typs entsprechen, nicht dem Tag-Namen bei der
-   Verwendung desselben. Wird im Rahmen einer Anfrage eine Struktur der Form
+   Verwendung desselben. Wird im Rahmen einer Ergebnisses eine Struktur der Form
 <gen:highlight type="xml">
 <type:Identification>
    <type:Alias>...</type:Alias>
