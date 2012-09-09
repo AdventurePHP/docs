@@ -541,15 +541,14 @@ class AuthenticationResponse {
    </p>
 </div>
 <div class="hint">
-   Wird eine Instanz des <em>ExtendedSoapClientService</em> für mehrere Anwendungsfälle genutzt und dies beziehen sich
-   auf gleiche XSD-Typen empfiehlt sich ebenso die Konfiguration der Objekt-Mappings per Service-Konfiguration. Die
-   übrigen Typen können dann pro Anwendungsfall wie im folgenden Kapitel beschrieben nachgereicht werden.
+   In case one instance of the <em>ExtendedSoapClientService</em> is used for multiple cases with equal XSD types it is
+   recommended to configure the object mapping via service configuration. Further types may be defined on-demand as
+   described within the next chapter.
 </div>
 
-<h5 id="Chapter-3-3-2-Konfiguration-ueber-registerWsdlObjectMapping"><a href="#Chapter-3-3-2-Konfiguration-ueber-registerWsdlObjectMapping">3.3.2. Konfiguration über registerWsdlObjectMapping()</a></h5>
+<h5 id="Chapter-3-3-2-Configuration-via-registerWsdlObjectMapping"><a href="#Chapter-3-3-2-Configuration-via-registerWsdlObjectMapping">3.3.2. Configuration via registerWsdlObjectMapping()</a></h5>
 <p>
-   Soll für eine SOAP-Anfrage ein Datentyp oder ein zusätzlicher Datentyp registriert werden, können Sie wie folgt
-   vorgehen:
+   Registering a data type for a SOAP request can be done as follows:
 </p>
 <gen:highlight type="php">
 $client->registerWsdlObjectMapping(
@@ -561,28 +560,27 @@ $client->registerWsdlObjectMapping(
 );
 </gen:highlight>
 <p>
-   <em>$client</em> ist dabei eine Instanz des <em>ExtendedSoapClientService</em> der wie in
-   <a href="#Chapter-2-Konfiguration">Kapitel 2</a> beschrienen erzeugt wurde. Der Namespace des DTOs (zweites Argument
-   der Klasse <em>WsdlObjectMapping</em>) ist dabei abhängig von Ihrer Projekt-Struktur.
+   <em>$client</em> is an instance of the <em>ExtendedSoapClientService</em> that has been created as described in
+   <a href="#Chapter-2-Configuration">chapter 2</a>. The namespace of the DTO (second argument of the
+   <em>WsdlObjectMapping</em>) depends on your project structure.
 </p>
 <p>
-   Durch mehrfachen Aufruf von <em>registerWsdlObjectMapping()</em> ist es analog zu mehrfach vorhandenen
-   Konfigurationssektionen möglich, mehrere Typen zu registrieren.
+   Calling <em>registerWsdlObjectMapping()</em> multiple times adds multiple object mappings. This approach is equal to
+   adding more configuration sections using the service configuration flavour.
 </p>
 
-<h3 id="Chapter-4-Beispiele"><a href="#Chapter-4-Beispiele">4. Beispiele</a></h3>
+<h3 id="Chapter-4-Examples"><a href="#Chapter-4-Examples">4. Examples</a></h3>
 
 <h4 id="Chapter-4-1-Logging"><a href="#Chapter-4-1-Logging">4.1. Logging</a></h4>
 <p>
-   Bei der Nutzung eines SOAP-Interface können unterschiedliche Arten von Störungen auftreten: fachliche und technische.
-   Damit während des Betriebs ausreichend Informationen für eine Fehleranalyse zur Verfügung stehen, ist es empfehlenswert
-   die wesentlichen Informationen in Log-Dateien zu schreiben.
+   Consuming SOAP services multiple types of errors may occur: functional and technical. To be well prepared for error
+   analysis on production systems it is recommended to log all reasonable information.
 </p>
 <p>
-   Hierzu können Sie die Möglichkeiten des <int:link pageid="023" /> und die Methoden <em>getLastRequest()</em> und
-   <em>getLastResponse()</em> des <em>ExtendedSoapClientService</em> nutzen. Führen wir das Beispiel aus
-   <a href="#Chapter-3-Anwendung">Kapitel 3</a> weiter, so können Sie im Fehlerfall die relevanten Funktionen wie
-   folgt in eine Log-Datei schreiben:
+   Using the capabilities of the <int:link pageid="023" /> together with the <em>getLastRequest()</em> and
+   <em>getLastResponse()</em> methods of the <em>ExtendedSoapClientService</em> you are able to collect all relevant
+   data. Based on the example described in <a href="#Chapter-3-Usage">chapter 3</a> relevant information can be written
+   to a log file in case of errors like this:
 </p>
 <gen:highlight type="php">
 /* @var $client ExtendedSoapClientService */
@@ -601,8 +599,7 @@ try {
 }
 </gen:highlight>
 <p>
-   Sollen zusätzlich die Anfrage und Antwort der Anfrage aufgezeichnet werden, lässt sich das Schwellwert-Feature des
-   <em>Logger</em>s nutzen:
+   In case you intend to log every request and response this can be done with the threshold feature of the <em>Logger</em>:
 </p>
 <gen:highlight type="php">
 /* @var $client ExtendedSoapClientService */
@@ -638,27 +635,26 @@ try {
 }
 </gen:highlight>
 <p>
-   Die Inhalte der aktuellen Anfrage und der zugehörigen Antwort werden innerhalb der <em>try</em>-Klammer nur dann
-   in die Log-Datei geschrieben, wenn der Schwellwert entsprechend konfiguriert ist. In jedem Fall wird die Anfrage bei
-   einer fehlerbehafteten Antwort aufgezeichnet.
+   The content of the current request and it's corresponding response with the <em>try</em> block is only written to a
+   log file if it matches the defined threshold. Nevertheless, information is logged in case of an error.
 </p>
 <p>
-   Um das beschriebene Verhalten zu erreichen, muss die Einstellung
+   In order to have the above behavior the log threshold must be set to
 </p>
 <gen:highlight type="php">
 $logger->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 </gen:highlight>
 <p>
-   für den Entwicklungsbetrieb und
+   for development and to
 </p>
 <gen:highlight type="php">
 $logger->setLogThreshold(Logger::$LOGGER_THRESHOLD_INFO);
 </gen:highlight>
 <p>
-   für den Produktionsbetrieb vorgenommen werden.
+   for production environments.
 </p>
 
-<h4 id="Chapter-4-2-Auslesen-von-registrierten-Typen-und-Funktionen"><a href="#Chapter-4-2-Auslesen-von-registrierten-Typen-und-Funktionen">4.2. Auslesen von registrierten Typen und Funktionen</a></h4>
+<h4 id="Chapter-4-2-Retrieve-registered-types-and-functions"><a href="#Chapter-4-2-Retrieve-registered-types-and-functions">4.2. Retrieve registered types and functions</a></h4>
 <p>
    Die PHP SOAP-Implementierung unterstützt die Ausgabe von für einen Service definierte Daten-Typen und Methoden. Dies
    ist nicht nur für die Definition von <a href="#Chapter-3-3-Konfiguration-Objekt-Mapping">Objekt-Mappings</a> interessant,
