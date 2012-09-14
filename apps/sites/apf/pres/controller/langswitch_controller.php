@@ -1,4 +1,6 @@
 <?php
+import('sites::apf::biz', 'APFModel');
+
 /**
  * Displays the langswitch for the page. Includes progressive enhancement
  * to have a select box using js on the page and a fallback with plain links
@@ -12,10 +14,12 @@ class langswitch_controller extends base_controller {
 
    public function transformContent() {
 
-      $model = &$this->getServiceObject('sites::apf::biz', 'APFModel');
+      /* @var $model APFModel */
+      $model = &Singleton::getInstance('APFModel');
       $lang = $model->getLanguage();
       $pageId = $model->getPageId();
 
+      /* @var $urlMan UrlManager */
       $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
       $linkDe = $urlMan->generateLink($pageId, 'de');
       $linkEn = $urlMan->generateLink($pageId, 'en');

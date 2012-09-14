@@ -15,9 +15,6 @@ import('sites::apf::pres::http', 'HttpCacheManager');
  */
 class JsCssAction extends AbstractFrontcontrollerAction {
 
-   public function JsCssAction() {
-   }
-
    /**
     * @public
     *
@@ -28,13 +25,14 @@ class JsCssAction extends AbstractFrontcontrollerAction {
     * Version 0.1, 15.12.2009<br />
     */
    public function run() {
-      $fileName = $this->getInput()->getFileName();
-      if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) && (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') > 0 || substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'deflate') > 0)) {
-         ob_start('ob_gzhandler');
-      } else {
-         ob_start();
-      }
-      if ($this->getInput()->isCssFileRequested()) {
+
+      /* @var $input JsCssInput */
+      $input = $this->getInput();
+
+      $fileName = $input->getFileName();
+      ob_start('ob_gzhandler');
+
+      if ($input->isCssFileRequested()) {
          HttpCacheManager::sendCssCacheHeaders();
       } else {
          HttpCacheManager::sendJsCacheHeaders();

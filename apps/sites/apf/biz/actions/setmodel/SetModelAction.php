@@ -16,6 +16,11 @@ class SetModelAction extends AbstractFrontcontrollerAction {
 
    private static $ABOUT_PAGEID = '073';
 
+   public function isActive() {
+      $statAction = $this->getFrontController()->getActionByName('stat');
+      return $statAction == null;
+   }
+
    /**
     * @public
     *
@@ -30,7 +35,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
     */
    public function run() {
 
-      $model = Singleton::getInstance('APFModel');
+      $model = &Singleton::getInstance('APFModel');
       /* @var $model APFModel */
 
       // register request parameters
@@ -89,11 +94,11 @@ class SetModelAction extends AbstractFrontcontrollerAction {
     *
     * Returns the file name for the content and quicknavi files.
     *
-    * @param $contentFilePath The file path of the content file.
-    * @param $prefix The file prefix (c or n).
-    * @param $language The current language.
-    * @param $pageId The current page id.
-    * @return The name of the file to load.
+    * @param string $contentFilePath The file path of the content file.
+    * @param string $prefix The file prefix (c or n).
+    * @param string $language The current language.
+    * @param string $pageId The current page id.
+    * @return string The name of the file to load.
     *
     * @author Christian Achatz
     * @version
@@ -114,5 +119,3 @@ class SetModelAction extends AbstractFrontcontrollerAction {
    }
 
 }
-
-?>
