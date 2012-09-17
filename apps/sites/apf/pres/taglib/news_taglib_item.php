@@ -54,7 +54,7 @@ class news_taglib_item extends Document {
          }
          return trim($prefix . parent::transform() . $suffix);
       }
-      return (string)'';
+      return '';
    }
 
    private function transform2RSS($content) {

@@ -72,7 +72,7 @@ class rev_taglib_history extends Document {
       if (file_exists($historyFile)) {
          return preg_replace('/&([A-Za-z0-9\-_]+)=([A-Za-z0-9\-_]+)/', '&amp;$1=$2', file_get_contents($historyFile));
       }
-      return (string)'';
+      return '';
    }
 
    /**

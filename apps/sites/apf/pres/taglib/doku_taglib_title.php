@@ -85,7 +85,7 @@ class doku_taglib_title extends Document {
    public function transform() {
       $display = $this->getAttribute('display');
       if ($display == 'false') {
-         return (string)'';
+         return '';
       } else {
          return '<h2>' . $this->__Title . '</h2>';
       }
