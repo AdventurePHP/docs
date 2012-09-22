@@ -5,50 +5,59 @@
   Mit Hilfe dieser Taglib können beliebige weitere Taglibs eingebunden werden.
 </doku:title>
 <h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
-Das Adventure PHP Framework beinhaltet bereits alle üblichen Formular-Elemente, es sind jedoch
-sicher nicht alle Spezialfälle abgedeckt. Um die Funktionen der mitgelieferten Formular-Tags
-einfach erweitern zu können, wurde im Release 1.7-BETA das Tag <em>&lt;form:addtaglib /&gt;</em>
-eingeführt. Mit Hilfe dieser Taglib können beliebige weitere Taglibs eingebunden werden.
-Diese können dann dazu genutzt werden, die für den aktuellen Anwendungsfall gewünschte
-Funktionalität nachzurüsten.
-<br />
-<br />
-Das vorliegende Tutorial möchte an Hand von zwei Beispielen aufzeigen, wie der neue Tag genutzt
-werden kann und welche Möglichkeiten sich dadurch ergeben. Im ersten Beispiel wird ein einfaches
-Tag vorgestellt, mit dem das Datum im Formular als verstecktes Feld mitgeführt wird und das
-Formular auf invalid setzt, wenn dieses innerhalb von einer konfigurierbaren Zeit abgeschickt wird.
-Das dritte Kapitel zeigt, wie mit ein CAPTCHA-Tag implementiert werden kann.
-<br />
-<br />
-<br />
+<p>
+   Das Adventure PHP Framework beinhaltet bereits alle üblichen Formular-Elemente, es sind jedoch
+   sicher nicht alle Spezialfälle abgedeckt. Um die Funktionen der mitgelieferten Formular-Tags
+   einfach erweitern zu können, wurde im Release 1.7-BETA das Tag <em>&lt;form:addtaglib /&gt;</em>
+   eingeführt. Mit Hilfe dieser Taglib können beliebige weitere Taglibs eingebunden werden.
+   Diese können dann dazu genutzt werden, die für den aktuellen Anwendungsfall gewünschte
+   Funktionalität nachzurüsten.
+</p>
+<p>
+   Das vorliegende Tutorial möchte an Hand von zwei Beispielen aufzeigen, wie der neue Tag genutzt
+   werden kann und welche Möglichkeiten sich dadurch ergeben. Im ersten Beispiel wird ein einfaches
+   Tag vorgestellt, mit dem das Datum im Formular als verstecktes Feld mitgeführt wird und das
+   Formular auf invalid setzt, wenn dieses innerhalb von einer konfigurierbaren Zeit abgeschickt wird.
+   Das dritte Kapitel zeigt, wie mit ein CAPTCHA-Tag implementiert werden kann.
+</p>
+
 <h3 id="Chapter-2-Anti-SPAM-Tag"><a href="#Chapter-2-Anti-SPAM-Tag">2. Anti-SPAM-Tag</a></h3>
 <h4 id="Chapter-2-1-Idee"><a href="#Chapter-2-1-Idee">2.1. Idee</a></h4>
-Eine sehr einfache, jedoch verhältnismäßig wirkungsvolle Möglichkeit, einen
-SPAM-Schutz für ein Formular zu erstellen, ist es, die Zeit zu messen, die ein Benutzer
-benötigt, um ein Formular auszufüllen. Wird das Formular in zu kurzer Zeit ausgefüllt
-- etwa durch einen Bot - so wird das Formular als invalide gekennzeichnet und nicht abgeschickt. Wird
-mindestend die konfigurierte Zeit für das Ausfüllen benötigt, wird das Abschicken
-akzeptiert.
-<br />
-<br />
-Nachteil dieser Vorgehensweise ist, dass die Zeit, die als minimale Ausfüllzeit hinterlegt wird,
-empirisch bestimmt werden muss. Das kann im schlechtesten Fall dazu führen, dass ein Benutzer
-ein Formular nochmals abschicken muss.
-<br />
-<br />
-<br />
+<p>
+   Eine sehr einfache, jedoch verhältnismäßig wirkungsvolle Möglichkeit, einen
+   SPAM-Schutz für ein Formular zu erstellen, ist es, die Zeit zu messen, die ein Benutzer
+   benötigt, um ein Formular auszufüllen. Wird das Formular in zu kurzer Zeit ausgefüllt
+   - etwa durch einen Bot - so wird das Formular als invalide gekennzeichnet und nicht abgeschickt. Wird
+   mindestend die konfigurierte Zeit für das Ausfüllen benötigt, wird das Abschicken
+   akzeptiert.
+</p>
+<p>
+   Nachteil dieser Vorgehensweise ist, dass die Zeit, die als minimale Ausfüllzeit hinterlegt wird,
+   empirisch bestimmt werden muss. Das kann im schlechtesten Fall dazu führen, dass ein Benutzer
+   ein Formular nochmals abschicken muss.
+</p>
+
 <h4 id="Chapter-2-2-Umsetzung"><a href="#Chapter-2-2-Umsetzung">2.2. Umsetzung</a></h4>
-Für die Umsetzung der unter 2.1. beschriebenen Idee wird im Folgenden ein neues Tag erstellt,
-das das Formular als invalid kennzeichnet, wenn die Zeit zwischen Aufruf und Absenden zu kurz ist. Da
-jedes Formular eine individuelle Ausfüllzeit besitzt, wird im Tag ein Attribut vorgesehen, mit
-dem die Ausfüllzeit konfigurierbar gestaltet wird. Die Signatur des Tags hat damit folgende
-Gestalt:
+<p>
+   Für die Umsetzung der unter 2.1. beschriebenen Idee wird im Folgenden ein neues Tag erstellt,
+   das das Formular als invalid kennzeichnet, wenn die Zeit zwischen Aufruf und Absenden zu kurz ist. Da
+   jedes Formular eine individuelle Ausfüllzeit besitzt, wird im Tag ein Attribut vorgesehen, mit
+   dem die Ausfüllzeit konfigurierbar gestaltet wird. Die Signatur des Tags hat damit folgende
+   Gestalt:
+</p>
 <gen:highlight type="apf-xml">
 &lt;form:antispam minfilltime="..." /&gt;
 </gen:highlight>
-Vor der Verwendung des Tags muss dieser innerhalb des <strong>&lt;html:form /&gt;</strong>-Tags per
+<p>
+   Vor der Verwendung des Tags muss dieser innerhalb des <strong>&lt;html:form /&gt;</strong>-Tags per
+</p>
 <gen:highlight type="apf-xml">
-&lt;form:addtaglib namespace="..." class="form_taglib_antispam" prefix="form" name="antispam" /&gt;
+&lt;form:addtaglib
+   namespace="..."
+   class="form_taglib_antispam"
+   prefix="form"
+   name="antispam"
+/&gt;
 </gen:highlight>
 <p>
    bekannt gemacht werden.
@@ -103,39 +112,37 @@ class form_taglib_antispam extends form_control {
 
 }
 </gen:highlight>
-Die private Methode <strong>getAntiSpamName()</strong> generiert den Namen des Feldes aus dem Namen
-des Formulars und dem Zusatz <strong>_antispam</strong>. Da der Name hart verdratet ist, darf das
-Anti-SPAM-Tag nur einmal pro Formular verwendet werden, da es sonst zu Überlagerungen kommt.
-<br />
-<br />
-<br />
+<p>
+   Die private Methode <strong>getAntiSpamName()</strong> generiert den Namen des Feldes aus dem Namen
+   des Formulars und dem Zusatz <strong>_antispam</strong>. Da der Name hart verdratet ist, darf das
+   Anti-SPAM-Tag nur einmal pro Formular verwendet werden, da es sonst zu Überlagerungen kommt.
+</p>
+
 <h4 id="Chapter-antispam"><a href="#Chapter-antispam">2.3. Beispiel</a></h4>
-Wird der Button des Beispiel-Formulars innerhalb von weniger als 10 Sekunden geklickt, wird die
-Eingabe nicht akzeptiert und das Formular als invalid gekennzeichnet.
-<br />
-<br />
-<center>
-  <div style="border: 1px dotted gray; width: 200px; padding: 5px; background-color: #efefef;">
-    <core:importdesign namespace="sites::apf::pres::templates::content" template="form_antispam_example" />
-  </div>
-</center>
-<br />
-<br />
-Ein Manko der oben gezeigten Implementierung ist, dass ein auf Grund einer zu kurzen Ausfüllzeit
-als invalid gekennzeichnetes Formular beim zweiten Absenden erneut als invalid gekennzeichnet wird,
-da das Formular nach dem ersten Ausfüllen bereits gefüllt ist. Um dieses Problem zu umgehen,
-sollte der Status des Formulars ("<em>Wurde das Formular schon einmal abgesendet?</em>") in der Session
-mitgeführt werden.
-<br />
-<br />
-<br />
+<p>
+   Wird der Button des Beispiel-Formulars innerhalb von weniger als 10 Sekunden geklickt, wird die
+   Eingabe nicht akzeptiert und das Formular als invalid gekennzeichnet.
+</p>
+<div style="border: 1px dotted gray; width: 200px; padding: 5px; background-color: #efefef;">
+   <core:importdesign namespace="sites::apf::pres::templates::content" template="form_antispam_example" />
+</div>
+<p>
+   Ein Manko der oben gezeigten Implementierung ist, dass ein auf Grund einer zu kurzen Ausfüllzeit
+   als invalid gekennzeichnetes Formular beim zweiten Absenden erneut als invalid gekennzeichnet wird,
+   da das Formular nach dem ersten Ausfüllen bereits gefüllt ist. Um dieses Problem zu umgehen,
+   sollte der Status des Formulars (<em>Wurde das Formular schon einmal abgesendet?</em>) in der Session
+   mitgeführt werden.
+</p>
+
 <h3 id="Chapter-3-CAPTCHA-Tag"><a href="#Chapter-3-CAPTCHA-Tag">3. CAPTCHA-Tag</a></h3>
 <h4 id="Chapter-3-1-Idee"><a href="#Chapter-3-1-Idee">3.1. Idee</a></h4>
-Ähnlich dem im deutschsprachigen Forum unter
-<doku:link>http://forum.adventure-php-framework.org/de/viewtopic.php?p=125#p125</doku:link>
-vorgestellten Konzept, soll in diesem Tutorial ein Tag erstellt werden, der zur erweiterten
-Validierung in ein Formular eingebunden werden kann. Der Tag soll zur generischen Verwendbarkeit
-folgende Attribute unterstützen:
+<p>
+   Ähnlich dem im deutschsprachigen Forum unter
+   <doku:link>http://forum.adventure-php-framework.org/de/viewtopic.php?p=125#p125</doku:link>
+   vorgestellten Konzept, soll in diesem Tutorial ein Tag erstellt werden, der zur erweiterten
+   Validierung in ein Formular eingebunden werden kann. Der Tag soll zur generischen Verwendbarkeit
+   folgende Attribute unterstützen:
+</p>
 <ul>
   <li>
     <strong>button</strong>: Name des Buttons auf dessen Klick eine Validierung durchgeführt
@@ -158,18 +165,20 @@ folgende Attribute unterstützen:
     <strong>text_style</strong>: CSS-Stile für das Text-Feld
   </li>
 </ul>
-Aus den genannten Anforderungen ergibt sich folgende Tag-Beschreibung:
+<p>
+   Aus den genannten Anforderungen ergibt sich folgende Tag-Beschreibung:
+</p>
 <gen:highlight type="apf-xml">
 &lt;form:captcha
-            button = ""
-            [validate = ""]
-            [image_class = ""]
-            [image_style = ""]
-            [text_class = ""]
-            [text_style = ""]
+   button=""
+   [validate=""]
+   [image_class=""]
+   [image_style=""]
+   [text_class=""]
+   [text_style=""]
 /&gt;
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-3-2-Umsetzung"><a href="#Chapter-3-2-Umsetzung">3.2. Umsetzung</a></h4>
 <p>
    Um den Tag verwenden zu können, muss dieser dem Formular per
@@ -187,15 +196,12 @@ Aus den genannten Anforderungen ergibt sich folgende Tag-Beschreibung:
 </p>
 
 <h4 id="Chapter-captcha"><a href="#Chapter-captcha">3.3. Beispiel</a></h4>
-Das folgende Formular zeigt die Einsatzmöglichkeit des Tags. Aus Sicherheitsgründen
-generiert der Tag bei jedem Aufruf einen neuen Captcha-String.
-<br />
-<br />
-<center>
-  <div style="border: 1px dotted gray; width: 400px; padding: 5px; background-color: #efefef;">
-    <core:importdesign namespace="sites::apf::pres::templates::content" template="form_captcha_example" />
-  </div>
-</center>
-<br />
-<br />
+<p>
+   Das folgende Formular zeigt die Einsatzmöglichkeit des Tags. Aus Sicherheitsgründen
+   generiert der Tag bei jedem Aufruf einen neuen Captcha-String.
+</p>
+<div style="border: 1px dotted gray; width: 400px; padding: 5px; background-color: #efefef;">
+ <core:importdesign namespace="sites::apf::pres::templates::content" template="form_captcha_example" />
+</div>
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_070" />
