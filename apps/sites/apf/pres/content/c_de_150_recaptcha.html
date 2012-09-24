@@ -247,6 +247,7 @@ $fC->setLanguage('xyz');
 </p>
 
 <h4 id="Chapter-4-3-Eigene-Uebersetzungstexte"><a href="#Chapter-4-3-Eigene-Uebersetzungstexte">4.3. Eigene Übersetzungstexte</a></h4>
+<h5 id="Chapter-4-3-1-Konfiguration-per-Attribut"><a href="#Chapter-4-3-1-Konfiguration-per-Attribut">4.3.1. Konfiguration per Attribut</a></h5>
 <p>
    Neben der in <a href="#Chapter-4-2-Internationalisierung">Kapitel 4.2</a> beschriebenen Übersetzung ist es möglich,
    eigene Texte für die unterschiedlichen Fehlerfälle zu definieren. Hierzu stehen Ihnen folgende Tag-Attribute zur
@@ -262,63 +263,63 @@ $fC->setLanguage('xyz');
    </thead>
    <tbody>
       <tr>
-         <td>l10n-instructions-visual</td>
+         <td>label-instructions-visual</td>
          <td>instructions_visual</td>
          <td>
             Label für das CAPTCHA-Bild.
          </td>
       </tr>
       <tr>
-         <td>l10n-instructions-audio</td>
+         <td>label-instructions-audio</td>
          <td>instructions_audio</td>
          <td>
             Label für das CAPTCHA-Audio.
          </td>
       </tr>
       <tr>
-         <td>l10n-play-again</td>
+         <td>label-play-again</td>
          <td>play_again</td>
          <td>
             Label für das erneute Abspielen des Audio-CAPTCHA.
          </td>
       </tr>
       <tr>
-         <td>l10n-cant-hear-this</td>
+         <td>label-cant-hear-this</td>
          <td>cant_hear_this</td>
          <td>
             Label für das Neu-Laden eines Audio-CAPTCHA.
          </td>
       </tr>
       <tr>
-         <td>l10n-visual-challenge</td>
+         <td>label-visual-challenge</td>
          <td>visual_challenge</td>
          <td>
             Label für den Button zum Wechsel zum Bild-CAPTCHA.
          </td>
       </tr>
       <tr>
-         <td>l10n-audio-challenge</td>
+         <td>label-audio-challenge</td>
          <td>audio_challenge</td>
          <td>
             Label für den Button zum Wechsel zum Audio-CAPTCHA.
          </td>
       </tr>
       <tr>
-         <td>l10n-refresh-btn</td>
+         <td>label-refresh-btn</td>
          <td>refresh_btn</td>
          <td>
             Alternativ-Text des Neu-Laden-Buttons.
          </td>
       </tr>
       <tr>
-         <td>l10n-help-btn</td>
+         <td>label-help-btn</td>
          <td>help_btn</td>
          <td>
             Label des Hilfe-Buttons.
          </td>
       </tr>
       <tr>
-         <td>l10n-incorrect-try-again</td>
+         <td>label-incorrect-try-again</td>
          <td>incorrect_try_again</td>
          <td>
             Text der Fehlermeldung für ein falsch gelöstes CAPTCHA.
@@ -333,31 +334,30 @@ $fC->setLanguage('xyz');
 &lt;form:recaptcha
    name="my-captcha"
    ...
-   [l10n-instructions-visual=""]
-   [l10n-instructions-audio=""]
-   [l10n-play-again=""]
-   [l10n-cant-hear-this=""]
-   [l10n-visual-challenge=""]
-   [l10n-audio-challenge=""]
-   [l10n-refresh-btn=""]
-   [l10n-help-btn=""]
-   [l10n-incorrect-try-again=""]
+   [label-instructions-visual=""]
+   [label-instructions-audio=""]
+   [label-play-again=""]
+   [label-cant-hear-this=""]
+   [label-visual-challenge=""]
+   [label-audio-challenge=""]
+   [label-refresh-btn=""]
+   [label-help-btn=""]
+   [label-incorrect-try-again=""]
 /&gt;
 </gen:highlight>
 <div class="hint">
-   Die einzelnen Attribute sind jeweils optional. Sofern ein Attribut nicht angegeben wurde wird der Standard-Wert für
+   Die einzelnen Attribute sind jeweils optional. Sofern ein Attribut nicht angegeben wurde, wird der Standard-Wert für
    die aktuell aktive Sprache genutzt.
 </div>
+
+<h5 id="Chapter-4-3-2-Konfiguration-per-Tag"><a href="#Chapter-4-3-2-Konfiguration-per-Tag">4.3.2. Konfiguration per Tag</a></h5>
 <p>
    Alternativ zur Definition von eigenen Übersetzungstexten per Attribut im Template, können die Texte auch in eine
    eigene Sprach-Datei ausgelagert werden. Hierzu bringt der <em>&lt;form:recaptcha /&gt;</em>-Tag eine eigene
    <em>&lt;recaptcha:getstring /&gt;</em>-Implementierung mit:
 </p>
 <gen:highlight type="apf-xml">
-&lt;form:recaptcha
-   name="my-captcha"
-   ...
-&gt;
+&lt;form:recaptcha name="my-captcha"&gt;
    &lt;recaptcha:getstring
       namespace=""
       config=""
@@ -367,11 +367,67 @@ $fC->setLanguage('xyz');
 </gen:highlight>
 <p>
    Die Attribute des <em>&lt;recaptcha:getstring /&gt;</em>-Tags sind identisch zur Definition des
-   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>. Der einzige Unterschied
-   liegt in der Definition der Attribute.
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>. Um Texte mit Hilfe des
+   <em>&lt;recaptcha:getstring /&gt;</em>-Tags mit eigenen Übersetzungen zu bestücken, legen Sie bitte eine Sprach-Datei
+   mit den gewünschten Sprachen und Texten an. Für den Anwendungsfall
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:recaptcha name="my-captcha"&gt;
+   &lt;recaptcha:getstring
+      namespace="sites::my-site::pres"
+      config="recaptcha_labels.ini"
+      entry="guestbook"
+   /&gt;
+&lt;/form:recaptcha&gt;
+</gen:highlight>
+<p>
+   erwartet der Tag eine Konfiguration mit dem Namen <em>{ENVIRONMENT}_recaptcha_labels.ini</em> unter
+   <em>config/sites/my-site/pres/{CONTEXT}/</em>. Soll das ReCaptcha in Deutsch und Englisch angeboten werden, gestaltet
+   sich der Inhalt der Datei wie folgt:
+</p>
+<gen:highlight type="ini">
+[de]
+guestbook.label-instructions-visual=""
+guestbook.label-instructions-visual=""
+guestbook.label-instructions-audio=""
+guestbook.label-play-again=""
+guestbook.label-cant-hear-this=""
+guestbook.label-visual-challenge=""
+guestbook.label-audio-challenge=""
+guestbook.label-refresh-btn=""
+guestbook.label-help-btn=""
+guestbook.label-incorrect-try-again=""
+
+[en]
+guestbook.label-instructions-visual=""
+guestbook.label-instructions-visual=""
+guestbook.label-instructions-audio=""
+guestbook.label-play-again=""
+guestbook.label-cant-hear-this=""
+guestbook.label-visual-challenge=""
+guestbook.label-audio-challenge=""
+guestbook.label-refresh-btn=""
+guestbook.label-help-btn=""
+guestbook.label-incorrect-try-again=""
+</gen:highlight>
+<p>
+   Die Sektionen <em>de</em> und <em>en</em> beinhalten die Labels für die unterschiedlichen Sprachen und kann jederzeit
+   um weitere Sprachen erweitert werden. Die Subsektion der jeweiligen Sprache - im Beispiel <em>guestbook</em> -
+   beschreibt den Anwendungsfall des CAPTCHAs. Dies ermöglicht die zentrale Definition von Labels für unterschiedliche
+   Einsatzzwecke in einer Datei.
 </p>
 <p>
-
+   Die Subsektion der jeweiligen Sprache wird über das Attribut <em>entry</em> referenziert, die darunter definierten
+   Attribute sind identisch mit den im Tag direkt genutzten Konfigurationsmöglichkeiten (siehe Tabelle
+   <a href="#Chapter-4-3-1-Konfiguration-per-Attribut">Kapitel 4.3.1</a>).
+</p>
+<div class="hint">
+   Die einzelnen Attribute sind auch bei der Verwendung des <em>&lt;recaptcha:getstring /&gt;</em>-Tags jeweils optional.
+   Sofern ein Attribut nicht angegeben wurde, wird der Standard-Wert für die aktuell aktive Sprache genutzt.
+</div>
+<p>
+   Details zur Definition von Konfigurationen und zum Umgang mit Kontext (<em>{CONTEXT}</em>) und Umgebung
+   (<em>{ENVIRONMENT}</em>) finden Sie unter <int:link pageid="134" />.
 </p>
 
 <h4 id="Chapter-4-4-Tab-Index"><a href="#Chapter-4-4-Tab-Index">4.4. Tab-Index</a></h4>
