@@ -1,0 +1,439 @@
+<doku:title parent="073" tags="recaptcha,forms,captcha,google" title="ReCaptcha" urlname="ReCaptcha">
+   The ReCaptcha module is a wrapper for Google's ReCaptcha for the APF. It can be easily integrated into APF forms and
+   configured to meet your needs.
+</doku:title>
+<p>
+   The <em>ReCaptcha</em> module contains a tag that seamlessly integrates with APF <int:link pageid="113" />. The
+   configuration and validation of the field can be done as known from other form elements.
+</p>
+<p>
+   ReCaptcha is a CAPTCHA service offered by Google under
+   <a class="external" href="http://www.google.com/recaptcha">http://www.google.com/recaptcha</a>. The
+   <a class="external" href="http://en.wikipedia.org/wiki/Turing_test">touring test</a> provided there is deemed to be
+   the best implementation form SPAM defense.
+</p>
+<p>
+   The follwing chapters describe the usage and configuration in detail.
+</p>
+
+<h3 id="Chapter-1-ReCaptcha-key"><a href="#Chapter-1-ReCaptcha-key">1. ReCaptcha key</a></h3>
+<p>
+   In order to use ReCaptcha please register an account under
+   <a class="external" href="https://www.google.com/recaptcha/admin/create">https://www.google.com/recaptcha/admin/create</a>.
+   In case you do not have a Google account yet, please sign-up there.
+</p>
+<img src="http://media.adventure-php-framework.org/content/recaptcha_key_gen.png" alt="ReCaptcha key request form" />
+<p>
+   Please fill in the form field and submit your request clicking on the button. After processing your request, you are
+   displayed the generated key. In case you intend to use the key for multiple domains, please follow the instructions
+   within the request form.
+</p>
+<img src="http://media.adventure-php-framework.org/content/recaptcha_key_result.png" alt="ReCaptcha key" />
+<p>
+   Please note or save the key because you will need it during configuration of the CAPTCHA field.
+</p>
+
+<h3 id="Chapter-2-Usage"><a href="#Chapter-2-Usage">2. Usage</a></h3>
+<p>
+   In order to easily use the ReCaptcha service the APF module includes a tag that is similar to other form tags. The
+   signature is as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:recaptcha
+   name=""
+   public-key=""
+   private-key=""
+   theme=""
+   [custom-theme-id=""]
+   [tabindex=""]
+/&gt;
+</gen:highlight>
+<strong>Description of the attributes:</strong>
+<ul>
+   <li>
+      <strong>name</strong>: Name of the ReCaptcha control. Used to refer the control within a validator definition.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-]</code>)
+   </li>
+   <li>
+      <strong>public-key</strong>: Public key to use the ReCaptcha service with.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9-]</code>)
+   </li>
+   <li>
+      <strong>private-key</strong>: Private key to use the ReCaptcha service with.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9-]</code>)
+   </li>
+   <li>
+      <strong>theme</strong>: Name of the theme. Details can be found under
+      <a class="external" href="https://developers.google.com/recaptcha/docs/customization?hl=de#Standard_Themes">https://developers.google.com/recaptcha/docs/customization?hl=de#Standard_Themes</a>.
+      Default: <em>red</em>.
+      (<strong>Allowed characters</strong>: <code>red|white|blackglass|clean</code>)
+   </li>
+   <li>
+      <strong>custom-theme-id</strong>: ID of the custom theme. Details can be found under
+      <a class="external" href="https://developers.google.com/recaptcha/docs/customization?hl=de#Custom_Theming">https://developers.google.com/recaptcha/docs/customization?hl=de#Custom_Theming</a>.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9-_]</code>)
+   </li>
+   <li>
+      <strong>tabindex</strong>: Defines the position of the field for tab key usage.
+      (<strong>Allowed characters</strong>: <code>[0-9]</code>)
+   </li>
+</ul>
+<p>
+   In order to use the field with a <em>&lt;html:form /&gt;</em> tag, please add the following phrase:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:addtaglib
+   namespace="modules::recaptcha::pres::tags"
+   class="ReCaptchaTag"
+   prefix="form"
+   name="recaptcha"
+/&gt;
+</gen:highlight>
+<p>
+   Immediately after you can use the field as described in the subsequent code box:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   namespace="tools::form::taglib"
+   class="html_taglib_form"
+   prefix="html"
+   name="form"
+/&gt;
+&lt;html:form name="newsletter-signup"&gt;
+   &lt;form:error&gt;
+      &lt;p class="error"&gt;
+         The form is &lt;strong&gt;not&lt;/strong&gt; filled correctly!
+      &lt;/p&gt;
+   &lt;/form:error&gt;
+   &lt;form:success&gt;
+      &lt;p class="error"&gt;
+         The form is filled correctly.
+      &lt;/p&gt;
+   &lt;/form:success&gt;
+   &lt;p&gt;
+      &lt;label for="email"&gt;Email address&lt;/label&gt;
+      &lt;form:text name="email" id="email"/&gt;
+      &lt;form:addvalidator
+         class="TextLengthValidator"
+         control="email"
+         button="send"
+      /&gt;
+      &lt;form:addvalidator
+         class="EMailValidator"
+         control="email"
+         button="send"
+      /&gt;
+   &lt;/p&gt;
+   &lt;p&gt;
+      &lt;form:addtaglib
+         namespace="modules::recaptcha::pres::tags"
+         class="ReCaptchaTag"
+         prefix="form"
+         name="recaptcha"
+      /&gt;
+      &lt;form:recaptcha
+         name="re-captcha"
+         public-key="123456789012341-0000000000-ABCDE8764Rfc3"
+         private-key="123456Rt3012341-1111111111-ABCDE8764Rfc-P"
+         theme="white"
+      /&gt;
+      &lt;form:addvalidator
+         namespace="modules::recaptcha::pres::validator"
+         class="ReCaptchaValidator"
+         control="re-captcha"
+         button="send"
+      /&gt;
+   &lt;/p&gt;
+   &lt;p&gt;
+      &lt;form:button name="send" value="Send" /&gt;
+   &lt;/p&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<div class="warn">
+   Please note that the public and private key within the above code box are sample keys that cannot be used within your
+   application. Please sign up your own key pair as described in <a href="#Chapter-1-ReCaptcha-key">chapter 1</a>.
+</div>
+<p>
+   To display the above form, you need a <int:link pageid="006" /> like this:
+</p>
+<gen:highlight type="php">
+class NewsletterController extends base_controller {
+
+   public function transformContent() {
+      $this->getForm('newsletter-signup')->transformOnPlace();
+   }
+
+}
+</gen:highlight>
+
+<h3 id="Chapter-3-Validation"><a href="#Chapter-3-Validation">3. Validation</a></h3>
+<p>
+   As mentioned in <a href="#Chapter-2-Usage">chapter 2</a> the <em>recaptcha</em> module includes a validator that
+   checks the user's input. Similar to the <int:link pageid="094" /> module it is necessary to define a validator for
+   the ReCaptcha field.
+</p>
+<div class="warn">
+   In case no validator is attached to the ReCaotcha field within your form the CAPTCHA field is always valid and
+   attackers may compromise your form freely.
+</div>
+<p>
+   Validation as well as the field generation is based on the
+   <a class="external" href="http://code.google.com/p/recaptcha/downloads/list?q=label:phplib-Latest">reCAPTCHA PHP library</a>.
+   To guarantee ease of use this module includes an APF form validator that wraps this library. The validator can be
+   used as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:addvalidator
+   namespace="modules::recaptcha::pres::validator"
+   class="ReCaptchaValidator"
+   control="..."
+   button="..."
+/&gt;
+</gen:highlight>
+<p>
+   The <em>control</em> attribute refers to the desired ReCaptcha field (see <a href="#Chapter-2-Usage">chapter 2</a>)
+   and <em>button</em> defines the button that triggers the validation event. Details on form validators can be found
+   on <int:link pageid="113" anchor="Chapter-4-Validation" />.
+</p>
+
+<h3 id="Chapter-4-Customizing"><a href="#Chapter-4-Customizing">4. Customizing</a></h3>
+<p>
+   The Google ReCaptcha field is easy to adapt and the APF form element provides several attributes to support easy
+   adaption.
+</p>
+
+<h4 id="Chapter-4-1-Themes"><a href="#Chapter-4-1-Themes">4.1. Themes</a></h4>
+<p>
+   The ReCaptcha element brings several basic themes as described under
+   <a class="external" href="https://developers.google.com/recaptcha/docs/customization?hl=de#Standard_Themes">https://developers.google.com/recaptcha/docs/customization?hl=de#Standard_Themes</a>.
+   These are:
+</p>
+<ul>
+   <li><strong>red</strong> (default)</li>
+   <li><strong>white</strong></li>
+   <li><strong>blackglass</strong></li>
+   <li><strong>clean</strong></li>
+</ul>
+<p>
+   You may define your favourite theme using the <em>theme</em> attribute of the <em>&lt;form:recaptcha /&gt;</em> tag.
+</p>
+<p>
+   In case you intend to use your own theme, please read the hints on
+   <a class="external" href="https://developers.google.com/recaptcha/docs/customization?hl=de#Custom_Theming">https://developers.google.com/recaptcha/docs/customization?hl=de#Custom_Theming</a>
+   carefully. Using custom themes, the <em>theme</em> attribute must be filled with <em>custom</em>.
+</p>
+
+<h4 id="Chapter-4-2-Internationalisation"><a href="#Chapter-4-2-Internationalisation">4.2. Internationalisation</a></h4>
+<p>
+   The ReCaptcha field supports several languages out-of-the-box. Generating the field the <em>&lt;form:recaptcha /&gt;</em>
+   tag applies the currently selected language from the <em>$this->__Language</em> field. To control the language you
+   may want to use the code described under
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Sprache_per_FC-Action_%C3%A4ndern">http://wiki.adventure-php-framework.org/de/Sprache_per_FC-Action_%C3%A4ndern</a>
+   (German).
+</p>
+<p>
+   In case you are not using dynamic language switches, please ensure that the language is set correctly within your
+   bootstrap file:
+</p>
+<gen:highlight type="php">
+$fC = &Singleton::getInstance('Frontcontroller');
+...
+$fC->setLanguage('xyz');
+...
+</gen:highlight>
+
+<h4 id="Chapter-4-3-Custom-translations"><a href="#Chapter-4-3-Custom-translations">4.3. Custom translations</a></h4>
+<h5 id="Chapter-4-3-1-Configuration-via-attribute"><a href="#Chapter-4-3-1-Configuration-via-attribute">4.3.1. Configuration via attribute</a></h5>
+<p>
+   Besides the translation mechanism described in <a href="#Chapter-4-2-Internationalisation">chapter 4.2</a> you are
+   able to provide your own texts for the different parts of the ReCaptcha field. For this reason, the following
+   attributes ara available:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Attribute</td>
+         <td>JavaScript option name</td>
+         <td>Description</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>label-instructions-visual</td>
+         <td>instructions_visual</td>
+         <td>
+            Label for the CAPTCHA image.
+         </td>
+      </tr>
+      <tr>
+         <td>label-instructions-audio</td>
+         <td>instructions_audio</td>
+         <td>
+            Label for the CAPTCHA audio.
+         </td>
+      </tr>
+      <tr>
+         <td>label-play-again</td>
+         <td>play_again</td>
+         <td>
+            Label for the play-again button for audio CAPTCHAs.
+         </td>
+      </tr>
+      <tr>
+         <td>label-cant-hear-this</td>
+         <td>cant_hear_this</td>
+         <td>
+            Label for choosing a new audio CAPTCHA.
+         </td>
+      </tr>
+      <tr>
+         <td>label-visual-challenge</td>
+         <td>visual_challenge</td>
+         <td>
+            Label for choosing a new image CAPTCHA.
+         </td>
+      </tr>
+      <tr>
+         <td>label-audio-challenge</td>
+         <td>audio_challenge</td>
+         <td>
+            Label for changing to an audio CAPTCHA.
+         </td>
+      </tr>
+      <tr>
+         <td>label-refresh-btn</td>
+         <td>refresh_btn</td>
+         <td>
+            Alternative text for the load-again button.
+         </td>
+      </tr>
+      <tr>
+         <td>label-help-btn</td>
+         <td>help_btn</td>
+         <td>
+            Label for the help button.
+         </td>
+      </tr>
+      <tr>
+         <td>label-incorrect-try-again</td>
+         <td>incorrect_try_again</td>
+         <td>
+            Error message for wrong CAPTCHA solving.
+         </td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   The attributes described in the above table may be used as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:recaptcha
+   name="my-captcha"
+   ...
+   [label-instructions-visual=""]
+   [label-instructions-audio=""]
+   [label-play-again=""]
+   [label-cant-hear-this=""]
+   [label-visual-challenge=""]
+   [label-audio-challenge=""]
+   [label-refresh-btn=""]
+   [label-help-btn=""]
+   [label-incorrect-try-again=""]
+/&gt;
+</gen:highlight>
+<div class="hint">
+   Each of the attributes is optional (thus marked with brackets). In case an attribute is not specified, the default
+   value for the current language is used.
+</div>
+
+<h5 id="Chapter-4-3-2-Configuration-via-tag"><a href="#Chapter-4-3-2-Configuration-via-tag">4.3.2. Configuration via tag</a></h5>
+<p>
+   As an alternative translation texts can also be specified via language files. For this reason, the
+   <em>&lt;form:recaptcha /&gt;</em> tag ships with the <em>&lt;recaptcha:getstring /&gt;</em> implementation:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:recaptcha name="my-captcha"&gt;
+   &lt;recaptcha:getstring
+      namespace=""
+      config=""
+      entry=""
+   /&gt;
+&lt;/form:recaptcha&gt;
+</gen:highlight>
+<p>
+   The attributes of the <em>&lt;recaptcha:getstring /&gt;</em> tag are the same as for
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link> tags. In order to add custom
+   translations using the <em>&lt;recaptcha:getstring /&gt;</em> tag a custom language file including the desired
+   language and texts must be created. Having a tag definition like
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:recaptcha name="my-captcha"&gt;
+   &lt;recaptcha:getstring
+      namespace="sites::my-site::pres"
+      config="recaptcha_labels.ini"
+      entry="guestbook"
+   /&gt;
+&lt;/form:recaptcha&gt;
+</gen:highlight>
+<p>
+   the tag expects a configuration file named <em>{ENVIRONMENT}_recaptcha_labels.ini</em> and stored under
+   <em>config/sites/my-site/pres/{CONTEXT}/</em>. In case you intend to provide custom translations of the ReCaptcha
+   control in German and English the content of the file is as follows:
+</p>
+<gen:highlight type="ini">
+[de]
+guestbook.label-instructions-visual=""
+guestbook.label-instructions-visual=""
+guestbook.label-instructions-audio=""
+guestbook.label-play-again=""
+guestbook.label-cant-hear-this=""
+guestbook.label-visual-challenge=""
+guestbook.label-audio-challenge=""
+guestbook.label-refresh-btn=""
+guestbook.label-help-btn=""
+guestbook.label-incorrect-try-again=""
+
+[en]
+guestbook.label-instructions-visual=""
+guestbook.label-instructions-visual=""
+guestbook.label-instructions-audio=""
+guestbook.label-play-again=""
+guestbook.label-cant-hear-this=""
+guestbook.label-visual-challenge=""
+guestbook.label-audio-challenge=""
+guestbook.label-refresh-btn=""
+guestbook.label-help-btn=""
+guestbook.label-incorrect-try-again=""
+</gen:highlight>
+<p>
+   The sections <em>de</em> and <em>en</em> contain the labels for the respective language and further languages may
+   be added as desired. The sub-section of each language - <em>guestbook</em> in this case - describes the usage of the
+   CAPTCHA. This enables you to define different labels for different use cases within one file.
+</p>
+<p>
+   The sub-section of each language is addressed by the <em>entry</em> attribute. Below, the label attributes are the
+   same as the tag attributes (see table in <a href="#Chapter-4-3-1-Configuration-via-attribute">chapter 4.3.1</a>).
+</p>
+<div class="hint">
+   Each attribute to be used with the <em>&lt;recaptcha:getstring /&gt;</em> tag is considered optional. In case an
+   attribute is missing the default value for the current version is used instead.
+</div>
+<p>
+   Details on configurations and on the handling with different contexts (<em>{CONTEXT}</em>) and environments
+   (<em>{ENVIRONMENT}</em>) can be found under <int:link pageid="134" />.
+</p>
+
+<h4 id="Chapter-4-4-Tab-index"><a href="#Chapter-4-4-Tab-index">4.4. Tab index</a></h4>
+<p>
+   The ReCaptcha element supports the definition of field orders using the tab key. In order to define the index, please
+   provide the <em>tabindex</em> attribute of the <em>&lt;form:recaptcha /&gt;</em> tag with the intended number.
+</p>
+
+<h4 id="Chapter-4-5-SSL-usage"><a href="#Chapter-4-5-SSL-usage">4.5. SSL usage</a></h4>
+<p>
+   In order to use the SSL-based service of the ReCaptcha API please use the <em>use-ssl</em> attribute. In case it
+   contains <em>true</em> the SSL-based API of Google's ReCaptcha service is used. In case the attribute is not
+   present, the HTTP service is considered.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_150"/>
