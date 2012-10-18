@@ -1,20 +1,29 @@
-<doku:title parent="119" tags="zufall,zufallsstring,random,randomstring,zufallstext,hash" title="RandomStringManager" urlname="RandomStringManager">
+<doku:title parent="119" tags="zufall,zufallsstring,random,randomstring,zufallstext,hash,serial,seriennummer" title="RandomStringManager" urlname="RandomStringManager">
    Mit dem RandomStringManager zufällige Hashes erzeugen.
 </doku:title>
 
 <h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
 <p>
    Der <em>RandomStringManager</em> ist ein einfach zu handhabendes Tool des APF, womit der Entwickler schnell und
-   einfach zufällige Zeichenfolgen erzeugen kann. Die zu verwendenen Zeichen sowie die Länge des Endergebnisse können
-   vom Entwickler konfiguriert werden. Sofern keine Konfiguration mitgegeben wird, wird ein interner Standardwert
-   genutzt.
+   einfach zufällige formatierte und unformatierte Zeichenfolgen erzeugen kann. Die zu verwendenen Zeichen sowie die
+   Länge des Endergebnisse können vom Entwickler konfiguriert werden. Sofern keine Konfiguration mitgegeben wird,
+   wird ein interner Standardwert genutzt.
 </p>
 
 <div class="warn">
    Sonderzeichen werden immer UTF-8 codiert zurück gegeben. Eine individuelle Einstellung ist im Moment nicht möglich.
 </div>
 
-<h3 id="Chapter-2-Standardwerte"><a href="#Chapter-2-Standardwerte">2. Die Standardwerte</a></h3>
+<h3 id="Chapter-2-random-strings"><a href="#Chapter-2-random-strings">2. Erstellung zufälliger Zeichenfolgen</a></h3>
+<p>
+   Der RandomStringManager enthält zwei Methoden zur Erstellung zufälliger Zeichenfolgen (Strings):
+   <ul>
+      <li>createHash()</li>
+      <li>advancedCreateHash()</li>
+   </ul>
+</p>
+
+<h4 id="Chapter-2-1-Standardwerte"><a href="#Chapter-2-1-Standardwerte">2.1. Standardwerte</a></h4>
 <p>
    Werden dem <em>RandomStringManager</em> keine speziellen Definitionen über den Initialisierungs-Parameter
    übergeben, verwendet er folgende Standardwerte:
@@ -27,33 +36,17 @@
    <em>1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</em> erstellt wird.
 </p>
 
-<h3 id="Chapter-3-Methodenuebersicht"><a href="#Chapter-3-Methodenuebersicht">3. Methodenübersicht</a></h3>
+<h4 id="Chapter-2-2-create-Hash"><a href="#Chapter-2-2-create-Hash">2.2. Methode createHash()</a></h4>
 <p>
-   Der <em>RandomStringManager</em> bietet zwei Methoden an:
-</p>
-<ul>
-   <li>
-      <em>createHash()</em>:
-      Diese Methode erstellt einen zufälligen String anhand Ihrer Vorgaben
-   </li>
-   <li>
-      <em>advancedCreateHash()</em>:
-      Diese Methode erstellt einen zufälligen String in Anlehnung an eine Datenbank. Somit können beispielsweise
-      doppelte Einträge vermieden werden.
-   </li>
-</ul>
-
-<h3 id="Chapter-4-createHash"><a href="#Chapter-4-createHash">4. Einen einfachen Zufalls-String erzeugen</a></h3>
-<p>
-   Die Methode <em>createHash()</em> erstellt bei jedem neuen Aufruf der Funktion eine zufällige Zeichenkette und gibt
-   diese zurück. Nachfolgend ein Anwendungsbeispiel:
+   Die Methode <em>createHash()</em> erstellt bei jedem Aufruf eine zufällige Zeichenkette und gibt diese zurück.
+   Nachfolgend ein Anwendungsbeispiel:
 </p>
 <gen:highlight type="php">
 // Initialisierung des Managers
-$randomString = &$this->getAndInitServiceObject(
+$randomString = $this->getAndInitServiceObject(
    'tools::string',
    'RandomStringManager',
-   array('chars' => '', 'lenght' => '10')
+   array('lenght' => '10')
 );
 
 // Zeichenkette erstellen
@@ -68,7 +61,7 @@ $hash = $randomString->createHash();
    festgelegt. Ein Ergebnis wäre damit beispielsweise <em>kJ9i7zjC98</em>.
 </p>
 
-<h3 id="Chapter-5-advancedCreateHash"><a href="#Chapter-5-advancedCreateHash">5. Ist der String bereits vorhanden?</a></h3>
+<h4 id="Chapter-2-3-advanced-create-Hash"><a href="#Chapter-2-3-advanced-create-Hash">2.3. Methode advancedCreateHash()</a></h4>
 <p>
    Ein weiterer Anwendungsfall ist die Erzeugung eines für die Applikation tatsächlich eindeutigen Schlüssels. Das ist
    zwar durch die zufällige Erzeugung und eine entsprechend groß gewählte Länge bereits sichergestellt, trotzdem ist ein
@@ -86,7 +79,7 @@ $hash = $randomString->createHash();
 </p>
 <gen:highlight type="php">
 // Initialisierung des Managers
-$randomString = &$this->getAndInitServiceObject(
+$randomString = $this->getAndInitServiceObject(
    'tools::string',
    'RandomStringManager',
    array('chars' => '0123456789ABCDEF', 'lenght' => 3)
@@ -109,7 +102,136 @@ $hash = $randomString->advancedCreateHash('SELECT id,allHex FROM hexcode WHERE a
    festgelegt. Ein Ergebnis wäre damit beispielsweise <em>0DF</em>.
 </p>
 
-<h3 id="Chapter-6-Weiterfuehrende-Link"><a href="#Chapter-6-Weiterfuehrende-Link">6. Weiterführende Links</a></h3>
+<h3 id="Chapter-3-Serials"><a href="#Chapter-3-Serials">3. Erstellung von zufälligen Zeichenketten mit Formatierung (Seriennummer)</a></h3>
+<p>
+   Seit dem Release des APF in der Version 1.16 können anhand des RandomStringManager auch zufällige Zeichenfolgen
+   mit vorgegebener Formatierung erzeugt werden. Praktische Szenarion dafür sind beispielsweise
+   <ul>
+      <li>Erstellung von Seriennummern</li>
+      <li>Erstellung von Gutschein-Codes</li>
+   </ul>
+</p>
+
+<h4 id="Chapter-3-1-Standardwerte"><a href="#Chapter-3-1-Standardwerte">3.1. Standardwerte</a></h4>
+<p>
+   Werden dem <em>RandomStringManager</em> keine speziellen Definitionen über den Initialisierungs-Parameter
+   übergeben, verwendet er folgende Standardwerte für die Erstellung von formatierte Zeichenfolgen:
+   <ul>
+      <li>Zeichenfolge: 1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</li>
+      <li>Trennzeichen (Delimiter): -</li>
+      <li>Formatierung (Schema): XXX9-XX99-X99X-99XX</li>
+   </ul>
+   Die verwendeten Zeichen für das Schema werden Ihnen nachfolgend aufgezeigt und die Modifikationsmöglichkeiten erläutert:
+   <ul>
+      <li>X: an dieser Position wird ein zufälliger Grossbuchstabe gesetzt</li>
+      <li>x: an dieser Position wird ein zufälliger Kleinbuchstabe gesetzt</li>
+      <li>9: an dieser Position wird eine zufällige Zahl gesetzt</li>
+      <li>-: an dieser Position wird das Trennzeichen gesetzt</li>
+   </ul>
+   <div class="warn">
+      Definition des Trennzeichens sowie verwendetes Trennzeichen müssen identisch sein! Um anstelle eines "-" ein "." zu verwenden
+      müssen Sie das Trennzeichen zuerst definieren (Delimiter) und anschliessend die Position im Schema angeben!
+   </div>
+   Das heisst: Es wird eine Seriennummer bestehend aus 4 Blöcken, getrennt von einem "-" erzeugt,
+   bei dem nur grosse Buchstaben sowie Zahlen zum Einsatz kommen.
+</p>
+
+<h4 id="Chapter-3-2-create-serial"><a href="#Chapter-3-2-create-serial">3.2. Methode createSerial()</a></h4>
+<p>
+   Über die Methode <em>createSerial()</em> wird anhand Ihrer Vorgabe oder der Standard-Definition eine zufällige
+   Zeichenfolge mit entsprechender Formatierung zurück gegeben.<br />
+   Zum Vermeiden der Verwechslungsgefahr, insbesondere in Print-Medien bedenken Sie bitte, Zeichen nicht zu verwenden, die
+   ähnlich aussehen können:<br />
+   1, i, l, L, 0, O, o
+</p>
+<p>
+   Nachfolgend ein Anwendungsbeispiel:
+</p>
+<gen:highlight type="php">
+$randomString = $this->getAndInitServiceObject('tools::string', 'RandomStringManager', array());
+echo $randomString->createSerial();
+</gen:highlight>
+<p>
+   Die obige Code-Box kann wie folgt interpretiert werden:
+</p>
+<p>
+   Für die Erstellung der Seriennummer wird der Standard-Zeichensatz verwendet, da keine anders lautende Zeichenfolge
+   übergeben wurde: <em>1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</em>. Das Schema mit Trennzeichen
+   sieht folgend aus: <em>XXX9-XX99-X99X-99XX</em>. Folglich wäre ein Ergbnis beispielsweise: <em>TZE4-YM12-Q88B-97QA</em>
+</p>
+<p>
+   Ein weiteres Beispiel, bei dem anhand folgender Seriennummer die Konfiguration erläutert werden soll: <br />
+   f.bb.rre.2964.YTCN
+</p>
+<gen:highlight type="php">
+$Config = array(
+      'chars' => '23456789abcdefghkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ',
+      'delimiter' => '.',
+      'sheme' => 'x.xx.xxx.9999.XXXX'
+);
+ 
+$randomString = $this->getAndInitServiceObject('tools::string', 'RandomStringManager', $Config);
+echo $randomString->createSerial();
+</gen:highlight>
+<p>
+   Um Verwechslungsgefahr mit ähnlich aussehenden Zeichen zu vermeiden, wird der Standard-Zeichensatz durch einen Zeichensatz
+   ohne diese Zeichen überschrieben.<br />
+   Als Trennzeichen (Delimiter) wurde anstatt des "-" (Bindestrich) der "." (Punkt) angegeben.<br />
+   Das Schema wird auf "x.xx.xxx.9999.XXXX" festgelegt.
+</p>
+
+<h3 id="Chapter-4-DIService"><a href="#Chapter-4-DIService">4. Beziehen des RandomStringManager als DIService</a></h3>
+<p>
+   Seit Release des APF in Version 1.16 kann der <em>RandomStringManager</em> auch über den DIServiceManager bezogen werden.
+   Der Vorteil dabei ist die direkte Konfiguartion on the fly, ohne Änderungen im Controller/Einsatzort des
+   RandomStringManager vornehmen zu müssen und der sehr schlanke Aufruf.
+</p>
+<p>
+   Beispiel:
+</p>
+<gen:highlight type="php">
+$string = $this->getDIServiceObject('tools::string', 'myString');
+ 
+//Erstelle Hash
+echo $string->createHash();
+ 
+//Erstelle Seriennummer
+echo $string->createSerial();
+</gen:highlight>
+
+<p>
+   Beispielkonfiguration <em>config/tools/String/CONTEXT/ENVIRONMENT_serviceobjects.ini</em>:
+</p>
+<gen:highlight type="ini">
+[myString]
+namespace = "tools::string"
+class = "RandomStringManager"
+servicetype = "SINGLETON"
+ 
+; necessary configuration for creating random strings and serial numbers
+conf.chars.method = "setChars"
+conf.chars.value = "23456789abcdefghkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
+conf.length.method = "setLength"
+conf.length.value = "16"
+ 
+; necessary configuration for creating serial numbers
+conf.delimiter.method = "setDelimiter"
+conf.delimiter.value = "-"
+conf.sheme.method = "setSheme"
+conf.sheme.value = "XX9-XX99-X99X-99XX" ; X = big letter, , x = small letter, 9 = number, - = delimiter (must be equal to value of method setDelimiter!!)
+ 
+; necessary configuration to check existing random strings in database
+conf.conn.method = "setConnectionKey"
+conf.conn.value = "database-2"
+</gen:highlight>
+<p>
+   Mögliche Ausgabe:<br />
+   Hash: DeHVvQVCGTHWxTu7<rr />
+   Seriennummer: AR2-PH26-L88Q-45MC<br />
+   Für weitere Informationen bezüglich des DIServiceManager konsultieren Sie bitte die offizielle Dokumenatation sowie die Beiträge im Wiki.
+</p>
+
+<h3 id="Chapter-5-Weiterfuehrende-Link"><a href="#Chapter-5-Weiterfuehrende-Link">5. Weiterführende Links</a></h3>
 <p>
    Im Forum gibt es eine Diskussion zur Entstehung des <em>RandomStringManager</em> mit anschliessender Umlaute- und
    Sonderzeichen-Problematik:
