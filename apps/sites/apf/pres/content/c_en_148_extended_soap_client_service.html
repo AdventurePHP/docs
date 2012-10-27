@@ -656,56 +656,54 @@ $logger->setLogThreshold(Logger::$LOGGER_THRESHOLD_INFO);
 
 <h4 id="Chapter-4-2-Retrieve-registered-types-and-functions"><a href="#Chapter-4-2-Retrieve-registered-types-and-functions">4.2. Retrieve registered types and functions</a></h4>
 <p>
-   Die PHP SOAP-Implementierung unterstützt die Ausgabe von für einen Service definierte Daten-Typen und Methoden. Dies
-   ist nicht nur für die Definition von <a href="#Chapter-3-3-Konfiguration-Objekt-Mapping">Objekt-Mappings</a> interessant,
-   sondern gibt auch auskunft darüber, ob PHP die geladene WSDL korrekt verarbeitet hat.
+   PHP's SOAP implementation supports displaying the defined data types and methods. This is not only interesting for
+   <a href="#Chapter-3-3-Configuration-of-object-mappings">object mappings</a> but also for debugging purposes to see
+   whether the WSDL has been loaded correctly.
 </p>
 <p>
-   Um die für einen Service definierten Typen auszugeben, nutzen Sie bitte
+   In order to display the defined data types, please use
 </p>
 <gen:highlight type="php">
 echo $client->getTypes();
 </gen:highlight>
 <p>
-   für die registrierten Methoden
+   To display the registered commands call
 </p>
 <gen:highlight type="php">
 echo $client->getFunctions();
 </gen:highlight>
 <p>
-   Um die Lesbarkeit zu verbessern können die zurückgegebenen Arrays mit Hilfe von <em>var_dump()</em>, <em>print_r()</em>
-   oder der APF-Funktion <em>printObject()</em> ausgegeben werden.
+   To improve readability the returned arrays may be formatted using <em>var_dump()</em>, <em>print_r()</em>,
+   oder the APF function <em>printObject()</em>.
 </p>
 
-<h4 id="Chapter-4-3-Kapselung-eines-SOAP-Services"><a href="#Chapter-4-3-Kapselung-eines-SOAP-Services">4.3. Kapselung eines SOAP-Services</a></h4>
+<h4 id="Chapter-4-3-Encapsulation-of-SOAP-services"><a href="#Chapter-4-3-Encapsulation-of-SOAP-services">4.3. Encapsulation of SOAP services</a></h4>
 <p>
-   Die Kapselung von Funktionen gilt gemeinhin als Vorteil für die Wartbarkeit und Austauschbarkeit von Funktionalitäten
-   innerhalb einer Software. Im Sinne einer mehrschichtigen Architektur ist es daher sinnvoll, eine externe Schnittstelle
-   vom Rest der Anwendung zu kapseln. Damit lässt sich nicht nur die Schnittstelle eigenständig implementieren und testen,
-   sondern bei Bedarf auch gegen eine andere Implementierung oder Technologie austauschen.
+   Encapsulation of SOAP services increases maintainability of the software and lets you easily replace SOAP functionality
+   by others. Setting up a multi-tier architecture should thus include an extra layer for external services to separate
+   this specific functionality from the rest of the application. Besides, adding a separate component makes testability
+   much more easy and you are able to change the implementation or the technology on-demand.
 </p>
 <p>
-   Zur Unterstützung bietet das APF die Nutzung des APF
-   <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Komplexe-Services">DI-Containers</int:link>
-   in Verbindung mit Interfaces an. Damit lässt sich die genutzte Service-Implementierung per Konfiguration austauschen
-   und gegebenenfalls gegen eine MOCK-Implementierung austauschen. Erstellen Sie einen Service nach den genannten
-   Prinzipien und Techniken, lässt sich der erstellte Code zumeist einfacher mit Unit-Tests validieren.
+   To support this approach the APF offers a
+   <int:link pageid="107" anchor="Chapter-3-2-3-DIServiceManager-Complex-services">DI-Containers</int:link>. It can be
+   used to exchange the implementation by configuration or add a MOCK implementation of desired. In case you create your
+   code for usage with those paradigms and techniques it is more likely that the created code can be validated easily
+   with unit tests.
 </p>
 <p>
-   Ein weiterer Vorteil dieser Vorgehensweise ist ebenso, dass sich die Service-Implementierung nicht mehr um die
-   Erstellung und Konfiguration des SOAP-Client kümmern muss. Dies übernimmt der DI-Container und stellt der Anwendung
-   einen sofort einsetzbaren Service zur Verfügung.
+   Another advantage is that the service implementation must not take care of creating and configuring the SOAP client
+   itself. This is all done by the DI container that provides a ready-to-use service to your application.
 </p>
 <p>
-   Als Beispiel für dieses Kapitel soll die oben beschrieben Authentifizierungsschnittstelle genutzt werden. Aufgabe ist
-   es nun, einer Anwendung einen Service zur Verfügung zu stellen, der eine Authentifizierung gegegüber einem Dritten -
-   in diesem Fall unserem SOAP-Interface - durchführt.
+   We are taking the authentication interface as an example for the following chapters. There, we are going to solve
+   the task of providing an authentication service consuming a SOAP interface.
 </p>
 
-<h5 id="Chapter-4-3-1-Definition-des-Interfaces"><a href="#Chapter-4-3-1-Definition-des-Interfaces">4.3.1. Definition des Interfaces</a></h5>
+<h5 id="Chapter-4-3-1-Definition-of-the-interface"><a href="#Chapter-4-3-1-Definition-of-the-interface">4.3.1. Definition of the interface</a></h5>
 <p>
-   Zur internen Repräsentation des Authentifizierungsservice (=&quot;Wahrnehmung&quot; des Services innerhalb der
-   Applikation) soll folgendes Interface dienen:
+   The internal representation of the authentication service (=&quot;perception&quot; of the service within the
+   application) is defined by the following interface:
 </p>
 <gen:highlight type="php">
 interface AuthenticationService {
@@ -719,11 +717,11 @@ interface AuthenticationService {
 }
 </gen:highlight>
 
-<h5 id="Chapter-4-3-2-Implementierung-des-Service"><a href="#Chapter-4-3-2-Implementierung-des-Service">4.3.2. Implementierung des Service</a></h5>
+<h5 id="Chapter-4-3-2-Implementation-of-the-service"><a href="#Chapter-4-3-2-Implementation-of-the-service">4.3.2. Implementation of the service</a></h5>
 <p>
-   Ausgehend von der Interface-Definition aus dem vorangegangenen Kapitel kann nun der Service implementiert werden. Da
-   dieser den <em>ExtendedSoapClientService</em> nutzt und über den DI-Container konfiguriert wird, muss eine entsprechende
-   Methode zur Injektion des SOAP-Client bereitestellt werden.
+   Based on the interface described within the preceding chapter the service can now be implemented. Since the services
+   uses the <em>ExtendedSoapClientService</em> and is configured via the DO container it must provide a setter to
+   allow injection of the SOAP client.
 </p>
 <gen:highlight type="php">
 class AuthenticationServiceImpl implements AuthenticationService {
@@ -773,23 +771,22 @@ class AuthenticationServiceImpl implements AuthenticationService {
 }
 </gen:highlight>
 
-<h5 id="Chapter-4-3-3-Konfiguration-des-Service"><a href="#Chapter-4-3-3-Konfiguration-des-Service">4.3.3. Konfiguration des Service</a></h5>
+<h5 id="Chapter-4-3-3-Configuration-of-the-service"><a href="#Chapter-4-3-3-Configuration-of-the-service">4.3.3. Configuration of the Service</a></h5>
 <p>
-   Um den Login-Service nutzen zu können, ist eine Konfiguration für den DI-Container erforderlich. Diese übernimmt die
-   Konfiguration des <em>AuthenticationService</em> und die Parametrisierung des SOAP-Clients.
+   To use the service a configuration for the DI container is necessary. The configuration should both configure the
+   <em>AuthenticationService</em> as well as the SOAP client.
 </p>
 <p>
-   Der APF DI-Container bietet Ihnen die Möglichkeit, Services als abhängige Resource von weiteren Services zu verwenden.
-   Der <em>AuthenticationService</em> ist im aktuellen Beispiel vom SOAP-Service abhänigig. Damit könnte der SOAP-Service
-   in weiteren Interface-Implementierungen genutzt werden.
+   The APF DI container offers the possibility to inject services as resources of other services. In our example the
+   <em>AuthenticationService</em> depends on the SOAP service. Defining the SOAP service as a separate DI service it can
+   be oused throughout the authentication services.
 </p>
 <p>
-   Um die Komplexität der Konfiguration zu begrenzen, wird im weiteren davon ausgegangen, dass beide Service-Definitionen
-   in einer Datei abgebildet werden. Dies beschränkt die Wiederverwendung nicht, erhöht jedoch die Übersichtlichkeit
-   des Beispiels.
+   In order to limit the complexity of this example let's assume that both service definitions reside within the same
+   file. Even for production use, this doesn't limit the reusability but increases readability for now.
 </p>
 <p>
-   Die Konfiguration des <em>LoginService</em> gestaltet sich damit wie folgt:
+   The configuration of the <em>LoginService</em> is as follows:
 </p>
 <gen:highlight type="ini">
 [LoginService]
@@ -813,10 +810,10 @@ conf.service.method = "setLocation"
 conf.service.value = "http://example.com/.../soap"
 </gen:highlight>
 
-<h5 id="Chapter-4-3-4-Nutzung-des-Service"><a href="#Chapter-4-3-4-Nutzung-des-Service">4.3.4. Nutzung des Service</a></h5>
+<h5 id="Chapter-4-3-4-Usage-of-the-service"><a href="#Chapter-4-3-4-Usage-of-the-service">4.3.4. Usage of the service</a></h5>
 <p>
-   Unter der Annahme, dass die Konfiguration im Namespace <em>projects::foo::biz</em> abgelegt ist, kann der
-   <em>LoginService</em> wie folgt verwendet werden:
+   Assuming that the configuration resides with the <em>projects::foo::biz</em> namespace, the <em>LoginService</em> may
+   be used as follows:
 </p>
 <gen:highlight type="php">
 /* @var $service AuthenticationServiceImpl */
@@ -829,40 +826,39 @@ if ($service->authenticate($username, $password)) {
 }
 </gen:highlight>
 <p>
-   Details zur Definition von Konfigurationen mit dem APF entnehmen Sie bitte dem Kapitel <int:link pageid="134" />,
-   mehr Informationen zur Service-Konfiguration über den DI-Container finden sich im Kapitel <int:link pageid="107" />.
+   Details on the configuration of the APF can be taken from the <int:link pageid="134" /> chapter,
+   more information on service configuration using the DI container can be found in chapter <int:link pageid="107" />.
 </p>
 
-<h3 id="Chapter-5-Tipps-und-Tricks"><a href="#Chapter-5-Tipps-und-Tricks">5. Tipps und Tricks</a></h3>
+<h3 id="Chapter-5-Tips-and-tricks"><a href="#Chapter-5-Tips-and-tricks">5. Tips and tricks</a></h3>
 <p>
-   Dieses Kapitel stellt aus der Entwicklung gewonnene Erfahrungen zusammen. Diese sollen die Arbeit mit der
-   PHP-SOAP-Extension erleichtern und Sie auf bekannten Hürden hinweisen.
+   This chapter contains development experience essences that might help you implementing services with the PHP SOAP
+   extension or point to some common pitfalls.
 </p>
 <ul>
    <li>
-      <strong><em>executeRequest()</em> erwartet eine vollständige XML-Anfrage</strong>:
-      Nutzen Sie die Methode <em>executeRequest()</em>, so erwartet die PHP-SOAP-Extension wie im
-      <a href="#Chapter-3-1-Kommunikation-per-XML">Kapitel 3.1</a> beschrieben ein vollständiges Anfrage-XML. Wird nur
-      der Inhalt des Body gesendet schlägt die Anfrage fehl.
+      <strong><em>executeRequest()</em> expects a complete XML request</strong>:
+      Using the <em>executeRequest()</em> method you have to provide a complete request XML as described in
+      <a href="#Chapter-3-1-Communication-via-XML">chapter 3.1</a>. This is required by the PHP SOAP extension. Only
+      applying the request body will cause the operation to fail.
    </li>
    <li>
-      <strong>Abbildung Einzelelemente auf Arrays</strong>:
-      Beinhaltet das XSD-Schema des konsumierten Services Listen, die auch Einzelelemente beinhalten können, so es
-      empfehlenswert das Feature <em>SOAP_SINGLE_ELEMENT_ARRAYS</em> zu aktivieren. Damit werden auch Einzelelemente als
-      Liste abgebildet und führt innerhalb einer Anwendung (z.B. in einer <em>foreach</em>-Schleife) nicht zu Fehlern.
+      <strong>Mapping of single elements to arrays</strong>:
+      In case an XSD schema of the consumed service contains lists that may contain single elements it is recommended to
+      activate the <em>SOAP_SINGLE_ELEMENT_ARRAYS</em> feature. This maps all single elements to lists and there are
+      no issues with <em>foreach</em> loops that complain about invalid input.
    </li>
    <li>
-      <strong>Vererbung nicht implementiert</strong>:
-      Die PHP-SOAP-Extension unterstützt keine Vererbung von Typen innerhalb einer Schema-Definition (siehe
-      <em>&lt;xsd:redefine /&gt;</em>). Hierzu existiert bereits ein Bug unter
+      <strong>Inheritence is not implemented</strong>:
+      PHP's SOAP extension does not support type inheritance within the XSD schema definition (see
+      <em>&lt;xsd:redefine /&gt;</em>). For this reason, a bug has been filed under
       <a class="external" href="https://bugs.php.net/bug.php?id=61343">bugs.php.net</a>.
    </li>
    <li>
-      <strong>Objekt-Mapping nur per magic call nutzbar</strong>:
-      Die PHP-SOAP-Extension führt das Objekt-Mapping nur in Verbindung mit der Nutzung der <em>__call()</em>-Methode
-      des <em>ExtendedSoapClientService</em> aus. Dieses Verhalten lässt sich auch bei nativer Nutzung des
-      <em>SoapClient</em> feststellen.
+      <strong>Object mapping can only be used by magic call</strong>:
+      The PHP SOAP extension only applies the object mapping using the <em>__call()</em> method of the
+      <em>ExtendedSoapClientService</em>. This is also true for native usage of the <em>SoapClient</em>.
    </li>
 </ul>
 
-<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_148"/>
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_148"/>
