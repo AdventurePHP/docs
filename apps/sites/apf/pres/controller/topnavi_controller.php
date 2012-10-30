@@ -19,16 +19,17 @@ class topnavi_controller extends base_controller {
 
    public function transformContent() {
 
+      /* @var $model APFModel */
       $model = Singleton::getInstance('APFModel');
       $pageId = $model->getPageId();
-      $langIdent = $model->getLangUrlIdentifier();
 
       // by default, the documentation tab is active for all other sites!
       if (!$this->isTopLevelNavi($pageId)) {
          $pageId = $this->getParentNodeId();
       }
 
-      $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
+      /* @var $urlMan UrlManager */
+      $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
 
       $buffer = (string)'';
       foreach ($this->navi as $naviNode) {
@@ -71,6 +72,7 @@ class topnavi_controller extends base_controller {
     * @return string The parent page's id.
     */
    private function getParentNodeId() {
+      /* @var $model APFModel */
       $model = Singleton::getInstance('APFModel');
       $parentPageId = $model->getParentPageId();
       if ($parentPageId == '0') {

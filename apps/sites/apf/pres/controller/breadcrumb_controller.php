@@ -17,12 +17,13 @@ class breadcrumb_controller extends base_controller {
 
    public function transformContent() {
 
-      $model = &Singleton::getInstance('APFModel');
+      $model = & Singleton::getInstance('APFModel');
       /* @var $model APFModel */
       $parent = $model->getParentPageId();
       $lang = $model->getLanguage();
       if ($parent !== '0') {
-         $linkGen = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
+         /* @var $linkGen UrlManager */
+         $linkGen = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
          $docuLink = $linkGen->generateLink($parent, $lang);
          $docuTitle = $linkGen->getPageTitle($parent, $lang);
 

@@ -78,7 +78,7 @@ abstract class release_base_controller extends base_controller {
    /**
     * @protected
     *
-    * Returns all avaialble releases.
+    * Returns all available releases.
     *
     * @return string[] All available releases.
     *
@@ -88,7 +88,7 @@ abstract class release_base_controller extends base_controller {
     */
    protected function getAllReleases() {
       /* @var $t BenchmarkTimer */
-      $t = &Singleton::getInstance('BenchmarkTimer');
+      $t = & Singleton::getInstance('BenchmarkTimer');
       $id = 'release_base_controller::getAllReleases()';
       $t->start($id);
       $releases = array_reverse(FilesystemManager::getFolderContent($this->__ReleasesLocalDir));
@@ -113,6 +113,8 @@ abstract class release_base_controller extends base_controller {
     * Version 0.2, 15.01.2008 (Update to the sort algorithm)<br />
     */
    public static function sortReleases($offsetOne, $offsetTwo) {
+
+      $return = 0;
 
       //echo '<br />"'.$OffsetOne.'" | "'.$OffsetTwo.'" | Ergebnis:';
 
@@ -228,7 +230,7 @@ abstract class release_base_controller extends base_controller {
     * Displays one particular release.
     *
     * @param string $releaseNumber The number of the release to display.
-    * @return The HTML source for the given release.
+    * @return string The HTML source for the given release.
     *
     * @author Christian Achatz
     * @version
@@ -237,8 +239,8 @@ abstract class release_base_controller extends base_controller {
    protected function displayRelease($releaseNumber) {
 
       // get templates
-      $templateReleaseHead = &$this->getTemplate('ReleaseHead');
-      $templateReleaseFile = &$this->getTemplate('ReleaseFile');
+      $templateReleaseHead = & $this->getTemplate('ReleaseHead');
+      $templateReleaseFile = & $this->getTemplate('ReleaseFile');
 
       // gather version -------------------------------------------------------------------------
       $dashOffset = strpos($releaseNumber, '-');
@@ -269,20 +271,18 @@ abstract class release_base_controller extends base_controller {
          $docsFolder = 'docs';
       } elseif ($version == 110 && substr_count($releaseNumber, 'RC') == 0) {
          $docsFolder = 'docs';
-      }
-      elseif ($version == 110 && substr_count($releaseNumber, 'RC') > 0) {
+      } elseif ($version == 110 && substr_count($releaseNumber, 'RC') > 0) {
          $docsFolder = 'doku';
-      }
-      else {
+      } else {
          $docsFolder = 'doku';
       }
       $dokuFiles = FilesystemManager::getFolderContent($this->__ReleasesLocalDir . '/' . $releaseNumber . '/' . $docsFolder);
 
       // choose new template for versions > 1.10
       if ($version >= 110) {
-         $templateOfflineDoku = &$this->getTemplate('OfflineDoku_110');
+         $templateOfflineDoku = & $this->getTemplate('OfflineDoku_110');
       } else {
-         $templateOfflineDoku = &$this->getTemplate('OfflineDoku');
+         $templateOfflineDoku = & $this->getTemplate('OfflineDoku');
       }
 
       $templateOfflineDoku->setPlaceHolder('ReleaseVersion', $releaseNumber);
@@ -333,8 +333,7 @@ abstract class release_base_controller extends base_controller {
                      $dokuType = 'module';
                   }
 
-               }
-               else {
+               } else {
 
                   if ($this->__Language == 'de') {
                      $dokuType = 'Tools';
@@ -387,10 +386,10 @@ abstract class release_base_controller extends base_controller {
 
       // -- check version to be greater than 1.10, than display only one online api doku
       if ($version >= 110) {
-         $templateDocumentation = &$this->getTemplate('Documentation_new');
+         $templateDocumentation = & $this->getTemplate('Documentation_new');
          $templateDocumentation->setPlaceHolder('DocsFolder', $docsFolder);
       } else {
-         $templateDocumentation = &$this->getTemplate('Documentation');
+         $templateDocumentation = & $this->getTemplate('Documentation');
       }
       $templateDocumentation->setPlaceHolder('ReleaseVersion', $releaseNumber);
       $templateDocumentation->setPlaceHolder('OfflineDoku', $bufferOfflineDoku);
@@ -402,7 +401,8 @@ abstract class release_base_controller extends base_controller {
       $title = $config->getSection($this->getLanguage())->getValue('downloads.changeset.text.linktext');
       $title .= $releaseNumber;
 
-      $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
+      /* @var $urlMan UrlManager */
+      $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
       $link = $urlMan->generateLink(self::$REV_HISTORY_PAGEID, $this->__Language);
       $templateDocumentation->setPlaceHolder(
          'HistoryLink',

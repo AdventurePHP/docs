@@ -15,7 +15,7 @@ import('sites::apf::pres::controller::release', 'release_base_controller');
 class api_controller extends release_base_controller {
 
    public function __construct() {
-      parent::release_base_controller();
+      parent::__construct();
    }
 
    /**
@@ -29,10 +29,10 @@ class api_controller extends release_base_controller {
     */
    public function transformContent() {
 
-      // get the desired releaes
+      // get the desired release
       $releases = $this->getAllReleases();
 
-      // prefill the template
+      // pre-fill the template
       $tmpl = &$this->getTemplate('Release');
       $tmpl->setPlaceHolder('ReleaseURL', $this->__ReleasesBaseURL);
       $tmpl_version = &$this->getTemplate('Version_' . $this->__Language);

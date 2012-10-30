@@ -38,13 +38,13 @@ class sidebar_current_controller extends release_base_controller {
       $normalizedUnstable = release_base_controller::normalizeVersionNumber($unstableRelease);
       $normalizedStable = release_base_controller::normalizeVersionNumber($stableRelease);
       if ($normalizedUnstable > $normalizedStable) {
-         $tmpl = &$this->getTemplate(self::$UNSTABLE);
+         $tmpl = & $this->getTemplate(self::$UNSTABLE);
          $tmpl->setPlaceHolder('release', $this->buildLink($unstableRelease, self::$UNSTABLE_PAGEID));
          $tmpl->transformOnPlace();
       }
 
       // handle stable releases
-      $tmpl = &$this->getTemplate(self::$STABLE);
+      $tmpl = & $this->getTemplate(self::$STABLE);
       $tmpl->setPlaceHolder('release', $this->buildLink($stableRelease, self::$STABLE_PAGEID));
       $tmpl->transformOnPlace();
 
@@ -56,7 +56,8 @@ class sidebar_current_controller extends release_base_controller {
     * @return string The desired link to the release page.
     */
    private function buildLink($release, $pageId) {
-      $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
+      /* @var $urlMan UrlManager */
+      $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
       $link = $urlMan->generateLink($pageId, $this->__Language);
       return '<a href="' . $link . '" title="Get release ' . $release . '!">APF ' . $release . '</a>';
    }

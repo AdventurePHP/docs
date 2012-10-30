@@ -21,18 +21,19 @@ class FulltextsearchManager extends APFObject {
     *
     * L�d Ergebnis-Objekte gem�� einem Suchwort.<br />
     *
-    * @param string $SearchString; Suchwort, oder mehrere W�rter per Space getrennt
-    * @return array $SearchResults; Liste von Such-Ergebnis-Objekten
+    * @param string $SearchString Suchwort, oder mehrere W�rter per Space getrennt
+    * @return SearchResult[] List of search results for the given search term.
     *
     * @author Christian Achatz
     * @version
     * Version 0.1, 10.03.2008<br />
     */
    public function loadSearchResult($SearchString) {
-      $m = &$this->getServiceObject('sites::apf::data', 'FulltextsearchMapper');
+      /* @var $m FulltextsearchManager */
+      $m = & $this->getServiceObject('sites::apf::data', 'FulltextsearchMapper');
 
-      // Suchwort protokollieren
-      $l = &Singleton::getInstance('Logger');
+      /* @var $l Logger */
+      $l = & Singleton::getInstance('Logger');
       $l->logEntry('searchlog', 'SearchString: "' . $SearchString . '"', 'LOG');
 
       return $m->loadSearchResult($SearchString);

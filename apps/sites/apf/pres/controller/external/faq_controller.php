@@ -23,6 +23,7 @@ class faq_controller extends base_controller {
    public function transformContent() {
 
       // get forum database connection
+      /* @var $cM ConnectionManager */
       $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
       $SQLForum = &$cM->getConnection('Forum');
 
@@ -56,7 +57,6 @@ class faq_controller extends base_controller {
 
       // create post list
       $buffer = (string)'';
-      $isFirstPost = true;
 
       while ($data = $SQLForum->fetchData($result)) {
 

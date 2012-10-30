@@ -26,14 +26,14 @@ class all_stable_releases_controller extends release_base_controller {
     * @public
     *
     * Displays the releases available in the release folder. The directory structure is
-    * /<release_name>/[downloads|doku]/. The downloads folder contains all files, the doku folder
-    * includes the online and offlien documentation.
+    * /<release_name>/[downloads|docs]/. The downloads folder contains all files, the docs folder
+    * includes the online and offline documentation.
     *
     * @author Christian Achatz
     * @version
     * Version 0.1, 16.08.2007<br />
     * Version 0.2, 18.08.2007 (Release files are sorted by name now)<br />
-    * Version 0.3, 19.09.2008 (Refactoring for the new documenation page)<br />
+    * Version 0.3, 19.09.2008 (Refactoring for the new documentation page)<br />
     * Version 0.4, 29.12.2009 (Displays only stable versions now)<br />
     */
    public function transformContent() {

@@ -14,8 +14,9 @@ class bugs_controller extends base_controller {
    public function transformContent() {
 
       // get forum database connection
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
-      $forumConn = &$cM->getConnection('Forum');
+      /* @var $cM ConnectionManager */
+      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $forumConn = & $cM->getConnection('Forum');
 
       // get configuration from the registry
       $forumBaseURL = Registry::retrieve('sites::apf', 'ForumBaseURL');
@@ -39,16 +40,15 @@ class bugs_controller extends base_controller {
                     LIMIT 10;';
       $result = $forumConn->executeTextStatement($select);
 
-      // get template and prefill it
-      $postsForum = &$this->getTemplate('PostsForum');
-      $authorLabel = &$this->getTemplate('Author_' . $this->__Language);
-      $creationDateLabel = &$this->getTemplate('CreationDate_' . $this->__Language);
+      // get template and pre-fill it
+      $postsForum = & $this->getTemplate('PostsForum');
+      $authorLabel = & $this->getTemplate('Author_' . $this->__Language);
+      $creationDateLabel = & $this->getTemplate('CreationDate_' . $this->__Language);
       $postsForum->setPlaceHolder('AuthorLabel', $authorLabel->transformTemplate());
       $postsForum->setPlaceHolder('CreationDateLabel', $creationDateLabel->transformTemplate());
 
       // create post list
       $buffer = (string)'';
-      $isFirstPost = true;
 
       while ($data = $forumConn->fetchData($result)) {
 

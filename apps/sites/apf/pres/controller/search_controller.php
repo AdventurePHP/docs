@@ -43,6 +43,7 @@ class search_controller extends base_controller {
       if (strlen($searchTerm) >= 3) {
 
          // get manager
+         /* @var $m FulltextsearchManager */
          $m = &$this->getServiceObject('sites::apf::biz', 'FulltextsearchManager');
 
          // load results
@@ -58,6 +59,7 @@ class search_controller extends base_controller {
          $template = &$this->getTemplate('Result');
 
          $count = count($searchResults);
+         /* @var $urlMan UrlManager */
          $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
          $baseUrl = Registry::retrieve('apf::core', 'URLBasePath');
          for ($i = 0; $i < $count; $i++) {

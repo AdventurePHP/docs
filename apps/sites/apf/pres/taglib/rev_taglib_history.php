@@ -1,5 +1,6 @@
 <?php
 import('sites::apf::pres::controller::release', 'release_base_controller');
+import('sites::apf::biz', 'APFModel');
 
 /**
  * @package sites::apf::pres::taglib
@@ -42,6 +43,12 @@ class rev_taglib_history extends Document {
       $this->__Content .= $this->getReleaseDescription($release);
       $this->__Content .= '</div>' . PHP_EOL;
       $this->__extractTagLibTags();
+
+      // append release number to HTML title to avoid duplicate titles for SEO reasons
+      /* @var $model APFModel */
+      $model = Singleton::getInstance('APFModel');
+      $model->setTitle($model->getTitle() . ' ' . $this->getReleaseNumber());
+
    }
 
    public function onAfterAppend() {

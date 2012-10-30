@@ -31,7 +31,7 @@ class main_controller extends base_controller {
     */
    public function transformContent() {
 
-      // get model
+      /* @var $model APFModel */
       $model = Singleton::getInstance('APFModel');
 
       // current title
@@ -97,5 +97,3 @@ class main_controller extends base_controller {
    }
 
 }
-
-?>

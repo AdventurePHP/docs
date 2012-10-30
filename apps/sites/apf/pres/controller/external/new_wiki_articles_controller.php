@@ -14,8 +14,9 @@ class new_wiki_articles_controller extends base_controller {
    public function transformContent() {
 
       // get wiki database connection
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
-      $wikiConn = &$cM->getConnection('Wiki');
+      /* @var $cM ConnectionManager */
+      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $wikiConn = & $cM->getConnection('Wiki');
 
       // get configuration from the registry
       $wikiBaseURL = Registry::retrieve('sites::apf', 'WikiBaseURL');
@@ -44,7 +45,7 @@ class new_wiki_articles_controller extends base_controller {
       $result = $wikiConn->executeTextStatement($select);
 
       // get template and prefill it
-      $article = &$this->getTemplate('article_' . $this->__Language);
+      $article = & $this->getTemplate('article_' . $this->__Language);
 
       // create article list
       $buffer = (string)'';
