@@ -6,16 +6,17 @@
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
 <p>
    Encapsulation of functionality within separate components is common in the object orientated world.
-   The advantages of this method is described by the <strong>tree tier architecture pattern</strong>.
+   The advantages of this method is described by the <em>tree tier architecture pattern</em>.
    Thereby, the different layers have different duties concerning their layer.
 </p>
 <p>
    Due to the fact, that the <em>layers</em> or <em>services</em> are commonly represented by one
    or more classes each developer is faced with the task to create classes for a dedicated layer or
    a part of a layer. Further, according to the DRY principle each developer is told to design
-   reusable components - <strong>Services</strong> - that have a clear representation and configuration
+   reusable components - <em>Services</em> - that have a clear representation and configuration
    interface. For example data layers often require a component, that has access to databases and
-   a business component needs knowledge about the context it is executed in.
+   a business component needs knowledge about the context it is executed in. Besides, there are dependencies between
+   different tiers as well.
 </p>
 
 <h3 id="Chapter-2-Basics"><a href="#Chapter-2-Basics">2. Basics</a></h3>
@@ -29,9 +30,8 @@
    it is necessary to transport this information into the service objects.
 </p>
 <p>
-   For this reason, the APF provides two different components that let you create objects within
-   your application that have all the information necessary injected. This enables you to write
-   clean and reusable applications.
+   The framework provides two components for object creation that automatically inject the required data of the
+   surrounding environment (context, language).
 </p>
 <p>
    The subsequent chapters describe the mentioned components and their meaning to development.
@@ -39,14 +39,15 @@
 <h3 id="Chapter-3-Object-creation-mechanism"><a href="#Chapter-3-Object-creation-mechanism">3. Object creation mechanism</a></h3>
 <p>
    The Adventure PHP Framework has several mechanisms to create and initialize objects. To provide
-   the necessary information for each object (DOM nodes, business services, etc.) the environment
-   attributes are passed to the new object using <strong>dependency injection</strong>.
+   the necessary information of the surrounding environment mentioned above for each object (DOM nodes, business
+   services, etc.) the environment attributes are passed to the new object using <em>dependency injection</em>.
 </p>
 <p>
    Due to the fact, that the framework includes a generic way to create singleton and session
    singleton objects the implementation avoids constructor injection to be able to provide a
    generic way of object creation and to preserve testability. For this reason, initialization is
-   only done using <strong>method injection</strong> / <strong>setter injection</strong>.
+   only done using <em>method injection</em> / <em>setter injection</em>. The required data or dependencies are provided
+   after creation of the object.
 </p>
 
 <h4 id="Chapter-3-1-GUI-objects"><a href="#Chapter-3-1-GUI-objects">3.1. GUI objects</a></h4>
@@ -66,9 +67,9 @@
 <p>
    To ease development concerning creation of services or further objects representing an application
    layer and to not have to deal with the internal mechanisms of the framework's dependency injection
-   the developer is provided three different possibilities to create pre-configured objects. Thererfore
-   the <strong>APFObject</strong> class provides wrapper methods for the <strong>ServiceManager</strong>
-   and the <strong>DIServiceManager</strong>.
+   the developer is provided three different possibilities to create pre-configured objects. Therefore
+   the <em>APFObject</em> class provides wrapper methods for the <em>ServiceManager</em>
+   and the <em>DIServiceManager</em>.
 <p>
 <p>
    Details on the method signatures can be found within the <int:link pageid="002" /> or by the
@@ -79,7 +80,7 @@
 <p>
    Using <em>getServiceObject()</em> you will receive an object, that is initialized with the 
    context and the language of the current environment. Within this method, the
-   <strong>ServiceManager</strong>s is used (see <int:link pageid="002" />). Due to the fact, that
+   <em>ServiceManager</em>s is used (see <int:link pageid="002" />). Due to the fact, that
    the wrapper function uses the context and the language of the current object you are able to
    configure different contexts within one application (e.g. different contexts for different modules).
 </p>
@@ -87,7 +88,7 @@
 <p>
    The <em>getAndInitServiceObject()</em> enhances the method from chapter 3.2.1 with dynamic
    initialization. You can pass the initialization parameter as a the third argument that is passed
-   to the <strong>init()</strong> method of the service. This parameter is typeless what means that
+   to the <em>init()</em> method of the service. This parameter is typeless what means that
    you can pass any type of data type.
 </p>
 <p>
@@ -99,12 +100,12 @@
 
 <h5 id="Chapter-3-2-3-DIServiceManager-Complex-services"><a href="#Chapter-3-2-3-DIServiceManager-Complex-services">3.2.3. Complex services using the DIServiceManager</a></h5>
 <p>
-   The <em>getDIServiceObject()</em> method is a wrapper function for the <strong>DIServiceManager</strong>
-   call, that provides a user-level <strong>dependency injection container</strong> for the APF.
+   The <em>getDIServiceObject()</em> method is a wrapper function for the <em>DIServiceManager</em>
+   call, that provides a user-level <em>dependency injection container</em> for the APF.
    Services can be initialized by other services or static parameters.
 </p>
 <p>
-   Using the <strong>DIServiceManager</strong> better separates application code and configuration.
+   Using the <em>DIServiceManager</em> better separates application code and configuration.
    Parameters are injected from outside the source code and service creation must not ne part of the
    code. This leads to loosly coupled services that are easily reusable. Further, testability is
    much more better, because database access can easily be replaced by a MOCK layer.
@@ -124,48 +125,83 @@ class MyObject extends APFObject {
    public function doSomething(){
       $myService =
          &$this->getServiceObject(
-            'namespace::of::my::service',
-            'ServiceName'
+            $namespace,
+            $serviceName,
+            [$type = APFService::SERVICE_TYPE_SINGLETON],
+            [$instanceId = null]
          );
-      $myService->doSomething();
+      $myService->doSomethingElse();
 }
 </gen:highlight>
-<strong>Notes:</strong>
+<p>
+   The <em>APFObject::getServiceObject()</em> method takes the following arguments:
+</p>
 <ul>
    <li>
-      The service implementation must not be included using <strong>import()</strong> before usage.
-      This is done by the <em>ServiceManager</em> for you.
+      <strong>$namespace</strong>:
+      Refers to the namespace of the service implementation. (<strong>Example</strong>:
+      <em>namespace::of::my::service</em>).
    </li>
    <li>
-      The name of the service object addressed here is equal to the name of the class. Same is
-      for the namespace.
+      <strong>$serviceName</strong>:
+      Defines the name of the service that in turn is the name of the service implementation class (<strong>Example</strong>:
+      <em>MyServiceName</em>).
+   </li>
+   <li>
+      <strong>$type</strong>:
+      The <em>$type</em> parameter defines the service type that describes the scope of the service instance.
+      Possible values are <em>SINGLETON</em>, <em>SESSIONSINGLETON</em>, and <em>NORMAL</em>. It is recommended to use
+      the constants defined in <em>APFService</em>, e.g. <em>APFService::SERVICE_TYPE_SESSIONSINGLETON</em>. This
+      parameter is optional and it's default is <em>SINGLETON</em>. See also <int:link pageid="030" />.
+      <div class="hint">
+         Starting with 1.16 services with type <em>SINGLETON</em> or <em>SESSIONSINGLETON</em> are unique by a combined
+         key of context and language. This enables you to use services or entire modules multiple times within one
+         application but independently using different contexts. Further information can be found within article
+         <int:link pageid="152" />.
+      </div>
+   </li>
+   <li>
+      <strong>$instanceId</strong>:
+      Allows you to apply a custom instance identifier using <em>SINGLETON</em> and <em>SESSIONSINGLETON</em> services.
+      This parameter is optional and is auto-generated from namespace, service name, as well as - since 1.16 - language
+      and context by the <em>ServiceManager</em>.
    </li>
 </ul>
+<div class="hint">
+   The service implementation is directly included by the <em>ServiceManager</em>. Hence, there is no need to add
+   an <em>import()</em> before usage.
+</div>
 
 <h4 id="Chapter-4-2-ServiceManager-Initialized-services"><a href="#Chapter-4-2-ServiceManager-Initialized-services">4.2. Initialized services</a></h4>
 <p>The creation of a pre-configured service is as follows:</p>
 <gen:highlight type="php">
 class MyObject extends APFObject {
-   public function doSomething(){
+   public function doSomething() {
       $initParam = 'foo';
       $myService =
          &$this->getAndInitServiceObject(
-            'namespace::of::my::service',
-            'ServiceName',
-            $initParam
+            $namespace,
+            $serviceName,
+            $initParam,
+            [$type = APFService::SERVICE_TYPE_SINGLETON],
+            [$instanceId = null]
          );
-      $myService->doSomething();
+      $myService->doSomethingElse();
+   }
 }
 </gen:highlight>
-<strong>Notes:</strong>
+<p>
+   The <em>APFObject::getAndInitServiceObject()</em> method takes the following arguments:
+</p>
 <ul>
    <li>
-      The service implementation must not be included using <strong>import()</strong> before usage.
-      This is done by the <em>ServiceManager</em> for you.
+      The <em>$namespace</em>, <em>$serviceName</em>, <em>$type</em>, and <em>$instanceId</em> parameters are the same
+      as in <em>APFObject::getServiceObject()</em>.
    </li>
    <li>
-      The name of the service object addressed here is equal to the name of the class. Same is
-      for the namespace.
+      <strong>$initParam</strong>:
+      This parameter is passed to the <em>init()</em> method of the created object. You can pass all types of data such
+      as other objects (services), arrays, or scalar data types.
    </li>
 </ul>
 
@@ -176,11 +212,14 @@ class MyObject extends APFObject {
    represented by a configuration. This is due to the fact, that one service is no standalone object
    but can be used for initialization of other services, too.
 </p>
+<p>
+   This allows you to define services using the <em>DIServiceManager</em> that are dependent on other services.
+</p>
 
 <h5 id="Chapter-4-3-1-Configuration"><a href="#Chapter-4-3-1-Configuration">4.3.1. Configuration</a></h5>
 <p>
-   In order to create a service named <strong>MyService</strong> for namespace
-   <strong>modules::mymodule::services</strong> the configuration file must be created:
+   In order to create a service named <em>MyService</em> for namespace
+   <em>modules::mymodule::services</em> the configuration file must be created:
 </p>
 <gen:highlight type="code">
 /config/modules/mymodule/services/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
@@ -203,13 +242,21 @@ conf.{INITKEY}.value = ""]
 <strong>Definition:</strong>
 <ul>
    <li>
-      The <strong>servicetype</strong> directive defines the kind of service. You can use
-      <em>SINGLETON</em>, <em>SESSIONSINGLETON</em> and <em>NORMAL</em>. Details on the types can
-      be take from the
+      <strong>servicetype</strong>:
+      The <em>servicetype</em> directive defines the type of service. Allowed values are <em>SINGLETON</em>,
+      <em>SESSIONSINGLETON</em>, <em>NORMAL</em> und <em>CACHED</em> (since 1.16). Details can be taken from the
       <int:link pageid="030" anchor="Chapter-3-ServiceManager-usage">ServiceManager usage</int:link>
       chapter.
+      <div class="warn">
+         Since release 1.16 objects defined as <em>SINGLETON</em> and <em>SESSIONSINGLETON</em> are created uniquely
+         for each context-language combination. Service type <em>CACHED</em> has been added in this release and equals
+         service type <em>NORMAL</em> for <em>version &lt;= 1.15</em>. This means that the service object is cached by
+         the <em>DIServiceManager</em> and delivered to the user without new initialization on the next attempt. Using
+         the <em>NORMAL</em> type causes the <em>DIServiceManager</em> to create the requested service on every request.
+         Further information can be found in article <int:link pageid="152" />.
+      </div>
    </li>
-   <li><strong>namespace</strong> definines the namespace of the service implementation.</li>
+   <li><strong>namespace</strong> defines the namespace of the service implementation.</li>
    <li><strong>class</strong> defines the class name of the service implementation.</li>
    <li>
       The <strong>init</strong> section is responsible for dynamic initialization using 
@@ -234,9 +281,9 @@ conf.{INITKEY}.value = ""]
 <p>
    As an example a business component should be initialized with static configuration parameters,
    a data layer component, and a provider that is responsible for configuration issues. For
-   convenience, the name of the service is <strong>GuestbookService</strong> and the namespace is
-   <strong>modules::guestbook</strong>. The implementation of the service is provided by the
-   <strong>GuestbookManager</strong> class located in namespace <strong>modules::guestbook::biz</strong>.
+   convenience, the name of the service is <em>GuestbookService</em> and the namespace is
+   <em>modules::guestbook</em>. The implementation of the service is provided by the
+   <em>GuestbookManager</em> class located in namespace <em>modules::guestbook::biz</em>.
 </p>
 <p>
    In order to use the dependency injection mechanism we have to create a configuration file that
@@ -255,9 +302,9 @@ servicetype = "SINGLETON"
 </gen:highlight>
 <p>
    Please note, that the config provider must be represented by another configuration section. 
-   Thereby namespace of the data layer component <strong>DataService</strong> is
-   <strong>modules::guestbook</strong> and the <strong>ExtendedConfigProvider</strong>'s namespace is
-   <strong>modules::guestbook::provider</strong>. Due to the fact, that the namespaces of the
+   Thereby namespace of the data layer component <em>DataService</em> is
+   <em>modules::guestbook</em> and the <em>ExtendedConfigProvider</em>'s namespace is
+   <em>modules::guestbook::provider</em>. Due to the fact, that the namespaces of the
    <em>GuestbookService</em> and the data layer service are are equal, they can be placed within the
    same configuration file. The <em>ExtendedConfigProvider</em> must be configures within another
    configuration file:
@@ -291,7 +338,7 @@ class = "SpecialConfigProvider"
 servicetype = "..."
 </gen:highlight>
 <p>
-   To inform the <strong>DIServiceManager</strong> to initialize the <strong>GuestbookService</strong>
+   To inform the <em>DIServiceManager</em> to initialize the <em>GuestbookService</em>
    using the services described above it's configuration section must be added two dynamic and
    two static initialization sub sections:
 </p>
@@ -314,7 +361,7 @@ conf.cache.value = "false"
    As you can take from the above code box you can define various initialization sub sections. Please
    note, that each sub section must includes a unique sub section key.
 </p>
-<p>Using the <strong>GuestbookService</strong> is as follows:</p>
+<p>Using the <em>GuestbookService</em> is as follows:</p>
 <gen:highlight type="php">
 class ServiceConsumer extends APFObject {
    public function doSomething(){
@@ -323,7 +370,7 @@ class ServiceConsumer extends APFObject {
             'modules::guestbook',
             'GuestbookService'
          );
-      $service->doSomething();
+      $service->doSomethingElse();
 }
 </gen:highlight>
 <p>
@@ -349,7 +396,7 @@ class GuestbookManager extends APFObject {
       $this->cacheActive = $cacheActive;
    }
 
-   public function doSomething(){
+   public function doSomethingElse(){
    }
 
    ...
@@ -357,7 +404,7 @@ class GuestbookManager extends APFObject {
 }
 </gen:highlight>
 <p>
-   Within <strong>doSomething()</strong> you can access all the services and configuration values
+   Within <em>doSomething()</em> you can access all the services and configuration values
    that are injected into the service.
 </p>
 <div class="hint">
