@@ -280,6 +280,34 @@ AddIndices = "FirstName,LastName(INDEX)|Username(UNIQUE)|Password(INDEX)"
    entnommen werden.
 </div>
 
+<h4 id="Chapter-2-5-Erzeugungsdatum-von-Beziehungen"><a href="#Chapter-2-5-Erzeugungsdatum-von-Beziehungen">2.5. Erzeugungsdatum von Beziehungen</a></h4>
+<p>
+   Mit dem Release 1.16 ist es möglich ein Erzeugungsdatum für Beziehungen im Datenmodell zu speichern. Zur Aktivierung
+   des Features muss in der Beziehungskonfiguration das Attribut <em>Timestamps</em> auf den Wert <em>TRUE</em>
+   gesetzt werden.
+</p>
+<gen:highlight type="ini">
+[{relation-name}]
+Type = "ASSOCIATION|COMPOSITION"
+SourceObject = "{source-table}"
+TargetObject = "{source-table}"
+Timestamps = "TRUE"
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass das Feature für <strong>jede</strong> Beziehungsdefinition einzeln aktiviert werden muss.
+</div>
+<p>
+   Anschließend kann das Datenmodell mit Hilfe des <em>GenericORMapperSetup</em> erzeugt oder per <em>GenericORMapperUpdate</em>
+   aktualisiert werden.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass für bestehende Beziehungen bei einem Update keine Werte nachgetragen werden. Beim Abfragen
+   des Erzeugungsdatums erhalten Sie daher den Wert <em>null</em>.
+</div>
+<p>
+   Die Verwendung des Features ist in <a href="#Chapter-4-5-Erzeugungsdatum-von-Beziehungen">Kapitel 4.5</a> beschrieben.
+</p>
+
 <h3 id="Chapter-3-Datenbank-Setup"><a href="#Chapter-3-Datenbank-Setup">3. Setup der Datenbank</a></h3>
 Nachdem die Konfigurationsdateien fertiggestellt sind, muss die Datenbank für die Verwendung
 vorkonfiguriert werden. Dies kann manuell oder automatisiert vorgenommen passieren. Die manuelle
@@ -1060,6 +1088,33 @@ $orm->saveObject($app);
       begründet.
    </p>
 </div>
+
+<h4 id="Chapter-4-5-Erzeugungsdatum-von-Beziehungen"><a href="#Chapter-4-5-Erzeugungsdatum-von-Beziehungen">4.5. Erzeugungsdatum von Beziehungen</a></h4>
+<p>
+   Ab Release 1.16 ist es möglich, das Erzeugungsdatum einer Beziehung zwischen zwei Objekten abzufragen. Hierzu muss
+   das Feature zunächst wie in <a href="#Chapter-2-5-Erzeugungsdatum-von-Beziehungen">Kapitel 2.5</a> beschrieben
+   pro Beziehung aktiviert werden.
+</p>
+<p>
+   Anschließen können Sie das Erstellungsdatum einer Beziehung wie folgt abgefragen:
+</p>
+<gen:highlight type="php">
+$car = $gorm->loadObjectByID('Car', 1);
+
+$wheels = $car->getRelatedObjects('Car2Wheels');
+foreach ($wheels AS $wheel) {
+   echo 'Wheel mounted at: ' . $wheel->getRelationCreationTimestamp();
+}
+</gen:highlight>
+<p>
+   Als Rückgabewert der Methode <em>getRelationCreationTimestamp()</em> erhalten Sie ein Datum im MySQL-Timestamp-Format.
+   Dieses kann anschließend mit Hilfe der PHP-Date-API formatiert werden.
+</p>
+<p>
+   Sofern kein Erstellungsdatum vorhanden ist, erhalten Sie den Wert <em>null</em>. Dies ist üblicherweise dann der Fall,
+   wenn das Feature für die aktuell zur Abfrage genutzte Beziehung nicht aktiviert ist oder das Feature durch ein
+   späteres Update bei bestehenden Daten aktiviert wurde.
+</p>
 
 <h3 id="Chapter-5-GenericCriterionObject"><a href="#Chapter-5-GenericCriterionObject">5. Übersicht zum GenericCriterionObject</a></h3>
 <p>

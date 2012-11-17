@@ -271,6 +271,33 @@ AddIndices = "FirstName,LastName(INDEX)|Username(UNIQUE)|Password(INDEX)"
    (German).
 </div>
 
+<h4 id="Chapter-2-5-Creation-date-of-relations"><a href="#Chapter-2-5-Creation-date-of-relations">2.5. Creation date of relations</a></h4>
+<p>
+   With release 1.16 creation dates of relations can be stored within the data model. In order to activate the feature
+   the relation configuration must include the <em>Timestamps</em> attribute set to <em>TRUE</em>.
+</p>
+<gen:highlight type="ini">
+[{relation-name}]
+Type = "ASSOCIATION|COMPOSITION"
+SourceObject = "{source-table}"
+TargetObject = "{source-table}"
+Timestamps = "TRUE"
+</gen:highlight>
+<div class="warn">
+   Please be aware to activate the feature for <strong>each</strong> releation definition <strong>separately</strong>.
+</div>
+<p>
+   Afterwards, the data model can be created using the <em>GenericORMapperSetup</em> or updated by the
+   <em>GenericORMapperUpdate</em>.
+</p>
+<div class="hint">
+   Please note, that missing values for existing relations are not created with an update of the data model. Asking
+   for the relation creation date you will receive <em>null</em> as it's value.
+</div>
+<p>
+   Die Verwendung des Features ist in <a href="#Chapter-4-5-Erzeugungsdatum-von-Beziehungen">Kapitel 4.5</a> beschrieben.
+</p>
+
 <h3 id="Chapter-3-Database-setup"><a href="#Chapter-3-Database-setup">3. Database setup</a></h3>
 After the configuration files have been created, the database must be prepared for usage. This can
 be done manually or automatically. The manual way is described in the <int:link pageid="064">manual database setup</int:link>
@@ -1024,6 +1051,33 @@ $orm->saveObject($app);
       be applied for compositions. This is because of the quality of composition relations.
    </p>
 </div>
+
+<h4 id="Chapter-4-5-Creation-date-of-relations"><a href="#Chapter-4-5-Creation-date-of-relations">4.5. Creation date of relations</a></h4>
+<p>
+   Since release 1.16 you are able to query the creation date of a relation between two objects. For this reason, the
+   feature must be activated prior to use as described in <a href="#Chapter-2-5-Creation-date-of-relations">chapter 2.5</a>
+   for each relation.
+</p>
+<p>
+   Afterwards, the creation date can be queried as follows:
+</p>
+<gen:highlight type="php">
+$car = $gorm->loadObjectByID('Car', 1);
+
+$wheels = $car->getRelatedObjects('Car2Wheels');
+foreach ($wheels AS $wheel) {
+   echo 'Wheel mounted at: ' . $wheel->getRelationCreationTimestamp();
+}
+</gen:highlight>
+<p>
+   The return value of the <em>getRelationCreationTimestamp()</em> is a MySQL timestamp format. It may be reformatted
+   using the PHP Date API.
+</p>
+<p>
+   In case no creation date is present you will receive <em>null</em> as it's value. This is when the feature is not
+   activate for the current relation invokes or in case an existing data model has been updated and the current relation
+   was created before the update.
+</p>
 
 <h3 id="Chapter-5-GenericCriterionObject"><a href="#Chapter-5-GenericCriterionObject">5. The GenericCriterionObject</a></h3>
 <p>
