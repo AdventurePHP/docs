@@ -2,3 +2,209 @@
    This page describes the adaptions of your current software (up to release 1.15) to be compatible with release 1.16
    of the APF.
 </doku:title>
+<p>
+   This page describes all changes to your current code to update your APF installation from 1.15 to 1.16.
+</p>
+
+<h3 id="Chapter-1-Refactoring-APF-parser"><a href="#Chapter-1-Refactoring-APF-parser">1. Refactoring of the APF parser</a></h3>
+
+<h4 id="Chapter-1-1-Introduction"><a href="#Chapter-1-1-Introduction">1.1. Introduction</a></h4>
+<p>
+   In 1.16 the internal representation of an APF tag and the respective mechanisms within the APF parser changed.
+</p>
+<p>
+   One disadvantage of the previous implementation is the tag class naming convention. PHP class names had to follow
+   the XML prefix and class/tag name. The new implementation enables you to
+</p>
+<ul>
+   <li>re-use identical tag classes within all tag hierarchies using a different prefix and name and</li>
+   <li>naming of the tag implementation class using UCC notation.</li>
+</ul>
+<p>
+   Besides, a smaller amount of classes must be loaded what makes the application faster. Details on the discussion can
+   be read about under
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=1131">http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=1131</a>.
+</p>
+
+<h4 id="Chapter-1-2-Migration"><a href="#Chapter-1-2-Migration">1.2. Migration</a></h4>
+<p>
+   Existing applications can be used with nearly no adaption, since the tag implementation of the
+   <em>&lt;core:addtaglib /&gt;</em> tag supports both the new signature as well as the <em>old one</em> (Version <= 1.15).
+   The <em>old one</em> works as described under <int:link pageid="045" /> and is translated into the <em>new</em>
+   scheme.
+</p>
+<p>
+   Migration consists of two parts. The first one is optional.
+</p>
+
+<h5 id="Chapter-1-2-1-Adaption-of-the-core-addtaglib-tags"><a href="#Chapter-1-2-1-Adaption-of-the-core-addtaglib-tags">1.2.1. Adaption of the &lt;core:addtaglib /&gt; tags</a></h5>
+<p>
+   In releases <= 1.15 (custom) tags can be published to the APF parser using
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   namespace="tools::form::taglib"
+   prefix="html"
+   class="form"
+/&gt;
+</gen:highlight>
+<p>
+   Since this release developers are free to define the name of the tag themselves. For this reason, the tag expects
+   the <em>class</em> attribute to contain the name of the tag implementation and <em>name</em> to contain the name
+   of the tag.
+</p>
+<p>
+   Including the <em>&lt;html:form /&gt;</em> tag thus is as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   namespace="tools::form::taglib"
+   class="html_taglib_form"
+   prefix="html"
+   name="form"
+/&gt;
+</gen:highlight>
+<div class="warn">
+   <p>
+      In 1.16 both flavours are supported to use you applications without further adaptions. The fallback mechanism
+      will be removed in further versions. Thus, it is recommended to migrate your application switching to 1.16.
+   </p>
+   <p>
+      In 1.16 not all classes have been adapted to UCC naming. This is planned for the next releases.
+   </p>
+</div>
+<p>
+   In case class names of existing application do not change, migration can be done with a little help of the following
+   regular expressions:
+</p>
+<gen:highlight type="code">
+Search pattern: &lt;core:addtaglib namespace="([A-Za-z0-9:\-_]+)" prefix="([A-Za-z0-9:\-_]+)" class="([A-Za-z0-9:\-_]+)" /&gt;
+Replacement: &lt;core:addtaglib namespace="$1" class="$2_taglib_$3" prefix="$2" name="$3" /&gt;
+</gen:highlight>
+
+<h5 id="Chapter-1-2-2-Adaption-of-tag-lib-definitions"><a href="#Chapter-1-2-2-Adaption-of-tag-lib-definitions">1.2.2. Adaption of taglib definitions</a></h5>
+<p>
+   One of the main elements of the APF parser is the tag definition. In 1.16 the signature of the <em>TagLib</em> has
+   changed as follows:
+</p>
+<gen:highlight type="php">
+final class TagLib {
+
+   public function __construct($namespace, $class, $prefix, $name) {
+   }
+
+}
+</gen:highlight>
+<p>
+   The class now expects 4 instead of 3 parameters. It is now required to apply the name of the implementation
+   (<em>$class</em>). The new parameter <em>$name</em> takes the name of the tag within APF templates. <em>$namespace</em>
+   contains the namespace where the tag implementation (see <em>$class</em>) is located and <em>$prefix</em> defines
+   the tag prefix.
+</p>
+<p>
+   In case class names of existing application do not change, migration can be done with a little help of the following
+   regular expressions:
+</p>
+<gen:highlight type="code">
+Search pattern: new TagLib\('([A-Za-z0-9:\-_]+)', '([A-Za-z0-9:\-_]+)', '([A-Za-z0-9:\-_]+)'\)
+Replacement: new TagLib('$1', '$2_taglib_$3', '$2', '$3')
+</gen:highlight>
+
+<h3 id="Chapter-2-New-behaviour-of-ServiceManager-and-DIServiceManager"><a href="#Chapter-2-New-behaviour-of-ServiceManager-and-DIServiceManager">2. New behaviour of ServiceManager and DIServiceManager</a></h3>
+
+<h4 id="Chapter-2-1-Usage-of-context-and-language"><a href="#Chapter-2-1-Usage-of-context-and-language">2.1. Usage of context and language</a></h4>
+<p>
+   Since 1.16, <em>ServiceManager</em> as well as the <em>DIServiceManager</em> use context and language to create
+   Singleton or SessionSingleton objects. This means, that there is one instance for each context-language couple instead
+   of a single instance within the current scope.
+</p>
+<p>
+   This behaviour can be influenced by applying an <em>$instanceId</em> manually.
+</p>
+
+<h4 id="Chapter-2-2-Singletons-without-context-and-language"><a href="#Chapter-2-2-Singletons-without-context-and-language">2.2. Singletons without context and language</a></h4>
+<p>
+   In order to create singletons that are unique within the current scope without respect to context and language it is
+   recommended to use the <em>$instanceId</em> parameter:
+</p>
+<gen:highlight type="php">
+// within a class that inherits from APFObject ...
+$namespace = 'my::namespace';
+$serviceName = 'ExampleClass';
+$instanceId = $namespace . '::' . $serviceName;
+$ECO = $this->getServiceObject($namespace, $serviceName, APFService::SERVICE_TYPE_SINGLETON, $instanceId);
+</gen:highlight>
+<p>
+   Using this method, <em>$instanceId</em> must be present as the 4th parameter every time the service is retrieved
+   (see above sample).
+</p>
+<div class="warn">
+   <em>$instanceId</em> has been introduced with 1.16 and is not present in prior versions.
+</div>
+<div class="warn">
+   Please note, that with this service creation method there may be issues with services that do not fit to the current
+   application configuration! Detail can be taken from the forum discussion:
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=1146">http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=1146</a>
+   (German).
+</div>
+
+<h4 id="Chapter-2-3-New-cache-behaviour-of-the-DIServiceManager"><a href="#Chapter-2-3-New-cache-behaviour-of-the-DIServiceManager">2.3. New cache behaviour of the DIServiceManager</a></h4>
+<p>
+   The <em>DIServiceManager</em> manages a cache that delivers objects that already have been created in prior calls.
+   In case a service is already in the cache your request is served using the cached object.
+</p>
+<p>
+   Since 1.16 the cache respects context and language as described above for the <em>ServiceManager</em>. In contrast,
+   services with the <em>NORMAL</em> type are created at each call.
+</p>
+<p>
+   In case of services that are not created using the <em>Singleton</em> or <em>SessionSingleton</em> wrappers and where
+   caching is possible - or at least no problem - it is recommended to use the <em>CACHED</em> service type. This type
+   equals <em>NORMAL</em> until release 1.15. For performance reasons using <em>CACHED</em> is explicitly recommended!
+</p>
+
+<h3 id="Chapter-3-Adaption-of-the-XmlParser"><a href="#Chapter-3-Adaption-of-the-XmlParser">3. Adaption of the XmlParser</a></h3>
+<p>
+   During feature discussion on
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=1162">Unterstützung " und ' als Attribut-Abgrenzung</a>
+   (German) the performance of the <em>XmlParser</em> has been improved again. Since 1.16 blanks within <strong>attribute
+   values</strong> are no longer filtered. This improves performance up to 20%
+</p>
+<p>
+   Switching to 1.16 a place holder definition like
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name=" Foo" /&gt;
+</gen:highlight>
+<p>
+   accessed by
+</p>
+<gen:highlight type="php">
+$this->setPlaceHolder('Foo', 'Bar');
+</gen:highlight>
+<p>
+   will cause an error (place holder not found). Please be aware of this change and check your template code updating
+   to release 1.16.
+</p>
+<p>
+   The handling of attribute names is still the same.
+</p>
+
+<h3 id="Chapter-4-Adaption-configuration-of-the-StringEncryptor"><a href="#Chapter-4-Adaption-configuration-of-the-StringEncryptor">4. Adaption configuration of the StringEncryptor</a></h3>
+<p>
+   In release 1.16 a typo within the <em>{ENVIRONMENT}_encryption.ini</em> configuration has been fixed. The content of
+   the configuration must be updated from
+</p>
+<gen:highlight type="ini">
+[Standard]
+PasswortSalt = ""
+</gen:highlight>
+<p>
+   to
+</p>
+<gen:highlight type="ini">
+[Standard]
+PasswordSalt = ""
+</gen:highlight>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_152" />

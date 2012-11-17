@@ -2,3 +2,218 @@
    Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 1.15),
    damit diese mit Release 1.16 kompatibel ist.
 </doku:title>
+<p>
+   Auf dieser Seite werden werden alle notwendigen Code-Änderungen für den Umstieg von Version 1.15 auf 1.16 beschrieben.
+</p>
+
+<h3 id="Chapter-1-Refactoring-APF-Parser"><a href="#Chapter-1-Refactoring-APF-Parser">1. Refactoring APF-Parser</a></h3>
+
+<h4 id="Chapter-1-1-Einleitung"><a href="#Chapter-1-1-Einleitung">1.1. Einleitung</a></h4>
+<p>
+   Im Release 1.16 wurde die interne Repräsentation einer APF-Taglib und die zugehörigen Mechanismen des APF-Parser
+   einer Überarbeitung unterzogen.
+</p>
+<p>
+   Ein Negativpunkt der bisherigen Implementierung war die Konvention der Tag-Klassen-Namen. Diese sind streng an
+   Präfix und Klasse- bzw. Tag-Name gebunden. Die neue Implementierung ermöglicht dagegen
+</p>
+<ul>
+   <li>die Wiederverwendung einer identischen Tag-Klasse Klasse in tieferen Hierarchien unter anderem Tag-Präfix bzw. -Namen und</li>
+   <li>die Benennung der Tag-Klasse nach UCC-Schreibweise.</li>
+</ul>
+<p>
+   Nebenbei müssen weniger Klassen geladen werden und die Performance der Gesamtanwendung kann gesteigert werden.
+   Details zur Diskussion können unter
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=1131">http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=1131</a>
+   eingesehen werden.
+</p>
+
+<h4 id="Chapter-1-2-Migration"><a href="#Chapter-1-2-Migration">1.2. Migration</a></h4>
+<p>
+   Bestehende Applikationen können nahezu ohne Anpassung weiterverwendet werden, da die Tag-Implementierung von
+   <em>&lt;core:addtaglib /&gt;</em> die neue Schreibweise sowie die <em>alte</em> (Version <= 1.15) Form der
+   Benutzung unterstützt. Die <em>alte</em> wird gemäß der unter <int:link pageid="045" /> beschriebenen Konvention
+   in die <em>neue</em> übersetzt.
+</p>
+<p>
+   Die Migration besteht damit aus zwei Teilen, von denen die erste zunächst optional ist.
+</p>
+
+<h5 id="Chapter-1-2-1-Anpassung-der-core-addtaglib-Tags"><a href="#Chapter-1-2-1-Anpassung-der-core-addtaglib-Tags">1.2.1. Anpassung der &lt;core:addtaglib /&gt; Tags</a></h5>
+<p>
+   In APF-Versionen <= 1.15 konnten (eigene) Tags dem APF-Parser mit Hilfe von
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   namespace="tools::form::taglib"
+   prefix="html"
+   class="form"
+/&gt;
+</gen:highlight>
+<p>
+   bekannt gemacht werden. Ab der Version 1.16 bestimmt der Entwickler den Namen der Tag-Implementierung selbst.
+   Daher erwartet der Tag nun im Attribut <em>class</em> den Namen der Tag-Implementierung und mit <em>name</em>
+   lässt sich der Namen des Tags angeben.
+</p>
+<p>
+   Die Einbindung des <em>&lt;html:form /&gt;</em>-Tags kann daher nun per
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   namespace="tools::form::taglib"
+   class="html_taglib_form"
+   prefix="html"
+   name="form"
+/&gt;
+</gen:highlight>
+<p>
+   erledigt werden.
+</p>
+<div class="warn">
+   <p>
+      In Version 1.16 werden beide Schreibweisen unterstützt um bestehende Anwendungen ohne Anpassung weiter verwenden
+      zu können. In Folgeversionen wird dieser Fallback-Mechanismus wieder entfernt. Es ist daher ratsam, diesen
+      Migrationsschritt trotzdem durchzuführen.
+   </p>
+   <p>
+      In Version 1.16 werden die bestehenden Tag-Klassen noch nicht oder nur teilweise an die UCC-Schreibweise angepasst.
+   </p>
+</div>
+<p>
+   Sofern die Klassen-Namen von bestehenden Anwendungen nicht geändert werden, lässt sich die Anpassung z.B. mit
+   Hilfe von regulären Ausdrücken automatisieren:
+</p>
+<gen:highlight type="code">
+Suchmuster: &lt;core:addtaglib namespace="([A-Za-z0-9:\-_]+)" prefix="([A-Za-z0-9:\-_]+)" class="([A-Za-z0-9:\-_]+)" /&gt;
+Ersetzung: &lt;core:addtaglib namespace="$1" class="$2_taglib_$3" prefix="$2" name="$3" /&gt;
+</gen:highlight>
+
+<h5 id="Chapter-1-2-2-Anpassung-der-Definition-von-bekannten-TagLibs"><a href="#Chapter-1-2-2-Anpassung-der-Definition-von-bekannten-TagLibs">1.2.2. Anpassung der Definition von bekannten TagLibs</a></h5>
+<p>
+   Ein zentraler Bestandteil des APF-Parsers ist die Definition eines Tags. In Version 1.16 wurde die Signatur der
+   Klasse <em>TagLib</em> wie folgt geändert:
+</p>
+<gen:highlight type="php">
+final class TagLib {
+
+   public function __construct($namespace, $class, $prefix, $name) {
+   }
+
+}
+</gen:highlight>
+<p>
+   Die Klasse erwartet nun 4 statt 3 Parameter. Dabei muss zwingend der Name der Implementierung (<em>$class</em>)
+   angegeben werden. Der neue Parameter <em>$name</em> trägt den Namen des Tags in APF-Templates. <em>$namespace</em>
+   enthält weiter den Namespace, in dem sich die Tag-Implementierung (siehe <em>$class</em>) befindet und
+   <em>$prefix</em> definiert den Tag-Präfix.
+</p>
+<p>
+   Sofern die Klassen-Namen von bestehenden Anwendungen nicht geändert werden, lässt sich die Anpassung z.B. mit
+   Hilfe von regulären Ausdrücken automatisieren:
+</p>
+<gen:highlight type="code">
+Suchmuster: new TagLib\('([A-Za-z0-9:\-_]+)', '([A-Za-z0-9:\-_]+)', '([A-Za-z0-9:\-_]+)'\)
+Ersetzung: new TagLib('$1', '$2_taglib_$3', '$2', '$3')
+</gen:highlight>
+
+<h3 id="Chapter-2-Veraendertes-Verhalten-von-ServiceManager-und-DIServiceManager"><a href="#Chapter-2-Veraendertes-Verhalten-von-ServiceManager-und-DIServiceManager">2. Verändertes Verhalten von ServiceManager und DIServiceManager</a></h3>
+
+<h4 id="Chapter-2-1-Beruecksichtigung-von-Context-und-Sprache"><a href="#Chapter-2-1-Beruecksichtigung-von-Context-und-Sprache">2.1. Berücksichtigung von Context und Sprache</a></h4>
+<p>
+   Der <em>ServiceManager</em> sowie der <em>DIServiceManager</em> berücksichtigen ab Version 1.16 Kontext und Sprache
+   beim Beziehen von Objekten als Singleton oder SessionSingleton. Es gibt also eine Instanz pro
+   Kontext-Sprach-Kombination, anstelle einer einzigen Instanz im aktuellen Scope.
+</p>
+<p>
+   Dieses Verhalten zeigt sich jedoch nur, solange keine eigene <em>$instanceId</em> vom Anwender vorgegeben wird.
+</p>
+
+<h4 id="Chapter-2-2-Singletons-ohne-Beruecksichtigung-von-Context-und-Sprache"><a href="#Chapter-2-2-Singletons-ohne-Beruecksichtigung-von-Context-und-Sprache">2.2. Singletons ohne Berücksichtigung von Context und Sprache</a></h4>
+<p>
+   Um Singletons, die im gesamten Scope ohne Berücksichtigung von Kontext und Sprache einmalig sind zu beziehen,
+   empfiehlt sich, die <em>$instanceId</em> vorzugeben:
+</p>
+<gen:highlight type="php">
+// innerhalb einer Klasse, die von APFObject erbt...
+$namespace = 'my::namespace';
+$serviceName = 'ExampleClass';
+$instanceId = $namespace . '::' . $serviceName;
+$ECO = $this->getServiceObject($namespace, $serviceName, APFService::SERVICE_TYPE_SINGLETON, $instanceId);
+</gen:highlight>
+<p>
+   Diese Vorgehensweise verlangt, dass die <em>$instanceId</em> an jeder Stelle, an der der Service bezogen wird, als 4ter Parameter übergeben wird (wie im Beispiel).
+</p>
+<div class="warn">
+   Vor Version 1.16. steht der Parameter <em>$instanceId</em> noch nicht zur Verfügung.
+</div>
+<div class="warn">
+   Es wird darauf hingewiesen, dass bei auf diese Weise erzeugten Services Probleme mit nicht zur aktuellen Umgebung
+   passendem Kontext und Sprache auftreten könnten! Näheres ist in der Diskussion nachzulesen:
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=1146">http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&t=1146</a>.
+</div>
+
+<h4 id="Chapter-2-3-Neues-Verhalten-des-Caches-beim-DIServiceManager"><a href="#Chapter-2-3-Neues-Verhalten-des-Caches-beim-DIServiceManager">2.3. Neues Verhalten des Caches beim DIServiceManager</a></h4>
+<p>
+   Der <em>DIServiceManager</em> hat einen internen Cache, der einmal erzeugte und vollständig initalisierte Objekte zur
+   Verfügung stellt. Ist ein Service bereits im Cache vorhanden, wird er aus diesem bedient.
+</p>
+<p>
+   In Version 1.16 berücksichtigt dieser Cache analog zum <em>ServiceManager</em> Kontext und Sprache. Zudem werden
+   Services vom Typ <em>NORMAL</em> nicht mehr aus dem Cache bedient, um wirklich verschiedene Instanzen pro Aufruf
+   ausliefern zu können.
+</p>
+<p>
+   Bei Services, die nicht durch die Klassen <em>Singleton</em> oder <em>SessionSingleton</em> verwaltet werden sollen,
+   bei denen das Caching jedoch erwünscht oder nicht schädlich ist (es werden nicht mehrere Instanzen benötigt), sollte
+   der neue ServiceType <em>CACHED</em> verwendet werden. Dieser entspricht dem alten Verhalten des Service-Typs
+   <em>NORMAL</em>. Die Verwendung von <em>CACHED</em> wird aus Performance-Gründen ausdrücklich empfohlen!
+</p>
+
+<h3 id="Chapter-3-Anpassung-XmlParser"><a href="#Chapter-3-Anpassung-XmlParser">3. Anpassung XmlParser</a></h3>
+<p>
+   Im Rahmen der Feature-Diskussion
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&t=1162">Unterstützung " und ' als Attribut-Abgrenzung</a>
+   wurde die Performance des <em>XmlParser</em>s nochmals verbessert. Dieser filtert ab 1.16 keine Leerzeichen mehr in
+   <strong>Attribut-Werten</strong> und gewinnt dadurch knapp 20% an Performance.
+</p>
+<p>
+   Bei der Umstellung auf die Version 1.16 wird es daher bei der Definition eines Platzhalters der Form
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name=" Foo" /&gt;
+</gen:highlight>
+<p>
+beim Zugriff per
+</p>
+<gen:highlight type="php">
+$this->setPlaceHolder('Foo', 'Bar');
+</gen:highlight>
+<p>
+   zu einem Fehler (Platzhalter nicht gefunden) kommen. Bitte beachten Sie dies bei einem Update auf die Version 1.16
+   und korrigieren etwaige Stellen in Ihren Templates.
+</p>
+<p>
+   Die Attribut-Namen hingegen werden weiterhin von Leerzeichen befreit.
+</p>
+
+<h3 id="Chapter-4-Anpassung-Konfiguration-StringEncryptor"><a href="#Chapter-4-Anpassung-Konfiguration-StringEncryptor">4. Anpassung Konfiguration StringEncryptor</a></h3>
+<p>
+   In der Version 1.16 wurde ein Tippfehler in der <em>{ENVIRONMENT}_encryption.ini</em> korrigiert. Der Inhalt der
+   Konfiguration muss beim Update auf die neue Version daher von
+</p>
+<gen:highlight type="ini">
+[Standard]
+PasswortSalt = ""
+</gen:highlight>
+<p>
+   auf
+</p>
+<gen:highlight type="ini">
+[Standard]
+PasswordSalt = ""
+</gen:highlight>
+<p>
+   angepasst werden.
+</p>
+
+<core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_152" />
