@@ -7,14 +7,15 @@ class XmlSiteMapCreator extends APFObject {
 
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
-      $sql = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      /* @var $cM ConnectionManager */
+      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $sql = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
-      $select = 'SELECT PageID,URLName,Language,ModificationTimestamp,Title FROM search_articles ORDER BY PageID ASC';
+      $select = 'SELECT PageID, URLName, Language, ModificationTimestamp, Title FROM search_articles ORDER BY PageID ASC';
       $result = $sql->executeTextStatement($select);
 
-      $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
-      $urlMan = new UrlManager();
+      /* @var $urlMan UrlManager*/
+      $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
 
       $buffer = (string)'<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
       $buffer .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
