@@ -25,7 +25,7 @@ class rss_controller extends base_controller {
       foreach ($newsItems as $objectId => $DUMMY) {
          if ($count > $startCount && $startCount < $maxCount) {
             $newsItems[$objectId]->transformOnPlace();
-            $newsItems[$objectId]->setDisplayMode(news_taglib_item::$MODE_RSS);
+            $newsItems[$objectId]->setDisplayMode(NewsItemTag::$MODE_RSS);
             $startCount++;
          }
          $count++;
@@ -34,13 +34,13 @@ class rss_controller extends base_controller {
    }
 
    /**
-    * @return news_taglib_item[] List of news items.
+    * @return NewsItemTag[] List of news items.
     */
    private function &getNewsItems() {
       $children = &$this->__Document->getChildren();
       $newsItems = array();
       foreach ($children as $objectId => $DUMMY) {
-         if (get_class($children[$objectId]) === 'news_taglib_item') {
+         if (get_class($children[$objectId]) === 'NewsItemTag') {
             $newsItems[$objectId] = &$children[$objectId];
          }
       }

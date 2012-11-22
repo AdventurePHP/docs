@@ -1,7 +1,7 @@
 <?php
 /**
  * @package sites::apf::pres::taglib
- * @class doku_taglib_link
+ * @class DocumentationLinkTag
  *
  * Implements a tag library for creating HTML links out of normal URLs.
  *
@@ -9,7 +9,7 @@
  * @version
  * Version 0.1, 15.08.2007<br />
  */
-class doku_taglib_link extends Document {
+class DocumentationLinkTag extends Document {
 
    /**
     * @private

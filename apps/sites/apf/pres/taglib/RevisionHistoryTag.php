@@ -4,7 +4,7 @@ import('sites::apf::biz', 'APFModel');
 
 /**
  * @package sites::apf::pres::taglib
- * @class rev_taglib_history
+ * @class RevisionHistoryTag
  *
  * Displays the revision history for the desired release.
  *
@@ -12,7 +12,7 @@ import('sites::apf::biz', 'APFModel');
  * @version
  * Version 0.1, 30.12.2009<br />
  */
-class rev_taglib_history extends Document {
+class RevisionHistoryTag extends Document {
 
    private static $FALLBACK_RELEASE_PARAM = 'fallback';
 
@@ -27,8 +27,8 @@ class rev_taglib_history extends Document {
     */
    public function __construct() {
       parent::__construct();
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'int_taglib_link', 'int', 'link');
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'doku_taglib_link', 'doku', 'link');
+      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
+      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'DocumentationLinkTag', 'doku', 'link');
       $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'GenericHighlightTag', 'gen', 'highlight');
    }
 

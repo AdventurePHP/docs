@@ -7,7 +7,7 @@ if ($_SERVER['SERVER_NAME'] == 'madmind.net') {
 
 //ini_set('session.cache_limiter','none');
 date_default_timezone_set('Europe/Berlin');
-ob_start('ob_gzhandler');
+ob_start();
 
 ini_set('html_errors', 'off');
 include('../apps/core/pagecontroller/pagecontroller.php');
@@ -15,7 +15,7 @@ import('core::frontcontroller', 'Frontcontroller');
 import('core::logging', 'Logger');
 
 /* @var $l Logger */
-$l = &Singleton::getInstance('Logger');
+$l = & Singleton::getInstance('Logger');
 $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
 // configure page values
@@ -26,10 +26,10 @@ Registry::register('sites::apf', 'ForumBaseURL', 'http://forum.adventure-php-fra
 Registry::register('sites::apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
 
 // special script kiddie error handler ;)
-import('sites::apf::biz::errorhandler', 'LiveErrorHandler');
+/*import('sites::apf::biz::errorhandler', 'LiveErrorHandler');
 import('sites::apf::biz::exceptionhandler', 'LiveExceptionHandler');
 GlobalErrorHandler::registerErrorHandler(new LiveErrorHandler());
-GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());
+GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());*/
 
 // special output filter
 import('sites::apf::pres::filter::output', 'ScriptletOutputFilter');

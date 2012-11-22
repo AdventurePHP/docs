@@ -1,10 +1,10 @@
 <?php
 import('sites::apf::biz', 'APFModel');
-import('sites::apf::pres::taglib', 'int_taglib_link');
+import('sites::apf::pres::taglib', 'InternalLinkTag');
 
 /**
  * @package sites::apf::pres::taglib
- * @class html_taglib_quicknavi
+ * @class QuickNaviContentTag
  *
  * Implements the taglib, that displays the quicknavi content.
  *
@@ -12,14 +12,14 @@ import('sites::apf::pres::taglib', 'int_taglib_link');
  * @version
  * Version 0.1, 28.12.2009<br />
  */
-class html_taglib_quicknavi extends Document {
+class QuickNaviContentTag extends Document {
 
    public function __construct() {
 
       parent::__construct();
 
       // include the additional tag libs
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'int_taglib_link', 'int', 'link');
+      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
    }
 
    /**

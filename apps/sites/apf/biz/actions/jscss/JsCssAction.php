@@ -30,7 +30,7 @@ class JsCssAction extends AbstractFrontcontrollerAction {
       $input = $this->getInput();
 
       $fileName = $input->getFileName();
-      ob_start('ob_gzhandler');
+      ob_start();
 
       if ($input->isCssFileRequested()) {
          HttpCacheManager::sendCssCacheHeaders();

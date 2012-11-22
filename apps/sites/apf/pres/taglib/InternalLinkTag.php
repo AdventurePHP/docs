@@ -1,7 +1,7 @@
 <?php
 /**
  * @package sites::apf::pres::taglib
- * @class int_taglib_link
+ * @class InternalLinkTag
  *
  * This taglib let's you easily create internal links. Depending on
  * the attributes given, the link is generated using the title of the
@@ -17,13 +17,13 @@
  * @version
  * Version 0.1, 23.12.2009<br />
  */
-class int_taglib_link extends Document {
+class InternalLinkTag extends Document {
 
    public function transform() {
 
       $pageId = $this->getAttribute('pageid');
       if ($pageId === null) {
-         throw new InvalidArgumentException('[int_taglib_link::transform()] Attribute "pageid" must not be null!', E_USER_ERROR);
+         throw new InvalidArgumentException('[InternalLinkTag::transform()] Attribute "pageid" must not be null!', E_USER_ERROR);
       }
 
       // setup language

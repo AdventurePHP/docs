@@ -1,7 +1,7 @@
 <?php
-import('sites::apf::pres::taglib', 'int_taglib_link');
+import('sites::apf::pres::taglib', 'InternalLinkTag');
 
-class news_taglib_item extends Document {
+class NewsItemTag extends Document {
 
    private static $IMAGE_PATTERN = '/<img src="([A-Za-z0-9\.\-\/:]+)" alt="([^"]+)" \/>/i';
    private static $TITLE_PATTERN = '/<h3>(.*)<\/h3>/i';
@@ -26,7 +26,7 @@ class news_taglib_item extends Document {
    private $mode;
 
    public function __construct() {
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'int_taglib_link', 'int', 'link');
+      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
       $this->mode = self::$MODE_NEWS;
    }
 

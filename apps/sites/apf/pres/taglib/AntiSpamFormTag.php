@@ -3,7 +3,7 @@ import('tools::form::taglib', 'form_control');
 
 /**
  * @package sites::demosite::prea::taglib
- * @class form_taglib_antispam
+ * @class AntiSpamFormTag
  *
  *  Implements an anti spam function, that marks a form as invalid, when it is posted within
  *  a configured amount of time.
@@ -12,14 +12,14 @@ import('tools::form::taglib', 'form_control');
  * @version
  *  Version 0.1, 17.07.2008<br />
  */
-class form_taglib_antispam extends form_control {
+class AntiSpamFormTag extends form_control {
 
    public function onAfterAppend() {
 
       // validate the given attributes
       if ($this->getAttribute('minfilltime') === null) {
          $formName = $this->getParentObject()->getAttribute('name');
-         throw new InvalidArgumentException('[form_taglib_antispam::onAfterAppend()] There is not attribute "minfilltime" given in the anti spam tag definition in form "' . $formName . '"! Please provide the attribute mentioned containing the time in seconds the user needs to fill in the form.');
+         throw new InvalidArgumentException('[AntiSpamFormTag::onAfterAppend()] There is not attribute "minfilltime" given in the anti spam tag definition in form "' . $formName . '"! Please provide the attribute mentioned containing the time in seconds the user needs to fill in the form.');
       }
 
       $antiSpamName = $this->getAntiSpamName();

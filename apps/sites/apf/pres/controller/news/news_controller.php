@@ -34,13 +34,13 @@ class news_controller extends base_controller {
    }
 
    /**
-    * @return news_taglib_item[] List of news items.
+    * @return NewsItemTag[] List of news items.
     */
    private function &getNewsItems() {
       $children = &$this->__Document->getChildren();
       $newsItems = array();
       foreach ($children as $objectId => $DUMMY) {
-         if (get_class($children[$objectId]) === 'news_taglib_item') {
+         if (get_class($children[$objectId]) === 'NewsItemTag') {
             $newsItems[$objectId] = &$children[$objectId];
          }
       }

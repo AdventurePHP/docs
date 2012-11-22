@@ -1,13 +1,13 @@
 <?php
 import('sites::apf::biz', 'APFModel');
 import('sites::apf::pres::taglib', 'GenericHighlightTag');
-import('sites::apf::pres::taglib', 'doku_taglib_link');
-import('sites::apf::pres::taglib', 'doku_taglib_title');
-import('sites::apf::pres::taglib', 'int_taglib_link');
+import('sites::apf::pres::taglib', 'DocumentationLinkTag');
+import('sites::apf::pres::taglib', 'DocumentationTitleTag');
+import('sites::apf::pres::taglib', 'InternalLinkTag');
 
 /**
  * @package sites::apf::pres::taglib
- * @class html_taglib_content
+ * @class ContentDisplayTag
  *
  * Implements the "html:content" tag.
  *
@@ -16,7 +16,7 @@ import('sites::apf::pres::taglib', 'int_taglib_link');
  * Version 0.1, 28.03.2008<br />
  * Version 0.2, 17.09.2008 (Changed function to fit new model structure)<br />
  */
-class html_taglib_content extends Document {
+class ContentDisplayTag extends Document {
 
    /**
     * @public
@@ -34,9 +34,9 @@ class html_taglib_content extends Document {
 
       // include the additional tag libs
       $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'GenericHighlightTag', 'gen', 'highlight');
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'doku_taglib_link', 'doku', 'link');
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'int_taglib_link', 'int', 'link');
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'doku_taglib_title', 'doku', 'title');
+      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'DocumentationLinkTag', 'doku', 'link');
+      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
+      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'DocumentationTitleTag', 'doku', 'title');
    }
 
    /**

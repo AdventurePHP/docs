@@ -1,7 +1,7 @@
 <?php
 /**
  * @package sites::apf::pres::taglib
- * @class news_taglib_appendnode
+ * @class NewsDisplayTag
  *
  * Enhances the <em>&lt;core:appendnode /&gt;</em> taglib to be able
  * to include language dependent template fragments.
@@ -10,7 +10,7 @@
  * @version
  * Version 0.1, 29.01.2010<br />
  */
-class news_taglib_appendnode extends core_taglib_appendnode {
+class NewsDisplayTag extends AppendNodeTag {
 
    public function __construct() {
       parent::__construct();
