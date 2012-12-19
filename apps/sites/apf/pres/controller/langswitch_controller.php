@@ -10,7 +10,7 @@ import('sites::apf::biz', 'APFModel');
  * @version
  * Version 0.1, 22.12.2009<br />
  */
-class langswitch_controller extends base_controller {
+class langswitch_controller extends BaseDocumentController {
 
    public function transformContent() {
 

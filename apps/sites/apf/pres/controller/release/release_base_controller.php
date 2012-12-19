@@ -11,7 +11,7 @@ import('tools::filesystem', 'FilesystemManager');
  * @version
  * Version 0.1, 29.12.2009<br />
  */
-abstract class release_base_controller extends base_controller {
+abstract class release_base_controller extends BaseDocumentController {
 
    private static $REV_HISTORY_PAGEID = '126';
 

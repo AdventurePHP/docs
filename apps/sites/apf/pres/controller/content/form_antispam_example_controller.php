@@ -9,12 +9,12 @@
  * @version
  *  Version 0.1, 17.07.2008<br />
  */
-class form_antispam_example_controller extends base_controller {
+class form_antispam_example_controller extends BaseDocumentController {
 
    /**
     * @public
     *
-    *  Implements the transformContent() method of the base_controller class. Creates the document's html code.
+    *  Implements the transformContent() method of the BaseDocumentController class. Creates the document's html code.
     *
     * @return string $DocCode code of the current document
     *

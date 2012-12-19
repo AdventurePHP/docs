@@ -429,11 +429,7 @@ class GuestbookModel extends APFObject {
    des Models:
 </p>
 <gen:highlight type="php">
-class gb_taglib_import extends ImportTemplateTag {
-
-   public function __construct(){
-      parent::__construct();
-   }
+class GuestbookImportTemplateTag extends ImportTemplateTag {
 
    public function onParseTime(){
 
@@ -442,7 +438,7 @@ class gb_taglib_import extends ImportTemplateTag {
 
       // do not include the guestbook, if gbid is not set/existent
       if($guestbookId == null || ((int)$guestbookId) == 0){
-         throw new InvalidArgumentException('[gb_taglib_import::onParseTime()] The attribute '
+         throw new InvalidArgumentException('[GuestbookImportTemplateTag::onParseTime()] The attribute '
             .'"gbid" is empty or not present or the value is not an id. Please specify the '
             .'attribute correctly in order to include the guestbook module!');
       }
@@ -472,7 +468,7 @@ class gb_taglib_import extends ImportTemplateTag {
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
    namespace="modules::guestbook2009::pres::taglib"
-   class="gb_taglib_import"
+   class="GuestbookImportTemplateTag"
    prefix="gb"
    name="import"
 />
@@ -499,7 +495,7 @@ guestbook2009/pres/
 </gen:highlight>
 <p>
    Der Ordner controller dient später zur Ablage der MVC-Document-Controller-Klassen, im Ordner
-   taglib wurde die oben besprochene Klasse gb_taglib_import abgelegt und templates ist der Ordner,
+   taglib wurde die oben besprochene Klasse GuestbookImportTemplateTag abgelegt und templates ist der Ordner,
    in dem alle Templates gespeichert werden. Diese Konvention hat sich in der Vergangenheit als sehr
    angenehm erwiesen.
 </p>
@@ -543,12 +539,12 @@ guestbook2009/pres/
    des Templates zum Einsatz kommen soll. Die Deklaration besagt, dass in diesem Fall die Klasse
    guestbook_controller aus dem Namespace modules::guestbook2009::pres::controller verwendet
    werden soll. Der Page-Controller erwartet, dass die Controller-Klasse implizit oder explizit
-   von base_controller erbt und die Methode transformContent() implementieren. Die übrige
+   von BaseDocumentController erbt und die Methode transformContent() implementieren. Die übrige
    Gestaltung einer Controller-Klasse obliegt dabei dem Entwickler. Das folgende Listing zeigt den
    zur Ausgabe des Titels und der Beschreibung notwendigen Code:
 </p>
 <gen:highlight type="php">
-   class guestbook_controller extends base_controller {
+   class guestbook_controller extends BaseDocumentController {
    public function transformContent(){
       $gS = &$this->getDIServiceObject(
          'modules::guestbook2009::biz',
@@ -624,7 +620,7 @@ guestbook2009/pres/
    &lt;html:placeholder name="content" /> mitgegeben.
 </p>
 <p>
-   Dass ein Document-Controller von der Klasse base_controller erben muss ist nicht nur reine
+   Dass ein Document-Controller von der Klasse BaseDocumentController erben muss ist nicht nur reine
    Konvention, sondern bietet auch eine Reihe von Vorteilen. Die Klasse beinhaltet eine Vielzahl
    von Methoden, die das Erzeugen von dynamischem Inhalt erleichtern. Zu diesen zählt die
    Funktion getTemplate($tmplName), die eine Referenz auf die mit $tmplName benannte Instanz der
@@ -639,7 +635,7 @@ guestbook2009/pres/
    Objekte direkt zugegriffen werden:
 </p>
 <gen:highlight type="php">
-class list_controller extends base_controller {
+class list_controller extends BaseDocumentController {
 
    public function transformContent() {
 
@@ -957,7 +953,7 @@ class form_taglib_langlabel extends Guestbook2009LanguageLabelTag {
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
    namespace="tools::form::taglib"
-   class="html_taglib_form"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 />
@@ -981,7 +977,7 @@ class form_taglib_langlabel extends Guestbook2009LanguageLabelTag {
    der folgende Code:
 </p>
 <gen:highlight type="php">
-class search_controller extends base_controller {
+class search_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('search');
       $form->transformOnPlace();
@@ -1051,7 +1047,7 @@ class search_controller extends base_controller {
    Speicherung an den GuestbookService zu übergeben:
 </p>
 <gen:highlight type="php">
-class create_controller extends base_controller {
+class create_controller extends BaseDocumentController {
    public function transformContent(){
       $form =
         &$this->getForm('create_entry');
@@ -1221,7 +1217,7 @@ FC.InputParams = ""
 @&gt;
 &lt;core:addtaglib
    namespace="tools::form::taglib"
-   class="html_taglib_form"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -1260,7 +1256,7 @@ Please log in to administrate the guestbook.
    übergeben. Schlägt diese fehl, so wird die zuvor erwähnte Fehlermeldung angezeigt:
 </p>
 <gen:highlight type="php">
-class login_controller extends base_controller {
+class login_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('login');
       if($form->get('isSent')
@@ -1366,7 +1362,7 @@ class login_controller extends base_controller {
    gewünschten Links:
 </p>
 <gen:highlight type="php">
-class admin_controller extends base_controller {
+class admin_controller extends BaseDocumentController {
 
    public function transformContent() {
 
@@ -1425,7 +1421,7 @@ class admin_controller extends base_controller {
    ableiten. Diese beinhaltet die Funktion, das Formular darzustellen:
 </p>
 <gen:highlight type="php">
-abstract class backend_base_controller extends base_controller {
+abstract class backend_BaseDocumentController extends BaseDocumentController {
 
    protected function displayEntrySelection($adminView) {
 
@@ -1485,7 +1481,7 @@ Please select an entry to edit!
 />
 &lt;core:addtaglib
    namespace="tools::form::taglib"
-   class="html_taglib_form"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 />
@@ -1520,7 +1516,7 @@ Please select an entry to edit!
    anzuzeigen und im zweiten Schritt die Bearbeitung des Eintrags zu ermöglichen:
 </p>
 <gen:highlight type="php">
-class edit_controller extends backend_base_controller {
+class edit_controller extends backend_BaseDocumentController {
    public function transformContent(){
       $entryId = RequestHandler::getValue('entryid');
       if($entryId === null){
@@ -1604,7 +1600,7 @@ Please select an entry to delete!
    Einträge zur Auswahl an und kümmert sich um die Verarbeitung der Eingabe:
 </p>
 <gen:highlight type="php">
-class delete_controller extends backend_base_controller {
+class delete_controller extends backend_BaseDocumentController {
    public function transformContent(){
       $entryId = RequestHandler::getValue('entryid');
       if($entryId === null){

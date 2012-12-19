@@ -11,7 +11,7 @@ import('sites::apf::biz', 'APFModel');
  * @version
  * Version 0.1, 09.04.2007<br />
  */
-class main_controller extends base_controller {
+class main_controller extends BaseDocumentController {
 
    /**
     * @public

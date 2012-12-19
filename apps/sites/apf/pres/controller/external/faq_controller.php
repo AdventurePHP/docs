@@ -9,7 +9,7 @@
  * @version
  *  Version 0.1, 10.01.2009<br />
  */
-class faq_controller extends base_controller {
+class faq_controller extends BaseDocumentController {
 
    /**
     * @public

@@ -9,7 +9,7 @@
  * @version
  * Version 0.1, 10.01.2009<br />
  */
-class bugs_controller extends base_controller {
+class bugs_controller extends BaseDocumentController {
 
    public function transformContent() {
 

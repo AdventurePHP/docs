@@ -13,7 +13,7 @@ import('sites::apf::biz', 'APFModel');
  * Version 0.1, 18.12.2009<br />
  * Version 0.2, 22.12.2009 (Introduced link generating facility)<br />
  */
-class breadcrumb_controller extends base_controller {
+class breadcrumb_controller extends BaseDocumentController {
 
    public function transformContent() {
 

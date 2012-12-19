@@ -1,7 +1,7 @@
 <?php
 import('sites::apf::biz', 'APFModel');
 
-class topnavi_controller extends base_controller {
+class topnavi_controller extends BaseDocumentController {
 
    /**
     * @var string[] main navigation definition.

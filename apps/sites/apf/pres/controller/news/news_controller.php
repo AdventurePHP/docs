@@ -1,5 +1,5 @@
 <?php
-class news_controller extends base_controller {
+class news_controller extends BaseDocumentController {
 
    private static $TYPE = 'type';
 

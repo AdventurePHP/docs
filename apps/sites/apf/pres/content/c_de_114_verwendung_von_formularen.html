@@ -21,7 +21,7 @@ des Formulars ausgeführt werden sollen (z.B. Speichern der Daten).
 <br />
 Um ein Formular mit Hilfe eines Document-Controller auszugeben, ist folgender Code notwendig:
 <gen:highlight type="php">
-class form_controller extends base_controller {
+class form_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('Search');
       $form->transformOnPlace();
@@ -29,7 +29,7 @@ class form_controller extends base_controller {
 }
 </gen:highlight>
 In der Variable <strong>$form</strong> steht dabei eine Instanz der Klasse
-<strong>html_taglib_form</strong> zur Verfügung, die ein APF-Formular mit all seinen Elementen und
+<strong>HtmlFormTag</strong> zur Verfügung, die ein APF-Formular mit all seinen Elementen und
 Funktionen kapselt. Mit Hilfe dieser Referenz auf das Formular-Objekt im DOM-Baum kann das Formular
 ausgegeben, manipuliert, befüllt und angepasst werden. Details dazu können den folgenden Kapiteln
 entnommen werden.
@@ -189,7 +189,7 @@ Da die einzelnen Formular-Elemente ab der neuen Implementierung selbst kennen, m
 <em>isValid()</em> des Formulars den Status jedes einzelnen Elements erfragen. In einem
 Document-Controller kann der Zustand eines Formulars damit wie folgt abgefragt werden:
 <gen:highlight type="php">
-class form_controller extends base_controller {
+class form_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('MyForm');
       if($form->isSent()){
@@ -203,7 +203,7 @@ class form_controller extends base_controller {
 </gen:highlight>
 Ebenso ist es möglich, den Status eines definierten Elements zu erfragen:
 <gen:highlight type="php">
-class form_controller extends base_controller {
+class form_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('MyForm');
       $searchField = &$form->getFormElementByName('searchterm');
@@ -215,7 +215,7 @@ class form_controller extends base_controller {
 </gen:highlight>
 Um den Klick-Status eines Buttons abzufragen, kann folgender Code genutzt werden:
 <gen:highlight type="php">
-class form_controller extends base_controller {
+class form_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('MyForm');
       $button = &$form->getFormElementByID('button');
@@ -228,7 +228,7 @@ class form_controller extends base_controller {
 <div class="hint">
    Weitere Methoden der Formular-Elemente finden sich in der
    <int:link pageid="002" />
-   der Klassen <strong>html_taglib_form</strong>, <strong>form_control</strong> und den Taglibs
+   der Klassen <strong>HtmlFormTag</strong>, <strong>form_control</strong> und den Taglibs
    der jeweiligen Formular-Elemente (z.B. <strong>form_taglib_text</strong>).
 </div>
 <br />
@@ -264,7 +264,7 @@ valide ist. Dazu fragt er das Formular bei der Transformation nach seinem Status
 </gen:highlight>
 <em>Controller:</em>
 <gen:highlight type="php">
-class form_controller extends base_controller {
+class form_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('product-form');
       $form->transformOnPlace();
@@ -308,7 +308,7 @@ angezeigt:
 </gen:highlight>
 <em>Controller:</em>
 <gen:highlight type="php">
-class form_controller extends base_controller {
+class form_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('product-form');
       $form->transformOnPlace();
@@ -344,7 +344,7 @@ class form_controller extends base_controller {
    <em>e</em> nicht enthält:
 </p>
 <gen:highlight type="php">
-class search_controller extends base_controller {
+class search_controller extends BaseDocumentController {
 
    public function transformContent() {
 
@@ -399,7 +399,7 @@ class search_controller extends base_controller {
 Sollen die im Formular des Kapitels 3.2.2. beschriebenen Felder zum Abspeichern des Formulars
 ausgelesen werden, kann dies mit Hilfe des folgenden Controller-Codes erreicht werden:
 <gen:highlight type="php">
-class form_controller extends base_controller {
+class form_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('product-form');
 
@@ -437,7 +437,7 @@ Error-Tags bezogen und von dort der Platzhalter. Als Beispiel nutzen wir folgend
 Um nun den Platzhalter innerhalb des <strong>&lt;form:error /&gt;</strong>-Tags zu füllen, kann
 folgender Controller-Code genutzt werden:
 <gen:highlight type="php">
-class form_controller extends base_controller {
+class form_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('product-form');
       $error = &$form->getFormElementByName('error');
@@ -467,7 +467,7 @@ Im Zusammenspiel mit dem <int:link pageid="063" anchor="Chapter-4-3-Speichern-vo
 kann die Methode genutzt werden um Formular-Felder auszulesen und direkt in ein
 <strong>GenericDomainObject</strong> zu speichern. Hierzu kann folgender Code genutzt werden:
 <gen:highlight type="php">
-class edit_controller extends base_controller {
+class edit_controller extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('...');
       $textFields = &$form->getFormElementsByTagName('form:text');
@@ -522,7 +522,7 @@ PHP-Code befüllt wird:
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
    namespace="tools::form::taglib"
-   class="html_taglib_form"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -560,7 +560,7 @@ vorausgefüllt, das zusätzlich zu den Standard-Text-Felder auch Auswahlfelder b
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
    namespace="tools::form::taglib"
-   class="html_taglib_form"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -680,7 +680,7 @@ for($i = 0; $i < count($selectedGroups); $i++){
 <h3 id="Chapter-6-Dynamische-Formulare"><a href="#Chapter-6-Dynamische-Formulare">6. Dynamische Formulare</a></h3>
 <p>
    In einigen Anwendungsfällen ist es notwenig, Formulare dynamisch nach Anforderung zu erstellen.
-   Hierzu besitzt die Implementierung der Formular-TagLib (<em>html_taglib_form</em>) die Methoden
+   Hierzu besitzt die Implementierung der Formular-TagLib (<em>HtmlFormTag</em>) die Methoden
 </p>
 <ul>
   <li>addFormElement()</li>
@@ -733,7 +733,7 @@ dynamisch an der Stelle des Markers hinzufügt:
 &lt;@controller namespace="..." class="select_controller" @&gt;
 &lt;core:addtaglib
    namespace="tools::form::taglib"
-   class="html_taglib_form"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -767,7 +767,7 @@ definiert, welche Formular-Felder für welchen Typ angezeigt werden. Anschließe
 das Typ-Feld ausgewertet und das Formular mit Inhalten und Text-Feldern gemäß Typ
 ergänzt. Die folgende Code-Box zeigt die Implementierung des Document-Controllers:
 <gen:highlight type="php">
-class select_controller extends base_controller {
+class select_controller extends BaseDocumentController {
 
    // specify form element container
    private $__FormElements = array();
@@ -983,7 +983,7 @@ class form_taglib_honeypot extends form_control {
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
    namespace="tools::form::taglib"
-   class="html_taglib_form"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -1068,7 +1068,7 @@ Die Anwendung des Validators gestaltet sich dann im Zusammenhang mit dem Honeypo
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
    namespace="tools::form::taglib"
-   class="html_taglib_form"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -1137,7 +1137,7 @@ Text-Area wie folgt:
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
    namespace="tools::form::taglib"
-   class="html_taglib_form"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;

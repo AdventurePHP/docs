@@ -9,7 +9,7 @@
  * @version
  * Version 0.1, 28.12.2009<br />
  */
-class socialnetworkbar_controller extends base_controller {
+class socialnetworkbar_controller extends BaseDocumentController {
 
    public function transformContent() {
       $currentUrl = Registry::retrieve('apf::core', 'CurrentRequestURL');

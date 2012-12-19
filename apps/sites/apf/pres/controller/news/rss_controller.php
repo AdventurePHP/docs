@@ -1,5 +1,5 @@
 <?php
-class rss_controller extends base_controller {
+class rss_controller extends BaseDocumentController {
 
    private static $TYPE = 'type';
 
