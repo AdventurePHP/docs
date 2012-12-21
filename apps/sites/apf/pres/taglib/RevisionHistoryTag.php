@@ -42,7 +42,7 @@ class RevisionHistoryTag extends Document {
       $this->__Content .= $this->getReleaseHeader($release);
       $this->__Content .= $this->getReleaseDescription($release);
       $this->__Content .= '</div>' . PHP_EOL;
-      $this->__extractTagLibTags();
+      $this->extractTagLibTags();
 
       // append release number to HTML title to avoid duplicate titles for SEO reasons
       /* @var $model APFModel */

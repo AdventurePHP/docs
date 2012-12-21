@@ -191,24 +191,24 @@ import('core::session','SessionManager');
 
 class GuestbookManager extends APFObject {
 
-   private  $__GuestbookID;
-   private $__Guestbook = null;
-   private $__sessMgr = null;
+   private $guestbookId;
+   private $guestbook = null;
+   private $sessionManager = null;
 
    public function init($GuestbookID){
 
       // GuestbookID speichern
-      $this->__GuestbookID = $GuestbookID;
+      $this->guestbookId = $GuestbookID;
 
       // SessionManager initialisieren
-      $this->__sessMgr = new SessionManager('Guestbook');
+      $this->sessionManager = new SessionManager('Guestbook');
 
    }
 
    public function loadGuestbook(){
 
       // Falls Gästebuch noch nicht geladen wurde...
-      if($this->__Guestbook == null){
+      if($this->guestbook == null){
 
          // pagerManager holen
          $pMF = &$this->getServiceObject('modules::pager::biz','PagerManagerFabric');
@@ -218,10 +218,10 @@ class GuestbookManager extends APFObject {
          $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
          // Gästebuch laden
-         $this->__Guestbook = $gM->loadGuestbookByID($this->__GuestbookID);
+         $this->guestbook = $gM->loadGuestbookByID($this->guestbookId);
 
          // Eintrag-IDs, die angezeigt werden sollen laden
-         $EntryIDs = $pM->loadEntries(array('GuestbookID' => $this->__GuestbookID));
+         $EntryIDs = $pM->loadEntries(array('GuestbookID' => $this->guestbookId));
 
          // Einträge laden
          $Entries = array();
@@ -232,11 +232,11 @@ class GuestbookManager extends APFObject {
 
 
          // Einträge zum Gästebuch hinzufügen
-         $this->__Guestbook->setEntries($Entries);
+         $this->guestbook->setEntries($Entries);
 
       }
 
-      return $this->__Guestbook;
+      return $this->guestbook;
    }
 
    public function loadGuestbookObject(){
@@ -245,7 +245,7 @@ class GuestbookManager extends APFObject {
       $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
       // Gästebuch-Objekt laden
-      return $gM->loadGuestbookByID($this->__GuestbookID);
+      return $gM->loadGuestbookByID($this->guestbookId);
 
    }
 
@@ -267,7 +267,7 @@ class GuestbookManager extends APFObject {
       $pM = &$pMF->getPagerManager('Guestbook');
 
       // Pager-Ausgabe hinzufügen
-      return $pM->getPager(array('GuestbookID' => $this->__GuestbookID));
+      return $pM->getPager(array('GuestbookID' => $this->guestbookId));
 
    }
 
@@ -277,7 +277,7 @@ class GuestbookManager extends APFObject {
       $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
       // Gästebuch laden
-      $Guestbook = $gM->loadGuestbookByID($this->__GuestbookID);
+      $Guestbook = $gM->loadGuestbookByID($this->guestbookId);
 
       // Eintrag hinzufügen
       $Guestbook->addEntry($Entry);
@@ -302,7 +302,7 @@ class GuestbookManager extends APFObject {
       $gM = &$this->getServiceObject('modules::guestbook::data','GuestbookMapper');
 
       // Gästebuch laden
-      $Guestbook = $gM->loadGuestbookByID($this->__GuestbookID);
+      $Guestbook = $gM->loadGuestbookByID($this->guestbookId);
 
       // Entry laden
       $Entry = $gM->loadEntryByID($EntryID);
@@ -628,10 +628,10 @@ import('tools::string','StringAssistant');
 class guestbook_display_v1_controller extends guestbookBaseController {
 
    private $_LOCALS;
-   private $__sessMgr;
+   private $sessionManager;
 
    public function __construct(){
-      $this->__sessMgr = new SessionManager('Module_Guestbook');
+      $this->sessionManager = new SessionManager('Module_Guestbook');
    }
 
    public function transformContent(){

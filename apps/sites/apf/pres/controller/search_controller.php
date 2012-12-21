@@ -92,10 +92,10 @@ class search_controller extends BaseDocumentController {
          if ($count < 1) {
 
             // get template
-            $Template__NoSearchResult = &$this->getTemplate('NoSearchResult_' . $this->__Language);
+            $templateNoSearchResult = &$this->getTemplate('NoSearchResult_' . $this->__Language);
 
             // add message to buffer
-            $buffer .= $Template__NoSearchResult->transformTemplate();
+            $buffer .= $templateNoSearchResult->transformTemplate();
 
          }
 

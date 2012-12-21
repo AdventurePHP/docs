@@ -31,7 +31,7 @@ class NewsItemTag extends Document {
    }
 
    public function onParseTime() {
-      $this->__extractTagLibTags();
+      $this->extractTagLibTags();
    }
 
    public function transformOnPlace() {

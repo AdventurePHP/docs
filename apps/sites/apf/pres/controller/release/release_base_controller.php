@@ -26,13 +26,13 @@ abstract class release_base_controller extends BaseDocumentController {
     * @protected
     * @var string Defines, where the releases reside on the filesystem.
     */
-   protected $__ReleasesLocalDir = null;
+   protected $releasesLocalDir = null;
 
    /**
     * @protected
     * @var string Defines the base URL, where the releases can be accessed via the HTTP protocol.
     */
-   protected $__ReleasesBaseURL = null;
+   protected $releasesBaseURL = null;
 
    /**
     * @var boolean Indicates, whether to display the PHP4 files of the release.
@@ -51,8 +51,8 @@ abstract class release_base_controller extends BaseDocumentController {
    private static $CODE_RELEASE_FILE_INDICATOR = '-codepack';
 
    public function __construct() {
-      $this->__ReleasesLocalDir = Registry::retrieve('sites::apf', 'Releases.LocalDir');
-      $this->__ReleasesBaseURL = Registry::retrieve('sites::apf', 'Releases.BaseURL');
+      $this->releasesLocalDir = Registry::retrieve('sites::apf', 'Releases.LocalDir');
+      $this->releasesBaseURL = Registry::retrieve('sites::apf', 'Releases.BaseURL');
    }
 
    /**
@@ -91,7 +91,7 @@ abstract class release_base_controller extends BaseDocumentController {
       $t = & Singleton::getInstance('BenchmarkTimer');
       $id = 'release_base_controller::getAllReleases()';
       $t->start($id);
-      $releases = array_reverse(FilesystemManager::getFolderContent($this->__ReleasesLocalDir));
+      $releases = array_reverse(FilesystemManager::getFolderContent($this->releasesLocalDir));
       usort($releases, array('release_base_controller', 'sortReleases'));
       $t->stop($id);
       return $releases;
@@ -256,7 +256,7 @@ abstract class release_base_controller extends BaseDocumentController {
       $templateReleaseHead->setPlaceHolder('ReleaseNumber', $releaseNumber);
 
       // fetch files
-      $files = FilesystemManager::getFolderContent($this->__ReleasesLocalDir . '/' . $releaseNumber . '/download');
+      $files = FilesystemManager::getFolderContent($this->releasesLocalDir . '/' . $releaseNumber . '/download');
 
       // sort files
       sort($files);
@@ -276,7 +276,7 @@ abstract class release_base_controller extends BaseDocumentController {
       } else {
          $docsFolder = 'doku';
       }
-      $dokuFiles = FilesystemManager::getFolderContent($this->__ReleasesLocalDir . '/' . $releaseNumber . '/' . $docsFolder);
+      $dokuFiles = FilesystemManager::getFolderContent($this->releasesLocalDir . '/' . $releaseNumber . '/' . $docsFolder);
 
       // choose new template for versions > 1.10
       if ($version >= 110) {
@@ -290,7 +290,7 @@ abstract class release_base_controller extends BaseDocumentController {
 
       for ($k = 0; $k < count($dokuFiles); $k++) {
 
-         if (!is_dir($this->__ReleasesLocalDir . '/' . $releaseNumber . '/' . $docsFolder . '/' . $dokuFiles[$k])) {
+         if (!is_dir($this->releasesLocalDir . '/' . $releaseNumber . '/' . $docsFolder . '/' . $dokuFiles[$k])) {
 
             if ($version >= 110) {
 
@@ -377,7 +377,7 @@ abstract class release_base_controller extends BaseDocumentController {
                $templateOfflineDoku->setPlaceHolder('DokuFile', $this->getDisplayFileName($dokuFiles[$k]));
             }
 
-            $templateOfflineDoku->setPlaceHolder('ReleasesBaseURL', $this->__ReleasesBaseURL);
+            $templateOfflineDoku->setPlaceHolder('ReleasesBaseURL', $this->releasesBaseURL);
             $bufferOfflineDoku .= $templateOfflineDoku->transformTemplate();
 
          }
@@ -393,7 +393,7 @@ abstract class release_base_controller extends BaseDocumentController {
       }
       $templateDocumentation->setPlaceHolder('ReleaseVersion', $releaseNumber);
       $templateDocumentation->setPlaceHolder('OfflineDoku', $bufferOfflineDoku);
-      $templateDocumentation->setPlaceHolder('ReleasesBaseURL', $this->__ReleasesBaseURL);
+      $templateDocumentation->setPlaceHolder('ReleasesBaseURL', $this->releasesBaseURL);
 
       // Generate changeset link. This is a link on the changeset page with the current
       // release as it's param.
@@ -417,14 +417,14 @@ abstract class release_base_controller extends BaseDocumentController {
 
       for ($j = 0; $j < count($files); $j++) {
 
-         if (!is_link($this->__ReleasesLocalDir . '/' . $releaseNumber . '/download/' . $files[$j]) && !is_dir($this->__ReleasesLocalDir . '/' . $releaseNumber . '/download/' . $files[$j])) {
+         if (!is_link($this->releasesLocalDir . '/' . $releaseNumber . '/download/' . $files[$j]) && !is_dir($this->releasesLocalDir . '/' . $releaseNumber . '/download/' . $files[$j])) {
 
             // gather file attributes
-            $fileAttributes = FilesystemManager::getFileAttributes($this->__ReleasesLocalDir . '/' . $releaseNumber . '/download/' . $files[$j]);
+            $fileAttributes = FilesystemManager::getFileAttributes($this->releasesLocalDir . '/' . $releaseNumber . '/download/' . $files[$j]);
             //echo printObject($FileAttributes);
 
             // fill template
-            $templateReleaseFile->setPlaceHolder('Link', $this->__ReleasesBaseURL . '/' . $releaseNumber . '/download/' . $files[$j]);
+            $templateReleaseFile->setPlaceHolder('Link', $this->releasesBaseURL . '/' . $releaseNumber . '/download/' . $files[$j]);
             $templateReleaseFile->setPlaceHolder('Name', $this->getDisplayFileName($files[$j]));
             $templateReleaseFile->setPlaceHolder('Date', $fileAttributes['modificationdate']);
             $templateReleaseFile->setPlaceHolder('Size', round((int)$fileAttributes['size'] / 1000, 1));

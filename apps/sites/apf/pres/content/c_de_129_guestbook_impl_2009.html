@@ -412,7 +412,7 @@ import(
 <p>Hierzu erstellen wir zunächst eine Klasse, die die Gästebuch-Id verwaltet:</p>
 <gen:highlight type="php">
 class GuestbookModel extends APFObject {
-   protected $__GuestbookId;
+   protected $guestbookId;
 }
 </gen:highlight>
 <p>
@@ -1520,7 +1520,7 @@ class edit_controller extends backend_BaseDocumentController {
    public function transformContent(){
       $entryId = RequestHandler::getValue('entryid');
       if($entryId === null){
-         $this->__displayEntrySelection(
+         $this->displayEntrySelection(
             'edit'
          );
          return;
@@ -1604,7 +1604,7 @@ class delete_controller extends backend_BaseDocumentController {
    public function transformContent(){
       $entryId = RequestHandler::getValue('entryid');
       if($entryId === null){
-         $this->__displayEntrySelection('delete');
+         $this->displayEntrySelection('delete');
          return;
       }
 
@@ -1678,10 +1678,9 @@ conf.pager.value = "Guestbook2009"
 </p>
 <gen:highlight type="php">
 final class GuestbookService extends APFObject {
-   private $__PagerConfigSection;
+   private $pagerConfigSection;
    public function setPagerConfigSection($section){
-      $this->__PagerConfigSection =
-         $section;
+      $this->pagerConfigSection = $section;
    }
 }
 </gen:highlight>
@@ -1698,10 +1697,10 @@ final class GuestbookService extends APFObject {
 <gen:highlight type="php">
 final class GuestbookService extends APFObject {
    public function loadGuestbook(){
-      $mapper = &$this->__getMapper();
+      $mapper = &$this->getMapper();
       return $mapper->loadGuestbook();
    }
-   private function &__getMapper(){
+   private function &getMapper(){
       return $this->getDIServiceObject(
          'modules::guestbook2009::data',
          'GuestbookMapper');
@@ -1735,7 +1734,7 @@ final class GuestbookService extends APFObject {
 </p>
 <gen:highlight type="php">
 public function loadPagedEntryList(){
-   $pager = &$this->__getPager();
+   $pager = &$this->getPager();
    $model = &$this->getServiceObject(
       'modules::guestbook2009::biz',
       'GuestbookModel'
@@ -1747,20 +1746,20 @@ public function loadPagedEntryList(){
       );
 
    $entries = array();
-   $mapper = &$this->__getMapper();
+   $mapper = &$this->getMapper();
    foreach($entryIds as $entryId){
       $entries[] =
          $mapper->loadEntry($entryId);
    }
    return $entries;
 }
-private function &__getPager(){
+private function &getPager(){
    $pMF = &$this->getServiceObject(
       'modules::pager::biz',
       'PagerManagerFabric'
    );
    return $pMF->getPagerManager(
-      $this->__PagerConfigSection
+      $this->pagerConfigSection
    );
 }
 </gen:highlight>
@@ -2031,7 +2030,7 @@ public function loadEntryListForSelection(){
       new GenericCriterionObject();
    $sortCrit->addOrderIndicator(
       'CreationTimestamp','DESC');
-   $gb = $this->__getCurrentGuestbook();
+   $gb = $this->getCurrentGuestbook();
    $list = $gb->loadRelatedObjects(
       'Guestbook2Entry',$sortCrit
    );
@@ -2052,13 +2051,13 @@ public function loadEntryListForSelection(){
    die eigentlichen Domänen-Objekte übersetzt werden.
 </p>
 <p>
-   Die private Methode __getCurrentGuestbook() liefert die Instanz des Guestbook-Objekts 
+   Die private Methode getCurrentGuestbook() liefert die Instanz des Guestbook-Objekts
    (GenericDomainObject). Dieses repräsentiert das aktuell angezeigte Gästebuch in der
    Datenbank. Hierzu wird die Methode loadObjectByID() des GenericORMapper genutzt:
 </p>
 <gen:highlight type="php">
-private function __getCurrentGuestbook(){
-   $orm = &$this->__getGenericORMapper();
+private function getCurrentGuestbook(){
+   $orm = &$this->getGenericORMapper();
    $model = &$this->getServiceObject(
       'modules::guestbook2009::biz',
       'GuestbookModel'
@@ -2089,8 +2088,8 @@ private function __mapGenericEntries2DomainObjects($entries = array(),$addEditor
 
    // load the language object for the current language to enable
    // language dependent mapping!
-   $orm = &$this->__getGenericORMapper();
-   $lang = $this->__getCurrentLanguage();
+   $orm = &$this->getGenericORMapper();
+   $lang = $this->getCurrentLanguage();
 
    // define the criterion
    $critEntries = new GenericCriterionObject();
@@ -2137,11 +2136,11 @@ private function __mapGenericEntries2DomainObjects($entries = array(),$addEditor
    $t->stop('__mapGenericEntries2DomainObjects()');
    return $gbEntries;
 }
-private function __getCurrentLanguage(){
+private function getCurrentLanguage(){
 
    $crit = new GenericCriterionObject();
    $crit->addPropertyIndicator('ISOCode',$this->__Language);
-   $orm = &$this->__getGenericORMapper();
+   $orm = &$this->getGenericORMapper();
    return $orm->loadObjectByCriterion('Language',$crit);
 }
 </gen:highlight>
@@ -2178,21 +2177,21 @@ private function __getCurrentLanguage(){
 <gen:highlight type="php">
 public function saveEntry($entry){
    $genericEntry =
-    $this->__mapDomainObject2GenericEntry(
+    $this->mapDomainObject2GenericEntry(
       $entry
    );
-   $orm = &$this->__getGenericORMapper();
+   $orm = &$this->getGenericORMapper();
    $orm->saveObject($genericEntry);
 }
 </gen:highlight>
 <p>
-   Die Übersetzung der Struktur übernimmt nun die Methode __mapDomainObject2GenericEntry(),
+   Die Übersetzung der Struktur übernimmt nun die Methode mapDomainObject2GenericEntry(),
    die im folgenden Kasten abgebildet ist:
 </p>
 <gen:highlight type="php">
-private function __mapDomainObject2GenericEntry($domEntry){
+private function mapDomainObject2GenericEntry($domEntry){
 
-   $lang = $this->__getCurrentLanguage();
+   $lang = $this->getCurrentLanguage();
 
    $domEditor = $domEntry->getEditor();
    $editor = new GenericDomainObject('User');
@@ -2206,12 +2205,12 @@ private function __mapDomainObject2GenericEntry($domEntry){
 
    // try to load an existing title attribute to avoid new attributes
    // on updates and merge changes
-   $title = $this->__getGenericAttribute($domEntry,'title');
+   $title = $this->getGenericAttribute($domEntry,'title');
    $title->setProperty('Name','title');
    $title->setProperty('Value',$domEntry->getTitle());
    $title->addRelatedObject('Attribute2Language',$lang);
 
-   $text = $this->__getGenericAttribute($domEntry,'text');
+   $text = $this->getGenericAttribute($domEntry,'text');
    $text->setProperty('Name','text');
    $text->setProperty('Value',$domEntry->getText());
    $text->addRelatedObject('Attribute2Language',$lang);
@@ -2221,7 +2220,7 @@ private function __mapDomainObject2GenericEntry($domEntry){
    $entry->addRelatedObject('Entry2LangDepValues',$title);
    $entry->addRelatedObject('Entry2LangDepValues',$text);
    $entry->addRelatedObject('Editor2Entry',$editor);
-   $gb = $this->__getCurrentGuestbook();
+   $gb = $this->getCurrentGuestbook();
    $entry->addRelatedObject('Guestbook2Entry',$gb);
 
    $entryId = $domEntry->getId();
@@ -2230,17 +2229,17 @@ private function __mapDomainObject2GenericEntry($domEntry){
    }
    return $entry;
 }
-private function __getGenericAttribute($domEntry,$name){
+private function getGenericAttribute($domEntry,$name){
 
    // try to load
    $entry = new GenericDomainObject('Entry');
    $entry->setProperty('EntryID',$domEntry->getId());
 
-   $orm = &$this->__getGenericORMapper();
+   $orm = &$this->getGenericORMapper();
 
    $crit = new GenericCriterionObject();
    $crit->addPropertyIndicator('Name',$name);
-   $crit->addRelationIndicator('Attribute2Language',$this->__getCurrentLanguage());
+   $crit->addRelationIndicator('Attribute2Language',$this->getCurrentLanguage());
 
    $attributes = $orm->loadRelatedObjects($entry,'Entry2LangDepValues',$crit);
    if(isset($attributes[0])){
@@ -2254,7 +2253,7 @@ private function __getGenericAttribute($domEntry,$name){
    GenericDomainObject-Instanzen um und löst anschließend in Sprach-abhängigen
    Attribute in Attribute-Objekte auf. Hierbei wird berücksichtigt, ob ein Attribut bereits in
    der Datenbank angelegt wurde, um mehrfache Speicherung verhindern. Sofern beim Anlegen eines
-   Eintrags noch kein Attribut existiert, liefert die Methode __getGenericAttribute() eine neue
+   Eintrags noch kein Attribut existiert, liefert die Methode getGenericAttribute() eine neue
    Instanz zurück.
 </p>
 <p>
@@ -2278,7 +2277,7 @@ private function __getGenericAttribute($domEntry,$name){
 </p>
 <gen:highlight type="php">
 public function deleteEntry($domEntry){
-   $orm = &$this->__getGenericORMapper();
+   $orm = &$this->getGenericORMapper();
    $entry = new GenericDomainObject(
       'Entry'
    );

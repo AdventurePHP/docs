@@ -34,7 +34,7 @@ class api_controller extends release_base_controller {
 
       // pre-fill the template
       $tmpl = &$this->getTemplate('Release');
-      $tmpl->setPlaceHolder('ReleaseURL', $this->__ReleasesBaseURL);
+      $tmpl->setPlaceHolder('ReleaseURL', $this->releasesBaseURL);
       $tmpl_version = &$this->getTemplate('Version_' . $this->__Language);
       $tmpl->setPlaceHolder('Version', $tmpl_version->transformTemplate());
 
@@ -50,7 +50,7 @@ class api_controller extends release_base_controller {
 
       // prefill new template
       $tmpl_new = &$this->getTemplate('Release_1.10');
-      $tmpl_new->setPlaceHolder('ReleaseURL', $this->__ReleasesBaseURL);
+      $tmpl_new->setPlaceHolder('ReleaseURL', $this->releasesBaseURL);
       $tmpl_new->setPlaceHolder('Version', $tmpl_version->transformTemplate());
 
       $tmpl_linkname = &$this->getTemplate('LinkName_' . $this->__Language);

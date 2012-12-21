@@ -143,7 +143,7 @@ To get things working, let's put the pieces together:
 <gen:highlight type="php">
 class CachedImportTemplateTag extends ImportTemplateTag {
 
-   private $__CacheContent = null;
+   private $cacheContent = null;
 
    public function __construct(){
 
@@ -166,11 +166,11 @@ class CachedImportTemplateTag extends ImportTemplateTag {
                      );
 
       // try to read from the cache
-      $this->__CacheContent = $cM->getFromCache($cacheKey);
+      $this->cacheContent = $cM->getFromCache($cacheKey);
 
       // check if the document was cached before. If not
       // execute the parent's onParseTime()
-      if($this->__CacheContent === null){
+      if($this->cacheContent === null){
          parent::onParseTime();
       }
 
@@ -179,7 +179,7 @@ class CachedImportTemplateTag extends ImportTemplateTag {
    public function transform(){
 
       // generate the node's output or return the cached content
-      if($this->__CacheContent === null){
+      if($this->cacheContent === null){
 
          // get the cache manager
          $cMF = &$this->getServiceObject('tools::cache','CacheManagerFabric');
@@ -200,7 +200,7 @@ class CachedImportTemplateTag extends ImportTemplateTag {
          return $output;
       }
       else{
-         return $this->__CacheContent;
+         return $this->cacheContent;
       }
 
    }
@@ -209,7 +209,7 @@ class CachedImportTemplateTag extends ImportTemplateTag {
 </gen:highlight>
 As you can see, the <em>onParseTime()</em> and <em>transform()</em> methods are enhanced with the
 cache handling. To store the cache content and to be able to decide, if cached content is available,
-the private member variable <em>__CacheContent</em> was introduced. Please note, that the code
+the private member variable <em>cacheContent</em> was introduced. Please note, that the code
 duplication within the two methods is just there to illustrate the function flow.
 <br />
 <br />

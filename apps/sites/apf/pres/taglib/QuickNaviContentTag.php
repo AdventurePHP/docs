@@ -45,10 +45,10 @@ class QuickNaviContentTag extends Document {
       );
 
       // extract tag libs included in the content
-      $this->__extractTagLibTags();
+      $this->extractTagLibTags();
 
       // extract document controller statements
-      $this->__extractDocumentController();
+      $this->extractDocumentController();
    }
 
 }

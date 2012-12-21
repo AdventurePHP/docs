@@ -38,13 +38,13 @@ class SidebarDisplayTag extends ImportTemplateTag {
       if ($model->getDisplaySidebar() == true) {
 
          // get content
-         $this->__loadContentFromFile('sites::apf::pres::templates', 'quicknavi');
+         $this->loadContentFromFile('sites::apf::pres::templates', 'quicknavi');
 
          // parse document controller statements
-         $this->__extractDocumentController();
+         $this->extractDocumentController();
 
          // extract further xml tags
-         $this->__extractTagLibTags();
+         $this->extractTagLibTags();
       }
 
       $t->stop($id);

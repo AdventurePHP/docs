@@ -217,16 +217,16 @@ class newspagerMapper extends APFObject {
     *  @private
     *  Defines the dir, where the news content is located.
     */
-   private $__DataDir = null;
+   private $dataDir = null;
 
    public function init($DataDir){
-      $this->__DataDir = $DataDir;
+      $this->dataDir = $DataDir;
    }
 
    public function getNewsByPage($PageNumber){
 
       // create filesystem handler
-      $fM = new filesystemHandler($this->__DataDir);
+      $fM = new filesystemHandler($this->dataDir);
 
       // read all files located there
       $RawFiles = $fM->showDirContent();
@@ -262,7 +262,7 @@ class newspagerMapper extends APFObject {
       }
 
       // read content of file
-      $NewsArray = file($this->__DataDir.'/'.$Files[$PageNumber - 1]);
+      $NewsArray = file($this->dataDir.'/'.$Files[$PageNumber - 1]);
 
       // initialize a new news content object
       $N = new newspagerContent();
@@ -321,17 +321,17 @@ code looks like this:
 <gen:highlight type="php">
 class newspagerContent extends APFObject {
 
-   private $__Headline;
-   private $__Subheadline;
-   private $__Content;
-   private $__NewsCount;
+   private $headline;
+   private $subHeadline;
+   private $content;
+   private $newsCount;
 
 }
 </gen:highlight>
-The attribute <strong>$__NewsCount</strong> was introduced to control the pager widgets.
-<br />
-<br />
-<br />
+<p>
+   The attribute <em>$newsCount</em> was introduced to control the pager widgets.
+</p>
+
 <h5 id="Chapter-4-2-2-Manager"><a href="#Chapter-4-2-2-Manager">4.2.2. The manager</a></h5>
 To be compilant to the classical thee tier architecture described in the pattern of the same name,
 we introduce a business component, that contains the business logic of the application. In this case
@@ -343,16 +343,16 @@ import('modules::newspager::data','newspagerMapper');
 
 class newspagerManager extends APFObject {
 
-   private $__DataDir = null;
+   private $dataDir = null;
 
    public function init($DataDir){
 
       // cut trailing slash if necessary
       if(substr($DataDir,strlen($DataDir) - 1) == '/'){
-         $this->__DataDir = substr($DataDir,0,strlen($DataDir) -1);
+         $this->dataDir = substr($DataDir,0,strlen($DataDir) -1);
       }
       else{
-         $this->__DataDir = $DataDir;
+         $this->dataDir = $DataDir;
       }
 
    }
@@ -360,7 +360,7 @@ class newspagerManager extends APFObject {
    public function getNewsByPage($PageNumber = 1){
 
       // get mapper
-      $nM = &$this->getAndInitServiceObject('modules::newspager::data','newspagerMapper',$this->__DataDir);
+      $nM = &$this->getAndInitServiceObject('modules::newspager::data','newspagerMapper',$this->dataDir);
 
       // load and return news object
       return $nM->getNewsByPage($PageNumber);
@@ -412,9 +412,9 @@ class NewspagerAction extends AbstractFrontcontrollerAction {
    public function run(){
 
       // get desired page number, language and data dir
-      $page = $this->__Input->getAttribute('page');
-      $Language = $this->__Input->getAttribute('lang');
-      $DataDir = base64_decode($this->__Input->getAttribute('datadir'));
+      $page = $this->input->getAttribute('page');
+      $Language = $this->input->getAttribute('lang');
+      $DataDir = base64_decode($this->input->getAttribute('datadir'));
 
       // get manager
       $nM = &$this->getAndInitServiceObject('modules::newspager::data','newspagerManager',$DataDir);
@@ -854,5 +854,5 @@ This chapter is intended to list the pitfalls, that can appear during AJAX appli
     <br />
   </li>
 </ul>
-<br />
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_061" />

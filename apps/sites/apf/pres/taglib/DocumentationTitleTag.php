@@ -18,7 +18,7 @@ class DocumentationTitleTag extends Document {
     * @private
     * Indicates the page's title.
     */
-   private $__Title = null;
+   private $title = null;
 
    /**
     * @public
@@ -34,8 +34,8 @@ class DocumentationTitleTag extends Document {
    public function onParseTime() {
 
       // get page title
-      $this->__Title = $this->getAttribute('title');
-      if ($this->__Title === null) {
+      $this->title = $this->getAttribute('title');
+      if ($this->title === null) {
          throw new InvalidArgumentException('[DocumentationTitleTag::onParseTime()] The attribute "title" is missing. Please provide the page title!', E_USER_ERROR);
       }
 
@@ -62,7 +62,7 @@ class DocumentationTitleTag extends Document {
       // inform model
       /* @var $model APFModel */
       $model = Singleton::getInstance('APFModel');
-      $model->setTitle($this->__Title);
+      $model->setTitle($this->title);
       $model->setAttribute('page.description', str_replace('  ', ' ', str_replace("\r", '', str_replace("\n", '', trim($this->__Content)))));
       $model->setAttribute('page.tags', $tags);
       $model->setAttribute('page.urlname', $urlName);
@@ -87,7 +87,7 @@ class DocumentationTitleTag extends Document {
       if ($display == 'false') {
          return '';
       } else {
-         return '<h2>' . $this->__Title . '</h2>';
+         return '<h2>' . $this->title . '</h2>';
       }
 
    }
