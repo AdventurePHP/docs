@@ -44,7 +44,7 @@ functionality included.
    that is described within the API documentation in detail.
 </div>
 <p>
-   The basic form element is defined within the <strong>form_control</strong> class. There, the structure
+   The basic form element is defined within the <strong>AbstractFormControl</strong> class. There, the structure
    is defined as well as the basic functionality is included. Due to the fact, that all taglibs underly
    the <int:link pageid="098" anchor="Chapter-2-1-Activity-diagram">page controller lifecycle</int:link>
    each form element must implement the methods, a &quot;normal&quot; taglib must implement, too.
@@ -56,7 +56,7 @@ functionality included.
    controls and returns the cumulated value executing the <strong>isValid()</strong> method.
 </div>
 <br />
-Class <strong>form_control</strong> implements the following methods:
+Class <strong>AbstractFormControl</strong> implements the following methods:
 <ul>
    <li>
       <strong>isValid():</strong> The function enables you to query the validity status from
@@ -115,7 +115,7 @@ Class <strong>form_control</strong> implements the following methods:
       it is invalid.
    </li>
    <li>
-      <strong>__presetValue():</strong> This method provides presetting for form text fields. It
+      <strong>presetValue():</strong> This method provides presetting for form text fields. It
       can be directly used or overwritten for custom form elements.
    </li>
    <li>
@@ -129,6 +129,10 @@ Class <strong>form_control</strong> implements the following methods:
       source code.
    </li>
 </ul>
+<div class="warn">
+   In release 1.17 old naming conventions for methods have been removed. In case you are using APF with version 1.16 or
+   earlier, the name for the form control presetting function is <em>__presetValue()</em> instead of <em>presetValue()</em>.
+</div>
 <p>
    Using this methods, the developer is supported to implement custom form taglibs as described in
    chapter 7.
@@ -145,8 +149,8 @@ Class <strong>form_control</strong> implements the following methods:
       recommend to add the desired attributes within the constructor of the taglib:
    </p>
 <gen:highlight type="php">
-class form_taglib_myspecial extends form_control {
-   public function form_taglib_myspecial(){
+class SpecialFormControlTag extends AbstractFormControl {
+   public function __construct() {
       $this->attributeWhiteList[] = 'name';
       $this->attributeWhiteList[] = 'accesskey';
    }
@@ -214,8 +218,8 @@ class form_controller extends BaseDocumentController {
 <div class="hint">
    To get an overview of the existent methods, please refer to the
    <int:link pageid="002" /> of the
-   classes <strong>HtmlFormTag</strong>, <strong>form_control</strong> and the dedicated
-   form taglibs (e.g. <strong>form_taglib_text</strong>).
+   classes <strong>HtmlFormTag</strong>, <strong>AbstractFormControl</strong> and the dedicated
+   form taglibs (e.g. <strong>TextFieldTag</strong>).
 </div>
 <br />
 <br />
@@ -893,7 +897,7 @@ forms.
 <br />
 <br />
 The difference between a normal taglib and a form taglib is the fact, that each form taglib implements
-the abstract <strong>form_control</strong> class. Hence, the form control inherits an advanced tag
+the abstract <strong>AbstractFormControl</strong> class. Hence, the form control inherits an advanced tag
 definition and some more functionality to enable the <strong>&lt;html:form /&gt;</strong> tag to
 handle the control. The extra functionality mentioned in the last sentence merely consists of
 validation and filter handling code.
@@ -905,7 +909,7 @@ Besiders, implementation examples are presented.
 <br />
 <br />
 <h4 id="Chapter-7-1-Form-controls"><a href="#Chapter-7-1-Form-controls">7.1. Form controls</a></h4>
-As mentioned above, an APF form control is defined by the abstract class <strong>form_control</strong>.
+As mentioned above, an APF form control is defined by the abstract class <strong>AbstractFormControl</strong>.
 In order to implement a custom form element, the class' functionality must be enhanced.
 <br />
 <br />
@@ -921,7 +925,7 @@ Let's start with the basics of the element. As described in the last sentence, t
 generate a hidden text input field. To achieve this, the taglib must return the desired source
 code:
 <gen:highlight type="php">
-class form_taglib_honeypot extends form_control {
+class HoneypotFormControlTag extends AbstractFormControl {
    public function transform(){
       $htmlCode  = (string)'&lt;input ';
       $htmlCode .= $this->getAttributesAsString($this->__Attributes);
@@ -941,7 +945,7 @@ class form_taglib_honeypot extends form_control {
 </div>
 <p>
    Due to the fact, that validation and filter attachment as well as the method returning the validity
-   status of the tag is already included in the <strong>form_control</strong> class, the code printed
+   status of the tag is already included in the <strong>AbstractFormControl</strong> class, the code printed
    above is all that you need by now.
 </p>
 <p>
@@ -957,7 +961,7 @@ class form_taglib_honeypot extends form_control {
 /&gt;
 &lt;html:form name="CheckedForm"&gt;
    ...
-   &lt;form:addtaglib namespace="..." class="form_taglib_honeypot" prefix="form" name="honeypot" /&gt;
+   &lt;form:addtaglib namespace="..." class="HoneypotFormControlTag" prefix="form" name="honeypot" /&gt;
    &lt;form:honeypot name="check" /&gt;
    ...
 &lt;/html:form&gt;
@@ -971,7 +975,7 @@ next chapter for details.
 Validators are defined separately and are attached as observer since release <strong>1.11</strong>.
 In order to support this mechanism, a form control must be aware of validators. In case of the honey
 pot field, the functionality is already included in the tag, because it extends the base class
-<strong>form_control</strong>. Thus, the validator is applied the content of the <strong>value</strong>
+<strong>AbstractFormControl</strong>. Thus, the validator is applied the content of the <strong>value</strong>
 attribute and is thus able to act as descibed in the introduction.
 <br />
 <br />
@@ -1033,7 +1037,7 @@ field:
    name="form"
 /&gt;
 &lt;html:form name="CheckedForm"&gt;
-   &lt;form:addtaglib namespace="..." class="form_taglib_honeypot" prefix="form" name="honeypot" /&gt;
+   &lt;form:addtaglib namespace="..." class="HoneypotFormControlTag" prefix="form" name="honeypot" /&gt;
    &lt;form:honeypot name="check" /&gt;
    &lt;form:addvalidator
       namespace="..."

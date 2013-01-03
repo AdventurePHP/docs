@@ -50,7 +50,7 @@ APF bietet.
    beschrieben ist.
 </div>
 <p>
-   Grundlage für alle Formular-Elemente ist die Klasse <strong>form_control</strong>. Diese
+   Grundlage für alle Formular-Elemente ist die Klasse <strong>AbstractFormControl</strong>. Diese
    implementiert Basis-Funktionalitäten für alle konkreten Formular-Elemente und definiert die
    Struktur eines Formular-Elements. Da die Formular-Elemente als Taglibs ausgeführt sind, unterliegen
    sie dem <int:link pageid="098" chapter="Chapter-2-1-Ablaufdiagramm">Lifecycle des Page-Controllers</int:link>.
@@ -65,7 +65,7 @@ APF bietet.
    kumulierten Wert erzeugt.
 </div>
 <br />
-Die Klasse <strong>form_control</strong> implementierten folgende Methoden:
+Die Klasse <strong>AbstractFormControl</strong> implementierten folgende Methoden:
 <ul>
    <li>
       <strong>isValid():</strong> Die Funktion ermöglicht es, den Validitäts-Status der
@@ -128,7 +128,7 @@ Die Klasse <strong>form_control</strong> implementierten folgende Methoden:
       Formular-Elements, dass dieses invalid ist.
    </li>
    <li>
-      <strong>__presetValue():</strong> Die Methode stellt Presetting von Formular-Elementen für
+      <strong>presetValue():</strong> Die Methode stellt Presetting von Formular-Elementen für
       einfache Text-Felder zur Verfügung. Diese kann bei der Erweiterung von Formular-Elementen
       entweder mit einer eigenen Logik überschrieben oder direkt genutzt werden.
    </li>
@@ -142,6 +142,11 @@ Die Klasse <strong>form_control</strong> implementierten folgende Methoden:
       aktuellen Formular-Elements hinzu. Damit wird dieses auch in den HTML-Quelltext geschrieben.
    </li>
 </ul>
+<div class="warn">
+   Im Release 1.17 wurden alte Namenskonventionen von Methoden entfernt. Sofern Sie das APF in der Version 1.16 oder
+   kleiner verwenden lautet der Name der Funktion für das Presetting von Formular-Werten <em>__presetValue()</em> statt
+   <em>presetValue()</em>.
+</div>
 <p>
    Mit Hilfe dieser Funktionen wird der Entwickler darin untrstützt, eigene Formular-Elemente zu
    erstellen. Mehr dazu in Kapitel 7.
@@ -159,8 +164,8 @@ Die Klasse <strong>form_control</strong> implementierten folgende Methoden:
       sich, den Konstruktor der Taglib zu nutzen:
    </p>
 <gen:highlight type="php">
-class form_taglib_myspecial extends form_control {
-   public function form_taglib_myspecial(){
+class SpecialFormControlTag extends AbstractFormControl {
+   public function __construct() {
       $this->attributeWhiteList[] = 'name';
       $this->attributeWhiteList[] = 'accesskey';
    }
@@ -228,8 +233,8 @@ class form_controller extends BaseDocumentController {
 <div class="hint">
    Weitere Methoden der Formular-Elemente finden sich in der
    <int:link pageid="002" />
-   der Klassen <strong>HtmlFormTag</strong>, <strong>form_control</strong> und den Taglibs
-   der jeweiligen Formular-Elemente (z.B. <strong>form_taglib_text</strong>).
+   der Klassen <strong>HtmlFormTag</strong>, <strong>AbstractFormControl</strong> und den Taglibs
+   der jeweiligen Formular-Elemente (z.B. <strong>TextFieldTag</strong>).
 </div>
 <br />
 <br />
@@ -922,7 +927,7 @@ zum <em>&lt;core:addtaglib /&gt;</em> ist, in ein bestehendes Formular eingebund
 <br />
 <br />
 Die Besonderheit der Formular-Taglibs bzw. Formular-Elemente ist, dass diese die abstrakte Klasse
-<strong>form_control</strong> implementieren. Sie genügen damit einem erweiterten Tag-Interface,
+<strong>AbstractFormControl</strong> implementieren. Sie genügen damit einem erweiterten Tag-Interface,
 das vom <strong>&lt;html:form /&gt;</strong>-Tag behandelt werden kann. Die Erweiterung des
 Funktions-Umfangs besteht insbesondere in der Validierung und Filterung.
 <br />
@@ -934,7 +939,7 @@ und Filter und geben Beispiele für die Implementierung.
 <br />
 <h4 id="Chapter-7-1-Formular-Felder"><a href="#Chapter-7-1-Formular-Felder">7.1. Formular-Felder</a></h4>
 Wie bereits angedeutet, ist eine Formular-Element im APF durch die abstrakten Basis-Klasse
-<strong>form_control</strong> definiert. Um ein neues Formular-Element zu implementieren, muss diese
+<strong>AbstractFormControl</strong> definiert. Um ein neues Formular-Element zu implementieren, muss diese
 nun um die gewünschten Funktionen erweitert werden.
 <br />
 <br />
@@ -952,7 +957,7 @@ Beginnen wir zunächst mit dem Rumpf des Elements. Wie zuvor beschrieben soll ei
 ausgeben werden, das via CSS versteckt wird. Um diese Funktion zu gewährleisten, muss das neue
 Formular-Element bei der Transformation die entsprechende HTML-Ausgabe zurückliefern:
 <gen:highlight type="php">
-class form_taglib_honeypot extends form_control {
+class HoneypotFormControlTag extends AbstractFormControl {
    public function transform(){
       $htmlCode  = (string)'&lt;input ';
       $htmlCode .= $this->getAttributesAsString($this->__Attributes);
@@ -973,7 +978,7 @@ class form_taglib_honeypot extends form_control {
 <p>
    Da die Rückgabe des Validitäts-Status, die Möglichkeit Validatoren und Filter
    anzuheften und Presetting der eingegebenen Werte beim Absenden bereits in der Klasse
-   <strong>form_control</strong> enthalten ist, stellt die oben gezeigte Klasse bereits den
+   <strong>AbstractFormControl</strong> enthalten ist, stellt die oben gezeigte Klasse bereits den
    vollständig Funktionsumfang dar.
 </p>
 <p>
@@ -991,7 +996,7 @@ class form_taglib_honeypot extends form_control {
    ...
    &lt;form:addtaglib
       namespace="..."
-      class="form_taglib_honeypot"
+      class="HoneypotFormControlTag"
       prefix="form"
       name="honeypot"
    /&gt;
@@ -1009,7 +1014,7 @@ Validatoren werden ab dem Release <strong>1.11</strong> von Formular-Elementen g
 definiert und diesen als Observer mitgegeben. Um diesen Mechanismus zu unterstützen, muss das
 Formular-Element jedoch darauf vorbereitet sein. Im Fall des im vorangegangenen Kapitels
 beschriebenen Honeypot-Feldes ist die Validierungs-Funktionalität bereits durch die
-Basis-Klasse <strong>form_control</strong> definiert. Bei der Validierung wird dem Validator der
+Basis-Klasse <strong>AbstractFormControl</strong> definiert. Bei der Validierung wird dem Validator der
 Inhalt des Attributs <strong>value</strong> übergeben und dieser kann entsprechend darauf
 reagieren.
 <br />
@@ -1075,7 +1080,7 @@ Die Anwendung des Validators gestaltet sich dann im Zusammenhang mit dem Honeypo
 &lt;html:form name="CheckedForm"&gt;
    &lt;form:addtaglib
       namespace="..."
-      class="form_taglib_honeypot"
+      class="HoneypotFormControlTag"
       prefix="form"
       name="honeypot"
    /&gt;

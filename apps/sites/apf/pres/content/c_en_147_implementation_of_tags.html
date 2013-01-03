@@ -120,7 +120,7 @@
    custom tags must be published to the current node. You can do so using the <em>&lt;core:addtaglib /&gt;</em> tag or
    adding
 <gen:highlight type="php">
-$this->__TagLibs[] = new TagLib(...);
+$this->tagLibs[] = new TagLib(...);
 </gen:highlight>
    to the constructor of your custom tag. Using the <em>&lt;core:addtaglib /&gt;</em> tag is necessary if you intend to
    add a custom tag within a template file, the PHP code sample can be used within custom tags to publish further
@@ -161,11 +161,11 @@ final class TagLib {
 <gen:highlight type="php">
 class Document extends APFObject {
 
-   protected $__ObjectID = null;
-   protected $__ParentObject = null;
-   protected $__Children = array();
-   protected $__Content;
-   protected $__TagLibs = array();
+   protected $objectId = null;
+   protected $parentObject = null;
+   protected $children = array();
+   protected $content;
+   protected $tagLibs = array();
 
    public function __construct() {
    }
@@ -186,32 +186,32 @@ class Document extends APFObject {
 </p>
 <ul>
    <li>
-      The field <em>__ObjectID</em> stores the internal unique object id the object receives from the APF parser during
+      The field <em>objectId</em> stores the internal unique object id the object receives from the APF parser during
       creation. The value is e.g. used for <int:link pageid="004"/> tags or to refer a DOM element by it's unique
       identifier.
    </li>
    <li>
-      <em>__ParentObject</em> refers to the father object within the DOM tree. This reference can be used to navigate
+      <em>parentObject</em> refers to the father object within the DOM tree. This reference can be used to navigate
       the DOM tree. The root node does not have a father.
    </li>
    <li>
-      The list of <em>__Children</em> contains all child nodes of the current DOM node. This list can be used to navigate
+      The list of <em>children</em> contains all child nodes of the current DOM node. This list can be used to navigate
       the DOM tree. In case a DOM node does not have children, the list is empty.
    </li>
    <li>
-      The <em>__Content</em> field contains the textual content of the node as well as place holder tags created by the
+      The <em>content</em> field contains the textual content of the node as well as place holder tags created by the
       page controller during DOM tree creation in order to guarantee correct assembling of the HTML source code.
    </li>
    <li>
-      The <em>__Attributes</em> list - inherited from <em>APFObject</em> - contains a list of tag attributes and their
+      The <em>attributes</em> list - inherited from <em>APFObject</em> - contains a list of tag attributes and their
       respective values. In case a tag defines no attributes the list is empty.
    </li>
    <li>
-      The <em>__TagLibs</em> list contains all known tags for the current node. As mentioned in the previous chapter,
+      The <em>tagLibs</em> list contains all known tags for the current node. As mentioned in the previous chapter,
       the APF parser only processes tags that are known within a particular hierarchy level or within a DOM element
       respectively. Which tags are known and which are not is thus defined by this list.
       <div class="hint">
-         The <em>__TagLibs</em> list can be used in custom tag implementations to publish new tags or to remove some or
+         The <em>tagLibs</em> list can be used in custom tag implementations to publish new tags or to remove some or
          all of them. Since manipulation of this list directly influences the parser, please be careful!
       </div>
    </li>
@@ -243,44 +243,76 @@ class Document extends APFObject {
          In case the <em>transform()</em> method is overwritten by your custom tag, you have to take care of the
          transformation of the child nodes by yourself. This may be done as follows:
 <gen:highlight type="php">
-foreach($this->__Children as $objectId => $DUMMY){
-   $this->__Content = str_replace(
+foreach($this->children as $objectId => $DUMMY){
+   $this->content = str_replace(
       '<'.$objectId.' />',
-      $this->__Children[$objectId]->transform(),
-      $this->__Content
+      $this->children[$objectId]->transform(),
+      $this->content
    );
 }
 </gen:highlight>
-         You can use the snippet above in case the parser function <em>__extractTagLibTags()</em> has been called within
+         You can use the snippet above in case the parser function <em>extractTagLibTags()</em> has been called within
          <em>onParseTime()</em> or <em>onAfterAppend()</em>. Further notes can be taken from the forum post
          <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=191" title="transform() von eigenem taglib nicht ausgeführt">transform() von eigenem taglib nicht ausgeführt</a> (German).
       </div>
    </li>
 </ul>
+<div class="warn">
+   In release 1.17 old naming conventions for methods have been removed. In case you are using APF with version 1.16 or
+   earlier, the name of the parser function is <em>__extractTagLibTags()</em> instead of <em>extractTagLibTags()</em>.
+</div>
+<div class="warn">
+   In release 1.17 old naming conventions for class variables have been removed. This especially affected the
+   <em>APFObject</em> and <em>Document</em> classes. The following code box shows the signature of the <em>Document</em>
+   class before version 1.17:
+<gen:highlight type="php">
+class Document extends APFObject {
+
+   protected $__ObjectID = null;
+   protected $__ParentObject = null;
+   protected $__Children = array();
+   protected $__Content;
+   protected $__TagLibs = array();
+
+   public function __construct() {
+   }
+
+   public function onParseTime() {
+   }
+
+   public function onAfterAppend() {
+   }
+
+   public function transform() {
+   }
+
+}
+</gen:highlight>
+</div>
 <p>
    As of release 1.16 you may use the following methods to transform child nodes:
 </p>
 <ul>
    <li>
       <strong>transformChildren()</strong>
-      Transforms the child nodes within the internal content buffer (<em>$this->__Content</em>).
+      Transforms the child nodes within the internal content buffer (<em>$this->content</em>).
    </li>
    <li>
       <strong>transformChildrenAndPreserveContent()</strong>
-      Transforms the child nodes and returns the result. The internal content buffer (<em>$this->__Content</em>)
+      Transforms the child nodes and returns the result. The internal content buffer (<em>$this->content</em>)
       is preserved for further transformation runs.
    </li>
    <li>
       <strong>transformChildrenAsEmpty()</strong>
       Removes the internal position markers of the APF parser (see hint in chapter
       <a href="#Chapter-5-2-4-Output-creation">5.2.4. Output creation</a>) within the internal content buffer
-      (<em>$this->__Content</em>).
+      (<em>$this->content</em>).
    </li>
    <li>
       <strong>transformChildrenAsEmptyAndPreserveContent()</strong>
       Removes the internal position markers of the APF parser (see hint in chapter
       <a href="#Chapter-5-2-4-Output-creation">5.2.4. Output creation</a>) and returns the result.
-      The internal content buffer (<em>$this->__Content</em>) is preserved for further transformation runs.
+      The internal content buffer (<em>$this->content</em>) is preserved for further transformation runs.
    </li>
 </ul>
 
@@ -352,7 +384,7 @@ import('examples::tags::pres', 'GalleryDataSourceTag');
 class GalleryTag extends Document {
 
    public function __construct() {
-      $this->__TagLibs[] = new TagLib(
+      $this->tagLibs[] = new TagLib(
          'examples::tags::pres',
          'GalleryDataSourceTag',
          'gallery',
@@ -470,7 +502,7 @@ class GalleryDataSourceTag extends Document {
 <p>
    In order to enable the <em>GalleryDataSourceTag</em> to create and inject the gallery content provider the
    <em>GalleryTag</em> has to publish the tag to be caught and executed by the page controller. To create an instance
-   of the tag, the page controller brings the <em>__extractTagLibTags()</em> method inherited from the <em>Document</em>
+   of the tag, the page controller brings the <em>extractTagLibTags()</em> method inherited from the <em>Document</em>
    class.
 </p>
 <p>
@@ -498,7 +530,7 @@ class GalleryTag extends Document {
    ...
 
    public function onParseTime() {
-      $this->__extractTagLibTags();
+      $this->extractTagLibTags();
    }
 
    ...
@@ -550,10 +582,10 @@ class GalleryTag extends Document {
    overwrite static content with content that has been generated dynamically during a <em>transform()</em> call.
 </div>
 <div class="hint">
-   In order to place the content of your tag correctly during transformation the <em>__extractTagLibTags()</em> method
+   In order to place the content of your tag correctly during transformation the <em>extractTagLibTags()</em> method
    generates place holders such as <gen:highlight type="apf-xml">&lt;{OBJECT_ID} /&gt;</gen:highlight> Thereby,
-   <em>{OBJECT_ID}</em> contains the value of the class member <em>$this->__ObjectID</em> and the array offset the child
-   node is stored in (<em>$this->__Children</em>). This value can be used to (re)place the content of the child tag
+   <em>{OBJECT_ID}</em> contains the value of the class member <em>$this->objectId</em> and the array offset the child
+   node is stored in (<em>$this->children</em>). This value can be used to (re)place the content of the child tag
    within custom <em>transform()</em> implementations.
 </div>
 <p>
@@ -581,11 +613,11 @@ class GalleryTag extends Document {
 
       $this->setContent($this->getContent() . $buffer);
 
-      foreach ($this->__Children as $objectId => $DUMMY) {
-         $this->__Content = str_replace(
+      foreach ($this->children as $objectId => $DUMMY) {
+         $this->content = str_replace(
             '<' . $objectId . ' />',
-            $this->__Children[$objectId]->transform(),
-            $this->__Content
+            $this->children[$objectId]->transform(),
+            $this->content
          );
       }
    }
@@ -600,7 +632,7 @@ class GalleryTag extends Document {
 </p>
 <ul>
    <li>
-      <strong>__extractTagLibTags()</strong>:
+      <strong>extractTagLibTags()</strong>:
       Analyzes known child tags and creates the respective DOM tree.
    </li>
    <li>
@@ -1134,7 +1166,7 @@ class NavigationNodeTag extends Document {
    private $node;
 
    public function __construct() {
-      $this->__TagLibs = array(
+      $this->tagLibs = array(
          new TagLib('extensions::navigation::pres::tags', 'NavigationItemTag', 'navi', 'item'),
          new TagLib('extensions::navigation::pres::tags', 'NavigationContentTag', 'navi', 'content')
       );
@@ -1145,7 +1177,7 @@ class NavigationNodeTag extends Document {
    }
 
    public function onParseTime() {
-      $this->__extractTagLibTags();
+      $this->extractTagLibTags();
    }
 
    public function transform() {
@@ -1185,13 +1217,13 @@ class NavigationNodeTag extends Document {
 class NavigationItemTag extends Document {
 
    public function __construct() {
-      $this->__TagLibs = array(
+      $this->tagLibs = array(
          new TagLib('extensions::navigation::pres::tags', 'ItemTemplateContentTag', 'item', 'content')
       );
    }
 
    public function onParseTime() {
-      $this->__extractTagLibTags();
+      $this->extractTagLibTags();
    }
 
    public function getOutput(NavigationNode $node) {

@@ -125,7 +125,7 @@
    Der Page-Controller verarbeitet Tags nur dann, wenn sie im aktuellen Knoten bekannt sind. Aus diesem Grund müssen
    eigene Tags zunächst bekannt gegeben werden. Dies kann mit Hilfe des <em>&lt;core:addtaglib /&gt;</em>-Tag oder einem
 <gen:highlight type="php">
-$this->__TagLibs[] = new TagLib(...);
+$this->tagLibs[] = new TagLib(...);
 </gen:highlight>
    in einem eigenen Tag erreicht werden. Die Nutzung des <em>&lt;core:addtaglib /&gt;</em>-Tags ist immer dann notwendig,
    wenn Sie innerhalb eines Templates einen eigenen Tag bekannt geben wollen, das PHP-Code-Beispiel nutzen Sie, wenn Sie
@@ -167,11 +167,11 @@ final class TagLib {
 <gen:highlight type="php">
 class Document extends APFObject {
 
-   protected $__ObjectID = null;
-   protected $__ParentObject = null;
-   protected $__Children = array();
-   protected $__Content;
-   protected $__TagLibs = array();
+   protected $objectId = null;
+   protected $parentObject = null;
+   protected $children = array();
+   protected $content;
+   protected $tagLibs = array();
 
    public function __construct() {
    }
@@ -197,28 +197,28 @@ class Document extends APFObject {
       eindeutig zu referenzieren.
    </li>
    <li>
-      <em>__ParentObject</em> referenziert auf das Vater-Objekt innerhalb des DOM-Baumes. Diese Referenz kann zur
+      <em>parentObject</em> referenziert auf das Vater-Objekt innerhalb des DOM-Baumes. Diese Referenz kann zur
       Traversierung des DOM-Baumes genutzt werden. Der Root-Knoten hat keinen Vater.
    </li>
    <li>
-      In der Liste <em>__Children</em> finden sich alle Kind-Knoten des aktuellen DOM-Elements. Diese Liste kann zur
+      In der Liste <em>children</em> finden sich alle Kind-Knoten des aktuellen DOM-Elements. Diese Liste kann zur
       Traversierung des DOM-Baumes genutzt werden. Hat ein DOM-Knoten keine Kinder, ist die Liste leer.
    </li>
    <li>
-      Die Variable <em>__Content</em> beinhaltet den textuellen Inhalt eines Tags und die Platzhalter, die der
+      Die Variable <em>content</em> beinhaltet den textuellen Inhalt eines Tags und die Platzhalter, die der
       Page-Controller bei der Erzeugung des DOM-Baumes hinterlässt um den exakten Zusammenbau des HTML-Quelltextes
       sicher zu stellen.
    </li>
    <li>
-      In der Variable <em>__Attributes</em> - aus der Klasse <em>APFObject</em> vererbt - findet sich eine assoziative
+      In der Variable <em>attributes</em> - aus der Klasse <em>APFObject</em> vererbt - findet sich eine assoziative
       Liste der Tag-Attribute wieder. Besitzt das Tag keine Attribute, ist die Liste leer.
    </li>
    <li>
-      Die <em>__TagLibs</em>-Liste beinhaltet die für den aktuellen Knoten bekannte Tags. Wie im vorangegangenen Kapitel
+      Die <em>tagLibs</em>-Liste beinhaltet die für den aktuellen Knoten bekannte Tags. Wie im vorangegangenen Kapitel
       angesprochen, verarbeitet der APF-Parser nur bekannte Tags innerhalb einer Hierarchie-Stufe bzw. innerhalb eines
       DOM-Elements. Welche Tags bekannt oder eben nicht bekannt sind, bestimmt demnach der Inhalt dieser Liste.
       <div class="hint">
-         Die <em>__TagLibs</em>-Liste kann in eigenen Tag-Implementierungen dazu genutzt werden, neue Tags bekannt zu geben
+         Die <em>tagLibs</em>-Liste kann in eigenen Tag-Implementierungen dazu genutzt werden, neue Tags bekannt zu geben
          oder bereits bekannte Tags zu entfernen. Da die Manipulation der Liste in die eine oder die andere Richtung direkte
          Auswirkung auf die Verarbeitung von Tags hat, behalten Sie bitte die Bedeutung stets im Hinterkopf!
       </div>
@@ -253,46 +253,78 @@ class Document extends APFObject {
          sich der Entwickler selbst um die Transformation der Kind-Knoten kümmern. Dies kann im
          einfachsten Fall durch
 <gen:highlight type="php">
-foreach($this->__Children as $objectId => $DUMMY){
-   $this->__Content = str_replace(
+foreach($this->children as $objectId => $DUMMY){
+   $this->content = str_replace(
       '<'.$objectId.' />',
-      $this->__Children[$objectId]->transform(),
-      $this->__Content
+      $this->children[$objectId]->transform(),
+      $this->content
    );
 }
 </gen:highlight>
          erreicht werden, wenn in den Methoden <em>onParseTime()</em> oder <em>onAfterAppend()</em> die
-         Parser-Funktion <em>__extractTagLibTags()</em> aufgerufen wurde. Weitere Hinweise können dem
+         Parser-Funktion <em>extractTagLibTags()</em> aufgerufen wurde. Weitere Hinweise können dem
          Foren-Beitrag
          <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=5&amp;t=191" title="transform() von eigenem taglib nicht ausgeführt">transform() von eigenem taglib nicht ausgeführt</a>
          entnommen werden.
       </div>
    </li>
 </ul>
+<div class="warn">
+   Im Release 1.17 wurden alte Namenskonventionen von Methoden entfernt. Sofern Sie das APF in der Version 1.16 oder
+   kleiner verwenden lautet der Name der Parser-Funktion <em>__extractTagLibTags()</em> statt <em>extractTagLibTags()</em>.
+</div>
+<div class="warn">
+   Im Release 1.17 wurden alte Namenskonventionen von Klassen-Variablen entfernt. Dies betraf insbesondere die Signature
+   der Klassen <em>APFObject</em> und <em>Document</em>. Die folende Code-Box zeigt die Signatur der Klasse <em>Document</em>
+   vor Version 1.17:
+<gen:highlight type="php">
+class Document extends APFObject {
+
+   protected $__ObjectID = null;
+   protected $__ParentObject = null;
+   protected $__Children = array();
+   protected $__Content;
+   protected $__TagLibs = array();
+
+   public function __construct() {
+   }
+
+   public function onParseTime() {
+   }
+
+   public function onAfterAppend() {
+   }
+
+   public function transform() {
+   }
+
+}
+</gen:highlight>
+</div>
 <p>
    Seit Release 1.16 können für die Transformation von Kind-Knoten folgende Methoden genutzt werden:
 </p>
 <ul>
    <li>
       <strong>transformChildren()</strong>
-      Transformiert die Kind-Knoten im internen Inhalts-Puffer (<em>$this->__Content</em>).
+      Transformiert die Kind-Knoten im internen Inhalts-Puffer (<em>$this->content</em>).
    </li>
    <li>
       <strong>transformChildrenAndPreserveContent()</strong>
       Transformiert die Kind-Knoten und gibt das Ergebnis zurück. Der interne Inhalts-Puffer
-      (<em>$this->__Content</em>) wird dabei für eine erneute Transformation beibehalten.
+      (<em>$this->content</em>) wird dabei für eine erneute Transformation beibehalten.
    </li>
    <li>
       <strong>transformChildrenAsEmpty()</strong>
       Entfernt die internen Positionsmarker des APF-Parsers (siehe Hinweis in Kapitel
       <a href="#Chapter-5-2-4-Erzeugen-der-Ausgabe">5.2.4. Erzeugen der Ausgabe</a>)
-      im internen Inhalts-Puffer (<em>$this->__Content</em>).
+      im internen Inhalts-Puffer (<em>$this->content</em>).
    </li>
    <li>
       <strong>transformChildrenAsEmptyAndPreserveContent()</strong>
       Entfernt die internen Positionsmarker des APF-Parsers (siehe Hinweis in Kapitel
       <a href="#Chapter-5-2-4-Erzeugen-der-Ausgabe">5.2.4. Erzeugen der Ausgabe</a>) und gibt das Ergebnis zurück.
-      Der interne Inhalts-Puffer (<em>$this->__Content</em>) wird dabei für eine erneute Transformation beibehalten.
+      Der interne Inhalts-Puffer (<em>$this->content</em>) wird dabei für eine erneute Transformation beibehalten.
    </li>
 </ul>
 
@@ -364,7 +396,7 @@ import('examples::tags::pres', 'GalleryDataSourceTag');
 class GalleryTag extends Document {
 
    public function __construct() {
-      $this->__TagLibs[] = new TagLib(
+      $this->tagLibs[] = new TagLib(
          'examples::tags::pres',
          'GalleryDataSourceTag',
          'gallery',
@@ -482,7 +514,7 @@ class GalleryDataSourceTag extends Document {
 <p>
    Damit der <em>GalleryDataSourceTag</em> seine Arbeit verrichten kann muss der <em>GalleryTag</em> dafür sorgen, dass
    er auch vom Page-Controller erfasst und ausgeführt wird. Dazu bringt der Page-Controller bereits eine Parser-Methode
-   mit, die in jeder von <em>Document</em> erbenden Klasse ausgeführt werden kann - <em>__extractTagLibTags()</em>.
+   mit, die in jeder von <em>Document</em> erbenden Klasse ausgeführt werden kann - <em>extractTagLibTags()</em>.
 </p>
 <p>
    Zu welchem Zeitpunkt diese aufgerufen werden soll entscheiden zunächst Sie selbst. Beachten Sie dabei jedoch immer das
@@ -509,7 +541,7 @@ class GalleryTag extends Document {
    ...
 
    public function onParseTime() {
-      $this->__extractTagLibTags();
+      $this->extractTagLibTags();
    }
 
    ...
@@ -562,10 +594,10 @@ class GalleryTag extends Document {
 </div>
 <div class="hint">
    Damit bei der Transformation die Inhalte eines Tags an der korrekten Stelle ausgegeben werden,
-   erzeugt die Methode <em>__extractTagLibTags()</em> Platzhalter der Form
+   erzeugt die Methode <em>extractTagLibTags()</em> Platzhalter der Form
    <gen:highlight type="apf-xml">&lt;{OBJECT_ID} /&gt;</gen:highlight> Dabei entspricht <em>{OBJECT_ID}</em>
-   dem Wert der Klassen-Variable <em>$this->__ObjectID</em> und dem Array-Offset, in dem die
-   Kind-Tags gespeichert werden (<em>$this->__Children</em>). Dieser Wert kann dann bei der
+   dem Wert der Klassen-Variable <em>$this->objectId</em> und dem Array-Offset, in dem die
+   Kind-Tags gespeichert werden (<em>$this->children</em>). Dieser Wert kann dann bei der
    Implementierung von eigenen <em>transform()</em>-Methoden für die Ersetzung des Inhalts
    genutzt werden.
 </div>
@@ -594,11 +626,11 @@ class GalleryTag extends Document {
 
       $this->setContent($this->getContent() . $buffer);
 
-      foreach ($this->__Children as $objectId => $DUMMY) {
-         $this->__Content = str_replace(
+      foreach ($this->children as $objectId => $DUMMY) {
+         $this->content = str_replace(
             '<' . $objectId . ' />',
-            $this->__Children[$objectId]->transform(),
-            $this->__Content
+            $this->children[$objectId]->transform(),
+            $this->content
          );
       }
    }
@@ -613,7 +645,7 @@ class GalleryTag extends Document {
 </p>
 <ul>
    <li>
-      <strong>__extractTagLibTags()</strong>:
+      <strong>extractTagLibTags()</strong>:
       Analysiert die bekannten Kind-Tags und erstellen den DOM-Baum daraus.
    </li>
    <li>
@@ -1147,7 +1179,7 @@ class NavigationNodeTag extends Document {
    private $node;
 
    public function __construct() {
-      $this->__TagLibs = array(
+      $this->tagLibs = array(
          new TagLib('extensions::navigation::pres::tags', 'NavigationItemTag', 'navi', 'item'),
          new TagLib('extensions::navigation::pres::tags', 'NavigationContentTag', 'navi', 'content')
       );
@@ -1158,7 +1190,7 @@ class NavigationNodeTag extends Document {
    }
 
    public function onParseTime() {
-      $this->__extractTagLibTags();
+      $this->extractTagLibTags();
    }
 
    public function transform() {
@@ -1198,13 +1230,13 @@ class NavigationNodeTag extends Document {
 class NavigationItemTag extends Document {
 
    public function __construct() {
-      $this->__TagLibs = array(
+      $this->tagLibs = array(
          new TagLib('extensions::navigation::pres::tags', 'ItemTemplateContentTag', 'item', 'content')
       );
    }
 
    public function onParseTime() {
-      $this->__extractTagLibTags();
+      $this->extractTagLibTags();
    }
 
    public function getOutput(NavigationNode $node) {
