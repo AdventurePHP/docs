@@ -489,6 +489,48 @@ class FooService extends APFObject {
 }
 </gen:highlight>
 
+<h4 id="Chapter-3-5-APC-Provider"><a href="#Chapter-3-5-APC-Provider">3.4. APC Provider</a></h4>
+<p>
+   Der <em>ApcConfigurationProvider</em> unterstützt ebenso wie der
+   <a href="#Chapter-3-4-Memcached-Provider">MemcachedConfigurationProvider</a> kein eigenes Format, sondern
+   ist eine Art &quot;Mediator&quot;-Provider, der einen bestehenden Provider für das Lesen und
+   Schreiben nutzt, die Konfiguration jedoch für den schnellen Zugriff in einem
+   <a class="external" href="http://www.php.net/manual/en/book.apc.php">APC Shared Memory Segment</a>
+   Request-übergreifend hält.
+</p>
+<p>
+   Sofern der Provider auf die Datei-Endung bzw. den Typ &quot;apc&quot; konfiguriert ist (siehe
+   <a href="#Chapter-5-Konfiguration-der-Provider">Konfiguration der Provider</a>), so lässt sich
+   eine Konfiguration wie folgt laden:
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomething() {
+      $config = $this->getConfiguration('widgets::calendar', 'labels.apc');
+      ...
+   }
+}
+</gen:highlight>
+<p>
+   Die Variable <em>$config</em> beinhaltet nun die gewünschte Konfiguration. Dazu versucht der
+   Provider die gewünschte Konfiguration aus dem APC-Store zu beziehen. Falls diese dort noch
+   nicht vorhanden oder abgelaufen ist, wird die physikalische Datei geladen und in den Store
+   geschrieben.
+</p>
+<p>
+   Das Schreiben einer Konfuration aus dem APC-Store inkludiert das Update der Konfiguration
+   im Speicher und auf dem persistenten Datenträger. Die folgende Code-Box zeigt ein Beispiel:
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomethingElse() {
+      $config = $this->getConfiguration('widgets::calendar', 'labels.apc');
+      $config->getSection('global-labels')->setValue('day_label', 'Tag');
+      $this->saveConfiguration('widgets::calendar', 'labels.apc', $config);
+   }
+}
+</gen:highlight>
+
 <h3 id="Chapter-4-Erweitertes-Handling-von-Konfigurationen"><a href="#Chapter-4-Erweitertes-Handling-von-Konfigurationen">4. Erweitertes Handling von Konfigurationen</a></h3>
 <p>
    In vielen Anwendungsfällen ist es nicht nur notwendig, einzelne Konfigurations-Werte zu lesen,
@@ -779,7 +821,50 @@ ConfigurationManager::registerProvider('mem',$provider);
 </div>
 <p>
    Der Provider bietet auf Grund der Nutzung eines anderen Providers die Möglichkeit alle Provider,
-   die physikalisch gespeicherte Daten nutze, zu cachen.
+   die physikalisch gespeicherte Daten nutzen, zwischen zu speichern.
+</p>
+
+<h4 id="Chapter-5-4-APC-Provider"><a href="#Chapter-5-4-APC-Provider">5.4. APC-Provider</a></h4>
+<p>
+   Der <em>ApcConfigurationProvider</em> ist - wie bereits beschrieben - dazu gedacht,
+   physikalisch vorhandene Konfigurationen für den schnelleren Zugriff in einem
+   <em>APC Shared Memory Segment</em> zu halten und von dort zu beziehen. Hierzu benötigt den Provider, der
+   das Lesen und schreiben der physikalischen Konfiguration übernimmt.
+</p>
+<p>
+   Die übrige Konfiguration wird bereits durch die Konfigurationsdirektiven der <em>php.ini</em> zur Verfügung gestellt.
+</p>
+<p>
+   Um den Provider zu registrieren, ist folgender Quellcode nach dem Einbinden der Datei
+   <em>pagecontroller.php</em> notwendig:
+</p>
+<gen:highlight type="php">
+import('core::configuration::provider::apc', 'ApcConfigurationProvider');
+$provider = new ApcConfigurationProvider('ini');
+$provider->setExpireTime(60);
+ConfigurationManager::registerProvider('apc', $provider);
+</gen:highlight>
+<p>
+   Der beschriebene Code registriert den Provider für die virtuelle Endung <em>.apc</em> und nutzt den bereits
+   registrierten INI-Provider für das Laden und Speichern der Konfigurationen.
+</p>
+<p>
+   Weiterhin wird die Cache-Gültigkeitsdauer auf 60 Sekunden festgelegt. Standard ist 1 Tag.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass der Name der physikalisch gespeicherten Datei die Endung des im
+   Konstruktor angegebenen Provider-Typen hat (im obigen Beispiel: <em>.ini</em>). Das bedeutet,
+   dass beim ersten Aufruf von
+   <gen:highlight type="php">$this->getConfiguration('widgets::calendar', 'labels.apc')</gen:highlight>
+   die physikalische Datei
+   <gen:highlight type="code">/APF/config/widgets/calendar/siteone/DEFAULT_labels.ini</gen:highlight>
+   (bzw. gemäß den Regel der Konfiguration des INI-Provider) geladen wird. Ab dem zweiten Aufruf und
+   innerhalb der Cache-Gültigkeitsdauer wird die Konfiguration direkt aus dem APC-Store
+   geladen und zurückgegeben.
+</div>
+<p>
+   Der Provider bietet auf Grund der Nutzung eines anderen Providers die Möglichkeit alle Provider,
+   die physikalisch gespeicherte Daten nutzen, zwischen zu speichern.
 </p>
 
 <h3 id="Chapter-6-Lesen-und-Schreiben-von-Konfigurationen"><a href="#Chapter-6-Lesen-und-Schreiben-von-Konfigurationen">6. Lesen und Schreiben von Konfigurationen</a></h3>

@@ -426,7 +426,7 @@ class foo_controller extends BaseDocumentController {
    <a href="#Chapter-3-4-Memcached-provider">MemcachedConfigurationProvider</a>.
 </div>
 <p>
-   Write access is identical to the schemes descibred before:
+   Write access is identical to the schemes described before:
 </p>
 <gen:highlight type="php">
 class bar_controller extends BaseDocumentController {
@@ -447,9 +447,7 @@ class bar_controller extends BaseDocumentController {
 </p>
 <p>
    In case the provider is registered for the file extension or type &quot;mem&quot; (see chapter
-
    <a href="#Chapter-5-Configuration-of-the-providers">Configuration of the providers</a>)
-
    a memcached configuration can be loaded as follows:
 </p>
 <gen:highlight type="php">
@@ -476,6 +474,47 @@ class FooService extends APFObject {
       $config = $this->getConfiguration('widgets::calendar', 'labels.mem');
       $config->getSection('global-labels')->setValue('day_label', 'Tag');
       $this->saveConfiguration('widgets::calendar', 'labels.mem', $config);
+   }
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-5-APC-provider"><a href="#Chapter-3-5-APC-provider">3.4. APC provider</a></h4>
+<p>
+   The <em>ApcConfigurationProvider</em> has no own format but acts as a &quot;mediator&quot;
+   provider that uses an existing provider for read and write access just like the
+   <a href="#Chapter-3-4-Memcached-provider">MemcachedConfigurationProvider</a>. It stores the configuration
+   within a <a class="external" href="http://www.php.net/manual/en/book.apc.php">APC Shared Memory Segment</a>
+   to have it available request-independently.
+</p>
+<p>
+   In case the provider is registered for the file extension or type &quot;mem&quot; (see chapter
+   <a href="#Chapter-5-Configuration-of-the-providers">Configuration of the providers</a>)
+   a memcached configuration can be loaded as follows:
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomething() {
+      $config = $this->getConfiguration('widgets::calendar', 'labels.apc');
+      ...
+   }
+}
+</gen:highlight>
+<p>
+   The <em>$config</em> variable now contains the desired configuration. Therefore, the provider
+   tries to load the configuration from the APC store. In case it has not been loaded before
+   or has been marked deprecated the physical configuration file is loaded to deliver the requested
+   configuration and fill the cache.
+</p>
+<p>
+   Writing a memory-based configuration includes an update to the APC store as well as writing
+   the changes to the persistent file. The subsequent code box shows an example:
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomethingElse() {
+      $config = $this->getConfiguration('widgets::calendar', 'labels.apc');
+      $config->getSection('global-labels')->setValue('day_label', 'Tag');
+      $this->saveConfiguration('widgets::calendar', 'labels.apc', $config);
    }
 }
 </gen:highlight>
@@ -759,6 +798,45 @@ ConfigurationManager::registerProvider('mem',$provider);
    <gen:highlight type="code">/APF/config/widgets/calendar/siteone/DEFAULT_labels.ini</gen:highlight>
    The path depends on the configuration of the INI provider. For each second call within the cache 
    expire time the provider retrieves the configuration from the Memcached store.
+</div>
+<p>
+   This provider enables you to cache the results of all other providers that use file based
+   configuration stores.
+</p>
+
+<h4 id="Chapter-5-4-APC-provider"><a href="#Chapter-5-4-APC-provider">5.4. APC provider</a></h4>
+<p>
+   The <em>ApcConfigurationProvider</em> is - as mentioned above - intended to provide fast
+   access to physically stored configuration files using an <em>APC Shared Memory Segment</em> store.
+   For this reason, the APC provider needs to know the the provider that is delegated reading and writing the
+   physical configuration files.
+</p>
+<p>
+   The following code can be used to register the provider after including <em>pagecontroller.php</em>:
+</p>
+<gen:highlight type="php">
+import('core::configuration::provider::apc', 'ApcConfigurationProvider');
+$provider = new ApcConfigurationProvider('ini');
+$provider->setExpireTime(60);
+ConfigurationManager::registerProvider('apc', $provider);
+</gen:highlight>
+<p>
+   The code box' code registers the provider for the virtual file extension <em>.apc</em> and defines
+   a persistent connection to the local memcached server. For physical access, the INI provider is
+   used.
+</p>
+<p>
+   Further the configuration lifetime is set to 60 seconds. Default is one day.
+</p>
+<div class="hint">
+   Please note, that the physical configuration file must have the extension that is applied to the
+   constructor of the provider (<em>.ini</em> as noted in the above code sample). This means, that
+   for the first call of
+   <gen:highlight type="php">$this->getConfiguration('widgets::calendar', 'labels.apc')</gen:highlight>
+   the provider will load the physical file
+   <gen:highlight type="code">/APF/config/widgets/calendar/siteone/DEFAULT_labels.ini</gen:highlight>
+   The path depends on the configuration of the INI provider. For each second call within the cache
+   expire time the provider retrieves the configuration from the APC store.
 </div>
 <p>
    This provider enables you to cache the results of all other providers that use file based
