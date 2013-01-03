@@ -22,15 +22,15 @@ class JsCssInput extends FrontcontrollerInput {
       } else {
          $ext = self::$EXT_JS;
       }
-      return $this->__Attributes[self::$FILE] . '.' . $ext;
+      return $this->attributes[self::$FILE] . '.' . $ext;
    }
 
    public function isCssFileRequested() {
-      return $this->__Attributes[self::$TYPE] === self::$EXT_CSS ? true : false;
+      return $this->attributes[self::$TYPE] === self::$EXT_CSS ? true : false;
    }
 
    public function isJsFileRequested() {
-      return $this->__Attributes[self::$TYPE] === self::$EXT_JS ? true : false;
+      return $this->attributes[self::$TYPE] === self::$EXT_JS ? true : false;
    }
 
 }

@@ -25,13 +25,13 @@ class form_antispam_example_controller extends BaseDocumentController {
    public function transformContent() {
 
       // obtain a reference on the desired form (depends on the language of the document!)
-      $Form__AntiSpamExample = &$this->getForm('AntiSpamExample_' . $this->__Language);
+      $Form__AntiSpamExample = &$this->getForm('AntiSpamExample_' . $this->language);
 
       // check if form is valid or not
       if ($Form__AntiSpamExample->isValid() == true) {
 
          // print "valid" state
-         if ($this->__Language == 'de') {
+         if ($this->language == 'de') {
             $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid', 'valide');
          } else {
             $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid', 'valid');
@@ -40,7 +40,7 @@ class form_antispam_example_controller extends BaseDocumentController {
       } else {
 
          // print "invalid" state
-         if ($this->__Language == 'de') {
+         if ($this->language == 'de') {
             $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid', 'nicht valide');
          } else {
             $Form__AntiSpamExample->setPlaceHolder('ValidOrInvalid', 'invalid');

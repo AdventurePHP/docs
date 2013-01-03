@@ -33,46 +33,46 @@ class APFModel extends APFObject {
    public function __construct() {
 
       // indicates the path to the content and quicknavi files
-      $this->__Attributes['content.filepath'] = '../apps/sites/apf/pres';
+      $this->attributes['content.filepath'] = '../apps/sites/apf/pres';
 
       // indicates the current perspective
-      $this->__Attributes['perspective.name'] = 'start';
+      $this->attributes['perspective.name'] = 'start';
 
       // indicates the current language
-      $this->__Attributes[self::$LANG] = null;
+      $this->attributes[self::$LANG] = null;
 
       // indivates the current page id
-      $this->__Attributes[self::$PAGEID] = null;
+      $this->attributes[self::$PAGEID] = null;
 
       // indivates the parent's page id
-      $this->__Attributes[self::$PARENT_PAGEID] = null;
+      $this->attributes[self::$PARENT_PAGEID] = null;
 
       // indicates the current page title
-      $this->__Attributes[self::$TITLE] = null;
+      $this->attributes[self::$TITLE] = null;
 
       // indicates the current urlname
-      $this->__Attributes['page.urlname'] = null;
+      $this->attributes['page.urlname'] = null;
 
       // indicates the current page description
-      $this->__Attributes['page.description'] = null;
+      $this->attributes['page.description'] = null;
 
       // indicates the current page tags
-      $this->__Attributes['page.tags'] = null;
+      $this->attributes['page.tags'] = null;
 
       // indicates the current content file name
-      $this->__Attributes['page.contentfilename'] = null;
+      $this->attributes['page.contentfilename'] = null;
 
       // indicates the current quicknavi file name
-      $this->__Attributes['page.quicknavifilename'] = null;
+      $this->attributes['page.quicknavifilename'] = null;
 
       // defines the page indicator per language
-      $this->__Attributes['page.indicator'] = array(
+      $this->attributes['page.indicator'] = array(
          'de' => 'Seite',
          'en' => 'Page'
       );
 
       // display sidebar (true) or not (false)
-      $this->__Attributes[self::$DISPLAY_SIDEBAR] = true;
+      $this->attributes[self::$DISPLAY_SIDEBAR] = true;
 
    }
 
@@ -90,8 +90,8 @@ class APFModel extends APFObject {
     * @return string The url lang identifier.
     */
    public function getUrlIdentifier($lang) {
-      if (isset($this->__Attributes['page.indicator'][$lang])) {
-         return $this->__Attributes['page.indicator'][$lang];
+      if (isset($this->attributes['page.indicator'][$lang])) {
+         return $this->attributes['page.indicator'][$lang];
       } else {
          return 'Page';
       }

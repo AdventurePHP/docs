@@ -8,11 +8,11 @@ class BaseStatSection extends APFObject {
 
    public function __construct() {
 
-      $this->__Attributes['Title'] = (string)'';
-      $this->__Attributes['Divisor'] = (float)0;
-      $this->__Attributes['Entries'] = array();
-      $this->__Attributes['Average'] = (string)'';
-      $this->__Attributes['Sum'] = (string)'';
+      $this->attributes['Title'] = (string)'';
+      $this->attributes['Divisor'] = (float)0;
+      $this->attributes['Entries'] = array();
+      $this->attributes['Average'] = (string)'';
+      $this->attributes['Sum'] = (string)'';
 
    }
 

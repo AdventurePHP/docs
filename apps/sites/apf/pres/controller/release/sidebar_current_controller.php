@@ -58,7 +58,7 @@ class sidebar_current_controller extends release_base_controller {
    private function buildLink($release, $pageId) {
       /* @var $urlMan UrlManager */
       $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
-      $link = $urlMan->generateLink($pageId, $this->__Language);
+      $link = $urlMan->generateLink($pageId, $this->language);
       return '<a href="' . $link . '" title="Get release ' . $release . '!">APF ' . $release . '</a>';
    }
 

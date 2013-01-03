@@ -23,13 +23,13 @@ class form_captcha_example_controller extends BaseDocumentController {
    public function transformContent() {
 
       // obtain a reference on the desired form (depends on the language of the document!)
-      $Form__CaptchaExample = &$this->getForm('CaptchaExample_' . $this->__Language);
+      $Form__CaptchaExample = &$this->getForm('CaptchaExample_' . $this->language);
 
       // check if form is valid or not
       if ($Form__CaptchaExample->isValid() == true) {
 
          // print "valid" state
-         if ($this->__Language == 'de') {
+         if ($this->language == 'de') {
             $Form__CaptchaExample->setPlaceHolder('ValidOrInvalid', 'valide');
          } else {
             $Form__CaptchaExample->setPlaceHolder('ValidOrInvalid', 'valid');
@@ -38,7 +38,7 @@ class form_captcha_example_controller extends BaseDocumentController {
       } else {
 
          // print "invalid" state
-         if ($this->__Language == 'de') {
+         if ($this->language == 'de') {
             $Form__CaptchaExample->setPlaceHolder('ValidOrInvalid', 'nicht valide');
          } else {
             $Form__CaptchaExample->setPlaceHolder('ValidOrInvalid', 'invalid');

@@ -29,7 +29,7 @@ class InternalLinkTag extends Document {
       // setup language
       $lang = $this->getAttribute('lang');
       if ($lang === null) {
-         $lang = $this->__Language;
+         $lang = $this->language;
       }
 
       // setup link text
@@ -80,10 +80,10 @@ class InternalLinkTag extends Document {
    }
 
    private function getLinkText() {
-      if (empty($this->__Content)) {
+      if (empty($this->content)) {
          return null;
       }
-      return $this->__Content;
+      return $this->content;
    }
 
 }

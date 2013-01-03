@@ -60,7 +60,7 @@ class main_controller extends BaseDocumentController {
       $DefaultPageName['de'] = '001-Startseite';
       $DefaultPageName['en'] = '001-Home';
 
-      if ($this->__Language == 'de') {
+      if ($this->language == 'de') {
          $this->setPlaceHolder('ImpressumTitle', 'Impressum');
          $this->setPlaceHolder('ImpressumLink', '/Seite/015-Impressum');
          $this->setPlaceHolder('SucheTitle', 'Suche');

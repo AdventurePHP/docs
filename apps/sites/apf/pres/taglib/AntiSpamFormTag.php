@@ -1,5 +1,5 @@
 <?php
-import('tools::form::taglib', 'form_control');
+import('tools::form::taglib', 'AbstractFormControl');
 
 /**
  * @package sites::demosite::prea::taglib
@@ -12,7 +12,7 @@ import('tools::form::taglib', 'form_control');
  * @version
  *  Version 0.1, 17.07.2008<br />
  */
-class AntiSpamFormTag extends form_control {
+class AntiSpamFormTag extends AbstractFormControl {
 
    public function onAfterAppend() {
 
@@ -67,7 +67,7 @@ class AntiSpamFormTag extends form_control {
       return strtolower($this->getParentObject()->getAttribute('name')) . '_antispam';
    }
 
-   protected function __presetValue() {
+   protected function presetValue() {
    }
 
 }

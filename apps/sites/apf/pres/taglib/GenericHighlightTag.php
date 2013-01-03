@@ -40,13 +40,13 @@ class GenericHighlightTag extends Document {
 
       $title = 'Code';
       $cssClass = self::$GENERIC;
-      $content = trim($this->__Content);
+      $content = trim($this->content);
       switch ($type) {
 
          case self::$HTML:
             $title = 'Html-Code';
             $cssClass = self::$HTML;
-            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->__Content)));
+            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->content)));
             break;
 
          case self::$SHELL:
@@ -57,19 +57,19 @@ class GenericHighlightTag extends Document {
          case self::$APF_XML:
             $title = 'APF-Template';
             $cssClass = self::$APF_XML;
-            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->__Content)));
+            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->content)));
             break;
 
          case self::$PHP:
             $title = 'PHP-Code';
             $cssClass = self::$PHP;
-            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->__Content)));
+            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->content)));
             break;
 
          case self::$XML:
             $title = 'XML-Code';
             $cssClass = self::$XML;
-            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->__Content)));
+            $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->content)));
             break;
 
          case self::$INI:

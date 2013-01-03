@@ -73,7 +73,7 @@ class search_controller extends BaseDocumentController {
             $template->setPlaceHolder('Title', $title);
 
             // display content language
-            $resultLang = $config->getSection($this->__Language)->getValue('DisplayName.' . $searchResults[$i]->getLanguage());
+            $resultLang = $config->getSection($this->language)->getValue('DisplayName.' . $searchResults[$i]->getLanguage());
             $template->setPlaceHolder('Language', $resultLang);
 
             // display last modifying date --> refactor!
@@ -92,7 +92,7 @@ class search_controller extends BaseDocumentController {
          if ($count < 1) {
 
             // get template
-            $templateNoSearchResult = &$this->getTemplate('NoSearchResult_' . $this->__Language);
+            $templateNoSearchResult = &$this->getTemplate('NoSearchResult_' . $this->language);
 
             // add message to buffer
             $buffer .= $templateNoSearchResult->transformTemplate();

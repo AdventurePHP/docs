@@ -34,11 +34,11 @@ class topnavi_controller extends BaseDocumentController {
       $buffer = (string)'';
       foreach ($this->navi as $naviNode) {
          $buffer .= '<li>';
-         $title = $urlMan->getPageTitle($naviNode, $this->__Language);
+         $title = $urlMan->getPageTitle($naviNode, $this->language);
          if ($pageId === $naviNode) {
             $buffer .= '<span>' . $title . '</span>';
          } else {
-            $link = $urlMan->generateLink($naviNode, $this->__Language);
+            $link = $urlMan->generateLink($naviNode, $this->language);
             $buffer .= '<a href="' . $link . '" title="' . $title . '">' . $title . '</a>';
          }
          $buffer .= '</li>' . PHP_EOL;

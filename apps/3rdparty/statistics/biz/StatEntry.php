@@ -7,9 +7,9 @@
 class StatEntry extends APFObject {
 
    public function __construct() {
-      $this->__Attributes['DisplayText'] = (string)'n/a';
-      $this->__Attributes['Link'] = (string)'';
-      $this->__Attributes['Value'] = (string)'';
+      $this->attributes['DisplayText'] = (string)'n/a';
+      $this->attributes['Link'] = (string)'';
+      $this->attributes['Value'] = (string)'';
    }
 
 }

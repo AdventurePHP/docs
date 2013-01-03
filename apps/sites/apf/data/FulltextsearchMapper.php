@@ -43,7 +43,7 @@ class FulltextsearchMapper extends APFObject {
 
       // do synonym mapping
       $synonyms = $this->getConfiguration('sites::apf::biz', 'fulltextsearch_synonyms.ini');
-      $section = $synonyms->getSection($this->__Language);
+      $section = $synonyms->getSection($this->language);
 
       foreach ($section->getValueNames() as $name) {
          $searchString = str_replace($name, $section->getValue($name), $searchString);

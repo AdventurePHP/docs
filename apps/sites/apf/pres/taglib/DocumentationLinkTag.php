@@ -32,7 +32,7 @@ class DocumentationLinkTag extends Document {
    public function transform() {
 
       // remove blanks
-      $content = trim($this->__Content);
+      $content = trim($this->content);
 
       // initialize return value
       $link = (string)'';
@@ -50,13 +50,13 @@ class DocumentationLinkTag extends Document {
          $link .= 'title="' . $content . '" ';
 
          // add css class
-         if (isset($this->__Attributes['class'])) {
-            $link .= 'class="' . $this->__Attributes['class'] . '" ';
+         if (isset($this->attributes['class'])) {
+            $link .= 'class="' . $this->attributes['class'] . '" ';
          }
 
          // add css style
-         if (isset($this->__Attributes['style'])) {
-            $link .= 'style="' . $this->__Attributes['style'] . '" ';
+         if (isset($this->attributes['style'])) {
+            $link .= 'style="' . $this->attributes['style'] . '" ';
          }
 
          // add link rewrite protection

@@ -52,7 +52,7 @@ class DocumentationTitleTag extends Document {
       }
 
       // get page description
-      if (empty($this->__Content)) {
+      if (empty($this->content)) {
          throw new InvalidArgumentException('[DocumentationTitleTag::onParseTime()] No page description given in the tag\'s content area. Please provide the page description!', E_USER_ERROR);
       }
 
@@ -63,7 +63,7 @@ class DocumentationTitleTag extends Document {
       /* @var $model APFModel */
       $model = Singleton::getInstance('APFModel');
       $model->setTitle($this->title);
-      $model->setAttribute('page.description', str_replace('  ', ' ', str_replace("\r", '', str_replace("\n", '', trim($this->__Content)))));
+      $model->setAttribute('page.description', str_replace('  ', ' ', str_replace("\r", '', str_replace("\n", '', trim($this->content)))));
       $model->setAttribute('page.tags', $tags);
       $model->setAttribute('page.urlname', $urlName);
       $model->setParentPageId($parentPageId);

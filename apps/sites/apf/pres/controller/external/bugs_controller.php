@@ -22,7 +22,7 @@ class bugs_controller extends BaseDocumentController {
       $forumBaseURL = Registry::retrieve('sites::apf', 'ForumBaseURL');
 
       // build select
-      if ($this->__Language === 'de') {
+      if ($this->language === 'de') {
          $forumID = '8';
       } else {
          $forumID = '9';
@@ -34,7 +34,7 @@ class bugs_controller extends BaseDocumentController {
                        `topic_time`,
                        `topic_first_poster_name`,
                        `topic_last_post_time`
-                    FROM `' . $this->__Language . '_phpbb3_topics`
+                    FROM `' . $this->language . '_phpbb3_topics`
                     WHERE `forum_id` = \'' . $forumID . '\'
                     ORDER BY topic_last_post_time DESC
                     LIMIT 10;';
@@ -42,8 +42,8 @@ class bugs_controller extends BaseDocumentController {
 
       // get template and pre-fill it
       $postsForum = & $this->getTemplate('PostsForum');
-      $authorLabel = & $this->getTemplate('Author_' . $this->__Language);
-      $creationDateLabel = & $this->getTemplate('CreationDate_' . $this->__Language);
+      $authorLabel = & $this->getTemplate('Author_' . $this->language);
+      $creationDateLabel = & $this->getTemplate('CreationDate_' . $this->language);
       $postsForum->setPlaceHolder('AuthorLabel', $authorLabel->transformTemplate());
       $postsForum->setPlaceHolder('CreationDateLabel', $creationDateLabel->transformTemplate());
 
@@ -53,7 +53,7 @@ class bugs_controller extends BaseDocumentController {
       while ($data = $forumConn->fetchData($result)) {
 
          // fill template
-         $postsForum->setPlaceHolder('Link', $forumBaseURL . '/' . $this->__Language . '/viewtopic.php?f=' . $forumID . '&t=' . $data['topic_id']);
+         $postsForum->setPlaceHolder('Link', $forumBaseURL . '/' . $this->language . '/viewtopic.php?f=' . $forumID . '&t=' . $data['topic_id']);
          $postsForum->setPlaceHolder('LinkText', utf8_encode($data['topic_title']));
          $postsForum->setPlaceHolder('Title', utf8_encode($data['topic_title']));
 

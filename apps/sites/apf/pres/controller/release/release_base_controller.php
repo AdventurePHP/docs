@@ -294,7 +294,7 @@ abstract class release_base_controller extends BaseDocumentController {
 
             if ($version >= 110) {
 
-               if ($this->__Language == 'de') {
+               if ($this->language == 'de') {
                   $libType = 'Gepackte HTML-Seiten';
                   $dokuType = 'Komplette Dokumentation';
                } else {
@@ -319,7 +319,7 @@ abstract class release_base_controller extends BaseDocumentController {
                // gather docu type
                if (substr_count($dokuFiles[$k], '-core-') > 0) {
 
-                  if ($this->__Language == 'de') {
+                  if ($this->language == 'de') {
                      $dokuType = 'Core';
                   } else {
                      $dokuType = 'core';
@@ -327,7 +327,7 @@ abstract class release_base_controller extends BaseDocumentController {
 
                } elseif (substr_count($dokuFiles[$k], '-modules-') > 0) {
 
-                  if ($this->__Language == 'de') {
+                  if ($this->language == 'de') {
                      $dokuType = 'Modules';
                   } else {
                      $dokuType = 'module';
@@ -335,7 +335,7 @@ abstract class release_base_controller extends BaseDocumentController {
 
                } else {
 
-                  if ($this->__Language == 'de') {
+                  if ($this->language == 'de') {
                      $dokuType = 'Tools';
                   } else {
                      $dokuType = 'tool';
@@ -356,7 +356,7 @@ abstract class release_base_controller extends BaseDocumentController {
                   $buildDate = date('d.m.Y', strtotime($matches[1]));
                } else {
 
-                  if ($this->__Language == 'de') {
+                  if ($this->language == 'de') {
                      $buildDate = 'unbekannt';
                   } else {
                      $buildDate = 'unknown';
@@ -403,7 +403,7 @@ abstract class release_base_controller extends BaseDocumentController {
 
       /* @var $urlMan UrlManager */
       $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
-      $link = $urlMan->generateLink(self::$REV_HISTORY_PAGEID, $this->__Language);
+      $link = $urlMan->generateLink(self::$REV_HISTORY_PAGEID, $this->language);
       $templateDocumentation->setPlaceHolder(
          'HistoryLink',
             '<a href="' . $link . '?' . self::$REV_HISTORY_PARAM . '=' . $releaseNumber . '" title="' . $title . '">' . $title . '</a>'

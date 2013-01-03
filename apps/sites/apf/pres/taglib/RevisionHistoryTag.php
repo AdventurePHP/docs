@@ -27,9 +27,9 @@ class RevisionHistoryTag extends Document {
     */
    public function __construct() {
       parent::__construct();
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'DocumentationLinkTag', 'doku', 'link');
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'GenericHighlightTag', 'gen', 'highlight');
+      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
+      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'DocumentationLinkTag', 'doku', 'link');
+      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'GenericHighlightTag', 'gen', 'highlight');
    }
 
    public function onParseTime() {
@@ -38,10 +38,10 @@ class RevisionHistoryTag extends Document {
       $release = $this->getReleaseNumber();
 
       // append the content to the current document and re-analyze the structure (link tags!)
-      $this->__Content = '<div id="RevisionHistory">' . PHP_EOL;
-      $this->__Content .= $this->getReleaseHeader($release);
-      $this->__Content .= $this->getReleaseDescription($release);
-      $this->__Content .= '</div>' . PHP_EOL;
+      $this->content = '<div id="RevisionHistory">' . PHP_EOL;
+      $this->content .= $this->getReleaseHeader($release);
+      $this->content .= $this->getReleaseDescription($release);
+      $this->content .= '</div>' . PHP_EOL;
       $this->extractTagLibTags();
 
       // append release number to HTML title to avoid duplicate titles for SEO reasons
@@ -75,7 +75,7 @@ class RevisionHistoryTag extends Document {
     */
    private function getReleaseDescription($releaseNumber) {
       $relLocalDir = Registry::retrieve('sites::apf', 'Releases.LocalDir');
-      $historyFile = $relLocalDir . '/' . $releaseNumber . '/' . $this->__Language . '_release_description.html';
+      $historyFile = $relLocalDir . '/' . $releaseNumber . '/' . $this->language . '_release_description.html';
       if (file_exists($historyFile)) {
          return preg_replace('/&([A-Za-z0-9\-_]+)=([A-Za-z0-9\-_]+)/', '&amp;$1=$2', file_get_contents($historyFile));
       }

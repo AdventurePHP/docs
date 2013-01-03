@@ -19,7 +19,7 @@ class QuickNaviContentTag extends Document {
       parent::__construct();
 
       // include the additional tag libs
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
+      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
    }
 
    /**
@@ -38,7 +38,7 @@ class QuickNaviContentTag extends Document {
       $model = &Singleton::getInstance('APFModel');
 
       // include the content of the model's content file in the current object
-      $this->__Content .= file_get_contents(
+      $this->content .= file_get_contents(
          $model->getAttribute('content.filepath')
                . '/quicknavi/'
                . $model->getAttribute('page.quicknavifilename')

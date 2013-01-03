@@ -33,7 +33,7 @@ class RSSAction extends AbstractFrontcontrollerAction {
 
       // generate items
       $page = new Page();
-      $page->setContext($this->__Context);
+      $page->setContext($this->context);
       $page->setLanguage($lang);
       $page->loadDesign('sites::apf::pres::templates::news', 'rss');
       $items = $page->transform();

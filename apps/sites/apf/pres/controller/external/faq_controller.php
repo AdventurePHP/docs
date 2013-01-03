@@ -31,7 +31,7 @@ class faq_controller extends BaseDocumentController {
       $forumBaseURL = Registry::retrieve('sites::apf', 'ForumBaseURL');
 
       // build select
-      if ($this->__Language === 'de') {
+      if ($this->language === 'de') {
          $forumID = '6';
       } else {
          $forumID = '8';
@@ -43,15 +43,15 @@ class faq_controller extends BaseDocumentController {
                           `topic_time`,
                           `topic_first_poster_name`,
                           `topic_last_post_time`
-                       FROM `' . $this->__Language . '_phpbb3_topics`
+                       FROM `' . $this->language . '_phpbb3_topics`
                        WHERE `forum_id` = \'' . $forumID . '\'
                        ORDER BY topic_last_post_time DESC;';
       $result = $SQLForum->executeTextStatement($select);
 
       // get template and prefill it
       $templatePostsForum = &$this->getTemplate('PostsForum');
-      $templateAuthorLabel = &$this->getTemplate('Author_' . $this->__Language);
-      $templateCreationDateLabel = &$this->getTemplate('CreationDate_' . $this->__Language);
+      $templateAuthorLabel = &$this->getTemplate('Author_' . $this->language);
+      $templateCreationDateLabel = &$this->getTemplate('CreationDate_' . $this->language);
       $templatePostsForum->setPlaceHolder('AuthorLabel', $templateAuthorLabel->transformTemplate());
       $templatePostsForum->setPlaceHolder('CreationDateLabel', $templateCreationDateLabel->transformTemplate());
 
@@ -61,7 +61,7 @@ class faq_controller extends BaseDocumentController {
       while ($data = $SQLForum->fetchData($result)) {
 
          // fill template
-         $templatePostsForum->setPlaceHolder('Link', $forumBaseURL . '/' . $this->__Language . '/viewtopic.php?f=' . $forumID . '&t=' . $data['topic_id']);
+         $templatePostsForum->setPlaceHolder('Link', $forumBaseURL . '/' . $this->language . '/viewtopic.php?f=' . $forumID . '&t=' . $data['topic_id']);
          $templatePostsForum->setPlaceHolder('LinkText', utf8_encode($data['topic_title']));
          $templatePostsForum->setPlaceHolder('Title', utf8_encode($data['topic_title']));
 

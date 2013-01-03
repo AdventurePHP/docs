@@ -22,7 +22,7 @@ class new_wiki_articles_controller extends BaseDocumentController {
       $wikiBaseURL = Registry::retrieve('sites::apf', 'WikiBaseURL');
 
       // build select
-      $tablePrefix = 'wiki_' . $this->__Language . '_';
+      $tablePrefix = 'wiki_' . $this->language . '_';
       $select = 'SELECT
             ' . $tablePrefix . 'page.page_id AS id,
             ' . $tablePrefix . 'page.page_title AS title,
@@ -45,7 +45,7 @@ class new_wiki_articles_controller extends BaseDocumentController {
       $result = $wikiConn->executeTextStatement($select);
 
       // get template and prefill it
-      $article = & $this->getTemplate('article_' . $this->__Language);
+      $article = & $this->getTemplate('article_' . $this->language);
 
       // create article list
       $buffer = (string)'';
@@ -54,7 +54,7 @@ class new_wiki_articles_controller extends BaseDocumentController {
 
          // fill template
          $article->setPlaceHolder('name',
-               '<a href="' . $wikiBaseURL . '/' . $this->__Language . '/' . $data['title']
+               '<a href="' . $wikiBaseURL . '/' . $this->language . '/' . $data['title']
                      . '" title="' . $data['title'] . '">' . $data['title'] . '</a>'
          );
          $article->setPlaceHolder('date', date('d.m.Y H:i:s', strtotime($data['timestamp'])));

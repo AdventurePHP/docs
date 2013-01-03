@@ -37,7 +37,7 @@ class rss_controller extends BaseDocumentController {
     * @return NewsItemTag[] List of news items.
     */
    private function &getNewsItems() {
-      $children = &$this->__Document->getChildren();
+      $children = &$this->getDocument()->getChildren();
       $newsItems = array();
       foreach ($children as $objectId => $DUMMY) {
          if (get_class($children[$objectId]) === 'NewsItemTag') {

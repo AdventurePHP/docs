@@ -26,7 +26,7 @@ class NewsItemTag extends Document {
    private $mode;
 
    public function __construct() {
-      $this->__TagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
+      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
       $this->mode = self::$MODE_NEWS;
    }
 
@@ -50,7 +50,7 @@ class NewsItemTag extends Document {
          } else {
             $prefix = '<item>';
             $suffix = '</item>' . PHP_EOL;
-            $this->__Content = $this->transform2RSS($this->__Content);
+            $this->content = $this->transform2RSS($this->content);
          }
          return trim($prefix . parent::transform() . $suffix);
       }
