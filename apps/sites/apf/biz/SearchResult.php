@@ -13,7 +13,6 @@
 class SearchResult extends APFObject {
 
    private $title;
-   private $language;
    private $pageID;
    private $lastMod;
    private $wordCount;
@@ -36,14 +35,6 @@ class SearchResult extends APFObject {
 
    public function getTitle() {
       return $this->title;
-   }
-
-   public function setLanguage($lang) {
-      $this->language = $lang;
-   }
-
-   public function getLanguage() {
-      return $this->language;
    }
 
    public function setLastModified($lastMod) {
