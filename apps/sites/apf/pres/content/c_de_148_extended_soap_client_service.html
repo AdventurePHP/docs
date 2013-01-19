@@ -622,28 +622,34 @@ $client = $this->getDIServiceObject('...', 'LoginService');
 /* @var $logger Logger */
 $logger = Singleton::getInstance('Logger');
 
-$logFileName = 'service_calls';
+$logTarget = 'service_calls';
+
+$writer = clone $l->getLogWriter(
+   Registry::retrieve('apf::core', 'InternalLogTarget')
+);
+$l->addLogWriter($logTarget, $writer);
+
 try {
    $response = $client->Authenticate($request);
    $logger->logEntry(
-                     $logFileName,
+                     $logTarget,
                      $client->getLastRequest(),
                      LogEntry::SEVERITY_TRACE);
    $logger->logEntry(
-                     $logFileName,
+                     $logTarget,
                      $client->getLastResponse(),
                      LogEntry::SEVERITY_TRACE);
 } catch (Exception $e) {
    $logger->logEntry(
-                     $logFileName,
+                     $logTarget,
                      $e->getMessage() . ' Details: ' . $e,
                      LogEntry::SEVERITY_ERROR);
    $logger->logEntry(
-                     $logFileName,
+                     $logTarget,
                      $client->getLastRequest(),
                      LogEntry::SEVERITY_INFO);
    $logger->logEntry(
-                     $logFileName,
+                     $logTarget,
                      $client->getLastResponse(),
                      LogEntry::SEVERITY_INFO);
 }
