@@ -18,6 +18,12 @@ import('core::logging', 'Logger');
 $l = & Singleton::getInstance('Logger');
 $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
+// configure logger for database debug messages
+$dbWriter = clone $l->getLogWriter(
+   Registry::retrieve('apf::core', 'InternalLogTarget')
+);
+$l->addLogWriter('mysqlx', $dbWriter);
+
 // configure page values
 Registry::register('apf::core', 'URLRewriting', true);
 Registry::register('sites::apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumentation/Build/RELEASES');
