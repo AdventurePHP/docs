@@ -1,4 +1,4 @@
-<doku:title parent="119" tags="dokumentation,klassen referenz,klassen,referenz,logger" title="Logger" urlname="Logger">
+<doku:title parent="119" tags="logger,logentry,logwriter" title="Logger" urlname="Logger">
    Die Klasse Logger ist ein Tool, mit dem Applikationsinformationen einfach und zentral aufgenommen werden
    können. Er unterstützt die Ausgabe in mehrere Log-Dateien, die Definition von Prioritäten (log severity) pro
    Eintrag und die Konfiguration von Schwellwerten.
@@ -19,8 +19,230 @@
    Requests gesammelt in das entsprechende Logfile geschrieben.
 </p>
 
-<h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration</a></h3>
-<h4 id="Chapter-2-1-Log-Verzeichnis"><a href="#Chapter-2-1-Log-Verzeichnis">2.1. Log-Verzeichnis</a></h4>
+<h3 id="Chapter-2-Architektur"><a href="#Chapter-2-Architektur">2. Architektur</a></h3>
+<p>
+   Ab Version 1.17 sieht die <em>Logger</em>-Implementierung des APF eine Trennung zwischen dem <em>Logger</em> selbst,
+   der Beschreibung eines Log-Eintrags (<em>LogEntry</em>) und der Persistenz (<em>LogWriter</em>) vor:
+</p>
+<img src="http://media.adventure-php-framework.org/content/logger_concept_1_17.png" alt="Architektur des APF Loggers ab Version 1.17" />
+<p>
+   Der <em>Logger</em> stellt dabei die zentrale Anlaufstelle für das Framework und darauf aufsetzenden Applikationen
+   dar, Log-Einträge zu schreiben. Das Aussehen eines Log-Eintrags wird durch das Interface <em>LogEntry</em> und die
+   Referenz-Implementierung <em>SimpleLogEntry</em> beschrieben. Wohin ein Eintrag letztlich geschrieben wird, regelt
+   die Implementierung des <em>LogWriter</em>-Interfaces. Diese nutzt der <em>Logger</em> um am Ende der
+   Request-Verarbeitung die Inhalte des Puffers zu persistieren.
+</p>
+<p>
+   Zur Registrierung von <em>LogWriter</em>-Implementierungen stellt der <em>Logger</em> die Methoden
+</p>
+<ul>
+   <li><em>addLogWriter($target, LogWriter $writer)</em></li>
+   <li><em>removeLogWriter($target)</em></li>
+   <li><em>getLogWriter($target)</em></li>
+</ul>
+<p>
+   zur Verfügung. Dabei wird jeder <em>LogWriter</em> mit einem eindeutigen Bezeichner (<em>$target</em>) registriert.
+   Der Logger nutzt das Ziel um die eingehenden Log-Einträge der jeweils gewünschten Persistenz-Schicht zuzuordnen. Für
+   dieses Mapping wird dem <em>LogEntry</em> ebenso ein Ziel zugeordnet.
+</p>
+<p>
+   Das Interface eines <em>LogEntry</em> gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+interface LogEntry {
+
+   const SEVERITY_TRACE = 'TRACE';
+   const SEVERITY_DEBUG = 'DEBUG';
+   const SEVERITY_INFO = 'INFO';
+   const SEVERITY_WARNING = 'WARN';
+   const SEVERITY_ERROR = 'ERROR';
+   const SEVERITY_FATAL = 'FATAL';
+
+   public function __construct($target, $message, $severity);
+
+   public function __toString();
+
+   public function getLogTarget();
+
+   public function getSeverity();
+}
+</gen:highlight>
+<p>
+   Über den Konstruktor wird ein Eintrag mit allen notwendigen Informationen ausgestattet. Die Methoden <em>getSeverity()</em>
+   nutzt der <em>Logger</em> um zu entscheiden, ob ein Eintrag über dem definierten
+   <a href="#Chapter-3-3-Schwellwert">Schwellwert</a> liegt oder verworfen werden soll. Mit dem Rückgabewert der Funktion
+   <em>getLogTarget()</em> weist der <em>Logger</em> den Eintrag dem entsprechenden <em>LogWriter</em> zu.
+</p>
+<p>
+   Die Implementierung eines <em>LogWriter</em>s muss folgendes Interface erfüllen:
+</p>
+<gen:highlight type="php">
+interface LogWriter {
+
+   public function writeLogEntries(array $entries);
+
+   public function setTarget($target);
+}
+</gen:highlight>
+<p>
+   Mit Hilfe der Methode <em>setTarget()</em> injiziert der <em>Logger</em> den Ziel-Bezeichner. Dieser kann dann von
+   der Implementierung beispielsweise für die Generierung eines Log-Datei-Namens genutzt werden. Die Methode
+   <em>writeLogEntries()</em> ist für die Persistenz der übergebenen Liste von Einträgen zuständig.
+</p>
+<p>
+   Im Vergleich zur Implementierung des <em>Logger</em>s bis einschließlich Version 1.16 kann an Version 1.17 der volle
+   Funktionsumfang des <int:link pageid="081" /> bei gleichzeitig flexiblerer Konfiguration genutzt werden. Neben der
+   Konfiguration von unterschiedlichen Persistenz-Möglichkeiten können Sie nun auch das Format von Log-Einträgen über
+   eigene <em>LogEntry</em>-Implementierungen definieren.
+</p>
+
+<h3 id="Chapter-3-Konfiguration"><a href="#Chapter-3-Konfiguration">3. Konfiguration</a></h3>
+
+<h4 id="Chapter-3-1-Verwalten-von-LogWritern"><a href="#Chapter-3-1-Verwalten-von-LogWritern">3.1. Verwalten von LogWritern</a></h4>
+<p>
+   Der Logger selbst ist wie in <a href="#Chapter-2-Architektur">Kapitel 2</a> beschrieben ein Router für Log-Einträge,
+   der die Persistenz an registrierte <em>LogWriter</em> delegiert. Damit ein Eintrag auch den Weg in eine Log-Datei
+   oder eine Datenbank findet, muss ein persistiert werden kann braucht es einen <em>LogWriter</em>.
+</p>
+<p>
+   Zur Verwaltung von <em>LogWriter</em>n bietet der <em>Loggger</em> die in den folgenden Kapitel beschriebenen
+   Möglichkeiten.
+</p>
+<div class="hint">
+   <p>
+      Bitte beachten Sie, dass im Auslieferungszustand des APF ausschließlich der <em>FileLogWriter</em> registriert ist.
+      Damit verhält sich das Framework wie in Versionen vor 1.17.
+   </p>
+   <p>
+      Bitte beachten Sie weiterhin, dass die Konfiguration des Standard-Log-Ziels ab Release 1.17 in der
+      <int:link pageid="067" /> im Namespace <em>apf::core</em> und dem Schlüssel <em>InternalLogTarget</em> konfiguriert
+      ist. Bitte nutzen Sie daher ab Version 1.17 folgenden Code um Log-Einträge mit dem Standard-Ziel zu schreiben
+      (beide Varianten möglich):
+<gen:highlight type="php">
+$logger->logEntry(
+   Registry::retrieve('apf::core', 'InternalLogTarget'),
+   'My log message',
+   LogEntry::SEVERITY_INFO
+);
+$logger->addEntry(new SimpleLogEntry(
+   Registry::retrieve('apf::core', 'InternalLogTarget'),
+   'My log message',
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight>
+      Mit dieser Vorgehensweise stellen Sie sicher, dass der Log-Eintrag auch an den registrierten
+      Standard-<em>LogWriter</em> übergeben und persistiert wird.
+   </p>
+</div>
+<div class="warn">
+   Wurde kein Log-Ziel definiert, quittiert der <em>Logger</em> das Schreiben der Einträge mit einer Exception. Diese
+   hat beispielsweise folgenden Inhalt:
+<gen:highlight type="code">
+Fatal error: Uncaught exception 'LoggerException' with message 'Log writer with name "mysqlx" is not registered!' in */core/logging/Logger.php on line 433
+</gen:highlight>
+   Der <em>Logger</em> implementiert aus Sicherheitsgründen kein Fallback-Szenario, da ein solches zur Ausgabe von
+   sensiblen Informationen an die Aussenwelt führen kann (z.B. bei Fallback auf den <em>StdoutLogWriters</em>).
+</div>
+
+<h5 id="Chapter-3-1-1-Hinzufuegen-von-LogWritern"><a href="#Chapter-3-1-1-Hinzufuegen-von-LogWritern">3.1.1. Hinzufügen von LogWritern</a></h5>
+<p>
+   Im Auslieferunszustand des APF wird standardmäßig der <em>FileLogWriter</em> mit dem Bezeichner, der im
+   Registry-Schlüssel <em>InternalLogTarget</em> (Namespace: <em>apf::core</em>) definiert ist (Standard: <em>apf</em>),
+   registriert.
+</p>
+<p>
+   Beabsichtigen Sie eigene <em>LogWriter</em> hinzuzufügen, so können Sie die Methode <em>addLogWriter()</em> nutzen.
+   Dies gilt wowohl für mitgelieferte als auch eigene Implementierungen:
+</p>
+<gen:highlight type="php">
+$logger = & Singleton::getInstance('Logger');
+
+import('core::logging::writer', 'StdoutLogWriter');
+$logger->addLogWriter(
+   'stdout',
+   new StdoutLogWriter()
+);
+</gen:highlight>
+<p>
+   Anschließend kann der mit <em>stdout</em> registrierte <em>LogWriter</em> wie folgt genutzt werden:
+</p>
+<gen:highlight type="php">
+$logger = & Singleton::getInstance('Logger');
+$logger->addEntry(new SimpleLogEntry(
+   'stdout',
+   'This is a log message',
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight>
+
+<h5 id="Chapter-3-1-2-Konfiguration-von-bestehenden-LogWritern"><a href="#Chapter-3-1-2-Konfiguration-von-bestehenden-LogWritern">3.1.2. Konfiguration von bestehenden LogWritern</a></h5>
+<p>
+   Möchten Sie einen bereits registrierten <em>LogWriter</em> konfigurieren, so können Sie dazu die Methode
+   <em>getLogWriter()</em> nutzen. Welche Persistenz-Schichten aktuell registriert sind, können Sie per
+   <em>getRegisteredTargets()</em> abfragen.
+</p>
+<p>
+   Möchten Sie die Konfiguration des Standard-<em>LogWriter</em>s verändern, so nutzen Sie bitte folgenden Code-Block als
+   Vorlage:
+</p>
+<gen:highlight type="php">
+$standardWriter = $logger->getLogWriter(
+   Registry::retrieve('apf::core', 'InternalLogTarget')
+);
+$standardWriter->setHostPrefix($_SERVER['HTTP_HOST']);
+</gen:highlight>
+<p>
+   Details zur Konfiguration von <em>LogWriter</em>n entnehmen Sie bitte
+   <a href="#Chapter-4-Vorhandene-LogWriter">Kapitel 4</a>.
+</p>
+
+<h5 id="Chapter-3-1-3-Erweiterung-der-Konfiguration-mit-bestehenden-LogWritern"><a href="#Chapter-3-1-3-Erweiterung-der-Konfiguration-mit-bestehenden-LogWritern">3.1.3. Erweiterung der Konfiguration mit bestehenden LogWritern</a></h5>
+<p>
+   Mit Hilfe der Methode <em>getLogWriter()</em> ist es möglich, bestehende bzw. bereits registrierte <em>LogWriter</em>
+   als Basis für eigene Ziele zu nutzen. Nutzen Sie bitte folgenden Code-Block um den im Auslieferungszustand registrierten
+   <em>LogWriter</em> unter einem anderen Ziel zu registrieren:
+</p>
+<gen:highlight type="php">
+$writer = clone $logger->getLogWriter(
+   Registry::retrieve('apf::core', 'InternalLogTarget')
+);
+
+$logger->addLogWriter('new-target', $writer);
+</gen:highlight>
+<p>
+   Wie in den vorangegangenen Kapitel beschrieben können Sie den geklonten <em>LogWriter</em> natürlich wie gewünscht
+   konfigurieren.
+</p>
+
+<h5 id="Chapter-3-1-4-Loeschen-von-registrierten-LogWritern"><a href="#Chapter-3-1-4-Loeschen-von-registrierten-LogWritern">3.1.4. Loeschen von registrierten LogWritern</a></h5>
+<p>
+   Um vorhandene <em>LogWriter</em> zu entfernen nutzen Sie bitte die Methode <em>removeLogWriter()</em>:
+</p>
+<gen:highlight type="php">
+$logger->removeLogWriter('mysqlx');
+</gen:highlight>
+<p>
+   Bitte beachten Sie, dass bereits vorhandene Log-Einträge dann nicht mehr persistiert werden können.
+</p>
+
+<h5 id="Chapter-3-1-5-Konfiguration-fuer-Entwicklungsumgebungen"><a href="#Chapter-3-1-5-Konfiguration-fuer-Entwicklungsumgebungen">3.1.5. Konfiguration für Entwicklungsumgebungen</a></h5>
+<p>
+   In Entwicklungsumgebungen kann es notwendig sein, alle vorhandenen Log-Einträge direkt mit dem Quelltext der
+   Applikation auszugeben. Um alle vorhandenen <em>LogWriter</em> auf die Standard-Ausgabe des Webservers umzulenken,
+   nutzen Sie bitte folgenden Quellcode:
+</p>
+<gen:highlight type="php">
+foreach($logger->getRegisteredTargets() as $logTarget) {
+   $logger->addLogWriter($logTarget, new StdOutLogWriter());
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-2-Log-Verzeichnis"><a href="#Chapter-3-2-Log-Verzeichnis">3.2. Log-Verzeichnis</a></h4>
+<div class="warn">
+   Bitte beachten Sie, dass die Konfiguration des Log-Verzeichnisses in Version 1.17 verändert wurde. Die im vorliegenden
+   Kapitel beschriebene Vorgehensweise gilt lediglich bis einschließlich Version 1.16. Bitte beachten Sie die Hinweise
+   zur Konfiguration von Log-Zielen in <a href="#Chapter-4-Vorhandene-LogWriter">Kapitel 4</a>.
+</div>
 <p>
    Zur Konfiguration des Log-Verzeichnisses nutzen Sie bitte den Registry-Wert <em>LogDir</em> aus dem Namespace
    <em>apf::core</em>. Dieser wird zunächst mit dem <em>absoluten</em> Pfad zum aktuellen Verzeichnis plus Unterordner
@@ -37,7 +259,7 @@ Registry::register('apf::core', 'LogDir', '/Pfad/zu/meinem/Log/Verzeichnis');
    Um Fehler beim Zugriff auf das Log-Verzeichnis zu vermeiden, sollte der Pfad <em>absolut</em> definiert sein!
 </div>
 
-<h4 id="Chapter-2-2-Puffer-Laenge"><a href="#Chapter-2-2-Puffer-Laenge">2.2. Puffer-Länge</a></h4>
+<h4 id="Chapter-3-3-Puffer-Laenge"><a href="#Chapter-3-3-Puffer-Laenge">3.3. Puffer-Länge</a></h4>
 <p>
    Wie bereits in der Einleitung angesprochen, sammelt der <em>Logger</em> zunächst alle Einträge und persistiert diese
    erst am Ende des Requests. Bei hohem Log-Aufkommen kann es daher zu hohem Speicherverbrauch der Applikation kommen,
@@ -55,7 +277,7 @@ $log->setMaxBufferLength(500);
    adaptiert werden.
 </p>
 
-<h4 id="Chapter-2-3-Schwellwert"><a href="#Chapter-2-3-Schwellwert">2.3. Schwellwert</a></h4>
+<h4 id="Chapter-3-4-Schwellwert"><a href="#Chapter-3-4-Schwellwert">3.4. Schwellwert</a></h4>
 <p>
    Mit dem Release 1.15 ist es möglich, Schwellwerte bzw. Profile für Log-Einträge zu definieren. Liegt ein Eintrag mit
    einer definierten <em>severity</em> oberhalb des definierten Schwellwertes bzw. innerhalb des gewählten Profils, so
@@ -109,7 +331,12 @@ $log->setLogThreshold(array(
    Details zur Definition entnehmen Sie bitte der <int:link pageid="002"/>.
 </p>
 
-<h4 id="Chapter-2-4-Host-Praefix"><a href="#Chapter-2-4-Host-Praefix">2.4. Host-Präfix</a></h4>
+<h4 id="Chapter-3-5-Host-Praefix"><a href="#Chapter-3-5-Host-Praefix">3.5. Host-Präfix</a></h4>
+<div class="warn">
+   Bitte beachten Sie, dass die Konfiguration des Host-Präfix in Version 1.17 verändert wurde. Die im vorliegenden
+   Kapitel beschriebene Vorgehensweise gilt lediglich bis einschließlich Version 1.16. Bitte beachten Sie die Hinweise
+   zur Konfiguration von Log-Zielen in <a href="#Chapter-4-Vorhandene-LogWriter">Kapitel 4</a>.
+</div>
 <p>
    In geclusterten Umgebungen werden Log-Dateien von verschiedenen Servern oft auf ein gemeinsames Datei-System
    geschrieben. Vorteil dieser Vorgehensweise ist, dass Log-Dateien zentral ausgewertet und archiviert werden können.
@@ -138,7 +365,174 @@ $log->setHostPrefix($_SERVER['SERVER_ADDR']);
 </gen:highlight>
 </div>
 
-<h3 id="Chapter-3-Verwendung"><a href="#Chapter-3-Verwendung">3. Verwendung</a></h3>
+<h3 id="Chapter-4-Vorhandene-LogWriter"><a href="#Chapter-4-Vorhandene-LogWriter">4. Vorhandene LogWriter</a></h3>
+<p>
+   Mit der Version 1.17 des APF werden die in den folgenden Kapiteln beschriebenen <em>LogWriter</em>-Implementierungen
+   mitgeliefert.
+</p>
+
+<h4 id="Chapter-4-1-FileLogWriter"><a href="#Chapter-4-1-FileLogWriter">4.1. FileLogWriter</a></h4>
+<p>
+   Der <em>FileLogWriter</em> schreibt die übergebenen Log-Einträge in eine Datei. Der Name der Datei setzt sich dabei
+   aus dem aktuellen Datum, einem optionalen Host-Präfix und dem Log-Ziel für das der <em>LogWriter</em> konfiguriert
+   wurde zusammen (Beispiel: <em>2013_01_20__127_0_0_1__apf.log</em>).
+</p>
+<p>
+   Die folgenden Kapitel beschreiben die Konfiguration des <em>FileLogWriters</em>.
+</p>
+
+<h5 id="Chapter-4-1-1-Log-Verzeichnis"><a href="#Chapter-4-1-1-Log-Verzeichnis">4.1.1. Log-Verzeichnis</a></h5>
+<p>
+   Zur Konfiguration des Log-Verzeichnisses nutzen Sie bitte den Konstruktor (verpflichtend) oder die Methode
+   <em>setLogDir()</em> (optional). Die Reistrierung des <em>FileLogWriters</em> kann wie folgt vorgenommen werden:
+</p>
+<gen:highlight type="php">
+$logger->addLogWriter('file', new FileLogWriter('/path/to/log/dir'));
+</gen:highlight>
+<p>
+   Die Konfiguration von bestehenden Instanzen lässt sich wie folgt erledigen.
+</p>
+<gen:highlight type="php">
+$fileWriter = $logger->getLogWriter('file');
+$logger->setLogDir('/path/to/log/dir');
+</gen:highlight>
+<div class="hint">
+   Um Fehler beim Zugriff auf das Log-Verzeichnis zu vermeiden, sollte der Pfad <em>absolut</em> definiert sein!
+</div>
+
+<h5 id="Chapter-4-1-2-Log-Verzeichnis-Berechtigung"><a href="#Chapter-4-1-2-Log-Verzeichnis-Berechtigung">4.1.2. Log-Verzeichnis-Berechtigung</a></h5>
+<p>
+   Wurde das im Konstruktor oder der Methode <em>setLogDir()</em> angegebene Verzeichnis noch nicht erstellt, so legt
+   der <em>FileLogWriter</em> dieses automatisch an. Um die verwendete Datei-Maske definieren zu können, stellt der
+   <em>FileLogWriter</em> die Methode <em>setLogFolderPermissions()</em> bereit. Nutzen Sie diese wie folgt um die
+   <em>umask</em> festzulegen:
+</p>
+<gen:highlight type="php">
+$fileWriter = $logger->getLogWriter('file');
+$fileWriter->setLogFolderPermissions(0755);
+</gen:highlight>
+
+<h5 id="Chapter-4-1-3-Host-Praefix"><a href="#Chapter-4-1-3-Host-Praefix">4.1.3. Host-Präfix</a></h5>
+<p>
+   In geclusterten Umgebungen werden Log-Dateien von verschiedenen Servern oft auf ein gemeinsames Datei-System
+   geschrieben. Vorteil dieser Vorgehensweise ist, dass Log-Dateien zentral ausgewertet und archiviert werden können.
+   Der Nachteil besteht darin, dass die Server des Clusters beim Schreiben der Dateien um Zugriff konkurrieren und sich
+   so die Performance der Anwendung durch langes Warten oder erhöhten Log-Traffic (erfahrungsgemäß) verringert.
+</p>
+<p>
+   Eine oft eingesetzte Lösung ist, in geclusterten Umgebungen die einzelnen Log-Dateien mit einem Präfix zu verstehen,
+   das den Server-Namen enthält. So sind die Dateinamen nicht nur eindeutig, sondern lassen auch die Analyse einer
+   Anwendung auf einem dedizierten Server zu.
+</p>
+<p>
+   Mit dem in Release 1.15 eingeführten <em>host prefix</em> haben Sie die Möglichkeit, einen Server-abhängigen Präfix
+   für eine Log-Datei zu definieren:
+</p>
+<gen:highlight type="php">
+$fileWriter = $logger->getLogWriter('file');
+$fileWriter->setHostPrefix('node1');
+</gen:highlight>
+<div class="hint">
+   Um die Konfiguration des Präfix möglichst einfach zu gestalten empfiehlt es sich, Umgebungs- oder Server-Konfigurationen
+   auszulesen. Der folgende Code zeigt dies an Hand der <em>$_SERVER</em>-Superglobal-Variable:
+<gen:highlight type="php">
+$fileWriter = $logger->getLogWriter('file');
+$fileWriter->setHostPrefix($_SERVER['SERVER_ADDR']);
+</gen:highlight>
+</div>
+
+<h4 id="Chapter-4-2-StdOutWriter"><a href="#Chapter-4-2-StdOutWriter">4.2. StdOutWriter</a></h4>
+<p>
+   Der <em>StdOutLogWriter</em> schreibt die hinzugefügten Log-Einträge auf die Standard-Ausgabe des Webservers. Dadurch
+   sind die Log-Einträge für den Besucher sichtbar.
+</p>
+<div class="warn">
+   Log-Einträge können prinzipiell sensible Daten der Applikation enthalten. Aus Sicherheitsgründen sollte der
+   <em>StdOutWriter</em> daher nur in Entwicklungsumgebungen zum Einsatz kommen!
+</div>
+<p>
+   Die Registrierung des <em>StdOutLogWriter</em> kann in der Bootstrap-Datei wie folgt erfolgen:
+</p>
+<gen:highlight type="php">
+import('core::logging::writer', 'StdOutLogWriter');
+$logger->addLogWriter('stdout',  new StdOutLogWriter());
+</gen:highlight>
+<p>
+   Log-Einträge mit dem Ziel <em>stdout</em> werden nun zusammen mit dem Quelltext der Applikation ausgegeben.
+</p>
+
+<h4 id="Chapter-4-3-DatabaseLogWriter"><a href="#Chapter-4-3-DatabaseLogWriter">4.3. DatabaseLogWriter</a></h4>
+<p>
+   Der <em>DatabaseLogWriter</em> ermöglicht die Ausgabe der Log-Einträge in eine Datenbank-Tabelle. Erstellen Sie
+   hierzu zunächst eine Tabelle mit dem folgenden SQL-Statement:
+</p>
+<gen:highlight type="sql">
+CREATE TABLE IF NOT EXISTS `{$this->logTable}` (
+   `target` varchar(10) NOT NULL default '',
+   `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP,
+   `severity` varchar(10) NOT NULL default '',
+   `message` text NOT NULL
+);
+</gen:highlight>
+<p>
+   Der Wert <em>{$this->logTable}</em> entspricht dabei dem Namen der Tabelle, mit dem der <em>DatabaseLogWriter</em>
+   registriert werden soll. Auf diese Weise ist es möglich, verschiedene Instanzen des <em>DatabaseLogWriter</em> für
+   unterschiedliche Log-Tabellen zu registrieren.
+</p>
+<p>
+   Um den <em>LogWriter</em> zu verwenden, nutzen Sie bitte folgenden Code-Block:
+</p>
+<gen:highlight type="php">
+import('core::logging::writer', 'DatabaseLogWriter');
+$logger->addlogWriter('db', new DatabaseLogWriter('my-connection', 'app_logs'));
+</gen:highlight>
+<p>
+   Das erste Argument des Konstruktors referenziert die Datenbank-Verbindung, die mit Hilfe des <int:link pageid="031" />
+   erzeugt wird, der zweite Parameter benennt die Log-Tabelle.
+</p>
+<div class="hint">
+   Der <em>DatabaseLogWriter</em> nutzt das Log-Ziel unter dem er registriert wurde als Merkmal in der Log-Tabelle. Dies
+   ermöglicht daher die Wiederverwendung einer einzigen Implementierung für mehrere Anwendungsfälle.
+</div>
+
+<h4 id="Chapter-4-4-GraphiteLogWriter"><a href="#Chapter-4-4-GraphiteLogWriter">4.4. GraphiteLogWriter</a></h4>
+<p>
+   Der <em>GraphiteLogWriter</em> - zusammen mit dem <em>GraphiteLogEntry</em> - ist eine Implementierung für das
+   System-Monitoring-Tool <a class="external" href="http://graphite.wikidot.com/screen-shots">Graphite</a>. Mit Hilfe
+   des <em>GraphiteLogEntry</em> können Sie auf einfache Weise Monitoring Metriken an einen
+   <a class="external" href="https://github.com/etsy/statsd">statsd-Daemon</a> schicken.
+</p>
+<p>
+   Zur Registrierung des <em>GraphiteLogWriter</em> können Sie folgenden Code nutzen:
+</p>
+<gen:highlight type="php">
+import('core::logging::writer', 'GraphiteLogWriter');
+$logger->addlogWriter('graphite', new GraphiteLogWriter('my-graphite-host', '1234'));
+</gen:highlight>
+<p>
+   Da die Implementierung des <em>GraphiteLogEntry</em> bereits alle notwendigen Formatierungen vornimmt, kann beim
+   <em>GraphiteLogWriter</em> lediglich das Trennzeichen zwischen mehreren Einträgen konfiguriert werden. Nutzen Sie
+   hierzu bitte die Methode <em>setEntrySeparator()</em> und übergeben dieser das gewünschte Trennzeichen (Standard:
+   <em>\n</em>).
+</p>
+<p>
+   Die Verwendung des <em>GraphiteLogWriter</em> gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+$t = Singleton::getInstance('BenchmarkTimer');
+$renderingTime = round(floatval($t->getTotalTime() * 1000));
+
+import('core::logging::entry', 'GraphiteLogEntry');
+$logger->addEntry(new GraphiteLogEntry(
+   'graphite',
+   'rendering-time',
+   'ms',
+   $renderingTime,
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight>
+
+<h3 id="Chapter-5-Verwendung"><a href="#Chapter-5-Verwendung">5. Verwendung</a></h3>
 <p>
    Zur Verwendung des Loggers muss dieser zunächst via
 </p>
@@ -146,7 +540,7 @@ $log->setHostPrefix($_SERVER['SERVER_ADDR']);
 import('core::logging','Logger');
 </gen:highlight>
 <p>
-   eingebunden werden. Dies gilt auch für die in Kapitel 2 gezeiten Beispiele. Anschließend kann mit
+   eingebunden werden. Dies gilt auch für die in Kapitel 3 gezeigten Beispiele. Anschließend kann mit
 </p>
 <gen:highlight type="php">
 $log = &Singleton::getInstance('Logger');
@@ -157,13 +551,20 @@ $log = &Singleton::getInstance('Logger');
    <em>FILENAME</em> ist mit dem Aufruf
 </p>
 <gen:highlight type="php">
-$log->logEntry('FILENAME','MESSAGE');
+$log->logEntry('FILENAME', 'MESSAGE');
 </gen:highlight>
 <p>
    erledigt. Der dritte Parameter (optional) der Methode <em>logEntry()</em> definiert die
    <em>SEVERITY</em> der Meldung. Die verfügbaren Werte für den Schweregrad sind im Interface
    <em>LogEntry</em> definiert.
 </p>
+<p>
+   Ab Version 1.17 kann ebenso die Methode <em>addEntry()</em> genutzt werden. Diese erwartet eine Instanz des Interfaces
+   <em>LogEntry</em>:
+</p>
+<gen:highlight type="php">
+$log->addEntry(new SimpleLogEntry('FILENAME', 'MESSAGE'));
+</gen:highlight>
 <div class="hint">
    Sollte die Applikation exzessives Logging betreiben, kann es sinnvoll sein zu Gunsten einer
    geringeren Speicher-Auslastung den Log-Buffer innerhalb eines Requests mehrmals zu leeren. Hierzu
@@ -172,5 +573,24 @@ $log->logEntry('FILENAME','MESSAGE');
    die standardmäßig oder durch Aufruf der genannten Methode definierten Grenzwert, wird der Inhalt
    in die entsprechende Log-Datei geschrieben und anschließend geleert. 
 </div>
+
+<h3 id="Chapter-6-LogWriter-Implementierung"><a href="#Chapter-6-LogWriter-Implementierung">6. LogWriter-Implementierung</a></h3>
+<p>
+   * Aufbau Interface
+   * Bedeutung der Methoden
+   * Registrierungsprozess (Logger injected das Ziel)
+   * Konstruktion ist vom Interface her frei definierbar --> es sollte darauf geachtet werden, dass alle relevanten
+     Parameter im Konstruktor abgefragt werden.
+   * Nutzung (DevNullLogWriter; Registrierung einzeln; Austausch aller Logger durch den DevNullLogWriter)
+</p>
+
+<h3 id="Chapter-7-LogEntry-Implementierung"><a href="#Chapter-7-LogEntry-Implementierung">7. LogEntry-Implementierung</a></h3>
+<p>
+   * Aufbau Interface
+   * Bedeutung der Methoden
+   * Konstruktion ist vom Interface her frei definierbar --> es sollte darauf geachtet werden, dass alle relevanten
+   Informationen im Konstruktor abgefragt werden.
+   * Nutzung (CsvLogEntry)
+</p>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_023" />
