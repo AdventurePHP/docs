@@ -214,7 +214,7 @@ $logger->addLogWriter('new-target', $writer);
    konfigurieren.
 </p>
 
-<h5 id="Chapter-3-1-4-Loeschen-von-registrierten-LogWritern"><a href="#Chapter-3-1-4-Loeschen-von-registrierten-LogWritern">3.1.4. Loeschen von registrierten LogWritern</a></h5>
+<h5 id="Chapter-3-1-4-Loeschen-von-registrierten-LogWritern"><a href="#Chapter-3-1-4-Loeschen-von-registrierten-LogWritern">3.1.4. Löschen von registrierten LogWritern</a></h5>
 <p>
    Um vorhandene <em>LogWriter</em> zu entfernen nutzen Sie bitte die Methode <em>removeLogWriter()</em>:
 </p>
@@ -576,13 +576,82 @@ $log->addEntry(new SimpleLogEntry('FILENAME', 'MESSAGE'));
 
 <h3 id="Chapter-6-LogWriter-Implementierung"><a href="#Chapter-6-LogWriter-Implementierung">6. LogWriter-Implementierung</a></h3>
 <p>
-   * Aufbau Interface
-   * Bedeutung der Methoden
-   * Registrierungsprozess (Logger injected das Ziel)
-   * Konstruktion ist vom Interface her frei definierbar --> es sollte darauf geachtet werden, dass alle relevanten
-     Parameter im Konstruktor abgefragt werden.
-   * Nutzung (DevNullLogWriter; Registrierung einzeln; Austausch aller Logger durch den DevNullLogWriter)
+   Das in <a href="#Chapter-2-Architektur">Kapitel 2</a> beschriebe Interface umfasst die Methoden <em>writeLogEntries()</em>
+   und <em>setTarget()</em>. Die erste Methode kümmert sich bei der Implementierung eines <em>LogWriter</em> um die
+   Persistenz der übergebenen Einträge, die zweite nimmt den Ziel-Bezeichner entgegen.
 </p>
+<p>
+   Während der Registrierung eines <em>LogWriter</em>s mit Hilfe der Methode <em>Logger::addLogWriter()</em> injiziert
+   der <em>Logger</em> den Ziel-Bezeichner über die Methode <em>LogWriter::setTarget()</em> unter dem der
+   <em>LogWriter</em> registriert wurde.
+</p>
+<p>
+   Das Interface <em>LogWriter</em> definiert selbst keinen Konstruktor um die Implementierung hinsichtlich ihrer
+   Konfigurierbarkeit nicht einzuschränken.
+</p>
+<div class="hint">
+   Bitte achten Sie darauf, dass der Konstruktor alle notwendigen Informationen zur Ausführung einer eigenen
+   <em>LogWriter</em>-Implementierung enthält. So stellen Sie sicher, dass bei der Ausführung potentiell keine Fehler
+   auftreten.
+</div>
+<p>
+   Als Implementierungsbeispiel soll im Folgenden ein <em>LogWriter</em> erstellt werden, der die übergebenen Einträge
+   an den Syslog-Daemon übergibt. Hierzu kann die PHP-Funktion <em>syslog(int $priority, string $message)</em> genutzt
+   werden. Die Implementierung gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+class SysLogWriter implements LogWriter {
+
+   private $target;
+
+   public function writeLogEntries(array $entries) {
+
+      define_syslog_variables();
+      openlog($this->target, LOG_PID, LOG_LOCAL0);
+
+      foreach ($entries as $entry) {
+         syslog(
+            $this->getMappedSeverity($entry->getSeverity()),
+            $entry
+         );
+      }
+
+      closelog();
+   }
+
+   public function setTarget($target) {
+      $this->target = $target;
+   }
+
+   private function getMappedSeverity($severity) {
+
+      if ($severity == LogEntry::SEVERITY_DEBUG) {
+         return LOG_DEBUG;
+      }
+      if ($severity == LogEntry::SEVERITY_ERROR) {
+         return LOG_ERR;
+      }
+      if ($severity == LogEntry::SEVERITY_FATAL) {
+         return LOG_EMERG;
+      }
+      if ($severity == LogEntry::SEVERITY_TRACE) {
+         return LOG_NOTICE;
+      }
+      if ($severity == LogEntry::SEVERITY_WARNING) {
+         return LOG_WARNING;
+      }
+
+      return LOG_INFO;
+   }
+
+}
+</gen:highlight>
+<p>
+   Um die Implementierung einzusetzen, kann diese wie folgt beim <em>Logger</em> registriert werden:
+</p>
+<gen:highlight type="php">
+$logger->addLogWriter('syslog', new SysLogWriter());
+</gen:highlight>
 
 <h3 id="Chapter-7-LogEntry-Implementierung"><a href="#Chapter-7-LogEntry-Implementierung">7. LogEntry-Implementierung</a></h3>
 <p>
@@ -591,6 +660,14 @@ $log->addEntry(new SimpleLogEntry('FILENAME', 'MESSAGE'));
    * Konstruktion ist vom Interface her frei definierbar --> es sollte darauf geachtet werden, dass alle relevanten
    Informationen im Konstruktor abgefragt werden.
    * Nutzung (CsvLogEntry)
+</p>
+<p>
+   Das in <a href="#Chapter-2-Architektur">Kapitel 2</a> beschriebe Interface umfasst die Methoden <em>getLogTarget()</em>,
+   <em>getSeverity()</em> und <em>__toString()</em>. Die ersten beiden Methode geben Log-Ziel und <em>severity</em>-Definition
+   aus, die letzte erzeugt das Format bzw. den Inhalt des Log-Eintrags.
+</p>
+<p>
+
 </p>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_023" />
