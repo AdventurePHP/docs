@@ -655,19 +655,81 @@ $logger->addLogWriter('syslog', new SysLogWriter());
 
 <h3 id="Chapter-7-LogEntry-Implementierung"><a href="#Chapter-7-LogEntry-Implementierung">7. LogEntry-Implementierung</a></h3>
 <p>
-   * Aufbau Interface
-   * Bedeutung der Methoden
-   * Konstruktion ist vom Interface her frei definierbar --> es sollte darauf geachtet werden, dass alle relevanten
-   Informationen im Konstruktor abgefragt werden.
-   * Nutzung (CsvLogEntry)
-</p>
-<p>
    Das in <a href="#Chapter-2-Architektur">Kapitel 2</a> beschriebe Interface umfasst die Methoden <em>getLogTarget()</em>,
    <em>getSeverity()</em> und <em>__toString()</em>. Die ersten beiden Methode geben Log-Ziel und <em>severity</em>-Definition
    aus, die letzte erzeugt das Format bzw. den Inhalt des Log-Eintrags.
 </p>
 <p>
+   Beim Hinzufügen eines Log-Eintrags mit den Methoden <em>logEntry()</em> (nutzt intern die <em>LogEntry</em>-Implementierung
+   <em>SimpleLogEntry</em>) bzw. <em>addEntry()</em> (beliebige Implementierungen nutzbar) sortiert der <em>Logger</em>
+   die übergebenen Einträge bereits an Hand des Log-Ziels (Rückgabe der Methode <em>getLogTarget()</em>) für die
+   Verarbeitung vor.
+</p>
+<p>
+   Das Interface <em>LogEntry</em> definiert selbst keinen Konstruktor um die Implementierung hinsichtlich der Inhalte
+   nicht einzuschränken.
+</p>
+<div class="hint">
+   Bitte achten Sie darauf, dass der Konstruktor alle relevanten Informationen enthält, der bei der Generierung des
+   Formats benötigt wird.
+</div>
+<p>
+   Als Implementierungsbeispiel soll im Folgenden ein <em>CsvLogEntry</em> erstellt werden, der die übergebenen Inhalte
+   im <em>comma separated values</em> Stil speichert. Die Implementierung gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+class CsvLogEntry implements LogEntry {
 
+   private $target;
+   private $severity;
+
+   private $message;
+
+   private $date;
+   private $time;
+
+   public function __construct($target, $message, $severity) {
+      $this->date = date('Y-m-d');
+      $this->time = date('H:i:s');
+      $this->target = $target;
+      $this->message = $message;
+      $this->severity = $severity;
+   }
+
+   public function __toString() {
+      return $this->date . ';' . $this->time . ';' . $this->severity . ';' . $this->message;
+   }
+
+   public function getLogTarget() {
+      return $this->target;
+   }
+
+   public function getSeverity() {
+      return $this->severity;
+   }
+
+}
+</gen:highlight>
+<p>
+   Möchten Sie statt einem <em>SimpleLogEntry</em> die <em>CsvLogEntry</em>-Implementierung nutzen, so bietet Ihnen die
+   Methode <em>Logger::addEntry()</em> das passende Interface dazu:
+</p>
+<gen:highlight type="php">
+$logger->addEntry(new CsvLogEntry(
+   'csv-file',
+   'There is something wrong!',
+   LogEntry::SEVERITY_ERROR
+));
+</gen:highlight>
+<p>
+   Um eine CSV-Datei mit der vorliegenden Implementierung zu erstellen, muss für das Log-Ziel <em>csv-file</em> zunächst
+   per
+</p>
+<gen:highlight type="php">
+$logger->addLogWriter('csv-file', new FileLogWriter('../logs'));
+</gen:highlight>
+<p>
+   ein entsprechender <em>LogWriter</em> registriert werden.
 </p>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_023" />
