@@ -58,8 +58,6 @@ interface LogEntry {
    const SEVERITY_ERROR = 'ERROR';
    const SEVERITY_FATAL = 'FATAL';
 
-   public function __construct($target, $message, $severity);
-
    public function __toString();
 
    public function getLogTarget();
@@ -68,9 +66,8 @@ interface LogEntry {
 }
 </gen:highlight>
 <p>
-   Über den Konstruktor wird ein Eintrag mit allen notwendigen Informationen ausgestattet. Die Methoden <em>getSeverity()</em>
-   nutzt der <em>Logger</em> um zu entscheiden, ob ein Eintrag über dem definierten
-   <a href="#Chapter-3-3-Schwellwert">Schwellwert</a> liegt oder verworfen werden soll. Mit dem Rückgabewert der Funktion
+   Die Methoden <em>getSeverity()</em> nutzt der <em>Logger</em> um zu entscheiden, ob ein Eintrag über dem definierten
+   <a href="#Chapter-3-4-Schwellwert">Schwellwert</a> liegt oder verworfen werden soll. Mit dem Rückgabewert der Funktion
    <em>getLogTarget()</em> weist der <em>Logger</em> den Eintrag dem entsprechenden <em>LogWriter</em> zu.
 </p>
 <p>
@@ -105,7 +102,7 @@ interface LogWriter {
    oder eine Datenbank findet, muss ein persistiert werden kann braucht es einen <em>LogWriter</em>.
 </p>
 <p>
-   Zur Verwaltung von <em>LogWriter</em>n bietet der <em>Loggger</em> die in den folgenden Kapitel beschriebenen
+   Zur Verwaltung von <em>LogWriter</em>n bietet der <em>Logger</em> die in den folgenden Kapitel beschriebenen
    Möglichkeiten.
 </p>
 <div class="hint">
@@ -146,13 +143,13 @@ Fatal error: Uncaught exception 'LoggerException' with message 'Log writer with 
 
 <h5 id="Chapter-3-1-1-Hinzufuegen-von-LogWritern"><a href="#Chapter-3-1-1-Hinzufuegen-von-LogWritern">3.1.1. Hinzufügen von LogWritern</a></h5>
 <p>
-   Im Auslieferunszustand des APF wird standardmäßig der <em>FileLogWriter</em> mit dem Bezeichner, der im
+   Im Auslieferungszustand des APF wird standardmäßig der <em>FileLogWriter</em> mit dem Bezeichner, der im
    Registry-Schlüssel <em>InternalLogTarget</em> (Namespace: <em>apf::core</em>) definiert ist (Standard: <em>apf</em>),
    registriert.
 </p>
 <p>
    Beabsichtigen Sie eigene <em>LogWriter</em> hinzuzufügen, so können Sie die Methode <em>addLogWriter()</em> nutzen.
-   Dies gilt wowohl für mitgelieferte als auch eigene Implementierungen:
+   Dies gilt sowohl für mitgelieferte als auch eigene Implementierungen:
 </p>
 <gen:highlight type="php">
 $logger = & Singleton::getInstance('Logger');
@@ -335,7 +332,7 @@ $log->setLogThreshold(array(
 <div class="warn">
    Bitte beachten Sie, dass die Konfiguration des Host-Präfix in Version 1.17 verändert wurde. Die im vorliegenden
    Kapitel beschriebene Vorgehensweise gilt lediglich bis einschließlich Version 1.16. Bitte beachten Sie die Hinweise
-   zur Konfiguration von Log-Zielen in <a href="#Chapter-4-Vorhandene-LogWriter">Kapitel 4</a>.
+   zur Konfiguration von Host-Präfixes in <a href="#Chapter-4-Vorhandene-LogWriter">Kapitel 4</a>.
 </div>
 <p>
    In geclusterten Umgebungen werden Log-Dateien von verschiedenen Servern oft auf ein gemeinsames Datei-System
@@ -384,13 +381,13 @@ $log->setHostPrefix($_SERVER['SERVER_ADDR']);
 <h5 id="Chapter-4-1-1-Log-Verzeichnis"><a href="#Chapter-4-1-1-Log-Verzeichnis">4.1.1. Log-Verzeichnis</a></h5>
 <p>
    Zur Konfiguration des Log-Verzeichnisses nutzen Sie bitte den Konstruktor (verpflichtend) oder die Methode
-   <em>setLogDir()</em> (optional). Die Reistrierung des <em>FileLogWriters</em> kann wie folgt vorgenommen werden:
+   <em>setLogDir()</em> (optional). Die Registrierung des <em>FileLogWriters</em> kann wie folgt vorgenommen werden:
 </p>
 <gen:highlight type="php">
 $logger->addLogWriter('file', new FileLogWriter('/path/to/log/dir'));
 </gen:highlight>
 <p>
-   Die Konfiguration von bestehenden Instanzen lässt sich wie folgt erledigen.
+   Die Konfiguration von bestehenden Instanzen lässt sich wie folgt erledigen:
 </p>
 <gen:highlight type="php">
 $fileWriter = $logger->getLogWriter('file');
@@ -492,7 +489,7 @@ $logger->addlogWriter('db', new DatabaseLogWriter('my-connection', 'app_logs'));
 </p>
 <div class="hint">
    Der <em>DatabaseLogWriter</em> nutzt das Log-Ziel unter dem er registriert wurde als Merkmal in der Log-Tabelle. Dies
-   ermöglicht daher die Wiederverwendung einer einzigen Implementierung für mehrere Anwendungsfälle.
+   ermöglicht daher die Wiederverwendung einer einzigen Implementierung für mehrere Anwendungsfälle (falls erwünscht).
 </div>
 
 <h4 id="Chapter-4-4-GraphiteLogWriter"><a href="#Chapter-4-4-GraphiteLogWriter">4.4. GraphiteLogWriter</a></h4>
@@ -576,7 +573,7 @@ $log->addEntry(new SimpleLogEntry('FILENAME', 'MESSAGE'));
 
 <h3 id="Chapter-6-LogWriter-Implementierung"><a href="#Chapter-6-LogWriter-Implementierung">6. LogWriter-Implementierung</a></h3>
 <p>
-   Das in <a href="#Chapter-2-Architektur">Kapitel 2</a> beschriebe Interface umfasst die Methoden <em>writeLogEntries()</em>
+   Das in <a href="#Chapter-2-Architektur">Kapitel 2</a> beschriebene Interface umfasst die Methoden <em>writeLogEntries()</em>
    und <em>setTarget()</em>. Die erste Methode kümmert sich bei der Implementierung eines <em>LogWriter</em> um die
    Persistenz der übergebenen Einträge, die zweite nimmt den Ziel-Bezeichner entgegen.
 </p>
@@ -663,7 +660,7 @@ $logger->addLogWriter('syslog', new SysLogWriter());
    Beim Hinzufügen eines Log-Eintrags mit den Methoden <em>logEntry()</em> (nutzt intern die <em>LogEntry</em>-Implementierung
    <em>SimpleLogEntry</em>) bzw. <em>addEntry()</em> (beliebige Implementierungen nutzbar) sortiert der <em>Logger</em>
    die übergebenen Einträge bereits an Hand des Log-Ziels (Rückgabe der Methode <em>getLogTarget()</em>) für die
-   Verarbeitung vor.
+   Verarbeitung an Ende des Requests vor.
 </p>
 <p>
    Das Interface <em>LogEntry</em> definiert selbst keinen Konstruktor um die Implementierung hinsichtlich der Inhalte

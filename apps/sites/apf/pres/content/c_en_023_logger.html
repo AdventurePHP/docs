@@ -1,4 +1,4 @@
-<doku:title parent="119" tags="documentation,class reference,classes,reference,logger" title="Logger" urlname="Logger">
+<doku:title parent="119" tags="logger,logentry,logwriter" title="Logger" urlname="Logger">
    The class Logger is a tool to record application information easily and within a central store. It supports
    multiple log files and threshold configuration.
 </doku:title>
@@ -16,8 +16,216 @@
    The component ensures that every log entry is flushed into a logfile at the end of a request.
 </p>
 
-<h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration</a></h3>
-<h4 id="Chapter-2-1-Log-dir"><a href="#Chapter-2-1-Log-dir">2.1. Log directory</a></h4>
+<h3 id="Chapter-2-Architecture"><a href="#Chapter-2-Architecture">2. Architecture</a></h3>
+<p>
+   Since version 1.17 the <em>Logger</em> implementation of the APF provides a separation between the <em>Logger</em> itself,
+   the model of log entries (<em>LogEntry</em>), and the persistence (<em>LogWriter</em>):
+</p>
+<img src="http://media.adventure-php-framework.org/content/logger_concept_1_17.png" alt="Architecture of the APF Logger since version 1.17" />
+<p>
+   The <em>Logger</em> is the central touch-point for the framework and applications built on the APF to store log
+   entries. The appearance of a log entry is described by the <em>LogEntry</em> interface and the reference implementation
+   <em>SimpleLogEntry</em>. The question where the log entry is written is answered by the <em>LogWriter</em> interface
+   implementation. The <em>Logger</em> uses the registered writers to persist the internal buffer at the end of the
+   request processing.
+</p>
+<p>
+   To register <em>LogWriter</em> implementations, the <em>Logger</em> provides the following methods:
+</p>
+<ul>
+   <li><em>addLogWriter($target, LogWriter $writer)</em></li>
+   <li><em>removeLogWriter($target)</em></li>
+   <li><em>getLogWriter($target)</em></li>
+</ul>
+<p>
+   Each <em>LogWriter</em> is registered with a unique target identifier (<em>$target</em>). The Logger uses this target
+   to assign incoming log entries to the appropriate persistence layer. To support this mapping, each <em>LogEntry</em>
+   is assigned to one dedicated log target, too.
+</p>
+<p>
+   The interface of a <em>LogEntry</em> is as follows:
+</p>
+<gen:highlight type="php">
+interface LogEntry {
+
+   const SEVERITY_TRACE = 'TRACE';
+   const SEVERITY_DEBUG = 'DEBUG';
+   const SEVERITY_INFO = 'INFO';
+   const SEVERITY_WARNING = 'WARN';
+   const SEVERITY_ERROR = 'ERROR';
+   const SEVERITY_FATAL = 'FATAL';
+
+   public function __toString();
+
+   public function getLogTarget();
+
+   public function getSeverity();
+}
+</gen:highlight>
+<p>
+   <em>getSeverity()</em> is used by the <em>Logger</em> to check, whether the entry's severity is above the defined
+   <a href="#Chapter-3-4-Threshold">threshold</a> or should be discarded. The return value of the <em>getLogTarget()</em>
+   method is used by the <em>Logger</em> to assign the entry to the appropriate <em>LogWriter</em>.
+</p>
+<p>
+   The implementation of a <em>LogWriter</em> must comply with the following interface definition:
+</p>
+<gen:highlight type="php">
+interface LogWriter {
+
+   public function writeLogEntries(array $entries);
+
+   public function setTarget($target);
+}
+</gen:highlight>
+<p>
+   Using the <em>setTarget()</em> method the <em>Logger</em> injects the target identifier. This key may be used to
+   generate the log file name. <em>writeLogEntries()</em> is delegated the persistence of the applied list of log entries.
+</p>
+<p>
+   Compared to the implementation of the <em>Logger</em> up to version 1.16 in 1.17 the <em>Logger</em> provides the full
+   feature set of the <int:link pageid="081" /> while being much more flexible. Besides the configuration of the persistence
+   layers you can also define different formats of the log entries using different <em>LogEntry</em> implementations.
+</p>
+
+<h3 id="Chapter-3-Configuration"><a href="#Chapter-3-Configuration">3. Configuration</a></h3>
+<h4 id="Chapter-3-1-LogWriter-management"><a href="#Chapter-3-1-LogWriter-management">3.1. LogWriter management</a></h4>
+<p>
+   The Logger understands itself as a router for log entries as described in <a href="#Chapter-2-Architecture">chapter 2</a>
+   that delegates the persistence of the queued entries to registered <em>LogWriter</em>s. For that reason, a
+   <em>LogWriter</em> is necessary to persist the desired log entries to a file or a database.
+</p>
+<p>
+   Managing <em>LogWriter</em>s with the <em>Logger</em> is described within the next chapters.
+</p>
+<div class="hint">
+   <p>
+      Please note, that the APF registers one <em>FileLogWriter</em> instance at shipping. Thus, the framework behaves
+      as in pre-1.17 releases.
+   </p>
+   <p>
+      Moreover, the configuration of the standard log target is defined within the <int:link pageid="067" /> using
+      namespace  <em>apf::core</em> and key <em>InternalLogTarget</em> as of 1.17. Please use the following code to add
+      log entries using the standard log target (both alternatives possible):
+<gen:highlight type="php">
+$logger->logEntry(
+   Registry::retrieve('apf::core', 'InternalLogTarget'),
+   'My log message',
+   LogEntry::SEVERITY_INFO
+);
+$logger->addEntry(new SimpleLogEntry(
+   Registry::retrieve('apf::core', 'InternalLogTarget'),
+   'My log message',
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight>
+      Using this method, you can ensure that the log entry is passed to the configured standard <em>LogWriter</em> and
+      persisted within the standard log file.
+   </p>
+</div>
+<div class="warn">
+   In case no log target has been specified the <em>Logger</em> quits writing the log entries with an exception. Example:
+<gen:highlight type="code">
+Fatal error: Uncaught exception 'LoggerException' with message 'Log writer with name "mysqlx" is not registered!' in */core/logging/Logger.php on line 433
+</gen:highlight>
+   The <em>Logger</em> does not include fallback mechanisms for security reasons. Fallback mechanisms - e.g. writing
+   entries to stdout like the <em>StdoutLogWriters</em> does - may make sensible data available to the outside.
+</div>
+
+<h5 id="Chapter-3-1-1-Adding-a-LogWriter"><a href="#Chapter-3-1-1-Adding-a-LogWriter">3.1.1. Adding a LogWriter</a></h5>
+<p>
+   By default, the <em>FileLogWriter</em> is registered with the key specified within the Registry key
+   <em>InternalLogTarget</em> (namespace: <em>apf::core</em>) that is <em>apf</em> at delivery.
+</p>
+<p>
+   In order to add a custom <em>LogWriter</em> you may use the <em>addLogWriter()</em> function. This procedure can be
+   used for shipped and custom implementations:
+</p>
+<gen:highlight type="php">
+$logger = & Singleton::getInstance('Logger');
+
+import('core::logging::writer', 'StdoutLogWriter');
+$logger->addLogWriter(
+   'stdout',
+   new StdoutLogWriter()
+);
+</gen:highlight>
+<p>
+   Afterwards, the <em>LogWriter</em> registered with <em>stdout</em> can be used as follows:
+</p>
+<gen:highlight type="php">
+$logger = & Singleton::getInstance('Logger');
+$logger->addEntry(new SimpleLogEntry(
+   'stdout',
+   'This is a log message',
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight>
+
+<h5 id="Chapter-3-1-2-Configuration-of-existing-LogWriter"><a href="#Chapter-3-1-2-Configuration-of-existing-LogWriter">3.1.2. Configuration of existing LogWriter</a></h5>
+<p>
+   In case you intend to configure a registered <em>LogWriter</em> you may use <em>getLogWriter()</em>. Please use
+   <em>getRegisteredTargets()</em> to query a list of registered log writers.
+</p>
+<p>
+   To change the configuration of the standard <em>LogWriter</em> please use the following code:
+</p>
+<gen:highlight type="php">
+$standardWriter = $logger->getLogWriter(
+   Registry::retrieve('apf::core', 'InternalLogTarget')
+);
+$standardWriter->setHostPrefix($_SERVER['HTTP_HOST']);
+</gen:highlight>
+<p>
+   Details on the configuration of <em>LogWriter</em>s can be taken from <a href="#Chapter-4-Existing-LogWriter">chapter 4</a>.
+</p>
+
+<h5 id="Chapter-3-1-3-Additional-configuration-with-existing-LogWriter"><a href="#Chapter-3-1-3-Additional-configuration-with-existing-LogWriter">3.1.3. Additional configuration with existing LogWriter</a></h5>
+<p>
+   Using the <em>getLogWriter()</em> method you can use previously registered <em>LogWriter</em> as a basis for your
+   custom targets. Please use the following code as a template to register the standard <em>LogWriter</em> under another
+   target identifier:
+</p>
+<gen:highlight type="php">
+$writer = clone $logger->getLogWriter(
+   Registry::retrieve('apf::core', 'InternalLogTarget')
+);
+
+$logger->addLogWriter('new-target', $writer);
+</gen:highlight>
+<p>
+   As described within the previous chapters the clone'd instance of the <em>LogWriter</em> can be configured as desired.
+</p>
+
+<h5 id="Chapter-3-1-4-Deleting-LogWriter"><a href="#Chapter-3-1-4-Deleting-LogWriter">3.1.4. Deleting LogWriter</a></h5>
+<p>
+   In order to remove registered <em>LogWriter</em>s please use <em>removeLogWriter()</em>:
+</p>
+<gen:highlight type="php">
+$logger->removeLogWriter('mysqlx');
+</gen:highlight>
+<p>
+   Please note, that existing log entries cannot be persisted after removing the appropriate log writer.
+</p>
+
+<h5 id="Chapter-3-1-5-Configuration-for-development-environments"><a href="#Chapter-3-1-5-Configuration-for-development-environments">3.1.5. Configuration for development environments</a></h5>
+<p>
+   In development environments it may be helpful to include all log entries to the HTML source code of your application.
+   To redirect all existing log entries to the standard output channel of the web server, you may use the following
+   source code:
+</p>
+<gen:highlight type="php">
+foreach($logger->getRegisteredTargets() as $logTarget) {
+   $logger->addLogWriter($logTarget, new StdOutLogWriter());
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-2-Log-directory"><a href="#Chapter-3-2-Log-directory">3.2. Log directory</a></h4>
+<div class="warn">
+   Please note, that the configuration of the log directory has changed in version 1.17. The content of this chapter is
+   only valid for releases up to 1.16. Please note the description of configuring log targets in
+   <a href="#Chapter-4-Existing-LogWriter">chapter 4</a>.
+</div>
 <p>
    The log directory is configured within the registry value <em>LogDir</em> from the registry namespace
    <em>apf::core</em>. The value is initialized with the <em>absolute</em> path to the current directory plus the
@@ -34,7 +242,7 @@ Registry::register('apf::core', 'LogDir', '/path/to/my/log/dir');
    To avoid issues with accessing the log directory the path should be defined as <em>absolute</em>!
 </div>
 
-<h4 id="Chapter-2-2-Buffer-length"><a href="#Chapter-2-2-Buffer-length">2.2. Buffer length</a></h4>
+<h4 id="Chapter-3-3-Buffer-length"><a href="#Chapter-3-3-Buffer-length">3.3. Buffer length</a></h4>
 <p>
    As noted above, the <em>Logger</em> collects all entries to write them to the log file at the end of the request.
    Facing high log traffic, the memory consumption of your application may collide with PHP's system configuration
@@ -49,7 +257,7 @@ $log = &Singleton::getInstance('Logger');
 $log->setMaxBufferLength(500);
 </gen:highlight>
 
-<h4 id="Chapter-2-3-Threshold"><a href="#Chapter-2-3-Threshold">2.3. Threshold</a></h4>
+<h4 id="Chapter-3-4-Threshold"><a href="#Chapter-3-4-Threshold">3.4. Threshold</a></h4>
 <p>
    Since release 1.15 thresholds - or profiles - for log entries can be defined. In case the <em>severity</em> of the
    log entry is above the threshold - or matches the profile - it is added to the log file. Otherwise it is skipped.
@@ -100,7 +308,12 @@ $log->setLogThreshold(array(
    Details on the definition can be taken from <int:link pageid="002"/>.
 </p>
 
-<h4 id="Chapter-2-4-Host-prefix"><a href="#Chapter-2-4-Host-prefix">2.4. Host prefix</a></h4>
+<h4 id="Chapter-3-5-Host-prefix"><a href="#Chapter-3-5-Host-prefix">3.5. Host prefix</a></h4>
+<div class="warn">
+   Please note, that the configuration of the host prefix has changed in version 1.17. The content of this chapter is
+   only valid for releases up to 1.16. Please note the description of configuring host prefixes in
+   <a href="#Chapter-4-Existing-LogWriter">chapter 4</a>.
+</div>
 <p>
    In clustered web server environments log files are often written to a shared filesystem. This eases analysis and
    archiving but often causes concurrency issues and slows down the application. This is because waiting for write locks
@@ -119,14 +332,176 @@ $log->setHostPrefix('node1');
 </gen:highlight>
 <div class="hint">
    To define a generic prefix without the need to create host-specific deployment tasks, you may want to use environment
-   or server configuration values to define the prefix. This may be done using the <em>$_SERVER</em> superglobal variable:
+   or server configuration values to define the prefix. This may be done using the <em>$_SERVER</em> super global variable:
 <gen:highlight type="php">
 $log = &Singleton::getInstance('Logger');
 $log->setHostPrefix($_SERVER['SERVER_ADDR']);
 </gen:highlight>
 </div>
 
-<h3 id="Chapter-3-Usage"><a href="#Chapter-3-Usage">3. Usage</a></h3>
+<h3 id="Chapter-4-Existing-LogWriter"><a href="#Chapter-4-Existing-LogWriter">4. Existing LogWriter</a></h3>
+<p>
+   Release 1.17 ships several <em>LogWriter</em> implementations described within the subsequent chapters.
+</p>
+
+<h4 id="Chapter-4-1-FileLogWriter"><a href="#Chapter-4-1-FileLogWriter">4.1. FileLogWriter</a></h4>
+<p>
+   The <em>FileLogWriter</em> persists the applied log entries to a file. The name of the file contains the current date,
+   an optional host prefix and the log target the <em>LogWriter</em> is registered with (e.g.
+   <em>2013_01_20__127_0_0_1__apf.log</em>).
+</p>
+<p>
+   The following chapters contain a detailed description of the <em>FileLogWriters</em>.
+</p>
+
+<h5 id="Chapter-4-1-1-Log-directory"><a href="#Chapter-4-1-1-Log-directory">4.1.1. Log directory</a></h5>
+<p>
+   Defining the log directory the constructor (mandatory) or <em>setLogDir()</em> (optional) can be used. Die registration
+   of the <em>FileLogWriters</em> can be done as follows:
+</p>
+<gen:highlight type="php">
+$logger->addLogWriter('file', new FileLogWriter('/path/to/log/dir'));
+</gen:highlight>
+<p>
+   Configuration of existing instances is as shown below:
+</p>
+<gen:highlight type="php">
+$fileWriter = $logger->getLogWriter('file');
+$logger->setLogDir('/path/to/log/dir');
+</gen:highlight>
+<div class="hint">
+   In order to avoid issues with accessing log directories the log path should be be defined as an <em>absolute</em> path!
+</div>
+
+<h5 id="Chapter-4-1-2-Log-directory-permission"><a href="#Chapter-4-1-2-Log-directory-permission">4.1.2. Log directory permission</a></h5>
+<p>
+   In case the log directory applied to the constructor or to <em>setLogDir()</em> doesn't exist the
+   <em>FileLogWriter</em> will create it lazily. To define the desired file mask the <em>FileLogWriter</em> provides the
+   <em>setLogFolderPermissions()</em> function. Please use the method as follows to the define the <em>umask</em>:
+</p>
+<gen:highlight type="php">
+$fileWriter = $logger->getLogWriter('file');
+$fileWriter->setLogFolderPermissions(0755);
+</gen:highlight>
+
+<h5 id="Chapter-4-1-3-Host-prefix"><a href="#Chapter-4-1-3-Host-prefix">4.1.3. Host prefix</a></h5>
+<p>
+   In clustered web server environments log files are often written to a shared filesystem. This eases analysis and
+   archiving but often causes concurrency issues and slows down the application. This is because waiting for write locks
+   blocks the application and increases lock traffic.
+</p>
+<p>
+   One common solution is to split log files into host-dependent files. Often, this is done by adding the host name
+   to the file name. Moreover, this enables you to analyze issues with a dedicated node.
+</p>
+<p>
+   Using 1.15's <em>host prefix</em> you can define a server-dependent prefix for each log file:
+</p>
+<gen:highlight type="php">
+$fileWriter = $logger->getLogWriter('file');
+$fileWriter->setHostPrefix('node1');
+</gen:highlight>
+<div class="hint">
+   To define a generic prefix without the need to create host-specific deployment tasks, you may want to use environment
+   or server configuration values to define the prefix. This may be done using the <em>$_SERVER</em> super global variable:
+<gen:highlight type="php">
+   $fileWriter = $logger->getLogWriter('file');
+   $fileWriter->setHostPrefix($_SERVER['SERVER_ADDR']);
+</gen:highlight>
+</div>
+
+<h4 id="Chapter-4-2-StdOutWriter"><a href="#Chapter-4-2-StdOutWriter">4.2. StdOutWriter</a></h4>
+<p>
+   The <em>StdOutLogWriter</em> writes the log entries to the standard output channel of the web server. This means that
+   your visitor will see the log entries.
+</p>
+<div class="warn">
+   Log entries may contain sensible data of your application. For security reasons the <em>StdOutWriter</em> should only
+   be used in development environments!
+</div>
+<p>
+   Registration of the <em>StdOutLogWriter</em> can be done within your bootstrap file as follows:
+</p>
+<gen:highlight type="php">
+import('core::logging::writer', 'StdOutLogWriter');
+$logger->addLogWriter('stdout',  new StdOutLogWriter());
+</gen:highlight>
+<p>
+   Log entries with the <em>stdout</em> target identifier will be displayed within the HTML source code of your
+   application.
+</p>
+
+<h4 id="Chapter-4-3-DatabaseLogWriter"><a href="#Chapter-4-3-DatabaseLogWriter">4.3. DatabaseLogWriter</a></h4>
+<p>
+   The <em>DatabaseLogWriter</em> enables you to flush the collected entries to a database table. For this reason,
+   please create a table within any database with the following SQL statement:
+</p>
+<gen:highlight type="sql">
+CREATE TABLE IF NOT EXISTS `{$this->logTable}` (
+   `target` varchar(10) NOT NULL default '',
+   `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP,
+   `severity` varchar(10) NOT NULL default '',
+   `message` text NOT NULL
+);
+</gen:highlight>
+<p>
+   Thereby, <em>{$this->logTable}</em> is the name of the table the <em>DatabaseLogWriter</em> is registered with.
+   Having this virtualization in place you are provided the possibility to register different instances of the
+   <em>DatabaseLogWriter</em> pointing to different log tables.
+</p>
+<p>
+   In order to use this <em>LogWriter</em> please use the following code sample:
+</p>
+<gen:highlight type="php">
+import('core::logging::writer', 'DatabaseLogWriter');
+$logger->addlogWriter('db', new DatabaseLogWriter('my-connection', 'app_logs'));
+</gen:highlight>
+<p>
+   The first argument of the constructor refers to the database connection that is created with the
+   <int:link pageid="031" />, the second parameter names the log table.
+</p>
+<div class="hint">
+   The <em>DatabaseLogWriter</em> uses the target identifier as one content within the log table. This allows you to
+   re-use one log table for different use cases (if desired).
+</div>
+
+<h4 id="Chapter-4-4-GraphiteLogWriter"><a href="#Chapter-4-4-GraphiteLogWriter">4.4. GraphiteLogWriter</a></h4>
+<p>
+   The <em>GraphiteLogWriter</em> - in combination with the <em>GraphiteLogEntry</em> - is an implementation for the
+   system monitoring tool <a class="external" href="http://graphite.wikidot.com/screen-shots">Graphite</a>. Using the
+   <em>GraphiteLogEntry</em> you can easily send monitoring metricts to a
+   <a class="external" href="https://github.com/etsy/statsd">statsd daemon</a>.
+</p>
+<p>
+   Registering the <em>GraphiteLogWriter</em> is as follows:
+</p>
+<gen:highlight type="php">
+import('core::logging::writer', 'GraphiteLogWriter');
+$logger->addlogWriter('graphite', new GraphiteLogWriter('my-graphite-host', '1234'));
+</gen:highlight>
+<p>
+   Due to the fact that the implementation of the <em>GraphiteLogEntry</em> already does the necessary formatting, the
+   <em>GraphiteLogWriter</em> takes the entry separator as an optional configuration attribute. Please use
+   <em>setEntrySeparator()</em> to apply the desired entry separator (default: <em>\n</em>).
+</p>
+<p>
+   Using the <em>GraphiteLogWriter</em> is as follows:
+</p>
+<gen:highlight type="php">
+$t = Singleton::getInstance('BenchmarkTimer');
+$renderingTime = round(floatval($t->getTotalTime() * 1000));
+
+import('core::logging::entry', 'GraphiteLogEntry');
+$logger->addEntry(new GraphiteLogEntry(
+   'graphite',
+   'rendering-time',
+   'ms',
+   $renderingTime,
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight>
+
+<h3 id="Chapter-5-Usage"><a href="#Chapter-5-Usage">5. Usage</a></h3>
 <p>
    To use the logger it must be imported using
 </p>
@@ -152,6 +527,13 @@ $log->logEntry('FILENAME','MESSAGE');
    the <em>SEVERITY</em> of the message provided. Please find the available severity levels within the
    <em>LogEntry</em> interface.
 </p>
+<p>
+   Since 1.17 you can also use the <em>addEntry()</em> method. It takes an instance of an <em>LogEntry</em> interface
+   implementation:
+</p>
+<gen:highlight type="php">
+$log->addEntry(new SimpleLogEntry('FILENAME', 'MESSAGE'));
+</gen:highlight>
 <div class="hint">
    In case the application does excessive logging it may be good to save memory to flush the log
    buffer more than one time within the request. For this reason, since 1.14 the <em>Logger</em>
@@ -159,5 +541,157 @@ $log->logEntry('FILENAME','MESSAGE');
    reaches this number. Using <em>setMaxBufferLength()</em> you can configure the value that has
    initially been set within the class. After flushing, the log buffer is empty again.
 </div>
+
+<h3 id="Chapter-6-LogWriter-implementation"><a href="#Chapter-6-LogWriter-implementation">6. LogWriter implementation</a></h3>
+<p>
+   The interface described in <a href="#Chapter-2-Architecture">chapter 2</a> includes the methods <em>writeLogEntries()</em>
+   and <em>setTarget()</em>. The first one takes care about the persistence of the applied entries, the second one
+   receives the target identifier.
+</p>
+<p>
+   During the registration process of the <em>LogWriter</em> the <em>Logger::addLogWriter()</em> injects the target
+   identifier using the <em>LogWriter::setTarget()</em> to the current instance.
+</p>
+<p>
+   The <em>LogWriter</em> interface does not define a constructor to be able to choose the signature according to the
+   purpose of the implementation.
+</p>
+<div class="hint">
+   It is recommended to define the constructor to take all required parameters that are required for the
+   <em>LogWriter</em> implementation. This ensures that no errors occur during the execution.
+</div>
+<p>
+   As an implementation example we will use a <em>LogWriter</em> that passes the applied entries to the syslog daemon.
+   To do so, we can use the <em>syslog(int $priority, string $message)</em> PHP function. The implementation is as follows:
+</p>
+<gen:highlight type="php">
+class SysLogWriter implements LogWriter {
+
+   private $target;
+
+   public function writeLogEntries(array $entries) {
+
+      define_syslog_variables();
+      openlog($this->target, LOG_PID, LOG_LOCAL0);
+
+      foreach ($entries as $entry) {
+         syslog(
+            $this->getMappedSeverity($entry->getSeverity()),
+            $entry
+         );
+      }
+
+      closelog();
+   }
+
+   public function setTarget($target) {
+      $this->target = $target;
+   }
+
+   private function getMappedSeverity($severity) {
+
+      if ($severity == LogEntry::SEVERITY_DEBUG) {
+         return LOG_DEBUG;
+      }
+      if ($severity == LogEntry::SEVERITY_ERROR) {
+         return LOG_ERR;
+      }
+      if ($severity == LogEntry::SEVERITY_FATAL) {
+         return LOG_EMERG;
+      }
+      if ($severity == LogEntry::SEVERITY_TRACE) {
+         return LOG_NOTICE;
+      }
+      if ($severity == LogEntry::SEVERITY_WARNING) {
+         return LOG_WARNING;
+      }
+
+      return LOG_INFO;
+   }
+
+}
+</gen:highlight>
+<p>
+   In order to use this implementation, please register it with the <em>Logger</em> as follows:
+</p>
+<gen:highlight type="php">
+$logger->addLogWriter('syslog', new SysLogWriter());
+</gen:highlight>
+
+<h3 id="Chapter-7-LogEntry-implementation"><a href="#Chapter-7-LogEntry-implementation">7. LogEntry implementation</a></h3>
+<p>
+   The interface described in <a href="#Chapter-2-Architecture">chapter 2</a> contains the methods <em>getLogTarget()</em>,
+   <em>getSeverity()</em>, and <em>__toString()</em>. The first one returns the log target, the second one the <em>severity</em>
+   definition of the log entry and the last one creates the format of the log message content.
+</p>
+<p>
+   Adding a log entry using <em>logEntry()</em> (uses the <em>SimpleLogEntry</em> implementation internally) or
+   <em>addEntry()</em> (any kind of implementations possible) the <em>Logger</em> pre-sorts the applied entries according
+   to the log target (return value of the <em>getLogTarget()</em> method) for processing the entries at the end of the
+   request.
+</p>
+<p>
+   The <em>LogEntry</em> interface does not define a constructor to be able to choose the signature according to the
+   purpose of the implementation.
+</p>
+<div class="hint">
+   It is recommended to define the constructor to take all required parameters that are required for generating the
+   log entry format.
+</div>
+<p>
+   As an implementation example we will create a <em>CsvLogEntry</em> that formats the applied content as <em>comma
+   separated values</em>. The implementation is as follows:
+</p>
+<gen:highlight type="php">
+class CsvLogEntry implements LogEntry {
+
+   private $target;
+   private $severity;
+
+   private $message;
+
+   private $date;
+   private $time;
+
+   public function __construct($target, $message, $severity) {
+      $this->date = date('Y-m-d');
+      $this->time = date('H:i:s');
+      $this->target = $target;
+      $this->message = $message;
+      $this->severity = $severity;
+   }
+
+   public function __toString() {
+      return $this->date . ';' . $this->time . ';' . $this->severity . ';' . $this->message;
+   }
+
+   public function getLogTarget() {
+      return $this->target;
+   }
+
+   public function getSeverity() {
+      return $this->severity;
+   }
+
+}
+</gen:highlight>
+<p>
+   In case you want to use a <em>CsvLogEntry</em> instead of the standard implementation <em>SimpleLogEntry</em> you
+   can use the <em>Logger::addEntry()</em>:
+</p>
+<gen:highlight type="php">
+$logger->addEntry(new CsvLogEntry(
+   'csv-file',
+   'There is something wrong!',
+   LogEntry::SEVERITY_ERROR
+));
+</gen:highlight>
+<p>
+   In order to create a CSV file with the above implementation an appropriate <em>LogWriter</em> must be registered for
+   the <em>csv-file</em> target:
+</p>
+<gen:highlight type="php">
+$logger->addLogWriter('csv-file', new FileLogWriter('../logs'));
+</gen:highlight>
 
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_023" />
