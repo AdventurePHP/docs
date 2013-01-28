@@ -37,9 +37,9 @@ class GuestbookMapper extends APFObject {
       $select = 'SELECT * FROM entry WHERE EntryID = \''.$EntryID.'\';';
       $result = $SQL->executeTextStatement($select);
 
-      $T->start('__mapEntry2DomainObject('.$EntryID.')');
-      $Entry = $this->__mapEntry2DomainObject($SQL->fetchData($result));
-      $T->stop('__mapEntry2DomainObject('.$EntryID.')');
+      $T->start('mapEntry2DomainObject('.$EntryID.')');
+      $Entry = $this->mapEntry2DomainObject($SQL->fetchData($result));
+      $T->stop('mapEntry2DomainObject('.$EntryID.')');
 
       $T->stop('loadEntryByID('.$EntryID.')');
 
@@ -55,7 +55,7 @@ class GuestbookMapper extends APFObject {
       // Daten lesen und zurückgeben
       $select = 'SELECT * FROM comment WHERE CommentID = \''.$CommentID.'\';';
       $result = $SQL->executeTextStatement($select);
-      return $this->__mapComment2DomainObject($SQL->fetchData($result));
+      return $this->mapComment2DomainObject($SQL->fetchData($result));
 
    }
 
@@ -67,7 +67,7 @@ class GuestbookMapper extends APFObject {
       // Daten lesen und zurückgeben
       $select = 'SELECT * FROM guestbook WHERE GuestbookID = \''.$GuestbookID.'\';';
       $result = $SQL->executeTextStatement($select);
-      return $this->__mapGuestbook2DomainObject($SQL->fetchData($result));
+      return $this->mapGuestbook2DomainObject($SQL->fetchData($result));
 
    }
 
@@ -137,8 +137,8 @@ class GuestbookMapper extends APFObject {
 <br />
 <h4 id="Chapter-6-1-Lese-Mapper-Methoden"><a href="#Chapter-6-1-Lese-Mapper-Methoden">6.1. Lese-Mapper-Methoden</a></h4>
 Um der Business-Schicht Objekte zur Verfügung stellen zu können muss ein Ergebnis einer
-Datenbank-Abfrage in die Business-Objekte gemappt werden. Dazu wurden die Funktionen <strong>_mapEntry2DomainObject()</strong>,
-<strong>__mapGuestbook2DomainObject</strong> und <strong>__mapComment2DomainObject</strong> vorgesehen.
+Datenbank-Abfrage in die Business-Objekte gemappt werden. Dazu wurden die Funktionen <strong>mapEntry2DomainObject()</strong>,
+<strong>mapGuestbook2DomainObject</strong> und <strong>mapComment2DomainObject</strong> vorgesehen.
 Diese wiederum werden von den <em>load*ByID()</em>- und <em>load*WithEntries()</em>-Methoden verwendet.
 Jede dieser Methoden stellt der Business-Schicht einen Service zur Verfügung, mit dem Daten aus
 der Datenquelle geladen werden können. Zur Kommunikation mit der Datenbank kommt der <strong>MySQLHandler</strong>
@@ -613,8 +613,8 @@ Templates für die Darstellung der Domain-Objekte "Entry" und "Comment".
   &lt;a href="&lt;template:placeholder name="Link" /&gt;" title="Kommentar bearbeiten!"&gt;&lt;strong&gt;[ edt ]&lt;/strong&gt;&lt;/a&gt;
 &lt;/html:template&gt;
 </gen:highlight>
-Im Controller werden dann auf generische Art und Weise die Inhalte mit den Methoden <em>__generateEntryList()</em>,
-<em>__createEntry()</em> und <em>__createComment()</em> zusammengesetzt und in der Funktion
+Im Controller werden dann auf generische Art und Weise die Inhalte mit den Methoden <em>generateEntryList()</em>,
+<em>createEntry()</em> und <em>createComment()</em> zusammengesetzt und in der Funktion
 <em>transformContent()</em> ausgegeben. Das Laden der Einträge übernimmt dabei die oben
 beschriebene Business-Schicht. Um die Einträge laden zu können wir der <em>GuestbookManager</em>
 mit Hilfe der Funktion <em>loadGuestbook()</em> angefragt.
@@ -637,23 +637,23 @@ class guestbook_display_v1_controller extends guestbookBaseController {
    public function transformContent(){
 
       // Manager holen
-      $gM = &$this->__getGuestbookManager();
+      $gM = &$this->getGuestbookManager();
 
       // Einträge ausgeben
-      $this->setPlaceHolder('Content',$this->__generateEntryList());
+      $this->setPlaceHolder('Content',$this->generateEntryList());
 
       // Pager ausgeben
       $this->setPlaceHolder('Pager',$gM->getPager());
 
       // Eintragen-Link ausgeben
-      $this->setPlaceHolder('CreateEntry',$this->__generateCreateEntryLink());
+      $this->setPlaceHolder('CreateEntry',$this->generateCreateEntryLink());
 
       // Eintragen-Link ausgeben
-      $this->setPlaceHolder('ControlGuestbook',$this->__generateControlGuestbookLink());
+      $this->setPlaceHolder('ControlGuestbook',$this->generateControlGuestbookLink());
 
    }
 
-   private function __generateCreateEntryLink(){
+   private function generateCreateEntryLink(){
 
       // Referenz auf das Template holen
       $Template__CreateEntry = &$this->getTemplate('CreateEntry_'.$this->language);
@@ -667,7 +667,7 @@ class guestbook_display_v1_controller extends guestbookBaseController {
 
    }
 
-   private function __generateControlGuestbookLink(){
+   private function generateControlGuestbookLink(){
 
       // Inhalte der Session zerstören
       $oSessMgr = new SessionManager('Module_Guestbook');
@@ -701,10 +701,10 @@ class guestbook_display_v1_controller extends guestbookBaseController {
 
    }
 
-   private function __generateEntryList(){
+   private function generateEntryList(){
 
       // Manager holen
-      $gM = &$this->__getGuestbookManager();
+      $gM = &$this->getGuestbookManager();
 
       // Einträge holen
       $Guestbook = $gM->loadGuestbook();
@@ -714,7 +714,7 @@ class guestbook_display_v1_controller extends guestbookBaseController {
       $Buffer = (string)'';
 
       for($i = 0; $i < count($Entries); $i++){
-         $Buffer .= $this->__generateEntry($Entries[$i]);
+         $Buffer .= $this->generateEntry($Entries[$i]);
       }
 
       // Puffer ausgeben
@@ -722,15 +722,15 @@ class guestbook_display_v1_controller extends guestbookBaseController {
 
    }
 
-   private function __generateEntry($Entry){
+   private function generateEntry($Entry){
 
       // Referenz auf das Template holen
       $Template__Entry = &$this->getTemplate('Entry');
 
       // Werte setzen
-      $Template__Entry->setPlaceHolder('AdminDelete',$this->__showAdminDelete($Entry->get('ID')));
-      $Template__Entry->setPlaceHolder('AdminEdit',$this->__showAdminEdit($Entry->get('ID')));
-      $Template__Entry->setPlaceHolder('AdminAddComment',$this->__showAdminAddComment($Entry->get('ID')));
+      $Template__Entry->setPlaceHolder('AdminDelete',$this->showAdminDelete($Entry->get('ID')));
+      $Template__Entry->setPlaceHolder('AdminEdit',$this->showAdminEdit($Entry->get('ID')));
+      $Template__Entry->setPlaceHolder('AdminAddComment',$this->showAdminAddComment($Entry->get('ID')));
       $Template__Entry->setPlaceHolder('ID',$Entry->get('ID'));
       $Template__Entry->setPlaceHolder('Name',$Entry->get('Name'));
       $Template__Entry->setPlaceHolder('EMail',StringAssistant::encodeCharactersToHTML($Entry->get('EMail')));
@@ -752,7 +752,7 @@ class guestbook_display_v1_controller extends guestbookBaseController {
       if(count($Comments) > 0){
 
          for($i = 0; $i < count($Comments); $i++){
-            $CommentBuffer .= $this->__generateComment($Comments[$i],$Entry->get('ID'));
+            $CommentBuffer .= $this->generateComment($Comments[$i],$Entry->get('ID'));
          }
 
       }
@@ -939,7 +939,7 @@ class guestbook_createentry_v1_controller extends guestbookBaseController {
       if($Form__GuestbookEntry->get('isValid') && $Form__GuestbookEntry->get('isSent')){
 
          // Manager holen
-         $gM = &$this->__getGuestbookManager();
+         $gM = &$this->getGuestbookManager();
 
          // Eintrag erzeugen
          $Entry = new Entry();

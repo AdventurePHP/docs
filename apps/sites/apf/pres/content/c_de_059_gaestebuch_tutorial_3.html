@@ -81,12 +81,12 @@ Der für den View zuständige Document-Controller wurde - um die Funktion zur Ve
 stellen zu können - ebenfalls um fünf weitere Methoden erweitert, die die Bearbeitungs-
 Möglichkeiten an Hand der oben aufgeführten Templates zu generieren. Diese wird natürlich
 nur angezeigt, wenn ein Administrator eingeloggt ist. Beispielhaft sei hier die Methode
-<strong>__showAdminDelete()</strong> aufgeführt, die den Bearbeitungs-Link für das Löschen
+<strong>showAdminDelete()</strong> aufgeführt, die den Bearbeitungs-Link für das Löschen
 eines Eintrags generiert.
 <gen:highlight type="php">
-private function __showAdminDelete($EntryID){
+private function showAdminDelete($EntryID){
 
-   if($this->__sessMgr->loadSessionData('AdminView') == true){
+   if($this->sessMgr->loadSessionData('AdminView') == true){
 
       // Template holen
       $Template__AdminDelete = &$this->getTemplate('AdminDelete');
@@ -114,20 +114,20 @@ darf. Ist das nicht der Fall wird ein Leer-String zurückgegeben.
 Ist der AdminView gewünscht, so holt sich die Methode eine Referenz auf das Template, das das
 Ausehen des Links definiert, generiert den Link und erzeugt die Ausgabe. Diese Ausgabe wird dann bei
 jedem angezeigten Eintrag eingebunden. Dazu wurde das HTML-Template zur Anzeige eines Eintrags um
-den Platzhalter <strong>AdminDelete</strong> erweitert, der in der Methode <strong>__generateEntry()</strong>
-mit der Ausgabe der Methode <strong>__showAdminDelete()</strong> gefüllt wird:
+den Platzhalter <strong>AdminDelete</strong> erweitert, der in der Methode <strong>generateEntry()</strong>
+mit der Ausgabe der Methode <strong>showAdminDelete()</strong> gefüllt wird:
 <br />
 <br />
 <gen:highlight type="php">
-private function __generateEntry($Entry){
+private function generateEntry($Entry){
 
    // Referenz auf das Template holen
    $Template__Entry = &$this->getTemplate('Entry');
 
    // Werte setzen
-   $Template__Entry->setPlaceHolder('AdminDelete',$this->__showAdminDelete($Entry->get('ID')));
-   $Template__Entry->setPlaceHolder('AdminEdit',$this->__showAdminEdit($Entry->get('ID')));
-   $Template__Entry->setPlaceHolder('AdminAddComment',$this->__showAdminAddComment($Entry->get('ID')));
+   $Template__Entry->setPlaceHolder('AdminDelete',$this->showAdminDelete($Entry->get('ID')));
+   $Template__Entry->setPlaceHolder('AdminEdit',$this->showAdminEdit($Entry->get('ID')));
+   $Template__Entry->setPlaceHolder('AdminAddComment',$this->showAdminAddComment($Entry->get('ID')));
    $Template__Entry->setPlaceHolder('ID',$Entry->get('ID'));
    $Template__Entry->setPlaceHolder('Name',$Entry->get('Name'));
 
@@ -137,7 +137,7 @@ private function __generateEntry($Entry){
 </gen:highlight>
 Wie im Code-Beispiel angedeutet wird die Ausgabe des Links zum Löschen eines Eintrags und zum
 Hinzufügen eines Kommentars im gleichen Stil eingebunden. Auf diese Weise bleibt die Generierung
-des Links in den Methoden <strong>__showAdmin*()</strong> gekapselt und kann später einfach
+des Links in den Methoden <strong>showAdmin*()</strong> gekapselt und kann später einfach
 angepasst werden.
 <br />
 <br />
@@ -237,7 +237,7 @@ class guestbook_adminlogin_v1_controller extends guestbookBaseController {
       if($Form__AdminLogin->get('isValid') && $Form__AdminLogin->get('isSent')){
 
          // Manager holen
-         $gM = &$this->__getGuestbookManager();
+         $gM = &$this->getGuestbookManager();
 
          // Prüfen, ob Zugangsdaten gültig sind
          if($gM->validateCrendentials($this->_LOCALS['Username'],$this->_LOCALS['Password']) == true){
@@ -254,17 +254,17 @@ class guestbook_adminlogin_v1_controller extends guestbookBaseController {
 
          }
          else{
-            $this->setPlaceHolder('Form',$this->__displayForm(true));
+            $this->setPlaceHolder('Form',$this->displayForm(true));
          }
 
       }
       else{
-         $this->setPlaceHolder('Form',$this->__displayForm());
+         $this->setPlaceHolder('Form',$this->displayForm());
       }
 
    }
 
-   private function __displayForm($ShowLogInError = false){
+   private function displayForm($ShowLogInError = false){
 
       // Referenz auf das Formular holen
       $Form__AdminLogin = &$this->getForm('AdminLogin');
@@ -414,7 +414,7 @@ class guestbook_adminaddcomment_v1_controller extends guestbookBaseController {
          if($Form__GuestbookAddComment->get('isValid')){
 
             // Manager holen
-            $gM = &$this->__getGuestbookManager();
+            $gM = &$this->getGuestbookManager();
 
             // Eintrag erzeugen
             $Comment = new Comment();
@@ -445,11 +445,11 @@ Fall die Business-Komponente <em>guetbookManager</em> um den Kommentar zu speich
 Der <em>GuestbookManager</em> muss für die Verwendung mit der aktuellen Gästebuch-ID
 initialisiert initialisiert werden. Um diese Funktionaliät nur einmal bereit stellen zu müssen,
 wurde ein weiterer Basis-Controller implementiert (<em>guestbookBaseController</em>), der die
-Initialisierung in der privaten Methode <em>__getGuestbookManager()</em> erledigt. Leitet ein
+Initialisierung in der privaten Methode <em>getGuestbookManager()</em> erledigt. Leitet ein
 Document-Controller nun von diesem ab, so kann die Business-Komponente einfach durch
 <gen:highlight type="php">
 // Manager holen
-$gM = &$this->__getGuestbookManager();
+$gM = &$this->getGuestbookManager();
 </gen:highlight>
 statt durch
 <gen:highlight type="php">
