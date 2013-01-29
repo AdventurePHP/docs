@@ -627,139 +627,103 @@ import('tools::string','StringAssistant');
 
 class guestbook_display_v1_controller extends guestbookBaseController {
 
-   private $_LOCALS;
-   private $sessionManager;
+   private $session;
 
-   public function __construct(){
-      $this->sessionManager = new SessionManager('Module_Guestbook');
-   }
-
-   public function transformContent(){
-
-      // Manager holen
+   public function transformContent() {
+      $this->session = new SessionManager($this->getGuestbookNamespace());
       $gM = &$this->getGuestbookManager();
-
-      // Einträge ausgeben
-      $this->setPlaceHolder('Content',$this->generateEntryList());
-
-      // Pager ausgeben
-      $this->setPlaceHolder('Pager',$gM->getPager());
-
-      // Eintragen-Link ausgeben
-      $this->setPlaceHolder('CreateEntry',$this->generateCreateEntryLink());
-
-      // Eintragen-Link ausgeben
-      $this->setPlaceHolder('ControlGuestbook',$this->generateControlGuestbookLink());
-
+      $this->setPlaceHolder('Content', $this->generateEntryList());
+      $this->setPlaceHolder('Pager', $gM->getPagerPresentation());
+      $this->setPlaceHolder('CreateEntry', $this->generateCreateEntryLink());
+      $this->setPlaceHolder('ControlGuestbook', $this->generateControlGuestbookLink());
    }
 
-   private function generateCreateEntryLink(){
+   private function generateCreateEntryLink() {
 
-      // Referenz auf das Template holen
-      $Template__CreateEntry = &$this->getTemplate('CreateEntry_'.$this->language);
+      $Template__CreateEntry = &$this->getTemplate('CreateEntry_' . $this->language);
 
-      // Link generieren und einsetzen
-      $Link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'createentry','entryid' => ''));
-      $Template__CreateEntry->setPlaceHolder('Link',$Link);
+      $Link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array('gbview' => 'createentry', 'entryid' => '')));
+      $Template__CreateEntry->setPlaceHolder('Link', $Link);
 
-      // Ausgabe zurückgeben
       return $Template__CreateEntry->transformTemplate();
 
    }
 
-   private function generateControlGuestbookLink(){
+   private function generateControlGuestbookLink() {
 
-      // Inhalte der Session zerstören
-      $oSessMgr = new SessionManager('Module_Guestbook');
+      if ($this->session->loadSessionData('AdminView') == 'true') {
 
-      if($oSessMgr->loadSessionData('AdminView') == 'true'){
+         $Template__ControlGuestbook_Logout = &$this->getTemplate('ControlGuestbook_Logout_' . $this->language);
 
-         // Referenz auf das Template holen
-         $Template__ControlGuestbook_Logout = &$this->getTemplate('ControlGuestbook_Logout_'.$this->language);
+         $Link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array('gbview' => 'adminlogin', 'logout' => 'true', 'entryid' => '')));
+         $Template__ControlGuestbook_Logout->setPlaceHolder('Link', $Link);
 
-         // Link generieren und einsetzen
-         $Link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'adminlogin','logout' => 'true','entryid' => ''));
-         $Template__ControlGuestbook_Logout->setPlaceHolder('Link',$Link);
-
-         // Ausgabe zurückgeben
          return $Template__ControlGuestbook_Logout->transformTemplate();
 
-      }
-      else{
+      } else {
 
-         // Referenz auf das Template holen
-         $Template__ControlGuestbook_Login = &$this->getTemplate('ControlGuestbook_Login_'.$this->language);
+         $Template__ControlGuestbook_Login = &$this->getTemplate('ControlGuestbook_Login_' . $this->language);
 
-         // Link generieren und einsetzen
-         $Link = FrontcontrollerLinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'adminlogin','entryid' => ''));
-         $Template__ControlGuestbook_Login->setPlaceHolder('Link',$Link);
+         $Link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array('gbview' => 'adminlogin', 'entryid' => '')));
+         $Template__ControlGuestbook_Login->setPlaceHolder('Link', $Link);
 
-         // Ausgabe zurückgeben
          return $Template__ControlGuestbook_Login->transformTemplate();
 
       }
 
    }
 
-   private function generateEntryList(){
+   private function generateEntryList() {
 
-      // Manager holen
       $gM = &$this->getGuestbookManager();
 
-      // Einträge holen
       $Guestbook = $gM->loadGuestbook();
       $Entries = $Guestbook->getEntries();
 
-      // Ausgabe generieren
       $Buffer = (string)'';
 
-      for($i = 0; $i < count($Entries); $i++){
+      for ($i = 0; $i < count($Entries); $i++) {
          $Buffer .= $this->generateEntry($Entries[$i]);
       }
 
-      // Puffer ausgeben
       return $Buffer;
 
    }
 
-   private function generateEntry($Entry){
+   private function generateEntry(Entry $entry) {
 
-      // Referenz auf das Template holen
       $Template__Entry = &$this->getTemplate('Entry');
 
-      // Werte setzen
-      $Template__Entry->setPlaceHolder('AdminDelete',$this->showAdminDelete($Entry->get('ID')));
-      $Template__Entry->setPlaceHolder('AdminEdit',$this->showAdminEdit($Entry->get('ID')));
-      $Template__Entry->setPlaceHolder('AdminAddComment',$this->showAdminAddComment($Entry->get('ID')));
-      $Template__Entry->setPlaceHolder('ID',$Entry->get('ID'));
-      $Template__Entry->setPlaceHolder('Name',$Entry->get('Name'));
-      $Template__Entry->setPlaceHolder('EMail',StringAssistant::encodeCharactersToHTML($Entry->get('EMail')));
-      $Template__Entry->setPlaceHolder('City',$Entry->get('City'));
-      $Template__Entry->setPlaceHolder('Website',$Entry->get('Website'));
-      $Template__Entry->setPlaceHolder('ICQ',$Entry->get('ICQ'));
-      $Template__Entry->setPlaceHolder('MSN',$Entry->get('MSN'));
-      $Template__Entry->setPlaceHolder('Skype',$Entry->get('Skype'));
-      $Template__Entry->setPlaceHolder('AIM',$Entry->get('AIM'));
-      $Template__Entry->setPlaceHolder('Yahoo',$Entry->get('Yahoo'));
-      $Template__Entry->setPlaceHolder('Text',nl2br($Entry->get('Text')));
-      $Template__Entry->setPlaceHolder('Date',$Entry->get('Date'));
-      $Template__Entry->setPlaceHolder('Time',$Entry->get('Time'));
+      $Template__Entry->setPlaceHolder('AdminDelete', $this->showAdminDelete($entry->getId()));
+      $Template__Entry->setPlaceHolder('AdminEdit', $this->showAdminEdit($entry->getId()));
+      $Template__Entry->setPlaceHolder('AdminAddComment', $this->showAdminAddComment($entry->getId()));
+      $Template__Entry->setPlaceHolder('ID', $entry->getId());
+      $Template__Entry->setPlaceHolder('Name', $entry->getName());
+      $Template__Entry->setPlaceHolder('EMail', StringAssistant::encodeCharactersToHTML($entry->getEmail()));
+      $Template__Entry->setPlaceHolder('City', $entry->getCity());
+      $Template__Entry->setPlaceHolder('Website', $entry->getWebsite());
+      $Template__Entry->setPlaceHolder('ICQ', $entry->getIcq());
+      $Template__Entry->setPlaceHolder('MSN', $entry->getMsn());
+      $Template__Entry->setPlaceHolder('Skype', $entry->getSkype());
+      $Template__Entry->setPlaceHolder('AIM', $entry->getAim());
+      $Template__Entry->setPlaceHolder('Yahoo', $entry->getYahoo());
+      $Template__Entry->setPlaceHolder('Text', nl2br($entry->getText()));
+      $Template__Entry->setPlaceHolder('Date', $entry->getDate());
+      $Template__Entry->setPlaceHolder('Time', $entry->getTime());
 
-      // Comments einfügen
-      $Comments = $Entry->getComments();
+      $Comments = $entry->getComments();
       $CommentBuffer = (string)'';
 
-      if(count($Comments) > 0){
+      if (count($Comments) > 0) {
 
-         for($i = 0; $i < count($Comments); $i++){
-            $CommentBuffer .= $this->generateComment($Comments[$i],$Entry->get('ID'));
+         for ($i = 0; $i < count($Comments); $i++) {
+            $CommentBuffer .= $this->generateComment($Comments[$i], $entry->getId());
          }
 
       }
 
-      $Template__Entry->setPlaceHolder('Comments',$CommentBuffer);
+      $Template__Entry->setPlaceHolder('Comments', $CommentBuffer);
 
-      // Ausgabe zurückgeben
       return $Template__Entry->transformTemplate();
 
    }
@@ -906,67 +870,42 @@ in der abgefragt wird, ob das Formular korrekt ausgefüllt wurde. Ist das der Fa
 Werten ein Entry-Domain-Objekt erstellt und dieses an die Business-Schicht zur Speicherung desselben
 weitergegeben.
 <gen:highlight type="php">
-import('modules::guestbook::biz','GuestbookManager');
-import('modules::guestbook::pres::documentcontroller','guestbookBaseController');
+import('modules::guestbook::biz', 'GuestbookManager');
+import('modules::guestbook::pres::documentcontroller', 'guestbookBaseController');
 
 class guestbook_createentry_v1_controller extends guestbookBaseController {
 
-   private $_LOCALS;
+   public function transformContent() {
 
-   public function __construct(){
+      $form = &$this->getForm('GuestbookEntry');
 
-      $this->_LOCALS = RequestHandler::getValues(array(
-                                                             'Name',
-                                                             'EMail',
-                                                             'City',
-                                                             'Website',
-                                                             'ICQ',
-                                                             'MSN',
-                                                             'Skype',
-                                                             'AIM',
-                                                             'Yahoo',
-                                                             'Text'
-                                                            )
-                                                      );
+      if ($form->isValid() && $form->isSent()) {
 
-   }
+         $values = RequestHandler::getValues(array('Name', 'EMail', 'City', 'Website', 'ICQ', 'MSN', 'Skype', 'AIM', 'Yahoo', 'Text'));
 
-   public function transformContent(){
+         $entry = new Entry();
+         $entry->setName($values['Name']);
+         $entry->setEmail($values['EMail']);
+         $entry->setCity($values['City']);
+         $entry->setWebsite($values['Website']);
+         $entry->setIcq($values['ICQ']);
+         $entry->setMsn($values['MSN']);
+         $entry->setSkype($values['Skype']);
+         $entry->setAim($values['AIM']);
+         $entry->setYahoo($values['Yahoo']);
+         $entry->setText($values['Text']);
 
-      // Referenz auf das Formular holen
-      $Form__GuestbookEntry = &$this->getForm('GuestbookEntry');
-
-      if($Form__GuestbookEntry->get('isValid') && $Form__GuestbookEntry->get('isSent')){
-
-         // Manager holen
          $gM = &$this->getGuestbookManager();
+         $gM->saveEntry($entry);
 
-         // Eintrag erzeugen
-         $Entry = new Entry();
-         $Entry->set('Name',$this->_LOCALS['Name']);
-         $Entry->set('EMail',$this->_LOCALS['EMail']);
-         $Entry->set('City',$this->_LOCALS['City']);
-         $Entry->set('Website',$this->_LOCALS['Website']);
-         $Entry->set('ICQ',$this->_LOCALS['ICQ']);
-         $Entry->set('MSN',$this->_LOCALS['MSN']);
-         $Entry->set('Skype',$this->_LOCALS['Skype']);
-         $Entry->set('AIM',$this->_LOCALS['AIM']);
-         $Entry->set('Yahoo',$this->_LOCALS['Yahoo']);
-         $Entry->set('Text',$this->_LOCALS['Text']);
+      } else {
 
-         // Eintrag speichern
-         $gM->saveEntry($Entry);
+         // label button
+         $config = $this->getConfiguration('modules::guestbook', 'guestbook_lang.ini');
+         $button = &$form->getFormElementByName('CreateGuestbookEntryButton');
+         $button->setAttribute('value', $config->getSection($this->language)->getValue('CreateEntry.Form.Button'));
 
-      }
-      else{
-
-         // Button beschriften
-         $Config = $this->getConfiguration('modules::guestbook','guestbook_lang.ini');
-         $Button = &$Form__GuestbookEntry->getFormElementByName('CreateGuestbookEntryButton');
-         $Button->setAttribute('value',$Config->getSection($this->language)->getValue('CreateEntry.Form.Button'));
-
-         // Formular anzeigen
-         $this->setPlaceHolder('Form',$Form__GuestbookEntry->transformForm());
+         $form->transformOnPlace();
 
       }
 
@@ -974,10 +913,10 @@ class guestbook_createentry_v1_controller extends guestbookBaseController {
 
 }
 </gen:highlight>
-<strong>Fortsetzung:</strong>
-Die Implementierung des Frontends ist damit erledigt. <int:link pageid="059" title="Backend">Seite 3</int:link>
-beschäftigt sich nun mit der Erstellung des Backends.
-<br />
-<br />
-<br />
+<p>
+   <strong>Fortsetzung:</strong>
+   Die Implementierung des Frontends ist damit erledigt. <int:link pageid="059" title="Backend">Seite 3</int:link>
+   beschäftigt sich nun mit der Erstellung des Backends.
+</p>
+
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="de_058" />

@@ -203,86 +203,52 @@ import('modules::guestbook::pres::documentcontroller','guestbookBaseController')
 
 class guestbook_adminlogin_v1_controller extends guestbookBaseController {
 
-   private $_LOCALS;
+   public function transformContent() {
 
-   public function __construct(){
+      $values = RequestHandler::getValues(array('Username', 'Password', 'logout'));
 
-      $this->_LOCALS = RequestHandler::getValues(array(
-                                                             'Username',
-                                                             'Password',
-                                                             'logout'
-                                                            )
-                                                      );
-
-   }
-
-   public function transformContent(){
-
-      // Logout
-      if($this->_LOCALS['logout'] == 'true'){
-
-         // Inhalte der Session zerstören
-         $oSessMgr = new SessionManager('Module_Guestbook');
-         $oSessMgr->destroySession('Module_Guestbook');
-
-         // Auf Anzeige-Seite weiterleiten
-         $Link = LinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'display','logout' => ''));
-         header('Location: '.$Link);
-
+      // Handle logout, in case the url contains true for the logout param. This is done, because
+      // we don't want to use a front controller action here.
+      if ($values['logout'] == 'true') {
+         $guestbookNamespace = $this->getGuestbookNamespace();
+         $oSessMgr = new SessionManager($guestbookNamespace);
+         $oSessMgr->destroySession($guestbookNamespace);
+         $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array('gbview' => 'display', 'logout' => '')));
+         HeaderManager::redirect($link);
       }
 
-      // Referenz auf das Formular holen
       $Form__AdminLogin = &$this->getForm('AdminLogin');
 
-      if($Form__AdminLogin->get('isValid') && $Form__AdminLogin->get('isSent')){
+      if ($Form__AdminLogin->isValid() && $Form__AdminLogin->isSent()) {
 
-         // Manager holen
          $gM = &$this->getGuestbookManager();
 
-         // Prüfen, ob Zugangsdaten gültig sind
-         if($gM->validateCrendentials($this->_LOCALS['Username'],$this->_LOCALS['Password']) == true){
+         if ($gM->validateCrendentials($values['Username'], $values['Password']) == true) {
 
-            // Session starten
-            $oSessMgr = new SessionManager('Module_Guestbook');
-            $oSessMgr->saveSessionData('LoginDate',date('Y-m-d'));
-            $oSessMgr->saveSessionData('LoginTime',date('H:i:s'));
-            $oSessMgr->saveSessionData('AdminView',true);
+            $oSessMgr = new SessionManager($this->getGuestbookNamespace());
+            $oSessMgr->saveSessionData('LoginDate', date('Y-m-d'));
+            $oSessMgr->saveSessionData('LoginTime', date('H:i:s'));
+            $oSessMgr->saveSessionData('AdminView', true);
 
-            // Auf Anzeige-Seite weiterleiten
-            $Link = LinkHandler::generateLink($_SERVER['REQUEST_URI'],array('gbview' => 'display'));
-            header('Location: '.$Link);
-
+            $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array('gbview' => 'display')));
+            HeaderManager::forward($link);
+         } else {
+            $this->setPlaceHolder('Form', $this->displayForm(true));
          }
-         else{
-            $this->setPlaceHolder('Form',$this->displayForm(true));
-         }
-
+      } else {
+         $this->setPlaceHolder('Form', $this->displayForm());
       }
-      else{
-         $this->setPlaceHolder('Form',$this->displayForm());
-      }
-
    }
 
-   private function displayForm($ShowLogInError = false){
+   private function displayForm($ShowLogInError = false) {
 
-      // Referenz auf das Formular holen
-      $Form__AdminLogin = &$this->getForm('AdminLogin');
+      $adminLogin = &$this->getForm('AdminLogin');
 
-      // Fehlermeldung ausgeben, falls gewünscht
-      if($ShowLogInError == true){
-
-         // Template mit Meldung holen
-         $Template__LogInError = &$this->getTemplate('LogInError');
-
-         // Template in Form einsetzen
-         $Form__AdminLogin->setPlaceHolder('LogInError',$Template__LogInError->transformTemplate());
-
+      if ($ShowLogInError == true) {
+         $adminLogin->setPlaceHolder('LogInError', $this->getTemplate('LogInError')->transformTemplate());
       }
 
-      // Formular transformieren und zurückgeben
-      return $Form__AdminLogin->transformForm();
-
+      return $adminLogin->transformForm();
    }
 
 }
@@ -390,48 +356,36 @@ import('modules::guestbook::pres::documentcontroller','guestbookBaseController')
 
 class guestbook_adminaddcomment_v1_controller extends guestbookBaseController {
 
-   private $_LOCALS;
+   public function transformContent() {
 
-   public function __construct(){
+      $form = &$this->getForm('GuestbookAddComment');
 
-      $this->_LOCALS = RequestHandler::getValues(array(
-                                                             'Title',
-                                                             'Text',
-                                                             'entryid'
-                                                            )
-                                                      );
+      $values = RequestHandler::getValues(array(
+            'Title',
+            'Text',
+            'entryid'
+         )
+      );
 
-   }
+      if ($form->isSent() == true) {
 
-   public function transformContent(){
+         if ($form->isValid()) {
 
-      // Referenz auf das Formular holen
-      $Form__GuestbookAddComment = &$this->getForm('GuestbookAddComment');
-
-      // Aktion für Eintrag
-      if($Form__GuestbookAddComment->get('isSent') == true){
-
-         if($Form__GuestbookAddComment->get('isValid')){
-
-            // Manager holen
             $gM = &$this->getGuestbookManager();
 
-            // Eintrag erzeugen
-            $Comment = new Comment();
-            $Comment->set('Title',$this->_LOCALS['Title']);
-            $Comment->set('Text',$this->_LOCALS['Text']);
+            $comment = new Comment();
+            $comment->setTitle($values['Title']);
+            $comment->setText($values['Text']);
 
-            // Eintrag speichern
-            $gM->saveComment($this->_LOCALS['entryid'],$Comment);
+            $gM->saveComment($values['entryid'], $comment);
 
          }
 
       }
 
-      // Formular anzeigen
-      $ID = &$Form__GuestbookAddComment->getFormElementByName('entryid');
-      $ID->setAttribute('value',$this->_LOCALS['entryid']);
-      $this->setPlaceHolder('Form',$Form__GuestbookAddComment->transformForm());
+      $id = &$form->getFormElementByName('entryid');
+      $id->setAttribute('value', $values['entryid']);
+      $form->transformOnPlace();
 
    }
 

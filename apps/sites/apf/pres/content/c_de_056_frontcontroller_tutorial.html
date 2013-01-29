@@ -227,12 +227,14 @@ FC.InputParams = ""
 Die eigentliche Funktionalität der Action wird in der <strong>run()</strong>-Methode definiert.
 Folgender Code kann dazu eingesetzt werden:
 <gen:highlight type="php">
-public function run(){
+public function run() {
 
-   $_LOCALS = RequestHandler::getValues(array('Username','Password','ID'));
+   $username = RequestHandler::getValue('Username');
+   $password = RequestHandler::getValue('Password');
+   $id = RequestHandler::getValue('ID');
 
    // Model der Anwendung holen
-   $Model = &$this->getServiceObject('my::namespace','ApplicationModel');
+   $Model = & $this->getServiceObject('my::namespace', 'ApplicationModel');
 
    // SessionManager erzeugen
    $Session = new SessionManager('MyApplication');
@@ -243,60 +245,55 @@ public function run(){
    //      validiert werden.
    //   b) Daten sind nicht in der Session enthalten.
    //
-   if(!isset($_REQUEST['Login'])){
+   if (!isset($_REQUEST['Login'])) {
 
       // Fall 1.1: Session-Daten auslesen und prüfen
       $Username = $Session->loadSessionData('Username');
       $Password = $Session->loadSessionData('Password');
 
-      if(!empty($Username) && !empty($Password)){
+      if (!empty($Username) && !empty($Password)) {
 
-         if($this->validateCredentials($Username,$Password)){
+         if ($this->validateCredentials($Username, $Password)) {
 
             // Fall 1.1.1: Daten aus Session gewonnen und erfolgreich eingeloggt
-            $Model->setAttribute('view.content.template','content');
+            $Model->setAttribute('view.content.template', 'content');
 
-         }
-         else{
+         } else {
 
             // Fall 1.1.2: Daten aus Session gewonnen und diese sind nicht valide
-            $Model->setAttribute('view.content.template','login');
+            $Model->setAttribute('view.content.template', 'login');
 
          }
 
-      }
-      else{
+      } else {
 
          // Fall 1.2: Keine Daten aus Session erhältlich
-         $Model->setAttribute('view.content.template','login');
+         $Model->setAttribute('view.content.template', 'login');
 
       }
 
-   }
-   else{
+   } else {
 
-      if(myValidator::validateText($_LOCALS['Username']) && myValidator::validateText($_LOCALS['Password'])){
+      if (myValidator::validateText($username) && myValidator::validateText($password)) {
 
          // Falls 2.1: Versuch eines Logins
-         if($this->validateCredentials($_LOCALS['Username'],md5($_LOCALS['Password']))){
+         if ($this->validateCredentials($username, md5($password))) {
 
             // Fall 2.1.1. Login-Vorgang war erfolgreich
-            $Model->setAttribute('view.content.template','content');
+            $Model->setAttribute('view.content.template', 'content');
 
-         }
-         else{
+         } else {
 
             // Fall 2.1.2: Login-Vorgang war auf Grund falscher Benutzerdaten NICHT erfolgreich
-            $Model->setAttribute('view.content.template','login');
-            $Model->setAttribute('login.status','failed');
+            $Model->setAttribute('view.content.template', 'login');
+            $Model->setAttribute('login.status', 'failed');
 
          }
 
-      }
-      else{
+      } else {
 
          // Fall Falls 2.2: Formular wurde unvollständig ausgefüllt
-         $Model->setAttribute('view.content.template','login');
+         $Model->setAttribute('view.content.template', 'login');
 
       }
 
@@ -304,19 +301,13 @@ public function run(){
 
    // Fall 3: (Logout)
    //
-   if($this->input->getAttribute('action') == 'logout'){
+   if ($this->input->getAttribute('action') == 'logout') {
 
       // Session-Daten löschen
       $Session->destroySession('MyApplication');
 
-      // Benutzerdaten aus lokalem Array löschen
-      $_LOCALS['Username'] = '';
-      $_LOCALS['Password'] = '';
-      $_LOCALS['ID'] = '';
-
       // Login-Formular erzeugen
-      $Model->setAttribute('view.content.template','login');
-
+      $Model->setAttribute('view.content.template', 'login');
    }
 
 }

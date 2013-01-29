@@ -221,13 +221,14 @@ FC.InputParams = ""
 The core functionality of an action is defined in the <strong>run()</strong> method. The following
 source code can be used to fullfill the functionality described above:
 <gen:highlight type="php">
-public function run(){
+public function run() {
 
-   // register "normal" request variables
-   $_LOCALS = RequestHandler::getValues(array('Username','Password','ID'));
+   $username = RequestHandler::getValue('Username');
+   $password = RequestHandler::getValue('Password');
+   $id = RequestHandler::getValue('ID');
 
    // instanciate the application model
-   $Model = &$this->getServiceObject('my::namespace','ApplicationModel');
+   $Model = & $this->getServiceObject('my::namespace', 'ApplicationModel');
 
    // create the SessionManager
    $Session = new SessionManager('MyApplication');
@@ -237,80 +238,69 @@ public function run(){
    //   a) data from session are not null and are valid.
    //   b) data are not included in the session.
    //
-   if(!isset($_REQUEST['Login'])){
+   if (!isset($_REQUEST['Login'])) {
 
-      // case 1.1: extract data from session
+   // case 1.1: extract data from session
       $Username = $Session->loadSessionData('Username');
       $Password = $Session->loadSessionData('Password');
 
-      if(!empty($Username) && !empty($Password)){
+      if (!empty($Username) && !empty($Password)) {
 
-         if($this->validateCredentials($Username,$Password)){
+         if ($this->validateCredentials($Username, $Password)) {
 
             // case 1.1.1: data from session is valid, user is logged in
-            $Model->setAttribute('view.content.template','content');
+            $Model->setAttribute('view.content.template', 'content');
 
-         }
-         else{
+         } else {
 
             // case 1.1.2: data from session are not valid
-            $Model->setAttribute('view.content.template','login');
+            $Model->setAttribute('view.content.template', 'login');
 
          }
 
-      }
-      else{
+      } else {
 
          // case 1.2: no data available in session
-         $Model->setAttribute('view.content.template','login');
+         $Model->setAttribute('view.content.template', 'login');
 
       }
 
-   }
-   else{
+   } else {
 
-      if(myValidator::validateText($_LOCALS['Username']) && myValidator::validateText($_LOCALS['Password'])){
+      if (myValidator::validateText($username) && myValidator::validateText($password)) {
 
          // case 2.1: login form was sent
-         if($this->validateCredentials($_LOCALS['Username'],md5($_LOCALS['Password']))){
+         if ($this->validateCredentials($username, md5($password))) {
 
             // case 2.1.1. login credentials are valid -> user is logged in
-            $Model->setAttribute('view.content.template','content');
+            $Model->setAttribute('view.content.template', 'content');
 
-         }
-         else{
+         } else {
 
             // case 2.1.2: login request failed due to wrong username and/or password
-            $Model->setAttribute('view.content.template','login');
-            $Model->setAttribute('login.status','failed');
+            $Model->setAttribute('view.content.template', 'login');
+            $Model->setAttribute('login.status', 'failed');
 
          }
 
-      }
-      else{
+      } else {
 
          // case cases 2.2: form was submitted partial
-         $Model->setAttribute('view.content.template','login');
+         $Model->setAttribute('view.content.template', 'login');
 
       }
 
    }
 
-   // case 3: logout
+   // case 3: (log-out)
    //
-   if($this->input->getAttribute('action') == 'logout'){
+   if ($this->input->getAttribute('action') == 'logout') {
 
-      // destroy session data
+      // delete user data from session
       $Session->destroySession('MyApplication');
 
-      // unset user data in the locally used array
-      $_LOCALS['Username'] = '';
-      $_LOCALS['Password'] = '';
-      $_LOCALS['ID'] = '';
-
       // set view to "login"
-      $Model->setAttribute('view.content.template','login');
-
+      $Model->setAttribute('view.content.template', 'login');
    }
 
 }

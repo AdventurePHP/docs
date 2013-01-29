@@ -306,17 +306,10 @@ gestaltet sich wie folgt (gekürzt):
 <gen:highlight type="php">
 class doku_taglib_navigation extends Document {
 
-   var $_LOCALS = array();
-
-   public function __construct(){
-      $this->_LOCALS = variablenHandler::registerLocal(array('Seite' => 'Startseite'));
-      [..]
-   }
-
    public function transform(){
 
       // Aktuelle Seite deklarieren
-      $page = $this->_LOCALS['Seite'];
+      $page = RequestHandler::getValue('Seite');
 
       // Vorherige Seite deklarieren
       $PreviousPage = $this->__getNeighborPageName($page);
@@ -497,25 +490,12 @@ class kontakt_controller extends BaseDocumentController {
 </gen:highlight>
 Innerhalb des if-Anweisungs-Blocks kann dann noch die Logik des E-Mail-Versandes ergänzt werden,
 was hier nicht Teil der Prüfung war bzw. ist. Beim Versand des Formulars können die Werte
-der Formular-Felder mit der Komponente <strong>variablenHandler</strong> ausgelesen werden. Dies
+der Formular-Felder mit der Komponente <strong>RequestHandler</strong> ausgelesen werden. Dies
 kann wie folgt passieren:
 <gen:highlight type="php">
-import('tools::variablen','variablenHandler');
+import('tools::request', 'RequestHandler');
 
 class kontakt_controller extends BaseDocumentController {
-
-  private $_FORM = array();
-
-  public function __construct(){
-
-     $this->_FORM = variablenHandler::registerLocal(
-                                                    array(
-                                                          'Name',
-                                                          'Comment'
-                                                    )
-     );
-
-  }
 
   public function transformContent(){
 
@@ -523,8 +503,8 @@ class kontakt_controller extends BaseDocumentController {
 
       if($Form->get('isSent') == true && $Form->get('isValid') == true){
 
-         $Name = $this->_FORM['Name'];
-         $Comment = $this->_FORM['Comment'];
+         $Name = RequestHandler::getValue('Name');
+         $Comment = RequestHandler::getValue('Comment');
          [..]
 
       }
