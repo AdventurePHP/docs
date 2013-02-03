@@ -866,6 +866,158 @@ class GalleryTag extends Document {
    <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=4&amp;t=38">Schachtelung TagLibs</a>.
 </div>
 
+<h4 id="Chapter-6-3-Verschachtelte-Strukturen"><a href="#Chapter-6-3-Verschachtelte-Strukturen">6.3. Verschachtelte Strukturen</a></h4>
+<p>
+   Ab dem Release 1.17 ist der APF-Parser in der Lage verschachtelte Strukturen von Tags mit identischem Prefix und
+   Namen innerhalb eines Dokuments bzw. einer Datei zu verarbeiten (siehe <a href="#Chapter-6-Tag-Hierarchie">Kapitel 6</a>).
+   Die übrigen Einschränkung des APF-Parsers gegenüber einem vollwertigen XML-Parser bleiben jedoch erhalten.
+</p>
+<p>
+   Die folgende Code-Box stellt ein Beispiel einer hierarchischen Struktur da, die ab dem APF 1.17 korrekt verarbeitet
+   wird:
+</p>
+<gen:highlight type="apf-xml">
+<foo:bar>
+   ...
+   <foo:bar>
+      ...
+      <foo:bar>
+         ...
+      </foo:bar>
+      ...
+   </foo:bar>
+   ...
+   <foo:bar />
+   ...
+   <foo:bar>
+      ...
+   </foo:bar>
+   ...
+</foo:bar>
+<foo:bar>
+   ...
+</foo:bar>
+</gen:highlight>
+<p>
+   Der beschriebene Quellcode zeigt eine asymmetrische Struktur von unterschiedlichen <em>&lt;foo:bar /&gt;</em>-Tags,
+   die unterschiedlich tief verschachtelt sind und selbst- und explizit schließende Tags beinhaltet. Der Parser
+   verarbeitet nun symmentrische (gleiche Anzahl von öffnenden wie schließenden Tags) und asymmetrische (ungleiche
+   Anzahl von öffnenden und schließenden Tags) Strukturen und ordnet die jeweiligen Inhalte den definierten Ebenen
+   korrekt zu.
+</p>
+<p>
+   Als Anwendungsbeispiel soll folgende verschachtelte HTML-Liste dienen, die sich am <em>&lt;ul /&gt;</em>-Tag
+   orientiert:
+</p>
+<gen:highlight type="apf-xml">
+<html:list>
+   <list:item>Kapitel 1</list:item>
+   <list:item>
+      Kapitel 2
+      <html:list>
+         <list:item>Kapitel 2.1</list:item>
+         <list:item>Kapitel 2.2</list:item>
+      </html:list>
+   </list:item>
+   <list:item>Kapitel 3</list:item>
+</html:list>
+</gen:highlight>
+<p>
+   Bei der Implementierung von Tags für verschachtelte Strukturen kann das Verhalten je nach Platzierung bzw.
+   Hierarchie-Stufe im Baum variieren. Dies ist beim gewählten Beispiel nicht der Fall, da sich das zu generierende HTML
+   an der Tag-Struktur orientiert.
+</p>
+<div class="hint">
+   Der APF-Parser analysiert die in einem Dokument enthaltenen Tags an Hand der registrierten Tags, die im
+   <em>$this->tagLibs</em>-Array vorgehalten werden. Dabei geht er chronologisch vor und analysiert die definierten Tags
+   in der Reihenfolge, in der sie registriert wurden.
+</div>
+<p>
+   Diese Tatsache ist insbesondere für sich gegenseitig überlagernde Strukturen wichtig, da bei falsch gewählter
+   Reihenfolge der bekannten Tags die korrekte Zuordnung der Instanzen zu den gewünschten Ebenen nicht korrekt
+   ausgeführt wird. Das oben aufgeführte Beispiel basiert auf der folgenen, vereinfachten Struktur:
+</p>
+<gen:highlight type="apf-xml">
+<ul>
+   <li>
+      <ul>
+         <li></li>
+      </ul>
+   </li>
+</ul>
+</gen:highlight>
+<p>
+   Beim Parsen der Tags muss nun darauf geachtet werden, dass zuerst alle <em>&lt;ul/&gt;</em>-Tags und innerhalb
+   dieser zunächst die <em>&lt;li/&gt;</em>-Tags verarbeitet werden. Anschließend kann innerhalb der <em>&lt;li/&gt;</em>-Tags
+   nach weiteren Unterstrukturen gesucht werden.
+</p>
+<div class="hint">
+   Der APF-Parser arbeitet nach dem Prinzip, dass die innenliegenden Strukturen zunächst nicht weiter analysiert werden,
+   sondern direkt an die Kind-Instanz weiter gereicht werden. So sind Sie in der Lage bei der Implementierung eines Tags
+   selbst in der Kind-Instanz über die Verarbeitung zu entscheiden.
+</div>
+<p>
+   Diese beiden Hinweise können direkt als Handlungsanweisung für die Implementierung genutzt werden. Die Tag-Repräsentation
+   einer Liste hat damit folgende Gestalt:
+</p>
+<gen:highlight type="php">
+class UnorderedListTag extends Document {
+
+   public function __construct() {
+      $this->tagLibs = array(
+         new TagLib('sandbox::pres::taglib', 'ListElementTag', 'list', 'item')
+      );
+   }
+
+   public function onParseTime() {
+      $this->extractTagLibTags();
+   }
+
+   public function transform() {
+      return '<ul>' . parent::transform() . '</ul>';
+   }
+
+}
+</gen:highlight>
+<p>
+   Der <em>UnorderedListTag</em> registriert Listen-Einträge als mögliche Kinder und erzeugt die HTML-Ausgabe durch
+   Umschließen des Inhalts mit einem <em>&lt;ul/&gt;</em>-Tag. Weitere <em>&lt;html:list/&gt;</em>-Tags werden nicht
+   beachtet, da diese erst innerhalb von <em>&lt;list:item/&gt;</em>-Tags verarbeitet werden sollen.
+</p>
+<div class="warn">
+   Bei Nutzung von verschachtelten Strukturen müssen Sie selbst für die Verarbeitung des Inhalts eines Tags sorgen.
+   Dazu ist im Allgemeinen die Registrierung des äußeren Tags als innere Struktur notwendig - der Tag muss sich also
+   zusätzlich selbst kennen! Ist dies nicht der Fall, wird der Aufbau der rekursiven Struktur unterbrochen.
+</div>
+<p>
+   Die Implementierung eines Listen-Elements kann wie folgt realisiert werden:
+</p>
+<gen:highlight type="php">
+class ListElementTag extends Document {
+
+   public function __construct() {
+      $this->tagLibs = array(
+         new TagLib('sandbox::pres::taglib', 'UnorderedListTag', 'html', 'list')
+      );
+   }
+
+   public function onParseTime() {
+      $this->extractTagLibTags();
+   }
+
+   public function transform() {
+      return '<li>' . parent::transform() . '</li>';
+   }
+
+}
+</gen:highlight>
+<p>
+   Der Konstruktor der <em>ListElementTag</em>-Klasse registriert für die Analyse des Inhalts zunächst den
+   <em>&lt;html:list/&gt;</em>-Tag um sicherzustellen, dass weiterführende Unterstrukturen richtig aufgebaut werden.
+   Die Listen-Tag-Implementierung kennt also die Listen-Element-Implementierung und umgekehrt. So ist bei verschachtelten
+   Strukturen ein rekursiver Aufbau von beliebig tiefen Strukturen möglich.
+</p>
+
 <h3 id="Chapter-7-Anwendungsbeispiele"><a href="#Chapter-7-Anwendungsbeispiele">7. Anwendungsbeispiele</a></h3>
 <p>
    In diesem Kapitel finden Sie Anwendungsbeispiele für Tags, die Sie in Ihrer täglichen Arbeit mit dem APF als

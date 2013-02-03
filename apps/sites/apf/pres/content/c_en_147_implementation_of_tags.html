@@ -852,6 +852,154 @@ class GalleryTag extends Document {
    (German).
 </div>
 
+<h4 id="Chapter-6-3-Nested-structures"><a href="#Chapter-6-3-Nested-structures">6.3. Nested structures</a></h4>
+<p>
+   As of release 1.17 the APF parser is able to process nested structures of tags with the same prefix and name within
+   one document or one file (see <a href="#Chapter-6-Tag-hierarchies">chapter 6</a>). Other restrictions of the APF
+   parser compared to a full-features XML parser do still apply.
+</p>
+<p>
+   The following code box contains a sample tag hierarchy that is correctly processes with the APF 1.17:
+</p>
+<gen:highlight type="apf-xml">
+<foo:bar>
+   ...
+   <foo:bar>
+      ...
+      <foo:bar>
+         ...
+      </foo:bar>
+      ...
+   </foo:bar>
+   ...
+   <foo:bar />
+   ...
+   <foo:bar>
+      ...
+   </foo:bar>
+   ...
+</foo:bar>
+<foo:bar>
+   ...
+</foo:bar>
+</gen:highlight>
+<p>
+   The above described source code contains an asymmetric structure of different <em>&lt;foo:bar /&gt;</em> tags that
+   are nested with a varying level count including a mixture of explicit-closing and self-closing tags. The parser
+   now processes symmetric (same amount of opening and closing tags) and asymmetric (odd amount of opening and closing
+   tags) structures and is able to assign the appropriate content to the correct hierarchy level.
+</p>
+<p>
+   For further discussion within this chapter the following nested HTML list will be used similar to an
+   <em>&lt;ul /&gt;</em> tag:
+</p>
+<gen:highlight type="apf-xml">
+<html:list>
+   <list:item>Chapter 1</list:item>
+   <list:item>
+      Chapter 2
+      <html:list>
+         <list:item>Chapter 2.1</list:item>
+         <list:item>Chapter 2.2</list:item>
+      </html:list>
+   </list:item>
+   <list:item>Chapter 3</list:item>
+</html:list>
+</gen:highlight>
+<p>
+   Implementing tags that support nested structures the behaviour may vary depending on the positioning or the hierarchy
+   level within the DOM tree. For the present example there is not need for that since the generated HTML follows the
+   tag structure.
+</p>
+<div class="hint">
+   The APF parser analyzes the tags contained within a document using the registered tags listed within the
+   <em>$this->tagLibs</em> array. While analyzing, the parser uses the exact order of the tags as they are registered.
+</div>
+<p>
+   This fact is especially important for overlapping structures since choosing a wrong tag order of the list of known
+   tags may then lead to wrong assignment of the instances to the desired hierarchy levels. The above example is based
+   on the following simplified structure:
+</p>
+<gen:highlight type="apf-xml">
+<ul>
+   <li>
+      <ul>
+         <li></li>
+      </ul>
+   </li>
+</ul>
+</gen:highlight>
+<p>
+   Parsing the tags you must be aware that all <em>&lt;ul/&gt;</em> tags must be processed first and within this
+   structure all <em>&lt;li/&gt;</em> tags have to be parsed first. Afterwards, the parser may search for other elements
+   within the <em>&lt;li/&gt;</em> tags.
+</p>
+<div class="hint">
+   The APF parser follows the principle that inner structures of a tag are not analyzed directly but passed to the child
+   node directly. This enables the implementation of the tag to decide what happens with the content on an on-demand
+   basis.
+</div>
+<p>
+   Both hints can be directly used as an implementation instruction. The tag representation of the list tag is as follows:
+</p>
+<gen:highlight type="php">
+class UnorderedListTag extends Document {
+
+   public function __construct() {
+      $this->tagLibs = array(
+         new TagLib('sandbox::pres::taglib', 'ListElementTag', 'list', 'item')
+      );
+   }
+
+   public function onParseTime() {
+      $this->extractTagLibTags();
+   }
+
+   public function transform() {
+      return '<ul>' . parent::transform() . '</ul>';
+   }
+
+}
+</gen:highlight>
+<p>
+   The <em>UnorderedListTag</em> registers list entries as possible child elements and generates the HTML output using
+   a surrounding <em>&lt;ul/&gt;</em> tag. Further <em>&lt;html:list/&gt;</em> tags are not processed since this is
+   delegated to the <em>&lt;list:item/&gt;</em> tags to respect the tag order.
+</p>
+<div class="warn">
+   Using nested structures your tag implementation must be aware of this fact to correctly process the applied content.
+   For this reason it is necessary to register the outer tag as a possible child structure - or expressed as a rule of
+   thumb: the tag must know itself! Otherwise, the recursion is broken.
+</div>
+<p>
+   The implementation of the list elements is as follows:
+</p>
+<gen:highlight type="php">
+class ListElementTag extends Document {
+
+   public function __construct() {
+      $this->tagLibs = array(
+         new TagLib('sandbox::pres::taglib', 'UnorderedListTag', 'html', 'list')
+      );
+   }
+
+   public function onParseTime() {
+      $this->extractTagLibTags();
+   }
+
+   public function transform() {
+      return '<li>' . parent::transform() . '</li>';
+   }
+
+}
+</gen:highlight>
+<p>
+   The constructor of the <em>ListElementTag</em> class registers the <em>&lt;html:list/&gt;</em> tag again to ensure
+   that content of the list element is correctly processes regarding further sub-structures. The list tag implementation
+   is aware of list elements and vice versa. This is why the present tag implementation can be used to created nested
+   structures with unlimited hierarchy levels.
+</p>
+
 <h3 id="Chapter-7-Examples"><a href="#Chapter-7-Examples">7. Examples</a></h3>
 <p>
    This chapter contains implementation examples for tags that you may use as a basis for your day-to-day work or as a
