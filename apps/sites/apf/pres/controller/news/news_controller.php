@@ -11,7 +11,7 @@ class news_controller extends BaseDocumentController {
     */
    public function transformContent() {
 
-      $type = $this->getAttribute(self::$TYPE);
+      $type = $this->getDocument()->getAttribute(self::$TYPE);
       if ($type === 'start') {
          $maxCount = 5;
          $startCount = 0;
@@ -21,9 +21,8 @@ class news_controller extends BaseDocumentController {
       }
 
       $count = 0;
-      $newsItems = &$this->getNewsItems();
+      $newsItems = & $this->getNewsItems();
       foreach ($newsItems as $objectId => $DUMMY) {
-         //echo '<br />$maxCount: '.$maxCount.', $startCount: '.$startCount.', $count: '.$count;
          if ($count >= $startCount && $startCount < $maxCount) {
             $newsItems[$objectId]->transformOnPlace();
             $startCount++;
@@ -37,11 +36,11 @@ class news_controller extends BaseDocumentController {
     * @return NewsItemTag[] List of news items.
     */
    private function &getNewsItems() {
-      $children = &$this->getDocument()->getChildren();
+      $children = & $this->getDocument()->getChildren();
       $newsItems = array();
       foreach ($children as $objectId => $DUMMY) {
-         if (get_class($children[$objectId]) === 'NewsItemTag') {
-            $newsItems[$objectId] = &$children[$objectId];
+         if ($children[$objectId] instanceof NewsItemTag) {
+            $newsItems[$objectId] = & $children[$objectId];
          }
       }
       return $newsItems;

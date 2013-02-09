@@ -39,7 +39,7 @@ class all_stable_releases_controller extends release_base_controller {
    public function transformContent() {
 
       // resolve the packages to display using the attributes of the document
-      $type = $this->getAttribute(self::$TYPE);
+      $type = $this->getDocument()->getAttribute(self::$TYPE);
       if ($type === self::$PHP5) {
          $this->displayPHP4Files = false;
          $this->displayPHP5Files = true;
