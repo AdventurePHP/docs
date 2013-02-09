@@ -22,10 +22,10 @@ class main_controller extends BaseDocumentController {
     * @version
     * Version 0.1, 09.04.2007<br />
     * Version 0.2, 14.04.2007 (Link um Parameter erweitert um Drucken von Anwendungen zu erlauben)<br />
-    * Version 0.3, 06.05.2007 (Meta-Angaben erg�nzt)<br />
+    * Version 0.3, 06.05.2007 (Meta-Angaben ergänzt)<br />
     * Version 0.4, 21.05.2007 (Ausgabe der URL in den Meta-Angaben verbessert (volle Domain))<br />
     * Version 0.5, 27.05.2007 (Drucken-Link ohne JAVA-Script implementiert)<br />
-    * Version 0.6, 24.03.2008 (Meta-Angaben korrigiert, Druck-Link um Sprachwahl erg�nzt)<br />
+    * Version 0.6, 24.03.2008 (Meta-Angaben korrigiert, Druck-Link um Sprachwahl ergänzt)<br />
     * Version 0.7, 28.03.2008 (Anpassungen wg. neuem URL-Layout)<br />
     * Version 0.8, 21.06.2008 (Replaced APPS__URL_PATH with a value from the Registry)<br />
     */
