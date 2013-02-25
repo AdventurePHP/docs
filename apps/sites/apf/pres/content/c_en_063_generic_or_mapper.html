@@ -1,6 +1,6 @@
 <doku:title parent="119" tags="object,relational,mapping,or,mapper,generic,relations,objects,object tree,object structures,configuration,usage" title="Generic OR mapper" urlname="Generic-OR-mapper">
   The genericormapper module provides a generic data mapper, that is fully integrated into the APF.
-  It enables the developer to dynamically handle objects and their reations, that are defined within
+  It enables the developer to dynamically handle objects and their relations, that are defined within
   configuration files.
 </doku:title>
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
@@ -16,7 +16,7 @@ The APF module <em>genericormapper</em> now provides an abstraction layer, that 
 to do most of the work a data mapper has to do. The functionality thereby can
 <ul>
   <li>manage objects,</li>
-  <li>manage relations between objects (compositions and assoziations) and</li>
+  <li>manage relations between objects (compositions and associations) and</li>
   <li>features CRUD functionality for objects and object structures (aka. trees).</li>
 </ul>
 For this tasks, the API features a couple of methods, that support loading, manipulation and deletion
@@ -68,7 +68,7 @@ and the relation configuration file
 These must reside within the folder
 <gen:highlight type="code">/apps/config/modules/myguestbook/sites/mysite</gen:highlight>
 Further details on configuration, namespaces and contexts can be taken from the
-<int:link pageid="134" anchor="Chapter-2-1-Konfigurations-Schema">configuration scheme definition</int:link>.
+<int:link pageid="134" anchor="Chapter-2-1-Configuration-scheme">configuration scheme definition</int:link>.
 <br />
 <br />
 <br />
@@ -121,7 +121,7 @@ most application cases.
    Thereby, it is not relevant, if the property is defined with a default value. But it is important
    that the declaration of the BIT field contains the keyword &quot;BIT&quot;. Details can be taken
    from the forum discussion under
-   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=8&amp;t=234" title="Fehler mit BIT-Feldern" linkrewrite="false">Fehler mit BIT-Feldern</a>
+   <a class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=8&amp;t=234" title="Fehler mit BIT-Feldern" linkrewrite="false">Fehler mit BIT-Feldern</a>
    (German).
 </div>
 The attributes of a domain object can then be addressed as follows:
@@ -215,7 +215,7 @@ TargetObject = "User"
   <li>
     If you have created an object tree using the method <em>addRelatedObject()</em>, you can
     read the related objects of the desired node (<em>GenericDomainObject</em>) within the
-    tree using <em>getRelatedObjects()</em> for futher manipulation or processing.
+    tree using <em>getRelatedObjects()</em> for further manipulation or processing.
   </li>
 </ul>
 
@@ -267,7 +267,7 @@ AddIndices = "FirstName,LastName(INDEX)|Username(UNIQUE)|Password(INDEX)"
    Details on the discussion of this feature can be taken from the wiki page
    <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Zus%C3%A4tzliche_Indizes_f%C3%BCr_Setup-/Update-Tool_GORM" title="Zusätzliche Indizes für Setup-/Update-Tool GORM">Zusätzliche Indizes für Setup-/Update-Tool GORM</a>
    (German) and the forum thread
-   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&amp;t=246" title="Zusätzliche Indizes für Setup-/Update-Tool GORM">Zusätzliche Indizes für Setup-/Update-Tool GORM</a>
+   <a class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=10&amp;t=246" title="Zusätzliche Indizes für Setup-/Update-Tool GORM">Zusätzliche Indizes für Setup-/Update-Tool GORM</a>
    (German).
 </div>
 
@@ -284,11 +284,10 @@ TargetObject = "{source-table}"
 Timestamps = "TRUE"
 </gen:highlight>
 <div class="warn">
-   Please be aware to activate the feature for <strong>each</strong> releation definition <strong>separately</strong>.
+   Please be aware to activate the feature for <strong>each</strong> relation definition <strong>separately</strong>.
 </div>
 <p>
-   Afterwards, the data model can be created using the <em>GenericORMapperSetup</em> or updated by the
-   <em>GenericORMapperUpdate</em>.
+   Afterwards, the data model can be created or updated by using the <em>GenericORMapperManagementTool</em>.
 </p>
 <div class="hint">
    Please note, that missing values for existing relations are not created with an update of the data model. Asking
@@ -298,75 +297,95 @@ Timestamps = "TRUE"
    The usage of this feature is described in <a href="#Chapter-4-5-Creation-date-of-relations">chapter 4.5</a>.
 </p>
 
-<h3 id="Chapter-3-Database-setup"><a href="#Chapter-3-Database-setup">3. Database setup</a></h3>
-After the configuration files have been created, the database must be prepared for usage. This can
-be done manually or automatically. The manual way is described in the <int:link pageid="064">manual database setup</int:link>
-chapter.
-<br />
-<br />
-The following script shows, how the automated database setup can be done with aim of the
-<em>GenericORMapperSetup</em> tool. If you are searching for an example script, have a look
-at the <em>/apps/modules/genericormapper/data/tools</em> folder in the <em>apf-codepack-*</em>
-release. The file is named <em>setup.php</em> and must be adapted to your application case:
+<h3 id="Chapter-3-Database-management"><a href="#Chapter-3-Database-management">3. Database management</a></h3>
+<h4 id="Chapter-3-1-Database-setup"><a href="#Chapter-3-1-Database-setup">3.1. Database setup</a></h4>
+<p>
+   After the configuration files have been created, the database must be prepared for usage. For this reason, the GORM
+   ships the <em>GenericORMapperManagementTool</em>. With this class databases can be created or updated.
+</p>
+<p>
+   The following script shows, how the automated database setup can be done with aim of the
+   <em>GenericORMapperManagementTool</em> tool. If you are searching for an example script, have a look at the
+   <em>/apps/modules/genericormapper/data/tools</em> folder in the <em>apf-codepack-*</em> release. The file is named
+   <em>setup.php</em>.
+</p>
+<p>
+   In order to use the template, it must be adapted to fit your use case according to the notes below. The script is as
+   follows:
+</p>
 <gen:highlight type="php">
 // include page controller
 require('../../apps/core/pagecontroller/pagecontroller.php');
 
 // configure the registry if desired
-Registry::register('apf::core','Environment','{ENVIRONMENT}');
+Registry::register('apf::core', 'Environment', '{ENVIRONMENT}');
 
 // include SetupMapper
-import('modules::genericormapper::data::tools','GenericORMapperSetup');
+import('modules::genericormapper::data::tools', 'GenericORMapperManagementTool');
 
 // create setup tool
-$setup = new GenericORMapperSetup();
+$setup = new GenericORMapperManagementTool();
 
 // set Context (important for the configuration files!)
 $setup->setContext('{CONTEXT}');
 
 // adapt storage engine (default is MyISAM)
-$setup->setStorageEngine('MyISAM|INNODB');
+//$setup->setStorageEngine('MyISAM|INNODB');
 
-// adapt data type of the indexed columns, that are used for object and relation ids
+// adapt data type of the indexed columns, that are used for object ids
 //$setup->setIndexColumnDataType('INT(5) UNSIGNED');
 
-// create database layout
-$setup->setupDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}','{CONNECTION_NAME}');
+// initialize mapping configuration
+$setup->addMappingConfiguration('{CONFIG_NAMESPACE}', '{CONFIG_NAME_AFFIX}');
+
+// initialize relation configuration
+$setup->addRelationConfiguration('{CONFIG_NAMESPACE}', '{CONFIG_NAME_AFFIX}');
+
+// initialize database connection (optional; if not set, statements will be printed instead if direct update)
+$setup->setConnectionName('{CONNECTION_NAME}');
+
+// create database layout directly
+$setup->run(true);
 
 // display statements only
-$setup->setupDatabase('{CONFIG_NAMESPACE}','{CONFIG_NAME_AFFIX}');
+$setup->run(false);
 </gen:highlight>
-The place holders within the script have the following meaning:
+<p>
+   The place holders within the script have the following meaning:
+</p>
 <ul>
-  <li>
-    <em>{ENVIRONMENT}</em>: This is the environment indicator of the application. It is used
-    for addressing configuration files and must be adopted, if your environment is set to a value
-    different than the default one. For details have a look at the <int:link pageid="134" /> chapter.
-  </li>
-  <li>
-    <em>{CONTEXT}</em>: This is the context of the application. It is used for addressing
-    configuration files and must be adopted, if your environment is set to a value different than
-    the default one. For details have a look at the <int:link pageid="134" /> chapter.
-  </li>
-  <li>
-    <em>{CONFIG_NAMESPACE}</em>: The namespace, that contains the mapper configuration files
-    (see chapter 2.2).
-  </li>
-  <li>
-    <em>{CONFIG_NAME_AFFIX}</em>: The name affix for the configuration files (see chapter 2.1).
-  </li>
-  <li>
-    <em>{CONNECTION_NAME}</em>: The name of the database connection, that is used for the
-    setup and for production use.
-  </li>
+   <li>
+      <em>{ENVIRONMENT}</em>: This is the environment indicator of the application. It is used
+      for addressing configuration files and must be adopted, if your environment is set to a value
+      different than the default one. For details have a look at the <int:link pageid="134"/> chapter.
+   </li>
+   <li>
+      <em>{CONTEXT}</em>: This is the context of the application. It is used for addressing
+      configuration files and must be adopted, if your environment is set to a value different than
+      the default one. For details have a look at the <int:link pageid="134"/> chapter.
+   </li>
+   <li>
+      <em>{CONFIG_NAMESPACE}</em>: The namespace, that contains the mapper configuration files
+      (see <a href="#Chapter-2-2-Configuration-examples">chapter 2.2</a>).
+   </li>
+   <li>
+      <em>{CONFIG_NAME_AFFIX}</em>: The name affix for the configuration files (see
+      <a href="#Chapter-2-1-Basics">chapter 2.1</a>).
+   </li>
+   <li>
+      <em>{CONNECTION_NAME}</em>: The name of the database connection, that is used for the
+      setup and for production use.
+   </li>
 </ul>
 <p>
-   Further, it is important that the database, that should be initialized, must exist before setup is
-   started. Additionally, the user connecting to the database must have <em>CREATE TABLE</em> rights.
-   Otherwise, the setup could not be done. If no error is displayed during setup, the setup has finished
-   successfully. The result can be checked by using phpMyAdmin or a MySQLAdmin tool.
+   Moreover, please ensure that the database to be initialized exists before the setup script is started. Additionally,
+   the user connecting to the database must have <em>CREATE TABLE</em> rights. Otherwise, the setup could not be done.
+   If no error is displayed during setup, the setup has finished successfully. The result can be checked by using
+   phpMyAdmin tool.
 </p>
-<p>Executing the script to display the create statements only, the output should look like this:</p>
+<p>
+   Executing the script to display the create statements only, the output should look like this:
+</p>
 <gen:highlight type="sql">
 CREATE TABLE IF NOT EXISTS `ent_application` (
   `ApplicationID` INT(5) UNSIGNED NOT NULL auto_increment,
@@ -393,16 +412,16 @@ CREATE TABLE IF NOT EXISTS `ent_user` (
 
 CREATE TABLE IF NOT EXISTS `cmp_application2user` (
   `CMPID` INT(5) UNSIGNED NOT NULL auto_increment,
-  `ApplicationID` INT(5) UNSIGNED NOT NULL default '0',
-  `UserID` INT(5) UNSIGNED NOT NULL default '0',
+  `Source_ApplicationID` INT(5) UNSIGNED NOT NULL default '0',
+  `Target_UserID` INT(5) UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`CMPID`),
   KEY `JOININDEX` (`ApplicationID`,`UserID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `cmp_application2role` (
   `CMPID` INT(5) UNSIGNED NOT NULL auto_increment,
-  `ApplicationID` INT(5) UNSIGNED NOT NULL default '0',
-  `RoleID` INT(5) UNSIGNED NOT NULL default '0',
+  `Source_ApplicationID` INT(5) UNSIGNED NOT NULL default '0',
+  `Target_RoleID` INT(5) UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`CMPID`),
   KEY `JOININDEX` (`ApplicationID`,`RoleID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -414,30 +433,125 @@ CREATE TABLE IF NOT EXISTS `cmp_application2role` (
    <em>INT(5) UNSIGNED</em>. In case you need smaller or greater data rooms, you can adjust it
    using
 <gen:highlight type="php">
-   $setup->setIndexColumnDataType('TINYINT(3)');
+$setup->setIndexColumnDataType('TINYINT(3)');
 </gen:highlight>
    Please be aware, that the value set with this method is directly used within the create 
    statements. In case you are using invalid data types, this will lead to errors during setup of
    the tables.
 </div>
-
-<p>Using phpMyAdmin you will get the following screen:</p>
-
-<img src="http://media.adventure-php-framework.org/content/ormapper_phpmyadmin.png" alt="PHPMYAdmin view"/>
-
 <p>
-   Now, the configuration of the mapper has finished and you can use it. Changes to the data model
-   (at the moment) cannot be automatically applied to the database. For this reason, the affected tables
-   must be altered manually. Due to the fact, that the database layout follows some easy rules, you can
-   easily do this yourself. Hints can be taken from the
-   <int:link pageid="064">manual database setup</int:link>
-   chapter.
+   Using phpMyAdmin you will get the following screen:
+</p>
+<img src="http://media.adventure-php-framework.org/content/ormapper_phpmyadmin.png" alt="PHPMYAdmin view"/>
+<p>
+   Now, the configuration of the mapper has finished and you can use it.
+</p>
+
+<h4 id="Chapter-3-2-Database-update"><a href="#Chapter-3-2-Database-update">3.2. Database update</a></h4>
+<p>
+   As of release 1.11, an update tool for the O/R mapper is available. The tool can apply changes to the configuration
+   files to an existing database.
+</p>
+<p>
+   In case no automated update is desired the <em>GenericORMapperManagementTool</em> provides a mode that displays
+   the update statements rather to execute them directly. For huge databases, manual update should be the preferred way.
+   This is especially true if index or row updates are included!
 </p>
 <div class="hint">
-   Supporting the task of updating a database setup with the generic OR mapper setup tool a update
-   tool was introduced in release 1.11. For detailed description, please refer to
-   <int:link pageid="128" />.
+   The update tool includes some limitations. For some MySQL versions, columns with DEFAULT values
+   are updated by the GORM update tool even if it is not necessary. This will be fixed in one of
+   the next releases if possible at all. But this fact does not limit the functionality of the tool
+   it self!
 </div>
+<p>
+   The following script shows, how the automated database update can be done with aim of the
+   <strong>GenericORMapperManagementTool</strong> tool. If you are searching for an example script, have a look
+   at the <em>/apps/modules/genericormapper/data/tools</em> folder in the <em>apf-codepack-*</em>
+   release. The file is named <em>update.php</em>.
+</p>
+<p>
+   In order to use the template, it must be adapted to fit your use case according to the notes below. The script is as
+   follows:
+</p>
+<gen:highlight type="php">
+// include page controller
+require('../../apps/core/pagecontroller/pagecontroller.php');
+
+// configure the registry if desired
+Registry::register('apf::core', 'Environment', '{ENVIRONMENT}');
+
+// include UpdateMapper
+import('modules::genericormapper::data::tools', 'GenericORMapperManagementTool');
+
+// create update tool
+$update = new GenericORMapperManagementTool();
+
+// set Context (important for the configuration files!)
+$update->setContext('{CONTEXT}');
+
+// adapt storage engine (default is MyISAM)
+//$update->setStorageEngine('MyISAM|INNODB');
+
+// adapt data type of the indexed columns, that are used for object ids
+//$update->setIndexColumnDataType('INT(5) UNSIGNED');
+
+// initialize mapping configuration
+$update->addMappingConfiguration('{CONFIG_NAMESPACE}', '{CONFIG_NAME_AFFIX}');
+
+// initialize relation configuration
+$update->addRelationConfiguration('{CONFIG_NAMESPACE}', '{CONFIG_NAME_AFFIX}');
+
+// initialize database connection (optional; if not set, statements will be printed instead if direct update)
+$update->setConnectionName('{CONNECTION_NAME}');
+
+// update database layout directly
+$update->run(true);
+
+// display statements only
+$update->run(false);
+</gen:highlight>
+<p>
+   The place holders within the script have the following meaning:
+</p>
+<ul>
+   <li>
+      <em>{ENVIRONMENT}</em>: This is the environment indicator of the application. It is used
+      for addressing configuration files and must be adopted, if your environment is set to a value
+      different than the default one. For details have a look at the <int:link pageid="134"/> chapter.
+   </li>
+   <li>
+      <em>{CONTEXT}</em>: This is the context of the application. It is used for addressing
+      configuration files and must be adopted, if your environment is set to a value different than
+      the default one. For details have a look at the <int:link pageid="134"/> chapter.
+   </li>
+   <li>
+      <em>{CONFIG_NAMESPACE}</em>: The namespace, that contains the mapper configuration files
+      (see <a href="#Chapter-2-2-Configuration-examples">chapter 2.2</a>).
+   </li>
+   <li>
+      <em>{CONFIG_NAME_AFFIX}</em>: The name affix for the configuration files (see
+      <a href="#Chapter-2-1-Basics">chapter 2.1</a>).
+   </li>
+   <li>
+      <em>{CONNECTION_NAME}</em>: The name of the database connection, that is used for the
+      setup and for production use.
+   </li>
+</ul>
+<p>
+   Further, it is important that the database that should be initialized must exist before setup is
+   started. Additionally, the user connecting to the database must have <em>CREATE TABLE</em>,
+   <em>ALTER TABLE</em>- and, if desired, <em>ALTER INDEX</em>-rights. Otherwise, the update could
+   not be done. If no error is displayed during setup the setup has finished successfully. The
+   result can be checked by using phpMyAdmin tool.
+</p>
+<div class="warn">
+   Please note some basic rules:
+   <ul>
+      <li>Huge databases should <em>not</em> be updated automatically!</li>
+      <li>Applying column changes, custom indices are not attended and can thus be deleted during update!</li>
+   </ul>
+</div>
+
 <h3 id="Chapter-4-Usage"><a href="#Chapter-4-Usage">4. Usage of the OR mapper</a></h3>
 The OR mapper, more precisely the <em>GenericORRelationMapper</em>, offers a list of API
 methods, that can be used for data and relation usage and manipulation. The following list gives you
@@ -650,7 +764,7 @@ $orm = &$ormFact->getGenericORMapper(
    </p>
    <p>
       Additional hints can be taken from
-      <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=6&amp;t=640">The object name "Application" does not exist ...</a>
+      <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=6&amp;t=640">The object name "Application" does not exist ...</a>
       (German).
    </p>
 </div>
@@ -958,7 +1072,7 @@ $orm->saveObject($user);
    calling <em>saveObject()</em>. The mapper therefor injects the current mapper instance and the
    id of the object within the database. Details on the feature request can be taken from the forum
    post
-   <a class="forum" href="http://forum.adventure-php-framework.org/de/viewtopic.php?f=10&amp;t=154" title="Erweiterung GORM (Release 1.11)" linkrewrite="false">Erweiterung GORM (Release 1.11)</a>
+   <a class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=10&amp;t=154" title="Erweiterung GORM (Release 1.11)" linkrewrite="false">Erweiterung GORM (Release 1.11)</a>
    (German).
 </div>
 
@@ -1354,7 +1468,6 @@ TargetObject = "News"
 <h3 id="Chapter-7-Notes"><a href="#Chapter-7-Notes">7. Notes</a></h3>
 <p>
    Hints on performance relevant issues can be found in the <int:link pageid="065">performance hacks</int:link>
-   chapter, the manual database setup is discussed in the <int:link pageid="064">manual database setup</int:link>
-   section. The source files of the <int:link pageid="095" /> module can be used as an extended example.
+   chapter. The source files of the <int:link pageid="095" /> module can be used as an extended example.
 </p>
 <core:importdesign namespace="modules::comments::pres::templates" template="comment" categorykey="en_063" />
