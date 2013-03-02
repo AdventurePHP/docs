@@ -30,21 +30,14 @@ class faq_controller extends BaseDocumentController {
       // get configuration from the registry
       $forumBaseURL = Registry::retrieve('sites::apf', 'ForumBaseURL');
 
-      // build select
-      if ($this->language === 'de') {
-         $forumID = '6';
-      } else {
-         $forumID = '8';
-      }
-
       $select = 'SELECT
                           `topic_id`,
                           `topic_title`,
                           `topic_time`,
                           `topic_first_poster_name`,
                           `topic_last_post_time`
-                       FROM `' . $this->language . '_phpbb3_topics`
-                       WHERE `forum_id` = \'' . $forumID . '\'
+                       FROM `de_phpbb3_topics`
+                       WHERE `forum_id` = \'6\'
                        ORDER BY topic_last_post_time DESC;';
       $result = $SQLForum->executeTextStatement($select);
 
@@ -61,7 +54,7 @@ class faq_controller extends BaseDocumentController {
       while ($data = $SQLForum->fetchData($result)) {
 
          // fill template
-         $templatePostsForum->setPlaceHolder('Link', $forumBaseURL . '/' . $this->language . '/viewtopic.php?f=' . $forumID . '&t=' . $data['topic_id']);
+         $templatePostsForum->setPlaceHolder('Link', $forumBaseURL . '/' . $this->language . '/viewtopic.php?f=6&t=' . $data['topic_id']);
          $templatePostsForum->setPlaceHolder('LinkText', utf8_encode($data['topic_title']));
          $templatePostsForum->setPlaceHolder('Title', utf8_encode($data['topic_title']));
 
