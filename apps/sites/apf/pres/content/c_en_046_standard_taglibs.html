@@ -1,6 +1,4 @@
-<doku:title parent="119"
-            tags="tag,tags,taglibs,standard taglibs,addtaglib,importdesign,forms,form tags,form,getstring,createobject,document controller,page controller,front controller,documentcontroller,pagecontroller,frontcontroller,iterator,model based view concept,validator"
-            title="Standard taglibs" urlname="Standard-taglibs" xmlns="http://www.w3.org/1999/html">
+<doku:title parent="119" tags="tag,tags,taglibs,standard taglibs,addtaglib,importdesign,forms,form tags,form,getstring,createobject,document controller,page controller,front controller,documentcontroller,pagecontroller,frontcontroller,iterator,model based view concept,validator" title="Standard taglibs" urlname="Standard-taglibs">
   The standard taglibs page contains the documentation of the taglibs that are shipped with each
   release. Among these are tags to integrate further templates, form tags, the document controller
   definition tag and front controller tag, that can dynamically include view templates by front
@@ -89,7 +87,9 @@
 </p>
 
 <h4 id="Chapter-1-2-Importdesign"><a href="#Chapter-1-2-Importdesign">1.2. Importdesign</a></h4>
-To include another template into a certain place in the space of a present template the tag
+<p>
+   To include another template into a certain place in the space of a present template the tag
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:importdesign namespace="" template="" [incparam=""] [context=""]/&gt;
 </gen:highlight>
@@ -110,25 +110,33 @@ To include another template into a certain place in the space of a present templ
      <strong>context</strong>: Redefines the context starting with the current DOM node.
   </li>
 </ul>
-can be used. If a so-called pagepart template is defined with the definition of this tag, a template
-can be integrated depending by the specified URL parameter. Standard parameter is "pagepart",
-nevertheless, this can be adapted with the optional attribute "incparam". Example of the integration
-with the pagepart parameter is:
+<p>
+   can be used. If a so-called pagepart template is defined with the definition of this tag, a template
+   can be integrated depending by the specified URL parameter. Standard parameter is "pagepart",
+   nevertheless, this can be adapted with the optional attribute "incparam". Example of the integration
+   with the pagepart parameter is:
+</p>
 <gen:highlight type="apf-xml">
-&lt;core:importdesign namespace="sites::testsite::pres::templates" template="[pagepart = test]" /&gt;
-&lt;core:importdesign namespace="sites::testsite::pres::templates" template="[cmsmodule = test]" \
- incparam="cmsmodule" /&gt;
+&lt;core:importdesign
+   namespace="sites::testsite::pres::templates"
+   template="[pagepart = test]"
+/&gt;
+&lt;core:importdesign
+   namespace="sites::testsite::pres::templates"
+   template="[cmsmodule = test]"
+   incparam="cmsmodule"
+/&gt;
 </gen:highlight>
-The integrated template automatically inherits the qualities of the father's object. In particular
-context and language will be adopted.
-<br />
-<br />
+<p>
+   The integrated template automatically inherits the qualities of the father's object. In particular
+   context and language will be adopted.
+</p>
 <div class="hint">
-The <strong>context</strong> should be used, if you are intended to use a module twice within one
-application/website with different configuration. Doing so, the module should be included using the
-importdesign taglib or a derived class to provide the correct context to the module. Please note,
-that all taglibs below this DOM node are initialized with the manually configured context and thus
-can access context and environment dependent configuration.
+   The <strong>context</strong> should be used, if you are intended to use a module twice within one
+   application/website with different configuration. Doing so, the module should be included using the
+   importdesign taglib or a derived class to provide the correct context to the module. Please note,
+   that all taglibs below this DOM node are initialized with the manually configured context and thus
+   can access context and environment dependent configuration.
 </div>
 
 <h3 id="Chapter-2-Html"><a href="#Chapter-2-Html">2. Html</a></h3>
@@ -139,6 +147,7 @@ can access context and environment dependent configuration.
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:placeholder name="" /&gt;
+&lt;html:placeholder name=""&gt;...&lt;/html:placeholder&gt;
 </gen:highlight>
 <strong>Description of the attributes:</strong>
 <ul>
@@ -148,12 +157,29 @@ can access context and environment dependent configuration.
     (<strong>Allowed characters</strong>: <code>[A-Za-z0-9-_]</code>)
   </li>
 </ul>
-<br />
 <p>
    To fill a place holder with contents you can insert the following instruction in a document controller:
 </p>
 <gen:highlight type="php">
-$this->setPlaceHolder('NameOfThePlaceHolder','ContentOfThePlaceHolder');
+$this->setPlaceHolder('NameOfThePlaceHolder', 'ContentOfThePlaceHolder');
+</gen:highlight>
+<p>
+   Since release 1.17 any number of string replacements can be registered with a place holder. This enables you to inject
+   dynamic content into the place holder using a tag implementation or a document controller.
+</p>
+<p>
+   For this reason, <em>BaseDocumentController</em> features the <em>setStringPlaceHolder()</em> method. Using this
+   method, you can inject any numbers of string placements into a place holder (class: <em>PlaceHolderTag</em>). In
+   case you intend to fill the <em>[NAME]</em> key within the place holder definition
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="name"&gt;Mein Name ist [NAME].&lt;/html:placeholder&gt;
+</gen:highlight>
+<p>
+   with <em>John Doe</em> please us the following code:
+</p>
+<gen:highlight type="php">
+$this->setStringPlaceHolder('name', 'NAME', 'John Doe');
 </gen:highlight>
 
 <h5 id="Chapter-2-2-Getstring"><a href="#Chapter-2-2-Getstring">2.2. Getstring</a></h5>
