@@ -101,7 +101,7 @@ class search_controller extends BaseDocumentController {
 </div>
 <p>The form tag itself takes three functional atributes, that are used for definition and configuration:</p>
 <gen:highlight type="apf-xml">
-&lt;html:form name="" [method=""] [action=""]&gt;
+&lt;html:form name="" [method=""] [action=""] [autocomplete="true|false"]&gt;
   ...
 &lt;/html:form&gt;
 </gen:highlight>
@@ -120,6 +120,11 @@ class search_controller extends BaseDocumentController {
   <li>
     <strong>action</strong>: The url, that is called on button click by the browser.
   </li>
+   <li>
+      <strong>autocomplete</strong>: in case the value is set to <em>true</em> the browser may save the content of the
+      form for further usage. This function is prevented in case this attribute is set to <em>false</em>. Avoiding auto
+      completion is especially recommended for log-in forms.
+   </li>
 </ul>
 <div class="hint">
    As of release 1.13 the possibility was added to define a global default value for the <em>action</em>
@@ -1360,13 +1365,34 @@ The <strong>SimpleDateControlValidator</strong> validates the date control descr
 &lt;/html:form&gt;
 </gen:highlight>
 
+<h5 id="Chapter-4-1-17-NumberScopeValidator"><a href="#Chapter-4-1-17-NumberScopeValidator">4.1.17. NumberScopeValidator</a></h5>
+<p>
+   The <em>NumberScopeValidator</em> validates a form control to contain an integer within a dedicated range. The default
+   range is from <em>0</em> to <em>65535</em> (maximum number for 16-bit integers). The lower and upper limit can be
+   configured with the <em>minvalue</em> and <em>maxvalue</em> attributes with the form control. The lower and upper
+   limit can be set to unlimited applying value <em>null</em>.
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="..."&gt;
+   &lt;form:text name="age" minvalue="10" maxvalue="100" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="NumberScopeValidator"
+      button="send"
+      control="age"
+   /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+
 <h4 id="Chapter-4-2-Construction-of-validators"><a href="#Chapter-4-2-Construction-of-validators">4.2. Construction of validators</a></h4>
-Validators are classes, that are derived from <strong>AbstractFormValidator</strong>. This abstract
-base class defines the structure of all form validators. This is necessary to be able to apply all
-validators to form controls as an observer.
-<br />
-<br />
-The interface is as follows:
+<p>
+   Validators are classes, that are derived from <strong>AbstractFormValidator</strong>. This abstract
+   base class defines the structure of all form validators. This is necessary to be able to apply all
+   validators to form controls as an observer.
+</p>
+<p>
+   The interface is as follows:
+</p>
 <gen:highlight type="php">
 abstract class AbstractFormValidator extends APFObject {
 

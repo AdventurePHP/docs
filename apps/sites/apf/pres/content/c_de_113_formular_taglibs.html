@@ -106,7 +106,7 @@ class search_controller extends BaseDocumentController {
    dienen:
 </p>
 <gen:highlight type="apf-xml">
-&lt;html:form name="" [method=""] [action=""]&gt;
+&lt;html:form name="" [method=""] [action=""] [autocomplete="true|false"]&gt;
   ...
 &lt;/html:form&gt;
 </gen:highlight>
@@ -125,6 +125,11 @@ class search_controller extends BaseDocumentController {
   <li>
     <strong>action</strong>: URL, die bei Klick auf den Button aufgerufen werden soll.
   </li>
+   <li>
+      <strong>autocomplete</strong>: Ist der Wert auf <em>true</em> gesetzt, wird dem Browser gestattet die Inhalte des
+      Formulars für ein erneutes Ausfüllen zu speichern. Diese Funktion wird mit <em>false</em> verhindert. Letzteres
+      wird insbesondere für Login-Formulare empfohlen.
+   </li>
 </ul>
 <div class="hint">
    Seit dem Release 1.13 ist es möglich, einen globalen Standard-Wert für das Attribut <em>action</em>
@@ -1392,13 +1397,34 @@ Er erwartet, dass das dort ausgewählte Datum größer als das heutige ist.
 &lt;/html:form&gt;
 </gen:highlight>
 
+<h5 id="Chapter-4-1-17-NumberScopeValidator"><a href="#Chapter-4-1-17-NumberScopeValidator">4.1.17. NumberScopeValidator</a></h5>
+<p>
+   Der <em>NumberScopeValidator</em> validiert ein Eingabefeld auf eine ganze Zahl in einem definierten Bereich. Der
+   Standard-Bereich geht von <em>0</em> bis <em>65535</em> (maximale Zahl für 16-Bit Integer). Die untere und obere
+   Grenze kann mit Hilfe der Attribute <em>minvalue</em> und <em>maxvalue</em> am jeweiligen Formular-Feld definiert
+   werden. Der untere oder obere Bereich kann jweils mit dem Wert <em>null</em> auf unendlich gesetzt werden.
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="..."&gt;
+   &lt;form:text name="age" minvalue="10" maxvalue="100" /&gt;
+   &lt;form:button name="send" value="Send"/&gt;
+   &lt;form:addvalidator
+      class="NumberScopeValidator"
+      button="send"
+      control="age"
+   /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+
 <h4 id="Chapter-4-2-Aufbau-von-Validatoren"><a href="#Chapter-4-2-Aufbau-von-Validatoren">4.2. Aufbau von Validatoren</a></h4>
-Validatoren sind Klassen, die von <strong>AbstractFormValidator</strong> erben. Diese definiert das
-Interface aller Formular-Validatoren. Das ist notwendig, damit diese als Observer an alle
-Formular-Elemente geheftet werden können.
-<br />
-<br />
-Das Interface eines Validators hat folgende gestalt:
+<p>
+   Validatoren sind Klassen, die von <strong>AbstractFormValidator</strong> erben. Diese definiert das
+   Interface aller Formular-Validatoren. Das ist notwendig, damit diese als Observer an alle
+   Formular-Elemente geheftet werden können.
+</p>
+<p>
+   Das Interface eines Validators hat folgende gestalt:
+</p>
 <gen:highlight type="php">
 abstract class AbstractFormValidator extends APFObject {
 
