@@ -58,8 +58,11 @@ $fC->registerAction('sites::apf::biz', 'setModel');
 echo $fC->start('sites::apf::pres::templates', 'main');
 
 // display benchmark report on demand
+/* @var $t BenchmarkTimer */
+$t = Singleton::getInstance('BenchmarkTimer');
 if (isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true') {
-   echo Singleton::getInstance('BenchmarkTimer')->createReport();
+   echo $t->createReport();
 }
+echo '<!-- rendering time: ' . $t->getTotalTime() . 's -->';
 
 ob_end_flush();
