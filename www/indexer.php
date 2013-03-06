@@ -9,6 +9,12 @@ import('core::logging', 'Logger');
 $l = &Singleton::getInstance('Logger');
 $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
+$stdWriter = $l->getLogWriter(
+   Registry::retrieve('apf::core', 'InternalLogTarget')
+);
+$l->addLogWriter('fulltextsearchindexer', clone $stdWriter);
+$l->addLogWriter('mysqlx', clone $stdWriter);
+
 // configure page values (to avoid rendering errors during index creation!)
 Registry::register('sites::apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumentation/Build/RELEASES');
 Registry::register('sites::apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
