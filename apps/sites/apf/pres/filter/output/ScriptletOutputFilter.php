@@ -3,8 +3,8 @@
  * @package sites::apf::pres::filter::output
  * @class ScriptletOutputFilter
  *
- * Implements a custom output filter, that kills whitspaces and newlines
- * maked by JAVA scriptlet tags (<% ... %>).
+ * Implements a custom output filter, that kills whitespaces and newlines
+ * marked by JAVA scriptlet tags (<% ... %>).
  *
  * @author Christian Achatz
  * @version
