@@ -50,6 +50,8 @@ abstract class release_base_controller extends BaseDocumentController {
    private static $PERFCODE_RELEASE_FILE_INDICATOR = '-perfcodepack';
    private static $CODE_RELEASE_FILE_INDICATOR = '-codepack';
 
+   private static $SNAPSHOT_RELEASE_FOLDER_NAME = 'snapshot';
+
    public function __construct() {
       $this->releasesLocalDir = Registry::retrieve('sites::apf', 'Releases.LocalDir');
       $this->releasesBaseURL = Registry::retrieve('sites::apf', 'Releases.BaseURL');
@@ -91,8 +93,18 @@ abstract class release_base_controller extends BaseDocumentController {
       $t = & Singleton::getInstance('BenchmarkTimer');
       $id = 'release_base_controller::getAllReleases()';
       $t->start($id);
-      $releases = array_reverse(FilesystemManager::getFolderContent($this->releasesLocalDir));
+      $rawReleases = array_reverse(FilesystemManager::getFolderContent($this->releasesLocalDir));
+
+      // exclude snapshot release folder
+      $releases = array();
+      foreach ($rawReleases as $release) {
+         if ($release != self::$SNAPSHOT_RELEASE_FOLDER_NAME) {
+            $releases[] = $release;
+         }
+      }
+
       usort($releases, array('release_base_controller', 'sortReleases'));
+
       $t->stop($id);
       return $releases;
    }
