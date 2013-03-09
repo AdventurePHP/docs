@@ -1,7 +1,7 @@
 <?php
 /**
  * @package sites::apf::pres::controller::quicknavi
- * @class socialnetworkbar_controller
+ * @class SocialBookmarkBarController
  *
  * Fills the dynamic content of the social network bar.
  *
@@ -9,7 +9,7 @@
  * @version
  * Version 0.1, 28.12.2009<br />
  */
-class socialnetworkbar_controller extends BaseDocumentController {
+class SocialBookmarkBarController extends BaseDocumentController {
 
    public function transformContent() {
       $currentUrl = Registry::retrieve('apf::core', 'CurrentRequestURL');
