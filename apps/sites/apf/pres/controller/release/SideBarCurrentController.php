@@ -1,6 +1,7 @@
 <?php
 namespace APF\sites\apf\pres\controller\release;
 
+use APF\sites\apf\biz\UrlManager;
 use APF\sites\apf\pres\controller\release\ReleaseBaseController;
 
 /**
@@ -59,7 +60,7 @@ class SideBarCurrentController extends ReleaseBaseController {
     */
    private function buildLink($release, $pageId) {
       /* @var $urlMan UrlManager */
-      $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
+      $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
       $link = $urlMan->generateLink($pageId, $this->language);
       return '<a href="' . $link . '" title="Get release ' . $release . '!">APF ' . $release . '</a>';
    }

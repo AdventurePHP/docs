@@ -34,7 +34,7 @@ class TopNavigationController extends BaseDocumentController {
       }
 
       /* @var $urlMan UrlManager */
-      $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
+      $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
 
       $buffer = (string)'';
       foreach ($this->navi as $naviNode) {

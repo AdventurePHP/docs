@@ -39,7 +39,7 @@ class InternalLinkTag extends Document {
 
       // setup link text
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
+      $urlMan = &$this->getServiceObject('APF\sites\apf\biz\UrlManager');
       $linkText = $this->getLinkText();
       if ($linkText === null) {
          $linkText = $urlMan->getPageTitle($pageId, $lang);

@@ -1,6 +1,12 @@
 <?php
 namespace APF\sites\apf\data;
 
+use APF\core\benchmark\BenchmarkTimer;
+use APF\core\database\ConnectionManager;
+use APF\core\pagecontroller\APFObject;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\SearchResult;
+
 /**
  * @package sites::apf::data
  * @class FulltextsearchMapper
@@ -19,7 +25,7 @@ class FulltextsearchMapper extends APFObject {
     * Loads a list of search result objects according to the given search string.
     *
     * @param string $searchString one or more search strings.
-    * @return searchResult[] List of search result objects.
+    * @return SearchResult[] List of search result objects.
     *
     * @author Christian Achatz
     * @version
@@ -30,15 +36,17 @@ class FulltextsearchMapper extends APFObject {
    public function loadSearchResult($searchString) {
 
       // start timer
-      $T = &Singleton::getInstance('BenchmarkTimer');
-      $T->start('fulltextsearchMapper::loadSearchResult()');
+      /* @var $t BenchmarkTimer */
+      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+      $t->start('fulltextsearchMapper::loadSearchResult()');
 
       // get configuration
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
       // get database connection
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
-      $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      /* @var $cM ConnectionManager */
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
+      $SQL = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       // make search string save (sql injection)
       $searchString = $SQL->escapeValue($searchString);
@@ -86,7 +94,7 @@ class FulltextsearchMapper extends APFObject {
          $Results[] = $this->mapSearchResult2DomainObject($data);
       }
 
-      $T->stop('fulltextsearchMapper::loadSearchResult()');
+      $t->stop('fulltextsearchMapper::loadSearchResult()');
 
       return $Results;
    }

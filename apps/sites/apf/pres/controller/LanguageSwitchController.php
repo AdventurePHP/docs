@@ -25,7 +25,7 @@ class LanguageSwitchController extends BaseDocumentController {
       $pageId = $model->getPageId();
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
+      $urlMan = &$this->getServiceObject('APF\sites\apf\biz\UrlManager');
       $linkDe = $urlMan->generateLink($pageId, 'de');
       $linkEn = $urlMan->generateLink($pageId, 'en');
 

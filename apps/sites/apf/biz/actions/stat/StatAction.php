@@ -49,7 +49,7 @@ class StatAction extends AbstractFrontcontrollerAction {
 
       // write statistic entry
       /* @var $sM StatManager */
-      $sM = & $this->getServiceObject('thirdparty::statistics::biz', 'StatManager');
+      $sM = & $this->getServiceObject('APF\thirdparty\statistics\biz\StatManager');
       $sM->writeStatistic($pageId . ' - ' . $pageName, $pageLang);
 
       // deliver non-cachable image

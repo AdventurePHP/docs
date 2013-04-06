@@ -39,7 +39,7 @@ class StatManager extends APFObject {
     */
    public function readStatistic($period = 'overview', $year = null, $month = null, $day = null, $hour = null) {
 
-      $t = & Singleton::getInstance('BenchmarkTimer');
+      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
       /* @var $t BenchmarkTimer */
       $t->start('getStatData(' . $period . ')');
 

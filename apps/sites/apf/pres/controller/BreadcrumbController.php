@@ -28,7 +28,7 @@ class BreadcrumbController extends BaseDocumentController {
       $lang = $model->getLanguage();
       if ($parent !== '0') {
          /* @var $linkGen UrlManager */
-         $linkGen = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
+         $linkGen = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
          $docuLink = $linkGen->generateLink($parent, $lang);
          $docuTitle = $linkGen->getPageTitle($parent, $lang);
 

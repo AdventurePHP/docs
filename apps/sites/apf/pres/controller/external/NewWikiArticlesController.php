@@ -21,7 +21,7 @@ class NewWikiArticlesController extends BaseDocumentController {
 
       // get wiki database connection
       /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
       $wikiConn = & $cM->getConnection('Wiki');
 
       // get configuration from the registry

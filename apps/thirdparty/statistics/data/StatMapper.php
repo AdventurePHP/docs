@@ -79,7 +79,7 @@ class StatMapper extends APFObject {
    public function createStatEntry($PageName, $PageLang, $RequestURI, $Day, $Month, $Year, $Hour, $Minute, $Second, $UserName, $SessionID, $Browser, $ClientLanguage, $OS, $IPAddress, $DNSAddress, $Referer, $UserAgent) {
 
       // get database connection
-      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
       /* @var $cM ConnectionManager */
       $conn = & $cM->getConnection($this->connectionKey);
       /* @var $conn DatabaseConnection */

@@ -32,7 +32,7 @@ class FulltextsearchManager extends APFObject {
     */
    public function loadSearchResult($SearchString) {
       /* @var $m FulltextsearchManager */
-      $m = & $this->getServiceObject('sites::apf::data', 'FulltextsearchMapper');
+      $m = & $this->getServiceObject('APF\sites\apf\data\FulltextsearchMapper');
 
       /* @var $l Logger */
       $l = & Singleton::getInstance('APF\core\logging\Logger');

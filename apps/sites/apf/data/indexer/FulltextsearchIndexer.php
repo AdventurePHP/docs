@@ -68,12 +68,12 @@ class FulltextsearchIndexer extends APFObject {
    public function importArticles() {
 
       /* @var $L Logger */
-      $L = & Singleton::getInstance('Logger');
+      $L = & Singleton::getInstance('APF\core\logging\Logger');
 
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
       $SQL = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       // delete old articles
@@ -155,13 +155,13 @@ class FulltextsearchIndexer extends APFObject {
    public function createIndex() {
 
       /* @var $l Logger */
-      $l = & Singleton::getInstance('Logger');
+      $l = & Singleton::getInstance('APF\core\logging\Logger');
 
       // get configuration
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
       $SQL = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       // delete the recent index
@@ -276,7 +276,7 @@ class FulltextsearchIndexer extends APFObject {
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
       $sql = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       // Wort selektieren

@@ -43,7 +43,7 @@ class RSSAction extends AbstractFrontcontrollerAction {
       $items = $page->transform();
 
       /* @var $urlMgr UrlManager */
-      $urlMgr = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
+      $urlMgr = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
       $link = 'http://adventure-php-framework.org' . $urlMgr->generateLink('124', $lang);
       echo '<?xml version="1.0" encoding="utf-8"?>
 <rss version="0.92">

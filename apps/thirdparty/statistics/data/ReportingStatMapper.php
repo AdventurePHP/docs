@@ -48,7 +48,7 @@ class ReportingStatMapper extends APFObject {
     */
    public function init($initParam) {
       /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
       $this->conn = & $cM->getConnection($initParam);
    }
 

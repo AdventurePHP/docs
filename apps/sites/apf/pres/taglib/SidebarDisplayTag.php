@@ -34,7 +34,7 @@ class SidebarDisplayTag extends ImportTemplateTag {
    public function onParseTime() {
 
       /* @var $t BenchmarkTimer */
-      $t = &Singleton::getInstance('BenchmarkTimer');
+      $t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
       $id = '(' . get_class($this) . ') ' . $this->getObjectId() . '::onParseTime()';
       $t->start($id);
 

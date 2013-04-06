@@ -132,7 +132,7 @@ final class UrlManager extends APFObject {
     */
    private function &getConnection() {
       /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
       return $cM->getConnection('FulltextSearch');
    }
 

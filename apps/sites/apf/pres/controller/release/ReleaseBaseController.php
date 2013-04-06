@@ -97,7 +97,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     */
    protected function getAllReleases() {
       /* @var $t BenchmarkTimer */
-      $t = & Singleton::getInstance('BenchmarkTimer');
+      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
       $id = 'ReleaseBaseController::getAllReleases()';
       $t->start($id);
       $rawReleases = array_reverse(FilesystemManager::getFolderContent($this->releasesLocalDir));
@@ -421,7 +421,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       $title .= $releaseNumber;
 
       /* @var $urlMan UrlManager */
-      $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
+      $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
       $link = $urlMan->generateLink(self::$REV_HISTORY_PAGEID, $this->language);
       $templateDocumentation->setPlaceHolder(
          'HistoryLink',

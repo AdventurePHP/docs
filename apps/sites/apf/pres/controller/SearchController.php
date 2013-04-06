@@ -49,7 +49,7 @@ class SearchController extends BaseDocumentController {
 
          // get manager
          /* @var $m FulltextsearchManager */
-         $m = &$this->getServiceObject('sites::apf::biz', 'FulltextsearchManager');
+         $m = &$this->getServiceObject('APF\sites\apf\biz\FulltextsearchManager');
 
          // load results
          $searchResults = $m->loadSearchResult($searchTerm);
@@ -65,7 +65,7 @@ class SearchController extends BaseDocumentController {
 
          $count = count($searchResults);
          /* @var $urlMan UrlManager */
-         $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
+         $urlMan = &$this->getServiceObject('APF\sites\apf\biz\UrlManager');
          $baseUrl = Registry::retrieve('apf::core', 'URLBasePath');
          for ($i = 0; $i < $count; $i++) {
 

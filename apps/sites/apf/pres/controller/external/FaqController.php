@@ -30,7 +30,7 @@ class FaqController extends BaseDocumentController {
 
       // get forum database connection
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
+      $cM = &$this->getServiceObject('APF\core\database\ConnectionManager');
       $SQLForum = &$cM->getConnection('Forum');
 
       // get configuration from the registry
