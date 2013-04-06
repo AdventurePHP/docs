@@ -1,6 +1,10 @@
 <?php
-import('sites::apf::biz', 'APFModel');
-import('sites::apf::pres::taglib', 'InternalLinkTag');
+namespace APF\sites\apf\pres\taglib;
+
+use APF\core\pagecontroller\Document;
+use APF\core\pagecontroller\TagLib;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\APFModel;
 
 /**
  * @package sites::apf::pres::taglib

@@ -1,4 +1,8 @@
 <?php
+namespace APF\sites\apf\pres\taglib;
+
+use APF\core\pagecontroller\Document;
+
 /**
  * @package sites::apf::pres::taglib
  * @class GenericHighlightTag
@@ -93,7 +97,6 @@ class GenericHighlightTag extends Document {
       }
 
       return '<div class="listing ' . $cssClass . '"><div class="codeHeading">' . $title . '</div><code>' . $content . '</code></div>';
-
    }
 
 }

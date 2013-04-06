@@ -1,5 +1,7 @@
 <?php
-import('tools::http', 'HeaderManager');
+namespace APF\sites\apf\pres\http;
+
+use APF\tools\http\HeaderManager;
 
 /**
  * @package sites::apf::pres::http

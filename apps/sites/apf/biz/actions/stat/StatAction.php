@@ -1,12 +1,16 @@
 <?php
-import('sites::apf::biz', 'APFModel');
-import('3rdparty::statistics::biz', 'StatManager');
+namespace APF\sites\apf\biz\actions\stat;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\sites\apf\biz\APFModel;
+use APF\thirdparty\statistics\biz\StatManager;
+use APF\tools\http\HeaderManager;
 
 /**
  * @package sites::apf::biz::actions::stat
  * @class StatAction
  *
- * Represents the front controller action to log the acces statistics.
+ * Represents the front controller action to log the access statistics.
  *
  * @author Christian Achatz
  * @version
@@ -31,9 +35,11 @@ class StatAction extends AbstractFrontcontrollerAction {
    public function run() {
 
       // gather input values
-      $pageLang = $this->getInput()->getLanguage();
-      $pageName = $this->getInput()->getTitle();
-      $pageId = $this->getInput()->getPageId();
+      /* @var $input StatInput */
+      $input = $this->getInput();
+      $pageLang = $input->getLanguage();
+      $pageName = $input->getTitle();
+      $pageId = $input->getPageId();
       $requestUrl = $this->getRequestUrl();
       $referer = $this->getReferer();
 
@@ -42,7 +48,8 @@ class StatAction extends AbstractFrontcontrollerAction {
       $_SERVER['HTTP_REFERER'] = $referer; // fake referer
 
       // write statistic entry
-      $sM = &$this->getServiceObject('3rdparty::statistics::biz', 'StatManager');
+      /* @var $sM StatManager */
+      $sM = & $this->getServiceObject('thirdparty::statistics::biz', 'StatManager');
       $sM->writeStatistic($pageId . ' - ' . $pageName, $pageLang);
 
       // deliver non-cachable image

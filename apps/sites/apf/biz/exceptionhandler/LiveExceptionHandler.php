@@ -1,7 +1,11 @@
 <?php
+namespace APF\sites\apf\biz\exceptionhandler;
+
+use APF\core\exceptionhandler\DefaultExceptionHandler;
+
 class LiveExceptionHandler extends DefaultExceptionHandler {
 
-   public function handleException(Exception $exception) {
+   public function handleException(\Exception $exception) {
 
       // fill attributes
       $this->exceptionNumber = $exception->getCode();

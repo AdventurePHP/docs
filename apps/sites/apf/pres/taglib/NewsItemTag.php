@@ -1,12 +1,14 @@
 <?php
-import('sites::apf::pres::taglib', 'InternalLinkTag');
+namespace APF\sites\apf\pres\taglib;
+
+use APF\core\pagecontroller\Document;
+use APF\core\pagecontroller\TagLib;
 
 class NewsItemTag extends Document {
 
    private static $IMAGE_PATTERN = '/<img src="([A-Za-z0-9\.\-\/:]+)" alt="([^"]+)" \/>/i';
    private static $TITLE_PATTERN = '/<h3>(.*)<\/h3>/i';
    private static $DATE_PATTERN = '/<div class="date">(.*)<\/div>/i';
-   private static $CONTENT_PATTERN = '/<p>(.*)<\/p>/ims';
 
    /**
     * @var string The news mode.

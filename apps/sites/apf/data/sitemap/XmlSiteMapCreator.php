@@ -1,4 +1,10 @@
 <?php
+namespace APF\sites\apf\data\sitemap;
+
+use APF\core\database\ConnectionManager;
+use APF\core\pagecontroller\APFObject;
+use APF\sites\apf\biz\UrlManager;
+
 class XmlSiteMapCreator extends APFObject {
 
    private $baseUrl = 'http://adventure-php-framework.org';
@@ -14,7 +20,7 @@ class XmlSiteMapCreator extends APFObject {
       $select = 'SELECT PageID, URLName, Language, ModificationTimestamp, Title FROM search_articles ORDER BY PageID ASC';
       $result = $sql->executeTextStatement($select);
 
-      /* @var $urlMan UrlManager*/
+      /* @var $urlMan UrlManager */
       $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
 
       $buffer = (string)'<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;

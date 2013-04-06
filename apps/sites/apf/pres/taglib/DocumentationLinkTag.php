@@ -1,4 +1,8 @@
 <?php
+namespace APF\sites\apf\pres\taglib;
+
+use APF\core\pagecontroller\Document;
+
 /**
  * @package sites::apf::pres::taglib
  * @class DocumentationLinkTag

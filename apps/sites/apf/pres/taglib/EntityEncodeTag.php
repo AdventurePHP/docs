@@ -1,5 +1,8 @@
 <?php
-import('tools::string', 'StringAssistant');
+namespace APF\sites\apf\pres\taglib;
+
+use APF\core\pagecontroller\Document;
+use APF\tools\string\StringAssistant;
 
 class EntityEncodeTag extends Document {
 

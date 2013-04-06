@@ -1,6 +1,13 @@
 <?php
-import('sites::apf::pres::controller::release', 'release_base_controller');
-import('sites::apf::biz', 'APFModel');
+namespace APF\sites\apf\pres\taglib;
+
+use APF\core\pagecontroller\Document;
+use APF\core\pagecontroller\TagLib;
+use APF\core\registry\Registry;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\pres\controller\release\ReleaseBaseController;
+use APF\sites\apf\biz\APFModel;
+use APF\tools\request\RequestHandler;
 
 /**
  * @package sites::apf::pres::taglib
@@ -86,7 +93,7 @@ class RevisionHistoryTag extends Document {
     * @return string The release number contained in the url, or a fallback number form the tag definition.
     */
    private function getReleaseNumber() {
-      $release = RequestHandler::getValue(release_base_controller::$REV_HISTORY_PARAM);
+      $release = RequestHandler::getValue(ReleaseBaseController::$REV_HISTORY_PARAM);
       if ($release === null) {
          $release = $this->getAttribute(self::$FALLBACK_RELEASE_PARAM);
       }

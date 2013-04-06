@@ -18,9 +18,7 @@ set_time_limit(0);
 ini_set('memory_limit', '300M');
 
 // include front controller
-import('core::frontcontroller', 'Frontcontroller');
-
-import('sites::apf::data::sitemap', 'XmlSiteMapCreator');
+use APF\sites\apf\data\sitemap\XmlSiteMapCreator;
 
 $xSC = new XmlSiteMapCreator();
 $xSC->setContext('sites::apf');

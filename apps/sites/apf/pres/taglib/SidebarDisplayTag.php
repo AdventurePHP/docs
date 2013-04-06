@@ -1,5 +1,10 @@
 <?php
-import('sites::apf::biz', 'APFModel');
+namespace APF\sites\apf\pres\taglib;
+
+use APF\core\benchmark\BenchmarkTimer;
+use APF\core\pagecontroller\ImportTemplateTag;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\APFModel;
 
 /**
  * @package sites::apf::pres::controller

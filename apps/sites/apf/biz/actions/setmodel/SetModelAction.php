@@ -1,6 +1,10 @@
 <?php
-import('sites::apf::biz', 'APFModel');
-import('tools::request', 'RequestHandler');
+namespace APF\sites\apf\biz\actions\setmodel;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\APFModel;
+use APF\tools\request\RequestHandler;
 
 /**
  * @package sites::apf::biz::actions::setmodel
@@ -35,8 +39,8 @@ class SetModelAction extends AbstractFrontcontrollerAction {
     */
    public function run() {
 
-      $model = &Singleton::getInstance('APFModel');
       /* @var $model APFModel */
+      $model = & Singleton::getInstance('APFModel');
 
       // register request parameters
       $pageIndicatorNames = $model->getAttribute('page.indicator');

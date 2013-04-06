@@ -1,4 +1,9 @@
 <?php
+namespace APF\sites\apf\pres\controller\quicknavi;
+
+use APF\core\pagecontroller\BaseDocumentController;
+use APF\core\registry\Registry;
+
 /**
  * @package sites::apf::pres::controller::quicknavi
  * @class SocialBookmarkBarController

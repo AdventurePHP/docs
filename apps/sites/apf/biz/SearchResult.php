@@ -1,4 +1,8 @@
 <?php
+namespace APF\sites\apf\biz;
+
+use APF\core\pagecontroller\APFObject;
+
 /**
  * @package sites::apf::biz
  * @class SearchResult

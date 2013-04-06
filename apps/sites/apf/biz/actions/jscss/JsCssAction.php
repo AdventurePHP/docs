@@ -1,6 +1,8 @@
 <?php
-import('tools::http', 'HeaderManager');
-import('sites::apf::pres::http', 'HttpCacheManager');
+namespace APF\sites\apf\biz\actions\jscss;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\sites\apf\pres\http\HttpCacheManager;
 
 /**
  * @package sites::apf::biz::actions::jscss

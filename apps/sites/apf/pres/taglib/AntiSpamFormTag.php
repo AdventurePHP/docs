@@ -1,5 +1,7 @@
 <?php
-import('tools::form::taglib', 'AbstractFormControl');
+namespace APF\sites\apf\pres\taglib;
+
+use APF\tools\form\taglib\AbstractFormControl;
 
 /**
  * @package sites::demosite::prea::taglib
@@ -19,7 +21,7 @@ class AntiSpamFormTag extends AbstractFormControl {
       // validate the given attributes
       if ($this->getAttribute('minfilltime') === null) {
          $formName = $this->getParentObject()->getAttribute('name');
-         throw new InvalidArgumentException('[AntiSpamFormTag::onAfterAppend()] There is not attribute "minfilltime" given in the anti spam tag definition in form "' . $formName . '"! Please provide the attribute mentioned containing the time in seconds the user needs to fill in the form.');
+         throw new \InvalidArgumentException('[AntiSpamFormTag::onAfterAppend()] There is not attribute "minfilltime" given in the anti spam tag definition in form "' . $formName . '"! Please provide the attribute mentioned containing the time in seconds the user needs to fill in the form.');
       }
 
       $antiSpamName = $this->getAntiSpamName();

@@ -1,6 +1,10 @@
 <?php
-import('tools::request', 'RequestHandler');
-import('tools::http', 'HeaderManager');
+namespace APF\sites\apf\biz\actions\changelang;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\sites\apf\biz\UrlManager;
+use APF\tools\request\RequestHandler;
+use APF\tools\http\HeaderManager;
 
 /**
  * @package sites::apf::biz::actions::changelang
@@ -33,7 +37,7 @@ class ChangeLangAction extends AbstractFrontcontrollerAction {
       $targetPageId = preg_replace('/([^0-9]+)/', '', RequestHandler::getValue(self::$PAGE_ID));
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject('sites::apf::biz', 'UrlManager');
+      $urlMan = & $this->getServiceObject('sites::apf::biz', 'UrlManager');
       $forwardUrl = $urlMan->generateLink($targetPageId, $targetLang);
 
       HeaderManager::forward($forwardUrl);

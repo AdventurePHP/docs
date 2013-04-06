@@ -1,4 +1,8 @@
 <?php
+namespace APF\sites\apf\biz\errorhandler;
+
+use APF\core\errorhandler\DefaultErrorHandler;
+
 class LiveErrorHandler extends DefaultErrorHandler {
 
    public function handleError($errorNumber, $errorMessage, $errorFile, $errorLine, array $errorContext) {

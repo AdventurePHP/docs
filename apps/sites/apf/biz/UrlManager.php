@@ -1,5 +1,12 @@
 <?php
-import('sites::apf::biz', 'APFModel');
+namespace APF\sites\apf\biz;
+
+use APF\core\benchmark\BenchmarkTimer;
+use APF\core\database\ConnectionManager;
+use APF\core\database\DatabaseConnection;
+use APF\core\pagecontroller\APFObject;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\APFModel;
 
 /**
  * @package sites::apf::biz
@@ -25,7 +32,7 @@ final class UrlManager extends APFObject {
     *
     * @param string $pageId The id of the target page.
     * @param string $lang The desired target language.
-    * @return The desired link.
+    * @return string The desired link.
     *
     * @author Christian Achatz
     * @version
@@ -33,7 +40,8 @@ final class UrlManager extends APFObject {
     */
    public function generateLink($pageId, $lang) {
 
-      $t = &Singleton::getInstance('BenchmarkTimer');
+      /* @var $t BenchmarkTimer */
+      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
       $id = 'UrlManager::generateLink(' . $pageId . ',' . $lang . ')';
       $t->start($id);
 
@@ -46,11 +54,12 @@ final class UrlManager extends APFObject {
 
       // setup the basic part of the link
       $pageIdent = (string)$pageId;
-      $model = &Singleton::getInstance('APFModel');
+      /* @var $model APFModel */
+      $model = & Singleton::getInstance('APFModel');
       $urlLangIdent = $model->getUrlIdentifier($lang);
 
-      // fetch the url name from the database using the fulltextsearch
-      $sql = &$this->getConnection();
+      // fetch the url name from the database using the fulltext search
+      $sql = & $this->getConnection();
       // avoid injections!
       $pageId = $sql->escapeValue($pageId);
       $lang = $sql->escapeValue($lang);
@@ -78,7 +87,7 @@ final class UrlManager extends APFObject {
     *
     * @param string $pageId The id of the target page.
     * @param string $lang The desired target language.
-    * @return The page title
+    * @return string The page title.
     *
     * @author Christian Achatz
     * @version
@@ -86,7 +95,8 @@ final class UrlManager extends APFObject {
     */
    public function getPageTitle($pageId, $lang) {
 
-      $t = &Singleton::getInstance('BenchmarkTimer');
+      /* @var $t BenchmarkTimer */
+      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
       $id = 'UrlManager::getPageTitle(' . $pageId . ',' . $lang . ')';
       $t->start($id);
 
@@ -98,7 +108,7 @@ final class UrlManager extends APFObject {
       }
 
       // select title from the database
-      $sql = &$this->getConnection();
+      $sql = & $this->getConnection();
       // avoid injections!
       $pageId = $sql->escapeValue($pageId);
       $lang = $sql->escapeValue($lang);
@@ -118,10 +128,11 @@ final class UrlManager extends APFObject {
    /**
     * Initialize database connection for current usage.
     *
-    * @return AbstractDatabaseHandler The database connection.
+    * @return DatabaseConnection The database connection.
     */
    private function &getConnection() {
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
+      /* @var $cM ConnectionManager */
+      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
       return $cM->getConnection('FulltextSearch');
    }
 

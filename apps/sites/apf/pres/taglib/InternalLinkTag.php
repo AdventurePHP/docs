@@ -1,4 +1,9 @@
 <?php
+namespace APF\sites\apf\pres\taglib;
+
+use APF\core\pagecontroller\Document;
+use APF\sites\apf\biz\UrlManager;
+
 /**
  * @package sites::apf::pres::taglib
  * @class InternalLinkTag
@@ -23,7 +28,7 @@ class InternalLinkTag extends Document {
 
       $pageId = $this->getAttribute('pageid');
       if ($pageId === null) {
-         throw new InvalidArgumentException('[InternalLinkTag::transform()] Attribute "pageid" must not be null!', E_USER_ERROR);
+         throw new \InvalidArgumentException('[InternalLinkTag::transform()] Attribute "pageid" must not be null!', E_USER_ERROR);
       }
 
       // setup language

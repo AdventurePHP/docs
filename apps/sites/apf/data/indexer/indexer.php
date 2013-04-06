@@ -21,7 +21,7 @@ set_time_limit(0);
 ini_set('memory_limit', '300M');
 
 // include indexer class
-import('sites::apf::data::indexer', 'FulltextsearchIndexer');
+use APF\sites\apf\data\indexer\FulltextsearchIndexer;
 
 // create indexer
 $fSI = new FulltextsearchIndexer();

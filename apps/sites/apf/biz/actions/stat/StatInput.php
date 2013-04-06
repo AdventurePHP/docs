@@ -1,4 +1,8 @@
 <?php
+namespace APF\sites\apf\biz\actions\stat;
+
+use APF\core\frontcontroller\FrontcontrollerInput;
+
 class StatInput extends FrontcontrollerInput {
 
    public function StatInput() {

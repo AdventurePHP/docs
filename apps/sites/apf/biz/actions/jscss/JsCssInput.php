@@ -1,4 +1,8 @@
 <?php
+namespace APF\sites\apf\biz\actions\jscss;
+
+use APF\core\frontcontroller\FrontcontrollerInput;
+
 /**
  * @package sites::apf::biz::actions::css
  * @class JsCssInput

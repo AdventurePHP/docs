@@ -1,8 +1,10 @@
 <?php
-import('modules::pager::biz', 'PagerManagerFabric');
-import('sites::apf::biz', 'SearchResult');
-import('sites::apf::data', 'FulltextsearchMapper');
-import('core::logging', 'Logger');
+namespace APF\sites\apf\biz;
+
+use APF\core\pagecontroller\APFObject;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\SearchResult;
+use APF\core\logging\Logger;
 
 /**
  * @package sites::apf::biz
@@ -33,7 +35,7 @@ class FulltextsearchManager extends APFObject {
       $m = & $this->getServiceObject('sites::apf::data', 'FulltextsearchMapper');
 
       /* @var $l Logger */
-      $l = & Singleton::getInstance('Logger');
+      $l = & Singleton::getInstance('APF\core\logging\Logger');
       $l->logEntry('searchlog', 'SearchString: "' . $SearchString . '"', 'LOG');
 
       return $m->loadSearchResult($SearchString);

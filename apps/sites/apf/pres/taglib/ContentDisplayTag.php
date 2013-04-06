@@ -1,9 +1,11 @@
 <?php
-import('sites::apf::biz', 'APFModel');
-import('sites::apf::pres::taglib', 'GenericHighlightTag');
-import('sites::apf::pres::taglib', 'DocumentationLinkTag');
-import('sites::apf::pres::taglib', 'DocumentationTitleTag');
-import('sites::apf::pres::taglib', 'InternalLinkTag');
+namespace APF\sites\apf\pres\taglib;
+
+use APF\core\pagecontroller\Document;
+use APF\core\pagecontroller\TagLib;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\APFModel;
+use APF\sites\apf\pres\taglib\GenericHighlightTag;
 
 /**
  * @package sites::apf::pres::taglib
@@ -52,7 +54,7 @@ class ContentDisplayTag extends Document {
    public function onParseTime() {
 
       // get model
-      $model = &Singleton::getInstance('APFModel');
+      $model = & Singleton::getInstance('APFModel');
 
       // include the content of the model's content file in the current object
       $this->content = file_get_contents(

@@ -1,7 +1,16 @@
 <?php
-import('core::logging', 'Logger');
-import('tools::filesystem', 'FilesystemManager');
-import('sites::apf::biz', 'APFModel');
+namespace APF\sites\apf\data\indexer;
+
+use APF\core\database\ConnectionManager;
+use APF\core\database\DatabaseHandlerException;
+use APF\core\loader\RootClassLoader;
+use APF\core\logging\Logger;
+use APF\core\pagecontroller\APFObject;
+use APF\core\pagecontroller\Page;
+use APF\core\registry\Registry;
+use APF\core\singleton\Singleton;
+use APF\tools\filesystem\FilesystemManager;
+use APF\sites\apf\biz\APFModel;
 
 /**
  * @package sites::apf::data::indexer
@@ -58,16 +67,14 @@ class FulltextsearchIndexer extends APFObject {
     */
    public function importArticles() {
 
-      $T = &Singleton::getInstance('BenchmarkTimer');
-
       /* @var $L Logger */
-      $L = &Singleton::getInstance('Logger');
+      $L = & Singleton::getInstance('Logger');
 
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
-      $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $SQL = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       // delete old articles
       $L->logEntry($this->logFileName, '[DELETE] Delete articles ...');
@@ -148,14 +155,14 @@ class FulltextsearchIndexer extends APFObject {
    public function createIndex() {
 
       /* @var $l Logger */
-      $l = &Singleton::getInstance('Logger');
+      $l = & Singleton::getInstance('Logger');
 
       // get configuration
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
-      $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $SQL = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       // delete the recent index
       $delete = 'TRUNCATE search_index';
@@ -269,8 +276,8 @@ class FulltextsearchIndexer extends APFObject {
       $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
-      $sql = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      $cM = & $this->getServiceObject('core::database', 'ConnectionManager');
+      $sql = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       // Wort selektieren
       $select_word = 'SELECT WordID FROM search_word WHERE Word = \'' . $word . '\'';
@@ -307,7 +314,8 @@ class FulltextsearchIndexer extends APFObject {
    private function createPageOutput($pageId, $fileName, $lang) {
 
       // fill the model
-      $model = &Singleton::getInstance('APFModel');
+      /* @var $model APFModel */
+      $model = & Singleton::getInstance('APFModel');
       $model->setAttribute('page.id', $pageId);
       $model->setAttribute('page.contentfilename', 'c_' . $lang . '_' . $fileName . '.html');
       $model->setAttribute('page.language', $lang);
@@ -375,7 +383,9 @@ class FulltextsearchIndexer extends APFObject {
       $content = preg_replace($locSearch, $locReplace, $content);
 
       // Stopwords löschen und gegen Leerzeichen ersetzen
-      include(APPS__PATH . '/sites/apf/data/indexer/stopwords.php');
+      $loader = RootClassLoader::getLoaderByVendor('APF');
+      $rootPath = $loader->getRootPath();
+      include($rootPath . '/sites/apf/data/indexer/stopwords.php');
       foreach ($Stopwords[$language] as $Stopword) {
          $content = preg_replace('/ ' . $Stopword . ' /', ' ', $content);
       }

@@ -1,4 +1,6 @@
 <?php
+namespace APF\sites\apf\data;
+
 /**
  * @package sites::apf::data
  * @class FulltextsearchMapper
