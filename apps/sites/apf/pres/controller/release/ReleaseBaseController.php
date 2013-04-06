@@ -60,8 +60,8 @@ abstract class ReleaseBaseController extends BaseDocumentController {
    private static $SNAPSHOT_RELEASE_FOLDER_NAME = 'snapshot';
 
    public function __construct() {
-      $this->releasesLocalDir = Registry::retrieve('sites::apf', 'Releases.LocalDir');
-      $this->releasesBaseURL = Registry::retrieve('sites::apf', 'Releases.BaseURL');
+      $this->releasesLocalDir = Registry::retrieve('APF\sites\apf', 'Releases.LocalDir');
+      $this->releasesBaseURL = Registry::retrieve('APF\sites\apf', 'Releases.BaseURL');
    }
 
    /**

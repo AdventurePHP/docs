@@ -10,12 +10,19 @@ date_default_timezone_set('Europe/Berlin');
 ob_start();
 
 ini_set('html_errors', 'off');
-include('../apps/core/pagecontroller/pagecontroller.php');
-import('core::frontcontroller', 'Frontcontroller');
-import('core::logging', 'Logger');
+include('../apps/core/bootstrap.php');
+
+use APF\core\benchmark\BenchmarkTimer;
+use APF\core\filter\OutputFilterChain;
+use APF\core\frontcontroller\Frontcontroller;
+use APF\core\logging\Logger;
+use APF\core\registry\Registry;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\pres\filter\output\ScriptletOutputFilter;
+use APF\sites\apf\pres\http\HttpCacheManager;
 
 /* @var $l Logger */
-$l = & Singleton::getInstance('Logger');
+$l = & Singleton::getInstance('APF\core\logging\Logger');
 $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
 // configure logger for database debug messages
@@ -25,11 +32,11 @@ $dbWriter = clone $l->getLogWriter(
 $l->addLogWriter('mysqlx', $dbWriter);
 
 // configure page values
-Registry::register('apf::core', 'URLRewriting', true);
-Registry::register('sites::apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumentation/Build/RELEASES');
-Registry::register('sites::apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
-Registry::register('sites::apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
-Registry::register('sites::apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
+Registry::register('APF\core', 'URLRewriting', true);
+Registry::register('APF\sites\apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumentation/Build/RELEASES');
+Registry::register('APF\sites\apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
+Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
+Registry::register('APF\sites\apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
 
 // special script kiddie error handler ;)
 /*import('sites::apf::biz::errorhandler', 'LiveErrorHandler');
@@ -38,24 +45,22 @@ GlobalErrorHandler::registerErrorHandler(new LiveErrorHandler());
 GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());*/
 
 // special output filter
-import('sites::apf::pres::filter::output', 'ScriptletOutputFilter');
 OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 
 // register downloads environment
 Registry::register('sites::apf', 'sitemap.env', 'dev');
 
 // send HTTP caching headers
-import('sites::apf::pres::http', 'HttpCacheManager');
 HttpCacheManager::sendHtmlCacheHeaders();
 
-$fC = Singleton::getInstance('Frontcontroller');
+$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
 /* @var $fC Frontcontroller */
-$fC->setContext('sites::apf');
+$fC->setContext('sites\apf');
 $fC->setLanguage('de');
 
-$fC->registerAction('sites::apf::biz', 'setModel');
+$fC->registerAction('APF\sites\apf\biz', 'setModel');
 
-echo $fC->start('sites::apf::pres::templates', 'main');
+echo $fC->start('APF\sites\apf\pres\templates', 'main');
 
 // display benchmark report on demand
 /* @var $t BenchmarkTimer */

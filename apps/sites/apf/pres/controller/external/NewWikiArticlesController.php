@@ -25,7 +25,7 @@ class NewWikiArticlesController extends BaseDocumentController {
       $wikiConn = & $cM->getConnection('Wiki');
 
       // get configuration from the registry
-      $wikiBaseURL = Registry::retrieve('sites::apf', 'WikiBaseURL');
+      $wikiBaseURL = Registry::retrieve('APF\sites\apf', 'WikiBaseURL');
 
       // build select
       $tablePrefix = 'wiki_' . $this->language . '_';

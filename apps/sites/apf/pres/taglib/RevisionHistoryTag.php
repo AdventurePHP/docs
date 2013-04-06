@@ -81,7 +81,7 @@ class RevisionHistoryTag extends Document {
     * Version 0.1, 30.12.2009<br />
     */
    private function getReleaseDescription($releaseNumber) {
-      $relLocalDir = Registry::retrieve('sites::apf', 'Releases.LocalDir');
+      $relLocalDir = Registry::retrieve('APF\sites\apf', 'Releases.LocalDir');
       $historyFile = $relLocalDir . '/' . $releaseNumber . '/' . $this->language . '_release_description.html';
       if (file_exists($historyFile)) {
          return preg_replace('/&([A-Za-z0-9\-_]+)=([A-Za-z0-9\-_]+)/', '&amp;$1=$2', file_get_contents($historyFile));

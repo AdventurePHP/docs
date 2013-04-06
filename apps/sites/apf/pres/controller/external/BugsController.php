@@ -25,7 +25,7 @@ class BugsController extends BaseDocumentController {
       $forumConn = & $cM->getConnection('Forum');
 
       // get configuration from the registry
-      $forumBaseURL = Registry::retrieve('sites::apf', 'ForumBaseURL');
+      $forumBaseURL = Registry::retrieve('APF\sites\apf', 'ForumBaseURL');
 
       $select = 'SELECT
                        `topic_id`,
