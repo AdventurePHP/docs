@@ -9,7 +9,7 @@ use APF\sites\apf\biz\UrlManager;
 use APF\tools\filesystem\FilesystemManager;
 
 /**
- * @package sites::apf::pres::controller::release
+ * @package APF\sites\apf\pres\controller\release
  * @class ReleaseBaseController
  *
  * Implements basic functionality for the release pages.

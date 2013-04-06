@@ -8,7 +8,7 @@ use APF\sites\apf\biz\UrlManager;
 use APF\tools\request\RequestHandler;
 
 /**
- * @package sites::apf::pres::controller
+ * @package APF\sites\apf\pres\controller
  * @class SearchController
  *
  * Implements the document controller for the search.html template.

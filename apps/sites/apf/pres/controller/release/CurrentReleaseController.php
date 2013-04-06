@@ -4,7 +4,7 @@ namespace APF\sites\apf\pres\controller\release;
 use APF\sites\apf\pres\controller\release\ReleaseBaseController;
 
 /**
- * @package sites::apf::pres::controller::release
+ * @package APF\sites\apf\pres\controller\release
  * @class CurrentReleaseController
  *
  * Displays the current release (stable) package.

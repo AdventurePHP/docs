@@ -7,7 +7,7 @@ use APF\core\singleton\Singleton;
 use APF\sites\apf\biz\APFModel;
 
 /**
- * @package sites::apf::pres::taglib
+ * @package APF\sites\apf\pres\taglib
  * @class QuickNaviContentTag
  *
  * Implements the taglib, that displays the quicknavi content.

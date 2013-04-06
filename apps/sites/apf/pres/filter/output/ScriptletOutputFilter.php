@@ -5,7 +5,7 @@ use APF\core\filter\ChainedContentFilter;
 use APF\core\filter\FilterChain;
 
 /**
- * @package sites::apf::pres::filter::output
+ * @package APF\sites\apf\pres\filter\output
  * @class ScriptletOutputFilter
  *
  * Implements a custom output filter, that kills whitespaces and newlines

@@ -4,7 +4,7 @@ namespace APF\sites\apf\biz\actions\jscss;
 use APF\core\frontcontroller\FrontcontrollerInput;
 
 /**
- * @package sites::apf::biz::actions::css
+ * @package APF\sites\apf\biz\actions\css
  * @class JsCssInput
  *
  * Represents the action's input object.

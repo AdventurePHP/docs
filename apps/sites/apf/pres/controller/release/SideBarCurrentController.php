@@ -5,7 +5,7 @@ use APF\sites\apf\biz\UrlManager;
 use APF\sites\apf\pres\controller\release\ReleaseBaseController;
 
 /**
- * @package sites::apf::pres::controller::release
+ * @package APF\sites\apf\pres\controller\release
  * @class SideBarCurrentController
  *
  * Generates the sidebar links to the current stable and current

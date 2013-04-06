@@ -1,6 +1,6 @@
 <?php
 /**
- * @package sites::apf::data::sitemap
+ * @package APF\sites\apf\data\sitemap
  * @file sitemap.php
  *
  * Script wrapper file for the sitemap service.

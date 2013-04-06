@@ -4,7 +4,7 @@ namespace APF\sites\apf\biz;
 use APF\core\pagecontroller\APFObject;
 
 /**
- * @package sites::apf::biz
+ * @package APF\sites\apf\biz
  * @class SearchResult
  *
  * This class represents the domain object of the fulltextsearch functionality.

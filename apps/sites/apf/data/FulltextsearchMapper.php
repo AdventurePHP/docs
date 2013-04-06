@@ -8,7 +8,7 @@ use APF\core\singleton\Singleton;
 use APF\sites\apf\biz\SearchResult;
 
 /**
- * @package sites::apf::data
+ * @package APF\sites\apf\data
  * @class FulltextsearchMapper
  *
  * Implements the data layer of the APF docu page's fulltext search.

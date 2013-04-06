@@ -7,7 +7,7 @@ use APF\sites\apf\biz\APFModel;
 use APF\tools\request\RequestHandler;
 
 /**
- * @package sites::apf::biz::actions::setmodel
+ * @package APF\sites\apf\biz\actions\setmodel
  * @class SetModelAction
  *
  * Represents the front controller action to initialize the page's model.

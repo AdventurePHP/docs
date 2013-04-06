@@ -9,7 +9,7 @@ use APF\core\singleton\Singleton;
 use APF\sites\apf\biz\APFModel;
 
 /**
- * @package sites::apf::biz
+ * @package APF\sites\apf\biz
  * @name UrlManager
  *
  * This tool let's you generate a APF docu page link by a

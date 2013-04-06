@@ -6,7 +6,7 @@ use APF\core\database\DatabaseConnection;
 use APF\core\pagecontroller\APFObject;
 
 /**
- * @package thirdparty::statistics::data
+ * @package APF\thirdparty\statistics\data
  * @class StatMapper
  *
  *  Implements the data layer for the web statistics.

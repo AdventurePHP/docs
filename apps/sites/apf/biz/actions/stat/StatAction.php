@@ -7,7 +7,7 @@ use APF\thirdparty\statistics\biz\StatManager;
 use APF\tools\http\HeaderManager;
 
 /**
- * @package sites::apf::biz::actions::stat
+ * @package APF\sites\apf\biz\actions\stat
  * @class StatAction
  *
  * Represents the front controller action to log the access statistics.

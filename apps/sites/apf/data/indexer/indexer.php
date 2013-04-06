@@ -1,6 +1,6 @@
 <?php
 /**
- * @package sites::apf::data::indexer
+ * @package APF\sites\apf\data\indexer
  * @file indexer.php
  *
  * script wrapper file for the indexer service.

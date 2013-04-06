@@ -13,7 +13,7 @@ use APF\tools\filesystem\FilesystemManager;
 use APF\sites\apf\biz\APFModel;
 
 /**
- * @package sites::apf::data::indexer
+ * @package APF\sites\apf\data\indexer
  * @class FulltextsearchIndexer
  *
  * Implements an indexer for the full text search.

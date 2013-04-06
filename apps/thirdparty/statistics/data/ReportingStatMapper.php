@@ -10,7 +10,7 @@ use APF\thirdparty\statistics\biz\LinkTableStatSection;
 use APF\thirdparty\statistics\biz\StatEntry;
 
 /**
- * @package thirdparty::statistics::data
+ * @package APF\thirdparty\statistics\data
  * @module ReportingStatMapper
  *
  *  Implements the statistic data loader.

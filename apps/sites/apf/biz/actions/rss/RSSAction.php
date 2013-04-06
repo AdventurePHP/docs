@@ -7,7 +7,7 @@ use APF\sites\apf\biz\APFModel;
 use APF\sites\apf\biz\UrlManager;
 
 /**
- * @package sites::apf::biz::actions::rss
+ * @package APF\sites\apf\biz\actions\rss
  * @class RSSAction
  *
  * Represents the front controller action to deliver the APF rss channel.

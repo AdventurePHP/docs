@@ -7,7 +7,7 @@ use APF\sites\apf\biz\SearchResult;
 use APF\core\logging\Logger;
 
 /**
- * @package sites::apf::biz
+ * @package APF\sites\apf\biz
  * @class FulltextsearchManager
  *
  * Business component of the full text search feature.

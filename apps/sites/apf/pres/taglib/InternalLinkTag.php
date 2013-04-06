@@ -5,7 +5,7 @@ use APF\core\pagecontroller\Document;
 use APF\sites\apf\biz\UrlManager;
 
 /**
- * @package sites::apf::pres::taglib
+ * @package APF\sites\apf\pres\taglib
  * @class InternalLinkTag
  *
  * This taglib let's you easily create internal links. Depending on

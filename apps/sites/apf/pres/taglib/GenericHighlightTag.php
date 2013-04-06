@@ -4,7 +4,7 @@ namespace APF\sites\apf\pres\taglib;
 use APF\core\pagecontroller\Document;
 
 /**
- * @package sites::apf::pres::taglib
+ * @package APF\sites\apf\pres\taglib
  * @class GenericHighlightTag
  *
  * Implements a generic code highlighting taglib.

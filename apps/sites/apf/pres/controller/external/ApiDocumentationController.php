@@ -5,7 +5,7 @@ use APF\tools\filesystem\FilesystemManager;
 use APF\sites\apf\pres\controller\release\ReleaseBaseController;
 
 /**
- * @package sites::apf::pres::controller::external
+ * @package APF\sites\apf\pres\controller\external
  * @class ApiDocumentationController
  *
  * Implements the document controller of the API documentation listing.

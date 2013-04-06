@@ -5,7 +5,7 @@ use APF\core\frontcontroller\AbstractFrontcontrollerAction;
 use APF\sites\apf\pres\http\HttpCacheManager;
 
 /**
- * @package sites::apf::biz::actions::jscss
+ * @package APF\sites\apf\biz\actions\jscss
  * @class JsCssAction
  *
  * Delivers compressed versions of js and css files.

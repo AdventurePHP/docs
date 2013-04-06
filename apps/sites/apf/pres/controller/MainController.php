@@ -7,7 +7,7 @@ use APF\core\singleton\Singleton;
 use APF\sites\apf\biz\APFModel;
 
 /**
- * @package sites::apf::pres::controller
+ * @package APF\sites\apf\pres\controller
  * @class MainController
  *
  * Implements the document controller to fill the html head information

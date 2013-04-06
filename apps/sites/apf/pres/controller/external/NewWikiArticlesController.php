@@ -6,7 +6,7 @@ use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\registry\Registry;
 
 /**
- * @package sites::apf::pres::controller::external
+ * @package APF\sites\apf\pres\controller\external
  * @class NewWikiArticlesController
  *
  * Lists new articles within the wiki.

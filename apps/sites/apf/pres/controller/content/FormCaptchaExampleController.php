@@ -4,7 +4,7 @@ namespace APF\sites\apf\pres\controller\content;
 use APF\core\pagecontroller\BaseDocumentController;
 
 /**
- * @package sites::apf::pres::controller::content
+ * @package APF\sites\apf\pres\controller\content
  * @class FormCaptchaExampleController
  *
  *  Implements the document controller for the captcha form example.

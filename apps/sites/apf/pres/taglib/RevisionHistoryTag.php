@@ -10,7 +10,7 @@ use APF\sites\apf\biz\APFModel;
 use APF\tools\request\RequestHandler;
 
 /**
- * @package sites::apf::pres::taglib
+ * @package APF\sites\apf\pres\taglib
  * @class RevisionHistoryTag
  *
  * Displays the revision history for the desired release.

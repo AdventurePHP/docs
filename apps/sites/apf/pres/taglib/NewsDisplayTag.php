@@ -4,7 +4,7 @@ namespace APF\sites\apf\pres\taglib;
 use APF\core\pagecontroller\AppendNodeTag;
 
 /**
- * @package sites::apf::pres::taglib
+ * @package APF\sites\apf\pres\taglib
  * @class NewsDisplayTag
  *
  * Enhances the <em>&lt;core:appendnode /&gt;</em> taglib to be able

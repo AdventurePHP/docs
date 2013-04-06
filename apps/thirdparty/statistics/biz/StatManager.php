@@ -9,7 +9,7 @@ use APF\thirdparty\statistics\data\ReportingStatMapper;
 use APF\thirdparty\statistics\data\StatMapper;
 
 /**
- * @package thirdparty::statistics::biz
+ * @package APF\thirdparty\statistics\biz
  * @class StatManager
  *
  * Implements the statistic business layer.

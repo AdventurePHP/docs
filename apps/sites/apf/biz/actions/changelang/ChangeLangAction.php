@@ -7,7 +7,7 @@ use APF\tools\request\RequestHandler;
 use APF\tools\http\HeaderManager;
 
 /**
- * @package sites::apf::biz::actions::changelang
+ * @package APF\sites\apf\biz\actions\changelang
  * @class ChangeLangAction
  *
  * Represents the front controller action to change the site's language.

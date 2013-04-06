@@ -4,7 +4,7 @@ namespace APF\sites\apf\pres\http;
 use APF\tools\http\HeaderManager;
 
 /**
- * @package sites::apf::pres::http
+ * @package APF\sites\apf\pres\http
  * @class HttpCacheManager
  *
  * This util class sends additional http headers, that allow

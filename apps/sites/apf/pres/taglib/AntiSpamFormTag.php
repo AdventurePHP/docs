@@ -4,7 +4,7 @@ namespace APF\sites\apf\pres\taglib;
 use APF\tools\form\taglib\AbstractFormControl;
 
 /**
- * @package sites::demosite::prea::taglib
+ * @package APF\sites\demosite\prea\taglib
  * @class AntiSpamFormTag
  *
  *  Implements an anti spam function, that marks a form as invalid, when it is posted within

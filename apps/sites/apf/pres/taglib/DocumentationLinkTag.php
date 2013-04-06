@@ -4,7 +4,7 @@ namespace APF\sites\apf\pres\taglib;
 use APF\core\pagecontroller\Document;
 
 /**
- * @package sites::apf::pres::taglib
+ * @package APF\sites\apf\pres\taglib
  * @class DocumentationLinkTag
  *
  * Implements a tag library for creating HTML links out of normal URLs.

@@ -5,7 +5,7 @@ use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\registry\Registry;
 
 /**
- * @package sites::apf::pres::controller::quicknavi
+ * @package APF\sites\apf\pres\controller\quicknavi
  * @class SocialBookmarkBarController
  *
  * Fills the dynamic content of the social network bar.

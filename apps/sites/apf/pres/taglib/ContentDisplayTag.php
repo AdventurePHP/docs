@@ -8,7 +8,7 @@ use APF\sites\apf\biz\APFModel;
 use APF\sites\apf\pres\taglib\GenericHighlightTag;
 
 /**
- * @package sites::apf::pres::taglib
+ * @package APF\sites\apf\pres\taglib
  * @class ContentDisplayTag
  *
  * Implements the "html:content" tag.

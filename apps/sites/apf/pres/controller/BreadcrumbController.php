@@ -7,7 +7,7 @@ use APF\sites\apf\biz\APFModel;
 use APF\sites\apf\biz\UrlManager;
 
 /**
- * @package sites::apf::pres::controller
+ * @package APF\sites\apf\pres\controller
  * @class BreadcrumbController
  *
  * Document controller that displays the breadcrumb when navigating
