@@ -53,7 +53,7 @@ class RevisionHistoryTag extends Document {
 
       // append release number to HTML title to avoid duplicate titles for SEO reasons
       /* @var $model APFModel */
-      $model = Singleton::getInstance('APFModel');
+      $model = Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $model->setTitle($model->getTitle() . ' ' . $this->getReleaseNumber());
 
    }

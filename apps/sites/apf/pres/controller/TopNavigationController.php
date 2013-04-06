@@ -25,7 +25,7 @@ class TopNavigationController extends BaseDocumentController {
    public function transformContent() {
 
       /* @var $model APFModel */
-      $model = Singleton::getInstance('APFModel');
+      $model = Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $pageId = $model->getPageId();
 
       // by default, the documentation tab is active for all other sites!
@@ -78,7 +78,7 @@ class TopNavigationController extends BaseDocumentController {
     */
    private function getParentNodeId() {
       /* @var $model APFModel */
-      $model = Singleton::getInstance('APFModel');
+      $model = Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $parentPageId = $model->getParentPageId();
       if ($parentPageId == '0') {
          return self::$DOC_PAGE_ID;

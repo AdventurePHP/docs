@@ -2,10 +2,13 @@
 ini_set('session.cache_limiter', 'none');
 date_default_timezone_set('Europe/Berlin');
 
-require('../../apps/core/pagecontroller/pagecontroller.php');
-import('core::frontcontroller', 'Frontcontroller');
+$apfClassLoaderRootPath = dirname(dirname(dirname($_SERVER['SCRIPT_FILENAME']))) . '/apps';
+require('../../apps/core/bootstrap.php');
 
-$fC = Singleton::getInstance('Frontcontroller');
+use APF\core\frontcontroller\Frontcontroller;
+use APF\core\singleton\Singleton;
+
+$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
 /* @var $fC Frontcontroller */
-$fC->setContext('sites::apf');
-$fC->start('foo::bar', 'baz'); // pseudo template, because we do not need one!
+$fC->setContext('sites\apf');
+$fC->start(null, null); // no template, because we do not need one!

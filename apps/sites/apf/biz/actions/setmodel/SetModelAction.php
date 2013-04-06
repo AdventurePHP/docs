@@ -40,7 +40,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
    public function run() {
 
       /* @var $model APFModel */
-      $model = & Singleton::getInstance('APFModel');
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
 
       // register request parameters
       $pageIndicatorNames = $model->getAttribute('page.indicator');

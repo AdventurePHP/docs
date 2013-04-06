@@ -39,7 +39,7 @@ class RSSAction extends AbstractFrontcontrollerAction {
       $page = new Page();
       $page->setContext($this->context);
       $page->setLanguage($lang);
-      $page->loadDesign('sites::apf::pres::templates::news', 'rss');
+      $page->loadDesign('APF\sites\apf\pres\templates\news', 'rss');
       $items = $page->transform();
 
       /* @var $urlMgr UrlManager */

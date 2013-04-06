@@ -65,7 +65,7 @@ class DocumentationTitleTag extends Document {
 
       // inform model
       /* @var $model APFModel */
-      $model = Singleton::getInstance('APFModel');
+      $model = Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $model->setTitle($this->title);
       $model->setAttribute('page.description', str_replace('  ', ' ', str_replace("\r", '', str_replace("\n", '', trim($this->content)))));
       $model->setAttribute('page.tags', $tags);

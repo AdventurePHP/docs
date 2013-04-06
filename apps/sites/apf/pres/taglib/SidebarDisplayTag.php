@@ -34,16 +34,16 @@ class SidebarDisplayTag extends ImportTemplateTag {
    public function onParseTime() {
 
       /* @var $t BenchmarkTimer */
-      $t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
       $id = '(' . get_class($this) . ') ' . $this->getObjectId() . '::onParseTime()';
       $t->start($id);
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance('APFModel');
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
       if ($model->getDisplaySidebar() == true) {
 
          // get content
-         $this->loadContentFromFile('sites::apf::pres::templates', 'quicknavi');
+         $this->loadContentFromFile('APF\sites\apf\pres\templates', 'quicknavi');
 
          // parse document controller statements
          $this->extractDocumentController();

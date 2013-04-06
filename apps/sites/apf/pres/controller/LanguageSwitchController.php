@@ -20,7 +20,7 @@ class LanguageSwitchController extends BaseDocumentController {
    public function transformContent() {
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance('APFModel');
+      $model = &Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $lang = $model->getLanguage();
       $pageId = $model->getPageId();
 

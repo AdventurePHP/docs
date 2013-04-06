@@ -54,7 +54,7 @@ class ContentDisplayTag extends Document {
    public function onParseTime() {
 
       // get model
-      $model = & Singleton::getInstance('APFModel');
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
 
       // include the content of the model's content file in the current object
       $this->content = file_get_contents(

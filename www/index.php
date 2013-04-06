@@ -9,7 +9,8 @@ if ($_SERVER['SERVER_NAME'] == 'madmind.net') {
 date_default_timezone_set('Europe/Berlin');
 ob_start();
 
-ini_set('html_errors', 'off');
+// pre-define the root path of the root class loader (if necessary)
+$apfClassLoaderRootPath = dirname(dirname($_SERVER['SCRIPT_FILENAME'])) . '/apps';
 include('../apps/core/bootstrap.php');
 
 use APF\core\benchmark\BenchmarkTimer;
@@ -27,7 +28,7 @@ $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
 // configure logger for database debug messages
 $dbWriter = clone $l->getLogWriter(
-   Registry::retrieve('apf::core', 'InternalLogTarget')
+   Registry::retrieve('APF\core', 'InternalLogTarget')
 );
 $l->addLogWriter('mysqlx', $dbWriter);
 
@@ -48,7 +49,7 @@ GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());*/
 OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 
 // register downloads environment
-Registry::register('sites::apf', 'sitemap.env', 'dev');
+Registry::register('APF\sites\apf', 'sitemap.env', 'dev');
 
 // send HTTP caching headers
 HttpCacheManager::sendHtmlCacheHeaders();
@@ -64,7 +65,7 @@ echo $fC->start('APF\sites\apf\pres\templates', 'main');
 
 // display benchmark report on demand
 /* @var $t BenchmarkTimer */
-$t = Singleton::getInstance('BenchmarkTimer');
+$t = Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
 if (isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true') {
    echo $t->createReport();
 }

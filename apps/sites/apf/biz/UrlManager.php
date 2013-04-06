@@ -55,7 +55,7 @@ final class UrlManager extends APFObject {
       // setup the basic part of the link
       $pageIdent = (string)$pageId;
       /* @var $model APFModel */
-      $model = & Singleton::getInstance('APFModel');
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $urlLangIdent = $model->getUrlIdentifier($lang);
 
       // fetch the url name from the database using the fulltext search

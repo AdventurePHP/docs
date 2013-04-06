@@ -22,7 +22,7 @@ class BreadcrumbController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $model = & Singleton::getInstance('APFModel');
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
       /* @var $model APFModel */
       $parent = $model->getParentPageId();
       $lang = $model->getLanguage();
