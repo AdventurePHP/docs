@@ -66,7 +66,7 @@ class SearchController extends BaseDocumentController {
          $count = count($searchResults);
          /* @var $urlMan UrlManager */
          $urlMan = &$this->getServiceObject('APF\sites\apf\biz\UrlManager');
-         $baseUrl = Registry::retrieve('apf::core', 'URLBasePath');
+         $baseUrl = Registry::retrieve('APF\core', 'URLBasePath');
          for ($i = 0; $i < $count; $i++) {
 
             // gather common information

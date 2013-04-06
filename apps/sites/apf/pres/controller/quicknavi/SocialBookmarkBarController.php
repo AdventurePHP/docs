@@ -17,7 +17,7 @@ use APF\core\registry\Registry;
 class SocialBookmarkBarController extends BaseDocumentController {
 
    public function transformContent() {
-      $currentUrl = Registry::retrieve('apf::core', 'CurrentRequestURL');
+      $currentUrl = Registry::retrieve('APF\core', 'CurrentRequestURL');
       $this->setPlaceHolder('currentUrl', $currentUrl);
    }
 

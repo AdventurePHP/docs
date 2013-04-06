@@ -41,7 +41,7 @@ class FulltextsearchIndexer extends APFObject {
    private $charset;
 
    public function __construct() {
-      $this->charset = Registry::retrieve('apf::core', 'Charset');
+      $this->charset = Registry::retrieve('APF\core', 'Charset');
    }
 
    public function setLogFileName($logFileName) {

@@ -87,8 +87,8 @@ class MainController extends BaseDocumentController {
       $pageLang = $model->getLanguage();
       $pageName = $model->getTitle();
       $pageId = $model->getPageId();
-      $baseUrl = Registry::retrieve('apf::core', 'URLBasePath');
-      $requestUrl = Registry::retrieve('apf::core', 'CurrentRequestURL');
+      $baseUrl = Registry::retrieve('APF\core', 'URLBasePath');
+      $requestUrl = Registry::retrieve('APF\core', 'CurrentRequestURL');
       $referer = (empty($_SERVER['HTTP_REFERER'])) ? 'n/a' : $_SERVER['HTTP_REFERER'];
 
       // we need manual link generation gere to ensure correct transmission
