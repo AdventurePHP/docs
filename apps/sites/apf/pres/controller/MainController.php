@@ -93,7 +93,7 @@ class MainController extends BaseDocumentController {
 
       // we need manual link generation gere to ensure correct transmission
       // of the referer and current url.
-      $url = $baseUrl . '/thirdparty_statistics-action/stat/lang/'
+      $url = $baseUrl . '/APF_thirdparty_statistics-action/stat/lang/'
             . $pageLang . '/title/' . urlencode($pageName) . '/id/' . $pageId
             . '/url/' . urlencode(urlencode($requestUrl))
             . '/referer/' . urlencode(urlencode($referer)) . '/';

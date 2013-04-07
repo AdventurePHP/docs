@@ -44,7 +44,7 @@ class StatManager extends APFObject {
       $t->start('getStatData(' . $period . ')');
 
       // Statistik-Daten laden
-      $sM = & $this->getAndInitServiceObject('thirdparty::statistics::data', 'ReportingStatMapper', 'Stat');
+      $sM = & $this->getAndInitServiceObject('APF\thirdparty\statistics\data\ReportingStatMapper', 'Stat');
       /* @var $sM ReportingStatMapper */
       switch ($period) {
          case 'year':
@@ -93,7 +93,7 @@ class StatManager extends APFObject {
       $DNSName = $DNSIP['DNS'];
 
       // create data layer component
-      $wSM = & $this->getAndInitServiceObject('thirdparty::statistics::data', 'StatMapper', 'Stat');
+      $wSM = & $this->getAndInitServiceObject('APF\thirdparty\statistics\data\StatMapper', 'Stat');
       /* @var $wSM StatMapper */
 
       // create session manager
