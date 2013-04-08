@@ -11,7 +11,7 @@ $(document).ready(function(){
 
    $('#LanguageBox').append('<div id="Langswitch-PE">' 
       + '<label for="LanguageBox-Selection">Current Language: </label>'
-      + '<form method="post" action="/~/sites_apf_biz-action/changeLang/"><div>'
+      + '<form method="post" action="/~/APF_sites_apf_biz-action/changeLang/"><div>'
       + '<select id="LanguageBox-Selection" name="lang"></select>'
       + '<input type="hidden" value="' + pageId + '" name="pageid"/>'
       + '<input type="submit" value="Change" name="changeLanguage"/>'

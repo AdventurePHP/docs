@@ -24,7 +24,7 @@ class NewsDisplayTag extends AppendNodeTag {
     * Includes the news template depending on the desired language.
     */
    public function onParseTime() {
-      $this->setAttribute('namespace', 'sites::apf::pres::news');
+      $this->setAttribute('namespace', 'APF\sites\apf\pres\news');
       $this->setAttribute('template', $this->getLanguage() . '_news');
       parent::onParseTime();
    }
