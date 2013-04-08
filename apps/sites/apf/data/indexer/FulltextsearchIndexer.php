@@ -70,7 +70,7 @@ class FulltextsearchIndexer extends APFObject {
       /* @var $L Logger */
       $L = & Singleton::getInstance('APF\core\logging\Logger');
 
-      $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
+      $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
       $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
@@ -158,7 +158,7 @@ class FulltextsearchIndexer extends APFObject {
       $l = & Singleton::getInstance('APF\core\logging\Logger');
 
       // get configuration
-      $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
+      $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
       $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
@@ -273,7 +273,7 @@ class FulltextsearchIndexer extends APFObject {
     */
    private function getWordId($word) {
 
-      $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
+      $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
       $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');

@@ -11,7 +11,7 @@ class XmlSiteMapCreator extends APFObject {
 
    public function createSitemap() {
 
-      $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
+      $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
       $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');

@@ -110,7 +110,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
          }
       }
 
-      usort($releases, array('ReleaseBaseController', 'sortReleases'));
+      usort($releases, array('APF\sites\apf\pres\controller\release\ReleaseBaseController', 'sortReleases'));
 
       $t->stop($id);
       return $releases;
@@ -416,7 +416,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
 
       // Generate changeset link. This is a link on the changeset page with the current
       // release as it's param.
-      $config = $this->getConfiguration('sites::apf::pres', 'labels.ini');
+      $config = $this->getConfiguration('APF\sites\apf\pres', 'labels.ini');
       $title = $config->getSection($this->getLanguage())->getValue('downloads.changeset.text.linktext');
       $title .= $releaseNumber;
 

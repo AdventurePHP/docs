@@ -23,7 +23,7 @@ class QuickNaviContentTag extends Document {
       parent::__construct();
 
       // include the additional tag libs
-      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
+      $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\InternalLinkTag', 'int', 'link');
    }
 
    /**

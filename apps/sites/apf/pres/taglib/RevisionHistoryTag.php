@@ -34,9 +34,9 @@ class RevisionHistoryTag extends Document {
     */
    public function __construct() {
       parent::__construct();
-      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
-      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'DocumentationLinkTag', 'doku', 'link');
-      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'GenericHighlightTag', 'gen', 'highlight');
+      $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\InternalLinkTag', 'int', 'link');
+      $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\DocumentationLinkTag', 'doku', 'link');
+      $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\GenericHighlightTag', 'gen', 'highlight');
    }
 
    public function onParseTime() {
@@ -63,7 +63,7 @@ class RevisionHistoryTag extends Document {
 
    private function getReleaseHeader($releaseNumber) {
       $title = (string)'<h2>';
-      $config = $this->getConfiguration('sites::apf::pres', 'labels');
+      $config = $this->getConfiguration('APF\sites\apf\pres', 'labels');
       $title .= $config->getSection($this->getLanguage())->getValue('downloads.changeset.text.heading');
       return $title . $releaseNumber . '</h2>';
    }

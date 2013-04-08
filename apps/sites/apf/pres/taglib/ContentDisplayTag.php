@@ -35,10 +35,10 @@ class ContentDisplayTag extends Document {
       parent::__construct();
 
       // include the additional tag libs
-      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'GenericHighlightTag', 'gen', 'highlight');
-      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'DocumentationLinkTag', 'doku', 'link');
-      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'InternalLinkTag', 'int', 'link');
-      $this->tagLibs[] = new TagLib('sites::apf::pres::taglib', 'DocumentationTitleTag', 'doku', 'title');
+      $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\GenericHighlightTag', 'gen', 'highlight');
+      $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\DocumentationLinkTag', 'doku', 'link');
+      $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\InternalLinkTag', 'int', 'link');
+      $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\DocumentationTitleTag', 'doku', 'title');
    }
 
    /**

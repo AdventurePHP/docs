@@ -55,7 +55,7 @@ class SearchController extends BaseDocumentController {
          $searchResults = $m->loadSearchResult($searchTerm);
 
          // load language config
-         $config = $this->getConfiguration('sites::apf::biz', 'language.ini');
+         $config = $this->getConfiguration('APF\sites\apf\biz', 'language.ini');
 
          // initialize buffer
          $buffer = (string)'';

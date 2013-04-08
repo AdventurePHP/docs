@@ -41,7 +41,7 @@ class FulltextsearchMapper extends APFObject {
       $t->start('fulltextsearchMapper::loadSearchResult()');
 
       // get configuration
-      $config = $this->getConfiguration('sites::apf::biz', 'fulltextsearch.ini');
+      $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
 
       // get database connection
       /* @var $cM ConnectionManager */
@@ -52,7 +52,7 @@ class FulltextsearchMapper extends APFObject {
       $searchString = $SQL->escapeValue($searchString);
 
       // do synonym mapping
-      $synonyms = $this->getConfiguration('sites::apf::biz', 'fulltextsearch_synonyms.ini');
+      $synonyms = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch_synonyms.ini');
       $section = $synonyms->getSection($this->language);
 
       foreach ($section->getValueNames() as $name) {
