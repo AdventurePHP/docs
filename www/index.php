@@ -14,7 +14,6 @@ $apfClassLoaderRootPath = dirname(dirname($_SERVER['SCRIPT_FILENAME'])) . '/apps
 include('../apps/core/bootstrap.php');
 
 use APF\core\benchmark\BenchmarkTimer;
-use APF\core\filter\OutputFilterChain;
 use APF\core\frontcontroller\Frontcontroller;
 use APF\core\logging\Logger;
 use APF\core\registry\Registry;
@@ -32,8 +31,25 @@ $dbWriter = clone $l->getLogWriter(
 );
 $l->addLogWriter('mysqlx', $dbWriter);
 
+// configure url rewriting feature
+// 1. input and output filter
+use APF\core\filter\InputFilterChain;
+use APF\core\filter\ChainedUrlRewritingInputFilter;
+
+InputFilterChain::getInstance()->prependFilter(new ChainedUrlRewritingInputFilter());
+
+use APF\core\filter\OutputFilterChain;
+use APF\core\filter\ChainedUrlRewritingOutputFilter;
+
+OutputFilterChain::getInstance()->appendFilter(new ChainedUrlRewritingOutputFilter());
+
+// 2. link scheme
+use APF\tools\link\RewriteLinkScheme;
+use APF\tools\link\LinkGenerator;
+
+LinkGenerator::setLinkScheme(new RewriteLinkScheme());
+
 // configure page values
-Registry::register('APF\core', 'URLRewriting', true);
 Registry::register('APF\sites\apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumentation/Build/RELEASES');
 Registry::register('APF\sites\apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
 Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
