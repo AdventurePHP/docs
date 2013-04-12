@@ -7,7 +7,7 @@ use APF\core\pagecontroller\APFObject;
  * @package APF\sites\apf\biz
  * @class APFModel
  *
- * Implements the model of the APF docu page.
+ * Implements the model of the APF docs page.
  *
  * @author Christian Achatz
  * @version
@@ -16,6 +16,8 @@ use APF\core\pagecontroller\APFObject;
 class APFModel extends APFObject {
 
    private static $PAGEID = 'page.id';
+   private static $VERSION_ID = 'version.id';
+   private static $PAGE_VERSIONS = 'page.versions';
    private static $PARENT_PAGEID = 'parent.page.id';
    private static $LANG = 'page.language';
    private static $TITLE = 'page.title';
@@ -45,10 +47,13 @@ class APFModel extends APFObject {
       // indicates the current language
       $this->attributes[self::$LANG] = null;
 
-      // indivates the current page id
+      // indicates the current page id
       $this->attributes[self::$PAGEID] = null;
 
-      // indivates the parent's page id
+      // indicates the parent's page id
+      $this->attributes[self::$VERSION_ID] = null;
+
+      // indicates the parent's page id
       $this->attributes[self::$PARENT_PAGEID] = null;
 
       // indicates the current page title
@@ -103,6 +108,33 @@ class APFModel extends APFObject {
 
    public function getPageId() {
       return $this->getAttribute(self::$PAGEID);
+   }
+
+   public function getVersionId() {
+      return $this->attributes[self::$VERSION_ID];
+   }
+
+   public function setVersionId($version) {
+      $this->attributes[self::$VERSION_ID] = $version;
+   }
+
+   public function getVersionUrlIdentifier() {
+      return 'Version';
+   }
+
+   public function getDefaultVersionId() {
+      return '1.X';
+   }
+
+   /**
+    * @return string[] The list of versions the page represents.
+    */
+   public function getPageVersions() {
+      return $this->attributes[self::$PAGE_VERSIONS];
+   }
+
+   public function setPageVersions(array $versions) {
+      $this->attributes[self::$PAGE_VERSIONS] = $versions;
    }
 
    public function getLanguage() {

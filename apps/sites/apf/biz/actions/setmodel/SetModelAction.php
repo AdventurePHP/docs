@@ -81,10 +81,20 @@ class SetModelAction extends AbstractFrontcontrollerAction {
       }
       $model->setAttribute('page.id', $pageId);
 
-      // fill the current content and quicknavi file name
+      // fill current version
+      $versionId = RequestHandler::getValue($model->getVersionUrlIdentifier());
+      if (empty($versionId)) {
+         $versionId = '1.X';
+      }
+      $model->setVersionId($versionId);
+
       $contentFilePath = $model->getAttribute('content.filepath');
-      $model->setAttribute('page.contentfilename', $this->getFileName($contentFilePath . '/content', 'c', $language, $pageId));
-      $model->setAttribute('page.quicknavifilename', $this->getFileName($contentFilePath . '/quicknavi', 'n', $language, $pageId));
+
+      $model->setPageVersions($this->getAvailableVersions($contentFilePath . '/content', 'c', $language, $pageId));
+
+      // fill the current content and quicknavi file name
+      $model->setAttribute('page.contentfilename', $this->getFileName($contentFilePath . '/content', 'c', $language, $pageId, $versionId));
+      $model->setAttribute('page.quicknavifilename', $this->getFileName($contentFilePath . '/quicknavi', 'n', $language, $pageId, $versionId));
 
       // initialize sidebar status
       if ($pageId === self::$ABOUT_PAGEID) {
@@ -96,30 +106,43 @@ class SetModelAction extends AbstractFrontcontrollerAction {
    /**
     * @private
     *
-    * Returns the file name for the content and quicknavi files.
+    * Returns the file name for the content and quick navi files.
     *
     * @param string $contentFilePath The file path of the content file.
     * @param string $prefix The file prefix (c or n).
     * @param string $language The current language.
     * @param string $pageId The current page id.
+    * @param string $versionId The current page's version id.
     * @return string The name of the file to load.
     *
     * @author Christian Achatz
     * @version
     * Version 0.1, 17.09.2008<br />
     */
-   private function getFileName($contentFilePath, $prefix, $language, $pageId) {
+   private function getFileName($contentFilePath, $prefix, $language, $pageId, $versionId) {
 
       // read files from given directory
-      $contentFiles = glob($contentFilePath . '/' . $prefix . '_' . $language . '_' . $pageId . '*');
+      $contentFiles = glob($contentFilePath . '/' . $prefix . '_' . $language . '_' . $pageId . '_' . $versionId . '*');
 
       // check, if appropriate file exists
       if (!isset($contentFiles[0])) {
-         return $prefix . '_' . $language . '_404.html';
+         return $prefix . '_' . $language . '_404_1.X.html';
       } else {
          return basename($contentFiles[0]);
       }
 
+   }
+
+   private function getAvailableVersions($contentFilePath, $prefix, $language, $pageId) {
+      $files = glob($contentFilePath . '/' . $prefix . '_' . $language . '_' . $pageId . '*');
+      $versions = array();
+      foreach ($files as $file) {
+         $fileName = basename($file);
+         if (preg_match('#' . $prefix . '_' . $language . '_' . $pageId . '_([A-Za-z0-9\.]{3})_#', $fileName, $matches)) {
+            $versions[] = $matches[1];
+         }
+      }
+      return $versions;
    }
 
 }

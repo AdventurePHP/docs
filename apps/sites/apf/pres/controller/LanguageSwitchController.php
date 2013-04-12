@@ -7,7 +7,7 @@ use APF\sites\apf\biz\APFModel;
 use APF\sites\apf\biz\UrlManager;
 
 /**
- * Displays the langswitch for the page. Includes progressive enhancement
+ * Displays the language switch for the page. Includes progressive enhancement
  * to have a select box using js on the page and a fallback with plain links
  * enabling search engines to index the files properly.
  *
@@ -20,14 +20,23 @@ class LanguageSwitchController extends BaseDocumentController {
    public function transformContent() {
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance('APF\sites\apf\biz\APFModel');
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $lang = $model->getLanguage();
       $pageId = $model->getPageId();
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject('APF\sites\apf\biz\UrlManager');
-      $linkDe = $urlMan->generateLink($pageId, 'de');
-      $linkEn = $urlMan->generateLink($pageId, 'en');
+      $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
+
+      $versionId = $model->getVersionId();
+      $defaultVersionId = $model->getDefaultVersionId();
+
+      $version = null;
+      if ($versionId != $defaultVersionId) {
+         $version = $versionId;
+      }
+
+      $linkDe = $urlMan->generateLink($pageId, 'de', $version);
+      $linkEn = $urlMan->generateLink($pageId, 'en', $version);
 
       $nameDe = $urlMan->getPageTitle($pageId, 'de');
       $nameEn = $urlMan->getPageTitle($pageId, 'en');

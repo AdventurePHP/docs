@@ -28,25 +28,26 @@ final class UrlManager extends APFObject {
    /**
     * @public
     *
-    * Generates a APF docu page link.
+    * Generates a APF docs page link.
     *
     * @param string $pageId The id of the target page.
     * @param string $lang The desired target language.
+    * @param string $versionId The page's version.
     * @return string The desired link.
     *
     * @author Christian Achatz
     * @version
     * Version 0.1, 22.12.2009<br />
     */
-   public function generateLink($pageId, $lang) {
+   public function generateLink($pageId, $lang, $versionId = null) {
 
       /* @var $t BenchmarkTimer */
       $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
-      $id = 'UrlManager::generateLink(' . $pageId . ',' . $lang . ')';
+      $id = 'UrlManager::generateLink(' . $pageId . ',' . $lang . ', ' . $versionId . ')';
       $t->start($id);
 
       // deliver cached content, if possible
-      $hash = md5($pageId . $lang);
+      $hash = md5($pageId . $lang . $versionId);
       if (isset($this->linkCache[$hash])) {
          $t->stop($id);
          return $this->linkCache[$hash];
@@ -57,6 +58,7 @@ final class UrlManager extends APFObject {
       /* @var $model APFModel */
       $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $urlLangIdent = $model->getUrlIdentifier($lang);
+      $urlVersionIdent = $model->getVersionUrlIdentifier();
 
       // fetch the url name from the database using the fulltext search
       $sql = & $this->getConnection();
@@ -74,10 +76,14 @@ final class UrlManager extends APFObject {
          $pageIdent .= '-' . $urlName;
       }
 
-      $this->linkCache[$hash] = '/' . $urlLangIdent . '/' . $pageIdent;
+      if ($versionId === null) {
+         $this->linkCache[$hash] = '/' . $urlLangIdent . '/' . $pageIdent;
+      } else {
+         $this->linkCache[$hash] = '/' . $urlLangIdent . '/' . $pageIdent . '/' . $urlVersionIdent . '/' . $versionId;
+      }
+
       $t->stop($id);
       return $this->linkCache[$hash];
-
    }
 
    /**

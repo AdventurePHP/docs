@@ -19,7 +19,8 @@ use APF\tools\http\HeaderManager;
 class ChangeLangAction extends AbstractFrontcontrollerAction {
 
    private static $LANG = 'lang';
-   private static $PAGE_ID = 'pageid';
+   private static $PAGE_ID = 'page-id';
+   private static $VERSION_ID = 'version-id';
 
    /**
     * @public
@@ -32,16 +33,20 @@ class ChangeLangAction extends AbstractFrontcontrollerAction {
     */
    public function run() {
 
-      // clean inout parameters to avoid sql injection!
+      // clean input parameters to avoid sql injection!
       $targetLang = preg_replace('/([^en|^de])/i', '', RequestHandler::getValue(self::$LANG));
       $targetPageId = preg_replace('/([^0-9]+)/', '', RequestHandler::getValue(self::$PAGE_ID));
+      $targetVersion = RequestHandler::getValue(self::$VERSION_ID);
+      if ($targetVersion !== null) {
+         $targetVersion = preg_replace('/([^0-9A-Za-z\.]+)/', '', $targetVersion);
+      }
 
       /* @var $urlMan UrlManager */
       $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
-      $forwardUrl = $urlMan->generateLink($targetPageId, $targetLang);
+      $forwardUrl = $urlMan->generateLink($targetPageId, $targetLang, $targetVersion);
 
       HeaderManager::forward($forwardUrl);
-
+      exit();
    }
 
 }
