@@ -4,6 +4,7 @@ namespace APF\sites\apf\biz\actions\setmodel;
 use APF\core\frontcontroller\AbstractFrontcontrollerAction;
 use APF\core\singleton\Singleton;
 use APF\sites\apf\biz\APFModel;
+use APF\tools\http\HeaderManager;
 use APF\tools\request\RequestHandler;
 
 /**
@@ -84,7 +85,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
       // fill current version
       $versionId = RequestHandler::getValue($model->getVersionUrlIdentifier());
       if (empty($versionId)) {
-         $versionId = '1.X';
+         $versionId = $model->getDefaultVersionId();
       }
       $model->setVersionId($versionId);
 
@@ -93,12 +94,17 @@ class SetModelAction extends AbstractFrontcontrollerAction {
       $model->setPageVersions($this->getAvailableVersions($contentFilePath . '/content', 'c', $language, $pageId));
 
       // fill the current content and quicknavi file name
-      $model->setAttribute('page.contentfilename', $this->getFileName($contentFilePath . '/content', 'c', $language, $pageId, $versionId));
-      $model->setAttribute('page.quicknavifilename', $this->getFileName($contentFilePath . '/quicknavi', 'n', $language, $pageId, $versionId));
+      $model->setPageContentFileName($this->getFileName($contentFilePath . '/content', 'c', $language, $pageId, $versionId));
+      $model->setPageNaviFileName($this->getFileName($contentFilePath . '/quicknavi', 'n', $language, $pageId, $versionId));
 
       // initialize sidebar status
       if ($pageId === self::$ABOUT_PAGEID) {
          $model->setDisplaySidebar(false);
+      }
+
+      // send real 404 in case the file is not found
+      if (strpos($model->getPageContentFileName(), '404') !== false) {
+         HeaderManager::send('404 Not Found', true, 404);
       }
 
    }
@@ -126,7 +132,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
 
       // check, if appropriate file exists
       if (!isset($contentFiles[0])) {
-         return $prefix . '_' . $language . '_404_1.X.html';
+         return $prefix . '_' . $language . '_404_2.X.html';
       } else {
          return basename($contentFiles[0]);
       }

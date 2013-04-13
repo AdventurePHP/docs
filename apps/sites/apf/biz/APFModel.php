@@ -23,6 +23,9 @@ class APFModel extends APFObject {
    private static $TITLE = 'page.title';
    private static $DISPLAY_SIDEBAR = 'page.display.sidebar';
 
+   private static $PAGE_CONTENT_FILE = 'page.contentfilename';
+   private static $PAGE_NAVI_FILE = 'page.quicknavifilename';
+
    /**
     * @public
     *
@@ -69,10 +72,10 @@ class APFModel extends APFObject {
       $this->attributes['page.tags'] = null;
 
       // indicates the current content file name
-      $this->attributes['page.contentfilename'] = null;
+      $this->attributes[self::$PAGE_CONTENT_FILE] = null;
 
       // indicates the current quicknavi file name
-      $this->attributes['page.quicknavifilename'] = null;
+      $this->attributes[self::$PAGE_NAVI_FILE] = null;
 
       // defines the page indicator per language
       $this->attributes['page.indicator'] = array(
@@ -110,6 +113,22 @@ class APFModel extends APFObject {
       return $this->getAttribute(self::$PAGEID);
    }
 
+   public function setPageContentFileName($fileName) {
+      $this->attributes[self::$PAGE_CONTENT_FILE] = $fileName;
+   }
+
+   public function getPageContentFileName() {
+      return $this->attributes[self::$PAGE_CONTENT_FILE];
+   }
+
+   public function setPageNaviFileName($fileName) {
+      $this->attributes[self::$PAGE_NAVI_FILE] = $fileName;
+   }
+
+   public function getPageNaviFileName() {
+      return $this->attributes[self::$PAGE_NAVI_FILE];
+   }
+
    public function getVersionId() {
       return $this->attributes[self::$VERSION_ID];
    }
@@ -123,7 +142,7 @@ class APFModel extends APFObject {
    }
 
    public function getDefaultVersionId() {
-      return '1.X';
+      return '2.X';
    }
 
    /**

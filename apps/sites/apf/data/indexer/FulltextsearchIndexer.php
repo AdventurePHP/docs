@@ -317,7 +317,7 @@ class FulltextsearchIndexer extends APFObject {
       /* @var $model APFModel */
       $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $model->setAttribute('page.id', $pageId);
-      $model->setAttribute('page.contentfilename', 'c_' . $lang . '_' . $fileName . '.html');
+      $model->setPageContentFileName('c_' . $lang . '_' . $fileName . '.html');
       $model->setAttribute('page.language', $lang);
 
       // create a page
