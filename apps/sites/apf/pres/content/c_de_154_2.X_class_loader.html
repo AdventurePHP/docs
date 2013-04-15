@@ -50,6 +50,18 @@
       </tr>
    </tbody>
 </table>
+<div class="warn">
+   <p>
+      Die APF-Implementierung des <em>PSR-0</em> setzt die absolute Adressierung von allen Applikations-Komponenten
+      voraus. Mit dieser Vorschrift lassen sich an Hand des Hersteller-Namens unterschiedliche Basis-Pfade für die
+      Ablage von PHP-Klassen, Templates und Konfigurations-Dateien definieren.
+   </p>
+   <p>
+      Aus diesem Grund sind PHP-Klassen immmer voll-qualifiziert (z.B. <em>\APF\core\loader\StandardClassLoader</em>)
+      anzugeben, andere Komponenten wie beispielsweise Templates benötigen einen voll-qualifizierten Namespace
+      (z.B. <em>APF\core\database</em>).
+   </p>
+</div>
 <p>
    Die folgenden Kapitel stellen Ihnen die mit dem APF ausgelieferten Komponenten vor.
 </p>
@@ -60,7 +72,8 @@
    <em>ClassLoader</em> kümmert. Das Interface der statischen Klasse bietet die Möglichkeit, verschiedene
    <em>ClassLoader</em> für unterschiedliche <em>Hersteller</em> (<em>Vendor Name</em>) zu registrieren und damit z.B.
    Klassen, Templates und Konfigurations-Dateien von unterschiedlichen Basis-Pfaden zu laden. Hierdurch lässt sich eine
-   Trennung von Framework- und Applikations-Code sowie die Trennung von produktivem Code und Test-Artefakten erreichen.
+   Trennung von Framework- und Applikations-Code sowie die Trennung von produktivem Code und Test-Artefakten
+   <strong>pro Hersteller</strong> erreichen.
 </p>
 <p>
    Ein <em>ClassLoader</em> selbst zeichnet sich durch folgendes Interface aus:
@@ -78,12 +91,12 @@ interface ClassLoader {
 </gen:highlight>
 <p>
    Wie aus der Signatur des Interfaces zu entnehmen ist, kennt jeder <em>ClassLoader</em> seinen Hersteller-Namen.
-   Dieser ist der erste Bestandteil des Namespaces bzw. des voll-qualiizierten Klassen-Namens einer PHP-Klasse. Auf diese
-   Weise lässt sich zuordnen, welches Template, welche Konfigurations-Datei bzw. welche PHP-Klasse durch welchen
+   Dieser ist der erste Bestandteil des Namespaces bzw. des voll-qualifizierten Klassen-Namens einer PHP-Klasse. Auf
+   diese Weise lässt sich zuordnen, welches Template, welche Konfigurations-Datei bzw. welche PHP-Klasse durch welchen
    <em>ClassLoader</em> geladen werden soll.
 </p>
 <p>
-   Das <strong>Laden von Klassen</strong> wird vom jeweils zuständigen <em>ClassLoader</em> an Hand des
+   Das <strong>Laden von Klassen</strong> wird vom jeweils zuständigen <em>ClassLoader</em> direkt an Hand des
    <em>Hersteller-Namen</em> ausgeführt. Die Standard-Implementierung des APF - der <em>StandardClassLoader</em> - läd
    ausschließlich Klassen, für die er auch zuständig ist. So lassen sich sehr einfach mehrere <em>ClassLoader</em> für
    unterschiedliche Hersteller-Namen und damit Basis-Pfaden registrieren.
@@ -91,33 +104,124 @@ interface ClassLoader {
 <p>
    Für das <strong>Laden von Templates und Konfigurations-Dateien</strong> werden ebenfalls die registrierten
    <em>ClassLoader</em> genutzt, jedoch stellen Sie in diesem Fall lediglich den Basis-Pfad zur Verfügung. Dieser wird
-   dann genutzt um den Datei-Pfad zu erzeugen. Damit können auch Templates und Konfigurations-Dateien aus
+   dann genutzt um den vollständigen Datei-Pfad zu erzeugen. Damit können auch Templates und Konfigurations-Dateien aus
    unterschiedlichen Basis-Pfaden geladen werden.
 </p>
 <div class="hint">
-   Der in diesem Kapitel vorgestellte Mechnismus zum Laden von Klassen ist voll kompatibel zu anderen Frameworks/Tools,
-   da der <em>RootClassLoader</em> über die Funktion <em>spl_autoload_register()</em> registriert wird.
+   Der im APF enthaltene Mechnismus zum Laden von Klassen ist voll kompatibel zu anderen Frameworks/Tools, da der
+   <em>RootClassLoader</em> über die Funktion <em>spl_autoload_register()</em> registriert wird und sich damit des
+   PHP-Standards bedient.
 </div>
 
 <h3 id="Chapter-3-StandardClassLoader"><a href="#Chapter-3-StandardClassLoader">3. StandardClassLoader</a></h3>
 <p>
    Der <em>StandardClassLoader</em> ist die Standard-Implementierung des <em>ClassLoader</em>-Interfaces. Er kümmert
-   sich um das Laden von Klassen, die mit dem Hersteller-Namen beginnen für den er registriert wurde.
+   sich um das Laden von Klassen, für die er mit einem definierten Hersteller-Namen registriert wurde.
 </p>
 <p>
-   Ab Version 2.0 liefert das APF die Datei <em>APF/core/bootstrap.php</em> mit, die in der Bootstrap-Datei Ihrer
-   Anwendung eingebunden wird. Sie stellt den zentralen Einstiegspunkt der Applikation dar und initialisiert die
+   Hierzu wird er im Konstruktor mit dem gewünschten Hersteller-Namen und dem Basis-Pfad initialisiert. Beispiel:
+</p>
+<gen:highlight type="php">
+use APF\core\loader\RootClassLoader;
+use APF\core\loader\StandardClassLoader;
+
+$classLoader = new StandardClassLoader('ACME', '/path/to/acme/src/files');
+RootClassLoader::addLoader($classLoader);
+</gen:highlight>
+<p>
+   Beabsichtigen Sie Code und Konfiguration von unterschiedlichen Herstellern zu trennen, so können Sie dies mit Hilfe
+   des <em>StandardClassLoader</em> unter Nutzung eines eigenen Hersteller-Namens und Basis-Pfades wie im Code gezeigt
+   konfigurieren.
+
+</p>
+<div class="hint">
+   Der Basis-Pfad des <em>StandardClassLoader</em>, der für den Hersteller <em>APF</em> in der Datei
+   <em>APF/core/bootstrap.php</em> registriert wird, kann in der Bootstrap-Datei Ihrer Applikation mit Hilfe der
+   Variable <em>$apfClassLoaderRootPath</em> an Ihre Umgebung angepasst werden. Details hierzu entnehmen Sie bitte dem
+   Kapitel <a href="#Chapter-4-Konfiguration">Konfiguration</a>.
+</div>
+
+==> Vielleicht ein Beispiel für das Zusammensetzen bzw. Mappen von Namespace und Datei- bzw. Klassen-Namen auf
+Dateisystem-Pfad (allgemein formuliert)
+
+<h3 id="Chapter-4-Konfiguration"><a href="#Chapter-4-Konfiguration">4. Konfiguration</a></h3>
+<p>
+   Das folgenden Kapitel zeigt Ihnen, wie die Sie das Laden von Klassen, Templates und Konfigurations-Dateien für
+   Ihre Applikation konfigurieren können.
+   <!--
+   - Ändern des Basis-Pfades des Standard-ClassLoader's
+   - Registrieren von weiteren ClassLoader'n
+   - Ersetzen des ClassLoader-Mechanismus des APF durch einen eigenen
+   -->
+</p>
+
+<h4 id="Chapter-4-1-Anpassung-des-Basis-Pfads"><a href="#Chapter-4-1-Anpassung-des-Basis-Pfads">4.1. Anpassung des Basis-Pfads</a></h4>
+<p>
+   Jeder <em>ClassLoader</em> wird mit einem Basis-Pfad initialisiert, der für das Laden von Klassen, Templates und
+   Konfigurations-Dateien des jeweiligen Herstellers genutzt wird. Den <em>StandardClassLoader</em> für den Hersteller
+   <em>APF</em> initialisiert die Datei <em>APF/core/bootstrap.php</em>, die in der Bootstrap-Datei Ihrer Anwendung
+   eingebunden wird. Eine typische <em>index.php</em> hat folgenden Inhalt:
+</p>
+<gen:highlight type="php">
+include('../apps/core/bootstrap.php');
+
+use APF\core\frontcontroller\Frontcontroller;
+
+/* @var $fC Frontcontroller */
+$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+echo $fC->start('...', '...');
+</gen:highlight>
+<p>
+   Ohne weitere Konfiguration evaluiert das Framework den Pfad zur Datei <em>bootstrap.php</em> und nutzt den
+   darüber liegenden Ordner - also denjenigen Ordner, in dem sich <em>core</em>, <em>extensions</em>, <em>modules</em>
+   und <em>tools</em> befinden - als Basis-Pfad für die Initialisierung des <em>StandardClassLoader</em>. Als
+   Hersteller-Name wird <em>APF</em> verwendet.
+</p>
+<p>
+   Nutzen Sie Symlinks oder wird Ihre Code-Basis für die Auslieferung von mehreren Projekten verwendet, können Sie den
+   Basis-Pfad über die Variable <em>$apfClassLoaderRootPath</em> vor der Einbindung der Datei <em>bootstrap.php</em>
+   selbst definieren. Ihre <em>index.php</em> ändert sich damit wie folgt:
+</p>
+<gen:highlight type="php">
+$apfClassLoaderRootPath = '/path/to/apf/src/folder';
+include('../apps/core/bootstrap.php');
+
+use APF\core\frontcontroller\Frontcontroller;
+
+/* @var $fC Frontcontroller */
+$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+echo $fC->start('...', '...');
+</gen:highlight>
+<p>
+   PHP-Klassen, Templates und Konfigurations-Dateien für den Hersteller <em>APF</em> werden in Ihrer Applikation
+   anschließend aus dem Pfad <em>/path/to/apf/src/folder</em> geladen.
+
+
+   Sie stellt den zentralen Einstiegspunkt der Applikation dar und initialisiert die
    <em>ClassLoader</em>-Umgebung mit dem <em>StandardClassLoader</em> für den Hersteller <em>APF</em> und dem zugehörigen
    Basis-Pfad.
+
+
+   <em>APF/core/bootstrap.php</em>
 </p>
 
 
-<h3 id="Chapter-4-Konfiguration"><a href="#Chapter-4-Konfiguration">4. Konfiguration</a></h3>
+
+
+
+
 <p>
    Der <em>RootClassLoader</em> ist der zentrale Einstiegspunkt für das Laden von unterschiedlichen Komponenten Ihrer
    Anwendung. Er verwaltet eine Liste von <em>ClassLoader</em>-Implementierungen, die für das Laden von Klassen
    verantwortlich sind. Über die Methode <em>RootClassLoader::addLoader()</em> lassen sich beliebige
    <em>ClassLoader</em>-Implementierungen hinzufügen.
+</p>
+
+<h3 id="Chapter-5-Anwendung"><a href="#Chapter-5-Anwendung">5. Anwendung</a></h3>
+<p>
+   - getClassName(), getNamespace(), getVendor() vom RootClassLoader
+   - Beziehen des Basis-Pfads vom RootClassLoader bzw. intern dem konkreten ClassLoader
+
 </p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_154" />
