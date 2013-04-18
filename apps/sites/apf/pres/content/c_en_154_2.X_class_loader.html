@@ -1,78 +1,77 @@
 <doku:title parent="119" tags="autoloader,class loader,classes,2.0" title="Class loading" urlname="Class-loading">
-   Dieses Kapitel beschreibt die Mechanismen des APF zum Laden und Adressieren von Klassen, Template-Dateien und
-   Konfigurationen.
+   This chapter describes the class loading mechanisms of the APF used to load classes, template files and configuration
+   files.
 </doku:title>
 
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
 <p>
-   Ab Version 2.0 unterstützt das APF die native Nutzung von PHP-Namespaces. Analog zum Namespace-Konzept der Version
-   1.X werden alle Resourcen absolut und unter Nutzung ihres Namespaces adressiert. Dies betrifft PHP-Klassen,
-   HTML-Templates, Konfigurations-Dateien sowie SQL-Statement-Resourcen gleichermaßen. Je nach Typ kommt eine direkte,
-   absolute Adressierung nach dem PHP-Namespace-Muster (z.B. <int:link pageid="006" />) oder getrennt nach Namespace
-   und Datei (z.B. <int:link pageid="047" />) zur Anwendung.
+   As of version 2.0 the APF natively supports PHP namespaces. Following the namespace concept of prior versions all
+   resources are addressed absolutely and including it's namespaces. This applies both to PHP classes, HTML templates,
+   and configuration files as well as to SQL statement resources. Depending on the type direct and absolute addressing
+   according to the PHP namespace pattern (e.g. <int:link pageid="006" />) or addressing separated by namespace and file
+   (e.g. <int:link pageid="047" />) applies.
 </p>
 <p>
-   Basis für die <em>ClassLoader</em>-Implementierung des APF ist der PHP-Standard
-   <a class="external" href="https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md">PSR-0</a>. Dieser
-   beschreibt den Aufbau von Namespaces für PHP-Klassen, wird jedoch vom APF ebenfalls für die Adressierung von Templates und
-   Konfigurations-Dateien genutzt.
+   The <em>ClassLoader</em> implementation is based on the
+   <a class="external" href="https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md">PSR-0</a> PHP
+   standard. The document describes the construction of namespaces of PHP classes that is also applied to templates and
+   configurations within the Adventure PHP Framework.
 </p>
 <p>
-   Die folgende Tabelle zeigt auf, welche Komponenten im APF durch welche Bestandteile definiert werden:
+   The following table shows the components of the APF and how they are defined concerning it's location:
 </p>
 <table>
    <thead>
       <tr>
-         <td>Typ</td>
+         <td>Type</td>
          <td>Namespace</td>
          <td>Name</td>
       </tr>
    </thead>
    <tbody>
       <tr>
-         <td>PHP-Klasse (Controller, Tag, ...)</td>
-         <td>\{Hersteller-Name}\{Namespace}\</td>
-         <td>{Klassen-Name}</td>
+         <td>PHP classes (controller, tags, ...)</td>
+         <td>\{Vendor name}\{Namespace}\</td>
+         <td>{Class name}</td>
       </tr>
       <tr>
-         <td>HTML-Template</td>
-         <td>\{Hersteller-Name}\{Namespace}\</td>
-         <td>{Template-Name}.html</td>
+         <td>HTML template</td>
+         <td>\{Vendor name}\{Namespace}\</td>
+         <td>{Template name}</td>
       </tr>
       <tr>
-         <td>Konfigurations-Datei</td>
-         <td>\{Hersteller-Name}\{Namespace}\</td>
-         <td>{Konfigurations-Datei-Name}</td>
+         <td>Configuration files</td>
+         <td>\{Vendor name}\{Namespace}\</td>
+         <td>{Configuration file name}</td>
       </tr>
    </tbody>
 </table>
 <div class="warn">
    <p>
-      Die APF-Implementierung des <em>PSR-0</em> setzt die absolute Adressierung von allen Applikations-Komponenten
-      voraus. Mit dieser Vorschrift lassen sich an Hand des Hersteller-Namens unterschiedliche Basis-Pfade für die
-      Ablage von PHP-Klassen, Templates und Konfigurations-Dateien definieren.
+      The APF implementation of the <em>PSR-0</em> requires all application components to be addressed in absolute mode.
+      Using this rule, you are able to load PHP classes, templates and configuration files from different base folders
+      according to their vendor name.
    </p>
    <p>
-      Aus diesem Grund sind PHP-Klassen immmer voll-qualifiziert (z.B. <em>APF\core\loader\StandardClassLoader</em>)
-      anzugeben, andere Komponenten wie beispielsweise Templates benötigen einen voll-qualifizierten Namespace
-      (z.B. <em>APF\modules\usermanagement\pres\templates</em>).
+      For this reason, PHP classes must always be stated fully-qualified (e.g. <em>APF\core\loader\StandardClassLoader</em>)
+      and other components such as templates at least require to have a fully-qualified namespace
+      (e.g. <em>APF\modules\usermanagement\pres\templates</em>).
    </p>
 </div>
 <p>
-   Die folgenden Kapitel stellen Ihnen die mit dem APF ausgelieferten Komponenten vor.
+   The following chapters describe the components that are delivered with the APF.
 </p>
 
 <h3 id="Chapter-2-RootClassLoader"><a href="#Chapter-2-RootClassLoader">2. RootClassLoader</a></h3>
 <p>
-   Der <em>RootClassLoader</em> ist die zentrale Komponente des APF, die sich um die Verwaltung der verschiedenen
-   <em>ClassLoader</em> kümmert. Das Interface der statischen Klasse bietet die Möglichkeit, verschiedene
-   <em>ClassLoader</em> für unterschiedliche <em>Hersteller</em> (<em>Vendor Name</em>) zu registrieren und damit z.B.
-   Klassen, Templates und Konfigurations-Dateien von unterschiedlichen Basis-Pfaden zu laden. Hierdurch lässt sich eine
-   Trennung von Framework- und Applikations-Code sowie die Trennung von produktivem Code und Test-Artefakten
-   <strong>pro Hersteller</strong> erreichen.
+   The <em>RootClassLoader</em> is the central component of the APF that manages the <em>ClassLoader</em> implementations.
+   It's static interface offers the capability to register different <em>ClassLoader</em> with different
+   <em>vendor names</em> and thus load PHP classes, templates and configuration files from different base folders. Due
+   to this mechanism you are enabled to separate framework and application code as well as productive code from test
+   artefacts <strong>by vendor name</strong>.
 </p>
 <p>
-   Ein <em>ClassLoader</em> selbst zeichnet sich durch folgendes Interface aus:
+   A <em>ClassLoader</em> is defined by the follwing interface:
 </p>
 <gen:highlight type="php">
 interface ClassLoader {
@@ -86,16 +85,15 @@ interface ClassLoader {
 }
 </gen:highlight>
 <p>
-   Wie aus der Signatur des Interfaces zu entnehmen ist, kennt jeder <em>ClassLoader</em> seinen Hersteller-Namen.
-   Dieser ist der erste Bestandteil des Namespaces bzw. des voll-qualifizierten Klassen-Namens einer PHP-Klasse. Auf
-   diese Weise lässt sich zuordnen, welches Template, welche Konfigurations-Datei bzw. welche PHP-Klasse durch welchen
-   <em>ClassLoader</em> geladen werden soll.
+   As you can take from the interface every <em>ClassLoader</em> knows about it's vendor name. The vendor name is the
+   first section of the namespace or the fully-qualified name of a PHP class. This allows to determine which template,
+   configuration file, or PHP class is loaded by which <em>ClassLoader</em>.
 </p>
 <p>
-   Das <strong>Laden von Klassen</strong> wird vom jeweils zuständigen <em>ClassLoader</em> direkt an Hand des
-   <em>Hersteller-Namen</em> ausgeführt. Die Standard-Implementierung des APF - der <em>StandardClassLoader</em> - läd
-   ausschließlich Klassen, für die er auch zuständig ist. So lassen sich sehr einfach mehrere <em>ClassLoader</em> für
-   unterschiedliche Hersteller-Namen und damit Basis-Pfaden registrieren.
+   <strong>Loading classes</strong> is done by the respective <em>ClassLoader</em> directly using the <em>vendor name</em>.
+   The standard implementation of the APF - the <em>StandardClassLoader</em> - exclusively loads classes that refer to
+   the <em>vendor name</em> it is registered with. This enables you to easily register multiple <em>ClassLoader</em>
+   instances for different vendors and with different base folders.
 </p>
 <p>
    Für das <strong>Laden von Templates und Konfigurations-Dateien</strong> werden ebenfalls die registrierten
