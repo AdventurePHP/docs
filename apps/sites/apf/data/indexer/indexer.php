@@ -25,7 +25,7 @@ use APF\sites\apf\data\indexer\FulltextsearchIndexer;
 
 // create indexer
 $fSI = new FulltextsearchIndexer();
-$fSI->setContext('sites::apf');
+$fSI->setContext('sites\apf');
 $fSI->setContentFolder('../apps/sites/apf/pres/content');
 
 // execute desired job

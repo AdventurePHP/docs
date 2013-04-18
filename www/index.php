@@ -5,7 +5,6 @@ if ($_SERVER['SERVER_NAME'] == 'madmind.net') {
    exit(0);
 }
 
-//ini_set('session.cache_limiter','none');
 date_default_timezone_set('Europe/Berlin');
 ob_start();
 
