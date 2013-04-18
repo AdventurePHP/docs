@@ -5,11 +5,17 @@
  */
 $(document).ready(function () {
 
-    /\/\w+\/(\d{3})\-/.exec($('#Langswitch li a').attr('href'));
-    var pageId = RegExp.$1;
+    var pageIdMatch = /\/\w+\/(\d{3})\-/.exec($('#Langswitch li a').attr('href'));
+    var pageId = '';
+    if (pageIdMatch !== null) {
+        pageId = pageIdMatch[1];
+    }
 
-    /\/Version\/([A-Za-z0-9\.]{3})/.exec($('#Langswitch li a').attr('href'));
-    var versionId = RegExp.$1;
+    var versionIdMatch = /\/Version\/([A-Za-z0-9\.]{3})/.exec($('#Langswitch li a').attr('href'));
+    var versionId = '';
+    if (versionIdMatch !== null) {
+        versionId = versionIdMatch[1];
+    }
 
     $('#LanguageBox').append('<div id="Langswitch-PE">'
         + '<label for="LanguageBox-Selection">Current Language: </label>'
