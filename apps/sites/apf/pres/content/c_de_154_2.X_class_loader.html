@@ -128,13 +128,17 @@ RootClassLoader::addLoader($classLoader);
    Beabsichtigen Sie Code und Konfiguration von unterschiedlichen Herstellern zu trennen, so können Sie dies mit Hilfe
    des <em>StandardClassLoader</em> unter Nutzung eines eigenen Hersteller-Namens und Basis-Pfades wie im Code gezeigt
    konfigurieren.
-
+</p>
+<p>
+   Umgekehrt lassen sich über diesen Mechanismus auch unterschiedliche Hersteller aus dem selben Basis-Pfad bedienen.
+   Registrieren Sie hierzu einfach mehrere <em>StandardClassLoader</em> mit unterschiedlichen Hersteller-Namen jedoch
+   gleichem Basis-Pfad.
 </p>
 <div class="hint">
    Der Basis-Pfad des <em>StandardClassLoader</em>, der für den Hersteller <em>APF</em> in der Datei
    <em>APF/core/bootstrap.php</em> registriert wird, kann in der Bootstrap-Datei Ihrer Applikation mit Hilfe der
    Variable <em>$apfClassLoaderRootPath</em> an Ihre Umgebung angepasst werden. Details hierzu entnehmen Sie bitte dem
-   <a href="#Chapter-4-Konfiguration">Kapitel 4</a>.
+   <a href="#Chapter-4-Anwendung">Kapitel 4</a>.
 </div>
 <p>
    Das Mapping von Hersteller-Name bzw. Namespace und Typ (z.B. PHP-Klasse) auf einen konkreten Datei-Namen übernimmt
@@ -197,7 +201,7 @@ echo $fC->start('...', '...');
    Ohne weitere Konfiguration evaluiert das Framework den Pfad zur Datei <em>bootstrap.php</em> und nutzt den
    darüber liegenden Ordner - also denjenigen Ordner, in dem sich <em>core</em>, <em>extensions</em>, <em>modules</em>
    und <em>tools</em> befinden - als Basis-Pfad für die Initialisierung des <em>StandardClassLoader</em>. Als
-   Hersteller-Name wird <em>APF</em> verwendet.
+   Hersteller-Name für alle APF-Komponenten wird <em>APF</em> verwendet.
 </p>
 <p>
    Nutzen Sie Symlinks oder wird Ihre Code-Basis für die Auslieferung von mehreren Projekten verwendet, können Sie den
@@ -240,7 +244,7 @@ RootClassLoader::addLoader(new StandardClassLoader('ACME', '/acme/src'));
 <p>
    Reicht der Lieferumfang des APF für Ihren Anwendungsfall nicht aus, können Sie jederzeit eigene
    <em>ClassLoader</em>-Implementierungen zum Einsatz bringen. Das folgende Beispiel zeigt eine Implementierung, die
-   Klassen mit explititer Angabe von <em>Hersteller</em>, <em>Namespace</em> und <em>Klassen-Namen</em> in der Form
+   Klassen mit impliziter Angabe von <em>Hersteller</em>, <em>Namespace</em> und <em>Klassen-Namen</em> in der Form
    <em>ACME_Name_Space_ClassName</em> läd:
 </p>
 <gen:highlight type="php">
@@ -322,8 +326,6 @@ class ImageHeadlineGenerator {
 
       $img = imagecreate($this->getWidth($text), $this->getHeight($text));
 
-      // The RootClassLoader is able to determine the respective class loader for the
-      // current namespace. The class loader instance then delivers the root path.
       // Der RootClassLoader kann an Hand des aktuellen Namespace den zuständigen
       // ClassLoader bestimmen. Dieser wiederum liefert den Basis-Pfad.
       $loader = RootClassLoader::getLoaderByNamespace(__NAMESPACE__);
@@ -331,8 +333,6 @@ class ImageHeadlineGenerator {
 
       $currentNamespace = RootClassLoader::getNamespace(__NAMESPACE__);
 
-      // Assuming that the fonts reside side-by-side with this class,
-      // this is the path of the font to load:
       // Unter der Annahme, dass die Schrift-Dateien parallel zur aktuellen
       // Klasse liegen, kann der Pfad der Datei wie folgt definiert werden:
       $font = $rootPath . '/'
@@ -346,11 +346,11 @@ class ImageHeadlineGenerator {
    }
 
    private function getWidth($text) {
-
+      ...
    }
 
    private function getHeight($text) {
-
+      ...
    }
 
 }

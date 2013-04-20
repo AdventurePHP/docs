@@ -71,7 +71,7 @@
    artefacts <strong>by vendor name</strong>.
 </p>
 <p>
-   A <em>ClassLoader</em> is defined by the follwing interface:
+   A <em>ClassLoader</em> is defined by the following interface:
 </p>
 <gen:highlight type="php">
 interface ClassLoader {
@@ -96,24 +96,22 @@ interface ClassLoader {
    instances for different vendors and with different base folders.
 </p>
 <p>
-   Für das <strong>Laden von Templates und Konfigurations-Dateien</strong> werden ebenfalls die registrierten
-   <em>ClassLoader</em> genutzt, jedoch stellen Sie in diesem Fall lediglich den Basis-Pfad zur Verfügung. Dieser wird
-   dann genutzt um den vollständigen Datei-Pfad zu erzeugen. Damit können auch Templates und Konfigurations-Dateien aus
-   unterschiedlichen Basis-Pfaden geladen werden.
+   <strong>Loading templates and configuration files</strong> is also done using the registered <em>ClassLoader</em>s,
+   but here they only provide the base path. The base path is then used to calculate the complete file path to load
+   template and configuration files from different base paths.
 </p>
 <div class="hint">
-   Der im APF enthaltene Mechnismus zum Laden von Klassen ist voll kompatibel zu anderen Frameworks/Tools, da der
-   <em>RootClassLoader</em> über die Funktion <em>spl_autoload_register()</em> registriert wird und sich damit des
-   PHP-Standards bedient.
+   The APF class loading mechanism is fully compatible to other frameworks/tools since the <em>RootClassLoader</em> is
+   registered by the <em>spl_autoload_register()</em> function and thus uses the PHP standard.
 </div>
 
 <h3 id="Chapter-3-StandardClassLoader"><a href="#Chapter-3-StandardClassLoader">3. StandardClassLoader</a></h3>
 <p>
-   Der <em>StandardClassLoader</em> ist die Standard-Implementierung des <em>ClassLoader</em>-Interfaces. Er kümmert
-   sich um das Laden von Klassen, für die er mit einem definierten Hersteller-Namen registriert wurde.
+   The <em>StandardClassLoader</em> is the standard implementation of the <em>ClassLoader</em> interface. He is
+   responsible for loading classes that are refering to a dedicated vendor name.
 </p>
 <p>
-   Hierzu wird er im Konstruktor mit dem gewünschten Hersteller-Namen und dem Basis-Pfad initialisiert. Beispiel:
+   To configure the class loader, the constructor takes the desired vendor name as well as the base path. Example:
 </p>
 <gen:highlight type="php">
 use APF\core\loader\RootClassLoader;
@@ -123,27 +121,30 @@ $classLoader = new StandardClassLoader('ACME', '/acme/src');
 RootClassLoader::addLoader($classLoader);
 </gen:highlight>
 <p>
-   Beabsichtigen Sie Code und Konfiguration von unterschiedlichen Herstellern zu trennen, so können Sie dies mit Hilfe
-   des <em>StandardClassLoader</em> unter Nutzung eines eigenen Hersteller-Namens und Basis-Pfades wie im Code gezeigt
-   konfigurieren.
-
+   In case you intend to separate code of different vendors you can configure multiple <em>StandardClassLoader</em>s
+   with different vendor names and base paths.
+</p>
+<p>
+   In contrast, using this mechanis can also be used to combine sources from different vendors into one single base path.
+   This can be done by registering multiple <em>StandardClassLoader</em> with different vendor names but the same
+   base path.
 </p>
 <div class="hint">
-   Der Basis-Pfad des <em>StandardClassLoader</em>, der für den Hersteller <em>APF</em> in der Datei
-   <em>APF/core/bootstrap.php</em> registriert wird, kann in der Bootstrap-Datei Ihrer Applikation mit Hilfe der
-   Variable <em>$apfClassLoaderRootPath</em> an Ihre Umgebung angepasst werden. Details hierzu entnehmen Sie bitte dem
-   <a href="#Chapter-4-Konfiguration">Kapitel 4</a>.
+   The base path of the <em>StandardClassLoader</em> registered for the vendor <em>APF</em> registered within the
+   <em>APF/core/bootstrap.php</em> can be manipulated by the bootstrap file of your application. Fir this reason, please
+   set the <em>$apfClassLoaderRootPath</em> variable according to your environment. Details can be taken from
+   <a href="#Chapter-4-Usage">chapter 4</a>.
 </div>
 <p>
-   Das Mapping von Hersteller-Name bzw. Namespace und Typ (z.B. PHP-Klasse) auf einen konkreten Datei-Namen übernimmt
-   jeweils die Implementierung des <em>ClassLoader</em>. Das Standard-Setup des APF verhält sich wie folgt:
+   Mapping of vendor name or namespace and type (e.g. PHP class) respectively to a dedicated file name is done by the
+   <em>ClassLoader</em> implementation. The standard implementation of the APF acts as follows:
 </p>
 <table>
    <thead>
       <tr>
-         <td>Namespace/voll-qualifizierter Name</td>
+         <td>Namespace/fully-qualified name</td>
          <td>Name</td>
-         <td>Datei-Pfad</td>
+         <td>File path</td>
       </tr>
    </thead>
    <tbody>
@@ -165,22 +166,22 @@ RootClassLoader::addLoader($classLoader);
    </tbody>
 </table>
 <p>
-   Bitte beachten Sie, dass das Mapping der Namen von Konfigurations-Dateien maßgeblich von der Implementierung
-   des <em>ConfigurationProvider</em> abhängt. Details dazu finden Sie in Kapitel <int:link pageid="134" />.
+   Please note that mapping of configuration files highly depends on the <em>ConfigurationProvider</em> implementation.
+   Details can be taken from <int:link pageid="134" />.
 </p>
 
-<h3 id="Chapter-4-Anwendung"><a href="#Chapter-4-Anwendung">4. Anwendung</a></h3>
+<h3 id="Chapter-4-Usage"><a href="#Chapter-4-Usage">4. Usage</a></h3>
 <p>
-   Die folgenden Kapitel zeigen Ihnen, wie die Sie das Laden von Klassen, Templates und Konfigurations-Dateien anpassen
-   und den <em>ClassLoader</em>-Mechanismus in Ihren Anwendungen einsetzen können.
+   The subsequent chapters describe how you can adapt the <em>ClassLoader</em> mechanism to load PHP classes, templates,
+   and configuration files and how to use it within your application.
 </p>
 
-<h4 id="Chapter-4-1-Anpassung-des-Basis-Pfads"><a href="#Chapter-4-1-Anpassung-des-Basis-Pfads">4.1. Anpassung des Basis-Pfads</a></h4>
+<h4 id="Chapter-4-1-Adaption-of-the-base-path"><a href="#Chapter-4-1-Adaption-of-the-base-path">4.1. Adaption of the base path</a></h4>
 <p>
-   Jeder <em>ClassLoader</em> wird mit einem Basis-Pfad initialisiert, der für das Laden von Klassen, Templates und
-   Konfigurations-Dateien des jeweiligen Herstellers genutzt wird. Den <em>StandardClassLoader</em> für den Hersteller
-   <em>APF</em> initialisiert die Datei <em>APF/core/bootstrap.php</em>, die in der Bootstrap-Datei Ihrer Anwendung
-   eingebunden wird. Eine typische <em>index.php</em> hat folgenden Inhalt:
+   Each <em>ClassLoader</em> is initialized with the base path that is set for loading PHP classes, templates, and
+   configuration files according to the respective vendor. The <em>StandardClassLoader</em> for the vendor <em>APF</em>
+   is initialized within the <em>APF/core/bootstrap.php</em> that is included within your application's bootstrap file.
+   The following code box shows a typical <em>index.php</em>:
 </p>
 <gen:highlight type="php">
 include('./APF/core/bootstrap.php');
@@ -192,15 +193,14 @@ $fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
 echo $fC->start('...', '...');
 </gen:highlight>
 <p>
-   Ohne weitere Konfiguration evaluiert das Framework den Pfad zur Datei <em>bootstrap.php</em> und nutzt den
-   darüber liegenden Ordner - also denjenigen Ordner, in dem sich <em>core</em>, <em>extensions</em>, <em>modules</em>
-   und <em>tools</em> befinden - als Basis-Pfad für die Initialisierung des <em>StandardClassLoader</em>. Als
-   Hersteller-Name wird <em>APF</em> verwendet.
+   Without further configuration, the framework evaluates the path to the <em>bootstrap.php</em> file and uses it's
+   parent folder - the folder where <em>core</em>, <em>extensions</em>, <em>modules</em>, and <em>tools</em> reside -
+   as the base path for initializing the <em>StandardClassLoader</em>. Vendor name for all APF components is <em>APF</em>.
 </p>
 <p>
-   Nutzen Sie Symlinks oder wird Ihre Code-Basis für die Auslieferung von mehreren Projekten verwendet, können Sie den
-   Basis-Pfad über die Variable <em>$apfClassLoaderRootPath</em> vor der Einbindung der Datei <em>bootstrap.php</em>
-   selbst definieren. Ihre <em>index.php</em> ändert sich damit wie folgt:
+   In case you are using symlinks or your code base delivers multiple projects you can adapt the base path by the
+   <em>$apfClassLoaderRootPath</em> variable right before incudin the <em>bootstrap.php</em> file.Your <em>index.php</em>
+   changes as follows:
 </p>
 <gen:highlight type="php">
 $apfClassLoaderRootPath = '/path/to/apf/src';
@@ -213,19 +213,18 @@ $fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
 echo $fC->start('...', '...');
 </gen:highlight>
 <p>
-   PHP-Klassen, Templates und Konfigurations-Dateien für den Hersteller <em>APF</em> werden in Ihrer Applikation
-   anschließend aus dem Pfad <em>/path/to/apf/src</em> geladen.
+   PHP classes, templates, and configuration files for vendor <em>APF</em> are now loaded from <em>/path/to/apf/src</em>.
 </p>
 
-<h4 id="Chapter-4-2-Registrieren-von-weiteren-ClassLoadern"><a href="#Chapter-4-2-Registrieren-von-weiteren-ClassLoadern">4.2. Registrieren von weiteren ClassLoadern</a></h4>
+<h4 id="Chapter-4-2-Registration-of-ClassLoaders"><a href="#Chapter-4-2-Registration-of-ClassLoaders">4.2. Registration of ClassLoaders</a></h4>
 <p>
-   Um weitere <em>ClassLoader</em> nutzen zu können, müssen diese zunächst in der Bootstrap-Datei Ihrer Anwendung
-   registriert werden. Hierzu können Sie die Methode <em>RootClassLoader::addLoader()</em> nutzen. Die genannte Methode
-   erwartet eine Instanz vom Typ <em>ClassLoader</em>. Sie können daher sowohl auf eine Implementierung des APF zurück
-   greifen (<em>StandardClassLoader</em>) als auch eigene Implementierung nutzen.
+   In order to use further <em>ClassLoader</em>s they must be registered within the bootstrap file of your application.
+   For this reason, you can use the <em>RootClassLoader::addLoader()</em> method that takes a <em>ClassLoader</em>
+   instance as it's argument. You can thus use the implementation of the APF (<em>StandardClassLoader</em>) or a custom
+   implementation.
 </p>
 <p>
-   Der folgende Code-Block registriert einen <em>StandardClassLoader</em> für einen eigenständigen Hersteller-Namen:
+   The following code block registers the <em>StandardClassLoader</em> using a custom vendor name:
 </p>
 <gen:highlight type="php">
 include('./APF/core/bootstrap.php');
@@ -236,10 +235,9 @@ use APF\core\loader\StandardClassLoader;
 RootClassLoader::addLoader(new StandardClassLoader('ACME', '/acme/src'));
 </gen:highlight>
 <p>
-   Reicht der Lieferumfang des APF für Ihren Anwendungsfall nicht aus, können Sie jederzeit eigene
-   <em>ClassLoader</em>-Implementierungen zum Einsatz bringen. Das folgende Beispiel zeigt eine Implementierung, die
-   Klassen mit explititer Angabe von <em>Hersteller</em>, <em>Namespace</em> und <em>Klassen-Namen</em> in der Form
-   <em>ACME_Name_Space_ClassName</em> läd:
+   In case the shipped implementation does not meet your requirements you can easily create a custom <em>ClassLoader</em>
+   implementation. The following example contains an implementation that loads classes containing <em>vendor</em>,
+   <em>namespace</em>, and <em>class name</em> like <em>ACME_Name_Space_ClassName</em>:
 </p>
 <gen:highlight type="php">
 namespace ACME\loader;
@@ -281,7 +279,7 @@ class ExplicitClassNameClassLoader implements ClassLoader {
 }
 </gen:highlight>
 <p>
-   Die Nutzung gestaltet sich wie folgt:
+   Usage is as follows:
 </p>
 <gen:highlight type="php">
 include('./APF/core/bootstrap.php');
@@ -291,15 +289,15 @@ use ACME\loader\ExplicitClassNameClassLoader;
 RootClassLoader::addLoader(new ExplicitClassNameClassLoader('ACME', '/acme/src'));
 </gen:highlight>
 
-<h4 id="Chapter-4-3-Laden-von-Anwendungskomponenten"><a href="#Chapter-4-3-Laden-von-Anwendungskomponenten">4.3. Laden von Anwendungskomponenten</a></h4>
+<h4 id="Chapter-4-3-Loading-application-components"><a href="#Chapter-4-3-Loading-application-components">4.3. Loading application components</a></h4>
 <p>
-   Das Laden von Klassen wird direkt vom <em>RootClassLoader</em> übernommen. Möchten Sie Komponenten wie z.B.
-   Schrift-Dateien direkt im Verzeichnisbaum Ihrer Anwendung ablegen und einbinden, können Sie auf die Funktonalitäten
-   des <em>RootClassLoader</em> zurückgreifen.
+   Loading classes is directly done by the <em>RootClassLoader</em>. In case you want to place application components
+   such as font files within the folder structure of your application and include them easily, you can use the
+   capabilities of the <em>RootClassLoader</em>.
 </p>
 <p>
-   Das folgende Code-Beispiel zeigt Ihnen, wie Sie eine Schrift-Datei, die parallel zur Klasse <em>ImageHeadlineGenerator</em>
-   abgelegt ist, zur Erzeugung einer grafischen Überschrift nutzen können:
+   The subsequent code sample loads a font file that resides in parallel to the <em>ImageHeadlineGenerator</em> class
+   and that is intended to create image-based headlines:
 </p>
 <gen:highlight type="php">
 namespace ACME\components\pres;
@@ -322,8 +320,6 @@ class ImageHeadlineGenerator {
 
       // The RootClassLoader is able to determine the respective class loader for the
       // current namespace. The class loader instance then delivers the root path.
-      // Der RootClassLoader kann an Hand des aktuellen Namespace den zuständigen
-      // ClassLoader bestimmen. Dieser wiederum liefert den Basis-Pfad.
       $loader = RootClassLoader::getLoaderByNamespace(__NAMESPACE__);
       $rootPath = $loader->getRootPath();
 
@@ -331,8 +327,6 @@ class ImageHeadlineGenerator {
 
       // Assuming that the fonts reside side-by-side with this class,
       // this is the path of the font to load:
-      // Unter der Annahme, dass die Schrift-Dateien parallel zur aktuellen
-      // Klasse liegen, kann der Pfad der Datei wie folgt definiert werden:
       $font = $rootPath . '/'
                   . str_replace('\\', '/', $currentNamespace) . '/'
                   . $this->fontName . '.ttf';
@@ -344,83 +338,83 @@ class ImageHeadlineGenerator {
    }
 
    private function getWidth($text) {
-
+      ...
    }
 
    private function getHeight($text) {
-
+      ...
    }
 
 }
 </gen:highlight>
 <p>
-   Im Code-Beispiel wird die Methode <em>getLoaderByNamespace()</em> dazu genutzt den für den aktuellen Hersteller
-   zuständigen <em>ClassLoader</em> zu beziehen. Dieser wird dann dazu verwendet, den aktuellen Basis-Pfad des
-   Herstellers für PHP-Klassen, Templates, Konfigurations-Dateien und andere Dateien zu beziehen.
+   The code sample uses <em>getLoaderByNamespace()</em> to retrieve the <em>ClassLoader</em> responsible for the current
+   vendor. The <em>ClassLoader</em> then returns it's current base path that is used to load PHP classes, templates and
+   configuration files.
 </p>
 <p>
-   Des Weiteren wird der <em>RootClassLoader</em> in den folgenden Zeilen dazu eingesetzt um aus dem voll-qualifizierten
-   Namespace den relevanten Teil ohne Hersteller-Name zu extrahieren. Die beiden Teile - Basis-Pfad und Namespace-Pfad -
-   ergeben dann den Datei-Pfad der Schrift-Datei.
+   Moreover, the <em>RootClassLoader</em> is used to extract the base namespace without vendor name from the
+   fully-qualified namespace. Both parts - base path and namespace path - together then form the file path of the font
+   file.
 </p>
 
-<h4 id="Chapter-4-4-Anwendung-des-RootClassLoader"><a href="#Chapter-4-4-Anwendung-des-RootClassLoader">4.4. Anwendung des RootClassLoader</a></h4>
+<h4 id="Chapter-4-4-Usage-of-the-RootClassLoader"><a href="#Chapter-4-4-Usage-of-the-RootClassLoader">4.4. Usage of the RootClassLoader</a></h4>
 <p>
-   Neben den in <a href="#Chapter-4-3-Laden-von-Anwendungskomponenten">Kapitel 4.3.</a> vorgestellten Methoden verfügt
-   der <em>RootClassLoader</em> über weitere Funktionen, die Sie für das Erzeugen von Datei-Pfaden bzw. zum Laden von
-   Applikations-Inhalten nutzen können.
+   Besides the methods listed in <a href="#Chapter-4-3-Loading-application-components">chapter 4.3.</a> the
+   <em>RootClassLoader</em> provides further methods that can be used to create file paths or load application
+   components.
 </p>
 <p>
-   Die folgende Liste zeigt die vorhandenen Methoden und ihre Anwendungsfälle:
+   The following list includes the provided methods as well as their use cases:
 </p>
 <table>
    <thead>
       <tr>
-         <td>Methode</td>
-         <td>Anwendung</td>
+         <td>Method</td>
+         <td>Use case</td>
       </tr>
    </thead>
    <tbody>
       <tr>
          <td>getLoaderByVendor()</td>
          <td>
-            Gibt die <em>ClassLoader</em>-Instanz zurück, die mit dem übergebenen Hersteller-Namen registriert wurde.
+            Returns the <em>ClassLoader</em> instance that was registered for the applied vendor.
          </td>
       </tr>
       <tr>
          <td>getLoaderByNamespace()</td>
          <td>
-            Gibt die <em>ClassLoader</em>-Instanz zurück, die zum übergebenen Namespace passt.
+            Returns the <em>ClassLoader</em> instance that refers to the applied namespace.
          </td>
       </tr>
       <tr>
          <td>getLoaderByClass()</td>
          <td>
-            Gibt die <em>ClassLoader</em>-Instanz zurück, die zum übergebenen, voll-qualifizierten PHP-Klasse passt.
+            Returns the <em>ClassLoader</em> instance that refers to the applied fully-qualified PHP class name.
          </td>
       </tr>
       <tr>
          <td>getClassName()</td>
          <td>
-            Gibt den Klassen-Namen einer voll-qualifizierten Klasse (z.B. <em>APF\core\loader\RootClassLoader</em>)
-            zurück (z.B. <em>RootClassLoader</em>).
+            Returns the class name (e.g. <em>RootClassLoader</em>) of a fully-qualified class (e.g.
+            <em>APF\core\loader\RootClassLoader</em>).
          </td>
       </tr>
       <tr>
          <td>getNamespace()</td>
          <td>
-            Gibt den Namespace einer voll-qualifizierten Klasse (z.B. <em>APF\core\loader\RootClassLoader</em>)
-            zurück (z.B. <em>APF\core\loader</em>).
+            Returns the namespace (e.g. <em>APF\core\loader</em>) of a fully-qualified class (e.g.
+            <em>APF\core\loader\RootClassLoader</em>).
          </td>
       </tr>
       <tr>
          <td>getVendor()</td>
          <td>
-            Gibt den Hersteller-Namen einer voll-qualifizierten Klasse (z.B. <em>APF\core\loader\RootClassLoader</em>)
-            zurück (z.B. <em>APF</em>).
+            Returns the vendor name (e.g. <em>APF</em>) of a fully-qualified class (e.g.
+            <em>APF\core\loader\RootClassLoader</em>).
          </td>
       </tr>
    </tbody>
 </table>
 
-<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_154" />
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_154" />
