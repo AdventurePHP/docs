@@ -1,0 +1,307 @@
+<doku:title parent="119" tags="basics,pattern,architecture,folder structure,templates,basic configuration,registry,documentation,framework" title="Basics" urlname="Basics">
+  The present chapter procures the basics of the framework. First of all, the architecture and the
+  patterns used are described, after that the source code structure, issues like templating and
+  basic configuration are addressed.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   The Adventure PHP Framework gets on as an aid for the implementation of object orientated,
+   generic and reusable PHP applications. Various OO design pattern and a set of coding conventions
+   offer solutions for known problems.
+</p>
+<p>
+   Hence, the framework is a programmer's help and <strong>not</strong> a ready-to-install
+   application which merely must be configured. The design of the software can only be created by 
+   the developer itself and the framework can only support the implementation!
+</p>
+
+<h3 id="Chapter-2-Structure-and-meaning-of-folders"><a href="#Chapter-2-Structure-and-meaning-of-folders">2. Structure and meaning of the folders</a></h3>
+<p>
+   As a common practice in the object orientated world, the components of the framework are stored in
+   folders concerning their dependencies and importance. Here the folder defines the name of the package
+   and the file name the name of the class. The components needed within a program part can be included
+   by the <strong>import()</strong> function.
+</p>
+<p>
+   Each release version possesses the following folder structure:
+</p>
+<gen:highlight type="code">
+apps/ (<em>Directory for all source code files</em>)
+     [config/ (<em>Directory for all configuration files</em>)]
+
+     core/ (<em>Directory that contains the core components</em>)
+          benchmark/
+          configuration/
+          database/
+          errorhandler/
+          filesystem/
+          filter/
+          frontcontroller/
+          logging/
+          pagecontroller/
+          service/
+          session/
+          singleton/
+
+     modules/ (<em>Directory that contains the modules shipped with each release</em>)
+             comments/
+             guestbook/
+             kontakt4/
+             pager/
+             socialbookmark/
+
+     [sites/ (<em>E.g. directory for the source code files of a project</em>)]
+
+     tools/ (<em>Directory including the tools</em>)
+           cache/
+           datetime/
+           form/
+                taglib/
+           html/
+                taglib/
+           image/
+           link/
+           mail/
+           string/
+           validator/
+           variablen/
+</gen:highlight>
+<p>
+   The folders <em>core</em> and <em>tools</em> contain core components of the
+   framework and are delivered with every release. In it are among other things the implementing of
+   the page controller (<em>/apps/core/pagecontroller/</em>), the <em>ConfigurationManager</em>
+   (<em>/apps/core/configuration/</em>) or tools like the <em>ImageManager</em> (<em>/apps/tools/image/</em>)
+   and the <em>LinkGenerator</em> (<em>/apps/tools/link/</em>).
+</p>
+<p>
+   The <em>modules</em> folder contains modules based on the <em>core</em> and
+   <em>tools</em> components that are delivered with each release (e.g. guestbook, contact form).
+   You can use them to enrich your web page or application.
+</p>
+<p>
+   Below <em>config</em> the configuration files which are used in core components or parts of
+   your software are held. This can be language mapping files, configuration files for your applications
+   or MySQL statement files.
+</p>
+<p>
+   Because it is a significant point of the paradigms of the framework to always create reusable code
+   parts, it is distinguished between the folders <em>modules</em> and <em>sites</em>.
+   The folder <em>modules</em> contains every software part, that can be included in real web
+   projects hosted under the folder <em>sites</em>. A web page project can be not only an easy
+   web page, but also a complicated project as for example a CMS.
+</p>
+<p>
+   The precise contents of the folders can be seen in the <int:link pageid="002" />.
+</p>
+
+<h3 id="Chapter-3-Easy-application"><a href="#Chapter-3-Easy-application">3. Construction of an easy application</a></h3>
+<p>
+   The framework is written to operate in a so-called <em>post-back mode</em>. This means, that
+   a web site project consists of exactly one central file (often called "bootstrap file"). This file
+   must be configured as an DirectoryIndex within the web server's configuration. Nevertheless, it
+   is possible - and often also helpfully - to define other central files according to their task.
+   But it had proved satisfactory to deal with only one bootstrap file, because of the lower maintenance
+   costs.
+</p>
+<div class="hint">
+   As a start the <int:link pageid="111" /> tutorial is recommended.
+</div>
+
+<h4 id="Chapter-3-1-Bootstrap-file"><a href="#Chapter-3-1-Bootstrap-file">3.1. Schema of an index.php file</a></h4>
+<p>
+   A simple application merely consists of a bootstrap file and a master template. The index.php loads
+   the template, therefrom creates a page, that is transformed and displayed afterwards. The master
+   template defines the structure of the application and indicates, which further taglibs or modules are
+   included.
+</p>
+<p>
+   A typical <em>index.php</em> has the following code parts:
+</p>
+<gen:highlight type="php">
+// include the page controller (APF core library)
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+
+// include the front controller
+import('core::frontcontroller', 'Frontcontroller');
+
+// create and configure front controller
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->setContext('{1}');
+// optional: $fC->setLanguage('{2}');
+
+// start request processing and send result to the client
+echo $fC->start('{3}', '{4}');
+</gen:highlight>
+The place holders marked with <strong>{x}</strong> signify the following:
+<ul>
+   <li>
+      <strong>{1}</strong>: Context of the application. The context is used for application-dependent
+      configuration files (see <int:link pageid="134" />).
+   </li>
+   <li>
+      <strong>{2}</strong>: Language of the application. The language is used for language-dependent
+      elements (see <int:link pageid="046" anchor="Chapter-2-2-Getstring" />).
+   </li>
+   <li>
+      <strong>{3}</strong>: Namespace of the base template. In order to load an initial template you
+      need to provide a namespace or path respectively.
+   </li>
+   <li>
+      <strong>{4}</strong>: Name of the base templates. The parameter takes the name of the template
+      file without it's extension.
+   </li>
+</ul>
+
+<h4 id="Chapter-3-2-Templates"><a href="#Chapter-3-2-Templates">3.2. Construction of the templates</a></h4>
+<p>
+   Templates ara playing a big role within the adventure php framework. Abstractly spoken, each node of
+   a web page or application forms a "small MVC section" that consists of a model (commonly the model of
+   the application or website), the view (an XML / HTML template) and a controller (named document
+   controller) if applicable. The kernel of the framework contains the page controller component that
+   generates a DOM tree out of the templates specified in either the <strong>index.php</strong> or by
+   any includes in templates. The page controller executes specified controller during transformation
+   of the DOM tree.
+</p>
+<p>
+   The semantics of the templates thereby defines the complexity of the desired page and thus directly
+   influences the structure of the DOM tree generated by the page controller. By calling the
+   <strong>loadDesign()</strong> method in the <strong>index.php</strong> the initial template of an
+   application or web page is loaded. This file defines the basic structure of the page. Each template
+   included forms a child node of the initial DOM node - the Document. The depth of the tree is not
+   limited to any number. The initial demo page template mentioned before can be seen in the following
+   code box:
+</p>
+<gen:highlight type="html">
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Demo&lt;/title&gt;
+  &lt;meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+...
+&lt;/body&gt;
+&lt;/html&gt;
+</gen:highlight>
+<p>
+   Further examples on templates can be read about in the chapters <int:link pageid="014"/> and
+   <int:link pageid="047"/>. The <int:link pageid="048"/> gives you a closer look at create web pages
+   and applications.
+</p>
+
+<h4 id="Chapter-3-3-Basic-configuration"><a href="#Chapter-3-3-Basic-configuration">3.3. Basic configuration</a></h4>
+<p>
+   In contrast to earlier versions of the framework (&lt; 1.7), you do not need any further basic
+   configuration. The core components' configuration parameter are stored in the <strong>apf::core</strong>
+   namespace of the <int:link pageid="067" />. In order to manipulate them to fit your special needs,
+   the desired parameters must be changed in the central bootstrap file as described below. The registry
+   is not only an information pool for the framework's core, but can also be used to store information
+   about concrete applications.
+</p>
+<gen:highlight type="php">
+// include the page controller (APF core library)
+include_once('./apps/core/pagecontroller/pagecontroller.php');
+
+// include the front controller
+import('core::frontcontroller', 'Frontcontroller');
+
+// change the environment parameter used by the ConfigurationManager
+Registry::register('apf::core','Environment','MY_ENV');
+
+// change the base path to your application
+Registry::register('apf::core','URLBasePath','http://mybaseurl.de');
+
+// change the url rewriting mode (true: URL params are separated by a "/", false: "normal" URLs)
+Registry::register('apf::core','URLRewriting',true);
+
+// change log directory
+Registry::register('apf::core','LogDir','/path/to/my/log/dir');
+
+// create and configure front controller
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->setContext('{1}');
+// optional: $fC->setLanguage('{2}');
+
+// start request processing and send result to the client
+echo $fC->start('{3}', '{4}');
+</gen:highlight>
+<p>
+   The registry parameters have the following meaning:
+</p>
+
+<h5 id="Chapter-3-3-1-Environment"><a href="#Chapter-3-3-1-Environment">3.3.1. Environment</a></h5>
+<p>
+   <strong>Used by:</strong> ConfigurationManager, MySQLxHandler, MySQLHandler, SQLiteHandler, ...
+</p>   
+<p>
+   Every configuration file exists of four different components:
+</p>
+<ul>
+   <li>Namespace: The folder below which all configuration files of this application lie</li>
+   <li>Context: Current context of the application</li>
+   <li>Environment: e.g. for development, test and live</li>
+   <li>File name: Name of the configuration file</li>
+</ul>
+<p>
+   This abstraction was introduced, so that an application or a module can be integrated into
+   different other applications or modules and is executable on different systems at the same time
+   without change of the source code. Nevertheless, for the loading of configurations there are
+   standardised methods, so that the programmer must not look after it any more. Continuing material
+   can be found under <int:link pageid="134" />.   
+</p>
+<p>
+   <strong>Default value:</strong> &quot;DEFAULT&quot;
+</p>
+
+<h5 id="Chapter-3-3-2-URLBasePath"><a href="#Chapter-3-3-2-URLBasePath">3.3.2. URLBasePath</a></h5>
+<p>
+   <strong>Used by:</strong> AdvancedBBCodeParser, SocialBookmarkManager, ...
+</p>
+<p>
+   Many modules link on itself or different areas of a module or a web page. That's why it must be
+   confessed how the base URL of the site is. The registry value URLBasePath defines this.
+</p>
+<p>
+   <strong>Default value:</strong> &quot;HTTP_HOST value of the $_SERVER array&quot;
+</p>
+
+<h5 id="Chapter-3-3-3-URLRewriting"><a href="#Chapter-3-3-3-URLRewriting">3.3.3. URLRewriting</a></h5>
+<p>
+   <strong>Used by:</strong> ChainedGenericInputFilter, ChainedGenericOutputFilter, LinkGenerator, ...
+</p>
+<p>
+   The <int:link pageid="137" />s and the <int:link pageid="138">LinkGenerator</int:link> shipped
+   with the APF support url rewriting. This means that you can use urls like 
+   <em>http://www.domain.tld/param1/value1/param2/value2</em> instead of
+   <em>http://www.domain.tld?param1=value1&amp;param2=value2</em>. If this value is set to
+   &quot;true&quot; the <int:link pageid="138">LinkGenerator</int:link> outputs rewritten links.
+</p>
+<p>
+   Details can be taken from the <int:link pageid="069" /> or <int:link pageid="137" /> or
+   <int:link pageid="138" /> chapter.
+</p>
+<p>
+   <strong>Default value:</strong> &quot;false&quot;
+</p>
+
+<h5 id="Chapter-3-3-4-LogDir"><a href="#Chapter-3-3-4-LogDir">3.3.4. LogDir</a></h5>
+<p>
+   <strong>Used by:</strong> Logger, ...
+</p>
+<p>
+   To allow a central Logging mechanism, the path in which the log files should be written must be
+   defined centrally. The path is used by the class <strong>Logger</strong>.
+</p>
+<p>
+   <strong>Default value:</strong> &quot;./logs&quot;
+</p>
+
+<h5 id="Chapter-3-3-5-LibPath"><a href="#Chapter-3-3-5-LibPath">3.3.5. LibPath</a></h5>
+<p>
+   <strong>Used by:</strong> various extensions, ...
+</p>
+<p>
+   The <strong>LibPath</strong> directive stores the basic path to the framework's code files. The
+   directory path is set dynamically and the value is read only.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_013" />
