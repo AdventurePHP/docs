@@ -1,61 +1,183 @@
-<doku:title parent="119" tags="hello world,introduction,first website,templates,index.php" title="Hello world!" urlname="Hello-world">
-  The 'Hello world!' example presents a quick introduction into the adventure php framework
-  (apf). It depicts, how you can create an easy web page with only one bootstrap (index.php) and one
-  template file.
+<doku:title parent="119" tags="hello world,getting started,first web page,templates,index.php" title="Hello World!" urlname="Hello-World">
+   This Hello World! example helps you to get started with the Adventure PHP Framework (APF). It describes how to create
+   a simple web site with just one template and a bootstrap file.
 </doku:title>
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
 <p>
-   The present chapter describes a &quot;quick&amp;dirty&quot; way to build a &quot;hello world!&quot;
-   application with the Adventure PHP Framework. The <int:link pageid="048"/> tutorial explains - based
-   on this hello world! example - an easy example of a website. The forum thread
-   <a class="forum" title="APF-Modul erstellen" href="http://forum.adventure-php-framework.org/viewtopic.php?f=6&amp;t=44">APF-Modul erstellen</a>
-   (German) and the <int:link pageid="129" lang="de"/> (German) article provide more complex application samples.
+   This chapter describes how you can create a simple <em>Hello World!</em> application and which mechanisms to use.
+   <a href="#Chapter-6-Further-documentation">Chapter 6</a> contains links on further reading.
 </p>
 
-<h3 id="Chapter-2-Build-the-application"><a href="#Chapter-2-Build-the-application">2. Build the "hello world!" application</a></h3>
+<h3 id="Chapter-2-Preparation"><a href="#Chapter-2-Preparation">2. Preparation</a></h3>
 <p>
-   In order to display the ordinary "hello world!" text a master template must be created. The template
-   file will be stored under <strong>apps/sites/helloworld/pres/templates/</strong> as described in the
-   <int:link pageid="013" /> section and gets the name <strong>helloworld.html</strong>. The structure
-   of the <strong>sites/helloworld</strong> folder contains the folder <strong>pres</strong> to
-   store all contents belonging to the presentation layer and the <strong>templates</strong> sub
-   folder to store the templates files of the web page or application.
+   Before you start please make sure to have a local web server installed. You may want to use
+   <a class="external" href="http://www.apachefriends.org/de/xampp.html">XAMPP</a> that is built for development
+   environments. In case you already have a web server, just continue with the next step.
 </p>
-<div class="hint">
-   Please note, that this structure is only best practice. Using the APF the developer is always
-   free to create his own folder structure!
-</div>
 <p>
-   The template mentioned above contains the legendary sentence:
+   As a basis, please download a <em>apf-codepack-*</em> file from the <int:link pageid="008" /> page and extract it to
+   a folder under the <em>DOCUMENT_ROOT</em> of your web server.
+</p>
+<p>
+   Now we can start with development.
+</p>
+
+<h3 id="Chapter-3-Creating-the-bootstrap-file"><a href="#Chapter-3-Creating-the-bootstrap-file">3. Creating the bootstrap file</a></h3>
+<p>
+   Every web site or web application that is based on the Adventure PHP Framework needs to have a <em>bootstrap</em>
+   file. This file is the entry point for all requests and can be used to centrally define the configuration of your
+   application. The <em>Hello World!</em> application will not require further configuration.
+</p>
+<p>
+   In order to provide this entry point please create a file named <em>index.php</em> in parallel to the <em>APF</em>
+   folder of the <em>apf-codepack-*</em> file. The folder under the <em>DOCUMENT_ROOT</em> of your web server now
+   has the following structure:
 </p>
 <gen:highlight type="code">
-Hallo Welt! / Hello world!
+APF/
+   core/
+   extensions/
+   modules/
+   tools/
+index.php
 </gen:highlight>
 <p>
-   To do the output, a PHP file must be created. This file is named <strong>index.php</strong> for
-   now and must be callable via HTTP. The content of the PHP file must be:
+   The minimal required content of a bootstrap file is described in chapter
+   <int:link pageid="013" anchor="Chapter-5-1-Aufbau-der-Bootstrap-Datei" />. For our example this code can be used
+   without any adaption. The content of the file is thus as follows:
 </p>
 <gen:highlight type="php">
-// include the page controller (APF core library)
-include_once('./apps/core/pagecontroller/pagecontroller.php');
+include('./APF/core/bootstrap.php');
 
-// include the front controller
-import('core::frontcontroller', 'Frontcontroller');
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
 
-// create and configure front controller
-$fC = &Singleton::getInstance('Frontcontroller');
-
-// start request processing and send result to the client
-echo $fC->start('sites::helloworld::pres::templates', 'helloworld');
+echo $fC->start('...', '...');
 </gen:highlight>
 <p>
-   If you now call the <strong>index.php</strong> file, the text
-   &quot;<code>Hallo Welt! / Hello world!</code>&quot; will be displayed.
+   The arguments of the <em>start()</em> method depend on the structure of your application. Please attend to the
+   following chapter on how the template is created.
+</p>
+
+<!--
+   Bearbeitungsmarker
+-->
+<h3 id="Chapter-4-Erstellen-des-Templates"><a href="#Chapter-4-Erstellen-des-Templates">4. Erstellen des Templates</a></h3>
+<p>
+   Jede Webseite bzw. Applikation, die mit dem APF erstellt wird basiert auf einem initialen Template. Im Fall unserer
+   <em>Hallo Welt!</em>-Anwendung ist dieses gleichzeitig für die Ausgabe des Inhalts zuständig. In komplexeren
+   Anwendungsfällen können dort weitere Teile statisch oder dynamisch eingebunden werden.
 </p>
 <p>
-   With it a program executable under the framework was already provided. To intensify the content,
-   a document controller must be defined which fills the contents of the site as desired. More on
-   controllers can be found on the <int:link pageid="006" /> chapter.
+   Wie im Kapitel <int:link pageid="154" /> beschrieben wird, werden PHP-Klassen, Templates und Konfigurations-Dateien
+   immer absolut adressiert. Für unser Beispiel bedeutet dies, dass das erste Argument der Methode <em>start()</em>
+   in der Bootstrap-Datei den Namespace des Templates und der zweite den Namen des Templates ohne Datei-Endung erwartet.
+</p>
+<p>
+   Um die Code-Basis einer Applikation bzw. eines Webseiten-Projekts übersichtlich zu gestaltet wird empfohlen für Ihre
+   Applikation bzw. Webseite einen eigenen Namespace-Bereich zu schaffen. Für die weiteren Code-Beispiele soll dieser
+   Bereich den Namen <em>world</em> heissen. Unterhalb von <em>world</em> legen wir nun einen Ordner <em>templates</em>
+   an, der alle Templates der Anwendung beinhalten soll. Die Ordner-Struktur ergänzt sich damit wie folgt:
+</p>
+<gen:highlight type="code">
+APF/
+   core/
+   extensions/
+   modules/
+   tools/
+   world/
+         templates/
+index.php
+</gen:highlight>
+<p>
+   Unser initiales Template soll den Namen <em>main.html</em> tragen. Damit können wir die <em>index.php</em> wie
+   folgt vervollständigen:
+</p>
+<gen:highlight type="php">
+include('./APF/core/bootstrap.php');
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+
+echo $fC->start('APF\world\templates', 'main');
+</gen:highlight>
+<p>
+   Legen Sie nun die Datei <em>main.html</em> im Ordner <em>APF/world/templates/</em> an und füllen diese mit dem
+   gewünschten Inhalt (z.B. <em>Hallo Welt!</em>) und rufen die <em>index.php</em> auf. Sie sehen nun den Inhalt Ihrer
+   Template-Datei im Browser.
+</p>
+<div class="hint">
+   Die vorgestellte Ordner-Struktur für Ihre Applikation ist lediglich eine Orientierungshilfe und kann von Ihnen frei
+   definiert werden. Um Probleme bei Updates der APF Code-Basis zu vermeiden, sollten Sie Komponenten Ihrer Anwendung
+   nicht in den Ordnern <em>core</em>, <em>tools</em>, <em>modules</em> bzw. <em>extensions</em> ablegen.
+</div>
+
+<h3 id="Chapter-5-Hallo-Welt-fuer-Fortgeschrittene"><a href="#Chapter-5-Hallo-Welt-fuer-Fortgeschrittene">5. Hallo Welt! für Fortgeschrittene</a></h3>
+<p>
+   In den Kapiteln 3 und 4 haben Sie bereits eine lauffähige Applikation erstellt. Um die Ausgabe etwas dynamischer zu
+   gestalten, soll die ausgegebene Begrüßung über einen URL-Parameter steuerbar sein. Hierzu definieren wir zunächst in
+   unserem Template einen Platzhalter (verfügbare Tags siehe <int:link pageid="046" anchor="Chapter-2-1-Placeholder"/>:
+</p>
+<gen:highlight type="apf-xml">
+   Hallo &lt;html:placeholder name="name"/&gt;!
+</gen:highlight>
+<p>
+   Der Platzhalter <em>name</em> soll nun dynamisch und an Hand gleichnamigen URL-Parameters gefüllt werden. Für dynamische
+   Ausgaben lassen Sich im APF <int:link pageid="006" /> einsetzen. Diese werden bei der Erzeugung der Seite ausgeführt
+   und können u.a. dazu genutzt werden dynamische Inhalte zu generieren.
+</p>
+<p>
+   Um einen Controller für ein Template zu definieren, muss dieses wie folgt erweitert werden:
+</p>
+<gen:highlight type="apf-xml">
+<@controller
+   class="APF\world\controller\SayHelloController"
+@>
+Hello &lt;html:placeholder name="name"/&gt;!
+</gen:highlight>
+<p>
+   Wie Sie der Code-Box entnehmen können wir die PHP-Klasse absolut und mit ihrem Namespace angegeben.
+</p>
+<p>
+   Die Implementierung des Controllers gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+namespace APF\world\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+
+class SayHelloController extends BaseDocumentController {
+
+   public function transformContent() {
+      $name = isset($_REQUEST['name']) ? $_REQUEST['name'] : 'Welt';
+      $this->setPlaceHolder('name', $name);
+   }
+
+}
+</gen:highlight>
+<p>
+   Die erste Zeile der Methode <em>transformContent()</em> definiert den auszugebenden Namen. Sofern der URL-Parameter
+   <em>name</em> vorhanden ist wird der dort vorhandene Inhalt genutzt, in allen anderen Fällen wird der Standard-Wert
+   <em>Welt</em> genutzt. Die zweite Zeile füllt den Platzhalter <em>name</em> mit dem zuvor evaluierten Namen.
+</p>
+<p>
+   Rufen Sie nun die <em>index.php</em> mit dem URL-Parameter <em>name</em> und dem Wert <em>Harry</em> auf, so
+   begrüßt Sie die Webseite mit <em>Hallo Harry!</em>.
+</p>
+<p>
+   Mehr zur Implementierung und Nutzung von Controllern finden Sie im Kapitel <int:link pageid="006" />.
+</p>
+
+<h3 id="Chapter-6-Further-documentation"><a href="#Chapter-6-Further-documentation">6. Further documentation</a></h3>
+<p>
+   Das Tutorial <int:link pageid="048"/> zeigt einfaches Beispiel zur Erstellung einer Webseite. Der Foren-Beitrag
+   <a class="forum" linkrewrite="false" href="http://forum.adventure-php-framework.org/viewtopic.php?f=6&amp;t=44">APF-Modul erstellen</a>
+   und der Artikel <int:link pageid="129" /> zeigen komplexere Beispiele für Applikationen.
+</p>
+<p>
+   Sofern Sie weitere Einsteiger-Inhalte suchen, hilft Ihnen das Tutorial <int:link pageid="111" /> weiter.
 </p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_014" />
