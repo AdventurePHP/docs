@@ -176,7 +176,7 @@ $fC->registerAction('APF\site\actions', 'check-permissions');
 <p>
    Die Methode <em>registerAction()</em> besitzt zwei Argumente: den Namespace in der die Action-Konfiguration abgelegt
    ist und den Namen der Action. Details zur Konfiguration und Adressierung entnehmen Sie bitte
-   <a href="#Chapter-XXX">Kapitel XXX</a>.
+   <a href="#Chapter-5-1-Konfiguration">Kapitel 5.1</a>.
 </p>
 <p>
    Die Actions <em>init-model</em> und <em>check-permissions</em> werden nun bei jeder Anfrage in der genannten
@@ -338,7 +338,7 @@ FC.ActionClass = ""
 [FC.InputParams = ""]
 </gen:highlight>
 <p>
-   Die aufgeführten Parametern haben dabei folgende Bedeutungen:
+   Die aufgeführten Parameter haben folgende Bedeutungen:
 </p>
 <ul>
    <li>
@@ -359,169 +359,270 @@ FC.ActionClass = ""
       <strong>FC.InputParams</strong>:
       Enthält Parameter, die bei der Erzeugung der Action in die Instanz der Input-Implementierung injiziert werden.
       Schlüssel und Wert werden durch &quot;:&quot; getrennt, mehrere Werte-Paare durch &quot;|&quot; (Beispiel:
-      <em>login:true|headview:menu</em>). Ist die Konfigurations-Direktive nicht definiert, wird das Input-Objekt
+      <em>login:true|headview:menu</em>). Ist die Konfigurations-Direktive nicht vorhanden, wird das Input-Objekt
       nicht initialisiert.
    </li>
 </ul>
 <div class="hint">
-   Wird keine eigene Input-Implementierung benötigt, so kann dies durch Weglassen des
-   <em>FC.InputClass</em>-Parameters in der Konfiguration definiert werden. Eigene Implementierungen
-   sind üblicherweise nur dann sinnvoll, wenn Action-Parameter weiterverarbeitet werden sollen.
-
-   ==> Überschreiben von in der Konfiguration definierten Parameter per URL möglich!
+   Die Nutzung einer eigenen Input-Implementierung ist empfehlenswert, wenn Sie die Verarbeitung von URL- oder
+   Input-Parametern kapseln möchten.
 </div>
-<!--
-   Current work marker
--->
+<div class="hint">
+   Die in der Direktive <em>FC.InputParams</em> definierten Eingabe-Parameter können über die URL überschrieben werden.
+   Dies ist insbesondere dann sinnvoll, wenn Sie beabsichtigen eine Action mit Basis-Werten konfigurieren und in einem konkreten
+   Anwendungsfall mit einem anderen Verhalten zu starten. Die hierzu notwendige Logik ist bereits in der Methode
+   <em>Frontcontroller::addAction()</em> vorhanden.
+</div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h4 id="Chapter-2-1-Action-und-Input-Klassen"><a href="#Chapter-2-1-Action-und-Input-Klassen">2.1. Action- und Input-Klassen</a></h4>
+<h4 id="Chapter-5-2-Action-Implementierung"><a href="#Chapter-5-2-Action-Implementierung">5.2. Action-Implementierung</a></h4>
 <p>
-   Die vom Entwickler erzeugte Action-Klasse kapselt die Funktion einer Action. Wie der
-   <int:link pageid="002"/> der Klasse <em>AbstractFrontcontrollerAction</em> zu entnehmen ist,
-   muss hierzu die Methode <em>run()</em> implementiert werden, da diese bei der Ausführung
-   einer Action durch den FrontController angesprochen wird. Die Input-Klasse ist eine einfache
-   Daten-Klasse die die Model-Informationen der jeweiligen Action beinhaltet. Ein Input-Objekt 
-   kann im einfachsten Anwendungsfall auch das Model einer Applikation sein. Das folgende
-   Code-Beispiel zeigt zwei einfache Action- und Input-Klassen:
+   Eine Front-Controller-Action definiert sich durch eine PHP-Klasse, die von <em>AbstractFrontcontrollerAction</em>
+   erbt. Zur Ausführung der Logik muss die Methode <em>run()</em> implementiert werden.
+</p>
+<p>
+   Das folgende Code-Beispiel zeigt eine Action, die Sie mit <em>Hallo Welt!</em> begrüßt und die Verarbeitung der
+   Anfrage anschließend beendet:
 </p>
 <gen:highlight type="php">
+namespace ACME\project\actions;
+
 use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetMeAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
+   }
+
+   public function run() {
+      echo 'Hallo Welt!';
+      exit();
+   }
+
+}
+</gen:highlight>
+<p>
+   Rufen Sie die in <a href="#Chapter-4-Bootstrap-Datei">Kapitel 4</a> definierte Bootstrap-Datei mit der URL
+</p>
+<gen:highlight type="code">
+?ACME_project-action:greetMe
+</gen:highlight>
+<p>
+   auf, so werden Sie - vorausgesetzt Sie haben die entsprechende <a href="#Chapter-5-1-Konfiguration">Konfiguration</a>
+   angelegt - mit dem Satz <em>Hallo Welt!</em> begrüßt.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass der in der URL angegebene Namespace nicht mit dem Namespace der Action-Implementierung
+   übereinstimmen muss! Daher wählt das Beispiel bewusst einen unterschiedlichen Namespace.
+</div>
+<p>
+   Bei der Erzeugung von Actions werden Kontext und Sprache der Applikation injiziert. Aus diesem Grund können Sie in
+   Actions beliebige Applikations-Logik verpacken. Kontext-abhängige Aktionen wie beispielsweise das Laden einer
+   <int:link pageid="134" /> sind daher ohne Probleme möglich. Eebenso verhält es sich mit dem Zugriff auf gemeinsam
+   genutzte Ressourcen wie einem View-Model.
+</p>
+<p>
+   Weitere Beispiele für Action-Implementierungen finden Sie im <a href="#Chapter-8-Weiterfuehrende-Beispiele">Kapitel 8</a>.
+</p>
+
+<h4 id="Chapter-5-3-Input-Implementierung"><a href="#Chapter-5-3-Input-Implementierung">5.3. Input-Implementierung</a></h4>
+<p>
+   Input-Klassen kapseln die Eingabe-Parameter einer Action und hinsichtlich der Konfiguration als optional zu betrachten.
+   Wird für eine Action in der Konfiguration keine Input-Implementierung angegeben, so nutzt der Front-Controller eine
+   Instanz der Klasse <em>FrontcontrollerInput</em> als Standard.
+</p>
+<div class="hint">
+   Ist die Logik der Input-Klasse auf das Aufnehmen und Wiedergeben von Action-Parametern beschränkt, so ist es nicht
+   notwendig eine eigene Klasse zu implementieren. Sie können auch in diesem Fall auf die Standard-Implementierung
+   <em>FrontcontrollerInput</em> zurück greifen.
+</div>
+<p>
+   Möchten Sie von der Action in <a href="#Chapter-5-2-Action-Implementierung">Kapitel 5.2.</a> persönlich begrüßt
+   werden, so können Sie dies mit der folgenden Implementierung erreichen:
+</p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetMeAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
+   }
+
+   public function run() {
+      $input = $this->getInput();
+
+      echo 'Hallo ' . $input->getAttribute('name') . '!';
+      exit();
+   }
+
+}
+</gen:highlight>
+<p>
+   Der abgebildete Code der Methode <em>run()</em> setzt voraus, dass Sie die Action mit dem Parameter <em>name</em>
+   ausstatten. Rufen Sie die in <a href="#Chapter-4-Bootstrap-Datei">Kapitel 4</a> definierte Bootstrap-Datei mit der URL
+</p>
+<gen:highlight type="code">
+?ACME_project-action:greetMe=name:Harry
+</gen:highlight>
+<p>
+   auf,  so werden Sie - vorausgesetzt Sie haben die entsprechende <a href="#Chapter-5-1-Konfiguration">Konfiguration</a>
+   angelegt - mit dem Satz <em>Hallo Harry!</em> begrüßt.
+</p>
+<p>
+   Wir kein Name übergeben, so wird keine korrekte Begrüßung ausgegeben. Mit einer eigenen Input-Implementierung haben
+   Sie die Möglichkeit, eine Verarbeitung der Eingabe-Parameter zu implementieren, die beispielsweise dafür sorgt, dass
+   fehlende Eingaben durch Standard-Werte ersetzt werden:
+</p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
 use APF\core\frontcontroller\FrontcontrollerInput;
 
-class DemoAction extends AbstractFrontcontrollerAction {
+class GreetMeInput extends FrontcontrollerInput {
+   public function getName() {
+      return $this->getAttribute('name', 'Welt');
+   }
+}
+</gen:highlight>
+<p>
+   Schreiben Sie die Action nun wie folgt um, so werden Sie sowohl mit als auch ohne Übergabe eines Namens korrekt
+   begrüßt:
+</p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
 
-   public function run(){
-      echo 'I am front controller action class! My Name is '.
-           $this->input->getAttribute('Name').'!';
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetMeAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
    }
 
-}
+   public function run() {
+      $input = $this->getInput();
 
-class DemoInput extends FrontcontrollerInput {
-
-   public function __construct(){
-      $this->setAttribute('Name', 'Max Mueller');
+      echo 'Hallo ' . $input->getName() . '!';
+      exit();
    }
 
 }
 </gen:highlight>
-<p>Wird die hier gezeigte Action ausgeführt, erscheint im Browser der Satz</p>
-<gen:highlight type="code">
-I am front controller action class! My Name is Max Mueller!
-</gen:highlight>
 <div class="hint">
-   Ab Version 1.14 sind Input-Klassen optional. Ist die Logik der Klasse auf das Aufnehmen und
-   Wiedergeben von Action-Parametern beschränkt, so ist es nicht notwendig eine eigene Klasse zu
-   implementieren, sondern der Front-Controller kann über die Konfiguration veranlasst werden, die
-   mit dem APF mitgelieferte Klasse <em>FrontcontrollerInput</em> zu nutzen.
-</div>
-<p>
-   Da die Actions ebenso den Context der Applikation kennen, können in den Actions beliebige
-   Applikations-Teile verpackt werden. Ein beliebtes Beispiel ist die Benutzer-Authentifizierung. In der
-   Action kann dann abgeprüft werden, ob der Benutzer eingeloggt ist oder nicht und ggf. die Model-
-   Informationen des Login-Moduls setzen.
-</p>
-<div class="hint">
-   <em>Innerhalb</em> einer Action kann bequem über die Variable <em>$this->input</em> auf das
-   Input-Objekt zugegriffen werden. Besteht die Notwendigkeit innerhalb einer Applikation von 
-   <em>Außen</em> auf die Action-Input-Informationen zugreifen zu müssen, so kann auf die
-   Instanz einer Action die Methode <em>getInput()</em> angewendet werden. Diese liefert das
-   korrespondierende Input-Objekt als Referenz zurück.
+   <em>Innerhalb</em> einer Action kann bequem über die Variable <em>$this->input</em> auf das Input-Objekt zugegriffen
+   werden. Besteht die Notwendigkeit innerhalb einer Applikation von <em>außen</em> auf die Action-Input-Informationen
+   zugreifen zu müssen, so kann auf die Instanz einer Action die Methode <em>getInput()</em> angewendet werden.
+   Diese liefert das korrespondierende Input-Objekt als Referenz zurück.
 </div>
 
-
-
-
-
-
-
-
-
-
-<h4 id="Chapter-2-4-Generierung-von-Links"><a href="#Chapter-2-4-Generierung-von-Links">2.4. Generierung von Links</a></h4>
+<h3 id="Chapter-6-Action-Steuerung"><a href="#Chapter-6-Action-Steuerung">6. Action-Steuerung</a></h3>
 <p>
-   ==> Grundsätzlich wird das URL-Layout von Input- und Output-Filtern realisiert. Die dafür Implementierten Komponenten
-   im APF sind folgende: ...
+   Neben der Definition der Ausführungszeit (Details siehe <a href="#Chapter-3-1-Definition">Kapitel 3.1</a>) stellt
+   der Front-Controller noch eine weitere Möglichkeit bereit die Ausführung von Actions zu beeinflussen. Möchten Sie
+   die Ausführung einer Action unter bestimmten Umständen unterbinden, so können Sie dies durch Überschreiben der
+   Methode <em>AbstractFrontcontrollerAction::isActive()</em> realisieren.
 </p>
 <p>
-   Wie in der Definition des gleichnamigen Design-Pattern beschrieben ist, ermöglicht der APF
-   Front-Controller die Ausführung einer beliebigen Anzahl von Actions innerhalb eines Requests.
-   Diese unterliegen zusätzlich einem Timing-Modell das es ermöglicht, Actions zu ganz
-   unterschiedlichen Zeitpunkten auszuführen.
+   Gibt <em>isActive()</em> Ihrer Implementierung <em>true</em> zurück, wird die <em>run()</em>-Methode ausgeführt,
+   im Fall von <em>false</em> nicht. Dies ermöglicht Ihnen die Action nicht oder erst dann auszuführen, wenn eine
+   andere Action auf dem Action-Stack geladen ist oder eine andere Bedingung zutrifft.
 </p>
 <p>
-   Die Steuerung der Ausführung der Actions obliegt dabei dem Front-Controller, die Registrierung
-   der auszuführenden Actions übernimmt jedoch der zum Front-Controller passende
-   <int:link pageid="137" anchor="Chapter-4-URL-Layout"/> oder der Entwickler in Form von
-   <em>registerAction()</em>-Methoden-Aufrufen.
-</p>
-<div class="warn">
-   Bitte beachten Sie, dass die Information in Kapitel 2.4.3 bis einschließlich 2.4.6 mit dem
-   Release 1.14 veraltet sind. Bitte nutzen Sie die im Kapitel <int:link pageid="138"/> beschriebene
-   Möglichkeit Links mit Front-Controller-Actions zu erzeugen!
-</div>
-
-<h5 id="Chapter-2-4-1-URL-Layout"><a href="#Chapter-2-4-1-URL-Layout">2.4.1. URL-Layout</a></h5>
-<p>
-   Um die Möglichkeit von mehrfach pro Request ausführbaren Actions auch über die URL zur
-   Verfügung zu stellen, wurde ein Layout definiert, in dem beliebig viele Actions mit einer
-   beliebigen Anzahl von Parametern zur Ausführung definiert werden können. Die natürliche Grenze
-   bildet dabei die Beschränkung der Zeichen-Anzahl in der URL. Das Schema für reguläre URLs
-   ist wie folgt definiert:
-</p>
-
-
-<h5 id="Chapter-2-4-2-Action-Steuerung"><a href="#Chapter-2-4-2-Action-Steuerung">2.4.2. Action-Steuerung</a></h5>
-<p>
-   Die abstrakte Klasse <em>AbstractFrontcontrollerAction</em> definiert noch einige weitere
-   Mechanismen, die zur Steuerung der Action eingesetzt werden können. Neben dem Timing und der
-   permanenten Ausführung einer Action kann diese dynamisch aktiviert und deaktiviert werden. Dies
-   ermöglicht die Action nicht oder erst dann auszuführen, wenn eine andere Action auf dem
-   Action-Stack geladen ist oder eine andere Bedingung zutrifft.
-</p>
-<p>
-   Hierzu kann die Methode <em>isActive()</em> der Klasse <em>AbstractFrontcontrollerAction</em>
-   überschrieben und mit der gewünschten Logik versehen werden:
+   Das folgende Beispiel sorgt dafür, dass die Action nur dann ausgeführt wird, denn eine bestimmte Action nicht auf dem
+   Action-Stack vorhanden ist:
 </p>
 <gen:highlight type="php">
 public function isActive() {
-   $captcha = &$this->getParentObject()->getActionByName('showCaptcha');
+   $captcha = $this->getFrontController()->getActionByName('showCaptcha');
    return $captcha === null;
 }
 </gen:highlight>
+
+<h3 id="Chapter-7-Generierung-von-Links"><a href="#Chapter-7-Generierung-von-Links">7. Generierung von Links</a></h3>
 <p>
-   Der beschriebene Code aktiviert die Action nur dann, wenn die Action <em>showCaptcha</em> nicht
-   angefragt ist.
+   Die Gestaltung des URL-Layouts übernehmen im APF die <int:link pageid="137">Input- und Output-Filter</int:link> sowie
+   die zugehörigen <int:link pageid="138" anchor="Chapter-2-3-LinkScheme">LinkScheme</int:link>-Implementierungen.
+</p>
+<p>
+   Die Eingabe-Filter sind - wie in <a href="#Chapter-3-2-2-Dynamische-Actions">Kapitel 3.2.2.</a> beschrieben - dafür
+   verantwortlich die URL zu analysieren, darin enthaltene Front-Controller-Anweisungen zu extrahieren und an den
+   Front-Controller zu übergeben. Das APF liefert hierzu die Filter <em>ChainedStandardInputFilter</em> für einfache URLs
+   und <em>ChainedUrlRewritingInputFilter</em> für umgeschriebene URLs mit.
+</p>
+<p>
+   Die jeweils genutzte <em>LinkScheme</em>-Implementierung bietet Ihnen mit der <em>formatActionLink()</em>-Methode
+   eine Schnittstelle an um Action-URLs automatisiert und jeweils passend zum Eingabe-Filter zu generieren. Das APF
+   liefert hierzu die Implementierungen <em>DefaultLinkScheme</em> für einfache URLs und <em>RewriteLinkScheme</em> für
+   umgeschriebene URLs mit.
+</p>
+<div class="warn">
+   <p>
+      Bei der Generierung von URLs über die Methode <em>LinkGenerator::generateActionUrl()</em> werden auf dem Action-Stack
+      vorhandene Actions <em>nicht</em> automatisch in die generierte URL inkludiert. Dies hat den Grund, dass nur der
+      Entwickler selbst entscheiden kann, welche Action in der URL repräsentiert sein soll und damit bei der nächsten
+      Anfrage dynamisch ausgeführt werden soll.
+   </p>
+   <p>
+      Möchten Sie eine Action bewusst bei der URL-Generierung einbeziehen, so haben Sie die Möglichkeit diese über die
+      Variable <em>$keepInUrl</em> zu markieren. Beispiel:
+   </p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetingAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
+      $this->setKeepInUrl(true);
+   }
+
+   ...
+
+}
+</gen:highlight>
+   <p>
+      Um dynamisch zu entscheiden - beispielsweise an Hand von Parametern eines View-Models Ihrer Anwendung - ob die
+      Action bei der URL-Generierung berücksichtigt werden soll oder nicht, können Sie auch die Methode <em>getKeepInUrl()</em>
+      direkt überschreiben. Diese wird vom jeweiligen <em>LinkScheme</em> dazu genutzt um Actions explizit einzuschließen:
+   </p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetingAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
+   }
+
+   public function getKeepInUrl() {
+      $model = $this->getViewModel();
+      return $model->getFoo() === true;
+   }
+
+   ...
+
+}
+</gen:highlight>
+</div>
+<p>
+   Details zur Generierung von URLs können Sie dem Kapitel <int:link pageid="138" /> entnehmen.
 </p>
 
-<h3 id="Chapter-3-Weiterfuehrende-Beispiele"><a href="#Chapter-3-Weiterfuehrende-Beispiele">3. Weiterführende Beispiele</a></h3>
+<h3 id="Chapter-8-Weiterfuehrende-Beispiele"><a href="#Chapter-8-Weiterfuehrende-Beispiele">8. Weiterführende Beispiele</a></h3>
 <p>
-   Anwendungsfälle werden in <int:link pageid="056" /> beschrieben. Darunter a, b, c.
+   Konkrete Anwendungsfälle wie die dynamische Auslieferung von Bildern, der Prüfung des Login-Zustands eines
+   Benutzers oder der Sprach-Umschaltung werden im Kapitel <int:link pageid="056" /> beschrieben.
 </p>
 <p>
-   Vor allem in komplexen Web-Anwendungen ist es oft notwendig, die Bestandteile der Seite bereits
-   vor dem Aufbau zu kennen um wesentliche Bestandteile je nach Anforderungen des Benutzers flexibel
-   ändern zu können (z.B. Login). Weitere Ideen und Möglichkeiten zur Umsetzung können dem
-   <a href="#Chapter-3-Weiterfuehrende-Beispiele">Kapitel 3</a> entnommen werden. Um Actions zu definieren, die bei
-   jedem Request ausgeführt werden, hat der Entwickler die Möglichkeit diese Actions in der Bootstrap-Datei zu
-   registrieren. Diese verhalten sich gemäß dem Timing Model wie &quot;normale&quot; Actions.
+   Ein weiteres Beispiel für die Anwendung von Actions können Sie im Artikel <int:link pageid="082" lang="en"/>
+   (English) nachlesen.
 </p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_012" />
