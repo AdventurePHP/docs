@@ -1217,7 +1217,7 @@ sh_languages['php'] = [
       3
     ],
     [
-      /\b(?:true|false|null|public|private|protected|and|or|xor|__FILE__|exception|php_user_filter|__LINE__|array|as|break|case|cfunction|class|const|continue|declare|default|die|do|each|echo|else|elseif|empty|enddeclare|endfor|endforeach|endif|endswitch|endwhile|eval|exit|extends|for|foreach|function|global|if|isset|list|new|old_function|print|return|static|switch|unset|use|namespace|var|while|__FUNCTION__|__CLASS__|__METHOD__)\b/g,
+      /\b(?:true|false|null|public|private|protected|and|or|xor|__FILE__|exception|php_user_filter|__LINE__|array|as|break|case|cfunction|class|const|continue|declare|default|die|do|each|echo|else|elseif|empty|enddeclare|endfor|endforeach|endif|endswitch|endwhile|eval|exit|extends|for|foreach|function|global|if|isset|list|new|old_function|print|return|static|switch|unset|use|namespace|var|instanceof|implements|while|__FUNCTION__|__CLASS__|__METHOD__)\b/g,
       'sh_keyword',
       -1
     ],
