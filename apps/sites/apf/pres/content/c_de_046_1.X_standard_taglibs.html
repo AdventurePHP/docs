@@ -344,7 +344,7 @@ class sample_controller extends BaseDocumentController {
 <p>
    Diese Beschreibung gilt ebenso für die Tags <em>&lt;form:getstring /&gt;</em>
    (<int:link pageid="113" anchor="Chapter-3-17-Getstring"/>) und
-   <em>&lt;template:getstring /&gt;</em> (<a href="#Chapter-2-3-4-Getstring">Kapitel 2.3.3.</a>).
+   <em>&lt;template:getstring /&gt;</em> (<a href="#Chapter-2-3-3-Getstring">Kapitel 2.3.3.</a>).
 </p>
 
 <h4 id="Chapter-2-3-Template"><a href="#Chapter-2-3-Template">2.3. Template</a></h4>
@@ -391,8 +391,8 @@ In einem Template gibt es wiederum Platzhalter, die dynamisch gesetzt werden kö
 class my_controller extends BaseDocumentController {
    public function transformContent(){
       $Template__MyTemplate = &$this->getTemplate('MyTemplate');
-      $Template__MyTemplate->setPlaceHolder('MyPlaceHolder', 'MyContent');
-      $this->setPlaceHolder('Content', $Template__MyTemplate->transformTemplate());
+      $Template__MyTemplate->setPlaceHolder('MyPlaceHolder','MyContent');
+      $this->setPlaceHolder('Content',$Template__MyTemplate->transformTemplate());
    }
 }
 </gen:highlight>
@@ -406,101 +406,7 @@ class my_controller extends BaseDocumentController {
    eingesetzt.
 </p>
 
-<h5 id="Chapter-2-3-2-Loeschen-des-Template-Inhalts"><a href="#Chapter-2-3-2-Loeschen-des-Template-Inhalts">2.3.2. Löschen des Template-Inhalts</a></h5>
-<p>
-   Verwenden Sie ein Template um sich wiederholende Inhalte auszugeben, so gilt zu beachten, dass die Instanz des
-   Template-Tags (<em>TemplateTag</em>) bei der Verwendung in Schleifen immer die selbe Instanz ist. Füllen Sie während
-   eines Durchlaufs nur einen Teil der Platzhalter, so werden in vorherigen Durchläufen gefüllte Elemente nicht wieder
-   entfernt. Um dies zu vermeiden können Sie nach jedem Durchlauf die Methode <em>clear()</em> auf der Instanz des
-   Templates aufrufen:
-</p>
-<gen:highlight type="php">
-class my_controller extends BaseDocumentController {
-
-   public function transformContent() {
-
-      $template = &$this->getTemplate('table-line');
-
-      $elements = ...;
-
-      foreach($elements as $element) {
-         $template->setPlaceHolder('foo', $element->getFoo());
-
-         $bar = $element->getBar();
-         if(!empty($bar)) {
-            $template->setPlaceHolder('bar', $bar);
-         }
-
-         $buffer .= $template->transformTemplate();
-
-         $template->clear();
-      }
-
-      $this->setPlaceHolder('content', $buffer);
-   }
-}
-</gen:highlight>
-<p>
-   Der Aufruf von <em>clear()</em> sorgt dafür, dass alle Platzhalter-Tags (Instanzen von <em>PlaceHolderTag</em>)
-   zurückgesetzt - sprich der Inhalt geleert - wird.
-</p>
-<p>
-   Definieren Sie eigene Platzhalter-Tags oder haben Sie weitere Elemente, die nach einem Schleifen-Durchlauf geleert
-   werden sollen, können Sie der Methode <em>clear()</em> eine eigene Implementierung des Interfaces
-   <em>TemplateTagClearApproach</em> mitgeben. Die folgende Code-Box zeigt die Standard-Implementierung des APF, die
-   die vorhandenen Platzhalter zurücksetzt und gleichzeitig im Template vorhandenen <em>&lt;*:getstring /&gt;</em>-Tags
-   zurücksetzt:
-</p>
-<gen:highlight type="php">
-class DefaultTemplateTagClearApproach implements TemplateTagClearApproach {
-
-   public function clear(TemplateTag &$node) {
-      $children = & $node->getChildren();
-      foreach ($children as $objectId => $DUMMY) {
-         if ($children[$objectId] instanceof PlaceHolderTag) {
-            $children[$objectId]->setContent('');
-         }
-         if ($children[$objectId] instanceof LanguageLabelTag) {
-            $children[$objectId]->clearPlaceHolders();
-         }
-      }
-   }
-
-}
-</gen:highlight>
-<p>
-   Möchten Sie der Methode eine eigene Implementierung des Lösch-Vorgehens mitgeben, so gestaltet sich der Controller-Code
-   wie folgt:
-</p>
-<gen:highlight type="php">
-class my_controller extends BaseDocumentController {
-
-   public function transformContent() {
-
-      $template = &$this->getTemplate('table-line');
-
-      $elements = ...;
-
-      $clearApproach = new DefaultTemplateTagClearApproach();
-      foreach($elements as $element) {
-         $template->setPlaceHolder('foo', $element->getFoo());
-
-         $bar = $element->getBar();
-         if(!empty($bar)) {
-            $template->setPlaceHolder('bar', $bar);
-         }
-
-         $buffer .= $template->transformTemplate();
-
-         $template->clear($clearApproach);
-      }
-
-      $this->setPlaceHolder('content', $buffer);
-   }
-}
-</gen:highlight>
-
-<h5 id="Chapter-2-3-3-Template-Erweiterungen"><a href="#Chapter-2-3-3-Template-Erweiterungen">2.3.3. Template-Erweiterungen</a></h5>
+<h5 id="Chapter-2-3-2-Template-Erweiterungen"><a href="#Chapter-2-3-2-Template-Erweiterungen">2.3.2. Template-Erweiterungen</a></h5>
 <p>
    Um die Funktionalitäten innerhalb eines Templates mit weiteren TagLibs erweitern zu können
    steht der Tag <em>&lt;template:addtaglib /&gt;</em> zur Verfügung. Ähnlich dem <em>&lt;core:addtaglib /&gt;</em>-
@@ -531,10 +437,10 @@ class my_controller extends BaseDocumentController {
 <p>
    Ein Beispiel für die Verwendung des XML-Tags ist der TagLib-Tag &lt;[html|template]:getstring /&gt;
    zum Auslesen und Darstellen eines Strings aus einer Konfigurations-Datei.
-   Siehe hierzu <a href="#Chapter-2-3-4-Getstring">Kapitel 2.3.3</a>.
+   Siehe hierzu <a href="#Chapter-2-3-3-Getstring">Kapitel 2.3.3</a>.
 </p>
 
-<h5 id="Chapter-2-3-4-Getstring"><a href="#Chapter-2-3-4-Getstring">2.3.4. Getstring</a></h5>
+<h5 id="Chapter-2-3-3-Getstring"><a href="#Chapter-2-3-3-Getstring">2.3.3. Getstring</a></h5>
 <p>
    Der Tag <em>&lt;template:getstring /&gt;</em> dient dazu einen Konfigurations-String aus einer sprachabhängigen
    Konfigurations-Datei auszulesen und anzuzeigen. So können auf einfache Weise mehrsprachige
@@ -572,7 +478,7 @@ class my_controller extends BaseDocumentController {
    <p>
       bekannt gegeben werden.
    </p>
-</div>
+</div>      
 
 <h3 id="Chapter-3-Document"><a href="#Chapter-3-Document">3. Document</a></h3>
 <h4 id="Chapter-3-1-createobject"><a href="#Chapter-3-1-createobject">3.1. createobject</a></h4>

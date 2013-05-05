@@ -340,7 +340,7 @@ class sample_controller extends BaseDocumentController {
 <p>
    This description of this tag can also be applied to the tags <em>&lt;form:getstring /&gt;</em>
    (<int:link pageid="113" anchor="Chapter-3-17-Getstring"/>) and <em>&lt;template:getstring /&gt;</em>
-   (<a href="#Chapter-2-3-4-Getstring">chapter 2.3.3.</a>).
+   (<a href="#Chapter-2-3-3-Getstring">chapter 2.3.3.</a>).
 </p>
 
 <h4 id="Chapter-2-3-Template"><a href="#Chapter-2-3-Template">2.3. Template</a></h4>
@@ -401,98 +401,7 @@ class my_controller extends BaseDocumentController {
    Often this is used for the issue of displaying different announcements with different events.
 </p>
 
-<h5 id="Chapter-2-3-2-Clear-template-content"><a href="#Chapter-2-3-2-Clear-template-content">2.3.2. Clear template content</a></h5>
-<p>
-   In case you are using a template to display repetitive content you should keep in mind that the instance of the
-   template tag (<em>TemplateTag</em>) is always the same instance within loops. Filling only parts of the place holders
-   within one loop the place holders filled within previous loops will not be cleared. In order to avoid weired situations
-   you may want to use the <em>clear()</em> method at the end of a loop:
-</p>
-<gen:highlight type="php">
-class my_controller extends BaseDocumentController {
-
-   public function transformContent() {
-
-      $template = &$this->getTemplate('table-line');
-
-      $elements = ...;
-
-      foreach($elements as $element) {
-         $template->setPlaceHolder('foo', $element->getFoo());
-
-         $bar = $element->getBar();
-         if(!empty($bar)) {
-            $template->setPlaceHolder('bar', $bar);
-         }
-
-         $buffer .= $template->transformTemplate();
-
-         $template->clear();
-      }
-
-      $this->setPlaceHolder('content', $buffer);
-   }
-}
-</gen:highlight>
-<p>
-   Calling <em>clear()</em> means that all place holder tags (instances of <em>PlaceHolderTag</em>) will be reset -
-   meaning the content is removed.
-</p>
-<p>
-   If your templates contain custom place holder tags or you have defined further elements that need to be reset after
-   each loop run you can apply a custom implementation of the <em>TemplateTagClearApproach</em> interface to the
-   <em>clear()</em> call. The following code box contains the standard implementation of the APF that resets all
-   place holder tags as well as the string place holders defined within the <em>&lt;*:getstring /&gt;</em> tag instances:
-</p>
-<gen:highlight type="php">
-class DefaultTemplateTagClearApproach implements TemplateTagClearApproach {
-
-   public function clear(TemplateTag &$node) {
-      $children = & $node->getChildren();
-      foreach ($children as $objectId => $DUMMY) {
-         if ($children[$objectId] instanceof PlaceHolderTag) {
-            $children[$objectId]->setContent('');
-         }
-         if ($children[$objectId] instanceof LanguageLabelTag) {
-            $children[$objectId]->clearPlaceHolders();
-         }
-      }
-   }
-
-}
-</gen:highlight>
-<p>
-   In case you want to apply a custom deletion approach the controller code changes as follows:
-</p>
-<gen:highlight type="php">
-class my_controller extends BaseDocumentController {
-
-   public function transformContent() {
-
-      $template = &$this->getTemplate('table-line');
-
-      $elements = ...;
-
-      $clearApproach = new DefaultTemplateTagClearApproach();
-      foreach($elements as $element) {
-         $template->setPlaceHolder('foo', $element->getFoo());
-
-         $bar = $element->getBar();
-         if(!empty($bar)) {
-            $template->setPlaceHolder('bar', $bar);
-         }
-
-         $buffer .= $template->transformTemplate();
-
-         $template->clear($clearApproach);
-      }
-
-      $this->setPlaceHolder('content', $buffer);
-   }
-}
-</gen:highlight>
-
-<h5 id="Chapter-2-3-3-Template-enhancement"><a href="#Chapter-2-3-3-Template-enhancement">2.3.3. Template enhancement</a></h5>
+<h5 id="Chapter-2-3-2-Template-enhancement"><a href="#Chapter-2-3-2-Template-enhancement">2.3.2. Template enhancement</a></h5>
 <p>
    If the standard functionality of HTML templates must be extended, the tag <em>&lt;template:addtaglib /&gt;</em>
    can be used to achieve this goal. The behaviour of the is similar to <em>&lt;core:addtaglib /&gt;</em> that
@@ -522,11 +431,11 @@ class my_controller extends BaseDocumentController {
 </ul>
 <p>
    An example of the use of the XML tag is the taglib tag &lt;[html|template]:getstring / &gt;
-   to read a string from a configuration file and display it. See <a href="#Chapter-2-3-4-Getstring">chapter 2.2.3</a>
+   to read a string from a configuration file and display it. See <a href="#Chapter-2-3-3-Getstring">chapter 2.2.3</a>
    for more details.
 </p>
 
-<h5 id="Chapter-2-3-4-Getstring"><a href="#Chapter-2-3-4-Getstring">2.3.4. Getstring</a></h5>
+<h5 id="Chapter-2-3-3-Getstring"><a href="#Chapter-2-3-3-Getstring">2.3.3. Getstring</a></h5>
 <p>
    The tag <em>&lt;template:getstring /&gt;</em> gives the opportunity to read a configuration string from a
    language-dependent configuration file and so create multi-language GUIs.
