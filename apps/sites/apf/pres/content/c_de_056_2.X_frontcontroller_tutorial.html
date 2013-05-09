@@ -1,25 +1,17 @@
-<doku:title parent="071" tags="tutorials,frontcontroller,bild auslieferung,login prüfung,modelbasiertes gui design" title="Frontcontroller-Tutorial" urlname="Frontcontroller-Tutorial">
-  Das FrontController-Tutorial zeigt auf, wie der FrontController genutzt werden kann. Zu den
+<doku:title parent="071" tags="tutorials,frontcontroller,bild auslieferung,login prüfung,sprachumschaltung" title="Front-Controller Tutorial" urlname="Front-Controller-Tutorial">
+  Das Front-Controller-Tutorial zeigt auf, wie der Front-Controller genutzt werden kann. Zu den
   typischen Anwendungsfällen gehören Auslieferung von dynamischen Bildern, Prüfung
-  von Login-Informationen und Model-basiertes GUI-Design.
+  von Login-Informationen und die Sprachumschaltung Ihrer Applikation.
 </doku:title>
 <h3 id="Chapter-1-Einfuehrung"><a href="#Chapter-1-Einfuehrung">1. Einführung</a></h3>
 <p>
-   Die Front-Controller-Implementierung des Frameworks kann durch das Timing-Modell für
-   unterschiedliche Bereiche eingesetzt werden. Das folgende Diagramm zeigt, wann Actions bei der
-   Ausführung der Front-Controller-Methode <em>start()</em> ausgeführt werden:
+   Dieses Tutorial stellt Einsatzgebiete des <int:link pageid="012" /> vor und gibt konkrete Hinweise für Ihre Projekte.
 </p>
 <p>
-   <a id="FrontController-Timing-Model" href="http://media.adventure-php-framework.org/content/frontcontroller_timing_model.png" title="Zum Vergrößern klicken!">
-      <img src="http://media.adventure-php-framework.org/content/frontcontroller_timing_model.png" alt="Frontcontroller timing model" style="width: 560px;" border="0" />
-   </a>
-</p>
-<p>
-   Das vorliegende Tutorial möchte nun Einsatzgebiete des Front-Controllers aufzeigen und konkrete
-   Hinweise für die Implementierungen geben. Als typische Anwendungsfälle werden nun im
-   Folgenden die <strong>Auslieferung von Bildern</strong> und die
-   <strong>Prüfung von Login-Informationen</strong>, die zum Aufbau eines Applikationsmodels dienen,
-   diskutiert.
+   Als typische Anwendungsfälle werden in den folgenden Kapitel die
+   <a href="#Chapter-2-Bild-Auslieferung">Auslieferung von Bildern</a>, die
+   <a href="#Chapter-3-Login-Pruefung">Prüfung von Login-Informationen</a> und die
+   <a href="#Chapter-4-Sprachumschaltung">Sprachumschaltung Ihrer Applikation</a> diskutiert.
 </p>
 
 <h3 id="Chapter-2-Bild-Auslieferung"><a href="#Chapter-2-Bild-Auslieferung">2. Auslieferung von Bildern</a></h3>
@@ -35,7 +27,7 @@
 <p>
    Mit Hilfe des Front-Controllers, bzw. einer Front-Controller-Action, kann diesem Problem Abhilfe
    geschaffen werden. Das Timing-Modell des Front-Controller-Dispatcher-Prozesses (obiges Diagramm) sieht
-   vor, dass eine Action vor dem Erstellen der Page-Controller-Seite (<em>prepagecreate</em>,
+   vor, dass eine Action vor dem Erstellen der Page-Controller-Seite (<em>TYPE_PRE_PAGE_CREATE</em>,
    siehe <int:link pageid="012" />) ausgeführt werden kann. Der Entwickler ist dabei durch die Gestaltung des
    HTML-Codes frei, ob die mit der Action-Anweisung aufgerufene Seite im selben, oder in einem neuen Fenster erscheinen
    soll. Weiterer Vorteil ist, dass der Programm-Code des präsentierten Inhalts im Namespace des
@@ -62,39 +54,38 @@
 </p>
 <gen:highlight type="ini">
 [showImage]
-FC.ActionNamespace = "modules::socialbookmark::biz::actions"
-FC.ActionClass = "ShowImageAction"
-FC.InputClass = "ShowImageInput"
+FC.ActionClass = "APF\modules\socialbookmark\biz\actions\ShowImageAction"
 FC.InputParams = "img:bookmark_del_icio_us|imgext:png"
 </gen:highlight>
 
 <h4 id="Chapter-2-2-Action-Implementierung"><a href="#Chapter-2-2-Action-Implementierung">2.2. Action-Implementierung</a></h4>
 <p>
-   Die Datei <strong>ShowImageAction.php</strong> beinhaltet die Definition des Programm-Codes der
+   Die Datei <em>ShowImageAction.php</em> beinhaltet die Definition des Programm-Codes der
    Action. Im Fall der Bild-Auslieferung wird der Pfad zum angefragten Service-Bilder zusammengesetzt,
    der entsprechende Header und anschließend das Bild selbst gesendet. Um die Verarbeitung nach
-   dem Ausliefern des Bildes zu stoppen, wird am Ende ein <strong>exit()</strong> notiert. Andernfalls
-   würde die in der <strong>index.php</strong> definierte Seite ausgeliefert werden und der
+   dem Ausliefern des Bildes zu stoppen, wird am Ende ein <em>exit()</em> notiert. Andernfalls
+   würde die in der <em>index.php</em> definierte Seite ausgeliefert werden und der
    Browser könnte das Bild nicht korrekt anzeigen. Folgender Quellcode ist für die Anzeige
    eines Bildes zuständig:
 </p>
 <gen:highlight type="php">
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
 class ShowImageAction extends AbstractFrontcontrollerAction {
 
-   public function run(){
+   public function run() {
 
-      // Bild aus dem Input-Objekt beenden
-      $image = APPS__PATH.'/modules/socialbookmark/pres/image/';
+      $classLoader = RootClassLoader::getLoaderByVendor('APF');
+      $rootPath = $classLoader->getRootPath();
+
+      $image = $rootPath . '/modules/socialbookmark/pres/image/';
       $image .= $this->input->getAttribute('img') . '.' . $this->input->getAttribute('imgext');
 
-      // Header senden
       header('Content-type: image/' . $this->input->getAttribute('imgext'));
       header('Cache-Control: public');
 
-      // Datei streamen
       readfile($image);
 
-      // Abarbeitung beenden, da die aktuelle Anfrage lediglich das Bild ausliefert soll.
       exit();
 
    }
@@ -104,22 +95,16 @@ class ShowImageAction extends AbstractFrontcontrollerAction {
 
 <h4 id="Chapter-2-3-Input-Definition"><a href="#Chapter-2-3-Input-Definition">2.3. Input-Definition</a></h4>
 <p>
-   Die Datei <em>ShowImageInput.php</em> beinhaltet die Definition des Input-Objekts, in dem
-   die Parameter des Action-Aufrufs bereitgestellt werden. Im Fall der Bild-Auslieferung sind hier keine
-   weiteren Parameter-Definitionen notwendig und folgender PHP-Code genügt um die Definition der
-   Action zu komplettieren.
+   Im Fall der Bild-Auslieferung sind hier keine weiteren Parameter-Definitionen notwendig und damit ist keine
+   eigene Input-Implementierung erforderlich.
 </p>
-<gen:highlight type="php">
-class ShowImageInput extends FrontcontrollerInput {
-}
-</gen:highlight>
 
 <h4 id="Chapter-2-4-Anwendung"><a href="#Chapter-2-4-Anwendung">2.4. Praktische Anwendung</a></h4>
 <p>
    Im Socialbookmark-Modul werden die Symbole der Bookmark-Anbieter an den entsprechenden Stellen per
 </p>
 <gen:highlight type="apf-xml">
-&lt;img src="/~/modules_socialbookmark-action/showImage/imgext/png/img/bookmark_technorati" alt="" /&gt;
+&lt;img src="/~/APF_modules_socialbookmark-action/showImage/imgext/png/img/bookmark_technorati" alt="" /&gt;
 </gen:highlight>
 <p>
    eingebunden. Analysiert man den Aufruf der unter 2.2. dargestellten Action, so kommt den Parametern
@@ -128,10 +113,8 @@ class ShowImageInput extends FrontcontrollerInput {
 <ul>
   <li>
     <strong>modules_socialbookmark</strong>:
-    Namespace, unter dem die Definition (Konfiguration, siehe 1.1.) der Action gesucht wird.
-    Action-Konfigurationen sind immer Context-abhängig und werden daher immer unter dem Verzeichnis
-    <gen:highlight type="apf-xml">{NAMESPACE}/actions/{CONTEXT}</gen:highlight>
-    gesucht.
+    Namespace, unter dem die Definition (Konfiguration, siehe <a href="#Chapter-2-1-Action-Konfiguration">Kapitel 2.1</a>)
+    der Action gesucht wird.
   </li>
   <li>
     <strong>-action</strong>:
@@ -179,9 +162,9 @@ class ShowImageInput extends FrontcontrollerInput {
    Dies geschieht in Bootstrap-Datei per
 </p>
 <gen:highlight type="php">
-$fC = &Singleton::getInstance('Frontcontroller');
-$fC->setContext('my::context');
-$fC->registerAction('my::namespace','myAction');
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+$fC->setContext('my-app');
+$fC->registerAction('VENDOR\app\namespace', 'myAction');
 </gen:highlight>
 <p>
    Die Implementierung der Action besteht auch hier aus drei Komponenten. Im Rahmen von MCV-,
@@ -195,9 +178,11 @@ $fC->registerAction('my::namespace','myAction');
    das Beispiel einfache zu gestalten, werden nur folgende Model-Informationen beachtet:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\APFObject;
+
 class ApplicationModel extends APFObject {
 
-   public function __construct(){
+   public function __construct() {
 
       // Definiert den gerade anzuzeigenden View (login|welcome)
       $this->attributes['view.content.template'] = 'login';
@@ -216,9 +201,9 @@ class ApplicationModel extends APFObject {
 }
 </gen:highlight>
 <p>
-   Im Quellcode-Beispiel wird die private Klassenvariable <strong>$attributes</strong> als Container
+   Im Quellcode-Beispiel wird die private Klassenvariable <em>$attributes</em> als Container
    für Model-Attribute verwendet. Das bietet den Vorteil, dass diese später durch den
-   <strong>&lt;fcon:importdesign /&gt;</strong>-Tag ausgelesen und zur Gestaltung der GUI genutzt werden
+   <em>&lt;fcon:importdesign /&gt;</em>-Tag ausgelesen und zur Gestaltung der GUI genutzt werden
    können. Details können in Kapitel 5 der Sektion <int:link pageid="046" /> eingesehen werden.
 </p>
 
@@ -230,10 +215,7 @@ class ApplicationModel extends APFObject {
 </p>
 <gen:highlight type="ini">
 [Login]
-FC.ActionNamespace = "my::module::biz::actions::login"
-FC.ActionClass = "LoginAction"
-FC.InputClass = "LoginInput"
-FC.InputParams = ""
+FC.ActionClass = "VENDOR\module\biz\actions\login\LoginAction"
 </gen:highlight>
 
 <h4 id="Chapter-3-2-Action-Implementierung"><a href="#Chapter-3-2-Action-Implementierung">3.2. Action-Implementierung</a></h4>
@@ -242,104 +224,105 @@ FC.InputParams = ""
    Folgender Code kann dazu eingesetzt werden:
 </p>
 <gen:highlight type="php">
-public function run() {
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\tools\request\RequestHandler;
+use APF\core\session\SessionManager;
 
-   $username = RequestHandler::getValue('Username');
-   $password = RequestHandler::getValue('Password');
-   $id = RequestHandler::getValue('ID');
+class LoginAction extends AbstractFrontcontrollerAction {
 
-   // Model der Anwendung holen
-   $Model = & $this->getServiceObject('my::namespace', 'ApplicationModel');
+   public function run() {
 
-   // SessionManager erzeugen
-   $Session = new SessionManager('MyApplication');
+      $username = RequestHandler::getValue('Username');
+      $password = RequestHandler::getValue('Password');
+      $id = RequestHandler::getValue('ID');
 
-   // Fall 1: (keine direkte Benutzerinteraktion)
-   //
-   //   a) Daten aus Session sind nicht leer und diese können erfolgreich
-   //      validiert werden.
-   //   b) Daten sind nicht in der Session enthalten.
-   //
-   if (!isset($_REQUEST['Login'])) {
+      /* @var $model ApplicationModel*/
+      $model = & $this->getServiceObject('VENDOR\my\namespace', 'ApplicationModel');
 
-      // Fall 1.1: Session-Daten auslesen und prüfen
-      $Username = $Session->loadSessionData('Username');
-      $Password = $Session->loadSessionData('Password');
+      // SessionManager erzeugen
+      $session = new SessionManager('MyApplication');
 
-      if (!empty($Username) && !empty($Password)) {
+      // Fall 1: (keine direkte Benutzerinteraktion)
+      //
+      //   a) Daten aus Session sind nicht leer und diese können erfolgreich
+      //      validiert werden.
+      //   b) Daten sind nicht in der Session enthalten.
+      //
+      if (!isset($_REQUEST['Login'])) {
 
-         if ($this->validateCredentials($Username, $Password)) {
+         // Fall 1.1: Session-Daten auslesen und prüfen
+         $Username = $session->loadSessionData('Username');
+         $Password = $session->loadSessionData('Password');
 
-            // Fall 1.1.1: Daten aus Session gewonnen und erfolgreich eingeloggt
-            $Model->setAttribute('view.content.template', 'content');
+         if (!empty($Username) && !empty($Password)) {
+
+            if ($this->validateCredentials($Username, $Password)) {
+
+               // Fall 1.1.1: Daten aus Session gewonnen und erfolgreich eingeloggt
+               $model->setAttribute('view.content.template', 'content');
+
+            } else {
+
+               // Fall 1.1.2: Daten aus Session gewonnen und diese sind nicht valide
+               $model->setAttribute('view.content.template', 'login');
+
+            }
 
          } else {
 
-            // Fall 1.1.2: Daten aus Session gewonnen und diese sind nicht valide
-            $Model->setAttribute('view.content.template', 'login');
+            // Fall 1.2: Keine Daten aus Session erhältlich
+            $model->setAttribute('view.content.template', 'login');
 
          }
 
       } else {
 
-         // Fall 1.2: Keine Daten aus Session erhältlich
-         $Model->setAttribute('view.content.template', 'login');
+         if (!empty($username) && !empty($password)) {
+
+            // Falls 2.1: Versuch eines Logins
+            if ($this->validateCredentials($username, md5($password))) {
+
+               // Fall 2.1.1. Login-Vorgang war erfolgreich
+               $model->setAttribute('view.content.template', 'content');
+
+            } else {
+
+               // Fall 2.1.2: Login-Vorgang war auf Grund falscher Benutzerdaten NICHT erfolgreich
+               $model->setAttribute('view.content.template', 'login');
+               $model->setAttribute('login.status', 'failed');
+
+            }
+
+         } else {
+
+            // Fall Falls 2.2: Formular wurde unvollständig ausgefüllt
+            $model->setAttribute('view.content.template', 'login');
+
+         }
 
       }
 
-   } else {
+      // Fall 3: (Logout)
+      //
+      if ($this->input->getAttribute('action') == 'logout') {
 
-      if (myValidator::validateText($username) && myValidator::validateText($password)) {
+         // Session-Daten löschen
+         $session->destroySession('MyApplication');
 
-         // Falls 2.1: Versuch eines Logins
-         if ($this->validateCredentials($username, md5($password))) {
-
-            // Fall 2.1.1. Login-Vorgang war erfolgreich
-            $Model->setAttribute('view.content.template', 'content');
-
-         } else {
-
-            // Fall 2.1.2: Login-Vorgang war auf Grund falscher Benutzerdaten NICHT erfolgreich
-            $Model->setAttribute('view.content.template', 'login');
-            $Model->setAttribute('login.status', 'failed');
-
-         }
-
-      } else {
-
-         // Fall Falls 2.2: Formular wurde unvollständig ausgefüllt
-         $Model->setAttribute('view.content.template', 'login');
-
+         // Login-Formular erzeugen
+         $model->setAttribute('view.content.template', 'login');
       }
 
    }
 
-   // Fall 3: (Logout)
-   //
-   if ($this->input->getAttribute('action') == 'logout') {
-
-      // Session-Daten löschen
-      $Session->destroySession('MyApplication');
-
-      // Login-Formular erzeugen
-      $Model->setAttribute('view.content.template', 'login');
+   private function validateCredentials($username, $password) {
+      ...
    }
 
 }
 </gen:highlight>
 <p>
-   Die im Code-Beispiel verwendeten Framework-Komponenten wie <int:link pageid="019"/>, <int:link pageid="096"/> und
-   <int:link pageid="029"/> müssen natürlich zuvor per
-</p>
-<gen:highlight type="php">
-import('my::namespace','ApplicationModel');
-import('core::session','SessionManager');
-import('tools::request','RequestHandler'); 
-import('tools::validator','myValidator');
-</gen:highlight>
-<p>
-   eingebunden werden. Die private Methode <strong>validateCredentials()</strong> kapselt die
-   Prüfung der Login-Daten mit Hilfe einer Business-Komponente.
+   Die private Methode <strong>validateCredentials()</strong> kapselt die Prüfung der Login-Daten.
 </p>
 <p>
    Um die Model-Informationen über die Session hinweg vorzuhalten, kann das Model auch
@@ -348,79 +331,106 @@ import('tools::validator','myValidator');
    stehen. Um dieses Verhalten zu erzeugen muss das Model per
 </p>
 <gen:highlight type="php">
-$model = &$this->getServiceObject('my::namespace', 'ApplicationModel', APFService::SERVICE_TYPE_SESSION_SINGLETON);
+$model = &$this->getServiceObject(
+   'VENDOR\my\namespace',
+   'ApplicationModel',
+   APFService::SERVICE_TYPE_SESSION_SINGLETON
+);
 </gen:highlight>
 <p>
    erzeugt werden.
 </p>
 
-<h3 id="Chapter-4-Modelbasiertes-View-Konzept"><a href="#Chapter-4-Modelbasiertes-View-Konzept">4. Model-basiertes View-Konzept</a></h3>
+<h3 id="Chapter-4-Sprachumschaltung"><a href="#Chapter-4-Sprachumschaltung">4. Sprachumschaltung</a></h3>
 <p>
-   Da es mit dem Front-Controller möglich ist, die Business-Schicht, bzw. das Model der Anwendung
-   <em>vor</em> der Präsentationsschicht zu erzeugen, kann, im Gegensatz zu einer
-   Page-Controller-Implementierung, die Business-Schicht dazu verwendet werden, die
-   Präsentationsschicht zu steuern. Der hier wichtigste Bereich ist die Steuerung von Views, bzw.
-   der Inhalte der Views.
+   Das folgende Beispiel zeigt wie in einer Frontcontroller-Action die Sprache der Applikation geändert werden kann.
 </p>
 <p>
-   Um den Vorteil einer Front-Controller-basierten Anwendung auch im Bereich des GUI-Designs voll
-   ausschöpfen zu können wurde den HTML-Tools die TagLib <em>FrontControllerImportTemplateTag</em>
-   hinzugefügt. Diese Komponente bindet, wie oben angedeutet, Views ein die im Model der Anwendung
-   definiert werden. Üblicherweise wird für das Model ein eigenes Applikationsmodel definiert,
-   das aus Front-Controller-Actions bedient und gefüllt wird. Hierzu wird in der Regel eine eigene
-   Klasse der Form
+   Die Sprache einer Applikation wird in alle Objekte injiziert, die von <em>APFObject</em> erben. Die Variable
+   <em>$this->language</em> können Sie daher innerhalb Ihrer Komponenten nutzen, um die aktuelle Sprache zu erkennen
+   und ggf. Sprach-abhängige Inhalte ausgeben.
+</p>
+<p>
+   Der folgende Action-Code geht davon aus, dass die Sprache über den URL-Parameter <em>language</em> übergeben werden
+   kann. Die Sprache wird mit Hilfe des <int:link pageid="019" /> gespeichert um die Auswahl des Benutzers für die
+   Zeit des aktuellen Besuchs zu behalten. Ist keine Information vorhanden, wird <em>de</em> als Standardsprache genutzt.
 </p>
 <gen:highlight type="php">
-class SiteModel extends APFObject {
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\tools\request\RequestHandler;
+use APF\core\session\SessionManager;
 
-   public function __construct() {
-      $this->setAttribute('view.content.template', 'login');
-      $this->setAttribute('view.topmenu.template', 'empty');
+class ChangeLanguageAction extends AbstractFrontcontrollerAction {
+
+   public function run() {
+
+      // set your favourite namespace here
+      $session = new SessionManager('mytools\languagechoose');
+
+      // set default language to 'de'
+      $lang = 'de';
+
+      // try loading language of URL parameter
+      $langFromUrl = RequestHandler::getValue('language');
+      if ($langFromUrl !== null) {
+         $lang = $langFromUrl;
+      }
+
+      // try to load language from session
+      $langFromSession = $session->loadSessionData('language');
+      if ($langFromSession !== null) {
+         $lang = $langFromSession;
+      }
+
+      // save chosen language in session and set it in the application
+      $session->saveSessionData('language', $lang);
+
+      $actions = & $this->getFrontController()->getActions();
+      foreach ($actions as $hash => $DUMMY) {
+         $actions[$hash]->setLanguage($lang);
+      }
+      $this->getFrontController()->setLanguage($lang);
+
    }
 
 }
 </gen:highlight>
-<p>implementiert, die an den relevanten Stellen mit einem</p>
+<p>
+   Die letzten Zeilen der Implementierung zeigen, wie Sie die Sprache der bereits erzeuten Komponenten - Actions und
+   der <int:link pageid="012" /> selbst - mit der neuen Sprache versorgt werden können. Wichtig ist in diesem Zusammenhang
+   vor Allem die Bestückung von bereits erzeugten Actions, da diese ggf. Logik enthalten, die auf der aktuellen
+   Sprache der Applikation basieren.
+</p>
+<p>
+   In einer Action können Sie via
+</p>
 <gen:highlight type="php">
-$Model =&$this->getServiceObject('sites::demosite::biz','DemoSiteModel');
-</gen:highlight>
-<p>verwendet oder befüllt werden kann.</p>
-<p>In einer Template-Datei kann dann mit einem</p>
-<gen:highlight type="apf-xml">
-&lt;fcon:importdesign
-   templatenamespace="sites::apfdocupage::pres::templates"
-   modelnamespace="sites::demosite::biz"
-   modelfile="SiteModel"
-   modelclass="SiteModel"
-   modelparam="view.content.template"
-   [sessionsingleton="true|false"]
-/&gt;
+$actions = &$this->getFrontController()->getActions();
 </gen:highlight>
 <p>
-   ein View in Abhängigkeit der Inhalte des Models eingebunden werden. Um die TagLib verwenden
-   zu können muss diese jedoch dem aktuellen <em>Document</em> zunächst per
+   auf die Liste der aktuell registrierten Actions zugreifen. Über
 </p>
-<gen:highlight type="apf-xml">
-&lt;core:addtaglib
-   namespace="tools::html::taglib"
-   class="FrontControllerImportTemplateTag"
-   prefix="fcon"
-   name="importdesign"
-/&gt;
+<gen:highlight type="php">
+foreach($action as $hash => $DUMMY){
+   $action[$hash]->setLanguage($lang);
+}
 </gen:highlight>
 <p>
-   bekannt gemacht werden. Das Attribut <em>sessionsingleton</em> definiert, ob die verwendete
-   Model-Klasse im Modus <em>SESSIONSINGLETON</em> oder <em>SINGLETON</em> erzeugt werden soll.
-   Details zu dem Erzeugungsmodalitäten können dem Kapitel <int:link pageid="107" /> entnommen
-werden.
+   versorgen Sie diese mit der gewünschten Sprache. Der Front-Controller selber wird über
 </p>
+<gen:highlight type="php">
+$this->getFrontController()->setLanguage($lang);
+</gen:highlight>
 <p>
-   Mit diesem Konstrukt lässt sich die Einbindung von Views bequem über das Model einer
-   Applikation steuern und die Verantwortung wird so komplett an die Business-Schicht übergeben.
-   Des Weiteren erfährt die Implementierung an Flexibilität gegenüber der Verwendung des
-   Page-Controllers als alleinige Steuerungskomponente für das Aussehen einer GUI.
+   neu konfiguriert.
 </p>
-
-WEITERES BEISPIEL: Sprach-Umschaltung - http://wiki.adventure-php-framework.org/de/Sprache_per_FC-Action_%C3%A4ndern
+<div class="hint">
+   Bitte beachten Sie darauf, auch den Front-Controller selbst mit der aktuellen Sprache auszustatten, da dieser
+   den <int:link pageid="098" /> erzeugt und initialisierst.
+</div>
+<p>
+   Eine weitere Implementierung findet sich im
+   <a class="forum" linkrewrite="false" href="http://forum.adventure-php-framework.org/viewtopic.php?f=11&amp;t=558">Forum</a>.
+</p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_056" />

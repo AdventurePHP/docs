@@ -1,0 +1,340 @@
+<doku:title parent="071" tags="tutorials,front controller,image delivery,login validation,model based gui design" title="Front controller tutorial" urlname="Front-controller-tutorial">
+  The front controller tutorial describes the usage of the front controller. Among these are the
+  delivery of dynamic images, the login validation and zje model based view concept.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+The implementation of the front controller of the adventure php framework can be used in several
+scopes due to it's timing model. The following activity diagram shows you, which actions are executed
+after the method <strong>start()</strong> is called:
+<br />
+<br />
+<a id="FrontController-Timing-Model" target="_blank" href="http://media.adventure-php-framework.org/content/frontcontroller_timing_model.png" title="Click to enlarge image!">
+  <img src="http://media.adventure-php-framework.org/content/frontcontroller_timing_model.png" alt="Frontcontroller timing model" style="width: 560px;" border="0" />
+</a>
+<br />
+<br />
+The current tutorial wants to describe the different application areas and is intended to give some
+hints concerning the implementation of front controller actions. A typical domain of front controller
+actions is the <strong>delivery of dynamic images</strong> and the <strong>validation of login
+credentials</strong> that are necessary for building an application model. The following chapters
+describe these cases and show some example code.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Image-delivery"><a href="#Chapter-2-Image-delivery">2. Delivery of images</a></h3>
+Due to the fact, that the framework is designed to run in bootstrap mode, all content is delivered
+with one single file. The more modules an application consists of, the greater is the desire to
+deliver also popup windows's content or media files with this mechanism. Merely, the popup windows
+contain print views or forms or media files like PDF or ZIP files.
+<br />
+<br />
+To achieve this goal, another bootstrap file can be created, that handles the different kind of
+requests. Unfortunately, this procedure generates code redundancy.
+<br />
+<br />
+With aid of the front controller, exacting front controller actions, the problem of redundant code
+can be solved clearly. The timing model of the front controller's dispatching process (see diagram
+in chapter 1) allows you to execute a front controller action before the page controller page is
+created (see <int:link pageid="012" /> for details on the timing model). Thereby, the developer can
+decide himself, whether the requested page (including the front controller action call) is displayed
+within the current browser window or in a now one. Another advantage is, that the program code responsible
+for the additional content can be delivered directly with the modul package. This does not only lead to a
+better code quality but also the delivery is made easier. Further, within an front controller action a
+page controller page can be created and displayed.
+<br />
+<br />
+As described in the front controller documentation, a front controller action is described by a
+section in the action configuration file. The configuration includes the definition of the location
+and name of the action and input class implementation. The complexity of the input class depends on
+the amount of the application's code or the tasks to be done. The <strong>socialbookmark</strong>
+module, that is delivered with each release, contains a action, that is intended do deliver the
+bookmark provider symbols. This action is now described in detail.
+<br />
+<br />
+<br />
+<h4 id="Chapter-2-1-Action-configuration"><a href="#Chapter-2-1-Action-configuration">2.1. Action configuration</a></h4>
+The file <strong>DEFAULT_actionconfig.ini</strong> in the
+<em>/apps/config/modules/socialbookmark/action/sites/demosite</em> folder (please refere to the
+current <strong>apf-demopack-*</strong> release file) defines the action's parameters. The
+<strong>FC.InputParams</strong> attribute defines the default values of the input object. The
+configuration file looks as follows:
+<gen:highlight type="ini">
+[showImage]
+FC.ActionNamespace = "modules::socialbookmark::biz::actions"
+FC.ActionClass = "ShowImageAction"
+FC.InputClass = "ShowImageInput"
+FC.InputParams = "img:bookmark_del_icio_us|imgext:png"
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-2-Action-implementation"><a href="#Chapter-2-2-Action-implementation">2.2. Action implementation</a></h4>
+The file <strong>ShowImageAction.php</strong> (see <strong>ActionFile</strong>) contains the program
+code of the action. In case of the image delivery, tha path to the desired image is build up and
+afterwards the image itself is delivered to the browser. To stop execution of further actions or
+the creation of the front controller page, the action contains an <strong>exit()</strong> at the end
+of the <strong>run()</strong> method. If the <strong>exit()</strong> is not present, the defined
+page controller page will be delivered. This causes the browser to display a broken image. The
+complete source code of the image delivery action is printed in the following code box:
+<gen:highlight type="php">
+class ShowImageAction extends AbstractFrontcontrollerAction {
+
+   public function run(){
+
+      // get image from the action's input object
+      $Image = APPS__PATH.'/modules/socialbookmark/pres/image/';
+      $Image .= $this->input->getAttribute('img') . '.' . $this->input->getAttribute('imgext');
+
+      // send an image header
+      header('Content-type: image/' . $this->input->getAttribute('imgext'));
+      header('Cache-Control: public');
+
+      // stream the image file
+      readfile($Image);
+
+      // terminate execution
+      exit();
+
+   }
+
+}
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-3-Input-definition"><a href="#Chapter-2-3-Input-definition">2.3. Input definition</a></h4>
+The <strong>ShowImageInput.php</strong> file contains the input object definition, that holds the
+parameters applied to the action call. In case of the image delivery, no further parameters must
+be defined. The following class definition completes the action definition:
+<gen:highlight type="php">
+class ShowImageInput extends FrontcontrollerInput {
+}
+</gen:highlight>
+<br />
+<h4 id="Chapter-2-4-Practice"><a href="#Chapter-2-4-Practice">2.4. Practice</a></h4>
+Within the socialbookmark module, bookmark service symbols are included by the following image tag:
+<gen:highlight type="apf-xml">
+  &lt;img src="/~/modules_socialbookmark-action/showImage/imgext/png/img/bookmark_technorati" alt="" /&gt;
+</gen:highlight>
+If you analyze the url requested, the parameters involved in the front controller action call have
+the following meaning:
+<ul>
+  <li>
+    <strong>modules_socialbookmark</strong>:
+    This is the namespace under which the front controller can find the action definition (see section
+    1.1). Due to the fact, that action configurations are context dependent, the action definition
+    file is there expected to be stored in the folder
+    <gen:highlight type="apf-xml">{NAMESPACE}/actions/{CONTEXT}</gen:highlight>
+  </li>
+  <li>
+    <strong>-action</strong>:
+    This suffix is attended to indicate the action call within the url.
+  </li>
+  <li>
+    <strong>showImage</strong>:
+    Name of the action and name of the configuration section at the same time.
+  </li>
+  <li>
+    <strong>imgext</strong>: Parameter <em>imgext</em>
+  </li>
+  <li>
+    <strong>png</strong>: Value of the parameter <em>imgext</em>
+  </li>
+  <li>
+    <strong>img</strong>: Parameter <em>img</em>
+  </li>
+  <li>
+    <strong>bookmark_technorati</strong>: Value of the parameter <em>img</em>
+  </li>
+</ul>
+<br />
+<h3 id="Chapter-3-Login-validation"><a href="#Chapter-3-Login-validation">3. Validation of login credentials</a></h3>
+As a rule, front controller actions are used to create and fill a application model - a model represents
+the status of an application - before the presentation layer is created. For this task, the action
+can revert to it's input object, that is procured by the front controller. If desired, the action
+definition can already define default values for certain input parameters. These parameters are then
+default values during action execution.
+<br />
+<br />
+The main challenge of the "login check action" is to validate login information included in the
+request, a session or a cookie and to provide this information to the application. This information
+is then used by the business and presenation layer to control the application and to build the GUI.
+Front controller actions are defined to be business layer members.
+<br />
+<br />
+The scenario described in the last break contains two main "business cases": login information are
+included in the request and second, login information must be gathered from other sources like sessions
+or cookies. To provide the ability to login via cookies, the action must be executed with each request.
+For these purposes, the action handling the login functionality can be registered to the front
+controller as a "permanent" action. To do so, the bootstrap file must be changed like this:
+<gen:highlight type="php">
+   $fC = &Singleton::getInstance('Frontcontroller');
+   $fC->setContext('my::context');
+   $fC->registerAction('my::namespace','myAction');
+</gen:highlight>
+The implemenation of the action contains of three components as well. When dealing with MVC, front
+controller and three tier based applications, it is advisable for us to define a central application
+model class, that holds the current status of the application. This object can be used for flow
+control or business layer functionality and to build the GUI, later on.
+<br />
+<br />
+For this example, the class described in the following code box is intendet to be the application
+model. To make the example not too complex, the model defines only few attributes:
+<gen:highlight type="php">
+class ApplicationModel extends APFObject {
+
+   public function __construct(){
+
+      // defines the view that should be displayed (login|welcome)
+      $this->attributes['view.content.template'] = 'login';
+
+      // user id of the logged in user (null|user_id)
+      $this->attributes['user.id'] = null;
+
+      // defines, how the user was logged in (request|cookie|session)
+      $this->attributes['login.mode'] = 'request';
+
+      // indicates if a login has failed
+      $this->attributes['login.status'] = null;
+
+   }
+
+}
+</gen:highlight>
+As you can see, the model uses the private member variable <strong>$attributes</strong> to store
+the information. That brings the advantage, that the model attributes can be used in the
+<strong>&lt;fcon:importdesign /&gt;</strong> tag to influence the GUI structure. Details on the tag
+can be read about in the
+<int:link pageid="046" anchor="Chapter-5-Front-controller">standard taglibs chapter, section 5. Front controller</int:link>.
+<br />
+<br />
+<br />
+<h4 id="Chapter-3-1-Action-configuration"><a href="#Chapter-3-1-Action-configuration">3.1. Action configuration</a></h4>
+To be able to call the action via request or execute it as a permanent action it must have a
+configuration file. The section shown in the following code box can be used as a template:
+<gen:highlight type="ini">
+[Login]
+FC.ActionNamespace = "my::module::biz::actions::login"
+FC.ActionClass = "LoginAction"
+FC.InputClass = "LoginInput"
+FC.InputParams = ""
+</gen:highlight>
+<br />
+<h4 id="Chapter-3-2-Action-implementation"><a href="#Chapter-3-2-Action-implementation">3.2. Action implementation</a></h4>
+The core functionality of an action is defined in the <strong>run()</strong> method. The following
+source code can be used to fullfill the functionality described above:
+<gen:highlight type="php">
+public function run() {
+
+   $username = RequestHandler::getValue('Username');
+   $password = RequestHandler::getValue('Password');
+   $id = RequestHandler::getValue('ID');
+
+   // instanciate the application model
+   $Model = & $this->getServiceObject('my::namespace', 'ApplicationModel');
+
+   // create the SessionManager
+   $Session = new SessionManager('MyApplication');
+
+   // case 1: (no direct user interaction)
+   //
+   //   a) data from session are not null and are valid.
+   //   b) data are not included in the session.
+   //
+   if (!isset($_REQUEST['Login'])) {
+
+   // case 1.1: extract data from session
+      $Username = $Session->loadSessionData('Username');
+      $Password = $Session->loadSessionData('Password');
+
+      if (!empty($Username) && !empty($Password)) {
+
+         if ($this->validateCredentials($Username, $Password)) {
+
+            // case 1.1.1: data from session is valid, user is logged in
+            $Model->setAttribute('view.content.template', 'content');
+
+         } else {
+
+            // case 1.1.2: data from session are not valid
+            $Model->setAttribute('view.content.template', 'login');
+
+         }
+
+      } else {
+
+         // case 1.2: no data available in session
+         $Model->setAttribute('view.content.template', 'login');
+
+      }
+
+   } else {
+
+      if (myValidator::validateText($username) && myValidator::validateText($password)) {
+
+         // case 2.1: login form was sent
+         if ($this->validateCredentials($username, md5($password))) {
+
+            // case 2.1.1. login credentials are valid -> user is logged in
+            $Model->setAttribute('view.content.template', 'content');
+
+         } else {
+
+            // case 2.1.2: login request failed due to wrong username and/or password
+            $Model->setAttribute('view.content.template', 'login');
+            $Model->setAttribute('login.status', 'failed');
+
+         }
+
+      } else {
+
+         // case cases 2.2: form was submitted partial
+         $Model->setAttribute('view.content.template', 'login');
+
+      }
+
+   }
+
+   // case 3: (log-out)
+   //
+   if ($this->input->getAttribute('action') == 'logout') {
+
+      // delete user data from session
+      $Session->destroySession('MyApplication');
+
+      // set view to "login"
+      $Model->setAttribute('view.content.template', 'login');
+   }
+
+}
+</gen:highlight>
+The code printed above uses the framework components <int:link pageid="019"/>, <int:link pageid="096"/>
+and <int:link pageid="029"/>.
+Before usage, these libraries must be included via
+<gen:highlight type="php">
+import('my::namespace','ApplicationModel');
+import('core::session','SessionManager');
+import('tools::request','RequestHandler'); 
+import('tools::validator','myValidator');
+</gen:highlight>
+<p>
+   This private method <strong>validateCredentials()</strong> encapsulates the validation
+   of the login credentials, that must be implemented by the business component.
+</p>
+<p>
+   In order to hold the model information within the entire session, the model can be created
+   in <em>SESSIONSINGLETON</em> mode. This opens the possibility, to have the action only executed at login or
+   logout, because the login information is already available in the session. To mime this behavior,
+   the model must be created as follows:
+</p>
+<gen:highlight type="php">
+$model = &$this->getServiceObject('my::namespace', 'ApplicationModel', APFService::SERVICE_TYPE_SESSION_SINGLETON);
+</gen:highlight>
+
+<h4 id="Chapter-3-3-Input-definition"><a href="#Chapter-3-3-Input-definition">3.3. Input definition</a></h4>
+<p>
+   In this, case no further parameter definitions must be included in the input object. The input
+   class implementation can thus be an empty class, that inherits from
+   <em>FrontcontrollerInput</em> (see 2.3.).
+</p>
+
+
+WEITERES BEISPIEL: Sprach-Umschaltung - http://wiki.adventure-php-framework.org/de/Sprache_per_FC-Action_%C3%A4ndern
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_056" />
