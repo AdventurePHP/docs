@@ -39,7 +39,7 @@ class InternalLinkTag extends Document {
 
       // setup link text
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject('APF\sites\apf\biz\UrlManager');
+      $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
       $linkText = $this->getLinkText();
       if ($linkText === null) {
          $linkText = $urlMan->getPageTitle($pageId, $lang);
@@ -51,8 +51,11 @@ class InternalLinkTag extends Document {
          $title = $linkText;
       }
 
+      // setup version
+      $version = $this->getAttribute('version');
+
       // generate link
-      $link = $urlMan->generateLink($pageId, $lang);
+      $link = $urlMan->generateLink($pageId, $lang, $version);
       $params = $this->getAttribute('params');
       if ($params !== null) {
          $link .= $params;
