@@ -1,234 +1,207 @@
-<doku:title parent="119" tags="templates,aufbau,beispiele,darstellung von listen,dynamische views,controller,grundlagen" title="Templates" urlname="Templates">
-  Templates sind im APF zunächst Abfallprodukte der Page-Controller-Implementierung. Das Thema
-  Templates findet im APF in zweierlei Hinsicht Verwendung: zum einen werden Template-Dateien
-  genutzt um den GUI-DOM-Baum aufzubauen, zum anderen sind Templates kleine Fragmente innerhalb von
-  Template-Dateien, die für die Erzeugung der Ausgabe genutzt werden können.
+<doku:title parent="119" tags="templates,hmvc,page-controller,tags,darstellung von listen,controller" title="Templates" urlname="Templates">
+   Templates werden in der Template-orienterten Implementierung des HMVC-Pattern des Adventure PHP Framework als
+   Grundlage für die Definition von Oberflächen eingesetzt. Gleichzeitig dienen sie der Trennung zwischen Logik und
+   Aussehen.
 </doku:title>
-<h3 id="Chapter-1-Zweck-von-Templates"><a href="#Chapter-1-Zweck-von-Templates">1. Zweck von Templates</a></h3>
+<h3 id="Chapter-1-Bedeutung-von-Templates"><a href="#Chapter-1-Bedeutung-von-Templates">1. Bedeutung von Templates</a></h3>
 <p>
-   Templates sind in diesem Framework ein "Abfallprodukt" der unter <int:link pageid="098" />
-   erläutert DOM-Struktur der GUI und dienen der Abstraktion und Trennung von Funktion und Darstellung
-   gemäß MVC-Pattern. Sie bieten die Möglichkeit, verschiedene Teil-Elemente oder Views
-   in XML- und HTML-Code zu definieren, mit dem anschließend ein Controller einen View erstellen
-   kann. Im Sprachgebrauch dieses Frameworks gibt es zwei Arten von Templates. Zu einen die Template-
-   Dateien, die zum Speichern der XML- und HTML-Fragmente, die den Inhalt eines DOM-Knotens repräsentieren,
-   gedacht sind, zum anderen HTML-Templates innerhalb dieser Dateien, die einen wiederverwendbaren
-   Bereich von XML- und HTML-Code definieren. Letzterer wird oft für die Darstellung von Listen
-   benötigt, in der ein Listenelement durch beliebige Iteration im Controller zu einer Liste
-   zusammengefügt wird.
+   Das Adventure PHP Framework (APF) kennt mehrere Bedeutungen des Begriffs <em>Template</em>:
+</p>
+<ul>
+   <li>
+      Templates dienen als Grundlage für die <em>HMVC-Pattern</em>-Implementierung des <int:link pageid="098" />. Dieser
+      baut die DOM-Baum-Struktur an Hand von Template-Dateien (HTML-Dateien) oder Tags auf und ermöglicht dem Entwickler
+      so, die Oberfläche einer Webseite oder Applikation dynamisch und gemäß den Anforderungen zu gestalten.
+   </li>
+   <li>
+      Als Templates werden ebenfalls wiederverwendbare Elemente innerhalb von Template-Dateien bezeichnet. Ein bekannter
+      Vertreter ist der <int:link pageid="046" anchor="Chapter-2-3-Template">&lt;html:template /&gt;</int:link>-Tag,
+      der zur bedingten Ausgabe von Inhalten innerhalb von Templates sowie der Ausgabe von sich wiederholenden Inhalten
+      genutzt werden kann.
+   </li>
+</ul>
+<p>
+   Die Definition des <em>MVC-Pattern</em> beschreibt die Bedeutung der Komponenten <em>Model</em>, <em>View</em> und
+   <em>Controller</em>. Das <em>HMVC-Pattern</em> definiert eine hierarchische Struktur von MVC-Elementen, die in der
+   Implementierung des APF basierend auf Template-DOM-Knoten aufgebaut wird. Der <int:link pageid="098" /> nutzt dafür
+   die Informationen, die in den Template-Dateien enthalten sind und erzeugt daraus Kind-Elemente des aktuellen Knoten.
+</p>
+<p>
+   Jedem Template, bzw. jedem Knoten des HMVC-DOM-Baumes, kann ein <int:link pageid="006" /> gemäß der Definition
+   des MVC-Pattern zugeordnet werden.
 </p>
 
 <h3 id="Chapter-2-Aufbau-von-Templates"><a href="#Chapter-2-Aufbau-von-Templates">2. Aufbau von Templates</a></h3>
-Template-Dateien beinhalten drei Kategorien von Zeichenketten:
+<p>
+   Template-Dateien beinhalten drei Typen von Inhalten:
+</p>
 <ul>
-  <li>TagLibTags</li>
-  <li>HTML-Code</li>
-  <li>Einfacher Text</li>
+  <li>APF-Tags (z.B. <em>&lt;html:placeholder /&gt;</em>)</li>
+  <li>HTML-Code (z.B. <em>&lt;p&gt;...&lt;/p&gt;</em>)</li>
+  <li>Beliebiger Text</li>
 </ul>
-TagLibTags sind dabei dem Tag-Parser bekannte XML-Tags der Form <strong>&lt;prefix:class /&gt;</strong>,
-wobei "prefix" und "class" durch jedes beliebige XML-konforme Präfix und jeden Klassenbezeichner
-des Tags ersetzbar sind. Erlaubt sind hier die Zeichen <strong>[a-z]</strong>. Jedes Tag kann eine
-beliebige Anzahl von Attributen und bei nicht selbstschließenden Tags einen Inhalt besitzen.
-Diese haben die Form <strong>attribute="value"</strong>. HTML-Code und einfacher Text sind sowohl als
-Attribute von TagLibTags als auch als Inhalte verwendbar.
-<br />
-<br />
-<br />
-<h3 id="Chapter-3-Typische-Templates"><a href="#Chapter-3-Typische-Templates">3. Typische Templates</a></h3>
-Im Folgenden werden einige typische Templates aufgeführt und erläutert.
-<br />
-<br />
-<br />
-<h4 id="Chapter-3-1-Dynamische-Inhalte"><a href="#Chapter-3-1-Dynamische-Inhalte">3.1. Template zur Darstellung dynamischer Inhalte</a></h4>
-Ein Anwendungsbeispiel für die Darstellung dynamischer Inhalte ist das generische Befüllen
-von Meta-Tag-Angaben. Dazu können in einem Template mehrere <strong>&lt;html:placeholder /&gt;</strong>-
-Tags eingesetzt werden. Die dynamischen Meta-Tags dieser Dokumentations-Seite haben folgende Gestalt:
-<br />
-<br />
-<gen:highlight type="apf-xml">
-[..]
-&lt;meta name="DC.Date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
-&lt;meta name="DC.Type" content="Text" /&gt;
-&lt;meta name="DC.Format" content="text/html" /&gt;
-&lt;meta name="DC.Identifier" content="Dipl.-Ing. (FH) Christian W. Schäfer" /&gt;
-&lt;meta name="DC.Source" content="&lt;html:placeholder name="URI" /&gt;" /&gt;
-&lt;meta name="DC.Language" content="de" /&gt;
-&lt;meta name="DC.Relation" content="&lt;html:placeholder name="URI" /&gt;" /&gt;
-[..]
-&lt;meta name="keywords" lang="de" content="PHP,Framework,Page-Controller,Front-Controller,Pattern,[..]" /&gt;
-&lt;meta name="date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
-&lt;meta name="robots" content="index,follow" /&gt;
-&lt;meta name="revisit-after" content="5 days" /&gt;
-[..]
-</gen:highlight>
-Hier stehen nun zwei unterschiedliche Platzhalter zur Verfügung, die in einem Controller mit
-Inhalten gefüllt werden können. Die XML-Tags werden dann beim Transformieren der Seite durch
-die im Controller eingesetzten Inhalten ersetzt.
-<br />
-<br />
-<br />
-<h4 id="Chapter-3-2-HTML-Templates"><a href="#Chapter-3-2-HTML-Templates">3.2. HTML-Templates</a></h4>
-HTML-Templates dienen - wie bereits angesprochen - zur Definition von wiederverwendbaren HTML-Fragmenten
-zur Darstellung von Listen oder Tabellen. Hier werden zumeist je Element ein Template erstellt, das
-vom Controller zum Aufbau eines Views oder eines View-Elements verwendet werden kann. HTML-Templates
-werden nicht direkt am Platz ihrer Definition ausgegeben, sondern sind nur Struktur-Elemente die zur
-Generierung von Elementen genutzt werden können. Im Folgenden soll eine Template-Datei zum
-Aufbau einer einspaltigen Tabelle aufgeführt werden:
-<br />
-<br />
-<gen:highlight type="apf-xml">
-[..]
-&lt;html:placeholder name="List" /&gt;
+<p>
+   Tags sind dem APF-Parser bekannte XML-Tags der Form <em>&lt;prefix:name /&gt;</em>. Sie können eine beliebige Anzahl
+   von Attributen der Form <em>attribute="value"</em> besitzten. Explit schließende Tags haben weitere Tags oder
+   einfachen Text als Inhalt.
+</p>
+<p>
+   HTML-Code und beliebiger Text dienen der Gestaltung des Inhalte einer Webseite oder Applikation und werden vom
+   APF-Parser nicht weiter verarbeitet. Sie können daher sowohl als Attribute von Tags als auch als Inhalte verwendet
+   werden.
+</p>
+<div class="warn">
+   <p>
+      Bitte beachten Sie, dass der APF-Parser HTML-Code in Attributen nur verarbeiten kann, wenn darin keine
+      Anführungszeichen (&quot;) enthalten sind.
+   </p>
+   <p>
+      Innerhalb von APF-Tags können Sie prinzipiell beliebigen HTML-Code platzieren, solange dieser konsistent ist und
+      die Schachtelung von Tags nicht stört.
+   </p>
+   <p>
+      Details zum APF-Parser erfahren Sie unter <int:link pageid="147" anchor="Chapter-6-Tag-Hierarchie" />.
+   </p>
+</div>
 
-&lt;html:template name="ListHeader"&gt;
-  &lt;table cellpadding="0" cellspacing="0" border="0"&gt;
-    &lt;tr&gt;
-      &lt;td&gt;
-         &lt;strong&gt;ExampleList&lt;/strong&gt;
-      &lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;template:placeholder name="TableElements" /&gt;
-  &lt;/table&gt;
-&lt;/html:template&gt;
-
-&lt;html:template name="ListItem"&gt;
-    &lt;tr&gt;
-      &lt;td&gt;
-         &lt;template:placeholder name="ItemValue" /&gt;
-      &lt;/td&gt;
-    &lt;/tr&gt;
-&lt;/html:template&gt;
-</gen:highlight>
-In der Template-Datei werden drei Elemente definiert:
-<ul>
-  <li>
-    <strong>HTML-Platzhalter:</strong>
-    <br />
-    Dieser dient der Darstellung der fertigen Liste. Er wird im Controller mit dem HTML-Code der
-    generierten Liste gefüllt.
-  </li>
-  <li>
-    <strong>HTML-Template "ListHeader":</strong>
-    <br />
-    Dieses HTML-Template definiert den Kopf der Liste. Es beinhaltet ebenso einen Platzhalter, in den
-    die Listenelemente eingesetzt werden können.
-  </li>
-  <li>
-    <strong>HTML-Template "ListItem":</strong>
-    <br />
-    Dieses HTML-Template repräsentiert ein Listen-Element. Es besitzt einen Platzhalter für
-    die Darstellung des Liste-Inhalts.
-  </li>
-</ul>
-Die Implementierung des Document-Controllers würde in diesem Fall folgendem Schema genügen:
-<br />
-<br />
-<pre>
-                    START
-                      |
-                      v
-      +--------------------------------+
-      | Laden der Listen-Einträge |
-      +--------------------------------+
-                      |
-                      v
-      +--------------------------------+
-      |   Initialisieren Listenpuffer  |
-      +--------------------------------+
-                      |
-                      v
-      +--------------------------------+
-      |       Iterieren der Liste      |
-      +--------------------------------+
-                      |
-                      v
-      +--------------------------------+
-      | Einsetzen des Listenwertes in  |
-      |      Template "ListItem"       |
-      +--------------------------------+
-                      |
-                      v
-      +--------------------------------+
-      | Transformieren von "ListItem"  |
-      |  Hinzufügen des Puffers   |
-      |        zum Listenpuffer        |
-      +--------------------------------+
-                      |
-                      v
-      +--------------------------------+
-      | Einsetzen des Listenpuffers in |
-      |      Template "ListHeader"     |
-      +--------------------------------+
-                      |
-                      v
-      +--------------------------------+
-      |   Transform. von "ListHeader"  |
-      |  Einsetzen des Inhalts in den  |
-      |       Platzhalter "List"       |
-      +--------------------------------+
-                      |
-                      v
-                     ENDE
-</pre>
-<br />
-<strong>Tipp:</strong> Templates, die nicht für die Generierung von Listen oder anderen mehrfach
-vorkommenden Strukturen eingesetzt werden, können direkt an der Stelle ausgegeben werden, an der
-sie in der Template-Datei definiert wurde. Hierzu muss im Document-Controller die Methode
-<strong>transformOnPlace()</strong> aufgerufen werden. Möchte der Entwickler das HTML-Template
+<h4 id="Chapter-2-1-Template-Dateien"><a href="#Chapter-2-1-Template-Dateien">2.1. Template-Dateien</a></h4>
+<p>
+   Template-Dateien werden im Adventure PHP Framework zum Aufbau der UI einer Webseite oder Applikation genutzt und
+   der <int:link pageid="012" /> wird stets mit einem initialen Template gestartet.
+</p>
+<p>
+   Innerhalb einer Template-Datei können APF-Tags (siehe <int:link pageid="046"/>), HTML-Code oder beliebiger Text
+   platziert werden. Im einfachsten Fall enthält ein Template - z.B. das initiale Template - das Grundgerüst der
+   Webseite oder Applikation und definiert Platzhalter für dynamische Inhalte oder bindet weitere Templates ein. Zur
+   Ausgabe von dynamischen Inhalten kann ein Template einen <int:link pageid="006" /> referenzieren, der bei der
+   Transformation ausgeführt wird.
+</p>
+<p>
+   Das folgende Code-Beispiel beinhaltet das Grundgerüst einer Webseite:
+</p>
 <gen:highlight type="apf-xml">
-  ...
-  &lt;html:template name="mein_template"&gt;
-    ...
-  &lt;/html:template&gt;
-  ...
+&lt;@controller
+   class="VENDOR\pres\controller\MainController"
+@&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;title&gt;&lt;html:placeholder name="title" /&gt;&lt;/title&gt;
+      &lt;meta http-equiv="Content-Type" content="text/html; charset=utf-8" /&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;header&gt;
+         &lt;h1&gt;&lt;html:placeholder name="title" /&gt;&lt;/h1&gt;
+         &lt;core:importdesign
+            namespace="VENDOR\pres\templates"
+            template="navi"
+         /&gt;
+      &lt;/header&gt;
+      &lt;div id="content"&gt;
+         &lt;core:importdesign
+            namespace="VENDOR\pres\templates"
+            template="content"
+         /&gt;
+      &lt;/div&gt;
+      &lt;footer&gt;
+         &lt;core:importdesign
+            namespace="VENDOR\pres\templates"
+            template="footer"
+         /&gt;
+      &lt;/footer&gt;
+   &lt;/body&gt;
+&lt;/html&gt;
 </gen:highlight>
-direkt ausgeben, so muss im Document-Controller folgendes notiert werden:
+<p>
+   Das Template definiert zwei <int:link pageid="046" anchor="Chapter-2-1-Placeholder">Platzhalter-Tags</int:link>,
+   die über den Controller <em>MainController</em> gefüllt werden und bindet über drei
+   <int:link pageid="046" anchor="Chapter-1-2-Importdesign">&lt;core:importdesign /&gt;</int:link>-Tags
+   weitere Templates ein, die sich um die Navigation, den Inhalt und den Footer kümmern.
+</p>
+<p>
+   Eine Liste von bekannten Tags finden Sie unter <int:link pageid="046" /> bzw. <int:link pageid="078" />. Das Tutorial
+   <int:link pageid="147" /> erläutert Ihnen, wie Sie die Tags und Funktionen des APF für Ihre Webseite oder Applikation
+   erweitern können.
+</p>
+
+<h4 id="Chapter-2-2-HTML-Templates"><a href="#Chapter-2-2-HTML-Templates">2.2. HTML Templates</a></h4>
+<p>
+   HTML Templates dienen zur Definition von wiederverwendbaren HTML-Fragmenten um beispielsweise Inhalte unter bestimmten
+   Bedindungen darzustellen oder Listen zu erzugen. Es empfiehlt sich, je Element ein Template zu erstellen, das vom
+   Controller verwendet werden kann. HTML Templates werden nicht direkt am Platz ihrer Definition ausgegeben, sondern
+   sind nur Struktur-Elemente die zur Generierung von Inhalten genutzt werden können.
+</p>
+<p>
+   Die folgende Code-Box zeigt ein HTML Template, das zur Ausgabe einer dynamischen Tabelle genutzt werden kann:
+</p>
+<gen:highlight type="apf-xml">
+&lt;@controller
+   class="VENDOR\pres\controller\ListController"
+@&gt;
+&lt;table&gt;
+   &lt;thead&gt;
+      &lt;tr&gt;
+         &lt;td&gt;Frage&lt;/td&gt;
+         &lt;td&gt;Antwort&lt;/td&gt;
+      &lt;/tr&gt;
+   &lt;/thead&gt;
+   &lt;tbody&gt;
+      &lt;html:placeholder name="table-rows" /&gt;
+   &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;html:template name="table-row"&gt;
+&lt;tr&gt;
+   &lt;td&gt;&lt;template:placeholder name="question" /&gt;&lt;/td&gt;
+   &lt;td&gt;&lt;template:placeholder name="answer" /&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+<p>
+   Das Template beinhaltet den Rumpf der auszugebenden Tabelle und der <em>&lt;html:template /&gt;</em>-Tag definiert
+   die sich wiederholende Zeile der Tabelle. Zur Generierung der Inhalte kann folgender Controller genutzt werden:
+</p>
 <gen:highlight type="php">
-class mein_controller extends BaseDocumentController {
+use APF\core\pagecontroller\BaseDocumentController;
+
+class ListController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $row = $this->getTemplate('table-row');
+
+      $buffer = '';
+      foreach ($this->getItems() as $item) {
+         $row->setPlaceHolder('question', $item->getQuestion());
+         $row->setPlaceHolder('answer', $item->getAnswer());
+         $buffer .= $row->transformTemplate();
+      }
+
+      $this->setPlaceHolder('table-rows', $buffer)
+
+   }
+
+   /**
+    * @return FaqEntry[]
+    */
+   private function getItems() {
+      ...
+   }
+
+}
+</gen:highlight>
+<div class="hint">
+   Templates, die nicht für die Generierung von Listen oder sich wiederholenden Inhalten eingesetzt werden, können
+   direkt an der Stelle der Definition ausgegeben werden. Nutzen Sie hierzu die Methode <em>transformOnPlace()</em>
+   im Document-Controller. Beispiel:
+<gen:highlight type="php">
+class MainController extends BaseDocumentController {
    public function transformContent(){
-      $template = &$this->getTemplate('mein_template');
-      $template->transformOnPlace();
+      $tmpl = &$this->getTemplate('template-name');
+      $tmpl->transformOnPlace();
    }
 }
 </gen:highlight>
-<br />
-<h4 id="Chapter-3-3-Dynamische-Views"><a href="#Chapter-3-3-Dynamische-Views">3.3. Dynamische Einbindung von Views</a></h4>
-Zur dynamischen Einbindung von Views besitzt der <strong>&lt;core:importdesign /&gt;</strong>-Tag
-ein generisches Tag-Konstrukt. Dieses bietet die Möglichkeit einen Standard-View zu definieren,
-der mit einem definierten URL-Parameter beeinflusst werden kann:
-<gen:highlight type="apf-xml">
-  &lt;core:importdesign namespace="[..]" template="[pagepart = start]" /&gt;
-</gen:highlight>
-Ist der URL-Parameter "pagepart" nicht gesetzt, so wird die Template-Datei "start" eingebunden, falls
-der Parameter gesetzt ist, der dadurch definierte View. So ist es möglich einen Workflow mit einer
-Serie an Views (z.B. ein mehrseitiges Formular) abzubilden oder dieses zur Darstellung unterschiedlicher
-Teile eines Moduls zu nutzen. Da es bei Einbindung mehrere Module über den "pagepart"-Parameter
-zu Überschneidungen kommen kann, ist der URL-Parameter über das Attribut <strong>incparam</strong>
-manipulierbar. Die Einbindung gestaltet sich dann wie folgt:
-<gen:highlight type="apf-xml">
-  &lt;core:importdesign namespace="[..]" incparam="myurlparam" template="[myurlparam = start]" /&gt;
-</gen:highlight>
-Ein konkretes Beispiel für die dynamischen View-Einbindung ist die Steuerung der angezeigten
-Perspektive der vorliegenden Seite. Je nach Wunsch des Benutzers wird einer der verhandenen Views
-(Normale Webseiten-Ansicht bzw. Print-Ansicht) ausgegeben. Dazu ist in der Template-Datei
-<em>website.html</em> ein <strong>&lt;core:importdesign /&gt;</strong>-Tag mit dem Inhalt
-<gen:highlight type="apf-xml">
-&lt;core:importdesign
-   namespace="sites::apfdocupage::pres::templates"
-   template="[perspective=site]"
-   incparam="perspective"
-/&gt;
-</gen:highlight>
-definiert. Damit ist es auf einfache Weise möglich eine Druck-Funktion bereitszustellen. Ein
-Klick auf den <a href="#top" title="Druck-Funktion">oben</a> aufgeführten Print-Link demonstriert
-die Funktion.
-<br />
-<br />
-<br />
-<h4 id="Chapter-3-4-Weitere-Tags"><a href="#Chapter-3-4-Weitere-Tags">3.4. Weitere Tags</a></h4>
-<p>
-   Alle im Lieferumfang des Frameworks enthaltenen Tags werden auf der Seite <int:link pageid="046" /> dokumentiert.
-   Weiterführende Template-Beispiele sind unter <int:link pageid="057" /> und <int:link pageid="034" /> zu finden.
-</p>
+</div>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_047" />
