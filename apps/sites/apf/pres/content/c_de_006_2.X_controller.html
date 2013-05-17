@@ -1,44 +1,83 @@
-<doku:title parent="119" tags="controller,zweck,mvc,templates,formulare,dynamische listen,generische einsetzbarkeit,flexibilität" title="(Document-)Controller" urlname="Controller">
-   (Document-)Controller sind Klassen, die nach dem MVC-Pattern für die Generierung des Inhalts
-   eines DOM-Knotens eingesetzt werden können. Neben den TagLib-Funktionalitäten sind diese
-   bei Bedarf einsetzbar.
+<doku:title parent="119" tags="controller,zweck,mvc,templates,dynamische listen" title="(Document-)Controller" urlname="Controller">
+   (Document-)Controller sind Klassen, die nach dem MVC-Pattern für die Generierung von dynamischen Inhalten
+   eingesetzt werden können.
 </doku:title>
 <h3 id="Chapter-1-Zweck-eines-Controllers"><a href="#Chapter-1-Zweck-eines-Controllers">1. Zweck eines (Document-)Controllers</a></h3>
 <p>
-   Wie unter <int:link pageid="046"/> und <int:link pageid="047"/> bereits mehrfach angesprochen, werden
-   (MVC-Document-)Controller zur Generierung von dynamischen Inhalten verwendet. Um diese Aufgabe wahr
-   nehmen zu können muss ein Document-Controller einem DOM-Knoten bekannt gemacht werden. Dies
-   passiert in der ersten Zeile einer Template-Datei durch ein <em>&lt;@controller @&gt;</em>-Tag.
-   Der Page-Controller weist dem aktuellen DOM-Knoten damit den dort angegebenen Document-Controller zu
-   und führt diesen bei der Transformation des Knotens aus.
+   Wie in den Kapitel <int:link pageid="014" /> und <int:link pageid="047"/> angesprochen, werden Document-Controller
+   zur Generierung von dynamischen Inhalten verwendet. Der Begriff <em>Controller</em> bezieht sich auch im Adventure
+   PHP Framework auf das <em>MVC-Pattern</em>, allerdings geht das APF mit dem <int:link pageid="098" /> noch einen
+   Schritt weiter und setzt bei der Erstellung von Oberflächen auf das <em>HMVC-Pattern</em>.
 </p>
+<p>
+   Das <em>HMVC-Pattern</em> bietet gegenüber dem <em>MVC-Pattern</em> den Vorteil, dass Elemente einer Webseite oder
+   Anwendung granularer definiert werden können und sich diese somit flexibler innnerhalb der selben Anwendung oder auch
+   weiteren Projekten wiederverwenden lassen. Aus Sicht des Software-Designs können Abhängigkeiten zwischen Komponenten
+   - die bei Nutzung des <em>MVC-Pattern</em> üblicherweise umfassende Logik der Gesamt-Anwendung im Controller bedeuten
+   - deutlich reduzieren.
+</p>
+<p>
+   Damit ein Controller seine Aufgabe erledigen kann muss dieser im gewünschten <int:link pageid="047" /> referenziert
+   werden. Dies geschieht durch ein
+</p>
+<gen:highlight type="apf-xml">
+&lt;@controller
+   class="..."
+@&gt;
+</gen:highlight>
+<p>
+   zu Beginn des Templates. Das <em>class</em>-Attribut beinhaltet dabei den voll-qualifizierten Klassen-Namen der
+   Controller-Implementierung (z.B. <em>VENDOR\pres\controller\NavigationController</em>). Bei der Transformation nutzt
+   der Page-Controller diese Deklaration und führt die <em>transformContent()</em>-Methode der Klasse aus.
+</p>
+<div class="hint">
+   <p>
+      Um den Code in Controller-Klassen übersichtlich zu gestalten, wird empfohlen die Generierung der Darstellung
+      bzw. die View-Logik stark zu begrenzen. Ist weitere Logik zur Darstellung nötig kann es sinnvoll sein,
+      einen eigenen Tag zu erstellen, der die Darstellung von komplexen Daten übernimmt.
+   </p>
+   <p>
+      Als Daumenregel gilt, dass Controller so lange als Mittel der Wahl eingesetzt werden sollten, solange die
+      View-Logik und die Komplexität der Darstellung begrenzt ist. Sobald der Controller in die Erstellung oder
+      Manipulation des DOM-Baums eingreifen muss oder eine Datenstruktur mehr als eine Ebene besitzt, so sollten
+      eigene Tags implementiert werden.
+   </p>
+   <p>
+      Darüber hinaus sollte insbesondere im Hinblick auf die Anwendung des <em>HMVC-Pattern</em> nur eine Aufgabe
+      innerhalb des Controller-Code übernommen werden. Sind darin mehrere Funktionen enthalten empfiehlt sich die
+      Aufspaltung in weitere Komponenten.
+   </p>
+</div>
 
 <h3 id="Chapter-2-Aufbau-eines-Controllers"><a href="#Chapter-2-Aufbau-eines-Controllers">2. Aufbau eines (Document-)Controllers</a></h3>
 <p>
-   Jeder Document-Controller erbt vom Basis-Controller <em>BaseDocumentController</em>. Dieser besitzt zur
-   Verarbeitung der bekannten TagLib-Tags notwendige Methoden. Beispiel hierfür ist die Funktion
-   <em>getTemplate()</em> um eine Referenz auf ein im Knoten enthaltenes Template zugreifen zu
-   können, oder die Methode <em>setPlaceHolder()</em>, mit der ein
-   <em>&lt;html:placeholder /&gt;</em>-Tag gefüllt werden kann.
+   Ein Document-Controller ist durch das Interface <em>DocumentController</em> definiert und erbt üblicherweise von
+   <em>BaseDocumentController</em>, der bereits eine Reihe von Basis-Funktionalitäten bereit stellt.
 </p>
-<p>Das Gerüst eines Document-Controllers hat immer folgende Gestalt:</p>
+<p>
+   Das Grundgerüst eines Document-Controllers hat daher folgende Gestalt:
+</p>
 <gen:highlight type="php">
-class my_document_controller extends BaseDocumentController {
+namespace VENDOR\pres\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+
+class NavigationController extends BaseDocumentController {
+
    public function transformContent(){
+      ...
    }
+
 }
 </gen:highlight>
-<div class="hint">
-   Bitte verwenden Sie in Release 1.16 und früher die Klasse <em>base_controller</em> als Basis für Ihre Document-Controller
-   Implementierungen. Die Klasse <em>BaseDocumentController</em> steht erst ab Release 1.17 zur Verfügung.
-</div>
 <p>
-   Ein Document-Controller ist im Prinzip eine PHP-Klasse "wie jede andere auch". Dem Entwickler steht
-   es frei eigene Klassenvariablen zu definieren, eigene Methoden einzuführen und weitere Klassen
-   einzubinden. Wichtig ist nur, dass das zuvor gezeigte Interface eingehalten wird.
+   Die Methode <em>transformContent()</em> wird vom <int:link pageid="098" /> bei der Transformation der Seite genutzt
+   um die Funktionalität des aktuellen DOM-Elements auszuführen. Die restliche Gestaltung der Klasse ist dem Entwickler
+   überlassen.
 </p>
 <p>
-   Wie der <int:link pageid="002"/> zu entnehmen ist verfügt der <em>BaseDocumentController</em> über folgende Methoden:
+   Wie auch der <int:link pageid="002"/> zu entnehmen ist verfügt der <em>BaseDocumentController</em> über Methoden,
+   die Sie bei der Implementierung von dynamischen Funktionalitäten unterstützten. Diese sind:
 </p>
 <ul>
    <li>
@@ -94,64 +133,55 @@ class my_document_controller extends BaseDocumentController {
 <p>
    Des Weiteren verfügt der <em>BaseDocumentController</em> über alle Methoden der Klasse <em>APFObject</em>.
 </p>
-<div class="warn">
-   Bitte beachten Sie, dass die Methode <em>getIterator()</em> erst ab Release 1.17 zur Verfügung steht. In Versionen
-   vor 1.17 ist die Methode in der Klasse <em>iteratorBaseController</em> definiert (siehe <int:link pageid="078" />).
-</div>
 <div class="hint">
-   <p>
-      Über die bisher genannten Methoden besitzt jeder Document-Controller eine Referenz auf das Dokument im
-      APF-DOM-Baum, für dessen Transformation er zuständig ist. Dieses kann mit Hilfe der Methode
-      <em>$this->getDocument()</em> bezogen werden. Anschließend ist es möglich, per
-      <gen:highlight type="php">$this->getDocument()->getAttribute('foo')</gen:highlight> auf den Wert des
-      Attributs <em>foo</em> zuzugriffen.
-   </p>
-   <p>
-      Aus Gründen der Einfachheit besitzt ein Document-Controller auch alle Attribute des
-      aktuellen DOM-Knotens. Diese können in der Klassen-Variable <em>$this->attributes</em>
-      eingesehen und abgerufen werden.
-   </p>
+   Über die bisher genannten Methoden kann jeder Document-Controller auf das Dokument im APF-DOM-Baum zugreifen,
+   für dessen Transformation er zuständig ist. Das aktuelle Dokument kann mit Hilfe der Methode
+   <em>$this->getDocument()</em> bezogen werden. Anschließend ist es beispielsweise möglich, per
+   <gen:highlight type="php">$this->getDocument()->getAttribute('foo')</gen:highlight> auf den Wert des
+   Attributs <em>foo</em> zuzugriffen.
 </div>
 
 <h3 id="Chapter-3-Beispiele"><a href="#Chapter-3-Beispiele">3. Beispiele für (Document-)Controller</a></h3>
-<div class="hint">
-   Ab Version 1.14 ist es ausreichend, einen Document-Controller mit den Attributen <em>namespace</em> und
-   <em>class</em> zu adressieren. Das Attribut <em>file</em> ist nicht mehr notwendig.
-</div>
+
 <h4 id="Chapter-3-1-Dynamische-META-Tags"><a href="#Chapter-3-1-Dynamische-META-Tags">3.1. Darstellung dynamischer Inhalte in Meta-Tags</a></h4>
 <p>
-   In diesem Kapitel soll nun die Implementierung eines Document-Controllers erläutert werden, der das
-   in <int:link pageid="047"/>, Kapitel 2.1, aufgeführte Template mit Inhalten füllt. Dazu ist das Template zunächst um
-   die Definition des Document-Controllers zu erweitern und sieht daher wie folgt aus:
+   Ein Anwendungsfall eines Document-Controllers ist das Füllen von Meta-Informationen im HTML-Header. Als Beispiel
+   sollen Titel und das aktuelle Datum einer Webseite dynamisch gefüllt werden. Hierzu definieren Sie zunächst die
+   HTML-Struktur und die gewünschten Platzhalter im Template:
 </p>
 <gen:highlight type="apf-xml">
 &lt;@controller
-   namespace="sites::apfdocupage::pres::documentcontroller"
-   class="website_v1_controller"
+   class="VENDOR\pres\controller\MainController"
 @&gt;
-[..]
-&lt;meta name="keywords" lang="de" content="PHP,Framework,Page-Controller,Front-Controller,Pattern,[..]" /&gt;
-&lt;meta name="date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
-&lt;meta name="robots" content="index,follow" /&gt;
-&lt;meta name="revisit-after" content="5 days" /&gt;
-[..]
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;title&gt;&lt;html:placeholder name="title" /&gt;&lt;/title&gt;
+      &lt;meta name="date" content="&lt;html:placeholder name="date" /&gt;" /&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      ...
+   &lt;/body&gt;
+&lt;/html&gt;
 </gen:highlight>
 <p>
-   Der zugehörige Document-Controller implementiert in diesem Fall lediglich die Methode
-   <em>transformContent()</em> die bei der Transformation aufgerufen wird. Der Quellcode der
-   Klasse sieht dann wie folgt aus:
+   Der im Template referenzierte Document-Controller implementiert die Methode <em>transformContent()</em> und eine
+   Methode <em>getTitle()</em> um den Titel der Webseite zu evaluieren. Der Quellcode der Klasse gestaltet sich wie
+   folgt:
 </p>
 <gen:highlight type="php">
-class website_v1_controller extends BaseDocumentController {
+namespace VENDOR\pres\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+
+class MainController extends BaseDocumentController {
 
    public function transformContent(){
+      $this->setPlaceHolder('title', $this->getTitle());
+      $this->setPlaceHolder('date', date('Y-m-d'));
+   }
 
-      // Platzhalter-Tag "URI" setzen
-      $this->setPlaceHolder('URI',$_SERVER['REQUEST_URI']);
-
-      // Platzhalter-Tag "Date" setzen
-      $this->setPlaceHolder('Date',date('Y-m-d'));
-
+   private function getTitle() {
+      return ...
    }
 
 }
@@ -159,107 +189,92 @@ class website_v1_controller extends BaseDocumentController {
 
 <h4 id="Chapter-3-2-Dynamische-Listen"><a href="#Chapter-3-2-Dynamische-Listen">3.2. Darstellung dynamischer Listen</a></h4>
 <p>
-   Die folgenden Zeilen greifen das in <int:link pageid="047"/>, Kapitel 2.2, aufgeführte
-   Template zur Darstellung einer Liste. Dazu wird das Template - wie oben - zunächst um die
-   Definition desc Document-Controllers erweitert:
+   Mit Hilfe des <em>&lt;html:template /&gt;</em>-Tags lassen sich Listen in einem Controller durch Iteration über die
+   vorhandenen Inhalte erzeugen.
 </p>
+<div class="hint">
+   <em>&lt;html:template /&gt;</em>-Tags eignen sich lediglich für die Darstellung von Inhalten, die nur eine
+   Hierarchie-Stufe abbilden (z.B. Liste von Produkten inkl. Preis). Ist ein <em>&lt;html:template /&gt;</em> nicht
+   mehr ausreichend und die Darstellung verlangt eine Schachtelung von Ausgaben verschiedener Templates, so wird die
+   Implementierung eines eigenen Tags empfohlen, der die Darstellung eines kompletten Elements oder auch der kompletten
+   Liste übernimmt. Weitere Hinweise finden Sie im Tutorial <int:link pageid="147" />.
+</div>
+<p>
+   Das folgende Template wurde definiert um eine Liste von Produkten mit ihrem zugehörigen Preis in einer Tabelle
+   auszugeben:
+</p>
+
 <gen:highlight type="apf-xml">
 &lt;@controller
-   namespace="sites::apfdocupage::pres::documentcontroller"
-   class="list_v1_controller"
+   class="VENDOR\pres\controller\ListController"
 @&gt;
-[..]
-&lt;html:placeholder name="List" /&gt;
-
-&lt;html:template name="ListHeader"&gt;
 &lt;table cellpadding="0" cellspacing="0" border="0"&gt;
-&lt;tr&gt;
-&lt;td&gt;
-&lt;strong&gt;ExampleList&lt;/strong&gt;
-&lt;/td&gt;
-&lt;/tr&gt;
-&lt;template:placeholder name="TableElements" /&gt;
+   &lt;thead&gt;
+      &lt;tr&gt;
+         &lt;td&gt;Produkt&lt;/td&gt;
+         &lt;td&gt;Preis&lt;/td&gt;
+      &lt;/tr&gt;
+   &lt;/thead&gt;
+   &lt;tbody&gt;
+      &lt;html:placeholder name="products" /&gt;
+   &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;/html:template&gt;
 
-&lt;html:template name="ListItem"&gt;
-&lt;tr&gt;
-&lt;td&gt;
-&lt;template:placeholder name="ItemValue" /&gt;
-&lt;/td&gt;
-&lt;/tr&gt;
+&lt;html:template name="product-item"&gt;
+   &lt;tr&gt;
+      &lt;td&gt;&lt;template:placeholder name="display-name" /&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;template:placeholder name="price" /&gt;&lt;/td&gt;
+   &lt;/tr&gt;
 &lt;/html:template&gt;
 </gen:highlight>
 <p>
-   Der zugehörige Document-Controller implementiert nun einerseits die Methode <em>transformContent()</em>,
-   wird aber die privaten Methoden <em>buildList()</em> und <em>buildListItem()</em>
-   erweitert. Somit werden die Tasks nochmal in eigene "Helper-Methoden" verpackt und der Code gestaltet
-   sich übersichtlicher und besser lesbar. Das Laden der Liste übernimmt eine fiktive
-   Business-Komponente (<em>listLoader</em>), die eine Liste (=Array) von <em>listItem</em>-
-   Objekten zurückgibt. Letzters ist ein Daten-Objekt, das von <em>APFObject</em> erbt und genau
-   eine Eigenschaft mit dem Namen <em>ListContent</em> besitzt das mit <em>get()</em> abgefragt
-   werden kann. Die Liste wird dann iteriert und daraus eine HTML-Ausgabe generiert:
+   Der zugehörige Document-Controller gestaltet sich wie folgt:
 </p>
 <gen:highlight type="php">
-import('sites::demosite::biz','listLoader');
+namespace VENDOR\pres\controller;
 
-class list_v1_controller extends BaseDocumentController {
+use APF\core\pagecontroller\BaseDocumentController;
 
-   public function transformContent(){
-      // Liste in Platzhalter-Tag "List" einsetzen
-      $this->setPlaceHolder('List',$this->buildList());
-   }
+class ProductListController extends BaseDocumentController {
 
-   private function buildList(){
+   public function transformContent() {
 
-      // listLoader erzeugen
-      $listLoader = &$this->getServiceObject('sites::demosite::biz','listLoader');
+      $tmpl = $this->getTemplate('product-item');
 
-      // Liste laden
-      $List = $listLoader->loadList();
+      $buffer = '';
 
-      // HTML-Puffer initialisieren
-      $Buffer = (string)'';
+      foreach ($this->getProducts() as $product) {
 
-      // Referenz auf Header-Template holen
-      $Template__ListHeader = &$this->getTemplate('ListHeader');
+         $tmpl->setPlaceHolder('display-name', $product->getDisplayName());
+         $tmpl->setPlaceHolder('price', $product->getPrice());
 
-      // Liste durchlaufen und Items generieren
-      foreach($List as $lKey => $lItem){
-
-         // Ausgabe für Item generieren
-         $Buffer .= $this->buildListItem($lItem);
+         $buffer .= $tmpl->transformTemplate();
 
       }
 
-      // Items in das Header-Template einsetzen
-      $Template__ListHeader->setPlaceHolder('TableElements',$Buffer);
-
-      // Template transformieren und zurückgeben
-      return $Template__ListHeader->transformTemplate();
+      $this->setPlaceHolder('products', $buffer);
 
    }
 
-   private function buildListItem(&$listItem){
-
-      // Referenz auf ListItem-Template holen
-      $Template__ListItem = &$this->getTemplate('ListItem');
-
-      // Inhalt des Templates setzen
-      $Template__ListItem->setPlaceHolder('ItemValue',$listItem->get('ListContent'));
-
-      // Template transformieren und zurückgeben
-      return $Template__ListItem->transformTemplate();
-
+   /**
+    * @return Product[]
+    */
+   private function getProducts() {
    }
 
 }
 </gen:highlight>
-
-<h4 id="Chapter-3-3-Weitere-Beispiele"><a href="#Chapter-3-3-Weitere-Beispiele">3.3. Weiterführende Beispiele</a></h4>
 <p>
-   Weiterführende Controller-Beispiele sind unter <int:link pageid="057"/> und <int:link pageid="035"/> zu finden.
-   Das Thema Formulare wird auf der Seite <int:link pageid="113"/> nochmals genauer behandelt.
+   Innerhalb der <em>transformContent()</em>-Methode wird mit Hilfe von <em>getProducts()</em> eine Liste von Produkten
+   geladen. In einer Schleife werden dann die Inhalte der Produkte in das Template eingesetzt und die Ausgabe in einem
+   Puffer gesammelt. Das Ergebnis wird schließlich in den Platzhalter <em>products</em> geschrieben um die Ausgabe im
+   Template zu erzeugen.
+</p>
+
+<h4 id="Chapter-3-3-Weiterführende-Inhalte"><a href="#Chapter-3-3-Weiterführende-Inhalte">3.3. Weiterführende Inhalte</a></h4>
+<p>
+   Weitere Anwendungsfälle von Controllern finden Sie unter in den Bereichen <int:link pageid="071" /> und
+   <int:link pageid="100" />.
 </p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_006"/>

@@ -1,50 +1,18 @@
-<doku:title parent="119" tags="controller,purpose,mvc,templates,dynamic lists" title="(Document-)Controller" urlname="Controller">
-   (Document-)controller are classes that are used to generate dynamic content according to the MVC pattern.
+<doku:title parent="119" tags="controller,goal,mvc,templates,forms,dynamic lists,generic,flexibility" title="(Document-)Controller" urlname="Controller">
+  A (document-) controller is the controller class of the MVC pattern. It can be used to dynamically
+  generate content within a APF DOM node. Nevertheless, you are free to decide of you use controllers
+  or tag libs to dynamically generate content.
 </doku:title>
 <h3 id="Chapter-1-Aim-of-a-controller"><a href="#Chapter-1-Aim-of-a-controller">1. Aim of a (document-)controller</a></h3>
 <p>
-   As noted in <int:link pageid="014" /> and <int:link pageid="047"/> document controllers are used to generate dynamic
-   content. The term <em>controller</em> refers to the <em>MVC pattern</em> within the Adventure PHP Framework as in
-   several other products. However, the APF goes beyond that introducing the <em>HMVC pattern</em> to create UIs along
-   with the <int:link pageid="098" />.
+   As mentioned under <int:link pageid="046" /> and described on the
+   <int:link pageid="047">templates page</int:link> controller according to the MVC
+   paradigm are used to generate dynamic content. To be able to perceive this task a document
+   controller must be "announced" to a DOM node. This happens in the first line of a template file by
+   using the <em>&lt;@controller @&gt;</em> tag. The page controller then assigns the document
+   controller given there to the topical DOM node and executes it within the transformation of the
+   current node.
 </p>
-<p>
-   The <em>HMVC pattern</em> has several advantages over the <em>MVC pattern</em>. It enables you to define highly
-   granular elements of your web page or application that can be easily reused within the current or other projects.
-   From a software design perspective, the dependencies between different components - using the <em>MVC pattern</em>
-   normally leads to heavy logic within controllers taking care of the whole application - can be reduced significantly.
-</p>
-<p>
-   In order to let a controller generate dynamic content it must be referred within a <int:link pageid="047" />. This can
-   be done by adding
-</p>
-<gen:highlight type="apf-xml">
-&lt;@controller
-   class="..."
-@&gt;
-</gen:highlight>
-<p>
-   at the top of the template. The <em>class</em> attribute contains the fully-qualified class name of the controller
-   implementation (e.g. <em>VENDOR\pres\controller\NavigationController</em>). During transformation the page controller
-   executes the <em>transformContent()</em> method.
-</p>
-<div class="hint">
-   <p>
-      In order to keep the controller code clean and easy to read it is recommended to limit output generation or view
-      logic to a minimum. In case a more complex logic is necessary to generate dynamic content it may be a good idea
-      to create a separate tag that encapsulates the logic.
-   </p>
-   <p>
-      As a rule of thumb, controllers are recommended as long as view logic and the complexity of dynamic data that is
-      displayed is limited. As soon as the controller is required to gear into creation or manipulation of the DOM tree
-      or the data structure to display is more complex data custom tags should be implemented.
-   </p>
-   <p>
-      Moreover, only one concern should be handled by one controller especially because the APF uses the
-      <em>HMVC-Pattern</em>. In case more that one functionality is contained, you should consider to separate the
-      component into two separate components.
-   </p>
-</div>
 
 <h3 id="Chapter-2-Design-of-a-controller"><a href="#Chapter-2-Design-of-a-controller">2. Design of a (document-)controller</a></h3>
 <p>
@@ -54,20 +22,11 @@
    HTML template contained in the node, or the method <em>setPlaceHolder()</em> that can be used
    to fill a place holder defined via the <em>&lt;html:placeholder /&gt;</em> tag.
 </p>
-<p>
-   The scaffolding of a document controller has the always following figure:
-</p>
+<p>The scaffolding of a document controller has the always following figure:</p>
 <gen:highlight type="php">
-namespace VENDOR\pres\controller;
-
-use APF\core\pagecontroller\BaseDocumentController;
-
-class NavigationController extends BaseDocumentController {
-
+class my_document_controller extends BaseDocumentController {
    public function transformContent(){
-      ...
    }
-
 }
 </gen:highlight>
 <div class="hint">
@@ -133,6 +92,10 @@ class NavigationController extends BaseDocumentController {
 <p>
    Moreover, the <em>BaseDocumentController</em> inherits all attributes and functions of the class <em>APFObject</em>.
 </p>
+<div class="warn">
+   Please note that the <em>getIterator()</em> method is available only since release 1.17. In versions before, it is
+   contained in the <em>iteratorBaseController</em> class (see <int:link pageid="078" />).
+</div>
 <div class="hint">
    Besides, each document controller instance contains a reference on the current DOM node the
    controller is responsible for transformation. The reference can be retrieved using the
@@ -142,7 +105,10 @@ class NavigationController extends BaseDocumentController {
 </div>
 
 <h3 id="Chapter-3-Examples"><a href="#Chapter-3-Examples">3. (Document-)controller example</a></h3>
-
+<div class="hint">
+   Since release 1.14 it is sufficient to specify a document controller using the <em>namespace</em> and
+   <em>class</em> attribute. <em>file</em> is no more necessary.
+</div>
 <h4 id="Chapter-3-1-Dynamic-meta-tags"><a href="#Chapter-3-1-Dynamic-meta-tags">3.1. Representation of dynamic meta tags</a></h4>
 <p>
    This chapter now describes the controller implementation of the template example shown in chapter
@@ -151,17 +117,15 @@ class NavigationController extends BaseDocumentController {
 </p>
 <gen:highlight type="apf-xml">
 &lt;@controller
-   class="VENDOR\pres\controller\MainController"
+   namespace="sites::apfdocupage::pres::templates::documentcontroller"
+   class="website_v1_controller"
 @&gt;
-&lt;html&gt;
-   &lt;head&gt;
-      &lt;title&gt;&lt;html:placeholder name="title" /&gt;&lt;/title&gt;
-      &lt;meta name="date" content="&lt;html:placeholder name="date" /&gt;" /&gt;
-   &lt;/head&gt;
-   &lt;body&gt;
-      ...
-   &lt;/body&gt;
-&lt;/html&gt;
+[..]
+&lt;meta name="keywords" lang="de" content="PHP,Framework,Page-Controller,Front-Controller,Pattern,[..]" /&gt;
+&lt;meta name="date" content="&lt;html:placeholder name="Date" /&gt;" /&gt;
+&lt;meta name="robots" content="index,follow" /&gt;
+&lt;meta name="revisit-after" content="5 days" /&gt;
+[..]
 </gen:highlight>
 <p>
    In this case the accompanying document controller implements merely the method
@@ -169,19 +133,16 @@ class NavigationController extends BaseDocumentController {
    the class looks as follows:
 </p>
 <gen:highlight type="php">
-namespace VENDOR\pres\controller;
-
-use APF\core\pagecontroller\BaseDocumentController;
-
-class MainController extends BaseDocumentController {
+class website_v1_controller extends BaseDocumentController {
 
    public function transformContent(){
-      $this->setPlaceHolder('title', $this->getTitle());
-      $this->setPlaceHolder('date', date('Y-m-d'));
-   }
 
-   private function getTitle() {
-      return ...
+      // Set placeholder "URI"
+      $this->setPlaceHolder('URI',$_SERVER['REQUEST_URI']);
+
+      // Set placeholder "Date"
+      $this->setPlaceHolder('Date',date('Y-m-d'));
+
    }
 
 }
@@ -195,25 +156,29 @@ class MainController extends BaseDocumentController {
 </p>
 <gen:highlight type="apf-xml">
 &lt;@controller
-   class="VENDOR\pres\controller\ListController"
+   namespace="sites::apfdocupage::pres::templates::documentcontroller"
+   class="list_v1_controller"
 @&gt;
-&lt;table cellpadding="0" cellspacing="0" border="0"&gt;
-   &lt;thead&gt;
-      &lt;tr&gt;
-         &lt;td&gt;Produkt&lt;/td&gt;
-         &lt;td&gt;Preis&lt;/td&gt;
-      &lt;/tr&gt;
-   &lt;/thead&gt;
-   &lt;tbody&gt;
-      &lt;html:placeholder name="products" /&gt;
-   &lt;/tbody&gt;
-&lt;/table&gt;
+[..]
+&lt;html:placeholder name="List" /&gt;
 
-&lt;html:template name="product-item"&gt;
-   &lt;tr&gt;
-      &lt;td&gt;&lt;template:placeholder name="display-name" /&gt;&lt;/td&gt;
-      &lt;td&gt;&lt;template:placeholder name="price" /&gt;&lt;/td&gt;
-   &lt;/tr&gt;
+&lt;html:template name="ListHeader"&gt;
+  &lt;table cellpadding="0" cellspacing="0" border="0"&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+         &lt;strong&gt;ExampleList&lt;/strong&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;template:placeholder name="TableElements" /&gt;
+  &lt;/table&gt;
+&lt;/html:template&gt;
+
+&lt;html:template name="ListItem"&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+         &lt;template:placeholder name="ItemValue" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
 &lt;/html:template&gt;
 </gen:highlight>
 <p>
@@ -228,38 +193,68 @@ class MainController extends BaseDocumentController {
    is walked through and the HTML code is generated:
 </p>
 <gen:highlight type="php">
-namespace VENDOR\pres\controller;
+import('sites::demosite::biz','listLoader');
 
-use APF\core\pagecontroller\BaseDocumentController;
+class list_v1_controller extends BaseDocumentController {
 
-class ProductListController extends BaseDocumentController {
+   public function transformContent(){
 
-   public function transformContent() {
-
-      $tmpl = $this->getTemplate('product-item');
-
-      $buffer = '';
-
-      foreach ($this->getProducts() as $product) {
-
-         $tmpl->setPlaceHolder('display-name', $product->getDisplayName());
-         $tmpl->setPlaceHolder('price', $product->getPrice());
-
-         $buffer .= $tmpl->transformTemplate();
-
-      }
-
-      $this->setPlaceHolder('products', $buffer);
+      // Set list to place holder "List"
+      $this->setPlaceHolder('List',$this->buildList());
 
    }
 
-   /**
-    * @return Product[]
-    */
-   private function getProducts() {
+   private function buildList(){
+
+      // Create listLoader
+      $listLoader = &$this->getServiceObject('sites::demosite::biz','listLoader');
+
+      // Load list
+      $List = $listLoader->loadList();
+
+      // Initialize HTML buffer
+      $Buffer = (string)'';
+
+      // Get a reference of the "Header" template
+      $Template__ListHeader = &$this->getTemplate('ListHeader');
+
+      // Walk through the list and generate an item
+      foreach($List as $lKey => $lItem){
+
+         // Generate the HTML code of an item and add it to the buffer
+         $Buffer .= $this->buildListItem($lItem);
+
+      }
+
+      // Set items into the "Header" template
+      $Template__ListHeader->setPlaceHolder('TableElements',$Buffer);
+
+      // Transform the template and return the code
+      return $Template__ListHeader->transformTemplate();
+
+   }
+
+   private function buildListItem(&$listItem){
+
+      // Get a reference if the "ListItem" template
+      $Template__ListItem = &$this->getTemplate('ListItem');
+
+      // Fill place holder of the template
+      $Template__ListItem->setPlaceHolder('ItemValue',$listItem->get('ListContent'));
+
+      // Transform the template and return the code
+      return $Template__ListItem->transformTemplate();
+
    }
 
 }
 </gen:highlight>
+
+<h4 id="Chapter-3-3-More-examples"><a href="#Chapter-3-3-More-examples">3.3. More examples</a></h4>
+<p>
+   To get specific examples of the benefit please have a look at the
+   <int:link pageid="057" /> and <int:link pageid="035" /> pages. More information about forms can 
+   be found on the page <int:link pageid="113" />.
+</p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_006" />
