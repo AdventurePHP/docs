@@ -143,8 +143,6 @@ interface ChainedContentFilter {
    line breaks from the HTML code:
 </p>
 <gen:highlight type="php">
-use APF\core\filter\ChainedContentFilter;
-
 class WhitespaceOutputFilter implements ChainedContentFilter {
 
    public function filter(FilterChain &$chain, $input = null) {
@@ -160,9 +158,9 @@ class WhitespaceOutputFilter implements ChainedContentFilter {
 </gen:highlight>
 <div class="hint">
    <p>
-      You can add filters before and during execution of the <em>FilterChain</em>. For this purpose you can use
-      <em>appendFilter()</em> to add a filter at the end of the chain and  <em>prependFilter()</em> to add a filter
-      to the start.
+      Starting with 1.15 you can add filters before and during execution of the <em>FilterChain</em>. For this purpose
+      you can use <em>appendFilter()</em> to add a filter at the end of the chain and  <em>prependFilter()</em> to add
+      a filter to the start.
    </p>
    <p>
       Please note that filters prepended to the chain during execution may not be executed.
@@ -174,9 +172,9 @@ class WhitespaceOutputFilter implements ChainedContentFilter {
 <h4 id="Chapter-3-1-Default-setup"><a href="#Chapter-3-1-Default-setup">3.1. Default setup</a></h4>
 <p>
    Installing the APF from a fresh release package, the filer chains are already pre-configured with
-   the default filter by the front controller. These are the <em>ChainedUrlRewritingInputFilter</em> as
+   the default filter by the front controller. These are the <em>ChainedGenericInputFilter</em> as
    an input filter to resolve the url layout described in chapter 4 and the
-   <em>ChainedUrlRewritingOutputFilter</em> as an output filter to rewrite urls to their external
+   <em>ChainedGenericOutputFilter</em> as an output filter to rewrite urls to their external
    representation in cass url rewriting is activated.
 </p>
 
@@ -190,25 +188,23 @@ class WhitespaceOutputFilter implements ChainedContentFilter {
    controller:
 </p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
-
-use APF\core\filter\InputFilterChain;
-use APF\core\filter\OutputFilterChain;
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
 
 // add an additional custom input filter
-use VENDOR\project\filters\AdditionalInputFilter;
+import('my::project::filters', 'AdditionalInputFilter');
 InputFilterChain::getInstance()->appendFilter(new AdditionalInputFilter());
 
 // add an additional custom output filter
-use VENDOR\project\filters\AdditionalOutputFilter;
+import('my::project::filters', 'AdditionalOutputFilter');
 OutputFilterChain::getInstance()->appendFilter(new AdditionalOutputFilter());
 
 // clear chain and add a custom input filter
-use VENDOR\project\filters\CustomInputFilter;
+import('my::project::filters', 'CustomInputFilter');
 InputFilterChain::getInstance()->clear()->appendFilter(new CustomInputFilter());
 
 // clear chain and add a custom output filter
-use VENDOR\project\filters\CustomOutputFilter;
+import('my::project::filters', 'CustomOutputFilter');
 OutputFilterChain::getInstance()->clear()->appendFilter(new CustomOutputFilter());
 </gen:highlight>
 <p>
@@ -217,21 +213,19 @@ OutputFilterChain::getInstance()->clear()->appendFilter(new CustomOutputFilter()
    input filters and one more custom output filter the following code is sufficient:
 </p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
-
-use APF\core\filter\InputFilterChain;
-use APF\core\filter\OutputFilterChain;
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
 
 // cleas chain and add custom input filters
-use VENDOR\project\filters\AdditionalInputFilterOne;
-use VENDOR\project\filters\AdditionalInputFilterTwo;
+import('my::project::filters', 'AdditionalInputFilterOne');
+import('my::project::filters', 'AdditionalInputFilterTwo');
 InputFilterChain::getInstance()
    ->clear()
    ->appendFilter(new AdditionalInputFilterOne())
    ->appendFilter(new AdditionalInputFilterTwo());
 
 // add another output filter
-use VENDOR\project\filters\AdditionalOutputFilter;
+import('my::project::filters', 'AdditionalOutputFilter');
 OutputFilterChain::getInstance()->appendFilter(new AdditionalOutputFilter());
 </gen:highlight>
 <p>
@@ -246,8 +240,6 @@ OutputFilterChain::getInstance()->appendFilter(new AdditionalOutputFilter());
    filter will not be executed:
 </p>
 <gen:highlight type="php">
-use APF\core\filter\ChainedContentFilter;
-
 class IgnorantOutputFilter implements ChainedContentFilter {
 
    public function filter(FilterChain &$chain, $input = null) {
@@ -263,10 +255,8 @@ class IgnorantOutputFilter implements ChainedContentFilter {
    file:
 </p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
-
-use APF\core\filter\InputFilterChain;
-use APF\core\filter\OutputFilterChain;
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
 
 InputFilterChain::getInstance()->clear();
 OutputFilterChain::getInstance()->clear();
@@ -278,12 +268,11 @@ OutputFilterChain::getInstance()->clear();
    <em>class name</em>:
 </p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
 
-use APF\core\filter\OutputFilterChain;
-
-// remove an output filter
-OutputFilterChain::getInstance()->removeFilter('ChainedUrlRewritingOutputFilter');
+// remove the default output filter
+OutputFilterChain::getInstance()->removeFilter('ChainedGenericOutputFilter');
 </gen:highlight>
 
 <h3 id="Chapter-4-Url-layout"><a href="#Chapter-4-Url-layout">4. Url layout</a></h3>
@@ -308,7 +297,7 @@ OutputFilterChain::getInstance()->removeFilter('ChainedUrlRewritingOutputFilter'
 http://www.example.com/index.php?page=news&amp;news-page=2
 </gen:highlight>
 <p>
-   The request parameters are already interpreted by the web server and passed to the PHP engine. Thus,
+   The request parameters are already interpreted by the webserver and passed to the PHP engine. Thus,
    no processing is needed for this case.
 </p>
 <p>
@@ -316,10 +305,10 @@ http://www.example.com/index.php?page=news&amp;news-page=2
    a special way:
 </p>
 <gen:highlight type="code">
-http://www.example.com/index.php?APF_modules_captcha_biz-action:showCaptcha=name:0123456789|mode:transparent
+http://www.example.com/index.php?modules_captcha_biz-action:showCaptcha=name:0123456789|mode:transparent
 </gen:highlight>
 <p>
-   The above url addresses an action within the namespace <em>APF\modules\captcha\biz</em> having the
+   The above url addresses an action within the namespace <em>modules::captcha::biz</em> having the
    name <em>showCaptcha</em>. The action is passed the parameters <em>name</em> and <em>mode</em>.
    An action definition like this can be present several times within the url and can have any number
    of parameters. In addition, &quot;normal&quot; parameters can be mixed with front controller
@@ -363,7 +352,7 @@ http://www.example.com/page/news/news-page/2
    Having a look at the front controller action sample, the rewritten url is like this:
 </p>
 <gen:highlight type="code">
-http://www.example.com/~/APF_modules_captcha_biz-action/showCaptcha/name/0123456789/mode/transparent
+http://www.example.com/~/modules_captcha_biz-action/showCaptcha/name/0123456789/mode/transparent
 </gen:highlight>
 <p>
    The necessary adaption to operate an application in rewrite url mode can be taken from the

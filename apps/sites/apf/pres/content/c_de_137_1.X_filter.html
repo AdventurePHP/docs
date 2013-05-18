@@ -152,8 +152,6 @@ interface ChainedContentFilter {
    entfernt:
 </p>
 <gen:highlight type="php">
-use APF\core\filter\ChainedContentFilter;
-
 class WhitespaceOutputFilter implements ChainedContentFilter {
 
    public function filter(FilterChain &$chain, $input = null) {
@@ -169,9 +167,9 @@ class WhitespaceOutputFilter implements ChainedContentFilter {
 </gen:highlight>
 <div class="hint">
    <p>
-      Es ist sowohl vor als auch während der Ausführung einer <em>FilterChain</em> möglich Filter an den Anfang oder
-      das Ende der Kette hinzuzufügen. Hierzu stehen die Methoden <em>appendFilter()</em> (Anhängen eines Filters an
-      das Ende) und <em>prependFilter()</em> (Voranstellen eines Filters) zur Verfügung.
+      Ab dem Release 1.15 ist es sowohl vor als auch während der Ausführung einer <em>FilterChain</em> möglich Filter
+      an den Anfang oder das Ende der Kette hinzuzufügen. Hierzu stehen die Methoden <em>appendFilter()</em> (Anhängen
+      eines Filters an das Ende) und <em>prependFilter()</em> (Voranstellen eines Filters) zur Verfügung.
    </p>
    <p>
       Bitte beachten Sie, dass während der Ausführung vorangestellte Filter nicht mehr ausgeführt werden könnten.
@@ -182,9 +180,9 @@ class WhitespaceOutputFilter implements ChainedContentFilter {
 <h4 id="Chapter-3-1-Standard-Setup"><a href="#Chapter-3-1-Standard-Setup">3.1. Standard-Setup</a></h4>
 <p>
    Im Auslieferungs-Zustand des APF werden die Filter-Chains vom Front-Controller bereits mit den
-   Standard-APF-Filtern vorbelegt. Mitgeliefert werden der <em>ChainedUrlRewritingInputFilter</em> als
+   Standard-APF-Filtern vorbelegt. Mitgeliefert werden der <em>ChainedGenericInputFilter</em> als
    Eingabe-Filter zur Auflösung des in Kapitel 4 beschriebenen URL-Layouts und der
-   <em>ChainedUrlRewritingOutputFilter</em> für das Umschreiben der Links in die externe Repräsentation
+   <em>ChainedGenericOutputFilter</em> für das Umschreiben der Links in die externe Repräsentation
    im Rewrite-URL-Fall.
 </p>
 
@@ -199,25 +197,23 @@ class WhitespaceOutputFilter implements ChainedContentFilter {
    wie folgt erledigt werden:
 </p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
-
-use APF\core\filter\InputFilterChain;
-use APF\core\filter\OutputFilterChain;
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
 
 // Konfiguration eines eigenen, zusätzlichen Input-Filters
-use VENDOR\project\filters\AdditionalInputFilter;
+import('my::project::filters', 'AdditionalInputFilter');
 InputFilterChain::getInstance()->appendFilter(new AdditionalInputFilter());
 
 // Konfiguration eines eigenen, zusätzlichen Output-Filters
-use VENDOR\project\filters\AdditionalOutputFilter;
+import('my::project::filters', 'AdditionalOutputFilter');
 OutputFilterChain::getInstance()->appendFilter(new AdditionalOutputFilter());
 
 // Konfiguration eines eigenen, alleinigen Input-Filters
-use VENDOR\project\filters\CustomInputFilter;
+import('my::project::filters', 'CustomInputFilter');
 InputFilterChain::getInstance()->clear()->appendFilter(new CustomInputFilter());
 
 // Konfiguration eines eigenen, alleinigen Output-Filters
-use VENDOR\project\filters\CustomOutputFilter;
+import('my::project::filters', 'CustomOutputFilter');
 OutputFilterChain::getInstance()->clear()->appendFilter(new CustomOutputFilter());
 </gen:highlight>
 <p>
@@ -226,21 +222,19 @@ OutputFilterChain::getInstance()->clear()->appendFilter(new CustomOutputFilter()
    eigenen Output-Filter zu konfigurieren, reicht folgender Code:
 </p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
-
-use APF\core\filter\InputFilterChain;
-use APF\core\filter\OutputFilterChain;
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
 
 // Konfiguration von eigenen Input-Filtern
-use VENDOR\project\filters\AdditionalInputFilterOne;
-use VENDOR\project\filters\AdditionalInputFilterTwo;
+import('my::project::filters', 'AdditionalInputFilterOne');
+import('my::project::filters', 'AdditionalInputFilterTwo');
 InputFilterChain::getInstance()
    ->clear()
    ->appendFilter(new AdditionalInputFilterOne())
    ->appendFilter(new AdditionalInputFilterTwo());
 
 // Konfiguration eines zusätzlichen Output-Filters
-use VENDOR\project\filters\AdditionalOutputFilter;
+import('my::project::filters', 'AdditionalOutputFilter');
 OutputFilterChain::getInstance()->appendFilter(new AdditionalOutputFilter());
 </gen:highlight>
 <p>
@@ -255,8 +249,6 @@ OutputFilterChain::getInstance()->appendFilter(new AdditionalOutputFilter());
    so wird die Abarbeitung von potentiell nach dem Filter in der Chain befindlichen Filter abgebrochen:
 </p>
 <gen:highlight type="php">
-use APF\core\filter\ChainedContentFilter;
-
 class IgnorantOutputFilter implements ChainedContentFilter {
 
    public function filter(FilterChain &$chain, $input = null) {
@@ -272,10 +264,8 @@ class IgnorantOutputFilter implements ChainedContentFilter {
    Bootstrap-Datei notwendig:
 </p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
-
-use APF\core\filter\InputFilterChain;
-use APF\core\filter\OutputFilterChain;
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
 
 InputFilterChain::getInstance()->clear();
 OutputFilterChain::getInstance()->clear();
@@ -287,12 +277,11 @@ OutputFilterChain::getInstance()->clear();
    einzeln zu entfernen. Dies kann wie folgt erledigt werden:
 </p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
 
-use APF\core\filter\OutputFilterChain;
-
-// Entfernen eines Output-Filters
-OutputFilterChain::getInstance()->removeFilter('ChainedUrlRewritingOutputFilter');
+// Entfernen des Standard-Output-Filter
+OutputFilterChain::getInstance()->removeFilter('ChainedGenericOutputFilter');
 </gen:highlight>
 
 <h3 id="Chapter-4-URL-Layout"><a href="#Chapter-4-URL-Layout">4. URL-Layout</a></h3>
@@ -326,10 +315,10 @@ http://www.example.com/index.php?page=news&amp;news-page=2
    sind:
 </p>
 <gen:highlight type="code">
-http://www.example.com/index.php?APF_modules_captcha_biz-action:showCaptcha=name:0123456789|mode:transparent
+http://www.example.com/index.php?modules_captcha_biz-action:showCaptcha=name:0123456789|mode:transparent
 </gen:highlight>
 <p>
-   Die beschriebene URL adressiert eine Action unter dem Namespace <em>APF\modules\captcha\biz</em>
+   Die beschriebene URL adressiert eine Action unter dem Namespace <em>modules::captcha::biz</em>
    mit dem Namen <em>showCaptcha</em>. Dieser werden die Paremeter <em>name</em> und <em>mode</em>
    zur Ausführung mitgegeben. Jede dieser Action-Definitionen kann innerhalb einer URL beliebig
    oft vorkommen und kann eine beliebige Anzahl von Parametern aufweisen. Weiterhin können
@@ -374,7 +363,7 @@ http://www.example.com/page/news/news-page/2
    Die Front-Controller-Action versteht der Filter im URL-Rewrite-Fall wie folgt:
 </p>
 <gen:highlight type="code">
-http://www.example.com/~/APF_modules_captcha_biz-action/showCaptcha/name/0123456789/mode/transparent
+http://www.example.com/~/modules_captcha_biz-action/showCaptcha/name/0123456789/mode/transparent
 </gen:highlight>
 <p>
    Die notwendigen Anpassungen an der Konfiguration des APF können im Kapitel
