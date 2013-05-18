@@ -25,7 +25,7 @@ recipient list is configurable and extensible. The module can be included in any
 controller compliant application by using the <em>&lt;core:importdesign /&gt;</em> tag.
 <div class="hint">
    Within release 1.11, the HTML markup of the module was completely reworked. For this reason, the
-   shipped CSS file (see <em>/modules/contact/pres/css/contact.css</em> within the release package) must be added to
+   shipped CSS file (see <em>/modules/kontakt4/pres/css/contact.css</em> within the release package) must be added to
    the head of the corresponding page. This file contains a basic set of formatting for the module,
    that must be adapted as desired. A detailed description of the generated HTML code can be taken
    from the wiki chapter
@@ -45,7 +45,82 @@ To be able to integrate the contact form module in various projects the project 
 be outsourced to application configuration files. Configuration is necessary in two flavours: first
 of all the recipients must be configured, second the texts of the form tag libs (validators) must
 be defined per project.
+<br />
+<br />
+At this point of the tutorial we're going to do a little excurse to functionality of the form
+validation included in the framework:
+<br />
+The tags
+<ul>
+  <li>&lt;form:validate /&gt;</li>
+  <li>&lt;valgroup:validate /&gt;</li>
+</ul>
+need a language dependent configuration file for the validation messages to display. The configuration
+file required for the taglibs is expected to be storend in
+<gen:highlight type="code">
+/config/tools/form/taglib/{CONTEXT}/{ENVIRONMENT}_formconfig.ini
+</gen:highlight>
+<em>{CONTEXT}</em> is meant to be a place holder for the context of the current application and the
+value for <em>{ENVIRONMENT}</em> must be read from the registry. In case of the presend documentation
+page the file must be named like
+<gen:highlight type="code">
+/config/tools/form/taglib/sites/demosite/DEFAULT_formconfig.ini
+</gen:highlight>
+As described in the <int:link pageid="046" /> article in section 2.3.16 and 2.3.17 these tags can be
+configured using the additional attributes
+<ul>
+  <li>msginputreq=""</li>
+  <li>msginputwrg=""</li>
+</ul>
+These attributs define the configuration key that contains a language dependent text to be shown, if
+the desired field is not filled correctly. This makes it possible to define a single set of validation
+texts for an entire application. Moreover, it is easy to translate these texts, becaues they are
+stored in simple text files.
+<br />
+<br />
+<strong>Example:</strong>
+<br />
+In order to display the message
+<gen:highlight type="apf-xml">
+Please fill the field in e-mail address!
+</gen:highlight>
+if a form control was not filled and to print the text
+<gen:highlight type="apf-xml">
+Please provide a valid e-mail address!
+</gen:highlight>
+if the field was not filled with a correct e-mail address, the validator must be configured as
+follows:
+<gen:highlight type="apf-xml">
+&lt;form:validate
+               button="send"
+               field="email"
+               type="EMail"
+               msginputreq="Contact.EMail.InputRequired"
+               msginputwrg="Contact.EMail.InputWrong"
+/&gt;
+</gen:highlight>
+The attribute <strong>button</strong> defines the name of the button, that should initiate validation,
+<strong>field</strong> indicates the field, that should be checked and <strong>type</strong> explains
+the type of the validator. The keys contained in the two attributes <strong>msginputreq</strong> and
+<strong>msginputwrg</strong> were prefixed with "<strong>Contact.EMail.</strong>" to indicate, that
+these configuration keys belong to the contact form application and are intended to declare the
+validation texts of the <strong>e-mail</strong> field. This convention is common to be able to
+differentiate between the various configuration keys provided within one configuration file. Besides,
+it is useful to place some comments in the configuration file.
+<br />
+<br />
+A configuration file intended to be a basis for a multilanguage application may have the following
+content:
+<gen:highlight type="ini">
+[de]
+Contact.EMail.InputRequired = "Bitte geben Sie eine E-Mail-Adresse sein!"
+Contact.EMail.InputWrong = "Bitte geben Sie eine gültige E-Mail-Adresse sein!"
 
+[en]
+Contact.EMail.InputRequired = "Please fill the field sender name!"
+Contact.EMail.InputWrong = "Please provide a valid email address!"
+</gen:highlight>
+<br />
 <h4 id="Chapter-2-2-Multilanguage-support"><a href="#Chapter-2-2-Multilanguage-support">2.2. Multilanguage applications</a></h4>
 The adventure php framework features several options to create multilangual applications or modules.
 At first, the language is stored within every single DOM node or service layer and hence can be used
@@ -59,7 +134,7 @@ XML tags
 that display language dependent texts from configuration files. In case of the present module both
 possibilities are used. As a basis, the configuration file
 <gen:highlight type="code">
-/config/modules/contact/{CONTEXT}/{ENVIRONMENT}_language.ini
+/config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_language.ini
 </gen:highlight>
 is used to store the texts to be displayed in the module. The file is filled with the following
 values:
@@ -123,16 +198,16 @@ form.text.error = "The message may not be empty!"
 </gen:highlight>
 The values stored there can be displayed by using the following XML tags:
 <ul>
-  <li><strong>&lt;html:getstring namespace="modules::contact" config="language.ini" entry="form.person" /&gt;</strong>,</li>
-  <li><strong>&lt;template:getstring namespace="modules::contact" config="language.ini" entry="form.person" /&gt;</strong> oder</li>
-  <li><strong>&lt;form:getstring namespace="modules::contact" config="language.ini" entry="form.person" /&gt;</strong></li>
+  <li><strong>&lt;html:getstring namespace="modules::kontakt4" config="language.ini" entry="form.person" /&gt;</strong>,</li>
+  <li><strong>&lt;template:getstring namespace="modules::kontakt4" config="language.ini" entry="form.person" /&gt;</strong> oder</li>
+  <li><strong>&lt;form:getstring namespace="modules::kontakt4" config="language.ini" entry="form.person" /&gt;</strong></li>
 </ul>
 The second possibility of of displaying language dependent texts can be used to label form controls
 like buttons. In this case the labelling must be done within a document controller. The following
 code shows how to achieve this:
 <gen:highlight type="php">
 // Load language dependent configuration
-$Config = $this->getConfiguration('modules::contact','language');
+$Config = $this->getConfiguration('modules::kontakt4','language');
 
 // Get a reference on the desired form control
 $Button = &$Form->getFormElementByName('KontaktSenden');
@@ -143,10 +218,10 @@ $Button->setAttribute('value',$Config->getSection($this->language)->getValue('fo
 <br />
 <h4 id="Chapter-2-3-Structure-of-the-module"><a href="#Chapter-2-3-Structure-of-the-module">2.3. Structure of the module</a></h4>
 According to the structure described in the comment module tutorial the structure of the
-<strong>contact</strong> module looks like this:
+<strong>kontakt4</strong> module looks like this:
 <gen:highlight type="code">
 /modules/
-         contact/
+        kontakt4/
                  biz/
                  data/
                  pres/
@@ -161,45 +236,45 @@ layer. Considered as a whole, the contact form consists of the following files:
 <br />
 <ul>
   <li>
-    <strong>/modules/contact/pres/templates/contact.html</strong>:
+    <strong>/modules/kontakt4/pres/templates/kontakt.html</strong>:
     <br />
-    The file <em>contact.html</em> contains the main design and coordinated the output of the form
+    The file <em>kontakt.html</em> contains the main design and coordinated the output of the form
     or the thank-you-page with a <em>&lt;core:importdesign /&gt;</em> tag.
   </li>
   <li>
-    <strong>/modules/contact/pres/templates/form.html</strong>:
+    <strong>/modules/kontakt4/pres/templates/formular.html</strong>:
     <br />
     This file contains the definition of the form view.
    </li>
   <li>
-    <strong>/modules/contact/pres/templates/thanks.html</strong>:
+    <strong>/modules/kontakt4/pres/templates/meldung.html</strong>:
     <br />
-    In the file <em>thanks.html</em> the content of the thank-you-page is defined.
+    In the file <em>meldung.html</em> the content of the thank-you-page is defined.
    </li>
   <li>
-    <strong>/modules/contact/pres/documentcontroller/ContactFormController.php</strong>:
+    <strong>/modules/kontakt4/pres/documentcontroller/kontakt_v2_controller.php</strong>:
     <br />
     To fill the form view with dynamically generated content a document controller is needed. The
-    file <em>ContactFormController.php</em> contains the document controller class definition.
+    file <em>kontakt_v2_controller.php</em> contains the document controller class definition.
    </li>
   <li>
-    <strong>/modules/contact/biz/ContactManager.php</strong>:
+    <strong>/modules/kontakt4/biz/ContactManager.php</strong>:
     <br />
     <em>ContactManager.php</em> is the home of the business component class, that coordinates the
     workflow of the application.
    </li>
   <li>
-    <strong>/modules/contact/biz/ContactFormRecipient.php</strong>:
+    <strong>/modules/kontakt4/biz/ContactFormRecipient.php</strong>:
     <br />
     <em>ContactFormRecipient.php</em> contains the definition of the recipient domain object.
    </li>
   <li>
-    <strong>/modules/contact/biz/ContactFormData.php</strong>:
+    <strong>/modules/kontakt4/biz/ContactFormData.php</strong>:
     <br />
     <em>ContactFormData.php</em> contains the definition of the form data domain object.
   </li>
   <li>
-    <strong>/modules/contact/data/ContactMapper.php</strong>:
+    <strong>/modules/kontakt4/data/ContactMapper.php</strong>:
     <br />
     The file <em>ContactMapper.php</em> is used to define the data layer component, that loads the
     recipients out of the configuration file and presents them as domain objects.
@@ -209,12 +284,17 @@ As already mentioned the following configuration files must be provided:
 <br />
 <ul>
   <li>
-    <strong>/config/modules/contact/{CONTEXT}/{ENVIRONMENT}_recipients.ini</strong>:
+    <strong>/config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_empfaenger.ini</strong>:
     <br />
     Configuration of the recipients.
   </li>
   <li>
-    <strong>/config/modules/contact/{CONTEXT}/{ENVIRONMENT}_language.ini</strong>:
+    <strong>/config/tools/form/taglib/{CONTEXT}/{ENVIRONMENT}_formconfig.ini</strong>:
+    <br />
+    Texts for the validator form tags.
+  </li>
+  <li>
+    <strong>/config/modules/kontakt4/{CONTEXT}/{ENVIRONMENT}_language.ini</strong>:
     <br />
     Language dependent labels.
   </li>
@@ -236,10 +316,10 @@ the headline, that is displayed by use of the <strong>&lt;html:getstring /&gt;</
 <strong>&lt;core:importdesign /&gt;</strong> tag, that defines the view that either displays the
 form (default behaviour) of the thank-you-page:
 <gen:highlight type="apf-xml">
-&lt;font style="..."&gt;&lt;html:getstring namespace="modules::contact" config="language" entry="header.title" /&gt;&lt;/font&gt;
+&lt;font style="..."&gt;&lt;html:getstring namespace="modules::kontakt4" config="language" entry="header.title" /&gt;&lt;/font&gt;
 &lt;br /&gt;
 &lt;br /&gt;
-&lt;core:importdesign namespace="modules::contact::pres::templates" template="[pagepart=formular]" /&gt;
+&lt;core:importdesign namespace="modules::kontakt4::pres::templates" template="[pagepart=formular]" /&gt;
 </gen:highlight>
 <strong>Note</strong>: Within this template file, the <strong>&lt;core:importdesign /&gt;</strong>
 tag is used with the pagepart option. This means, that the name of the template can be influenced
@@ -279,10 +359,10 @@ This template file contains four essential blocks:
   </li>
 </ul>
 <gen:highlight type="apf-xml">
-&lt;@controller namespace="modules::contact::pres::documentcontroller" class="contact_form_controller" @&gt;
+&lt;@controller namespace="modules::kontakt4::pres::documentcontroller" class="contact_form_controller" @&gt;
 &lt;core:addtaglib namespace="tools::form::taglib" class="HtmlFormTag" prefix="html" name="form" /&gt;
 &lt;p&gt;
-   &lt;html:getstring namespace="modules::contact" config="language" entry="formhint.text" /&gt;
+   &lt;html:getstring namespace="modules::kontakt4" config="language" entry="formhint.text" /&gt;
 &lt;/p&gt;
 &lt;div class="contact-form"&gt;
    &lt;html:form name="contact" method="post"&gt;
@@ -326,28 +406,28 @@ This template file contains four essential blocks:
             control="AbsenderAdresse"
             /&gt;
       &lt;label for="contact-form-recipient"&gt;
-         &lt;form:getstring namespace="modules::contact" config="language" entry="form.person" /&gt;
+         &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.person" /&gt;
       &lt;/label&gt;
       &lt;form:select id="contact-form-recipient" name="Empfaenger" /&gt;
       &lt;label for="contact-form-sendername"&gt;
-         &lt;form:getstring namespace="modules::contact" config="language" entry="form.name" /&gt;
+         &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.name" /&gt;
       &lt;/label&gt;
       &lt;form:text id="contact-form-sendername" name="AbsenderName" /&gt;
       &lt;label for="contact-form-recipient-email"&gt;
-         &lt;form:getstring namespace="modules::contact" config="language" entry="form.email" /&gt;
+         &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.email" /&gt;
       &lt;/label&gt;
       &lt;form:text id="contact-form-recipient-email" name="AbsenderAdresse" /&gt;
       &lt;label for="contact-form-subject"&gt;
-         &lt;form:getstring namespace="modules::contact" config="language" entry="form.subject" /&gt;
+         &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.subject" /&gt;
       &lt;/label&gt;
       &lt;form:text id="contact-form-subject" name="Betreff" /&gt;
       &lt;label for="contact-form-textarea"&gt;
-         &lt;form:getstring namespace="modules::contact" config="language" entry="form.comment" /&gt;
+         &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.comment" /&gt;
       &lt;/label&gt;
       &lt;form:area id="contact-form-textarea" name="Text" cols="50" rows="6"/&gt;
       &lt;div class="fullsizebox captchabox"&gt;
          &lt;label for="contact-form-captcha"&gt;
-            &lt;form:getstring namespace="modules::contact" config="language" entry="form.captcha" /&gt;
+            &lt;form:getstring namespace="modules::kontakt4" config="language" entry="form.captcha" /&gt;
          &lt;/label&gt;
          &lt;form:addtaglib namespace="modules::captcha::pres::taglib" class="SimpleCaptchaTag" prefix="form" name="captcha" /&gt;
          &lt;form:captcha
@@ -378,7 +458,7 @@ the multilanguage texts of the module. Due to the fact, that these texts are sta
 controller is necessary.
 <gen:highlight type="apf-xml">
 &lt;br /&gt;
-&lt;html:getstring namespace="modules::contact" config="language.ini" entry="message.text" /&gt;
+&lt;html:getstring namespace="modules::kontakt4" config="language.ini" entry="message.text" /&gt;
 &lt;br /&gt;
 &lt;br /&gt;
 </gen:highlight>
@@ -393,9 +473,9 @@ as desired by the programmer (see line 60). In case of correct values the busine
 to send the form and to display the thank-you-page (template file <em>meldung.html</em>).
 <gen:highlight type="php">
 import('tools::link', 'LinkGenerator');
-import('modules::contact::biz', 'ContactFormData');
+import('modules::kontakt4::biz', 'ContactFormData');
 
-class ContactFormController extends BaseDocumentController {
+class contact_form_controller extends BaseDocumentController {
 
    public function transformContent() {
 
@@ -410,7 +490,7 @@ class ContactFormController extends BaseDocumentController {
       $recipients = & $form->getFormElementByName('Empfaenger');
 
       /* @var $cM ContactManager */
-      $cM = & $this->getServiceObject('modules::contact::biz', 'ContactManager');
+      $cM = & $this->getServiceObject('modules::kontakt4::biz', 'ContactManager');
       /* @var $recipientList ContactFormRecipient[] */
       $recipientList = $cM->loadRecipients();
 
@@ -441,13 +521,13 @@ class ContactFormController extends BaseDocumentController {
          $formData->setMessage($text->getContent());
 
          /* @var $cM ContactManager */
-         $cM = & $this->getServiceObject('modules::contact::biz', 'ContactManager');
+         $cM = & $this->getServiceObject('modules::kontakt4::biz', 'ContactManager');
          $cM->sendContactForm($formData);
 
       } else {
 
          // label the button
-         $config = $this->getConfiguration('modules::contact', 'language');
+         $config = $this->getConfiguration('modules::kontakt4', 'language');
          $value = $config->getSection($this->language)->getValue('form.button');
          $button = & $form->getFormElementByName('sendFormContact');
          $button->setAttribute('value', $value);
@@ -503,8 +583,8 @@ methods: <em>sendContactForm()</em> to send the form and <em>loadRecipients()</e
 of recipients. The interface between the presentation and business layer is formed by the two domain
 objects <em>ContactFormData</em> and <em>ContactFormRecipient</em>.
 <gen:highlight type="php">
-import('modules::contact::biz', 'ContactFormData');
-import('modules::contact::biz', 'ContactFormRecipient');
+import('modules::kontakt4::biz', 'ContactFormData');
+import('modules::kontakt4::biz', 'ContactFormRecipient');
 import('tools::link', 'LinkGenerator');
 import('tools::http', 'HeaderManager');
 
@@ -512,7 +592,7 @@ class ContactManager extends APFObject {
 
    public function sendContactForm(ContactFormData $formData) {
 
-      $cM = &$this->getServiceObject('modules::contact::data', 'ContactMapper');
+      $cM = &$this->getServiceObject('modules::kontakt4::data', 'ContactMapper');
 
       // set up the mail sender
       $MAIL = &$this->getAndInitServiceObject('tools::mail', 'mailSender', 'ContactForm');
@@ -565,7 +645,7 @@ class ContactManager extends APFObject {
    }
 
    public function loadRecipients() {
-      $cM = & $this->getServiceObject('modules::contact::data', 'ContactMapper');
+      $cM = & $this->getServiceObject('modules::kontakt4::data', 'ContactMapper');
       return $cM->loadRecipients();
    }
 
@@ -588,15 +668,15 @@ The <em>ContactMapper</em> is a data mapper pattern implementation. It is used a
 the business layer. For this reason the mapper loads the configuraton file, that contains the
 recipients and maps this data into recipient domain object (<em>ContactFormRecipient</em>).
 <gen:highlight type="php">
-import('modules::contact::biz','ContactFormData');
-import('modules::contact::biz','ContactFormRecipient');
+import('modules::kontakt4::biz','ContactFormData');
+import('modules::kontakt4::biz','ContactFormRecipient');
 
 class ContactMapper extends APFObject {
 
    public function loadRecipients(){
 
       // read config
-      $Config = $this->getConfiguration('modules::contact','empfaenger.ini');
+      $Config = $this->getConfiguration('modules::kontakt4','empfaenger.ini');
 
       // initialize return array
       $Recipients = array();
