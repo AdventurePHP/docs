@@ -641,22 +641,22 @@ class GuestbookListController extends BaseDocumentController {
       $gS = &$this->getDIServiceObject('modules::guestbook2009::biz', 'GuestbookService');
       $entryList = $gS->loadPagedEntryList();
 
-      $tmpl_entry = &$this->getTemplate('entry');
+      $templateEntry = &$this->getTemplate('entry');
       $buffer = (string) '';
       foreach ($entryList as $entry) {
 
          $editor = $entry->getEditor();
-         $tmpl_entry->setPlaceHolder('name', $editor->getName());
-         $tmpl_entry->setPlaceHolder('website', $editor->getWebsite());
+         $templateEntry->setPlaceHolder('name', $editor->getName());
+         $templateEntry->setPlaceHolder('website', $editor->getWebsite());
 
-         $tmpl_entry->setPlaceHolder('title', $entry->getTitle());
-         $tmpl_entry->setPlaceHolder('text', $entry->getText());
+         $templateEntry->setPlaceHolder('title', $entry->getTitle());
+         $templateEntry->setPlaceHolder('text', $entry->getText());
 
          $creationTimestamp = $entry->getCreationTimestamp();
-         $tmpl_entry->setPlaceHolder('time', date('H:i:s', strtotime($creationTimestamp)));
-         $tmpl_entry->setPlaceHolder('date', date('d.m.Y', strtotime($creationTimestamp)));
+         $templateEntry->setPlaceHolder('time', date('H:i:s', strtotime($creationTimestamp)));
+         $templateEntry->setPlaceHolder('date', date('d.m.Y', strtotime($creationTimestamp)));
 
-         $buffer .= $tmpl_entry->transformTemplate();
+         $buffer .= $templateEntry->transformTemplate();
       }
       $this->setPlaceHolder('content', $buffer);
 
@@ -1584,16 +1584,16 @@ class GuestbookDeleteEntryController extends GuestbookBackendBaseController {
          'modules::guestbook2009::biz',
          'GuestbookService'
       );
-      $form_yes = &$this->getForm(
+      $formYes = &$this->getForm(
          'delete_yes'
       );
-      $form_no = &$this->getForm(
+      $formNo = &$this->getForm(
          'delete_no'
       );
-      if($form_no->get('isSent') ||
-         $form_yes->get('isSent')){
+      if($formNo->get('isSent') ||
+         $formYes->get('isSent')){
          $entry = null;
-         if($form_yes->get('isSent')){
+         if($formYes->get('isSent')){
             $entry = new Entry();
             $entry->setId($entryId);
          }
@@ -1601,10 +1601,10 @@ class GuestbookDeleteEntryController extends GuestbookBackendBaseController {
          return;
       }
 
-      $hidden_yes = &$form_yes->getFormElementByName('entryid');
-      $hidden_yes ->setAttribute('value',$entryId);
-      $form_yes->transformOnPlace();
-      $form_no->transformOnPlace();
+      $hiddenYes = &$formYes->getFormElementByName('entryid');
+      $hiddenYes ->setAttribute('value',$entryId);
+      $formYes->transformOnPlace();
+      $formNo->transformOnPlace();
 
       $confirm = $this->getTemplate(
          'confirm_text'
