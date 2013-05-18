@@ -98,6 +98,31 @@ interface LogWriter {
 <p>
    Managing <em>LogWriter</em>s with the <em>Logger</em> is described within the next chapters.
 </p>
+<div class="hint">
+   <p>
+      Please note, that the APF registers one <em>FileLogWriter</em> instance at shipping. Thus, the framework behaves
+      as in pre-1.17 releases.
+   </p>
+   <p>
+      Moreover, the configuration of the standard log target is defined within the <int:link pageid="067" /> using
+      namespace  <em>apf::core</em> and key <em>InternalLogTarget</em> as of 1.17. Please use the following code to add
+      log entries using the standard log target (both alternatives possible):
+<gen:highlight type="php">
+$logger->logEntry(
+   Registry::retrieve('apf::core', 'InternalLogTarget'),
+   'My log message',
+   LogEntry::SEVERITY_INFO
+);
+$logger->addEntry(new SimpleLogEntry(
+   Registry::retrieve('apf::core', 'InternalLogTarget'),
+   'My log message',
+   LogEntry::SEVERITY_INFO
+));
+</gen:highlight>
+      Using this method, you can ensure that the log entry is passed to the configured standard <em>LogWriter</em> and
+      persisted within the standard log file.
+   </p>
+</div>
 <div class="warn">
    In case no log target has been specified the <em>Logger</em> quits writing the log entries with an exception. Example:
 <gen:highlight type="code">
@@ -117,12 +142,9 @@ Fatal error: Uncaught exception 'LoggerException' with message 'Log writer with 
    used for shipped and custom implementations:
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\logging\Logger;
+$logger = & Singleton::getInstance('Logger');
 
-$logger = &Singleton::getInstance('APF\core\logging\Logger');
-
-use APF\core\logging\writer\StdoutLogWriter;
+import('core::logging::writer', 'StdoutLogWriter');
 $logger->addLogWriter(
    'stdout',
    new StdoutLogWriter()
@@ -132,11 +154,7 @@ $logger->addLogWriter(
    Afterwards, the <em>LogWriter</em> registered with <em>stdout</em> can be used as follows:
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\logging\Logger;
-use APF\core\logging\SimpleLogEntry;
-
-$logger = &Singleton::getInstance('APF\core\logging\Logger');
+$logger = & Singleton::getInstance('Logger');
 $logger->addEntry(new SimpleLogEntry(
    'stdout',
    'This is a log message',
@@ -202,6 +220,28 @@ foreach($logger->getRegisteredTargets() as $logTarget) {
 }
 </gen:highlight>
 
+<h4 id="Chapter-3-2-Log-directory"><a href="#Chapter-3-2-Log-directory">3.2. Log directory</a></h4>
+<div class="warn">
+   Please note, that the configuration of the log directory has changed in version 1.17. The content of this chapter is
+   only valid for releases up to 1.16. Please note the description of configuring log targets in
+   <a href="#Chapter-4-Existing-LogWriter">chapter 4</a>.
+</div>
+<p>
+   The log directory is configured within the registry value <em>LogDir</em> from the registry namespace
+   <em>apf::core</em>. The value is initialized with the <em>absolute</em> path to the current directory plus the
+   <em>logs</em> sub-folder on startup. In case you intend to use another directory, you may adapt the path within your
+   bootstrap file before creation of the front controller:
+</p>
+<gen:highlight type="php">
+Registry::register('apf::core', 'LogDir', '/path/to/my/log/dir');
+</gen:highlight>
+<p>
+   This path is used to place all log files of the entire application.
+</p>
+<div class="hint">
+   To avoid issues with accessing the log directory the path should be defined as <em>absolute</em>!
+</div>
+
 <h4 id="Chapter-3-3-Buffer-length"><a href="#Chapter-3-3-Buffer-length">3.3. Buffer length</a></h4>
 <p>
    As noted above, the <em>Logger</em> collects all entries to write them to the log file at the end of the request.
@@ -213,11 +253,8 @@ foreach($logger->getRegisteredTargets() as $logTarget) {
    until the buffer is flushed. To adapt this value, call
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\logging\Logger;
-
-$logger = &Singleton::getInstance('APF\core\logging\Logger');
-$logger->setMaxBufferLength(500);
+$log = &Singleton::getInstance('Logger');
+$log->setMaxBufferLength(500);
 </gen:highlight>
 
 <h4 id="Chapter-3-4-Threshold"><a href="#Chapter-3-4-Threshold">3.4. Threshold</a></h4>
@@ -229,11 +266,8 @@ $logger->setMaxBufferLength(500);
    To define the threshold, please use the following lines:
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\logging\Logger;
-
-$logger = &Singleton::getInstance('APF\core\logging\Logger');
-$logger->setLogThreshold(Logger::$LOGGER_THRESHOLD_WARN);
+$log = &Singleton::getInstance('Logger');
+$log->setLogThreshold(Logger::$LOGGER_THRESHOLD_WARN);
 </gen:highlight>
 <p>
    As you may take from the example, the <em>Logger</em> already defines standard thresholds. Furthermore, you can
@@ -251,11 +285,8 @@ $logger->setLogThreshold(Logger::$LOGGER_THRESHOLD_WARN);
    The following code block describes how to define a custom threshold - or create a custom profile:
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\logging\Logger;
-
-$logger = &Singleton::getInstance('APF\core\logging\Logger');
-$logger->setLogThreshold(array(
+$log = &Singleton::getInstance('Logger');
+$log->setLogThreshold(array(
    LogEntry::SEVERITY_TRACE,
    LogEntry::SEVERITY_INFO
 ));
@@ -276,6 +307,37 @@ $logger->setLogThreshold(array(
 <p>
    Details on the definition can be taken from <int:link pageid="002"/>.
 </p>
+
+<h4 id="Chapter-3-5-Host-prefix"><a href="#Chapter-3-5-Host-prefix">3.5. Host prefix</a></h4>
+<div class="warn">
+   Please note, that the configuration of the host prefix has changed in version 1.17. The content of this chapter is
+   only valid for releases up to 1.16. Please note the description of configuring host prefixes in
+   <a href="#Chapter-4-Existing-LogWriter">chapter 4</a>.
+</div>
+<p>
+   In clustered web server environments log files are often written to a shared filesystem. This eases analysis and
+   archiving but often causes concurrency issues and slows down the application. This is because waiting for write locks
+   blocks the application and increases lock traffic.
+</p>
+<p>
+   One common solution is to split log files into host-dependent files. Often, this is done by adding the host name
+   to the file name. Moreover, this enables you to analyze issues with a dedicated node.
+</p>
+<p>
+   Using 1.15's <em>host prefix</em> you can define a server-dependent prefix for each log file:
+</p>
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setHostPrefix('node1');
+</gen:highlight>
+<div class="hint">
+   To define a generic prefix without the need to create host-specific deployment tasks, you may want to use environment
+   or server configuration values to define the prefix. This may be done using the <em>$_SERVER</em> super global variable:
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+$log->setHostPrefix($_SERVER['SERVER_ADDR']);
+</gen:highlight>
+</div>
 
 <h3 id="Chapter-4-Existing-LogWriter"><a href="#Chapter-4-Existing-LogWriter">4. Existing LogWriter</a></h3>
 <p>
@@ -298,7 +360,6 @@ $logger->setLogThreshold(array(
    of the <em>FileLogWriters</em> can be done as follows:
 </p>
 <gen:highlight type="php">
-use APF\core\logging\writer\FileLogWriter;
 $logger->addLogWriter('file', new FileLogWriter('/path/to/log/dir'));
 </gen:highlight>
 <p>
@@ -362,7 +423,7 @@ $fileWriter->setHostPrefix('node1');
    Registration of the <em>StdOutLogWriter</em> can be done within your bootstrap file as follows:
 </p>
 <gen:highlight type="php">
-use APF\core\logging\writer\StdOutLogWriter;
+import('core::logging::writer', 'StdOutLogWriter');
 $logger->addLogWriter('stdout',  new StdOutLogWriter());
 </gen:highlight>
 <p>
@@ -392,7 +453,7 @@ CREATE TABLE IF NOT EXISTS `{$this->logTable}` (
    In order to use this <em>LogWriter</em> please use the following code sample:
 </p>
 <gen:highlight type="php">
-use APF\core\logging\writer\DatabaseLogWriter;
+import('core::logging::writer', 'DatabaseLogWriter');
 $logger->addlogWriter('db', new DatabaseLogWriter('my-connection', 'app_logs'));
 </gen:highlight>
 <p>
@@ -415,7 +476,7 @@ $logger->addlogWriter('db', new DatabaseLogWriter('my-connection', 'app_logs'));
    Registering the <em>GraphiteLogWriter</em> is as follows:
 </p>
 <gen:highlight type="php">
-use APF\core\logging\writer\GraphiteLogWriter;
+import('core::logging::writer', 'GraphiteLogWriter');
 $logger->addlogWriter('graphite', new GraphiteLogWriter('my-graphite-host', '1234'));
 </gen:highlight>
 <p>
@@ -427,13 +488,10 @@ $logger->addlogWriter('graphite', new GraphiteLogWriter('my-graphite-host', '123
    Using the <em>GraphiteLogWriter</em> is as follows:
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\benchmark\BenchmarkTimer;
-
-$t = Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+$t = Singleton::getInstance('BenchmarkTimer');
 $renderingTime = round(floatval($t->getTotalTime() * 1000));
 
-use APF\core::logging::entry\GraphiteLogEntry;
+import('core::logging::entry', 'GraphiteLogEntry');
 $logger->addEntry(new GraphiteLogEntry(
    'graphite',
    'rendering-time',
@@ -448,7 +506,7 @@ $logger->addEntry(new GraphiteLogEntry(
    constructor argument creating the <em>LogWriter</em> or pass <em>false</em> to the <em>setBatchWrites()</em> method:
 <gen:highlight type="php">
 // configuration per constructor
-use APF\core\logging\writer\GraphiteLogWriter;
+import('core::logging::writer', 'GraphiteLogWriter');
 $logger->addlogWriter(
    'graphite',
    new GraphiteLogWriter('my-graphite-host', '1234', false)
@@ -462,16 +520,19 @@ $writer->setBatchWrites(false);
 
 <h3 id="Chapter-5-Usage"><a href="#Chapter-5-Usage">5. Usage</a></h3>
 <p>
-   To use the logger an instance must be obtained using
+   To use the logger it must be imported using
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\logging\Logger;
-
-$logger = &Singleton::getInstance('APF\core\logging\Logger');
+import('core::logging','Logger');
 </gen:highlight>
 <p>
-   <em>$logger</em> now contains a reference on the logger in the current scope of application. To add a
+   prior to use. After that the logger can be created by using the abstract singleton class:
+</p>
+<gen:highlight type="php">
+$log = &Singleton::getInstance('Logger');
+</gen:highlight>
+<p>
+   <em>$log</em> now contains a reference on the logger in the current scope of application. To add a
    log message with the content <em>MESSAGE</em> to the log file <em>FILENAME</em> the
    code snippet
 </p>
@@ -488,7 +549,6 @@ $log->logEntry('FILENAME','MESSAGE');
    implementation:
 </p>
 <gen:highlight type="php">
-use APF\core\logging\SimpleLogEntry;
 $log->addEntry(new SimpleLogEntry('FILENAME', 'MESSAGE'));
 </gen:highlight>
 <div class="hint">
@@ -522,8 +582,6 @@ $log->addEntry(new SimpleLogEntry('FILENAME', 'MESSAGE'));
    To do so, we can use the <em>syslog(int $priority, string $message)</em> PHP function. The implementation is as follows:
 </p>
 <gen:highlight type="php">
-use APF\core}logging\LogWriter;
-
 class SysLogWriter implements LogWriter {
 
    private $target;
@@ -602,8 +660,6 @@ $logger->addLogWriter('syslog', new SysLogWriter());
    separated values</em>. The implementation is as follows:
 </p>
 <gen:highlight type="php">
-use APF\core\logger\LogEntry;
-
 class CsvLogEntry implements LogEntry {
 
    private $target;
@@ -641,8 +697,6 @@ class CsvLogEntry implements LogEntry {
    can use the <em>Logger::addEntry()</em>:
 </p>
 <gen:highlight type="php">
-use VENDOR\logging\entries\CsvLogEntry;
-
 $logger->addEntry(new CsvLogEntry(
    'csv-file',
    'There is something wrong!',
@@ -654,7 +708,6 @@ $logger->addEntry(new CsvLogEntry(
    the <em>csv-file</em> target:
 </p>
 <gen:highlight type="php">
-use APF\core\logging\writer\FileLogWriter;
 $logger->addLogWriter('csv-file', new FileLogWriter('../logs'));
 </gen:highlight>
 
