@@ -1,0 +1,78 @@
+<doku:title parent="119" tags="documentation,class reference,classes,reference,singleton,registry" title="Registry" urlname="Registry">
+  The registry (see registry pattern) is used as a central store for configuration parameters in the
+  adventure php framework. Parameters in this case mean simple data types like string or numbers but
+  objects as well.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   The <strong>registry</strong> (see registry pattern) is used as a central store for configuration
+   parameters in the adventure php framework. Parameters in this case mean simple data types like string
+   or numbers but objects as well. The <strong>registry</strong> is used to store the directives
+</p>
+<ul>
+  <li><strong>URLRewriting</strong>: URL rewriting configuration</li>
+  <li><strong>URLBasePath</strong>: URL of your current application</li>
+  <li><strong>Environment</strong>: Environment variable used for configuration issues</li>
+  <li><strong>LogDir</strong>: Path to your log directory</li>
+  <li><strong>LibPath</strong>: Path to your source code files</li>
+  <li>
+     <strong>CurrentRequestURL</strong>: Fully qualified request url. You may also use the
+     <int:link pageid="138" anchor="Chapter-2-1-Url">Url</int:link> class for url generation.
+  </li>
+  <li><strong>Charset</strong>: Internal character set (e.g. for filter; default is <em>UTF-8</em>)</li>
+</ul>
+<p>
+   that are used by the core and tools components in the namespace <strong>apf::core</strong>. However,
+   it can also be used as a configuration parameter container for your applications.
+</p>
+
+<h3 id="Chapter-2-Use-the-registry"><a href="#Chapter-2-Use-the-registry">2. Use the registry</a></h3>
+<div class="hint">
+   The <em>Registry</em> was re-implemented to a static container for performance reasons in 1.12.
+   In all previous release the <em>Registry</em> must be created using
+   <gen:highlight type="php">$reg = &Singleton::getInstance('Registry');</gen:highlight>
+   Afterwards, it can be addressed as any other object. The <em>Registry</em> instance features two
+   methods: <em>register()</em> and <em>retrieve()</em>. These methods have the identical interface
+   as the implementation in 1.12.
+</div>
+<p>
+   Since release 1.12 the <em>Registry</em> is implemented as a static container for global configuration
+   purpose of the framework and for custom configuration. The method <strong>register()</strong> can be
+   utilized to change existing values or to register new values. The <strong>retrieve()</strong> function
+   reads values from the registry. To be able to differentiate between the various param domains the
+   registry features namespaces. In order to not produce interferences with other param domains, it is
+   well to use the namespace of your application as a namespace within the registry.
+</p>
+<p>
+   In order to manipulate the default values of the <strong>apf::core</strong> namespace, the following
+   PHP code can be used:
+</p>
+<gen:highlight type="php">
+Registry::register('apf::core', 'URLRewriting', true);
+Registry::register('apf::core', 'URLBasePath', 'http://example.com/folder');
+Registry::register('apf::core', 'Environment', 'TESTSERVER');
+Registry::register('apf::core', 'LogDir', '/path/to/my/log/dir');
+Registry::register('apf::core', 'Charset', 'UTF-16');
+</gen:highlight>
+<p>
+   Please note, that manipulation of the default parameters must be done before creating the page or
+   front controller. This is also reasonable for application directives.
+</p>
+
+<h3 id="Chapter-3-Write-protection"><a href="#Chapter-3-Write-protection">3. Write protection</a></h3>
+<p>
+   In many cases, it is necessary to provide write protection to application parameters stored in the
+   registry. Thus, the registry provides write protection as well. This feature can be activated on
+   every param by a forth parameter to the <strong>register()</strong> method. If this switch is enabled,
+   the value cannot be manipulated within the whole request. The following code sample can be used as a
+   code template for configuring write protection:
+</p>
+<gen:highlight type="php">
+// action will succeed
+Registry::register('modules::mymodule','MyModuleID',1,true);
+
+// action will last in an error
+Registry::register('modules::mymodule','MyModuleID',2);
+</gen:highlight>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_067" />

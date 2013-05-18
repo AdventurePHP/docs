@@ -1,47 +1,72 @@
-<doku:title parent="119" tags="dokumentation,klassen referenz,klassen,referenz,singleton,registry" title="Registry" urlname="Registry">
-  Die Registry (siehe registry pattern) dient im Adventure PHP Framework als zentrale Stelle für
-  die Speicherung von Konfigurationsparametern. Parameter sind in diesem Zusammenhang sowohl einfache
-  Datentypen wie Zeichenketten und Zahlen als auch Objekte.
+<doku:title parent="119" tags="singleton,registry" title="Registry" urlname="Registry">
+   Die Registry dient im Adventure PHP Framework als zentrale Stelle für die Speicherung von globalen
+   Konfigurationsparametern. Parameter sind in diesem Zusammenhang sowohl einfache Datentypen wie Zeichenketten und
+   Zahlen als auch Objekte.
 </doku:title>
 <h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
 <p>
-   Die <strong>Registry</strong> (siehe registry pattern) dient im Adventure PHP Framework als zentrale
-   Stelle für die Speicherung von Konfigurationsparametern. Parameter sind in diesem Zusammenhang
-   sowohl einfache Datentypen wie Zeichenketten und Zahlen als auch Objekte. Die <strong>Registry</strong>
-   wird von den core- und tools-Komponenten dazu verwendet, die Konfigurationsdirektiven
+   Die <em>Registry</em> (siehe <a class="external" href="http://martinfowler.com/eaaCatalog/registry.html">Registry</a>)
+   dient im Adventure PHP Framework als zentrale Stelle für die Speicherung von globalen Konfigurationsparametern.
+   Parameter sind in diesem Zusammenhang sowohl einfache Datentypen wie Zeichenketten und Zahlen als auch Objekte.
 </p>
-<ul>
-  <li><strong>URLRewriting</strong>: Konfiguration des URL-Rewriting</li>
-  <li><strong>URLBasePath</strong>: Pfad zur aktuellen Anwendung</li>
-  <li><strong>Environment</strong>: Umgebungsvariable für die Konfiguration</li>
-  <li><strong>LogDir</strong>: Pfad zum Log-Verzeichnis</li>
-  <li><strong>LibPath</strong>: Pfad zu den Quellcode-Dateien</li>
-  <li>
-     <strong>CurrentRequestURL</strong>: Vollständige Request-URL zur einfacheren Verwendung. Alternativ können Sie zur
-     Generierung der aktuellen URL auch die Klasse <int:link pageid="138" anchor="Chapter-2-1-Url">Url</int:link> nutzen.
-  </li>
-  <li><strong>Charset</strong>: Intern verwendeter Zeichensatz (z.B. für Filter; Standard: <em>UTF-8</em>)</li>
-</ul>
 <p>
-   im Namespace <strong>apf::core</strong> vorzuhalten. Die Registry dient jedoch nicht nicht nur als
-   globale Speicherstelle für die Parameter des Frameworks, sondern kann auch in Applikationen zur
-   Speicherung von Applikationskonfigurationen verwendet werden.
+   Die <em>Registry</em> wird auch hinsichtlich der Konfiguration des APF von einigen Komponenten aus dem <em>core</em>-
+   und <em>tools</em>-Bereich verwendet. Die folgende Liste zeigt die genutzten Werte:
 </p>
+<table>
+   <thead>
+      <tr>
+         <td>Namespace</td>
+         <td>Schlüssel</td>
+         <td>Standard-Wert</td>
+         <td>Beschreibung</td>
+         <td>Verwendung</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td><em>APF\core</em></td>
+         <td><em>Environment</em></td>
+         <td><em>DEFAULT</em></td>
+         <td>
+            Definiert die Umgebung, in der die Applikation eingesetzt wird.
+         </td>
+         <td>
+            Details zur Anwendung finden Sie unter <int:link pageid="134" />.
+         </td>
+      </tr>
+      <tr>
+         <td><em>APF\core</em></td>
+         <td><em>InternalLogTarget</em></td>
+         <td><em>apf</em></td>
+         <td>
+            Definiert den Namen des Standard-Log-Ziels.
+         </td>
+         <td>
+            Details zur Anwendung finden Sie unter <int:link pageid="023" />.
+         </td>
+      </tr>
+      <tr>
+         <td><em>APF\core</em></td>
+         <td><em>Charset</em></td>
+         <td><em>UTF-8</em></td>
+         <td>
+            Definiert den für String-Funktionen definierten Zeichensatz.
+         </td>
+         <td>
+            Der Zeichensatz kommt beispielsweise bei <em>htmlspecialchars()</em>- bzw. <em>htmlentities()</em>-Aufrufen
+            zum Einsatz.
+         </td>
+      </tr>
+   </tbody>
+</table>
 
 <h3 id="Chapter-2-Einsatz-der-Registry"><a href="#Chapter-2-Einsatz-der-Registry">2. Einsatz der Registry</a></h3>
-<div class="hint">
-   Die <em>Registry</em> wurde im Release 1.12 aus Performance-Gründen auf eine statische
-   Implementierung umgestellt. In allen vorherigen Releases muss diese via
-   <gen:highlight type="php">$reg = &Singleton::getInstance('Registry');</gen:highlight>
-   bezogen und als Objekt angesprochen werden. Hier stehen ebenfalls die Methoden <em>register()</em>
-   und <em>retrieve()</em> zur Verfügung. Diese besitzten eine zur neuen Implementierung
-   identische Signatur.
-</div>
 <p>
-   Ab Release 1.12 steht die <em>Registry</em> als statischer Container zur Konfiguration von Parametern
-   des Frameworks und eigenen zur Verfügung. Die Methode <strong>register()</strong> dient dazu,
+   Die <em>Registry</em> steht als statischer Container zur Konfiguration von Parametern
+   des Frameworks und eigenen zur Verfügung. Die Methode <em>register()</em> dient dazu,
    bereits vorhandene Werte zu manipulieren oder neue Werte hinzuzufügen. Die Funktion
-   <strong>retrieve()</strong> bezieht Werte aus der Registry. Um eine definierte Abgrenzung zwischen
+   <em>retrieve()</em> bezieht Werte aus der Registry. Um eine definierte Abgrenzung zwischen
    Wertebereichen zu schaffen, besitzt die <em>Registry</em> Namespaces. Um auch bei der Verwendung
    durch weitere Applikationen keine Überschneidung von Wertebereichen zu generieren, ist es ratsam,
    den Namespace der Applikation als Namespace in der Registry zu verwenden.
@@ -50,31 +75,38 @@
    Um die oben genannten Standard-Werte zu manipulieren, kann folgender PHP-Code eingesetzt werden:
 </p>
 <gen:highlight type="php">
-Registry::register('apf::core', 'URLRewriting', true);
-Registry::register('apf::core', 'URLBasePath', 'http://example.com/folder');
-Registry::register('apf::core', 'Environment', 'TESTSERVER');
-Registry::register('apf::core', 'LogDir', '/path/to/my/log/dir');
-Registry::register('apf::core', 'Charset', 'UTF-16');
+Registry::register('APF\core', 'Environment', 'TESTSERVER');
+Registry::register('APF\core', 'InternalLogTarget', 'foo');
+Registry::register('APF\core', 'Charset', 'UTF-16');
 </gen:highlight>
 <p>
    Bei der Manipulation der Standard-Werte oder auch von eigenen Registry-Einträgen ist darauf zu
-   achten, dass diese vor dem Erstellen des Page- bzw. FrontControllers geändert werden.
+   achten, dass diese vor dem Erstellen des Page- bzw. FrontControllers geändert werden. Details zur Konfiguration
+   Ihrer Anwendung in der Bootstrap-Datei können Sie im Kapitel <int:link pageid="013" anchor="Chapter-6-Basiskonfiguration" /> nachlesen.
 </p>
+<p>
+   Das Auslesen der zuvor gesetzten Werte lässt sich wie folgt erledigen:
+</p>
+<gen:highlight type="php">
+$env = Registry::retrieve('APF\core', 'Environment');
+$logTarget = Registry::retrieve('APF\core', 'InternalLogTarget');
+$charset = Registry::retrieve('APF\core', 'Charset');
+</gen:highlight>
 
 <h3 id="Chapter-3-Schreibschutz"><a href="#Chapter-3-Schreibschutz">3. Schreibschutz</a></h3>
 <p>
    Um bei Einträgen für eigene Applikationen sicher gehen zu können, dass diese während
-   der Laufzeit nicht mehr verändert werden können, bietet die Registry einen Schreibschutz.
+   der Laufzeit nicht mehr verändert werden können, bietet die <em>Registry</em> einen Schreibschutz.
    Dieser kann mit einem optionalen Parameter bei der Befüllung eines Wertes aktiviert werden und
    bleibt bis zum Ende des Requests erhalten. Hierzu kann folgendes Beispiel als Quellcode-Vorlage
    hinzugezogen werden:
 </p>
 <gen:highlight type="php">
 // Wird erfolgreich durchgeführt
-Registry::register('modules::mymodule', 'MyModuleID', 1, true);
+Registry::register('VENDOR\module', 'param-one', 1, true);
 
-// Erzeugt einen Fehler
-Registry::register('modules::mymodule', 'MyModuleID', 2);
+// Erzeugt eine Exception
+Registry::register('VENDOR\module', 'param-one', 2);
 </gen:highlight>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_067" />
