@@ -3,18 +3,23 @@
   learn about reading and writing different formats of configurations and how to extend the
   configuration possibilities.
 </doku:title>
+<p>
+   Since release 1.13 the Adventure PHP Framework the configuration component was refactored
+   concerning flexibility and extendability.
+</p>
 
 <h3 id="Chapter-1-Overview"><a href="#Chapter-1-Overview">1. Overview</a></h3>
 <p>
-   The configuration concept of the APF introduces an abstraction layer for configuration access. This enables you to
-   address various physical sources (e.g. files or databases) as well as various formats (e.g. INI, XML).
+   The configuration concept of the APF (since releasee 1.13) introduces an abstraction layer for
+   configuration access. This enables you to address various physical sources (e.g. files or
+   databases) as well as various formats (e.g. INI, XML).
 </p>
 <p>
    Technically spoken, this abstraction is achieved by separation of storage formats and
    representation as well as the introduction of format-dependent access components. For this reason,
    a central instance (<em>ConfigurationManager</em>) deals with the management of the access
    layer components (e.g. <em>IniConfigurationProvider</em>). The access layer components - also
-   referred to as configuration providers - can be registered with the <em>ConfigurationManager</em>
+   refered to as configuration providers - can be registered with the <em>ConfigurationManager</em>
    for a dedicated scheme.
 </p>
 <p>
@@ -40,8 +45,7 @@
       <strong>Namespace:</strong> This section describes the physical (or virtual) storage location
       concerning the relative position to the <em>base folder</em>. By convention, this path is
       similar to the application's namespace to easily associate the configuration. As you know
-      from including classes or components, the namespace parts are separated by &quot;\&quot; (as PHP namespace
-      elements).
+      from including classes or components, the namespace parts are separated by &quot;::&quot;.
    </li>
    <li>
       <strong>Context:</strong> The context impresses the usage of a certain software (e.g. module)
@@ -82,7 +86,7 @@
       <tr>
          <td>/APF</td>
          <td>/config</td>
-         <td>widgets\calendar</td>
+         <td>widgets::calendar</td>
          <td>siteone</td>
          <td>DEV</td>
          <td>labels</td>
@@ -105,13 +109,12 @@
    The environment must be defined via <int:link pageid="067" />:
 </p>
 <gen:highlight type="php">
-use APF\core\frontcontroller\Frontcontroller;
-
-$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
-$fC->setContext('my\context');
+$fC = &Singleton::getInstance('Frontcontroller');
+$fC->setContext('my::context');
+echo $fC->start('...', '...');
 
 // environment definition for both cases
-Registry::register('apf\core', 'Enviroment', 'TESTBOX');
+Registry::register('apf::core', 'Enviroment', 'TESTBOX');
 </gen:highlight>
 <p>
    All further parameters of the configuration resource are applied while loading explicitly or
@@ -159,8 +162,8 @@ Registry::register('apf\core', 'Enviroment', 'TESTBOX');
    <em>.htaccess</em> file with the following content to your <em>/config</em> directory:
 <gen:highlight type="code">
 &lt;Location "/path/to/APF/installation/config"&gt;
-   Order Allow,Deny
-   Deny from all
+Order Allow,Deny
+Deny from all
 &lt;/Location&gt;
 </gen:highlight>
 </div>
@@ -182,16 +185,19 @@ Registry::register('apf\core', 'Enviroment', 'TESTBOX');
 </p>
 <gen:highlight type="ini">
 [showCaptcha]
-FC.ActionClass = "APF\modules\captcha\biz\actions\ShowCaptchaImageAction"
+FC.ActionNamespace = "modules::captcha::biz::actions"
+FC.ActionClass = "ShowCaptchaImageAction"
+FC.InputClass = "ShowCaptchaImageInput"
+FC.InputParams = ""
 </gen:highlight>
 <p>
    (extract of a <int:link pageid="012">front controller configuration</int:link>) can be done within
    a <int:link pageid="006">document controller</int:link> as follows:
 </p>
 <gen:highlight type="php">
-class FooController extends BaseDocumentController {
+class foo_controller extends BaseDocumentController {
    public function transformContent() {
-      $config = $this->getConfiguration('widgets\calendar', 'labels.ini');
+      $config = $this->getConfiguration('widgets::calendar', 'labels.ini');
       ...
    }
 }
@@ -235,7 +241,7 @@ class FooController extends BaseDocumentController {
    Write access to INI configurations is also intuitive:
 </p>
 <gen:highlight type="php">
-class BarController extends BaseDocumentController {
+class bar_controller extends BaseDocumentController {
    public function transformContent() {
 
       $config = new IniConfiguration();
@@ -248,7 +254,7 @@ class BarController extends BaseDocumentController {
       $config->setSection('global-labels', $section);
 
 
-      $this->saveConfiguration('widgets\calendar', 'labels.ini', $config);
+      $this->saveConfiguration('widgets::calendar', 'labels.ini', $config);
    }
 }
 </gen:highlight>
@@ -268,7 +274,7 @@ class BarController extends BaseDocumentController {
 &lt;configuration&gt;
    &lt;section name="GuestbookMapper"&gt;
       &lt;property name="servicetype"&gt;NORMAL&lt;/property&gt;
-      &lt;property name="namespace"&gt;modules\guestbook2009\data&lt;/property&gt;
+      &lt;property name="namespace"&gt;modules::guestbook2009::data&lt;/property&gt;
       &lt;property name="class"&gt;GuestbookMapper&lt;/property&gt;
       &lt;section name="conf"&gt;
          &lt;section name="db"&gt;
@@ -306,7 +312,7 @@ class BarController extends BaseDocumentController {
 <gen:highlight type="php">
 class FooService extends APFObject {
    public function doSomething() {
-      $config = $this->getConfiguration('modules\guestbook2009', 'serviceobjects.xml');
+      $config = $this->getConfiguration('modules::guestbook2009', 'serviceobjects.xml');
       ...
    }
 }
@@ -350,9 +356,9 @@ class FooService extends APFObject {
 <gen:highlight type="php">
 class FooService extends APFObject {
    public function doSomethingElse() {
-      $config = $this->getConfiguration('modules\guestbook2009', 'serviceobjects.xml');
+      $config = $this->getConfiguration('modules::guestbook2009', 'serviceobjects.xml');
       $config->getSection('GuestbookMapper')->setValue('servicetype', APFService::SERVICE_TYPE_SINGLETON);
-      $this->saveConfiguration('widgets\calendar', 'labels.ini', $config);
+      $this->saveConfiguration('widgets::calendar', 'labels.ini', $config);
    }
 }
 </gen:highlight>
@@ -386,9 +392,9 @@ CREATE TABLE IF NOT EXISTS `config_widgets_calendar` (
    database configurations can be loaded as follows:
 </p>
 <gen:highlight type="php">
-class FooController extends BaseDocumentController {
+class foo_controller extends BaseDocumentController {
    public function transformContent() {
-      $config = $this->getConfiguration('widgets\calendar', 'labels.db');
+      $config = $this->getConfiguration('widgets::calendar', 'labels.db');
       ...
    }
 }
@@ -423,11 +429,11 @@ class FooController extends BaseDocumentController {
    Write access is identical to the schemes described before:
 </p>
 <gen:highlight type="php">
-class BarController extends BaseDocumentController {
+class bar_controller extends BaseDocumentController {
    public function transformContent() {
-      $config = $this->getConfiguration('widgets\calendar', 'labels.db');
+      $config = $this->getConfiguration('widgets::calendar', 'labels.db');
       $config->getSection('main')->setValue('icon', 'calendar_big.png');
-      $this->saveConfiguration('widgets\calendar', 'labels.db', $config);
+      $this->saveConfiguration('widgets::calendar', 'labels.db', $config);
    }
 }
 </gen:highlight>
@@ -447,7 +453,7 @@ class BarController extends BaseDocumentController {
 <gen:highlight type="php">
 class FooService extends APFObject {
    public function doSomething() {
-      $config = $this->getConfiguration('widgets\calendar', 'labels.mem');
+      $config = $this->getConfiguration('widgets::calendar', 'labels.mem');
       ...
    }
 }
@@ -465,9 +471,9 @@ class FooService extends APFObject {
 <gen:highlight type="php">
 class FooService extends APFObject {
    public function doSomethingElse() {
-      $config = $this->getConfiguration('widgets\calendar', 'labels.mem');
+      $config = $this->getConfiguration('widgets::calendar', 'labels.mem');
       $config->getSection('global-labels')->setValue('day_label', 'Tag');
-      $this->saveConfiguration('widgets\calendar', 'labels.mem', $config);
+      $this->saveConfiguration('widgets::calendar', 'labels.mem', $config);
    }
 }
 </gen:highlight>
@@ -488,7 +494,7 @@ class FooService extends APFObject {
 <gen:highlight type="php">
 class FooService extends APFObject {
    public function doSomething() {
-      $config = $this->getConfiguration('widgets\calendar', 'labels.apc');
+      $config = $this->getConfiguration('widgets::calendar', 'labels.apc');
       ...
    }
 }
@@ -506,9 +512,9 @@ class FooService extends APFObject {
 <gen:highlight type="php">
 class FooService extends APFObject {
    public function doSomethingElse() {
-      $config = $this->getConfiguration('widgets\calendar', 'labels.apc');
+      $config = $this->getConfiguration('widgets::calendar', 'labels.apc');
       $config->getSection('global-labels')->setValue('day_label', 'Tag');
-      $this->saveConfiguration('widgets\calendar', 'labels.apc', $config);
+      $this->saveConfiguration('widgets::calendar', 'labels.apc', $config);
    }
 }
 </gen:highlight>
@@ -595,9 +601,7 @@ key3 = "value3"
    (e.g. the XML provider) must be manually added after including the <em>pagecontroller.php</em>
    file. Configuration of the XML provider works like this:
 <gen:highlight type="php">
-use APF\core\configuration\provider\xml\XmlConfigurationProvider;
-use APF\core\configuration\ConfigurationManager;
-
+import('core::configuration::provider::xml', 'XmlConfigurationProvider');
 ConfigurationManager::registerProvider('xml', new XmlConfigurationProvider());
 </gen:highlight>
 </div>
@@ -622,7 +626,7 @@ ConfigurationManager::registerProvider('xml', new XmlConfigurationProvider());
       <tr>
          <td>/APF</td>
          <td>/config</td>
-         <td>widgets\calendar</td>
+         <td>widgets::calendar</td>
          <td>DEV</td>
          <td>labels</td>
          <td>.xml</td>
@@ -640,9 +644,6 @@ ConfigurationManager::registerProvider('xml', new XmlConfigurationProvider());
    file (e.g. in your <em>index.php</em>) as follows:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\provider\ini\IniConfigurationProvider;
-use APF\core\configuration\ConfigurationManager;
-
 $langProv = new IniConfigurationProvider();
 $langProv->setOmitContext(true);
 ConfigurationManager::registerProvider('lang', $langProv);
@@ -653,7 +654,7 @@ ConfigurationManager::registerProvider('lang', $langProv);
    the new <em>.lang</em> files:
 </p>
 <gen:highlight type="apf-xml">
-&lt;html:getstring namespace="widgets\calendar" config="labels.lang" entry="key3" /&gt;
+&lt;html:getstring namespace="widgets::calendar" config="labels.lang" entry="key3" /&gt;
 </gen:highlight>
 <p>
    Since the tag uses the <em>ConfigurationManager</em> and the provider registered for the applied
@@ -687,7 +688,7 @@ ConfigurationManager::registerProvider('lang', $langProv);
       <tr>
          <td>/APF</td>
          <td>/config</td>
-         <td>widgets\calendar</td>
+         <td>widgets::calendar</td>
          <td>siteone</td>
          <td>labels</td>
          <td>.xml</td>
@@ -705,9 +706,6 @@ ConfigurationManager::registerProvider('lang', $langProv);
    appropriate provider can be done like this:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\provider\ini\IniConfigurationProvider;
-use APF\core\configuration\ConfigurationManager;
-
 $langProv = new IniConfigurationProvider();
 $langProv->setOmitEnvironment(true);
 ConfigurationManager::registerProvider('allini', $langProv);
@@ -727,9 +725,6 @@ ConfigurationManager::registerProvider('allini', $langProv);
    your application:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\provider\ini\IniConfigurationProvider;
-use APF\core\configuration\ConfigurationManager;
-
 // re-configure an existing provider
 try {
    $prov = ConfigurationManager::retrieveProvider('lang');
@@ -753,9 +748,7 @@ ConfigurationManager::registerProvider('lang', $prov);
    your bootstrap file after including <em>pagecontroller.php</em>:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\provider\db\DbConfigurationProvider;
-use APF\core\configuration\ConfigurationManager;
-
+import('core::configuration::provider::db', 'DbConfigurationProvider');
 ConfigurationManager::registerProvider('db', new DbConfigurationProvider('Live-DB'));
 </gen:highlight>
 <p>
@@ -781,9 +774,7 @@ ConfigurationManager::registerProvider('db', new DbConfigurationProvider('Live-D
    The following code can be used to register the provider after including <em>pagecontroller.php</em>:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\provider\mem\MemcachedConfigurationProvider;
-use APF\core\configuration\ConfigurationManager;
-
+import('core::configuration::provider::mem', 'MemcachedConfigurationProvider');
 $mem = new Memcache();
 $mem->addServer('localhost', 11211, true);
 $provider = new MemcachedConfigurationProvider('ini', $mem);
@@ -802,7 +793,7 @@ ConfigurationManager::registerProvider('mem',$provider);
    Please note, that the physical configuration file must have the extension that is applied to the
    constructor of the provider (<em>.ini</em> as noted in the above code sample). This means, that
    for the first call of
-   <gen:highlight type="php">$this->getConfiguration('widgets\calendar', 'labels.mem')</gen:highlight>
+   <gen:highlight type="php">$this->getConfiguration('widgets::calendar', 'labels.mem')</gen:highlight>
    the provider will load the physical file
    <gen:highlight type="code">/APF/config/widgets/calendar/siteone/DEFAULT_labels.ini</gen:highlight>
    The path depends on the configuration of the INI provider. For each second call within the cache 
@@ -824,9 +815,7 @@ ConfigurationManager::registerProvider('mem',$provider);
    The following code can be used to register the provider after including <em>pagecontroller.php</em>:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\provider\apc\ApcConfigurationProvider;
-use APF\core\configuration\ConfigurationManager;
-
+import('core::configuration::provider::apc', 'ApcConfigurationProvider');
 $provider = new ApcConfigurationProvider('ini');
 $provider->setExpireTime(60);
 ConfigurationManager::registerProvider('apc', $provider);
@@ -843,7 +832,7 @@ ConfigurationManager::registerProvider('apc', $provider);
    Please note, that the physical configuration file must have the extension that is applied to the
    constructor of the provider (<em>.ini</em> as noted in the above code sample). This means, that
    for the first call of
-   <gen:highlight type="php">$this->getConfiguration('widgets\calendar', 'labels.apc')</gen:highlight>
+   <gen:highlight type="php">$this->getConfiguration('widgets::calendar', 'labels.apc')</gen:highlight>
    the provider will load the physical file
    <gen:highlight type="code">/APF/config/widgets/calendar/siteone/DEFAULT_labels.ini</gen:highlight>
    The path depends on the configuration of the INI provider. For each second call within the cache
@@ -864,8 +853,6 @@ ConfigurationManager::registerProvider('apc', $provider);
    loading configurations works like this:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\ConfigurationManager;
-
 // loading a configuration
 $config = ConfigurationManager::loadConfiguration(
                $namespace, $context, $language, $environment, $name);
@@ -912,15 +899,15 @@ ConfigurationManager::deleteConfiguration(
    In order to save an INI file as XML (or vice versa) the following code can be used:
 </p>
 <gen:highlight type="php">
-$config = $this->getConfiguration('widgets\calendar', 'labels.ini');
-$this->saveConfiguration('widgets\calendar', 'labels.xml', $config);
+$config = $this->getConfiguration('widgets::calendar', 'labels.ini');
+$this->saveConfiguration('widgets::calendar', 'labels.xml', $config);
 </gen:highlight>
 <p>
    Saving an XML file using the INI format is only about changing the above lines:
 </p>
 <gen:highlight type="php">
-$config = $this->getConfiguration('widgets\calendar', 'labels.xml');
-$this->saveConfiguration('widgets\calendar', 'labels.ini', $config);
+$config = $this->getConfiguration('widgets::calendar', 'labels.xml');
+$this->saveConfiguration('widgets::calendar', 'labels.ini', $config);
 </gen:highlight>
 <p>
    Of course, you can manipulate the configuration between the load and save calls.
@@ -951,9 +938,6 @@ $this->saveConfiguration('widgets\calendar', 'labels.ini', $config);
    sufficent to use the <em>BaseConfiguration</em> as a basis:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\Configuration;
-use APF\core\configuration\provider\BaseConfiguration;
-
 class JsonConfiguration extends BaseConfiguration implements Configuration {
 }
 </gen:highlight>
@@ -971,9 +955,6 @@ class JsonConfiguration extends BaseConfiguration implements Configuration {
    implementation is as follows:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\ConfigurationProvider;
-use APF\core\configuration\provider\BaseConfigurationProvider;
-
 class JsonConfigurationProvider extends BaseConfigurationProvider implements ConfigurationProvider {
    ...
 }
@@ -1125,12 +1106,6 @@ private function resolveSection(JsonConfiguration $config) {
    of the JSON format configuration provider:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\Configuration;
-use APF\core\configuration\ConfigurationException;
-use APF\core\configuration\ConfigurationProvider;
-use APF\core\configuration\provider\BaseConfigurationProvider;
-use APF\core\configuration\provider\json\JsonConfiguration;
-
 class JsonConfigurationProvider extends BaseConfigurationProvider implements ConfigurationProvider {
 
    public function loadConfiguration($namespace, $context, $language, $environment, $name) {
@@ -1228,7 +1203,7 @@ class JsonConfigurationProvider extends BaseConfigurationProvider implements Con
 </p>
 <div class="hint">
    The configuration provider implementation is also contained in the APF release and the source
-   code can thus be taken from the <em>APF\core\configuration\provider\json</em> namespace.
+   code can thus be taken from the <em>core::configuration::provider::json</em> namespace.
 </div>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_134" />
