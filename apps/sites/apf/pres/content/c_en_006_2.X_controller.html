@@ -48,14 +48,11 @@
 
 <h3 id="Chapter-2-Design-of-a-controller"><a href="#Chapter-2-Design-of-a-controller">2. Design of a (document-)controller</a></h3>
 <p>
-   Each document controller inherits from the basic document controller <em>BaseDocumentController</em>. This
-   class implements a lot of helpful methods to generate dynamic content.
-   Example for this is the function <em>getTemplate()</em> that returns a reference of a
-   HTML template contained in the node, or the method <em>setPlaceHolder()</em> that can be used
-   to fill a place holder defined via the <em>&lt;html:placeholder /&gt;</em> tag.
+   A document controller is defined by the interface <em>DocumentController</em> and usually inherits from
+   <em>BaseDocumentController</em> that already offers a lot of basic functionality.
 </p>
 <p>
-   The scaffolding of a document controller has the always following figure:
+   The basic structure of a document controllers is thus as follows:
 </p>
 <gen:highlight type="php">
 namespace VENDOR\pres\controller;
@@ -70,18 +67,14 @@ class NavigationController extends BaseDocumentController {
 
 }
 </gen:highlight>
-<div class="hint">
-   Please use <em>base_controller</em> as a basis for your document controller implementations in version 1.16 and before.
-   <em>BaseDocumentController</em> is available only since 1.17.
-</div>
 <p>
-   A document controller is, in principle, a PHP class "like anyone else". To the developer it is
-   considered freely to define own class variables, to introduce own methods and to integrate other
-   classes. It is important that only the interface shown before is implemented.
+   <em>transformContent()</em> is used by the <int:link pageid="098" /> during transformation of the page in order to
+   execute the functionality of the current DOM element. The content of the class except this basic structure is
+   subjected to the developer.
 </p>
 <p>
-   As described in the <int:link pageid="002" /> the <em>BaseDocumentController</em> has four important
-   helper methods:
+   As you may take from the <int:link pageid="002"/> the <em>BaseDocumentController</em> class includes several methods
+   that help you implementing dynamic functionality. These are:
 </p>
 <ul>
    <li>
@@ -145,9 +138,9 @@ class NavigationController extends BaseDocumentController {
 
 <h4 id="Chapter-3-1-Dynamic-meta-tags"><a href="#Chapter-3-1-Dynamic-meta-tags">3.1. Representation of dynamic meta tags</a></h4>
 <p>
-   This chapter now describes the controller implementation of the template example shown in chapter
-   2.1 on the <int:link pageid="047" /> page. In addition the template is to be extended by the
-   definition of the document controller at first and looks, hence, as follows:
+   One common use case of a document controller is filling the META information within an HTML header. As an example,
+   the title and the current date should be filled for a dynamic web page. For this reason, let us first define the
+   HTML structure and the necessary place holders:
 </p>
 <gen:highlight type="apf-xml">
 &lt;@controller
@@ -164,9 +157,8 @@ class NavigationController extends BaseDocumentController {
 &lt;/html&gt;
 </gen:highlight>
 <p>
-   In this case the accompanying document controller implements merely the method
-   <em>transformContent()</em> which is called during the transformation. The source code of
-   the class looks as follows:
+   The document controller referred to within the templates implements the <em>transformContent()</em> method and a
+   <em>getTitle()</em> method to evaluate the value for the current page. The source code of the class is as follows:
 </p>
 <gen:highlight type="php">
 namespace VENDOR\pres\controller;
@@ -186,12 +178,21 @@ class MainController extends BaseDocumentController {
 
 }
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-3-2-Dynamic-lists"><a href="#Chapter-3-2-Dynamic-lists">3.2. Display of dynamic lists</a></h4>
 <p>
-   The following lines hak back on the example on the <int:link pageid="047" /> page,
-   chapter 2.2. The template described there aimed to generate a list. In addition the template -
-   like above - must be extended by the definition the of document controller at first:
+   Using the <em>&lt;html:template /&gt;</em> tags you can easily create lists within a controller by iterating over the
+   list of items.
+</p>
+<div class="hint">
+   <em>&lt;html:template /&gt;</em> tags are only suitable to display content with only one hierarchy level (e.g. lists
+   of products with prices). In case a <em>&lt;html:template /&gt;</em> tag is no longer sufficient and the display
+   creation requires nesting of different templates it is recommended to create a custom tag that handles the display of
+   an entire list element or the whole list in one. Further notes can be found with in tutorial
+   <int:link pageid="147" />.
+</div>
+<p>
+   Please note the following template that was defined to display products along with their price as a table:
 </p>
 <gen:highlight type="apf-xml">
 &lt;@controller
@@ -217,15 +218,7 @@ class MainController extends BaseDocumentController {
 &lt;/html:template&gt;
 </gen:highlight>
 <p>
-   Now the corresponding document controller implements on the one hand the method <em>transformContent()</em>,
-   however, and is extended with the private methods <em>buildList()</em> and
-   <em>buildListItem()</em>. So the tasks are packed in own "helper methods" and the code
-   gets more clear and better readability though.
-   The loading of the list is delegated to a fictive business component called <em>listLoader</em>
-   which returns a list (=array) of <em>listItem</em> objects. The latter is a data object which
-   inherits from <em>APFObject</em> and exactly has one attribute with the name <em>ListContent</em>.
-   To get the attribute of each object the generic <em>get()</em> method can be used. Then the list
-   is walked through and the HTML code is generated:
+   The appropriate controller is as follows:
 </p>
 <gen:highlight type="php">
 namespace VENDOR\pres\controller;
@@ -261,5 +254,16 @@ class ProductListController extends BaseDocumentController {
 
 }
 </gen:highlight>
+<p>
+   Within <em>transformContent()</em> the list of products is retrieved by the internal function <em>getProducts()</em>.
+   The loop is used to fill the product information into the template and to collect the output of the template
+   transformation within a buffer. Later one, the result is passed to the <em>products</em> place holder to create the
+   final output.
+</p>
+
+<h4 id="Chapter-3-3-Further-reading"><a href="#Chapter-3-3-Further-reading">3.3. Further reading</a></h4>
+<p>
+   Further use cases of controllers can be found under <int:link pageid="071" /> and <int:link pageid="100" />.
+</p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_006" />
