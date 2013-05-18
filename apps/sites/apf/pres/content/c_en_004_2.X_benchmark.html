@@ -1,100 +1,116 @@
 <doku:title parent="119" tags="benchmark,performance,development" title="Benchmark" urlname="Benchmark">
-  The present chapter describes, how the APF helps you to develop fast internet applications. The
-  benchmark component of the framework thus already benchmarks every important component at
-  development state.
+   Using the BenchmarkTimer you can check performance easily during development phase. The APF already includes a
+   huge number of benchmark tags that you can create a detailed report with only one line of code.
 </doku:title>
-Performance is am extremely important topic on web applications. No visitor is likely to wait longer
-than 10 seconds to see a web page. For this reason a benchmark component was introduced to this
-framework. With the <strong>BenchmarkTimer</strong> component is is easy to controll the performance
-of an application or just a single module during development. The component measures all relevant
-parts by setting mesuring points within application parts and contains methods to display the process
-tree of the applications performance values. The page and front controller implementations already
-have included a lot of important measuring points to guarantee accurate performance tracking
-out-of-the-box. In example, the performance of each document controller is recorded by default.
+<p>
+   Performance is am extremely important topic on web applications. No visitor is likely to wait longer
+   than 10 seconds to see a web page. For this reason a benchmark component was introduced to this
+   framework. With the <em>BenchmarkTimer</em> component is is easy to control the performance
+   of an application or just a single module during development. The component measures all relevant
+   parts by setting measuring points within application parts and contains methods to display the process
+   tree of the applications performance values.
+</p>
+<p>
+   The <int:link pageid="098" /> and <int:link pageid="012" /> already include a lot of important measuring points
+   to guarantee accurate performance tracking out-of-the-box. In example, the performance of each <int:link pageid="006" />
+   is recorded by default.
+</p>
 
 <h3 id="Chapter-1-Benchmarker-practice"><a href="#Chapter-1-Benchmarker-practice">1. Benchmarker practice</a></h3>
-Benchmarking applications or parts of an application is quite easy. To measure a particural part of
-the code, the follwoing code must be introduced to the program:
+<p>
+   Benchmarking applications or parts of an application is quite easy. To measure a particular part of
+   the code, the following code must be introduced to the program:
+</p>
 <gen:highlight type="php">
-// start timer
-$t = &Singleton::getInstance('BenchmarkTimer');
+use APF\core\singleton\Singleton;
+use APF\core\benchmark\BenchmarkTimer;
+$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+
+//
+// code to be benchmark'ed
+//
+
+$t->stop('MyEvent');
+</gen:highlight>
+<p>
+   Please note, that the <em>BenchmarkTimer</em> must <em>always</em> be instantiated singleton
+   style, because all timing information have to be stored in a single instance of the
+   <em>BenchmarkTimer</em> to generate a proper process tree. If this is fact is not kept in mind,
+   benchmark information might be lost. Further, the scope of applications must be considered. This means,
+   that breakpoints throughout functions or classes determine, that the instance of the
+   <em>BenchmarkTimer</em> must be fetched by using the <em>Singleton</em> class every time
+   <em>start()</em> or <em>stop()</em> is called. In such situations, the following code
+   can be used:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use APF\core\benchmark\BenchmarkTimer;
+$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
 $t->start('MyEvent');
 
 //
 // code to be benchmark'ed
 //
 
-// stop timer
-$t->stop('MyEvent');
-</gen:highlight>
-Please note, that the <em>BenchmarkTimer</em> must <strong>always</strong> be instanciated singleton
-style, because all timing information have to be stored in a single instance of the
-<em>BenchmarkTimer</em> to generate a proper process tree. If this is fact is not kept in mind,
-benchmark information might be lost. Further, the scope of applications must be considered. This means,
-that breakpoints throughout functions or classes determine, that the instance of the
-<strong>BenchmarkTimer</strong> must be fetched by using the <em>Singleton</em> class every time
-<strong>start()</strong> or <strong>stop()</strong> is called. In such situations, the following code
-can be used:
-<gen:highlight type="php">
-// start timer
-$t = &Singleton::getInstance('BenchmarkTimer');
-$t->start('MyEvent');
-
-//
-// code to be benachmarked
-//
-
-// stop timer
-$t = &Singleton::getInstance('BenchmarkTimer');
+use APF\core\singleton\Singleton;
+use APF\core\benchmark\BenchmarkTimer;
+$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
 $t->stop('MyEvent');
 </gen:highlight>
 In most situations, this case is not necessary.
 
 <h3 id="Chapter-2-Benchmark-reports"><a href="#Chapter-2-Benchmark-reports">2. Benchmark reports</a></h3>
-Due to the fact, that the present framework is written to operate in the so called <strong>post-back
-mode</strong>, the developer is able to easily integrate benchmark reporting in the central bootstrap
-file (mostly <em>index.php</em>). In the majority of cases it is adequate to place
+<p>
+   Due to the fact, that the present framework is written to operate in the so called <em>post-back mode</em>, the
+   developer is able to easily integrate benchmark reporting in the central bootstrap file (mostly <em>index.php</em>).
+   In the majority of cases it is adequate to place
+</p>
 <gen:highlight type="php">
-$t = &Singleton::getInstance('BenchmarkTimer');
+use APF\core\singleton\Singleton;
+use APF\core\benchmark\BenchmarkTimer;
+$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
 echo $t->createReport();
 </gen:highlight>
-at the end of the <em>index.php</em> file. If it is desired to not display benchmark information in
-the live system you might place the following code at the bottom of the <em>index.php</em> file:
+<p>
+   at the end of the <em>index.php</em> file. If it is desired to not display benchmark information in
+   the live system you might place the following code at the bottom of the <em>index.php</em> file:
+</p>
 <gen:highlight type="php">
 if(isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true'){
-   $t = &Singleton::getInstance('BenchmarkTimer');
+   use APF\core\singleton\Singleton;
+   use APF\core\benchmark\BenchmarkTimer;
+   $t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
    echo $t->createReport();
 }
 </gen:highlight>
-This makes it possible to display benchmark information on demand by adding the parameter
-<strong>benchmarkreport=true</strong> to the current URL. In case of URL rewriting, the parameter must
-be rewrited to <strong>/benchmarkreport/true</strong> or <strong>/~/benchmarkreport/true</strong> for
-use in frontcontroller applications. If this parameter is present the following report will be displayed
-at the end of the HTML page:
-<br />
-<br />
+<p>
+   If this parameter is present the following report will be displayed at the end of the HTML page:
+</p>
 <img src="http://media.adventure-php-framework.org/content/benchmark_report_example.png" alt="benchmark report process tree" />
-<br />
-To view a live benchmark please click
-<int:link pageid="004" anchor="bottom" params="/benchmarkreport/true">here</int:link>.
+<p>
+   To view a live benchmark please click
+   <int:link pageid="004" anchor="bottom" params="/benchmarkreport/true">here</int:link>.
+</p>
 
 <h3 id="Chapter-3-Performance-tweak"><a href="#Chapter-3-Performance-tweak">3. Performance tweak</a></h3>
 <p>
-   As of release 1.11 it is possible to deactivate the benchmarker. This can be used to reduce the
-   time needed for request processing. Experimental tests proof, the request processing can be
-   boosted on 25% with the benchmarker being deactivated. Because the benchmarker fulfils no necessary
-   function in production environments, switching off the tool is not combined with any disadvantages.
+   In order to increase the performance it is possible to deactivate the benchmarker. This can be used to reduce the
+   time needed for request processing. Experimental tests proof, the request processing can be boosted on 25% with the
+   benchmarker being deactivated. Because the benchmarker fulfils no necessary function in production environments,
+   switching off the tool is not combined with any disadvantages.
 </p>
 <p>
    Switching off the benchmarker can be done using the subsequent code snippet:
 </p>
 <gen:highlight type="php">
-$bench = &Singleton::getInstance('BenchmarkTimer');
-$bench->disable();
+use APF\core\singleton\Singleton;
+use APF\core\benchmark\BenchmarkTimer;
+$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+$t->disable();
 </gen:highlight>
 <div class="hint">
    In order to guarantee efficient disabling, the above presented lines of code should be directly
-   placed after the inclusion of the page controller.
+   placed after the inclusion of the <em>APF/core/bootstrap.php</em> file.
 </div>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_004" />

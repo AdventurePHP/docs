@@ -1,0 +1,91 @@
+<doku:title parent="119" tags="benchmark,performance,entwicklung" title="Benchmark" urlname="Benchmark">
+  Beschreibt, wie das APF Benchmarks bereits bei der Entwicklungszeit inkludiert und damit darauf
+  geachtet werden kann, wie schnell die Applikation letztlich ist. Es werden dazu bereits alle
+  Document-Controller und Core-Komponenten gemessen.
+</doku:title>
+Gerade bei Webapplikationen ist Performance extrem wichtig. Kein Besucher wartet freiwillig länger
+als 10s auf eine Webseite. Um bereits bei der Entwicklung das Thema Performance nicht aus den Augen
+zu verlieren stellt das Framework mit dem <strong>BenchmarkTimer</strong> eine Benchmark-Komponente
+zur Verfügung, mit der alle Ausführungszeiten gemessen und anschließend dargestellt
+werden können. Die GUI-Schicht (Page- und Front-Controller) unterstützen das Beurteilen der
+Ausführungszeiten mit vielen Messpunkten. Beispielsweise werden die Ausführungszeiten von
+Document-Controllern ohne Zutun des Entwicklers aufgenommen und im Report dargestellt.
+
+<h3 id="Chapter-1-Anwendung"><a href="#Chapter-1-Anwendung">1. Anwendung des Benchmarkers</a></h3>
+Die Anwendung des <em>BenchmarkTimer</em> gestaltet sich sehr einfach. Es ist lediglich folgender
+Code vor und nach dem zu messenden Events einzufügen:
+<gen:highlight type="php">
+$t = &Singleton::getInstance('BenchmarkTimer');
+$t->start('MyEvent');
+
+//
+// Zu messender PHP-Code
+//
+
+$t->stop('MyEvent');
+</gen:highlight>
+Zu beachten ist dabei lediglich, dass der <em>BenchmarkTimer</em> <strong>immer</strong> singleton
+instanziiert werden muss, da sonst Informationen über Teile der Messung verloren gehen können.
+Es muss zudem auf den Gültigkeitsbereich von Variablen geachtet werden. Sind Messungen über
+die Grenzen von Funktionen und Klassen hinweg notwendig muss sichergestellt sein, dass die Variable,
+die die Referenz auf die Instanz des <em>BenchmarkTimer</em>s kein Null-Pointer ist. Hier ist es ratsam
+folgenden Code zu verwenden:
+<gen:highlight type="php">
+$t = &Singleton::getInstance('BenchmarkTimer');
+$t->start('MyEvent');
+
+//
+// Zu messender PHP-Code
+//
+
+$t = &Singleton::getInstance('BenchmarkTimer');
+$t->stop('MyEvent');
+</gen:highlight>
+Dieser Fall findet jedoch nur in Ausnahmen Anwendung.
+
+<h3 id="Chapter-2-Reports"><a href="#Chapter-2-Reports">2. Generieren eines Reports</a></h3>
+Da das Framework im <strong>Postback-Modus</strong> arbeitet und es im Allgemeinen nur eine zentrale
+Datei (zumeist <em>index.php</em>) gibt, ist das generieren von Reports durch ein
+<gen:highlight type="php">
+$t = &Singleton::getInstance('BenchmarkTimer');
+echo $t->createReport();
+</gen:highlight>
+am Ende der <em>index.php</em> zu bewerkstelligen. Möchte der Entwickler selbst entscheiden, wann
+der Report angezeigt wird um auch im Live-Betrieb ein Gefühl für die Performance der
+Applikation behalten zu können kann das durch das Einfügen des Codes
+<gen:highlight type="php">
+if(isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true'){
+   $t = &Singleton::getInstance('BenchmarkTimer');
+   echo $t->createReport();
+}
+</gen:highlight>
+am Ende der <em>index.php</em> bewerkstelligt werden. Ein Report der aktuell angezeigten Seite hat
+folgende Gestalt:
+<br />
+<br />
+<img src="http://media.adventure-php-framework.org/content/benchmark_report_example.png" alt="Benchmark Report Prozess Baum" />
+<br />
+Um einen aktuellen Report anzeigen zu lassen, bitte 
+<int:link pageid="004" anchor="bottom" params="/benchmarkreport/true">hier</int:link> klicken.
+
+<h3 id="Chapter-3-Performance-Tweek"><a href="#Chapter-3-Performance-Tweek">3. Performance-Tweek</a></h3>
+<p>
+   Mit dem Release 1.11 ist es möglich, den Benchmarker zu deaktivieren. Dies kann genutzt werden,
+   um die Abarbeitungszeit eines Requests zu steigern. Empirische Werte mit Tests an der vorliegenden
+   Webseite zeigen eine Steigerung um bis zu 25% bei deaktivierten Benchmarker. Da der Benchmarker
+   in Produktions-Umgebungen keine notwendige Funktion erfüllt, ist das Abschalten des Tools mit
+   keinen Nachteilen verbunden.
+</p>
+<p>
+   Das Abschalten kann in der Bootstrap-Datei mit folgendem Code erledigt werden:
+</p>
+<gen:highlight type="php">
+$bench = &Singleton::getInstance('BenchmarkTimer');
+$bench->disable();
+</gen:highlight>
+<div class="hint">
+   Um eine möglichst effiziente Abschaltung zu erziehlen, sollten die in der Codebox gezeigten
+   Zeilen direkt nach dem Einbinden des Page-Controllers platziert werden.
+</div>
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_004" />
+<a name="bottom" />
