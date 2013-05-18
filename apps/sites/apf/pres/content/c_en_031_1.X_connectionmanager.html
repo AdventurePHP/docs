@@ -1,4 +1,4 @@
-<doku:title parent="119" tags="singleton,connectionmanager" title="ConnectionManager" urlname="ConnectionManager">
+<doku:title parent="119" tags="documentation,class reference,classes,reference,singleton,connectionmanager" title="ConnectionManager" urlname="ConnectionManager">
   The conceptual goal of the connection manager is, to define conventions like the configuration and
   the addressing of the database access layer. In best case, the database layer of an application
   can be replaced with another without changing any line of code.
@@ -16,7 +16,7 @@
 
 <h3 id="Chapter-1-Configuration"><a href="#Chapter-1-Configuration">1. Configuration</a></h3>
 <p>
-   The <em>ConnectionManager</em> is a kind of factory to concrete implementations of database
+   The <strong>ConnectionManager</strong> is a kind of factory to concrete implementations of database
    driver classes. To load the desired driver the abstraction layer must be configured using the config
    file
 </p>
@@ -26,7 +26,7 @@
    file mentioned above must contain one section for each driver layer:
 </p>
 <gen:highlight type="ini">
-[section-name]
+[sectionname]
 DB.Host = ""
 DB.User = ""
 DB.Pass = ""
@@ -34,10 +34,10 @@ DB.Name = ""
 [DB.DebugMode = "true|false"]
 </gen:highlight>
 <p>
-   The <em>section-name</em> is used to create the driver instance, <em>DB.Host</em>
-   contains the hostname of the database server, <em>DB.User</em> and <em>DB.Pass</em>
-   define the logon credentials and <em>DB.Name</em> defines the name of the database to use.
-   <em>DB.Type</em> is aimed to switch the debug mode on of off.
+   The <strong>sectionsname</strong> is used to create the driver instance, <strong>DB.Host</strong>
+   contains the hostname of the database server, <strong>DB.User</strong> and <strong>DB.Pass</strong>
+   define the logon credentials and <strong>DB.Name</strong> defines the name of the database to use.
+   <strong>DB.Type</strong> is aimed to switch the debug mode on of off.
 </p>
 <div class="hint">
    The debug mode can be used to display the executed statement directly on screen. If you like to
@@ -48,30 +48,26 @@ DB.Name = ""
 </div>
 
 <h3 id="Chapter-2-Practice"><a href="#Chapter-2-Practice">2. Practice</a></h3>
-<p>
-   To be able to use the <em>ConnectionManager</em> you have to create an instance using the following code snippet:
-</p>
+To be able to use the <strong>ConnectionManager</strong> the component must be imported by
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
-$driver = &$cM->getConnection('section-name');
+import('core::database','ConnectionManager');
+</gen:highlight>
+prior to use. Further, you can create a database driver instance using the following code snippet:
+<gen:highlight type="php">
+$cM = &$this->getServiceObject('core::database','ConnectionManager');
+$db_driver = &$cM->getConnection('sectionname');
 </gen:highlight>
 
 <h3 id="Chapter-3-Extending-database-drivers"><a href="#Chapter-3-Extending-database-drivers">3. Extending the database drivers</a></h3>
 <p>
-   The class <em>AbstractDatabaseHandler</em> describes the interface of a database driver that
-   can be created using the <em>ConnectionManager</em>. In order to implement another
-   abstraction layer any other driver must inherit from <em>AbstractDatabaseHandler</em> or implement the
-   <em>DatabaseConnection</em> interface.
-</p>
-<p>
-   In case you want to implement your custom driver please consider an existing driver implementation as a start.
+   The class <strong>AbstractDatabaseHandler</strong> describes the interface of a database driver that
+   can be created using the <strong>ConnectionManager</strong>. In order to implement another
+   abstraction layer any other driver must inherit from <strong>AbstractDatabaseHandler</strong> and
+   reside in the <strong>core::database</strong> namespace.
 </p>
 
 <h3 id="Chapter-4-Existing-abstraction-layers"><a href="#Chapter-4-Existing-abstraction-layers">4. Existing abstraction layers</a></h3>
-<p>
-   The Adventure PHP Framework comes with three different abstraction layers:
-</p>
+The Adventure PHP Framework comes with three different abstraction layers:
 <ul>
   <li>MySQLx: MySQL driver. Based on the mysql_* functions.</li>
   <li>SQLite: SQLite driver. Based on the sqlite_* functions. Needs PHP > 5.0.0!</li>
@@ -89,7 +85,7 @@ DB.Host = "host"
 DB.User = "user"
 DB.Pass = "pass"
 DB.Name = "name"
-DB.Type = "APF\core\database\MySQLxHandler"
+DB.Type = "MySQLx"
 [DB.Port = "3306"]
 [DB.Socket = "/tmp/mysql.sock"]
 [DB.DebugMode = "true|false"]
@@ -97,47 +93,41 @@ DB.Type = "APF\core\database\MySQLxHandler"
 [DB.Collation = ""]
 </gen:highlight>
 <p>
-   The parameters <em>DB.Port</em> and <em>DB.Socket</em> adds the possibility to define the
+   The parameters <strong>DB.Port</strong> and <strong>DB.Socket</strong> adds the possibility to define the
    TCP/IP-port respectively the unix-socket for the connection.
+   <div class="hint">
+      The PHP-MySQL-extension supports the definition of TCP/IP-port respectively unix-socket within the
+      hostname-parameter which results in the fact that some people added this information directly in the
+      parameter DB.Host. The PHP-MySQLi-extension makes this impossible because port and socket are
+      independently added parameters during the establishment of a new connection. Because of this fact the
+      parameters DB.Port and DB.Socket were added and the MySQL-workaround shouldn't be used anymore.
+   </div>
 </p>
-<div class="hint">
-   The PHP-MySQL-extension supports the definition of TCP/IP-port respectively unix-socket within the
-   hostname-parameter which results in the fact that some people added this information directly in the
-   parameter DB.Host. The PHP-MySQLi-extension makes this impossible because port and socket are
-   independently added parameters during the establishment of a new connection. Because of this fact the
-   parameters DB.Port and DB.Socket were added and the MySQL-workaround shouldn't be used anymore.
-</div>
 <p>
-   The two parameters <em>DB.Charset</em> and <em>DB.Collation</em> are used to
+   The two parameters <strong>DB.Charset</strong> and <strong>DB.Collation</strong> are used to
    configure the <em>character set</em> and the <em>collation</em> of the MySQL connection. The
-   directive <em>DB.Charset</em> sets the MySQL variables
+   directive <strong>DB.Charset</strong> sets the MySQL variables
 </p>
 <ul>
    <li>character_set_client</li>
    <li>character_set_connection</li>
    <li>character_set_results</li>
 </ul>
-<p>
-   and the value of <em>DB.Collation</em> is applied to the variables
-</p>
+and the value of <strong>DB.Collation</strong> is applied to the variables
 <ul>
    <li>collation_connection</li>
    <li>collation_database</li>
 </ul>
-<p>
-   Both params are optional and can be defined alternately. There is no need to specify both params at the same time.
-</p>
+Both params are optional and can be defined alternately. There is no need to specify both params at
+the same time.
 <div class="hint">
    Details on the configuration param values can be taken from the MySQL documentation within
    chapter
    <a class="external" href="http://dev.mysql.com/doc/refman/5.0/en/charset-connection.html" title="Connection Character Sets and Collations (MySQL 5.0)">Connection Character Sets and Collations (MySQL 5.0)</a>.
 </div>
-<p>
-   Afterwards, the instance of the abstraction layer can be created using the following lines of code:
-</p>
+Afterwards, the instance of the abstraction layer can be created using the following lines of code:
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
+$cM = &$this->getServiceObject('core::database','ConnectionManager');
 $MySQL = &$cM->getConnection('MySQL');
 </gen:highlight>
 <p>
@@ -145,22 +135,17 @@ $MySQL = &$cM->getConnection('MySQL');
 </p>
 
 <h4 id="Chapter-4-2-SQLite-driver"><a href="#Chapter-4-2-SQLite-driver">4.2. SQLite driver</a></h4>
-<p>
-   Any SQLite abstraction layer instance can be configured by
-</p>
+Any SQLite abstraction layer instance can be configured by
 <gen:highlight type="ini">
 [SQLite]
 DB.Name = "/path/to/my/database.sqlite"
-DB.Type = "APF\core\database\SQLiteHandler"
+DB.Type = "SQLite"
 DB.DebugMode = "true|false"
 </gen:highlight>
-<p>
-   Please note, that host, user and password don't have to be configured, due to the fact, that SQLite
-   is an integrated database engine. Creating an instance of the driver class looks like this:
-</p>
+Please note, that host, user and password don't have to be configured, due to the fact, that SQLite
+is an integrated database engine. Creating an instance of the driver class looks like this:
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
+$cM = &$this->getServiceObject('core::database','ConnectionManager');
 $SQLite = &$cM->getConnection('SQLite');
 </gen:highlight>
 
@@ -178,7 +163,7 @@ DB.Host = "host"
 DB.User = "user"
 DB.Pass = "pass"
 DB.Name = "name"
-DB.Type = "APF\core\database\MySQLiHandler"
+DB.Type = "MySQLi"
 [DB.Port = "3306"]
 [DB.Socket = "/tmp/mysql.sock"]
 [DB.DebugMode = "true|false"]
@@ -214,8 +199,8 @@ DB.Type = "APF\core\database\MySQLiHandler"
    The following code box contains samples for using the bind statement feature:
 </p>
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
+// retrieve db connection
+$cm = &$this->getServiceObject('core::database','ConnectionManager');
 $conn = $cm->getConnection('MySQLi');
 
 // execute textual statement with bind params
@@ -255,7 +240,7 @@ DB.Host = "host"
 DB.User = "user"
 DB.Pass = "pass"
 DB.Name = "name"
-DB.Type = "APF\core\database\PDOHandler"
+DB.Type = "PDO"
 DB.PDO = "MySQL"
 [DB.Port = "3306"]
 [DB.Socket = "/tmp/mysql.sock"]
@@ -263,12 +248,10 @@ DB.PDO = "MySQL"
 [DB.Charset = ""]
 [DB.Collation = ""]
 </gen:highlight>
-<p>
-   The parameter <em>DB.Type</em> is used to inform the framework to use the PDOHandler. The additional parameter
-   <em>DB.PDO</em> is used to inform PDO which specific driver should be used.
-</p>
+The parameter <strong>DB.Type</strong> is used to inform the framework to use the PDOHandler.
+The additional parameter <strong>DB.PDO</strong> is used to inform PDO which specific driver should be used.
 <div class="hint">
-   With the current state (version 1.15) only the <em>PDO</em>_MYSQL-Driver is supported.
+    With the current state (version 1.15) only the <em>PDO</em>_MYSQL-Driver is supported.
 </div>
 <p>
     To configure ports/sockets, charset and collation use the documentation chapter of <a href="#Chapter-4-1-MySQL-Driver">MySQLx</a>
@@ -313,8 +296,8 @@ DB.PDO = "MySQL"
     Here are some examples of using the <em>PDO</em>-driver:
 </p>
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
+// retrieve db connection
+$cm = $this->getServiceObject('core::database', 'ConnectionManager');
 $conn = $cm->getConnection('PDO');
 
 $statement = $conn->executeTextStatement("SELECT * FROM `ent_user`");
@@ -328,6 +311,7 @@ while ($row = $conn->fetchData($statement)) {
 while ($row = $statement->fetch()) {
 
 }
+
 
 // prepare a statement
 $statement = $conn->prepare("SELECT * FROM `ent_user` WHERE `FirstName` = :firstname");
@@ -384,8 +368,7 @@ DEFAULT_load_all_entries_for_category.sql
    <a href="#Chapter-4-3-MySQLi-driver">MySQLi connections</a>) methods on the current connection:
 </p>
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$conn = $this->getServiceObject('APF\core\database\ConnectionManager')
+$conn = $this->getServiceObject('core::database', 'ConnectionManager')
              ->getConnection('datastore');
 
 $params = array('somefield' => 'somevalue');

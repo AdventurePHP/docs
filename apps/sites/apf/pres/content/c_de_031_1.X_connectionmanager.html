@@ -1,4 +1,4 @@
-<doku:title parent="119" tags="singleton,connectionmanager" title="ConnectionManager" urlname="ConnectionManager">
+<doku:title parent="119" tags="dokumentation,klassen referenz,klassen,referenz,singleton,connectionmanager" title="ConnectionManager" urlname="ConnectionManager">
   Zweck des ConnectionManagers ist es, eine Konvention zu definieren, wie die Konfiguration und
   Implementierung einer Datenbank-Zugriffsschnittstelle gestaltet sein soll. Idealerweise
   ermöglicht diese Vorgehensweise einen einfachen Austausch einer Treiberschicht gegen eine
@@ -17,18 +17,14 @@
 </p>
 
 <h3 id="Chapter-1-Konfiguration"><a href="#Chapter-1-Konfiguration">1. Konfiguration</a></h3>
-<p>
-   Der <em>ConnectionManager</em> fungiert als Factory für konkrete Implementierungen
-   eines Datenbanktreibers. Um den gewünschte Treiber laden zu können, muss dieser
-   zunächst konfiguriert werden. Die geschieht in der Konfigurationsdatei
-</p>
+Der <strong>ConnectionManager</strong> fungiert als Factory für konkrete Implementierungen
+eines Datenbanktreibers. Um den gewünschte Treiber laden zu können, muss dieser
+zunächst konfiguriert werden. Die geschieht in der Konfigurationsdatei
 <gen:highlight type="code">/config/core/database/{CONTEXT}/{ENVIRONMENT}_connections.ini</gen:highlight>
-<p>
-   Details zu Konfigurationsdateien können dem Kapitel <int:link pageid="134" /> entnommen werden.
-   Die Konfigurationsdatei enthält je eine Sektion für einen Treiber:
-</p>
+Details zu Konfigurationsdateien können dem Kapitel <int:link pageid="134" /> entnommen werden.
+Die Konfigurationsdatei enthält je eine Sektion für einen Treiber:
 <gen:highlight type="ini">
-[Sektions-Name]
+[Sektionsname]
 DB.Host = ""
 DB.User = ""
 DB.Pass = ""
@@ -36,11 +32,11 @@ DB.Name = ""
 [DB.DebugMode = "true|false"]
 </gen:highlight>
 <p>
-   Der <em>Sektions-Name</em> dient als Referenz für die Erstellung der Treiber-Instanz,
-   <em>DB.Host</em> beinhaltet den Hostnamen des Datenbank-Server, <em>DB.User</em> und
-   <em>DB.Pass</em> die Authentifizierungsdaten und <em>DB.Name</em> benennt die zu
-   verwendende Datenbank. <em>DB.Type</em> dient zur Definition des zur verwendenen Treibers
-   und <em>DB.DebugMode</em> entscheidet, ob der Debug-Modus des Treibers aktiviert werden soll
+   Der <strong>Sektionsname</strong> dient als Referenz für die Erstellung der Treiber-Instanz,
+   <strong>DB.Host</strong> beinhaltet den Hostnamen des Datenbank-Server, <strong>DB.User</strong> und
+   <strong>DB.Pass</strong> die Authentifizierungsdaten und <strong>DB.Name</strong> benennt die zu
+   verwendende Datenbank. <strong>DB.Type</strong> dient zur Definition des zur verwendenen Treibers
+   und <strong>DB.DebugMode</strong> entscheidet, ob der Debug-Modus des Treibers aktiviert werden soll
    oder nicht.
 </p>
 <div class="hint">
@@ -52,13 +48,14 @@ DB.Name = ""
 </div>
 
 <h3 id="Chapter-2-Anwendung"><a href="#Chapter-2-Anwendung">2. Anwendung</a></h3>
-<p>
-   Um den <em>ConnectionManager</em> einsetzen zu können muss zunächst per
-</p>
+Um den <strong>ConnectionManager</strong> einsetzen zu können muss dieser zunächst per
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
-$driver = &$cm->getConnection('Sektions-Name');
+import('core::database','ConnectionManager');
+</gen:highlight>
+eingebunden werden. Anschließend kann per
+<gen:highlight type="php">
+$cM = &$this->getServiceObject('core::database','ConnectionManager');
+$driver = &$cM->getConnection('Sektionsname');
 </gen:highlight>
 <p>
    eine Instanz eines Datenbank-Treibers erzeugt werden.
@@ -66,19 +63,15 @@ $driver = &$cm->getConnection('Sektions-Name');
 
 <h3 id="Chapter-3-Erweiterung"><a href="#Chapter-3-Erweiterung">3. Erweiterung</a></h3>
 <p>
-   Gemäß der Definition der abstrakten Klasse <em>AbstractDatabaseHandler</em> können weitere
-   Datenbank-Abstraktions-Klassen hinzugefügt werden. Um diese mit dem <em>ConnectionManager</em> verwenden zu können,
-   müssen diese von der Klasse <em>AbstractDatabaseHandler</em> ableiten bzw. das <em>DatabaseConnection</em>-Interface
-   implementieren.
-</p>
-<p>
-   Möchten Sie einen eigen Datenbank-Treiber implementieren, so nehmen Sie einen der vorhanden Treiber als Vorlage.
+   Gemäß der Definition der abstrakten Klasse <strong>AbstractDatabaseHandler</strong>
+   können weitere Datenbank-Abstraktions-Klassen hinzugefügt werden. Um diese mit dem
+   <strong>ConnectionManager</strong> verwenden zu können, müssen diese im Namespace
+   <strong>core::database</strong> abgelegt werden und von der Klasse
+   <strong>AbstractDatabaseHandler</strong> ableiten.
 </p>
 
 <h3 id="Chapter-4-Vorhandene-Treiberschichten"><a href="#Chapter-4-Vorhandene-Treiberschichten">4. Vorhandene Treiberschichten</a></h3>
-<p>
-   Das Framework liefert drei Treiberschichten mit:
-</p>
+<p>Das Framework liefert drei Treiberschichten mit:</p>
 <ul>
   <li>MySQLx: MySQL-Treiberschicht. Setzt auf die mysql_*-Funktionen auf</li>
   <li>SQLite: SQLite-Treiberschicht. Setzt auf die sqlite_*-Funktionen. Hier ist PHP > 5.0.0 notwendig!</li>
@@ -95,17 +88,15 @@ DB.Host = "host"
 DB.User = "user"
 DB.Pass = "pass"
 DB.Name = "name"
-DB.Type = "APF\core\database\MySQLxHandler"
+DB.Type = "MySQLx"
 [DB.Port = "3306"]
 [DB.Socket = "/tmp/mysql.sock"]
 [DB.DebugMode = "true|false"]
 [DB.Charset = ""]
 [DB.Collation = ""]
 </gen:highlight>
-<p>
-   Mit den Parametern <em>DB.Port</em> und <em>DB.Socket</em> ist es möglich den TCP/IP-Port
-   bzw. den Pfad zum Unix-Socket anzugeben.
-</p>
+Mit den Parametern <strong>DB.Port</strong> und <strong>DB.Socket</strong> ist es möglich den TCP/IP-Port
+bzw. den Pfad zum Unix-Socket anzugeben.
 <div class="hint">
    Die MySQL-Erweiterung von PHP unterstützte die Übergabe des Ports bzw. Sockets im Hostnamen, sodass ein
    diese Funktion oft direkt in den Parameter DB.Host eingetragen wurde. Dies funktioniert jedoch bei der
@@ -113,39 +104,31 @@ DB.Type = "APF\core\database\MySQLxHandler"
    müssen. Entsprechend wurden die beiden Parameter hinzugefügt. Der Workaround sollte demzufolge keine
    Anwendung mehr finden.
 </div>
-<p>
-   Die Parameter <em>DB.Charset</em> und <em>DB.Collation</em> dienen dazu, den
-   <em>Zeichensatz</em> und die <em>Zeichenbehandlung</em> der MySQL-Verbindung zu definieren. Mit dem
-   Parameter <em>DB.Charset</em> werden die MySQL-Variablen
-</p>
+
+Die Parameter <strong>DB.Charset</strong> und <strong>DB.Collation</strong> dienen dazu, den
+<em>Zeichensatz</em> und die <em>Zeichenbehandlung</em> der MySQL-Verbindung zu definieren. Mit dem
+Parameter <strong>DB.Charset</strong> werden die MySQL-Variablen
 <ul>
    <li>character_set_client</li>
    <li>character_set_connection</li>
    <li>character_set_results</li>
 </ul>
-<p>
-   gesetzt, <em>DB.Collation</em> beeinflusst
-</p>
+gesetzt, <strong>DB.Collation</strong> beeinflusst
 <ul>
    <li>collation_connection</li>
    <li>collation_database</li>
 </ul>
-<p>
-   Die beiden Parameter sind optional und können bei Bedarf auch wechselseitig gesetzt werden, das
-   Vorhandensein beider ist nicht erforderlich.
-</p>
+Die beiden Parameter sind optional und können bei Bedarf auch wechselseitig gesetzt werden, das
+Vorhandensein beider ist nicht erforderlich.
 <div class="hint">
    Details zu den verfügbaren Werten für die Konfiguration findet sich in der
    MySQL-Dokumentation im Kapitel
    <a class="external" href="http://dev.mysql.com/doc/refman/5.0/en/charset-connection.html" title="Connection Character Sets and Collations (MySQL 5.0)">Connection Character Sets and Collations (MySQL 5.0)</a>.
 </div>
-<p>
-   Anschließend kann die Treiber-Instanz mit den Code-Zeilen
-</p>
+Anschließend kann die Treiber-Instanz mit den Code-Zeilen
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
-$MySQL = &$cm->getConnection('MySQL');
+$cM = &$this->getServiceObject('core::database','ConnectionManager');
+$MySQL = &$cM->getConnection('MySQL');
 </gen:highlight>
 <p>
    erzeugt werden. Die Treiberschicht wird aus Performance-Gründen dabei immer als
@@ -157,14 +140,13 @@ $MySQL = &$cm->getConnection('MySQL');
 <gen:highlight type="ini">
 [SQLite]
 DB.Name = "/path/to/my/database.sqlite"
-DB.Type = "APF\core\database\SQLiteHandler"
+DB.Type = "SQLite"
 DB.DebugMode = "true|false"
 </gen:highlight>
 und den Code-Zeilen
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
-$SQLite = &$cm->getConnection('SQLite');
+$cM = &$this->getServiceObject('core::database','ConnectionManager');
+$SQLite = &$cM->getConnection('SQLite');
 </gen:highlight>
 <p>
    instanziiert werden. Bitte beachten Sie, dass im Fall von SQLite Host, User und Passwort nicht
@@ -186,7 +168,7 @@ DB.Host = "host"
 DB.User = "user"
 DB.Pass = "pass"
 DB.Name = "name"
-DB.Type = "APF\core\database\MySQLiHandler"
+DB.Type = "MySQLi"
 [DB.Port = "3306"]
 [DB.Socket = "/tmp/mysql.sock"]
 [DB.DebugMode = "true|false"]
@@ -227,8 +209,8 @@ DB.Type = "APF\core\database\MySQLiHandler"
    Die folgende Code-Box zeigt Anwendungsbeispiele für den Umgang mit Bind-Statements:
 </p>
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
+// retrieve db connection
+$cm = &$this->getServiceObject('core::database','ConnectionManager');
 $conn = $cm->getConnection('MySQLi');
 
 // execute textual statement with bind params
@@ -271,7 +253,7 @@ DB.Host = "host"
 DB.User = "user"
 DB.Pass = "pass"
 DB.Name = "name"
-DB.Type = "APF\core\database\PDOHandler"
+DB.Type = "PDO"
 DB.PDO = "MySQL"
 [DB.Port = "3306"]
 [DB.Socket = "/tmp/mysql.sock"]
@@ -279,8 +261,8 @@ DB.PDO = "MySQL"
 [DB.Charset = ""]
 [DB.Collation = ""]
 </gen:highlight>
-Mit dem Parameter <em>DB.Type</em> legt man fest, dass der <em>PDO</em>-Treiber verwendet werden soll.
-Mit dem zusätzlichen Parameter <em>DB.PDO</em> teilt man dem <em>PDO</em>-Treiber mit, welche Treiberschicht dieser verwenden soll.
+Mit dem Parameter <strong>DB.Type</strong> legt man fest, dass der <em>PDO</em>-Treiber verwendet werden soll.
+Mit dem zusätzlichen Parameter <strong>DB.PDO</strong> teilt man dem <em>PDO</em>-Treiber mit, welche Treiberschicht dieser verwenden soll.
 <div class="hint">
     Mit dem aktuellen Stand (Version 1.15) wird nur der <em>PDO</em>_MYSQL-Treiber unterstützt, weitere werden allerdings folgen!
 </div>
@@ -333,8 +315,8 @@ Mit dem zusätzlichen Parameter <em>DB.PDO</em> teilt man dem <em>PDO</em>-Treib
     Nachfolgend ein paar Beispiele zur Verwendung des <em>PDO</em>-Treibers:
 </p>
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
+// retrieve db connection
+$cm = $this->getServiceObject('core::database', 'ConnectionManager');
 $conn = $cm->getConnection('PDO');
 
 $statement = $conn->executeTextStatement("SELECT * FROM `ent_user`");
@@ -348,6 +330,7 @@ while ($row = $conn->fetchData($statement)) {
 while ($row = $statement->fetch()) {
 
 }
+
 
 // prepare a statement
 $statement = $conn->prepare("SELECT * FROM `ent_user` WHERE `FirstName` = :firstname");
@@ -406,8 +389,7 @@ DEFAULT_load_all_entries_for_category.sql
    <a href="#Chapter-4-3-MySQLi-Treiberschicht">MySQLi-Connections</a>) genutzt werden:
 </p>
 <gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$conn = $this->getServiceObject('APF\core\database\ConnectionManager')
+$conn = $this->getServiceObject('core::database', 'ConnectionManager')
              ->getConnection('datastore');
 
 $params = array('somefield' => 'somevalue');
