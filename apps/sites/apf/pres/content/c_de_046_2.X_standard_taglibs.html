@@ -31,7 +31,6 @@
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace=""
    class=""
    prefix=""
    name=""
@@ -39,13 +38,9 @@
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
-  <li>
-    <strong>namespace</strong>: Der Namespace der Tag-Implementierung.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-:]</code>)
-  </li>
    <li>
-      <strong>class</strong>: Der Klassen-Name der Tag-Implementierung.
-      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+      <strong>class</strong>: Der voll-qualifizierte Klassen-Name der Tag-Implementierung.
+      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_\]</code>)
    </li>
   <li>
     <strong>prefix</strong>: XML-Prefix.
@@ -56,25 +51,6 @@
     (<strong>Zeichen</strong>: <code>[a-z]</code>)
   </li>
 </ul>
-<div class="warn">
-   <p>
-      In APF-Releases vor 1.16 wurde das Attribut <em>class</em> zur Definition des XML-Tag-Namens verwendet. Die
-      Signatur des Tags war in diesen Versionen wie folgt:
-<gen:highlight type="apf-xml">
-&lt;core:addtaglib
-   namespace=""
-   prefix=""
-   class=""
-/&gt;
-</gen:highlight>
-      Die vom Entwickler erzeugte TagLib-Klasse musste dabei in der Form <em>&lt;prefix&gt;_taglib_&lt;class&gt;</em>
-      benannt sein. Details für Versionen &lt;=1.15 finden Sie unter <int:link pageid="045" />.
-   </p>
-   <p>
-      In Release 1.16 wird die bisherige Notation übergangsweise weiter unterstützt und ab Version 1.17 entfernt. Ab
-      dann muss eine Tag-Definition explizit den Namen der Tag-Implementierung im Attribut <em>class</em> benannen.
-   </p>
-</div>
 <p>
    Die innerhalb der Klasse zu implementierenden Methoden können der <int:link pageid="002" /> oder dem Tutorial
    <int:link pageid="147" /> entnommen werden. Die Bennenung der Tag-Implementierung kann ab Release 1.16 frei durch das
@@ -98,8 +74,8 @@
 <strong>Beschreibung der Attribute:</strong>
 <ul>
   <li>
-    <strong>namespace</strong>: Ein mit "::" getrennter Namespace-Pfad.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-:]</code>)
+    <strong>namespace</strong>: Ein mit &quot;\&quot; getrennter Namespace-Pfad.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_\]</code>)
   </li>
   <li>
     <strong>template</strong>: Name eines Templates.
@@ -121,11 +97,11 @@
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:importdesign
-   namespace="sites::testsite::pres::templates"
+   namespace="VENDOR\pres\templates"
    template="[pagepart = test]"
 /&gt;
 &lt;core:importdesign
-   namespace="sites::testsite::pres::templates"
+   namespace="VENDOR\pres\templates"
    template="[cmsmodule = test]"
    incparam="cmsmodule"
 /&gt;
@@ -205,7 +181,7 @@ $this->setStringPlaceHolder('name', 'NAME', 'John Doe');
    </li>
   <li>
     <strong>namespace</strong>: Namespace der Konfigurationsdatei.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-:]</code>)
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_\]</code>)
   </li>
   <li>
     <strong>config</strong>: Name der Konfigurationsdatei.
@@ -216,39 +192,20 @@ $this->setStringPlaceHolder('name', 'NAME', 'John Doe');
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_.]</code>)
   </li>
 </ul>
-<div class="warn">
-   Bitte beachten Sie, dass das Attribut <em>name</em> erst ab der Version 1.15 in Verbindung mit der Methode
-   <em>getLabel()</em> genutzt werden kann.
-</div>
-<div class="hint">
-   <p>
-      Um den Tag verwenden zu können muss dieser in Versionen &lt; 1.15 via
-   </p>
-<gen:highlight type="apf-xml">
-&lt;core:addtaglib
-   namespace="tools::html::taglib"
-   prefix="html"
-   class="getstring"
-/&gt;
-</gen:highlight>
-   <p>
-      eingebunden werden.
-   </p>
-</div>
 <p>
    Die sprachabhängige Konfigurationsdatei muss jeweils eine Sektion pro Sprache (zweistelliger
    ISO-Länder-Code) und die verwendeten Konfigurationsschlüssel in den Sektionen enthalten
    sein. Soll der Tag
 </p>
 <gen:highlight type="apf-xml">
-  &lt;html:getstring namespace="modules::mymodule" config="language.ini" entry="title" /&gt;
+  &lt;html:getstring namespace="VENDOR\modules\guestbook" config="language.ini" entry="title" /&gt;
 </gen:highlight>
 <p>
    zur Anzeige eines sprachabhängigen Titels in einem Template genutzt werden, muss die
    Konfigurationsdatei
 </p>
 <gen:highlight type="code">
-/config/modules/mymodule/{CONTEXT}/{ENVIRONMENT}_language.ini
+/config/modules/guestbook/{CONTEXT}/{ENVIRONMENT}_language.ini
 </gen:highlight>
 <p>
    mit dem Inhalt
@@ -355,7 +312,7 @@ In einem Template gibt es wiederum Platzhalter, die dynamisch gesetzt werden kö
 <gen:highlight type="apf-xml">
 &lt;html:template name=""&gt;
    [&lt;template:placeholder name="" /&gt;]
-   [&lt;template:addtaglib namespace="" class="" prefix="" name="" /&gt;]
+   [&lt;template:addtaglib class="" prefix="" name="" /&gt;]
    [&lt;template:getstring namespace="" config="" entry="" /&gt;]
 &lt;/html:template&gt;
 </gen:highlight>
@@ -392,9 +349,9 @@ In einem Template gibt es wiederum Platzhalter, die dynamisch gesetzt werden kö
 <gen:highlight type="php">
 class SampleController extends BaseDocumentController {
    public function transformContent(){
-      $Template__MyTemplate = &$this->getTemplate('MyTemplate');
-      $Template__MyTemplate->setPlaceHolder('MyPlaceHolder', 'MyContent');
-      $this->setPlaceHolder('Content', $Template__MyTemplate->transformTemplate());
+      $tmpl = &$this->getTemplate('MyTemplate');
+      $tmpl->setPlaceHolder('MyPlaceHolder', 'MyContent');
+      $this->setPlaceHolder('Content', $tmpl->transformTemplate());
    }
 }
 </gen:highlight>
@@ -417,6 +374,8 @@ class SampleController extends BaseDocumentController {
    Templates aufrufen:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class SampleController extends BaseDocumentController {
 
    public function transformContent() {
@@ -454,6 +413,8 @@ class SampleController extends BaseDocumentController {
    zurücksetzt:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\TemplateTagClearApproach;
+
 class DefaultTemplateTagClearApproach implements TemplateTagClearApproach {
 
    public function clear(TemplateTag &$node) {
@@ -475,6 +436,9 @@ class DefaultTemplateTagClearApproach implements TemplateTagClearApproach {
    wie folgt:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+use APF\core\pagecontroller\DefaultTemplateTagClearApproach;
+
 class SampleController extends BaseDocumentController {
 
    public function transformContent() {
@@ -509,17 +473,13 @@ class SampleController extends BaseDocumentController {
    Tag können hier innerhalb eines Templates weitere TagLibs hinzugefügt werden.
 </p>
 <gen:highlight type="apf-xml">
-&lt;template:addtaglib namespace="" class="" prefix="" name="" /&gt;
+&lt;template:addtaglib class="" prefix="" name="" /&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
    <li>
-      <strong>namespace</strong>: Der Namespace der Tag-Implementierung.
-      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-:]</code>)
-   </li>
-   <li>
-      <strong>class</strong>: Der Klassen-Name der Tag-Implementierung.
-      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+      <strong>class</strong>: Der voll-qualifizierte Klassen-Name der Tag-Implementierung.
+      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_\]</code>)
    </li>
    <li>
       <strong>prefix</strong>: XML-Prefix.
@@ -549,7 +509,7 @@ class SampleController extends BaseDocumentController {
 <ul>
   <li>
     <strong>namespace</strong>: Namespace der Konfigurationsdatei.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-:]</code>)
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-\]</code>)
   </li>
   <li>
     <strong>config</strong>: Name der Konfigurationsdatei.
@@ -560,30 +520,19 @@ class SampleController extends BaseDocumentController {
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_.]</code>)
   </li>
 </ul>
-<div class="hint">
-   <p>
-      Um das Tag in Versionen &lt; 1.15 verwenden zu können muss dieses via
-   </p>
-<gen:highlight type="apf-xml">
-&lt;template:addtaglib
-   namespace="tools::html::taglib"
-   prefix="template"
-   class="getstring"
-/&gt;
-</gen:highlight>
-   <p>
-      bekannt gegeben werden.
-   </p>
-</div>
 
 <h3 id="Chapter-3-Document"><a href="#Chapter-3-Document">3. Document</a></h3>
 <h4 id="Chapter-3-1-createobject"><a href="#Chapter-3-1-createobject">3.1. createobject</a></h4>
-Der Tag erzeugt aus einer Inhalts-Datei unter dem Ordner <strong>./frontend/content/</strong> einen
-weiteren Unter-Objektbaum. Die Inhalts-Dateien werden in der Form
+<p>
+   Der Tag erzeugt aus einer Inhalts-Datei unter dem Ordner <em>./frontend/content/</em> einen
+   weiteren Unter-Objektbaum. Die Inhalts-Dateien werden in der Form
+</p>
 <gen:highlight type="code">
 c_{LANGCODE}_{NAME}.html
 </gen:highlight>
-erwartet, wobei
+<p>
+   erwartet, wobei
+</p>
 <ul>
   <li><strong>LANGCODE</strong> für ein zweizeichen Länderkürzel (de, en, it, es, ...) steht und</li>
   <li><strong>NAME</strong> der URL-Name ist.</li>
@@ -600,18 +549,19 @@ erwartet, wobei
     <strong>defaultvalue</strong>: Default-Wert für den Parameter <em>requestparam</em>.
   </li>
 </ul>
-Um die TagLib verwenden zu können muss diese mit einem
+<p>
+   Um den Tag verwenden zu können muss diese mit einem
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace="tools::html::taglib"
-   class="CreateDocumentFromFileTag"
+   class="APF\tools\html\taglib\CreateDocumentFromFileTag"
    prefix="doc"
    name="createobject"
 /&gt;
 </gen:highlight>
-in der Template-Datei eingebunden werden.
-<br />
-<br />
+<p>
+   in der Template-Datei eingebunden werden.
+</p>
 <div class="hint">
    Wird keine zum zu <strong>requestparam</strong> passende Datei im Ordner gefunden, erwartet der 
    Tag eine Datei mit dem Namen <gen:highlight type="code">c_{LANGCODE}_404.html</gen:highlight>
@@ -635,60 +585,46 @@ in der Template-Datei eingebunden werden.
   </li>
 </ul>
 <p>
-   Die Implementierung des Document-Controllers muss immer vom <em>BaseDocumentController</em> ableiten. Dieser ist
-   bereits im Page-Controller definiert und stellt grundlegende Methode für das Handling von DOM-
-   Objekten bereit. Beispiel hierfür ist die <em>getForm()</em>-Methode, die eine Referenz auf ein
-   Formular zurück gibt.
+   Details finden Sie unter <int:link pageid="006" />.
 </p>
 
 <h3 id="Chapter-5-Front-Controller"><a href="#Chapter-5-Front-Controller">5. FrontController</a></h3>
 <p>
-   Mit dem Release 1.4-18.11.2007 wurde der Tag "&lt;fcon:importdesign /&gt;" eingefügt. Dieser
-   unterstützt bei der Implementierung von FrontController-basierten Applikationen und bindet Views
-   auf Grund von Model-Informationen im Sinne des MVC-Pattern ein. Hierzu muss eine eigene Model-Klasse
-   für die aktuelle Applikation oder das eingebundene Modul erstellt werden, aus dem die
-   Informationen für die Einbindung des Views bezogen werden können. Die Steuerung der
-   View-Einbindung wird typischerweise durch eigene FrontController-Actions geregelt, die im Modus
-   <em>prepagecreate</em> (siehe <int:link pageid="012" />, Kapitel 1.6) ausgeführt wird. Diese kann in der URL
-   enthaltene Parameter an das Model-Objekt weitergeben.
+   Der Tag <em>&lt;fcon:importdesign /&gt;</em>-Tag unterstützt bei der Implementierung von FrontController-basierten
+   Applikationen und bindet Views auf Grund von Model-Informationen im Sinne des MVC-Pattern ein. Hierzu muss eine
+   eigene Model-Klasse für die aktuelle Applikation oder das eingebundene Modul erstellt werden, aus dem die
+   Informationen für die Einbindung des Views bezogen werden können. Die Steuerung der View-Einbindung wird
+   typischerweise durch eigene FrontController-Actions geregelt, die im Modus <em>TYPE_PRE_PAGE_CREATE</em> (siehe
+   <int:link pageid="012" anchor="Chapter-3-1-Definition"/>) ausgeführt wird. Diese kann in der URL enthaltene
+   Parameter an das Model-Objekt weitergeben.
 </p>
 <gen:highlight type="apf-xml">
 &lt;fcon:importdesign
-   templatenamespace=""
-   modelnamespace=""
-   modelfile=""
-   modelclass=""
-   modelparam=""
+   template-namespace=""
+   template-param=""
+   model=""
    [sessionsingleton=""]
 /&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
   <li>
-    <strong>templatenamespace</strong>: Namespace zum Template-Ordner.
-    (<strong>Zeichen:</strong>: <code>[A-Za-z0-9:]</code>)
+    <strong>template-namespace</strong>: Namespace zum Template-Ordner.
+    (<strong>Zeichen:</strong>: <code>[A-Za-z0-9\]</code>)
+  </li>
+   <li>
+      <strong>template-param</strong>: Model-Parameter, der für die Einbindung des Templates verwendet werden soll.
+      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+   </li>
+   <li>
+    <strong>model</strong>: Voll-qualifizierter Klassen-Name der Model-Klasse.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_\]</code>)
   </li>
   <li>
-    <strong>modelnamespace</strong>: Namespace zur Model Klasse.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9:]</code>)
-  </li>
-  <li>
-    <strong>modelfile</strong>: Name der Datei, in der sich die Model-Klasse befindet.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
-  </li>
-  <li>
-    <strong>modelclass</strong>: Name der Model-Klasse.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
-  </li>
-  <li>
-    <strong>modelparam</strong>: Model-Parameter, der für die Einbindung des Templates verwendet werden soll.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
-  </li>
-  <li>
-    <strong>sessionsingleton</strong>: Definiert, ob das Model-Objekt im SINGLETON oder SESSIONSINGLETON
+    <strong>sessionsingleton</strong>: Definiert, ob das Model-Objekt im <em>SINGLETON</em> oder <em>SESSIONSINGLETON</em>
     Modus vom ServiceManager bezogen werden soll. Ist das Attribut nicht vorhanden oder enthält
-    es einen anderen Wert als <strong>true</strong>, so wird der SINGLETON Modus verwendet.
-    (<strong>Werte</strong>: <code>true|false</code>)
+    es einen anderen Wert als <em>true</em>, so wird der SINGLETON Modus verwendet.
+    (<em>Werte</em>: <code>true|false</code>)
   </li>
 </ul>
 

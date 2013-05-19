@@ -29,7 +29,6 @@
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace=""
    class=""
    prefix=""
    name=""
@@ -38,12 +37,8 @@
 <strong>Description of the attributes:</strong>
 <ul>
    <li>
-      <strong>namespace</strong>: The namespace of the tag implementation.
-      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-:]</code>)
-   </li>
-   <li>
-      <strong>class</strong>: The class name of the tag implementation.
-      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
+      <strong>class</strong>: The fully-qualified class name of the tag implementation.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_\]</code>)
    </li>
    <li>
       <strong>prefix</strong>: The XML prefix.
@@ -54,26 +49,6 @@
       (<strong>Allowed characters</strong>: <code>[a-z]</code>)
    </li>
 </ul>
-<div class="warn">
-   <p>
-      In pre-1.16 releases the <em>class</em> attribute was used to define the name of the XML tag. In those versions,
-      the signature of the tag was as follows:
-<gen:highlight type="apf-xml">
-&lt;core:addtaglib
-   namespace=""
-   prefix=""
-   class=""
-/&gt;
-</gen:highlight>
-      Due to this notation you were forced to follow the naming convention <em>&lt;prefix&gt;_taglib_&lt;class&gt;</em>
-      for all tag implementations. Details for revisions &lt;=1.15 can be found under <int:link pageid="045" />.
-   </p>
-   <p>
-      In release 1.16 the old scheme is still supported and will be removed in version 1.17. Until then, the tag
-      definition must comply with the above scheme. This means, that the tag implementation class must then be referred
-      to in the <em>class</em> attribute.
-   </p>
-</div>
 <p>
    The methods that have to be implemented within a tag class can be found in the <int:link pageid="002" /> or
    the <int:link pageid="147" /> tutorial. The naming if the tag class can be freely defined by the developer using the
@@ -96,7 +71,7 @@
 <strong>Description of the attributes:</strong>
 <ul>
   <li>
-    <strong>namespace</strong>: Namespace path separated with "::".
+    <strong>namespace</strong>: Namespace path separated by &quot;\&quot;.
     (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-:]</code>)
   </li>
   <li>
@@ -118,11 +93,11 @@
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:importdesign
-   namespace="sites::testsite::pres::templates"
+   namespace="VENDOR\pres\templates"
    template="[pagepart = test]"
 /&gt;
 &lt;core:importdesign
-   namespace="sites::testsite::pres::templates"
+   namespace="VENDOR\pres\templates"
    template="[cmsmodule = test]"
    incparam="cmsmodule"
 /&gt;
@@ -204,7 +179,7 @@ $this->setStringPlaceHolder('name', 'NAME', 'John Doe');
    </li>
    <li>
     <strong>namespace</strong>: Namespace of the configuration file.
-    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-:]</code>)
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-\]</code>)
   </li>
   <li>
     <strong>config</strong>: Name of the configuration.
@@ -219,34 +194,19 @@ $this->setStringPlaceHolder('name', 'NAME', 'John Doe');
    Please note, that the <em>name</em> attribute can be used as of version 1.15 earliest and in conjunction with the
    <em>getLabel()</em> method.
 </div>
-<div class="hint">
-   <p>
-      To use the tag in releases &lt; 1.15 it must be announced using the
-   </p>
-<gen:highlight type="apf-xml">
-&lt;core:addtaglib
-   namespace="tools::html::taglib"
-   prefix="html"
-   class="getstring"
-/&gt;
-</gen:highlight>
-   <p>
-      directive.
-   </p>
-</div>
 <p>
    The language dependent configuration file must contain one section per language (two-letter ISO
    country code) and the configuration keys used in the tag within each of the language sections. If
    the tag
 </p>
 <gen:highlight type="apf-xml">
-&lt;html:getstring namespace="modules::mymodule" config="language.ini" entry="title" /&gt;
+&lt;html:getstring namespace="VENDOR\modules\guestbook" config="language.ini" entry="title" /&gt;
 </gen:highlight>
 <p>
-   should display a multilangual title within a template, the configuration file
+   should display a multi-language title within a template, the configuration file
 </p>
 <gen:highlight type="code">
-/config/modules/mymodule/{CONTEXT}/{ENVIRONMENT}_language.ini
+/config/modules/guestbook/{CONTEXT}/{ENVIRONMENT}_language.ini
 </gen:highlight>
 <p>
    must be filled with the content
@@ -351,7 +311,7 @@ than can be filled dynamically.
 <gen:highlight type="apf-xml">
 &lt;html:template name=""&gt;
    [&lt;template:placeholder name="" /&gt;]
-   [&lt;template:addtaglib namespace="" class="" prefix="" name="" /&gt;]
+   [&lt;template:addtaglib class="" prefix="" name="" /&gt;]
    [&lt;template:getstring namespace="" config="" entry="" /&gt;]
 &lt;/html:template&gt;
 </gen:highlight>
@@ -388,9 +348,9 @@ than can be filled dynamically.
 <gen:highlight type="php">
 class SampleController extends BaseDocumentController {
    public function transformContent(){
-      $Template__MyTemplate = &$this->getTemplate('MyTemplate');
-      $Template__MyTemplate->setPlaceHolder('MyPlaceHolder','MyContent');
-      $this->setPlaceHolder('Content',$Template__MyTemplate->transformTemplate());
+      $tmpl = &$this->getTemplate('MyTemplate');
+      $tmpl->setPlaceHolder('MyPlaceHolder','MyContent');
+      $this->setPlaceHolder('Content',$tmpl->transformTemplate());
    }
 }
 </gen:highlight>
@@ -411,6 +371,8 @@ class SampleController extends BaseDocumentController {
    you may want to use the <em>clear()</em> method at the end of a loop:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class SampleController extends BaseDocumentController {
 
    public function transformContent() {
@@ -447,6 +409,8 @@ class SampleController extends BaseDocumentController {
    place holder tags as well as the string place holders defined within the <em>&lt;*:getstring /&gt;</em> tag instances:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\TemplateTagClearApproach;
+
 class DefaultTemplateTagClearApproach implements TemplateTagClearApproach {
 
    public function clear(TemplateTag &$node) {
@@ -467,6 +431,9 @@ class DefaultTemplateTagClearApproach implements TemplateTagClearApproach {
    In case you want to apply a custom deletion approach the controller code changes as follows:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+use APF\core\pagecontroller\DefaultTemplateTagClearApproach;
+
 class SampleController extends BaseDocumentController {
 
    public function transformContent() {
@@ -501,17 +468,13 @@ class SampleController extends BaseDocumentController {
    can be used in context of template files to add tag libs there.
 </p>
 <gen:highlight type="apf-xml">
-&lt;template:addtaglib namespace="" class="" prefix="" name="" /&gt;
+&lt;template:addtaglib class="" prefix="" name="" /&gt;
 </gen:highlight>
 <strong>Description of the attributes:</strong>
 <ul>
    <li>
-      <strong>namespace</strong>: The namespace of the tag implementation.
-      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-:]</code>)
-   </li>
-   <li>
-      <strong>class</strong>: The class name of the tag implementation.
-      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
+      <strong>class</strong>: The fully-qualified class name of the tag implementation.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_\]</code>)
    </li>
    <li>
       <strong>prefix</strong>: The XML prefix.
@@ -540,7 +503,7 @@ class SampleController extends BaseDocumentController {
 <ul>
   <li>
     <strong>namespace</strong>: Namespace of the configuration file.
-    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-:]</code>)
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-\]</code>)
   </li>
   <li>
     <strong>config</strong>: Name of the configuration file.
@@ -551,36 +514,22 @@ class SampleController extends BaseDocumentController {
     (<strong>Allowed characters</strong>: <code>[A-Za-z0-9-_.]</code>)
   </li>
 </ul>
-<div class="hint">
-   <p>
-      To use the tag with APF releases &lt; 1.15 it must be announced using the
-   </p>
-<gen:highlight type="apf-xml">
-&lt;template:addtaglib
-   namespace="tools::html::taglib"
-   prefix="template"
-   class="getstring"
-/&gt;
-</gen:highlight>
-   <p>
-      directive.
-   </p>
-</div>
-      
+
 <h3 id="Chapter-3-Document"><a href="#Chapter-3-Document">3. Document</a></h3>
 <h4 id="Chapter-3-1-Createobject"><a href="#Chapter-3-1-Createobject">3.1. createobject</a></h4>
-This tag enables the developer to create a website with language-dependent content view based on
-html files, that contain the content and functionality of the content pages. Content files are
-expected to reside in a folder <strong>./frontend/content/</strong> in parallel to the current
-bootstrap file (<em>index.php</em>). As an example this documentation page is based on this concept.
-Content diles must be named like
+<p>
+   This tag creates a sub-tree from content files that are located under <em>./frontend/content/</em>. Content files
+   must be named
+</p>
 <gen:highlight type="code">
 c_{LANGCODE}_{NAME}.html
 </gen:highlight>
-whereas
+<p>
+   The described parts of the file name are:
+</p>
 <ul>
-  <li><strong>LANGCODE</strong> is a 2 letter ISO language code (de, en, it, es, ...) and</li>
-  <li><strong>NAME</strong> is the URL name of the current page.</li>
+  <li><strong>LANGCODE</strong>: a 2 letter ISO language code (de, en, it, es, ...) and</li>
+  <li><strong>NAME</strong>: the URL name of the current page.</li>
 </ul>
 <gen:highlight type="apf-xml">
 &lt;doc:createobject requestparam="" defaultvalue="" /&gt;
@@ -595,18 +544,16 @@ whereas
     <strong>defaultvalue</strong>: Default value of the parameter defined through <em>requestparam</em>.
   </li>
 </ul>
-To use the tag it must be announced using the
+<p>
+   To use the tag it must be announced using
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace="tools::html::taglib"
-   class="CreateDocumentFromFileTag"
+   class="APF\tools\html\taglib\CreateDocumentFromFileTag"
    prefix="doc"
    name="createobject"
 /&gt;
 </gen:highlight>
-directive.
-<br />
-<br />
 <div class="hint">
    If the tag could not find an appropriate file according to the <strong>requestparam</strong>, it
    expects a file with the name <gen:highlight type="code">c_{LANGCODE}_404.html</gen:highlight>
@@ -631,57 +578,46 @@ directive.
    </li>
 </ul>
 <p>
-   Any implementation must inherit from the abstract document controller <em>BaseDocumentController</em>. This
-   class is defined in the <em>pagecontroller.php</em> file under <em>apps/core/pagecontroller</em> and
-   must not be included separately.
+   Details can be found under <int:link pageid="006" />.
 </p>
 
 <h3 id="Chapter-5-Front-controller"><a href="#Chapter-5-Front-controller">5. Front controller</a></h3>
-Since release 1.4-18.11.2007 the tag <em>&lt;fcon:importdesign /&gt;</em> was added. It aids the implementation
-of front controller based applications and makes it possible to include views by the use of application
-model information according to the MVC pattern. Therefore a separate model class that provides the
-information must be created for the entire application or a single module.
-The control of the view integration is regulated typically by an own front controller actions that
-is executed in <em>prepagecreate</em> mode (see <int:link pageid="012" />, chapter 1.6). This action then can assign
-parameters to the model object that are contained in the URL.
+<p>
+   The <em>&lt;fcon:importdesign /&gt;</em> tag aids the implementation of front controller based applications and
+   makes it possible to include views by the use of application model information according to the MVC pattern.
+   Therefore a separate model class that provides the information must be created for the entire application or a
+   single module. The control of the view integration is regulated typically by an own front controller actions that
+   is executed in <em>TYPE_PRE_PAGE_CREATE</em> mode (see <int:link pageid="012" anchor="Chapter-3-1-Definition" />).
+   This action then can assign parameters to the model object that are contained in the URL.
+</p>
 <gen:highlight type="apf-xml">
 &lt;fcon:importdesign
-   templatenamespace=""
-   modelnamespace=""
-   modelfile=""
-   modelclass=""
-   modelparam=""
+   template-namespace=""
+   template-param=""
+   model=""
    [sessionsingleton=""]
 /&gt;
 </gen:highlight>
 <strong>Description of the attributes:</strong>
 <ul>
-  <li>
-    <strong>templatenamespace</strong>: Namespace path to the desired template folder.
-    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9:]</code>)
-  </li>
-  <li>
-    <strong>modelnamespace</strong>: Namespace path to the model class.
-    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9:]</code>)
-  </li>
-  <li>
-    <strong>modelfile</strong>: Class file of the model.
-    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
-  </li>
-  <li>
-    <strong>modelclass</strong>: Class name of the model.
-    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
-  </li>
-  <li>
-    <strong>modelparam</strong>: Model attribute that indicates the inclusion if the template file.
-    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
-  </li>
-  <li>
-    <strong>sessionsingleton</strong>: Defines, if the model object is created in SINGLETON or
-    SESSIONSINGLETON mode. If the attribute is not present or contains any other value than
-    <strong>true</strong>, the SINGLETON mode will be used.
-    (<strong>Allowed values</strong>: <code>true|false</code>)
-  </li>
+   <li>
+      <strong>template-namespace</strong>: Namespace path to the desired template folder.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9\]</code>)
+   </li>
+   <li>
+      <strong>template-param</strong>: Model attribute that indicates the inclusion if the template file.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
+   </li>
+   <li>
+      <strong>model</strong>: Fully-qualified class name of the model.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_]</code>)
+   </li>
+   <li>
+      <strong>sessionsingleton</strong>: Defines, if the model object is created in SINGLETON or
+      SESSIONSINGLETON mode. If the attribute is not present or contains any other value than
+      <em>true</em>, the SINGLETON mode will be used.
+      (<em>Allowed values</em>: <code>true|false</code>)
+   </li>
 </ul>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_046" />
