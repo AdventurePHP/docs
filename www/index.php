@@ -25,10 +25,11 @@ $l = & Singleton::getInstance('APF\core\logging\Logger');
 $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
 // configure logger for database debug messages
-$dbWriter = clone $l->getLogWriter(
+$defaultWriter = $l->getLogWriter(
    Registry::retrieve('APF\core', 'InternalLogTarget')
 );
-$l->addLogWriter('mysqlx', $dbWriter);
+$l->addLogWriter('mysqlx', clone $defaultWriter);
+$l->addLogWriter('searchlog', clone $defaultWriter);
 
 // configure url rewriting feature
 // 1. input and output filter
