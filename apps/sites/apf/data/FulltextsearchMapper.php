@@ -5,7 +5,7 @@ use APF\core\benchmark\BenchmarkTimer;
 use APF\core\database\ConnectionManager;
 use APF\core\pagecontroller\APFObject;
 use APF\core\singleton\Singleton;
-use APF\sites\apf\biz\SearchResult;
+use APF\sites\apf\biz\PageSearchResult;
 
 /**
  * @package APF\sites\apf\data
@@ -25,7 +25,7 @@ class FulltextsearchMapper extends APFObject {
     * Loads a list of search result objects according to the given search string.
     *
     * @param string $searchString one or more search strings.
-    * @return SearchResult[] List of search result objects.
+    * @return PageSearchResult[] List of search result objects.
     *
     * @author Christian Achatz
     * @version
@@ -102,10 +102,10 @@ class FulltextsearchMapper extends APFObject {
    /**
     * @private
     *
-    * Mapps a database result set to a search result object.
+    * Maps a database result set to a search result object.
     *
     * @param string[] $resultSet The database result set.
-    * @return searchResult The search result object.
+    * @return PageSearchResult The search result object.
     *
     * @author Christian Achatz
     * @version
@@ -114,7 +114,7 @@ class FulltextsearchMapper extends APFObject {
     */
    private function mapSearchResult2DomainObject($resultSet) {
 
-      $searchResult = new searchResult();
+      $searchResult = new PageSearchResult();
 
       if (isset($resultSet['PageID'])) {
          $searchResult->setPageId($resultSet['PageID']);
@@ -126,7 +126,7 @@ class FulltextsearchMapper extends APFObject {
          $searchResult->setLanguage($resultSet['Language']);
       }
       if (isset($resultSet['ModificationTimestamp'])) {
-         $searchResult->setLastModified($resultSet['ModificationTimestamp']);
+         $searchResult->setLastModified(new \DateTime($resultSet['ModificationTimestamp']));
       }
       if (isset($resultSet['WordCount'])) {
          $searchResult->setWordCount($resultSet['WordCount']);

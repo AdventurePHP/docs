@@ -3,8 +3,13 @@ namespace APF\sites\apf\pres\controller;
 
 use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\registry\Registry;
-use APF\sites\apf\biz\FulltextsearchManager;
+use APF\sites\apf\biz\ApfPageSearchManager;
+use APF\sites\apf\biz\ForumSearchResult;
+use APF\sites\apf\biz\PageSearchResult;
+use APF\sites\apf\biz\SearchResult;
 use APF\sites\apf\biz\UrlManager;
+use APF\sites\apf\biz\WikiSearchResult;
+use APF\tools\link\Url;
 use APF\tools\request\RequestHandler;
 
 /**
@@ -32,7 +37,7 @@ class SearchController extends BaseDocumentController {
     * Version 0.3, 16.03.2008 (introduced deactivation for unknown hosts)<br />
     * Version 0.4, 02.04.2008 (changed target of the search page. hence, this module is no more independent)<br />
     * Version 0.5, 13.06.2008 (changed target link for english results on german pages)<br />
-    * Version 0.6, 03.10.2008 (Addapted to the new page structure; removed deactivation)<br />
+    * Version 0.6, 03.10.2008 (Adapted to the new page structure; removed deactivation)<br />
     * Version 0.7,
     */
    public function transformContent() {
@@ -41,15 +46,15 @@ class SearchController extends BaseDocumentController {
       $searchTerm = RequestHandler::getValue('search', '');
 
       // display form
-      $form = &$this->getForm('SearchV2');
+      $form = & $this->getForm('SearchV2');
       $form->transformOnPlace();
 
       // display results
       if (strlen($searchTerm) >= 3) {
 
          // get manager
-         /* @var $m FulltextsearchManager */
-         $m = &$this->getServiceObject('APF\sites\apf\biz\FulltextsearchManager');
+         /* @var $m ApfPageSearchManager */
+         $m = & $this->getServiceObject('APF\sites\apf\biz\ApfPageSearchManager');
 
          // load results
          $searchResults = $m->loadSearchResult($searchTerm);
@@ -61,32 +66,26 @@ class SearchController extends BaseDocumentController {
          $buffer = (string)'';
 
          // get template
-         $template = &$this->getTemplate('Result');
+         $template = & $this->getTemplate('Result');
 
          $count = count($searchResults);
-         /* @var $urlMan UrlManager */
-         $urlMan = &$this->getServiceObject('APF\sites\apf\biz\UrlManager');
-         $baseUrl = Registry::retrieve('APF\core', 'URLBasePath');
+
+
          for ($i = 0; $i < $count; $i++) {
 
-            // gather common information
-            $url = $urlMan->generateLink($searchResults[$i]->getPageId(), $searchResults[$i]->getLanguage());
-            $title = $urlMan->getPageTitle($searchResults[$i]->getPageId(), $searchResults[$i]->getLanguage());
-            $link = $baseUrl . $url;
-
             // display title
-            $template->setPlaceHolder('Title', $title);
+            $template->setPlaceHolder('Title', $this->getTitle($searchResults[$i]));
 
             // display content language
             $resultLang = $config->getSection($this->language)->getValue('DisplayName.' . $searchResults[$i]->getLanguage());
             $template->setPlaceHolder('Language', $resultLang);
 
-            // display last modifying date --> refactor!
-            $time = strtotime($searchResults[$i]->getLastModified());
-            $template->setPlaceHolder('LastMod', date('d.m.Y, H:i:s', $time));
+            // display last modifying date
+            $time = $searchResults[$i]->getLastModified();
+            $template->setPlaceHolder('LastMod', $time->format('d.m.Y, H:i:s'));
 
             // display permalink
-            $template->setPlaceHolder('PermaLink', $link);
+            $template->setPlaceHolder('PermaLink', $this->getUrl($searchResults[$i]));
 
             // add current result to list
             $buffer .= $template->transformTemplate();
@@ -97,7 +96,7 @@ class SearchController extends BaseDocumentController {
          if ($count < 1) {
 
             // get template
-            $templateNoSearchResult = &$this->getTemplate('NoSearchResult_' . $this->language);
+            $templateNoSearchResult = & $this->getTemplate('NoSearchResult_' . $this->language);
 
             // add message to buffer
             $buffer .= $templateNoSearchResult->transformTemplate();
@@ -109,6 +108,35 @@ class SearchController extends BaseDocumentController {
 
       }
 
+   }
+
+   private function getUrl(SearchResult $result) {
+      if ($result instanceof PageSearchResult) {
+         /* @var $urlMan UrlManager */
+         $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
+         $currentUrl = Url::fromCurrent(true);
+         $baseUrl = $currentUrl->getScheme() . '://' . $currentUrl->getHost();
+         $url = $urlMan->generateLink($result->getPageId(), $result->getLanguage());
+         return $baseUrl . $url;
+      } else if ($result instanceof WikiSearchResult) {
+         return 'http://wiki.adventure-php-framework.org/' . $result->getLanguage() . '/' . $result->getPageId();
+      } else {
+         /* @var $result ForumSearchResult */
+         return 'http://forum.adventure-php-framework.org/index.php?f='.$result->getForumId().'&amp;t='.$result->getTopicId();
+      }
+   }
+
+   private function getTitle(SearchResult $result) {
+      if ($result instanceof PageSearchResult) {
+         /* @var $urlMan UrlManager */
+         $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
+         return $urlMan->getPageTitle($result->getPageId(), $result->getLanguage());
+      } else if ($result instanceof WikiSearchResult) {
+         return $result->getTitle();
+      } else {
+         /* @var $result ForumSearchResult */
+         return $result->getTitle();
+      }
    }
 
 }
