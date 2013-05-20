@@ -82,6 +82,8 @@ interface ClassLoader {
 
    public function getRootPath();
 
+   public function getConfigurationRootPath();
+
 }
 </gen:highlight>
 <p>
@@ -98,7 +100,8 @@ interface ClassLoader {
 <p>
    <strong>Loading templates and configuration files</strong> is also done using the registered <em>ClassLoader</em>s,
    but here they only provide the base path. The base path is then used to calculate the complete file path to load
-   template and configuration files from different base paths.
+   templates (<em>getRootPath()</em>) and configuration files (<em>getConfigurationRootPath()</em>) from different base
+   paths.
 </p>
 <div class="hint">
    The APF class loading mechanism is fully compatible to other frameworks/tools since the <em>RootClassLoader</em> is
@@ -108,16 +111,18 @@ interface ClassLoader {
 <h3 id="Chapter-3-StandardClassLoader"><a href="#Chapter-3-StandardClassLoader">3. StandardClassLoader</a></h3>
 <p>
    The <em>StandardClassLoader</em> is the standard implementation of the <em>ClassLoader</em> interface. He is
-   responsible for loading classes that are refering to a dedicated vendor name.
+   responsible for loading classes that are referring to a dedicated vendor name.
 </p>
 <p>
-   To configure the class loader, the constructor takes the desired vendor name as well as the base path. Example:
+   To configure the class loader, the constructor takes the desired vendor name as well as the base path for code and
+   configuration. The third argument (base path of configuration files) is optional and is initialized with the value
+   of the code bas path in case it is omitted. Example:
 </p>
 <gen:highlight type="php">
 use APF\core\loader\RootClassLoader;
 use APF\core\loader\StandardClassLoader;
 
-$classLoader = new StandardClassLoader('ACME', '/acme/src');
+$classLoader = new StandardClassLoader('ACME', '/acme/src'[, '/acme/conf']);
 RootClassLoader::addLoader($classLoader);
 </gen:highlight>
 <p>
@@ -125,15 +130,29 @@ RootClassLoader::addLoader($classLoader);
    with different vendor names and base paths.
 </p>
 <p>
-   In contrast, using this mechanis can also be used to combine sources from different vendors into one single base path.
+   In contrast, using this mechanism can also be used to combine sources from different vendors into one single base path.
    This can be done by registering multiple <em>StandardClassLoader</em> with different vendor names but the same
    base path.
 </p>
+<p>
+   Another scenario is the separation of code and configuration for one vendor. Using the two base paths for classes
+   and templates (<em>getRootPath()</em>) as well as configurations (<em>getConfigurationRootPath()</em>) you are enabled
+   to separate code fragments from configuration.
+</p>
 <div class="hint">
-   The base path of the <em>StandardClassLoader</em> registered for the vendor <em>APF</em> registered within the
-   <em>APF/core/bootstrap.php</em> can be manipulated by the bootstrap file of your application. Fir this reason, please
-   set the <em>$apfClassLoaderRootPath</em> variable according to your environment. Details can be taken from
-   <a href="#Chapter-4-Usage">chapter 4</a>.
+   <p>
+      The base path of the <em>StandardClassLoader</em> registered for the vendor <em>APF</em> registered within the
+      <em>APF/core/bootstrap.php</em> can be manipulated by the bootstrap file of your application. For this reason, please
+      set the <em>$apfClassLoaderRootPath</em> variable according to your environment.
+   </p>
+   <p>
+      Besides, this mechanism can be used to separate APF code from it's configuration. For this reason, please set the
+      <em>$apfClassLoaderConfigurationRootPath</em> variable according to your environment before inclusion of the
+      <em>APF/core/bootstrap.php</em> file.
+   </p>
+   <p>
+      Details can be taken from <a href="#Chapter-4-Usage">chapter 4</a>.
+   </p>
 </div>
 <p>
    Mapping of vendor name or namespace and type (e.g. PHP class) respectively to a dedicated file name is done by the
@@ -199,7 +218,7 @@ echo $fC->start('...', '...');
 </p>
 <p>
    In case you are using symlinks or your code base delivers multiple projects you can adapt the base path by the
-   <em>$apfClassLoaderRootPath</em> variable right before incudin the <em>bootstrap.php</em> file.Your <em>index.php</em>
+   <em>$apfClassLoaderRootPath</em> variable right before including the <em>bootstrap.php</em> file. Your <em>index.php</em>
    changes as follows:
 </p>
 <gen:highlight type="php">
@@ -216,7 +235,40 @@ echo $fC->start('...', '...');
    PHP classes, templates, and configuration files for vendor <em>APF</em> are now loaded from <em>/path/to/apf/src</em>.
 </p>
 
-<h4 id="Chapter-4-2-Registration-of-ClassLoaders"><a href="#Chapter-4-2-Registration-of-ClassLoaders">4.2. Registration of ClassLoaders</a></h4>
+<h4 id="Chapter-4-2-Adaption-of-the-configuration-base-path"><a href="#Chapter-4-2-Adaption-of-the-configuration-base-path">4.2. Adaption of the configuration base path</a></h4>
+<p>
+   Besides the base path for classes and templates each <em>ClassLoader</em> can be applied a base path for configuration
+   files. The <em>StandardClassLoader</em> for vendor <em>APF</em> is also initialized within <em>APF/core/bootstrap.php</em>
+   that in turn is included in the bootstrap file of your application.
+</p>
+<p>
+   Without further configuration, the framework evaluates the path to the <em>bootstrap.php</em> file and uses - as
+   described in <a href="#Chapter-4-1-Adaption-of-the-base-path">chapter 4.1</a> -  it's parent folder - as the base
+   path for initializing the <em>StandardClassLoader</em>. Vendor name for all APF components is <em>APF</em>.
+</p>
+<p>
+   In case you intend to customize the base path for configurations along with the folder for classes and templates you
+   can adapt the base path by the <em>$apfClassLoaderConfigurationRootPath</em> variable right before including the
+   <em>bootstrap.php</em> file. Your <em>index.php</em> changes as follows:
+</p>
+<gen:highlight type="php">
+$apfClassLoaderRootPath = '/path/to/apf/src';
+$apfClassLoaderConfigurationRootPath = '/path/to/apf/config'
+include('./APF/core/bootstrap.php');
+
+use APF\core\frontcontroller\Frontcontroller;
+
+/* @var $fC Frontcontroller */
+$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+echo $fC->start('...', '...');
+</gen:highlight>
+<p>
+   PHP classes and templates for vendor <em>APF</em> are now loaded from <em>/path/to/apf/src</em>, configuration files
+   are expected to be located under <em>/path/to/apf/config</em> by the appropriate <em>ConfigurationProvider</em>
+   implementations.
+</p>
+
+<h4 id="Chapter-4-3-Registration-of-ClassLoaders"><a href="#Chapter-4-3-Registration-of-ClassLoaders">4.3. Registration of ClassLoaders</a></h4>
 <p>
    In order to use further <em>ClassLoader</em>s they must be registered within the bootstrap file of your application.
    For this reason, you can use the <em>RootClassLoader::addLoader()</em> method that takes a <em>ClassLoader</em>
@@ -276,6 +328,13 @@ class ExplicitClassNameClassLoader implements ClassLoader {
       return $this->rootPath;
    }
 
+   public function getConfigurationRootPath() {
+      // Assumes that classes/templates and configuration files
+      // reside within the same folder! May be different within
+      // your implementations.
+      return $this->rootPath;
+   }
+
 }
 </gen:highlight>
 <p>
@@ -289,7 +348,7 @@ use ACME\loader\ExplicitClassNameClassLoader;
 RootClassLoader::addLoader(new ExplicitClassNameClassLoader('ACME', '/acme/src'));
 </gen:highlight>
 
-<h4 id="Chapter-4-3-Loading-application-components"><a href="#Chapter-4-3-Loading-application-components">4.3. Loading application components</a></h4>
+<h4 id="Chapter-4-4-Loading-application-components"><a href="#Chapter-4-4-Loading-application-components">4.4. Loading application components</a></h4>
 <p>
    Loading classes is directly done by the <em>RootClassLoader</em>. In case you want to place application components
    such as font files within the folder structure of your application and include them easily, you can use the
@@ -358,9 +417,9 @@ class ImageHeadlineGenerator {
    file.
 </p>
 
-<h4 id="Chapter-4-4-Usage-of-the-RootClassLoader"><a href="#Chapter-4-4-Usage-of-the-RootClassLoader">4.4. Usage of the RootClassLoader</a></h4>
+<h4 id="Chapter-4-5-Usage-of-the-RootClassLoader"><a href="#Chapter-4-5-Usage-of-the-RootClassLoader">4.5. Usage of the RootClassLoader</a></h4>
 <p>
-   Besides the methods listed in <a href="#Chapter-4-3-Loading-application-components">chapter 4.3.</a> the
+   Besides the methods listed in <a href="#Chapter-4-4-Loading-application-components">chapter 4.3.</a> the
    <em>RootClassLoader</em> provides further methods that can be used to create file paths or load application
    components.
 </p>
