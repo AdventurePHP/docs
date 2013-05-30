@@ -52,7 +52,8 @@ LinkGenerator::setLinkScheme(new RewriteLinkScheme());
 // configure page values
 Registry::register('APF\sites\apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumentation/Build/RELEASES');
 Registry::register('APF\sites\apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
-Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
+//Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
+Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://apfforum');
 Registry::register('APF\sites\apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
 
 // special script kiddie error handler ;)

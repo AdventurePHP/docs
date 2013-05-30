@@ -3,14 +3,18 @@ namespace APF\sites\apf\pres\controller;
 
 use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\registry\Registry;
-use APF\sites\apf\biz\ApfPageSearchManager;
+use APF\sites\apf\biz\ApfSearchManager;
 use APF\sites\apf\biz\ForumSearchResult;
 use APF\sites\apf\biz\PageSearchResult;
 use APF\sites\apf\biz\SearchResult;
 use APF\sites\apf\biz\UrlManager;
 use APF\sites\apf\biz\WikiSearchResult;
+use APF\tools\link\LinkGenerator;
 use APF\tools\link\Url;
 use APF\tools\request\RequestHandler;
+use APF\core\logging\LogEntry;
+use APF\core\singleton\Singleton;
+use APF\core\logging\Logger;
 
 /**
  * @package APF\sites\apf\pres\controller
@@ -49,64 +53,75 @@ class SearchController extends BaseDocumentController {
       $form = & $this->getForm('SearchV2');
       $form->transformOnPlace();
 
+      /* @var $l Logger */
+      $l = & Singleton::getInstance('APF\core\logging\Logger');
+      $l->logEntry('searchlog', 'SearchString: "' . $searchTerm . '"', LogEntry::SEVERITY_INFO);
+
       // display results
       if (strlen($searchTerm) >= 3) {
 
-         // get manager
-         /* @var $m ApfPageSearchManager */
-         $m = & $this->getServiceObject('APF\sites\apf\biz\ApfPageSearchManager');
+         /* @var $m ApfSearchManager */
+         $m = & $this->getServiceObject('APF\sites\apf\biz\ApfSearchManager');
 
-         // load results
-         $searchResults = $m->loadSearchResult($searchTerm);
-
-         // load language config
-         $config = $this->getConfiguration('APF\sites\apf\biz', 'language.ini');
-
-         // initialize buffer
-         $buffer = (string)'';
-
-         // get template
-         $template = & $this->getTemplate('Result');
-
-         $count = count($searchResults);
-
-
-         for ($i = 0; $i < $count; $i++) {
-
-            // display title
-            $template->setPlaceHolder('Title', $this->getTitle($searchResults[$i]));
-
-            // display content language
-            $resultLang = $config->getSection($this->language)->getValue('DisplayName.' . $searchResults[$i]->getLanguage());
-            $template->setPlaceHolder('Language', $resultLang);
-
-            // display last modifying date
-            $time = $searchResults[$i]->getLastModified();
-            $template->setPlaceHolder('LastMod', $time->format('d.m.Y, H:i:s'));
-
-            // display permalink
-            $template->setPlaceHolder('PermaLink', $this->getUrl($searchResults[$i]));
-
-            // add current result to list
-            $buffer .= $template->transformTemplate();
-
-         }
-
-         // display "nothing found" if result count is null
-         if ($count < 1) {
-
-            // get template
-            $templateNoSearchResult = & $this->getTemplate('NoSearchResult_' . $this->language);
-
-            // add message to buffer
-            $buffer .= $templateNoSearchResult->transformTemplate();
-
-         }
-
-         // display buffer
-         $this->setPlaceHolder('Result', $buffer);
+         $this->displayResultList($m->loadSearchResult($searchTerm), 'WebsiteResult');
+         $this->displayResultList($m->loadWikiSearchResults($searchTerm), 'WikiResult');
+         $this->displayResultList($m->loadForumSearchResults($searchTerm), 'ForumResult');
 
       }
+
+   }
+
+   /**
+    * @param SearchResult[] $list The search results to display.
+    * @param string $placeHolderName The name of the place holder to set the result list to.
+    */
+   private function displayResultList(array $list, $placeHolderName) {
+
+      // load language config
+      $config = $this->getConfiguration('APF\sites\apf\biz', 'language.ini');
+
+      // initialize buffer
+      $buffer = (string)'';
+
+      // get template
+      $template = & $this->getTemplate('Result');
+
+      $count = count($list);
+
+      for ($i = 0; $i < $count; $i++) {
+
+         // display title
+         $template->setPlaceHolder('Title', $this->getTitle($list[$i]));
+
+         // display content language
+         $resultLang = $config->getSection($this->language)->getValue('DisplayName.' . $list[$i]->getLanguage());
+         $template->setPlaceHolder('Language', $resultLang);
+
+         // display last modifying date
+         $time = $list[$i]->getLastModified();
+         $template->setPlaceHolder('LastMod', $time->format('d.m.Y, H:i:s'));
+
+         // display permalink
+         $template->setPlaceHolder('PermaLink', $this->getUrl($list[$i]));
+
+         // add current result to list
+         $buffer .= $template->transformTemplate();
+
+      }
+
+      // display "nothing found" if result count is null
+      if ($count < 1) {
+
+         // get template
+         $templateNoSearchResult = & $this->getTemplate('NoSearchResult_' . $this->getLanguage());
+
+         // add message to buffer
+         $buffer .= $templateNoSearchResult->transformTemplate();
+
+      }
+
+      // display buffer
+      $this->setPlaceHolder($placeHolderName, $buffer);
 
    }
 
@@ -119,10 +134,10 @@ class SearchController extends BaseDocumentController {
          $url = $urlMan->generateLink($result->getPageId(), $result->getLanguage());
          return $baseUrl . $url;
       } else if ($result instanceof WikiSearchResult) {
-         return 'http://wiki.adventure-php-framework.org/' . $result->getLanguage() . '/' . $result->getPageId();
+         return Registry::retrieve('APF\sites\apf', 'WikiBaseURL') . '/' . $result->getLanguage() . '/' . $result->getPageId();
       } else {
          /* @var $result ForumSearchResult */
-         return 'http://forum.adventure-php-framework.org/index.php?f='.$result->getForumId().'&amp;t='.$result->getTopicId();
+         return Registry::retrieve('APF\sites\apf', 'ForumBaseURL') . '/viewtopic.php?f=' . $result->getForumId() . '&amp;t=' . $result->getTopicId();
       }
    }
 

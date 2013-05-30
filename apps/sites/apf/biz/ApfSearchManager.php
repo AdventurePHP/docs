@@ -2,17 +2,13 @@
 namespace APF\sites\apf\biz;
 
 use APF\core\database\AbstractDatabaseHandler;
-use APF\core\logging\LogEntry;
 use APF\core\database\ConnectionManager;
 use APF\core\pagecontroller\APFObject;
-use APF\core\singleton\Singleton;
-use APF\sites\apf\biz\SearchResult;
-use APF\core\logging\Logger;
 use \DateTime;
 
 /**
  * @package APF\sites\apf\biz
- * @class ApfPageSearchManager
+ * @class ApfSearchManager
  *
  * Business component of the full text search feature.
  *
@@ -20,27 +16,77 @@ use \DateTime;
  * @version
  * Version 0.1, 10.03.2008<br />
  */
-class ApfPageSearchManager extends APFObject {
+class ApfSearchManager extends APFObject {
 
    /**
-    * @param string $searchTerm Search term.
-    * @return SearchResult[] List of search results for the given search term.
+    * @public
+    *
+    * Loads a list of search result objects according to the given search string.
+    *
+    * @param string $searchTerm one or more search strings.
+    * @return PageSearchResult[] List of search result objects.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 10.03.2008<br />
+    * Version 0.2, 19.10.2008 (Introduced synonym mapping)<br />
+    * Version 0.3, 05.11.2008 (Added value escaping for the search string to avoid sql injections)<br />
     */
    public function loadSearchResult($searchTerm) {
 
-      /* @var $m ApfPageSearchManager */
-      $m = & $this->getServiceObject('APF\sites\apf\data\FulltextsearchMapper');
+      $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
 
-      /* @var $l Logger */
-      $l = & Singleton::getInstance('APF\core\logging\Logger');
-      $l->logEntry('searchlog', 'SearchString: "' . $searchTerm . '"', LogEntry::SEVERITY_INFO);
+      /* @var $cM ConnectionManager */
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
+      $SQL = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
-      return array_merge(
-         $m->loadSearchResult($searchTerm),
-         $this->loadWikiSearchResults($searchTerm),
-         $this->loadForumSearchResults($searchTerm)
-      );
+      // make search string save (sql injection)
+      $searchString = $SQL->escapeValue($searchTerm);
 
+      // do synonym mapping
+      $synonyms = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch_synonyms.ini');
+      $section = $synonyms->getSection($this->language);
+
+      foreach ($section->getValueNames() as $name) {
+         $searchString = str_replace($name, $section->getValue($name), $searchString);
+      }
+
+      // split search strings
+      $SearchStringArray = explode(' ', $searchString);
+
+      // create where statement
+      $count = count($SearchStringArray);
+      $WHERE = array();
+      if ($count > 1) {
+
+         for ($i = 0; $i < $count; $i++) {
+            $WHERE[] = 'search_word.Word LIKE \'%' . strtolower($SearchStringArray[$i]) . '%\'';
+         }
+
+      } else {
+         $WHERE[] = 'search_word.Word LIKE \'%' . strtolower($searchString) . '%\'';
+      }
+
+      // create search statement
+      $select = 'SELECT search_articles.*, search_index.*, search_word.* FROM search_articles
+                       INNER JOIN search_index ON search_articles.ArticleID = search_index.ArticleID
+                       INNER JOIN search_word ON search_index.WordID = search_word.WordID
+                       WHERE ' . implode('OR ', $WHERE) . '
+                       GROUP BY search_articles.ArticleID
+                       ORDER BY search_index.WordCount DESC, search_articles.ModificationTimestamp DESC
+                       LIMIT 20';
+
+      // execute search statement
+      $result = $SQL->executeTextStatement($select);
+
+      // map results to domain objects
+      $results = array();
+
+      while ($data = $SQL->fetchData($result)) {
+         $results[] = $this->mapPageResult2DomainObject($data);
+      }
+
+      return $results;
    }
 
    public function loadForumSearchResults($searchTerm) {
@@ -171,10 +217,49 @@ LIMIT 20';
    }
 
    /**
+    * @private
+    *
+    * Maps a database result set to a search result object.
+    *
+    * @param string[] $resultSet The database result set.
+    * @return PageSearchResult The search result object.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 10.03.2008<br />
+    * Version 0.2, 02.10.2008 (Added some new domain object attributes)<br />
+    */
+   private function mapPageResult2DomainObject(array $resultSet) {
+
+      $searchResult = new PageSearchResult();
+
+      if (isset($resultSet['PageID'])) {
+         $searchResult->setPageId($resultSet['PageID']);
+      }
+      if (isset($resultSet['Title'])) {
+         $searchResult->setTitle($resultSet['Title']);
+      }
+      if (isset($resultSet['Language'])) {
+         $searchResult->setLanguage($resultSet['Language']);
+      }
+      if (isset($resultSet['ModificationTimestamp'])) {
+         $searchResult->setLastModified(new \DateTime($resultSet['ModificationTimestamp']));
+      }
+      if (isset($resultSet['WordCount'])) {
+         $searchResult->setWordCount($resultSet['WordCount']);
+      }
+      if (isset($resultSet['Word'])) {
+         $searchResult->setIndexedWord($resultSet['Word']);
+      }
+
+      return $searchResult;
+   }
+
+   /**
     * @param array $data The database call return value.
     * @return WikiSearchResult The result object.
     */
-   protected function mapWikiResultToDomainObject(array $data) {
+   private function mapWikiResultToDomainObject(array $data) {
       $result = new WikiSearchResult();
       $result->setTitle(str_replace('_', ' ', $data['page_title']));
       $result->setLastModified(new \DateTime($data['page_touched']));
@@ -186,7 +271,7 @@ LIMIT 20';
     * @param array $data The database call return value.
     * @return ForumSearchResult The result object.
     */
-   protected function mapForumResultToDomainObject(array $data) {
+   private function mapForumResultToDomainObject(array $data) {
       $result = new ForumSearchResult();
       $result->setTitle($data['forum_name'] . ' - ' . strlen($data['topic_title']) > 30 ? substr($data['topic_title'], 0, 30) . ' ...' : $data['topic_title']);
       $result->setLastModified(DateTime::createFromFormat('U', $data['topic_last_post_time']));
