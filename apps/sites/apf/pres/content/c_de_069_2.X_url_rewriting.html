@@ -1,101 +1,279 @@
-<doku:title parent="119" tags="url,rewriting,htaccess,apache,registry,urlrewriting,bootstrap,url layout" title="URL-Rewriting" urlname="URL-Rewriting">
+<doku:title parent="119" tags="url,rewriting,htaccess,apache,url layout" title="URL-Rewriting" urlname="URL-Rewriting">
   Das Framework bringt bereits alle Mittel für URL-Rewriting mit. Diese Seite beschreibt, wie
   Anwendungen auf umgeschriebene URLs umgestellt werden können und welche Tools zur
   Verfügung stehen.
 </doku:title>
 <h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
-Das Adventure PHP Framework bietet die Möglichkeit, Webseiten und Applikationen mit und ohne
-URL-Rewriting zu betreiben. Unter URL-Rewriting wird im allgemeinen verstanden, dass URL-Parameter
-und -Werte nicht wie üblich per "&" und "=", sondern via "/" separiert werden. Das erweckt den
-Eindruck, dass die Inhalte in Ordnern abgelegt sind. Ein weiterer schöner Nebeneffekt ist, dass
-Suchmaschinen sog. Slash-URLs für gewöhnlich besser indizieren. Diese Maßnahme ersetzt
-jedoch keine komplette Suchmaschinenoptimierung.
-<br />
-<br />
-<br />
-<h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration</a></h3>
 <p>
-   Beim Einsatz des URL-Rewrite-Modus muss beachtet werden, dass die Bootstrap-Datei (z.B.
-   <strong>index.php</strong>) im <em>DOCUMENT_ROOT</em> des Webservers oder eines VHOSTs liegt, da
-   sonst die Zuordnung der Parameter zu ihren Werten nicht korrekt ausgeführt werden kann.
+   Das Adventure PHP Framework unterstützt das transparente Umschreiben von URLs (auch bekannt als <em>URL-Rewriting</em>)
+   auf Basis von <int:link pageid="137">Eingabe-Filtern</int:link> und der <int:link pageid="138">Link-Generierung</int:link>.
+   Sie können damit eine Änderung des URL-Layout ohne Anpassung der Applikation durchführen.
+</p>
+<p>
+   Mit dem APF ausgeliefert wird ein Standard-Set bestehend aus Eingabe- und Ausgabe-Filtern (<em>ChainedUrlRewritingInputFilter</em>
+   und <em>ChainedUrlRewritingOutputFilter</em>) und  Link-Generierung (<em>RewriteLinkScheme</em>), mit der ein
+   generisches, umgeschriebenes URL-Format in Ihrer Applikation genutzt werden kann.
+</p>
+<p>
+   Weitere URL-Formate lassen sich darauf basierend sehr einfach umsetzen. Ein Tutorial hierzu finden Sie im
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Implementierung_von_eigenen_URL-Layouts">Wiki</a>.
 </p>
 
-<h4 id="Chapter-2-1-Apache"><a href="#Chapter-2-1-Apache">2.1. Apache-Konfiguration</a></h4>
+<h3 id="Chapter-2-URL-Layout"><a href="#Chapter-2-URL-Layout">2. URL-Layout</a></h3>
 <p>
-   Zur Verwendung des URL-Rewrite-Modus muss eine <strong>.htaccess</strong>-Datei im Verzeichnis der
-   Bootstrap-Datei angelegt werden. Die folgende Codebox zeigt eine Beispiel-Konfiguration die für
-   die meißten Anwendungsfälle verwendet werden kann:
+   Die mitgelieferten Komponenten ermöglichen das Umschreiben einer URL der Form
 </p>
-<gen:highlight type="apf-xml">
-# Aktivierung von mod_rewrite
-RewriteEngine on
-
-# Ausschluss definierter Verzeichnisse von der RewriteRule
-RewriteCond %{REQUEST_URI} !^(\/frontend) [NC]
-
-# Definition der RewriteRule. Alle Anfragen ausser den ausgenommenen
-# Dateien werden auf die index.php weitergeleitet
-RewriteRule !(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$ /index.php?apf-rewrited-query=%{REQUEST_URI}&%{QUERY_STRING} [NC,L]
+<gen:highlight type="code">
+http://www.example.com/?page=start
 </gen:highlight>
-Dabei ist zu beachten, dass die Definition
-<gen:highlight type="apf-xml">
+<p>
+   in
+</p>
+<gen:highlight type="code">
+http://www.example.com/page/start
+</gen:highlight>
+<p>
+   Wie dem zweiten Code-Block entnommen werden kann, wurden <em>?</em> und <em>=</em> durch jeweils einen <em>/</em>
+   ersetzt um den Eindruck einer Ordner-Struktur zu erwecken. Beim Aufruf der Seite wird der Parameter <em>page</em>
+   jedoch wie im ersten Block mit dem Wert <em>start</em> gefüllt.
+</p>
+<p>
+   Die Anzahl der Parameter ist dabei nicht begrenzt. Das URL-Schema lautet wie folgt:
+</p>
+<gen:highlight type="code">
+{scheme}://{host}/{param1}/{value1}/{param2}/{value2}/...
+</gen:highlight>
+<p>
+   Parameter und Werte sind jeweils mit einem <em>/</em> getrennt, mehrere Paare ebenfalls per <em>/</em>. Für URLs
+   mit Action-Anweisungen gilt ein erweitertes Schema das Sie im Kapitel
+   <int:link pageid="012" anchor="Chapter-3-2-2-Dynamische-Actions"/> nachlesen können.
+</p>
+<div class="warn">
+   Beim Einsatz von umgeschriebenen URLs mit den Boardmitteln des APF muss beachtet werden, dass die Bootstrap-Datei
+   (z.B. <em>index.php</em>) im <em>DOCUMENT_ROOT</em> des Webservers oder VHOSTs liegt. Dies ist notwendig um die
+   Zuordnung der Parameter zu ihren Werten korrekt auszuführen.
+</div>
+
+<h3 id="Chapter-3-Konfiguration"><a href="#Chapter-3-Konfiguration">3. Konfiguration</a></h3>
+<p>
+   Die Konfiguration des URL-Mappings des APF beinhaltet mehrere Komponenten:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Komponente</td>
+         <td>Beschreibung</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>Eingabe-Filter</td>
+         <td>
+            Der Eingabe-Filter sorgt für die Auflösung des URL-Schema. Hierzu wird die URL in ihre Bestandteile
+            zerlegt und zur Weiterverarbeitung gespeichert. Dies erfolgt typischerweise im <em>$_REQUEST</em>-, <em>$_GET</em>-
+            bzw. <em>$_POST</em>-Array damit die nachfolgend ausgeführte Applikation unabhängig von der Aussen-Repräsentation
+            ist. Details lassen sich im Kapitel <int:link pageid="137" /> nachlesen.
+         </td>
+      </tr>
+      <tr>
+         <td>Link-Schema</td>
+         <td>
+            Die genutzte Implementierung des <em>LinkScheme</em>-Interfaces kümmert sich um die Generierung von URLs nach
+            dem gewünschten Schema. Sie erzeugt im Gegensatz zum Eingabe-Filter aus einer internen Repräsentation der
+            URL eine externe Darstellung. Details zur Generierung von URLs können Sie im Kapitel <int:link pageid="138" />
+            nachlesen.
+         </td>
+      </tr>
+      <tr>
+         <td>Ausgabe-Filter</td>
+         <td>
+            Sofern notwendig, lassen sich anderweitig generierte URLs mit Hilfe eines Ausgabe-Filters auch auf das
+            gewünschte externe Format umschreiben. In einem Ausgabe-Filter haben Sie Zugriff auf den kompletten Quelltext
+            und damit lassen sich beispielsweise Formular-Actions, Bild-URLs oder andere Ressourcen nachträglich
+            umschreiben und an die gewünschte externe Repräsentation anpassen.
+         </td>
+      </tr>
+      <tr>
+         <td>Webserver-Konfiguration</td>
+         <td>
+            Um das Umschreiben von URLs und gleichzeitig die Auslieferung einer Seite über eine Bootstrap-Datei zu
+            erreichen ist eine Konfiguration Ihres Webserves bzw. Ihres virtuellen Servers notwendig. Ohne entsprechende
+            Regeln prüft der Webserver ob das angefragte Verzeichnis existiert und läuft logischerweise auf einen Fehler.
+         </td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   Die folgenden Kapitel beschreiben die Konfiguration der oben genannten Komponenten für einfache und umgeschriebene
+   URLs.
+</p>
+
+<h4 id="Chapter-3-1-Standard-URLs"><a href="#Chapter-3-1-Standard-URLs">3.1. Standard-URLs</a></h4>
+<p>
+   Im Auslieferungszustand definiert das APF einen Standard-Eingabe-Filter (<em>ChainedStandardInputFilter</em>), der
+   sich um die Extraktion der <int:link pageid="012" />-Anweisungen kümmert. Ferner wird das <em>DefaultLinkScheme</em>
+   registriert, das die Generierung von einfachen URLs mit Action-Anweisungen beherrscht.
+</p>
+<p>
+   Der Umgang mit einfachen URLs erfordert keine Ausgabe-Filter oder Webserver-Regeln. Aus diesem Grund befindet sich
+   in der Datei <em>APF/core/bootstrap.php</em> keine weitere Konfiguration.
+</p>
+<div class="hint">
+   Sofern Sie in Ihrem Projekt mit einfachen URLs arbeiten möchten, sind daher keine Änderung zum Standard-Setup
+   notwendig.
+</div>
+
+<h4 id="Chapter-3-2-Umgeschriebene-URLs"><a href="#Chapter-3-2-Umgeschriebene-URLs">3.2. Umgeschriebene URLs</a></h4>
+<p>
+   Beabsichtigen Sie umgeschriebene URLs einzusetzen, ist eine Anpassung des Auslieferungszustandes notwendig. Dies
+   kann zentral in der Bootstrap-Datei Ihrer Applikation (zumeist <em>index.php</em>) nach dem Einbinden der zentralen
+   Bootstrap-Datei des APF (<em>APF/core/bootstrap.php</em>) erfolgen.
+</p>
+<div class="hint">
+   Für den Einsatz von URL-Rewriting wird die Nutzung einer zentralen Bootstrap-Datei empfohlen, da
+   Konfigurations-Einstellungen zentral vorgenommen werden können und sich die Konfiguration des Webservers einfacher
+   gestaltet.
+</div>
+<p>
+   Die folgenden Kapitel zeigen die notwendigen Schritte zur Konfiguration der mitgelieferten Implementierung für
+   umgeschriebene URLs.
+</p>
+
+<h5 id="Chapter-3-2-1-Eingabe-Filter"><a href="#Chapter-3-2-1-Eingabe-Filter">3.2.1. Eingabe-Filter</a></h5>
+<p>
+   Wie in <a href="#Chapter-3-Konfiguration">Kapitel 3</a> angesprochen kümmern sich Eingabe-Filter um die Entgegennahme
+   und Interpretation der Anfrage. Um das im <a href="#Chapter-2-URL-Layout">Kapitel 2</a> beschriebene URL-Schema
+   aufzulösen und in die interne Repräsentation umzuschreiben wird der <em>ChainedUrlRewritingInputFilter</em> benötigt.
+</p>
+<p>
+   Registrieren Sie diesen in der Boostrap-Datei Ihrer Applikation wie folgt:
+</p>
+<gen:highlight type="php">
+include('../APF/core/bootstrap.php');
+
+use APF\core\filter\InputFilterChain;
+use APF\core\filter\ChainedUrlRewritingInputFilter;
+
+InputFilterChain::getInstance()->prependFilter(new ChainedUrlRewritingInputFilter());
+</gen:highlight>
+
+<h5 id="Chapter-3-2-2-Link-Schema"><a href="#Chapter-3-2-2-Link-Schema">3.2.2. Link-Schema</a></h5>
+<p>
+   Als zweiter Schritt ist die Anpassung der <em>LinkScheme</em>-Implementierung notwendig. Diese generiert an Hand des
+   in <a href="#Chapter-2-URL-Layout">Kapitel 2</a> beschriebene URL-Schema eine externe URL-Repräsentation.
+</p>
+<p>
+   Die Registrierung des zum <em>ChainedUrlRewritingInputFilter</em> passenden Link-Schema lässt sich wie folgt im
+   Anschluss an die Registrierung des Ausgabe-Filters erledigen:
+</p>
+<gen:highlight type="php">
+use APF\tools\link\RewriteLinkScheme;
+use APF\tools\link\LinkGenerator;
+
+LinkGenerator::setLinkScheme(new RewriteLinkScheme());
+</gen:highlight>
+
+<h5 id="Chapter-3-2-3-Webserver-Konfiguration"><a href="#Chapter-3-2-3-Webserver-Konfiguration">3.2.3. Webserver-Konfiguration</a></h5>
+<p>
+   Um die Anfrage an die virtuellen Ordner-Struktur (URL-Schema siehe <a href="#Chapter-2-URL-Layout">Kapitel 2</a>) an
+   die Bootstrap-Datei Ihrer Applikation weiterzuleiten ist eine Anpassung der Webserver- oder VirtualHost-Konfiguration
+   notwendig.
+</p>
+<p>
+   Mit der folgenden <em>RewriteRule</em> (Apache Webserver) können Sie die notwendige Konfiguration in der
+   <em>.htaccess</em> vornehmen:
+</p>
+<gen:highlight type="code">
+RewriteEngine on
+RewriteRule !index\.php$ /index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING} [NC,L]
+</gen:highlight>
+<p>
+   Die erste Zeile aktiviert das Modul <em>mod_rewrite</em> des Apache-Webservers, das in der Lage ist URLs intern
+   umzuschreiben und Anfragen auf unterschiedliche Ressourcen umzuleiten, Zeile 2 sorgt dafür, dass alle Anfragen an
+   die <em>index.php</em> umgeleitet werden.
+</p>
+<p>
+   Dabei ist zu beachten, dass der Teil
+<p>
+<gen:highlight type="code">
 /index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING}
 </gen:highlight>
 <p>
-   bindend ist. Diese spezifiziert den Parameter, der vom <strong>PageControllerInputFilter</strong>
-   oder vom <strong>FrontControllerInputFilter</strong> genutzt wird, um die per URL übergebenen
-   Informationen aufzubereiten. Die Ausnahmeregelung
+   der Regel bindend ist, da der <em>ChainedUrlRewritingInputFilter</em> in der Lage ist, das URL-Schema aufzulösen.
 </p>
-<gen:highlight type="apf-xml">
-!(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$
+<p>
+   Mit dem Teil
+</p>
+<gen:highlight type="code">
+!index\.php$
 </gen:highlight>
-<p>kann dabei frei definiert werden.</p>
+<p>
+   stellen Sie sicher, dass keine Umleitungsschleife entsteht.
+</p>
 <div class="hint">
-   In den Versionen vor Release 1.15 lautet der Name des Parameters <em>apf-rewrited-query</em> statt
-   <em>apf-rewritten-query</em>.
-</div>
-<div class="hint">
-   In den Versionen vor Release 1.13 lautet der Name des Parameters <em>query</em> statt
-   <em>apf-rewrited-query</em>.
+   <p>
+      Bilder, CSS- und Java-Script-Dateien werden üblicherweise statisch ausgeliefert, sprich direkt vom Webserver und
+      nicht über die <em>index.php</em>. Um dies sicher zu stellen, fügen Sie bitte entsprechende Ausschluss-Kriterien
+      zur oben genannten Regel hinzu. Dies kann entweder durch Erweiterung der <em>RewriteRule</em> oder entsprechenden
+      <em>RewriteCond</em>-Definitionen erfolgen. Beispiel:
+   </p>
+<gen:highlight type="code">
+# Ausschluss definierter Verzeichnisse
+RewriteCond %{REQUEST_URI} !^(\/images|\/css|\/js) [NC]
+
+# Ausschluss von definierten Dateien bzw. Endungen
+RewriteRule !(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$ /index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING} [NC,L]
+</gen:highlight>
+   <p>
+      Beide Vorgehensweisen lassen sich kombinieren. Details entnehmen Sie bitte der Dokumentation Ihres Webservers.
+   </p>
 </div>
 
-<h4 id="Chapter-2-2-Framework"><a href="#Chapter-2-2-Framework">2.2. Framework-Konfiguration</a></h4>
-Um das Framework nun im URL-Rewrite-Modus verwenden zu können, ist es notwenidg, den Registry-Wert
-<strong>URLRewriting</strong> im Namespace <strong>apf::core</strong> auf <strong>true</strong> zu
-setzen. Dies kann durch
-<gen:highlight type="php">
-Registry::register('apf::core','URLRewriting',true);
-</gen:highlight>
-in der Bootstrap-Datei erledigt werden.
-<br />
-<br />
-<br />
-<h3 id="Chapter-3-Einsatz"><a href="#Chapter-3-Einsatz">3. Einsatz von URL-Rewriting</a></h3>
-Beim Einsatz der URL-Rewrite-Modus sollte folgendes beachtet werden:
-<ul>
-  <li>Ressourcen wie Bilder, CSS-Dateien oder Java-Scripte müssen absolut addressiert werden.</li>
-  <li>
-    Module, die für den Einsatz mit und ohne URL-Rewriting verfasst werden, müssen an den
-    relevanten Stellen die Information aus der Registry nutzen um die unterschiedlichen Fälle
-    abbilden zu können.
-  </li>
-  <li>
-    Werden mehrere Bootstrap-Dateien verwendet, müssen diese in der Ausnahmeliste in der
-    <strong>.htaccess</strong>-Datei aufgeführt werden.
-  </li>
-</ul>
+
+<h5 id="Chapter-3-2-4-Ausgabe-Filter"><a href="#Chapter-3-2-4-Ausgabe-Filter">3.2.4. Ausgabe-Filter</a></h5>
+<p>
+   Um auch anderweitig generierte URLs auf das in <a href="#Chapter-2-URL-Layout">Kapitel 2</a> beschriebene URL-Schema
+   umzuschreiben können Sie den <em>ChainedUrlRewritingOutputFilter</em> einsetzen. Dieser schreibt alle URLs in
+   <em>a</em>- und <em>form</em>-Tags um.
+</p>
 <div class="hint">
-   <p>
-      Um URL-Rewriting ohne Änderung der Applikationen konfigurieren zu können, bringt das
-      APF einen <int:link pageid="137" anchor="Chapter-4-3-Ausgabe-Formatierung">Output-Filter</int:link>
-      mit, der Links automatisch umschreibt. Um Links explizit davon auszunehmen, kann das Link-Attribut
-      <strong>linkrewrite</strong> auf den Wert <strong>false</strong> gesetzt werden.
-      <em>mailto:</em>-Links werden ab Release 1.10 automatisch ausgenommen.
-   </p>
-   <p>
-      Weiterhin kann der in Release 1.14 eingeführte <int:link pageid="138">Link-Generierungs-Mechnismus</int:link>
-      genutzt werden um Links direkt in der gewünschten Form formatieren zu lassen.
-   </p>
+   Möchten Sie z.B. externe URLs vom Umschreiben ausnehmen, so können Sie dazu das HTML-Attribut <em>linkrewrite</em>
+   auf den Wert <em>false</em> setzen. Der Filter nutzt diese Information um die damit gekennzeichnete URL auszunehmen,
+   entfernt die Kennzeichnung jedoch wieder um den Quelltext nicht zu beeinflussen.
 </div>
+<p>
+   Die Konfiguration des Ausgabe-Filters können Sie wie folgt in der Bootstrap-Datei konfigurieren:
+</p>
+<gen:highlight type="php">
+use APF\core\filter\OutputFilterChain;
+use APF\core\filter\ChainedUrlRewritingOutputFilter;
+
+OutputFilterChain::getInstance()->appendFilter(new ChainedUrlRewritingOutputFilter());
+</gen:highlight>
+<p>
+   Bitte beachten Sie, dass auch diese Konfiguration nach der Einbindung der <em>APF/core/bootstrap.php</em> erfolgen
+   muss.
+</p>
+<div class="hint">
+   <em>mailto:</em>-Links werden automatisch von der Umschreibung ausgenommen.
+</div>
+
+
+<h3 id="Chapter-4-Hinweise"><a href="#Chapter-4-Hinweise">4. Hinweise</a></h3>
+<p>
+   Beim Einsatz von URL-Rewriting sollte folgendes beachtet werden:
+</p>
+<ul>
+   <li>Ressourcen wie Bilder, CSS-Dateien oder Java-Scripte müssen absolut addressiert werden.</li>
+   <li>
+      Komponenten die URLs manuell generieren müssen angepasst werden. Es empfiehlt sich, diese direkt auf die
+      Generierung von URLs mit dem <em>LinkGenerator</em> umzustellen. Details hierzu können Sie unter
+      <int:link pageid="138" /> nachlesen.
+   </li>
+   <li>
+      Werden mehrere Bootstrap-Dateien verwendet, müssen diese in der Ausnahmeliste der Webserver-Konfiguration
+      aufgenommen werden.
+   </li>
+</ul>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_069" />

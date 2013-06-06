@@ -1,0 +1,101 @@
+<doku:title parent="119" tags="url,rewriting,htaccess,apache,registry,urlrewriting,bootstrap,url layout" title="URL-Rewriting" urlname="URL-Rewriting">
+  Das Framework bringt bereits alle Mittel für URL-Rewriting mit. Diese Seite beschreibt, wie
+  Anwendungen auf umgeschriebene URLs umgestellt werden können und welche Tools zur
+  Verfügung stehen.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+Das Adventure PHP Framework bietet die Möglichkeit, Webseiten und Applikationen mit und ohne
+URL-Rewriting zu betreiben. Unter URL-Rewriting wird im allgemeinen verstanden, dass URL-Parameter
+und -Werte nicht wie üblich per "&" und "=", sondern via "/" separiert werden. Das erweckt den
+Eindruck, dass die Inhalte in Ordnern abgelegt sind. Ein weiterer schöner Nebeneffekt ist, dass
+Suchmaschinen sog. Slash-URLs für gewöhnlich besser indizieren. Diese Maßnahme ersetzt
+jedoch keine komplette Suchmaschinenoptimierung.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Konfiguration"><a href="#Chapter-2-Konfiguration">2. Konfiguration</a></h3>
+<p>
+   Beim Einsatz des URL-Rewrite-Modus muss beachtet werden, dass die Bootstrap-Datei (z.B.
+   <strong>index.php</strong>) im <em>DOCUMENT_ROOT</em> des Webservers oder eines VHOSTs liegt, da
+   sonst die Zuordnung der Parameter zu ihren Werten nicht korrekt ausgeführt werden kann.
+</p>
+
+<h4 id="Chapter-2-1-Apache"><a href="#Chapter-2-1-Apache">2.1. Apache-Konfiguration</a></h4>
+<p>
+   Zur Verwendung des URL-Rewrite-Modus muss eine <strong>.htaccess</strong>-Datei im Verzeichnis der
+   Bootstrap-Datei angelegt werden. Die folgende Codebox zeigt eine Beispiel-Konfiguration die für
+   die meißten Anwendungsfälle verwendet werden kann:
+</p>
+<gen:highlight type="apf-xml">
+# Aktivierung von mod_rewrite
+RewriteEngine on
+
+# Ausschluss definierter Verzeichnisse von der RewriteRule
+RewriteCond %{REQUEST_URI} !^(\/frontend) [NC]
+
+# Definition der RewriteRule. Alle Anfragen ausser den ausgenommenen
+# Dateien werden auf die index.php weitergeleitet
+RewriteRule !(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$ /index.php?apf-rewrited-query=%{REQUEST_URI}&%{QUERY_STRING} [NC,L]
+</gen:highlight>
+Dabei ist zu beachten, dass die Definition
+<gen:highlight type="apf-xml">
+/index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING}
+</gen:highlight>
+<p>
+   bindend ist. Diese spezifiziert den Parameter, der vom <strong>PageControllerInputFilter</strong>
+   oder vom <strong>FrontControllerInputFilter</strong> genutzt wird, um die per URL übergebenen
+   Informationen aufzubereiten. Die Ausnahmeregelung
+</p>
+<gen:highlight type="apf-xml">
+!(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$
+</gen:highlight>
+<p>kann dabei frei definiert werden.</p>
+<div class="hint">
+   In den Versionen vor Release 1.15 lautet der Name des Parameters <em>apf-rewrited-query</em> statt
+   <em>apf-rewritten-query</em>.
+</div>
+<div class="hint">
+   In den Versionen vor Release 1.13 lautet der Name des Parameters <em>query</em> statt
+   <em>apf-rewrited-query</em>.
+</div>
+
+<h4 id="Chapter-2-2-Framework"><a href="#Chapter-2-2-Framework">2.2. Framework-Konfiguration</a></h4>
+Um das Framework nun im URL-Rewrite-Modus verwenden zu können, ist es notwenidg, den Registry-Wert
+<strong>URLRewriting</strong> im Namespace <strong>apf::core</strong> auf <strong>true</strong> zu
+setzen. Dies kann durch
+<gen:highlight type="php">
+Registry::register('apf::core','URLRewriting',true);
+</gen:highlight>
+in der Bootstrap-Datei erledigt werden.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Einsatz"><a href="#Chapter-3-Einsatz">3. Einsatz von URL-Rewriting</a></h3>
+Beim Einsatz der URL-Rewrite-Modus sollte folgendes beachtet werden:
+<ul>
+  <li>Ressourcen wie Bilder, CSS-Dateien oder Java-Scripte müssen absolut addressiert werden.</li>
+  <li>
+    Module, die für den Einsatz mit und ohne URL-Rewriting verfasst werden, müssen an den
+    relevanten Stellen die Information aus der Registry nutzen um die unterschiedlichen Fälle
+    abbilden zu können.
+  </li>
+  <li>
+    Werden mehrere Bootstrap-Dateien verwendet, müssen diese in der Ausnahmeliste in der
+    <strong>.htaccess</strong>-Datei aufgeführt werden.
+  </li>
+</ul>
+<div class="hint">
+   <p>
+      Um URL-Rewriting ohne Änderung der Applikationen konfigurieren zu können, bringt das
+      APF einen <int:link pageid="137" anchor="Chapter-4-3-Ausgabe-Formatierung">Output-Filter</int:link>
+      mit, der Links automatisch umschreibt. Um Links explizit davon auszunehmen, kann das Link-Attribut
+      <strong>linkrewrite</strong> auf den Wert <strong>false</strong> gesetzt werden.
+      <em>mailto:</em>-Links werden ab Release 1.10 automatisch ausgenommen.
+   </p>
+   <p>
+      Weiterhin kann der in Release 1.14 eingeführte <int:link pageid="138">Link-Generierungs-Mechnismus</int:link>
+      genutzt werden um Links direkt in der gewünschten Form formatieren zu lassen.
+   </p>
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_069" />
