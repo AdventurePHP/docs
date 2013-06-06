@@ -2,7 +2,7 @@
 namespace APF\thirdparty\statistics\biz;
 
 use APF\core\benchmark\BenchmarkTimer;
-use APF\core\session\SessionManager;
+use APF\core\session\Session;
 use APF\core\pagecontroller\APFObject;
 use APF\core\singleton\Singleton;
 use APF\thirdparty\statistics\data\ReportingStatMapper;
@@ -97,7 +97,7 @@ class StatManager extends APFObject {
       /* @var $wSM StatMapper */
 
       // create session manager
-      $Session = new SessionManager('Stat');
+      $Session = new Session('Stat');
 
       // create stat entry
       $wSM->createStatEntry(
