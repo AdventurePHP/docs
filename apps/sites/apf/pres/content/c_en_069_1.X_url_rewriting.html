@@ -1,0 +1,98 @@
+<doku:title parent="119" tags="url,rewriting,htaccess,apache,registry,url rewriting,bootstrap,url layout" title="URL rewriting" urlname="URL-rewriting">
+  The framework already contains a set of tools to easily operate applications in url rewriting
+  style. This page describes what needs to be done to enable url rewriting and which tools can be
+  used.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   The Adventure PHP Framework enables you, to operate web pages or applications in url rewrite mode or
+   in normal mode. URL rewriting means, that URL params are separated by "/" instead of "&" and "=". This
+   request layout pretends, that the requested resource is located in a folder path. Another side effect
+   is, that search engines tend to scan slash URLs more likely. Please note, that this technique does
+   not supersede normal search engine optimization.
+</p>
+
+<h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration</a></h3>
+<p>
+   If you use the URL rewrite mode, please be aware, that the bootstrap file (e.g. <em>index.php</em>)
+   must be located in the <em>DOCUMENT_ROOT</em> of your webserver or any VHOST. Otherwise, the
+   assignment of params and values can not be guaranteed.
+</p>
+
+<h4 id="Chapter-2-1-Apache"><a href="#Chapter-2-1-Apache">2.1. Apache configuration</a></h4>
+<p>
+   Using the URL rewrite mode a <strong>.htaccess</strong> file must be created. The following
+   code box shows you an example, that can be used with the bigger part of your applications:
+</p>
+<gen:highlight type="code">
+# start mod_rewrite
+RewriteEngine on
+
+# exclude some directories
+RewriteCond %{REQUEST_URI} !^(\/frontend) [NC]
+
+# define the rule itself. Every request that is not matching the exception list is
+# redirected to the index.php file
+RewriteRule !(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$ /index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING} [NC,L]
+</gen:highlight>
+<p>Please note, that the definition</p>
+<gen:highlight type="code">
+/index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING}
+</gen:highlight>
+<p>
+   must remain unaffected. It defines the param, that is used by the
+   <strong>PageControllerInputFilter</strong> and <strong>FrontControllerInputFilter</strong>
+   to analyze the URL parameters and write them to the <em>$_REQUEST</em>-Array. The exception list
+</p>
+<gen:highlight type="apf-xml">
+!(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$
+</gen:highlight>
+<p>can be manipulated as desired.</p>
+<div class="hint">
+   Prior to release 1.15 the name of the rewrite parameter is <em>apf-rewrited-query</em> instead of
+   <em>apf-rewritten-query</em>.
+</div>
+<div class="hint">
+   Prior to release 1.13 the name of the rewrite parameter is <em>query</em> instead of
+   <em>apf-rewrited-query</em>.
+</div>
+
+<h4 id="Chapter-2-2-Framework"><a href="#Chapter-2-2-Framework">2.2. Framework configuration</a></h4>
+To use the framework in URL rewriting mode it is necessary to switch the registry paramater
+<strong>URLRewriting</strong> in the <strong>apf::core</strong> namespace to <strong>true</strong>.
+This can be achieved by adding
+<gen:highlight type="php">
+Registry::register('apf::core','URLRewriting',true);
+</gen:highlight>
+to your bootstrap file.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Usage"><a href="#Chapter-3-Usage">3. Usage of the URL rewriting</a></h3>
+While using the URL rewriting mode, the following hints should be kept in mind:
+<ul>
+  <li>Ressources like images, css files or java scripts must be addressed absolutely.</li>
+  <li>
+    Modules, written for both modes must be aware of the two flavours. If you need to knwo about the
+    current URL layout you can retrieve this information from the registry.
+  </li>
+  <li>
+    If you are using more than one bootstrap file, please add it to the exception list in the
+    <strong>.htaccess</strong> file.
+  </li>
+</ul>
+<div class="hint">
+   <p>
+      In order to apply url rewriting without changing an application, the framework brings a
+      <int:link pageid="137" anchor="Chapter-4-3-Output-formatting">output filter</int:link>, that
+      rewrites links automatically. In order to explicitly exclude links, the link attribute
+      <strong>linkrewrite</strong> can be set to <strong>false</strong>. As of release 1.10,
+      <em>mailto:</em> links are excluded by default.
+   </p>
+   <p>
+      Besides, the <int:link pageid="138">link generation mechanism</int:link> introduced in release
+      1.14 can be used to directly format links using the desired layout.
+   </p>
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_069" />

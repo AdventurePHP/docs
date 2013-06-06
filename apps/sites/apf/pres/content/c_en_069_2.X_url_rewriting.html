@@ -1,98 +1,270 @@
-<doku:title parent="119" tags="url,rewriting,htaccess,apache,registry,url rewriting,bootstrap,url layout" title="URL rewriting" urlname="URL-rewriting">
-  The framework already contains a set of tools to easily operate applications in url rewriting
-  style. This page describes what needs to be done to enable url rewriting and which tools can be
-  used.
+<doku:title parent="119" tags="url,rewriting,htaccess,apache,url layout" title="URL rewriting" urlname="URL-rewriting">
+   The Adventure PHP Framework supports transparent URL rewriting based on <int:link pageid="137">input filters</int:link>
+   and <int:link pageid="138">link generation</int:link>. Using both, you are fully enabled to change the URL layout
+   without changes to the application's source code.
 </doku:title>
-<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
 <p>
-   The Adventure PHP Framework enables you, to operate web pages or applications in url rewrite mode or
-   in normal mode. URL rewriting means, that URL params are separated by "/" instead of "&" and "=". This
-   request layout pretends, that the requested resource is located in a folder path. Another side effect
-   is, that search engines tend to scan slash URLs more likely. Please note, that this technique does
-   not supersede normal search engine optimization.
+   The Adventure PHP Framework supports transparent URL rewriting based on <int:link pageid="137">input filters</int:link>
+   and <int:link pageid="138">link generation</int:link>. Using both, you are fully enabled to change the URL layout
+   without changes to the application's source code.
+</p>
+<p>
+   The APF ships a standard set of input and output filters (<em>ChainedUrlRewritingInputFilter</em> and
+   <em>ChainedUrlRewritingOutputFilter</em>) and link generation (<em>RewriteLinkScheme</em>) that allow you to use a
+   generic rewritten URL format within your application.
+</p>
+<p>
+   Further URL schemes can be implemented very easy based on that. Please find a tutorial within the
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Implementierung_von_eigenen_URL-Layouts">Wiki</a>
+   (German).
 </p>
 
-<h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration</a></h3>
+<h3 id="Chapter-2-URL-layout"><a href="#Chapter-2-URL-layout">2. URL layout</a></h3>
 <p>
-   If you use the URL rewrite mode, please be aware, that the bootstrap file (e.g. <em>index.php</em>)
-   must be located in the <em>DOCUMENT_ROOT</em> of your webserver or any VHOST. Otherwise, the
-   assignment of params and values can not be guaranteed.
-</p>
-
-<h4 id="Chapter-2-1-Apache"><a href="#Chapter-2-1-Apache">2.1. Apache configuration</a></h4>
-<p>
-   Using the URL rewrite mode a <strong>.htaccess</strong> file must be created. The following
-   code box shows you an example, that can be used with the bigger part of your applications:
+   The components delivered allow to rewrite URLs like
 </p>
 <gen:highlight type="code">
-# start mod_rewrite
-RewriteEngine on
-
-# exclude some directories
-RewriteCond %{REQUEST_URI} !^(\/frontend) [NC]
-
-# define the rule itself. Every request that is not matching the exception list is
-# redirected to the index.php file
-RewriteRule !(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$ /index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING} [NC,L]
+http://www.example.com/?page=start
 </gen:highlight>
-<p>Please note, that the definition</p>
+<p>
+   into
+</p>
+<gen:highlight type="code">
+http://www.example.com/page/start
+</gen:highlight>
+<p>
+   As you can take from the second code block <em>?</em> and <em>=</em> are replaced with <em>/</em> to create a more
+   folder-style appearance. Calling this page, the <em>page</em> parameter is assigned value <em>start</em> just like
+   in the first case.
+</p>
+<p>
+   The number of parameters is not limited. The URL scheme is as follows:
+</p>
+<gen:highlight type="code">
+{scheme}://{host}/{param1}/{value1}/{param2}/{value2}/...
+</gen:highlight>
+<p>
+   Parameter and value are separated by <em>/</em>; several couples are separated by <em>/</em> as well. URLs including
+   action instructions add to the above scheme and are described under
+   <int:link pageid="012" anchor="Chapter-3-2-2-Dynamic-actions"/>.
+</p>
+<div class="warn">
+   Using rewritten URLs aided by the standard features of the APF you must ensure that the bootstrap file (e.g.
+   <em>index.php</em>) is located within the <em>DOCUMENT_ROOT</em> of your web server or VHOST. This is necessary to
+   correctly assign parameters and their respective values.
+</div>
+
+<h3 id="Chapter-3-Configuration"><a href="#Chapter-3-Configuration">3. Configuration</a></h3>
+<p>
+   Configuration of the URL mapping of the APF includes several components:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Component</td>
+         <td>Description</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>Input filter</td>
+         <td>
+            The input filter resolves the URL schema. For this reason, the URL is deconstructed into it's elements and
+            the pieces are stored for further processing. Storage is usually done within the <em>$_REQUEST</em>-, <em>$_GET</em>-,
+            or <em>$_POST</em> arrays in order to provide access to URL information for the application executed
+            subsequently independently from the external representation. Details can be taken from chapter
+            <int:link pageid="137" />.
+         </td>
+      </tr>
+      <tr>
+         <td>Link scheme</td>
+         <td>
+            The <em>LinkScheme</em> implementation is responsible to generate an URL according to the desired scheme. In
+            contrast to input filters it generates an external representation from the internal state. Details on URL
+            generation can be taken from chapter <int:link pageid="138" />.
+         </td>
+      </tr>
+      <tr>
+         <td>Output filter</td>
+         <td>
+            If necessary, URLs that are not generated by a <em>LinkScheme</em> can be transcribed into an external
+            representation by an appropriate output filter. Within an output filter you are able to access the whole
+            source code. Hence, you can rewrite form actions, image sources or other resources to adapt them to the
+            desired external representation.
+         </td>
+      </tr>
+      <tr>
+         <td>Web server configuration</td>
+         <td>
+            In order to allow rewriting URLs while deliver pages through a single bootstrap file the configuration of
+            your web server or virtual server must be adapted. Without appropriate rules the web server checks on files
+            located within the requested directory that are - of course - not existing and reports an error.
+         </td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   The following chapters describe the configuration for simple and rewritten URLs of the components listed above.
+</p>
+
+<h4 id="Chapter-3-1-Standard-URLs"><a href="#Chapter-3-1-Standard-URLs">3.1. Standard URLs</a></h4>
+<p>
+   Using the APF as-is the standard input filter (<em>ChainedStandardInputFilter</em>) takes care of extracting
+   <int:link pageid="012" /> action instructions. Besides, the <em>DefaultLinkScheme</em> is registered that allows
+   generation of simple URLs including action instructions.
+</p>
+<p>
+   Handling simple URLs does not require further output filter or web server configuration. For this reason
+   <em>APF/core/bootstrap.php</em> does not include further settings.
+</p>
+<div class="hint">
+   In case you intend to work with simple URLs within your project, no changes to the standard setup are necessary.
+</div>
+
+<h4 id="Chapter-3-2-Rewritten-URLs"><a href="#Chapter-3-2-Rewritten-URLs">3.2. Rewritten URLs</a></h4>
+<p>
+   Using rewritten URLs requires adaption of the delivery status. Changes can be done within your bootstrap file
+   (e.g. <em>index.php</em>) after inclusion of the central APF bootstrap file (<em>APF/core/bootstrap.php</em>).
+</p>
+<div class="hint">
+   Using URL rewriting it is recommended to use only one single bootstrap file to ease configuration of the framework
+   components and the web server.
+</div>
+<p>
+   The following chapters describe the configuration steps necessary to adapt the shipped components in-depth to enable
+   your project to use rewritten URLs.
+</p>
+
+<h5 id="Chapter-3-2-1-Input-filter"><a href="#Chapter-3-2-1-Input-filter">3.2.1. Input filter</a></h5>
+<p>
+   As mentioned in <a href="#Chapter-3-Configuration">chapter 3</a> the input filter takes care of the request processing
+   and interpretation of the request. In order to resolve the URL layout described in <a href="#Chapter-2-URL-layout">chapter 2</a>
+   into an internal representation the <em>ChainedUrlRewritingInputFilter</em> is required.
+</p>
+<p>
+   Please register this input filter within the bootstrap file of your application as follows:
+</p>
+<gen:highlight type="php">
+include('../APF/core/bootstrap.php');
+
+use APF\core\filter\InputFilterChain;
+use APF\core\filter\ChainedUrlRewritingInputFilter;
+
+InputFilterChain::getInstance()->prependFilter(new ChainedUrlRewritingInputFilter());
+</gen:highlight>
+
+<h5 id="Chapter-3-2-2-Link-scheme"><a href="#Chapter-3-2-2-Link-scheme">3.2.2. Link scheme</a></h5>
+<p>
+   As a second step the <em>LinkScheme</em> implementation is necessary. It generates an external representation
+   according to the schema defined in <a href="#Chapter-2-URL-layout">chapter 2</a>.
+</p>
+<p>
+   Registration of the link scheme matching the <em>ChainedUrlRewritingInputFilter</em> is as follows after registration
+   of the output filter:
+</p>
+<gen:highlight type="php">
+use APF\tools\link\RewriteLinkScheme;
+use APF\tools\link\LinkGenerator;
+
+LinkGenerator::setLinkScheme(new RewriteLinkScheme());
+</gen:highlight>
+
+<h5 id="Chapter-3-2-3-Web-server-configuration"><a href="#Chapter-3-2-3-Web-server-configuration">3.2.3. Web server configuration</a></h5>
+<p>
+   In order to pass requests to the virtual folder structure (URL schema see <a href="#Chapter-2-URL-layout">chapter 2</a>)
+   to the bootstrap file of your application an adaption of the web server or VirtualHost configuration is necessary.
+</p>
+<p>
+   Using the following <em>RewriteRule</em> (Apache web server) you can add the required configuration to your
+   <em>.htaccess</em>:
+</p>
+<gen:highlight type="code">
+RewriteEngine on
+RewriteRule !index\.php$ /index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING} [NC,L]
+</gen:highlight>
+<p>
+   The first line activates the <em>mod_rewrite</em> module of the Apache web server that allows to internally rewrite
+   URLs or direct requests to different resources. Line 2 effectively directs all requests to the <em>index.php</em> file.
+</p>
+<p>
+   Please note, that
+<p>
 <gen:highlight type="code">
 /index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING}
 </gen:highlight>
 <p>
-   must remain unaffected. It defines the param, that is used by the
-   <strong>PageControllerInputFilter</strong> and <strong>FrontControllerInputFilter</strong>
-   to analyze the URL parameters and write them to the <em>$_REQUEST</em>-Array. The exception list
+   is to be defined exactly like that to enable the <em>ChainedUrlRewritingInputFilter</em> to correctly resolve the
+   URL scheme.
 </p>
-<gen:highlight type="apf-xml">
-!(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$
+<p>
+   Introducing
+</p>
+<gen:highlight type="code">
+!index\.php$
 </gen:highlight>
-<p>can be manipulated as desired.</p>
+<p>
+   ensures that no redirect cycle comes up.
+</p>
 <div class="hint">
-   Prior to release 1.15 the name of the rewrite parameter is <em>apf-rewrited-query</em> instead of
-   <em>apf-rewritten-query</em>.
-</div>
-<div class="hint">
-   Prior to release 1.13 the name of the rewrite parameter is <em>query</em> instead of
-   <em>apf-rewrited-query</em>.
+   <p>
+      Images, CSS and Java Script files are usually delivered through the web server directly and not by the
+      <em>index.php</em>. In order to enable this work-split please add exception rules as required. You can either
+      extend the <em>RewriteRule</em> or add <em>RewriteCond</em> definitions. Example:
+   </p>
+<gen:highlight type="code">
+# Exclusion of entire directories
+RewriteCond %{REQUEST_URI} !^(\/images|\/css|\/js) [NC]
+
+# Exclusion of defined files or file extensions
+RewriteRule !(index\.php|\.css|\.jpe?g|\.png|\.gif|\.ico)$ /index.php?apf-rewritten-query=%{REQUEST_URI}&%{QUERY_STRING} [NC,L]
+</gen:highlight>
+   <p>
+      Both ways can be combined as desired. Details can be taken from the documentation of your web server.
+   </p>
 </div>
 
-<h4 id="Chapter-2-2-Framework"><a href="#Chapter-2-2-Framework">2.2. Framework configuration</a></h4>
-To use the framework in URL rewriting mode it is necessary to switch the registry paramater
-<strong>URLRewriting</strong> in the <strong>apf::core</strong> namespace to <strong>true</strong>.
-This can be achieved by adding
+<h5 id="Chapter-3-2-4-Output-filter"><a href="#Chapter-3-2-4-Output-filter">3.2.4. Output filter</a></h5>
+<p>
+   If necessary, URLs that are not generated by a <em>LinkScheme</em> can be transcribed into the external
+   representation described in <a href="#Chapter-2-URL-layout">chapter 2</a> by the <em>ChainedUrlRewritingOutputFilter</em>
+   output filter. This implementation transcribes all <em>a</em> and <em>form</em> tags.
+</p>
+<div class="hint">
+   In case dedicated URLs should be excluded from rewriting please add the HTML attribute <em>linkrewrite</em> with
+   value <em>false</em>. The filter uses this information to exclude URLs marked like this and directly removes the
+   marker to not produce invalid source code.
+</div>
+<p>
+   The configuration of the output filter can be done within the bootstrap file as follows:
+</p>
 <gen:highlight type="php">
-Registry::register('apf::core','URLRewriting',true);
+use APF\core\filter\OutputFilterChain;
+use APF\core\filter\ChainedUrlRewritingOutputFilter;
+
+OutputFilterChain::getInstance()->appendFilter(new ChainedUrlRewritingOutputFilter());
 </gen:highlight>
-to your bootstrap file.
-<br />
-<br />
-<br />
-<h3 id="Chapter-3-Usage"><a href="#Chapter-3-Usage">3. Usage of the URL rewriting</a></h3>
-While using the URL rewriting mode, the following hints should be kept in mind:
-<ul>
-  <li>Ressources like images, css files or java scripts must be addressed absolutely.</li>
-  <li>
-    Modules, written for both modes must be aware of the two flavours. If you need to knwo about the
-    current URL layout you can retrieve this information from the registry.
-  </li>
-  <li>
-    If you are using more than one bootstrap file, please add it to the exception list in the
-    <strong>.htaccess</strong> file.
-  </li>
-</ul>
+<p>
+   Please note that the configuration must happen after inclusion of the <em>APF/core/bootstrap.php</em> file.
+</p>
 <div class="hint">
-   <p>
-      In order to apply url rewriting without changing an application, the framework brings a
-      <int:link pageid="137" anchor="Chapter-4-3-Output-formatting">output filter</int:link>, that
-      rewrites links automatically. In order to explicitly exclude links, the link attribute
-      <strong>linkrewrite</strong> can be set to <strong>false</strong>. As of release 1.10,
-      <em>mailto:</em> links are excluded by default.
-   </p>
-   <p>
-      Besides, the <int:link pageid="138">link generation mechanism</int:link> introduced in release
-      1.14 can be used to directly format links using the desired layout.
-   </p>
+   <em>mailto:</em> links are automatically excluded from transcription.
 </div>
 
-<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_069" />
+<h3 id="Chapter-4-Notes"><a href="#Chapter-4-Notes">4. Notes</a></h3>
+<p>
+   While using URL rewriting the following hints should be kept in mind:
+</p>
+<ul>
+   <li>Ressources like images, css files or java scripts must be addressed absolutely.</li>
+   <li>
+      Components that manually generate URLs must be adapted. It is recommended to switch to URL generation with the
+      <em>LinkGenerator</em>. Details can be taken from <int:link pageid="138" />.
+   </li>
+   <li>
+      If you are using more than one bootstrap file, please add it to the exception list of your web server
+      configuration.
+   </li>
+</ul>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_069" />
