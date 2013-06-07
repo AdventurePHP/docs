@@ -1,23 +1,23 @@
-<doku:title parent="119" tags="session,sessionmanager,session manager" title="SessionManager" urlname="SessionManager">
+<doku:title parent="119" tags="session" title="Session" urlname="Session">
   PHP itself provides session management. For this reason the super global variable $_SESSION is
   used to store the session data and several functions allow to start, create or delete a session.
   To have a tool for transparent session management some more code must be added to use the session
-  commonly within several program parts. This issue is solved by the SessionManager of the adventure
+  commonly within several program parts. This issue is solved by the Session of the adventure
   php framework.
 </doku:title>
 <p>
    PHP itself provides session management. For this reason the super global variable <em>$_SESSION</em>
    is used to store the session data and several functions from the <em>APF\core\session</em> package allow to start,
    create or delete a session. To have a tool for transparent session management some more code must be added to use
-   the session commonly within several program parts. This issue is solved by the <em>SessionManager</em> of
+   the session commonly within several program parts. This issue is solved by the <em>Session</em> of
    the Adventure PHP Framework.
 </p>
 <p>
-   If a session is needed within an application the session manager can be initialized by
+   If a session is needed within an application the session can be initialized by
 </p>
 <gen:highlight type="php">
-use APF\core\session\SessionManager;
-$sessMgr = new SessionManager('{namespace}');
+use APF\core\session\Session;
+$session = new Session('{namespace}');
 </gen:highlight>
 <p>
    <em>{namespace}</em> thereby describes the namespace of the session, that should be
@@ -25,42 +25,48 @@ $sessMgr = new SessionManager('{namespace}');
    application to indicate affiliation.
 </p>
 <p>
-   The <em>SessionManager</em> partitions the session provided by PHP natively into different namespaces
+   The <em>Session</em> partitions the session provided by PHP natively into different namespaces
    in order to use on PHP session multiple times by Adventure PHP Framework applications at the same
    time.
 </p>
 <gen:highlight type="php">
-$sessMgr->saveSessionData('MyParam', 'MyValue');
+$session->save('MyParam', 'MyValue');
 </gen:highlight>
 <p>
-   makes it able to store data in the session namespace defined by instantiating the session manager.
-   Besides, the <em>SessionManager</em> makes sure that the session is always existent while using it
+   makes it able to store data in the session namespace defined by instantiating the session.
+   Besides, the <em>Session</em> makes sure that the session is always existent while using it
    in an application. <em>session_start()</em> is not necessary any more.
    Data stored in a session namespace can easily gathered by
 </p>
 <gen:highlight type="php">
-echo $sessMgr->loadSessionData('MyParam');
+echo $session->load('MyParam');
 </gen:highlight>
 <p>
-   The data displayed in this example is read from the namespace the session manager was initialized with. To initiate
+   The data displayed in this example is read from the namespace the session was initialized with. To initiate
    a logout procedure all data within a specific namespace can be deleted by
 </p>
 <gen:highlight type="php">
-$sessMgr->destroySession();
+$session->destroy();
 </gen:highlight>
 <p>
-   Afterwards calling <em>loadSessionData()</em> returns <em>null</em>. Calling
+   Afterwards calling <em>load()</em> returns <em>null</em>. Calling
 </p>
 <gen:highlight type="php">
-$sessMgr->loadAllSessionData();
+$session->loadAll();
 </gen:highlight>
 <p>
    returns an associative array including all entries registered in the session namespace given
-   when creating the session manager. In case you only need a list of keys registered within the
+   when creating the session. In case you only need a list of keys registered within the
    session, you can call
 </p>
 <gen:highlight type="php">
-$sessMgr->getEntryDataKeys();
+$session->getEntryKeys();
+</gen:highlight>
+<p>
+   In case you intend to remove content from the session you can use <em>delete()</em>:
+</p>
+<gen:highlight type="php">
+$session->delete('MyParam');
 </gen:highlight>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_019" />
