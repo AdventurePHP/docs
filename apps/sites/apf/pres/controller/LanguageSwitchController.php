@@ -35,11 +35,16 @@ class LanguageSwitchController extends BaseDocumentController {
          $version = $versionId;
       }
 
+      // avoid empty version definitions
+      if ($version === null) {
+         $version = $defaultVersionId;
+      }
+
       $linkDe = $urlMan->generateLink($pageId, 'de', $version);
       $linkEn = $urlMan->generateLink($pageId, 'en', $version);
 
-      $nameDe = $urlMan->getPageTitle($pageId, 'de');
-      $nameEn = $urlMan->getPageTitle($pageId, 'en');
+      $nameDe = $urlMan->getPageTitle($pageId, 'de', $version);
+      $nameEn = $urlMan->getPageTitle($pageId, 'en', $version);
 
       $this->setPlaceHolder('link_de', $linkDe);
       $this->setPlaceHolder('link_en', $linkEn);

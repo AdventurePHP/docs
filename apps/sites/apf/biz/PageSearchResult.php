@@ -18,6 +18,7 @@ class PageSearchResult implements SearchResult {
 
    private $title;
    private $pageID;
+   private $versionId;
 
    /**
     * @var \DateTime Last modification date.
@@ -81,6 +82,14 @@ class PageSearchResult implements SearchResult {
 
    public function getIndexedWord() {
       return $this->indexedWord;
+   }
+
+   public function setVersionId($versionId) {
+      $this->versionId = $versionId;
+   }
+
+   public function getVersionId() {
+      return $this->versionId;
    }
 
 }

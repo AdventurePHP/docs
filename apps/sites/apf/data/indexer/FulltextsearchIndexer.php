@@ -1,9 +1,11 @@
 <?php
 namespace APF\sites\apf\data\indexer;
 
+use APF\core\configuration\Configuration;
 use APF\core\database\ConnectionManager;
 use APF\core\database\DatabaseHandlerException;
 use APF\core\loader\RootClassLoader;
+use APF\core\logging\LogEntry;
 use APF\core\logging\Logger;
 use APF\core\pagecontroller\APFObject;
 use APF\core\pagecontroller\Page;
@@ -55,22 +57,22 @@ class FulltextsearchIndexer extends APFObject {
    /**
     * @public
     *
-    *  Imports the articles from the content directory.
+    * Imports the articles from the content directory.
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 16.03.2008<br />
-    *  Version 0.2, 02.10.2008 (Changed to fit new documentation page)<br />
-    *  Version 0.3, 03.10.2008 (Added some new characters to the title regexp)<br />
-    *  Version 0.4, 15.10.2008 (Added some characters to the urlname)<br />
-    *  Version 0.5, 10.01.2009 (Added the ? to the allowed characters of the title)<br />
+    * Version 0.1, 16.03.2008<br />
+    * Version 0.2, 02.10.2008 (Changed to fit new documentation page)<br />
+    * Version 0.3, 03.10.2008 (Added some new characters to the title regexp)<br />
+    * Version 0.4, 15.10.2008 (Added some characters to the url name)<br />
+    * Version 0.5, 10.01.2009 (Added the ? to the allowed characters of the title)<br />
     */
    public function importArticles() {
 
       /* @var $L Logger */
       $L = & Singleton::getInstance('APF\core\logging\Logger');
 
-      $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
+      $config = $this->getConfig();
 
       /* @var $cM ConnectionManager */
       $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
@@ -97,6 +99,8 @@ class FulltextsearchIndexer extends APFObject {
             $lang = substr($file, 2, 2);
             $fileName = substr($file, 5, (strlen($file) - 10));
             $pageId = substr($fileName, 0, 3);
+            $version = substr($file, 9, 3);
+
             $modStamp = date('Y-m-d H:i:s', filemtime($this->contentFolder . '/' . $file));
 
             // extract title and urlname
@@ -129,11 +133,10 @@ class FulltextsearchIndexer extends APFObject {
                $L->logEntry($this->logFileName, '- File "' . $fileName . '" contains no parent page ...');
             }
 
-            // In Artikel-Datenbank einfügen
             $insert = 'INSERT INTO search_articles
-                             (Title,PageID,ParentPage,URLName,Language,FileName,ModificationTimestamp)
+                             (Title, PageID, Version, ParentPage, URLName, Language, FileName, ModificationTimestamp)
                              VALUES
-                             (\'' . $title . '\',\'' . $pageId . '\',\'' . $parentPage . '\',\'' . $urlName . '\',\'' . $lang . '\',\'' . $fileName . '\',\'' . $modStamp . '\');';
+                             (\'' . $title . '\', \'' . $pageId . '\', \'' . $version . '\', \'' . $parentPage . '\', \'' . $urlName . '\', \'' . $lang . '\', \'' . $fileName . '\', \'' . $modStamp . '\');';
             $SQL->executeTextStatement($insert);
 
             $L->logEntry($this->logFileName, '[FINISH] Create article from "' . $file . '" ...');
@@ -145,12 +148,12 @@ class FulltextsearchIndexer extends APFObject {
    /**
     * @public
     *
-    *  Creates the index out of the articles in database.
+    * Creates the index out of the articles in database.
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 09.03.2008<br />
-    *  Version 0.2, 03.20.2008 (Changed some details to fit new page structure)<br />
+    * Version 0.1, 09.03.2008<br />
+    * Version 0.2, 03.20.2008 (Changed some details to fit new page structure)<br />
     */
    public function createIndex() {
 
@@ -158,7 +161,7 @@ class FulltextsearchIndexer extends APFObject {
       $l = & Singleton::getInstance('APF\core\logging\Logger');
 
       // get configuration
-      $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
+      $config = $this->getConfig();
 
       /* @var $cM ConnectionManager */
       $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
@@ -176,12 +179,12 @@ class FulltextsearchIndexer extends APFObject {
 
          // gather article id
          $articleId = $data_articles['ArticleID'];
-         //echo '<br /><br />ArticleID: '.$articleId.' (pageId: '.$data_articles['PageID'].', file: '.$data_articles['FileName'].', lang: '.$data_articles['Language'].')';
+
          // log index run
          $l->logEntry($this->logFileName, '[START] Indexing article "' . $data_articles['FileName'] . '" (ID: ' . $articleId . ', Lang: ' . $data_articles['Language'] . ') ...');
 
          // generate html code of the current content
-         $content = $this->createPageOutput($data_articles['PageID'], $data_articles['FileName'], $data_articles['Language']);
+         $content = $this->createPageOutput($data_articles['PageID'], $data_articles['FileName'], $data_articles['Language'], $data_articles['Version']);
 
          // normalize content
          $content = $this->normalizeContent($content, $data_articles['Language']);
@@ -208,7 +211,7 @@ class FulltextsearchIndexer extends APFObject {
             // trim current word
             $word = trim($word);
 
-            // inly indev non empty words
+            // only index non-empty words
             if (!empty($word)) {
 
                try {
@@ -261,11 +264,10 @@ class FulltextsearchIndexer extends APFObject {
    /**
     * @private
     *
-    *  Liefert die ID eines Suchwortes zur�ck. Falls das Wort noch nicht<br />
-    *  in der Datenbank gespeichert ist, wird dieses gespeichert.<br />
+    * Returns the id of the given word while lazily creating the database entry.
     *
-    * @param string $word; Wort f�r den Suchindex
-    * @return int $WordID; ID des Suchwortes
+    * @param string $word Word for the search index.
+    * @return int Id of the given word within the index.
     *
     * @author Christian Achatz
     * @version
@@ -273,18 +275,16 @@ class FulltextsearchIndexer extends APFObject {
     */
    private function getWordId($word) {
 
-      $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
+      $config = $this->getConfig();
 
       /* @var $cM ConnectionManager */
       $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
       $sql = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
-      // Wort selektieren
       $select_word = 'SELECT WordID FROM search_word WHERE Word = \'' . $word . '\'';
       $result_word = $sql->executeTextStatement($select_word);
       $data_word = $sql->fetchData($result_word);
 
-      // ID auslesen
       if (!isset($data_word['WordID'])) {
          $insert_word = 'INSERT INTO search_word (Word) VALUES (\'' . $word . '\')';
          $sql->executeTextStatement($insert_word);
@@ -299,24 +299,26 @@ class FulltextsearchIndexer extends APFObject {
    /**
     * @private
     *
-    *  Erzeugt den HTML-Code einer Seite.<br />
+    * Creates the page output of the requested page.
     *
-    * @param string $pageId id of the current page
-    * @param string $fileName URL name of the content page's file
-    * @param string $lang language of the page
-    * @return string $PageOutput HTML code of the content page
+    * @param string $pageId id of the current page.
+    * @param string $fileName URL name of the content page's file.
+    * @param string $lang language of the page.
+    * @param string $version The current page version requested.
+    * @return string HTML code of the content page.
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 09.03.2008<br />
-    *  Version 0.2, 03.10.2008 (Introduced the APFModel to be able to use the html:content tag)<br />
+    * Version 0.1, 09.03.2008<br />
+    * Version 0.2, 03.10.2008 (Introduced the APFModel to be able to use the html:content tag)<br />
     */
-   private function createPageOutput($pageId, $fileName, $lang) {
+   private function createPageOutput($pageId, $fileName, $lang, $version) {
 
       // fill the model
       /* @var $model APFModel */
       $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $model->setAttribute('page.id', $pageId);
+      $model->setVersionId($version);
       $model->setPageContentFileName('c_' . $lang . '_' . $fileName . '.html');
       $model->setAttribute('page.language', $lang);
 
@@ -338,11 +340,11 @@ class FulltextsearchIndexer extends APFObject {
    /**
     * @private
     *
-    *  Normalisiert den Inhalt und entfernt Stopw�rter.<br />
+    * Normalizes the content and removes stop words.
     *
-    * @param string $content; Inhalt einer Seite (HTML-Code)
-    * @param string $language; Sprache der Seite
-    * @return string $NormalizedContent; Normalisierter Inhalt der Seite
+    * @param string $content HTML code of the page.
+    * @param string $language Language of the page.
+    * @return string Normalized content.
     *
     * @author Christian Achatz
     * @version
@@ -382,7 +384,6 @@ class FulltextsearchIndexer extends APFObject {
       $content = trim($content);
       $content = preg_replace($locSearch, $locReplace, $content);
 
-      // Stopwords löschen und gegen Leerzeichen ersetzen
       $loader = RootClassLoader::getLoaderByVendor('APF');
       $rootPath = $loader->getRootPath();
       include($rootPath . '/sites/apf/data/indexer/stopwords.php');
@@ -390,9 +391,16 @@ class FulltextsearchIndexer extends APFObject {
          $content = preg_replace('/ ' . $Stopword . ' /', ' ', $content);
       }
 
-      // Wörter mit nur zwei Buchstaben entfernen
+      // remove words with less or equal that two characters to limit search index size
       return preg_replace('/(\s[A-Za-z]{1,2})\s/', '', $content);
 
+   }
+
+   /**
+    * @return Configuration
+    */
+   private function getConfig() {
+      return $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
    }
 
 }

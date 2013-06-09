@@ -131,7 +131,7 @@ class SearchController extends BaseDocumentController {
          $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
          $currentUrl = Url::fromCurrent(true);
          $baseUrl = $currentUrl->getScheme() . '://' . $currentUrl->getHost();
-         $url = $urlMan->generateLink($result->getPageId(), $result->getLanguage());
+         $url = $urlMan->generateLink($result->getPageId(), $result->getLanguage(), $result->getVersionId());
          return $baseUrl . $url;
       } else if ($result instanceof WikiSearchResult) {
          return Registry::retrieve('APF\sites\apf', 'WikiBaseURL') . '/' . $result->getLanguage() . '/' . $result->getPageId();
@@ -145,7 +145,7 @@ class SearchController extends BaseDocumentController {
       if ($result instanceof PageSearchResult) {
          /* @var $urlMan UrlManager */
          $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
-         return $urlMan->getPageTitle($result->getPageId(), $result->getLanguage());
+         return $urlMan->getPageTitle($result->getPageId(), $result->getLanguage(), $result->getVersionId());
       } else if ($result instanceof WikiSearchResult) {
          return $result->getTitle();
       } else {

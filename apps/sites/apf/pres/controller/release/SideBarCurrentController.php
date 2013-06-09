@@ -1,6 +1,8 @@
 <?php
 namespace APF\sites\apf\pres\controller\release;
 
+use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\APFModel;
 use APF\sites\apf\biz\UrlManager;
 use APF\sites\apf\pres\controller\release\ReleaseBaseController;
 
@@ -61,7 +63,11 @@ class SideBarCurrentController extends ReleaseBaseController {
    private function buildLink($release, $pageId) {
       /* @var $urlMan UrlManager */
       $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
-      $link = $urlMan->generateLink($pageId, $this->language);
+
+      /* @var $model APFModel */
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
+
+      $link = $urlMan->generateLink($pageId, $this->language, $model->getDefaultVersionId());
       return '<a href="' . $link . '" title="Get release ' . $release . '!">APF ' . $release . '</a>';
    }
 

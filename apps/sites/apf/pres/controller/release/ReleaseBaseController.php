@@ -422,7 +422,10 @@ abstract class ReleaseBaseController extends BaseDocumentController {
 
       /* @var $urlMan UrlManager */
       $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
-      $link = $urlMan->generateLink(self::$REV_HISTORY_PAGEID, $this->language);
+
+      /* @var $model APFModel */
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
+      $link = $urlMan->generateLink(self::$REV_HISTORY_PAGEID, $this->language, $model->getDefaultVersionId());
       $templateDocumentation->setPlaceHolder(
          'HistoryLink',
             '<a href="' . $link . '?' . self::$REV_HISTORY_PARAM . '=' . $releaseNumber . '" title="' . $title . '">' . $title . '</a>'

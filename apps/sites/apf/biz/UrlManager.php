@@ -28,22 +28,85 @@ final class UrlManager extends APFObject {
    /**
     * @public
     *
+    * Returns the title of the page described by the given params.
+    *
+    * @param string $pageId The id of the target page.
+    * @param string $lang The desired target language.
+    * @param string $versionId The page's version.
+    * @return string The page title.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 22.12.2009<br />
+    */
+   public function getPageTitle($pageId, $lang, $versionId) {
+
+      /* @var $t BenchmarkTimer */
+      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+      $id = 'UrlManager::getPageTitle(' . $pageId . ', ' . $lang . ', ' . $versionId . ')';
+      $t->start($id);
+
+      // deliver cached content, if possible
+      $hash = md5($pageId . $lang . $versionId);
+      if (isset($this->titleCache[$hash])) {
+         $t->stop($id);
+         return $this->titleCache[$hash];
+      }
+
+      // select title from the database
+      $sql = & $this->getConnection();
+      // avoid injections!
+      $pageId = $sql->escapeValue($pageId);
+      $lang = $sql->escapeValue($lang);
+      $versionId = $sql->escapeValue($versionId);
+      $select = 'SELECT Title
+                 FROM search_articles
+                 WHERE PageID = \'' . $pageId . '\' AND Language = \'' . $lang . '\' AND Version = \'' . $versionId . '\'';
+      $result = $sql->executeTextStatement($select);
+      $data = $sql->fetchData($result);
+      $title = $data['Title'];
+
+      $this->titleCache[$hash] = $title;
+      $t->stop($id);
+      return $this->titleCache[$hash];
+
+   }
+
+   /**
+    * Initialize database connection for current usage.
+    *
+    * @return DatabaseConnection The database connection.
+    */
+   private function &getConnection() {
+      /* @var $cM ConnectionManager */
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
+      return $cM->getConnection('FulltextSearch');
+   }
+
+   /**
+    * @public
+    *
     * Generates a APF docs page link.
     *
     * @param string $pageId The id of the target page.
     * @param string $lang The desired target language.
     * @param string $versionId The page's version.
     * @return string The desired link.
+    * @throws \InvalidArgumentException In case of empty version identifier.
     *
     * @author Christian Achatz
     * @version
     * Version 0.1, 22.12.2009<br />
     */
-   public function generateLink($pageId, $lang, $versionId = null) {
+   public function generateLink($pageId, $lang, $versionId) {
+
+      if (empty($versionId)) {
+         throw new \InvalidArgumentException('Version identifier must not be null or empty!');
+      }
 
       /* @var $t BenchmarkTimer */
       $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
-      $id = 'UrlManager::generateLink(' . $pageId . ',' . $lang . ', ' . $versionId . ')';
+      $id = 'UrlManager::generateLink(' . $pageId . ', ' . $lang . ', ' . $versionId . ')';
       $t->start($id);
 
       // deliver cached content, if possible
@@ -59,15 +122,17 @@ final class UrlManager extends APFObject {
       $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
       $urlLangIdent = $model->getUrlIdentifier($lang);
       $urlVersionIdent = $model->getVersionUrlIdentifier();
+      $defaultVersionId = $model->getDefaultVersionId();
 
       // fetch the url name from the database using the fulltext search
       $sql = & $this->getConnection();
       // avoid injections!
       $pageId = $sql->escapeValue($pageId);
       $lang = $sql->escapeValue($lang);
+      $versionId = $sql->escapeValue($versionId);
       $select = 'SELECT URLName
                  FROM search_articles
-                 WHERE PageID = \'' . $pageId . '\' AND Language = \'' . $lang . '\'';
+                 WHERE PageID = \'' . $pageId . '\' AND Language = \'' . $lang . '\' AND Version = \'' . $versionId . '\' ';
       $result = $sql->executeTextStatement($select);
       $data = $sql->fetchData($result);
       $urlName = $data['URLName'];
@@ -76,7 +141,7 @@ final class UrlManager extends APFObject {
          $pageIdent .= '-' . $urlName;
       }
 
-      if ($versionId === null) {
+      if ($versionId === null || $versionId == $defaultVersionId) {
          $this->linkCache[$hash] = '/' . $urlLangIdent . '/' . $pageIdent;
       } else {
          $this->linkCache[$hash] = '/' . $urlLangIdent . '/' . $pageIdent . '/' . $urlVersionIdent . '/' . $versionId;
@@ -84,62 +149,6 @@ final class UrlManager extends APFObject {
 
       $t->stop($id);
       return $this->linkCache[$hash];
-   }
-
-   /**
-    * @public
-    *
-    * Returns the title of the page described by the given params.
-    *
-    * @param string $pageId The id of the target page.
-    * @param string $lang The desired target language.
-    * @return string The page title.
-    *
-    * @author Christian Achatz
-    * @version
-    * Version 0.1, 22.12.2009<br />
-    */
-   public function getPageTitle($pageId, $lang) {
-
-      /* @var $t BenchmarkTimer */
-      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
-      $id = 'UrlManager::getPageTitle(' . $pageId . ',' . $lang . ')';
-      $t->start($id);
-
-      // deliver cached content, if possible
-      $hash = md5($pageId, $lang);
-      if (isset($this->titleCache[$hash])) {
-         $t->stop($id);
-         return $this->titleCache[$hash];
-      }
-
-      // select title from the database
-      $sql = & $this->getConnection();
-      // avoid injections!
-      $pageId = $sql->escapeValue($pageId);
-      $lang = $sql->escapeValue($lang);
-      $select = 'SELECT Title
-                 FROM search_articles
-                 WHERE PageID = \'' . $pageId . '\' AND Language = \'' . $lang . '\'';
-      $result = $sql->executeTextStatement($select);
-      $data = $sql->fetchData($result);
-      $title = $data['Title'];
-
-      $this->linkCache[$hash] = $title;
-      $t->stop($id);
-      return $this->linkCache[$hash];
-
-   }
-
-   /**
-    * Initialize database connection for current usage.
-    *
-    * @return DatabaseConnection The database connection.
-    */
-   private function &getConnection() {
-      /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
-      return $cM->getConnection('FulltextSearch');
    }
 
 }

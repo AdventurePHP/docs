@@ -251,6 +251,9 @@ LIMIT 20';
       if (isset($resultSet['Word'])) {
          $searchResult->setIndexedWord($resultSet['Word']);
       }
+      if (isset($resultSet['Version'])) {
+         $searchResult->setVersionId($resultSet['Version']);
+      }
 
       return $searchResult;
    }

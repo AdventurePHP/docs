@@ -2,7 +2,9 @@
 namespace APF\sites\apf\biz\actions\rss;
 
 use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\loader\RootClassLoader;
 use APF\core\pagecontroller\Page;
+use APF\core\singleton\Singleton;
 use APF\sites\apf\biz\APFModel;
 use APF\sites\apf\biz\UrlManager;
 
@@ -44,7 +46,11 @@ class RSSAction extends AbstractFrontcontrollerAction {
 
       /* @var $urlMgr UrlManager */
       $urlMgr = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
-      $link = 'http://adventure-php-framework.org' . $urlMgr->generateLink('124', $lang);
+
+      /* @var $model APFModel */
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
+
+      $link = 'http://adventure-php-framework.org' . $urlMgr->generateLink('124', $lang, $model->getDefaultVersionId());
       echo '<?xml version="1.0" encoding="utf-8"?>
 <rss version="0.92">
    <channel>
@@ -87,7 +93,8 @@ class RSSAction extends AbstractFrontcontrollerAction {
     * @return string An RFC822 date defining the last news notification.
     */
    private function getLastBuildDate($lang) {
-      $file = APPS__PATH . '/sites/apf/pres/news/' . $lang . '_news.html';
+      $loader = RootClassLoader::getLoaderByVendor('APF');
+      $file = $loader->getRootPath() . '/sites/apf/pres/news/' . $lang . '_news.html';
       $time = filemtime($file);
       return date('D, d M Y H:i:s \G\M\T', $time);
    }

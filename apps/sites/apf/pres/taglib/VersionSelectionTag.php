@@ -44,11 +44,7 @@ class VersionSelectionTag extends Document {
 
          $html .= $count === 0 ? '<li class="first">' : '<li>';
 
-         if ($currentVersion === $pageVersion) {
-            $url = $urlMan->generateLink($pageId, $lang);
-         } else {
-            $url = $urlMan->generateLink($pageId, $lang, $pageVersion);
-         }
+         $url = $urlMan->generateLink($pageId, $lang, $pageVersion);
 
          $html .= '<a data-version-id="' . $pageVersion . '" href="' . $url . '"';
 
@@ -63,8 +59,8 @@ class VersionSelectionTag extends Document {
       }
 
       return $html . '</ul>'
-            . '</div>'
-            . '</div>';
+      . '</div>'
+      . '</div>';
    }
 
 }

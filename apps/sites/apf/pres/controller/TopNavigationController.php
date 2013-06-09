@@ -36,14 +36,16 @@ class TopNavigationController extends BaseDocumentController {
       /* @var $urlMan UrlManager */
       $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
 
+      $version = $model->getVersionId();
+
       $buffer = (string)'';
       foreach ($this->navi as $naviNode) {
          $buffer .= '<li>';
-         $title = $urlMan->getPageTitle($naviNode, $this->language);
+         $title = $urlMan->getPageTitle($naviNode, $this->language, $version);
          if ($pageId === $naviNode) {
             $buffer .= '<span>' . $title . '</span>';
          } else {
-            $link = $urlMan->generateLink($naviNode, $this->language);
+            $link = $urlMan->generateLink($naviNode, $this->language, $version);
             $buffer .= '<a href="' . $link . '" title="' . $title . '">' . $title . '</a>';
          }
          $buffer .= '</li>' . PHP_EOL;

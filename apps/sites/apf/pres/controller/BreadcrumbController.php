@@ -26,11 +26,12 @@ class BreadcrumbController extends BaseDocumentController {
       /* @var $model APFModel */
       $parent = $model->getParentPageId();
       $lang = $model->getLanguage();
+      $version = $model->getVersionId();
       if ($parent !== '0') {
          /* @var $linkGen UrlManager */
          $linkGen = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
-         $docuLink = $linkGen->generateLink($parent, $lang);
-         $docuTitle = $linkGen->getPageTitle($parent, $lang);
+         $docuLink = $linkGen->generateLink($parent, $lang, $version);
+         $docuTitle = $linkGen->getPageTitle($parent, $lang, $version);
 
          $breadcrumb = $this->getTemplate('breadcrumb');
          $breadcrumb->setPlaceHolder('title', $model->getTitle());

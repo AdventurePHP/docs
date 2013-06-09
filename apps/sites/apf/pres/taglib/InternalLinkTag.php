@@ -2,6 +2,8 @@
 namespace APF\sites\apf\pres\taglib;
 
 use APF\core\pagecontroller\Document;
+use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\APFModel;
 use APF\sites\apf\biz\UrlManager;
 
 /**
@@ -37,12 +39,19 @@ class InternalLinkTag extends Document {
          $lang = $this->language;
       }
 
+      // setup version
+      /* @var $model APFModel */
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
+      $defaultVersion = $model->getDefaultVersionId();
+
+      $version = $this->getAttribute('version', $defaultVersion);
+
       // setup link text
       /* @var $urlMan UrlManager */
       $urlMan = & $this->getServiceObject('APF\sites\apf\biz\UrlManager');
       $linkText = $this->getLinkText();
       if ($linkText === null) {
-         $linkText = $urlMan->getPageTitle($pageId, $lang);
+         $linkText = $urlMan->getPageTitle($pageId, $lang, $version);
       }
 
       // setup link title
@@ -50,9 +59,6 @@ class InternalLinkTag extends Document {
       if ($title === null) {
          $title = $linkText;
       }
-
-      // setup version
-      $version = $this->getAttribute('version');
 
       // generate link
       $link = $urlMan->generateLink($pageId, $lang, $version);
