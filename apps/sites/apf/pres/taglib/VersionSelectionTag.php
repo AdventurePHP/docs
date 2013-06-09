@@ -16,8 +16,6 @@ class VersionSelectionTag extends Document {
       $currentVersion = $model->getVersionId();
       $pageVersions = $model->getPageVersions();
 
-      $defaultVersionId = $model->getDefaultVersionId();
-
       if (count($pageVersions) < 2) {
          return '';
       }
@@ -29,7 +27,7 @@ class VersionSelectionTag extends Document {
       $buttonLabel = $this->getLanguage() == 'de' ? 'Ändern' : 'Change';
 
       $html = '<div id="VersionBox">'
-            . '<div id="Versionswitch" data-lang="' . $lang . '" data-page-id="' . $pageId . '" data-button-label="' . $buttonLabel . '" data-default-version-id="' . $defaultVersionId . '">'
+            . '<div id="Versionswitch" data-lang="' . $lang . '" data-page-id="' . $pageId . '" data-button-label="' . $buttonLabel . '">'
             . '<span>' . $label . '</span>'
             . '<ul>';
 
