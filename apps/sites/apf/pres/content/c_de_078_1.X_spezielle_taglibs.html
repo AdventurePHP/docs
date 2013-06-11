@@ -21,14 +21,14 @@
 <gen:highlight type="apf-xml">
 &lt;html:iterator name=""&gt;
  ...
- [&lt;iterator:addtaglib class="" prefix="" name="" /&gt;]
+ [&lt;iterator:addtaglib namespace="" class="" prefix="" name="" /&gt;]
  [&lt;iterator:getstring namespace="" config="" entry="" /&gt;]
  [&lt;iterator:placeholder name="" /&gt;]
  ...
  &lt;iterator:item [getter=""]&gt;
    &lt;item:placeholder [name=""][getter=""] /&gt;
   [&lt;item:getstring namespace="" config="" entry="" /&gt;]
-  [&lt;item:addtaglib class="" prefix="" name="" /&gt;]
+  [&lt;item:addtaglib namespace="" class="" prefix="" name="" /&gt;]
  &lt;/iterator:item&gt;
  ...
 &lt;/html:iterator&gt;
@@ -100,7 +100,8 @@
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="APF\tools\html\taglib\HtmlIteratorTag"
+   namespace="tools::html::taglib"
+   class="HtmlIteratorTag"
    prefix="html"
    name="iterator"
 /&gt;
@@ -108,6 +109,12 @@
 <p>
    im aktuellen <em>Document</em> bekannt gemacht werden.
 </p>
+<div class="hint">
+   Vor Release 1.17 musste der für das aktuelle <em>Document</em> zuständige Document-Controller von der Klasse
+   <em>iteratorBaseController</em>, die im Namespace <em>tools::html::taglib::documentcontroller</em>
+   abgelegt ist, erben. Ab Release 1.17 ist die Methode <em>getIterator()</em> bereits im <em>BaseDocumentController</em>
+   enthalten.
+</div>
 <p>
    Innerhalb des Document-Controllers, kann der Iterator dann wie folgt verwendet werden:
 </p>
@@ -194,7 +201,10 @@ class ListController extends BaseDocumentController {
 </p>
 <gen:highlight type="ini">
 [streamMedia]
-FC.ActionClass = "APF\tools\media\actions\StreamMediaAction"
+FC.ActionNamespace = "tools::media::actions"
+FC.ActionClass = "StreamMediaAction"
+FC.InputClass = "StreamMediaInput"
+FC.InputParams = ""
 </gen:highlight>
 <p>
    Eine Beispieldatei findet sich ebenfalls in der <strong>apf-configpack-*</strong>-Release-Datei
@@ -206,7 +216,7 @@ FC.ActionClass = "APF\tools\media\actions\StreamMediaAction"
 <ul>
    <li>
       <strong>FormMediaInclusionTag</strong>:
-      Einsatz innerhalb des <em>&lt;html:form /&gt;</em>-Tags
+      Einsatz innerhalb des html:form-Tags
    </li>
    <li>
       <strong>MediaInclusionTag</strong>:
@@ -214,7 +224,7 @@ FC.ActionClass = "APF\tools\media\actions\StreamMediaAction"
    </li>
    <li>
       <strong>MediaInclusionTag</strong>:
-      Einsatz innerhalb des <em>&lt;html:template /&gt;</em>-Tags
+      Einsatz innerhalb des html:template-Tags
    </li>
 </ul>
 <p>
@@ -224,17 +234,19 @@ FC.ActionClass = "APF\tools\media\actions\StreamMediaAction"
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="APF\tools\form\taglib\HtmlFormTag"
+   namespace="tools::form::taglib"
+   class="HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
 &lt;html:form name="TestFormular"&gt;
    &lt;form:addtaglib
-      class="APF\tools\media\taglib\FormMediaInclusionTag"
+      namespace="tools::media::taglib"
+      class="FormMediaInclusionTag"
       prefix="form"
       name="mediastream"
    /&gt;
-   &lt;img src="&lt;form:mediastream namespace="APF\modules\mymodule\pres\images" filename="phone_icon.png" /&gt;" alt="" /&gt;
+   &lt;img src="&lt;form:mediastream namespace="modules::mymodule::pres::images" filename="phone_icon.png" /&gt;" alt="" /&gt;
    &lt;form:text name="phonenumber" /&gt;
    &lt;br /&gt;
    &lt;form:button name="send" value="Absenden" /&gt;
@@ -256,19 +268,21 @@ FC.ActionClass = "APF\tools\media\actions\StreamMediaAction"
 </ul>
 <div class="hint">
    Möchten Sie den Namespace der auszuliefernden Datei zusätzlich beeinflussen um z.B. diese
-   beispielsweise abhängig vom aktuellen Kontext ablegen zu können, so kann folgende Vorgehenweise gewählt werden:
+   beispielsweise abhängig vom aktuellen Kontext im config-Namespace ablegen zu können, so
+   kann folgende Vorgehenweise gewählt werden:
 </div>
 <ol>
   <li>
     Ausstatten des Tags mit einer eindeutigen ID:
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="APF\tools\media\taglib\MediaInclusionTag"
+   namespace="tools::media::taglib"
+   class="MediaInclusionTag"
    prefix="html"
    name="mediastream"
 /&gt;
 &lt;img src="&lt;html:mediastream
-                     namespace="APF\modules\mymodule\pres\images"
+                     namespace="config::modules::mymodule::pres::images"
                      filename="phone_icon.png"
                      id="PhoneIcon"
              /&gt;"
@@ -283,7 +297,7 @@ class ExampleController extends BaseDocumentController {
 
    public function transformContent(){
       $mediaStreamTag = &$this->getMediaStreamTagByID('PhoneIcon');
-      $mediaStreamTag->setAttribute($mediaStreamTag->getAttribute('namespace').'\\'.$this->getContext());
+      $mediaStreamTag->setAttribute($mediaStreamTag->getAttribute('namespace').'::'.$this->getContext());
    }
 
    private function &getMediaStreamTagByID($id){
@@ -328,7 +342,7 @@ class ExampleController extends BaseDocumentController {
   </li>
 </ol>
 <p>
-   Die zur Auslieferung der Bilder eingesetzte Front-Controller-Action <em>StreamMediaAction</em> bietet
+   Die zur Auslieferung der Bilder eingesetzte Front-Controller-Action <em>StreamMediaAction</em> bietet ab Version 1.14
    die Möglichkeit, erlaubte Datei-Typen und deren MIME-Typen explizit zu konfigurieren. Damit ist es möglich die
    Standard-Werte zu überschreiben um weniger oder mehr Typen zuzulassen. Im Standard-Setup sind folgende Endungen erlaubt:
 </p>
@@ -342,7 +356,7 @@ class ExampleController extends BaseDocumentController {
 </ul>
 <p>
    Um die vorhandenen Werte neu zu definieren muss die Konfigurations-Datei <em>{ENVIRONMENT}_allowed_extensions.ini</em>
-   unter dem Pfad <em>APF\tools\media\{CONTEXT}</em> angelegt werden. Die erlaubten Endungen können dann in der Form
+   unter dem Pfad <em>tools::media::{CONTEXT}</em> angelegt werden. Die erlaubten Endungen können dann in der Form
 </p>
 <gen:highlight type="ini">
 [Default]
@@ -355,82 +369,91 @@ psd = "application/psd"
 </p>
 
 <h3 id="Chapter-3-Generischer-importdesign-Tag"><a href="#Chapter-3-Generischer-importdesign-Tag">3. Generischer importdesign-Tag</a></h3>
-<p>
-   In komplexeren Applikationen ist es oft notwendig, die durch <strong>&lt;*:importdesign /&gt;</strong>-Tags
-   definierten Views dynamisch füllen zu können. Vielfach möchte der Entwickler in
-   aufwändigeren Strukturen die Informationen des Applikationsmodels verwenden. Um dies
-   uneingeschränkt zu ermöglichen und eine Applikationssteuerung aus der Business-Schicht zu
-   ermöglichen, wurde das Framework mit einem generischen importdesign-Tag ausgestattet, der es
-   erlaubt sowohl den Namen des Templates aus auch den Namespace desselben dynamisch aus einem
-   Model-Objekt zu beziehen.
-</p>
-<p>
-   Die Signatur des generischen Tags gestaltet sich dabei wie folgt:
-</p>
+In komplexeren Applikationen ist es oft notwendig, die durch <strong>&lt;*:importdesign /&gt;</strong>-Tags
+definierten Views dynamisch füllen zu können. Vielfach möchte der Entwickler in
+aufwändigeren Strukturen die Informationen des Applikationsmodels verwenden. Um dies
+uneingeschränkt zu ermöglichen und eine Applikationssteuerung aus der Business-Schicht zu
+ermöglichen, wurde das Framework mit einem generischen importdesign-Tag ausgestattet, der es
+erlaubt sowohl den Namen des Templates aus auch den Namespace desselben dynamisch aus einem
+Model-Objekt zu beziehen.
+<br />
+<br />
+Die Signatur des generischen Tags gestaltet sich dabei wie folgt:
 <gen:highlight type="apf-xml">
 &lt;generic:importdesign
-   model-class=""
-   model-mode="NORMAL|SINGLETON|SESSIONSINGLETON"
-   namespace-param=""
-   template-param=""
-   [get-method=""]
-   [dependent-action-namespace=""
-   dependent-action-name=""
-   [dependent-action-params=""]]
+   modelnamespace=""
+   modelfile=""
+   modelclass=""
+   modelmode="NORMAL|SINGLETON|SESSIONSINGLETON"
+   namespaceparam=""
+   templateparam=""
+   [getmethod=""]
+   [dependentactionnamespace=""
+   dependentactionname=""
+   [dependentactionparams=""]]
 /&gt;
 </gen:highlight>
 Den Attributen kommt dabei folgende Bedeutung zu:
 <ul>
   <li>
-    <strong>model-class</strong>: Voll-qualifizierter Klassen-Name der Model-Klasse.
-    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_\]</code>)
+    <strong>modelnamespace</strong>: Namespace der Model-Klasse.
+    (<strong>Zeichen:</strong>: <code>[A-Za-z0-9:]</code>)
   </li>
   <li>
-    <strong>model-mode</strong>: Instanzierungsmodus des Models.
+    <strong>modelfile</strong>: Name der Model-Datei.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>modelclass</strong>: Name der Model-Klasse.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
+  </li>
+  <li>
+    <strong>modelmode</strong>: Instanzierungsmodus des Models.
     (<strong>Erlaubte Werte</strong>: <code>NORMAL|SINGLETON|SESSIONSINGLETON</code>)
   </li>
   <li>
-    <strong>namespace-param</strong>: Name des Model-Parameters für den Template-Namespace.
+    <strong>namespaceparam</strong>: Name des Model-Parameters für den Template-Namespace.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9_.-]</code>)
   </li>
   <li>
-    <strong>template-param</strong>: Name des Model-Parameters für den Template-Namen.
+    <strong>templateparam</strong>: Name des Model-Parameters für den Template-Namen.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9_.-]</code>)
   </li>
   <li>
-    <strong>get-method</strong>: Name der Mode-Methode mit dem die Parameter abgefragt werden
+    <strong>getmethod</strong>: Name der Mode-Methode mit dem die Parameter abgefragt werden
     können. Dieser wird der Wert des <em>namespaceparam</em> bzw. <em>templateparam</em> als
     Parameter übergeben und erwartet den zugehörigen Rückgabewert.
     Standardmäßig wird die Funktion <strong>getAttribute()</strong> verwendet.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9_]</code>)
   </li>
   <li>
-    <strong>dependent-action-namespace</strong> / <strong>dependent-action-name</strong> /
-    <strong>dependent-action-params</strong>: Die drei Optionen dienen dazu, eine abhängige Action
+    <strong>dependentactionnamespace</strong> / <strong>dependentactionname</strong> /
+    <strong>dependentactionparams</strong>: Die drei Optionen dienen dazu, eine abhängige Action
     automatisch beim Front-Controller zu registrieren. Dies ist vor Allem dann hilfreich, wenn ein
     Modul über das Tag eingebunden wird und eine Front-Controller-Action zur Steuerung der
     Navigation verwendet wird.
     <br />
-    Das Attribut <strong>dependent-action-namespace</strong> definiert den Namespace der Action (z.B.
-    <em>ACME\site\biz</em>) und <strong>dependent-action-name</strong> den Namen/Alias der Action
-    (z.B. <em>Navigate</em>). <strong>dependent-action-params</strong> beinhaltet die Parameter der
+    <br />
+    Das Attribut <strong>dependentactionnamespace</strong> definiert den Namespace der Action (z.B.
+    <em>sites::mysite::biz</em>) und <strong>dependentactionname</strong> den Namen/Alias der Action
+    (z.B. <em>Navigate</em>). <strong>dependentactionparams</strong> beinhaltet die Parameter der
     Action in der Form <strong>param1:value1|param2:value2</strong>, wie aus dem URL-Layout des
     Front-Controllers bekannt.
   </li>
 </ul>
-<p>
-   Um das Tag anwenden zu könen, muss dieses zunächst via
-</p>
+<br />
+Um das Tag anwenden zu könen, muss dieses zunächst via
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="APF\tools\html\taglib\GenericImportTemplateTag"
+   namespace="tools::html::taglib"
+   class="GenericImportTemplateTag"
    prefix="generic"
    name="importdesign"
 /&gt;
 </gen:highlight>
-<p>
-   im aktuellen Gültigkeitsbereich bekannt gemacht werden.
-</p>
+im aktuellen Gültigkeitsbereich bekannt gemacht werden.
+<br />
+<br />
 <strong>Hinweise:</strong>
 <ul>
   <li>
@@ -446,7 +469,7 @@ Den Attributen kommt dabei folgende Bedeutung zu:
   </li>
   <li>
     Die Registrierung der Action wird nur dann durchgeführt, wenn die Attribute
-    <strong>dependent-action-namespace</strong> und <strong>dependent-action-name</strong> gefüllt
+    <strong>dependentactionnamespace</strong> und <strong>dependentactionname</strong> gefüllt
     sind und die Action noch nicht gegistriert ist. Die Angabe von Parametern ist optional.
   </li>
 </ul>
@@ -483,7 +506,7 @@ Den Attributen kommt dabei folgende Bedeutung zu:
 <p>
    Soll beispielweise ein Template zur Ausgabe eines Domänen-Objekts in mehreren View-Templates
    eingesetzt werden, so schickt es sich, dieses in einem eigenen Template (Namespace:
-   <em>APF\sites\testsite\pres\templates\generic</em>; Template: <em>generic_templates</em>) zu
+   <em>sites::testsite::pres::templates::generic</em>; Template: <em>generic_templates</em>) zu
    definieren. Die Definition kann dabei folgende Gestalt haben:
 </p>
 <gen:highlight type="apf-xml">
@@ -498,10 +521,7 @@ Den Attributen kommt dabei folgende Bedeutung zu:
    bestehende eingebunden werden:
 </p>
 <gen:highlight type="apf-xml">
-&lt;core:appendnode
-   namespace="APF\sites\testsite\pres\templates\generic"
-   template="generic_templates"
-/&gt;
+&lt;core:appendnode namespace="sites::testsite::pres::templates::generic" template="generic_templates" /&gt;
 </gen:highlight>
 
 <h4 id="Chapter-4-2-Verwendung-der-Elemente"><a href="#Chapter-4-2-Verwendung-der-Elemente">4.2. Verwendung der Elemente</a></h4>
@@ -542,5 +562,4 @@ $tmpl = &$this->getTemplate('ReusableTemplate');
    übernommen werden soll, muss das Attribut <em>includestatic</em> auf den Wert <em>true</em>
    gestellt werden.
 </p>
-
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_078" />
