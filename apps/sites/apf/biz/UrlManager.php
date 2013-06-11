@@ -64,7 +64,14 @@ final class UrlManager extends APFObject {
                  WHERE PageID = \'' . $pageId . '\' AND Language = \'' . $lang . '\' AND Version = \'' . $versionId . '\'';
       $result = $sql->executeTextStatement($select);
       $data = $sql->fetchData($result);
-      $title = $data['Title'];
+
+      if (empty($data['Title'])) {
+         /* @var $model APFModel */
+         $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
+         $title = $this->getPageTitle($pageId, $lang, $model->getDefaultVersionId());
+      } else {
+         $title = $data['Title'];
+      }
 
       $this->titleCache[$hash] = $title;
       $t->stop($id);
@@ -136,6 +143,17 @@ final class UrlManager extends APFObject {
       $result = $sql->executeTextStatement($select);
       $data = $sql->fetchData($result);
       $urlName = $data['URLName'];
+
+      // in case we cannot generate a url for the requested version id, we need to fallback to the default version
+      if (empty($data['URLName'])) {
+         $select = 'SELECT URLName
+                 FROM search_articles
+                 WHERE PageID = \'' . $pageId . '\' AND Language = \'' . $lang . '\' AND Version = \'' . $model->getDefaultVersionId() . '\' ';
+         $result = $sql->executeTextStatement($select);
+         $data = $sql->fetchData($result);
+         $urlName = $data['URLName'];
+         $versionId = $model->getDefaultVersionId();
+      }
 
       if (!empty($urlName)) {
          $pageIdent .= '-' . $urlName;

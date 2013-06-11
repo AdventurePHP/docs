@@ -65,6 +65,9 @@ class LanguageSwitchController extends BaseDocumentController {
          $this->setPlaceHolder('class_en', 'en');
       }
 
+      $this->setPlaceHolder('page-id', $model->getPageId());
+      $this->setPlaceHolder('version-id', $model->getVersionId());
+
    }
 
 }

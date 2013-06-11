@@ -5,17 +5,8 @@
  */
 $(document).ready(function () {
 
-    var pageIdMatch = /\/\w+\/(\d{3})\-/.exec($('#Langswitch li a').attr('href'));
-    var pageId = '';
-    if (pageIdMatch !== null) {
-        pageId = pageIdMatch[1];
-    }
-
-    var versionIdMatch = /\/Version\/([A-Za-z0-9\.]{3})/.exec($('#Langswitch li a').attr('href'));
-    var versionId = '';
-    if (versionIdMatch !== null) {
-        versionId = versionIdMatch[1];
-    }
+    var versionId = $('#Langswitch').data('version-id');
+    var pageId = $('#Langswitch').data('page-id');
 
     $('#LanguageBox').append('<div id="Langswitch-PE">'
         + '<label for="LanguageBox-Selection">Current Language: </label>'
