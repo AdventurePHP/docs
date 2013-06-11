@@ -6,7 +6,7 @@
 <p>
    The adventure PHP framework contains a comprehensive form support based on the taglib concept. The
    basics of forms and the available taglibs are described in the <int:link pageid="113" /> chapter. This section now
-   discusses the usage of forms, dynamic form generation, and implementation of custon form taglibs in detail.
+   discusses the usage of forms, dynamic form generation, and implementation of custom form taglibs in detail.
 </p>
 
 <h3 id="Chapter-1-Forms-and-controller"><a href="#Chapter-1-Forms-and-controller">1. Forms &amp; controller</a></h3>
@@ -20,6 +20,8 @@
    In order to display a form, the following controller code can be used:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class FormController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('Search');
@@ -35,11 +37,11 @@ class FormController extends BaseDocumentController {
 </p>
 
 <h3 id="Chapter-2-API-of-the-form-taglibs"><a href="#Chapter-2-API-of-the-form-taglibs">2. API of the form taglibs</a></h3>
-As described within the preceeding section, a form can be referenced within a document controller
-easily. This section deals with the API of the form taglibs, that gives you an idea if the
-functionality included.
-<br />
-<br />
+<p>
+   As described within the preceeding section, a form can be referenced within a document controller
+   easily. This section deals with the API of the form taglibs, that gives you an idea if the
+   functionality included.
+</p>
 <div class="hint">
    It is recommended to have the <int:link pageid="002"/>
    opened during development times. This eases work much, because each taglib has it's own API,
@@ -52,13 +54,13 @@ functionality included.
    each form element must implement the methods, a &quot;normal&quot; taglib must implement, too.
 </p>
 <div class="hint">
-   In contrast to form controls <strong>up to version 1.10</strong>, form elements <strong>since
-   version 1.11</strong> know about their validation status. Hence, each element can be queried it's
+   Form elements know about their validation status. Hence, each element can be queried it's
    status. Concerning the implementation, this means, that a form collects the status of all
    controls and returns the aggregated value executing the <strong>isValid()</strong> method.
 </div>
-<br />
-Class <strong>AbstractFormControl</strong> implements the following methods:
+<p>
+   Class <strong>AbstractFormControl</strong> implements the following methods:
+</p>
 <ul>
    <li>
       <strong>isValid():</strong> The function enables you to query the validity status from
@@ -145,20 +147,15 @@ Class <strong>AbstractFormControl</strong> implements the following methods:
       source code.
    </li>
 </ul>
-<div class="warn">
-   In release 1.17 old naming conventions for methods have been removed. In case you are using APF with version 1.16 or
-   earlier, the name for the form control presetting function is <em>__presetValue()</em> instead of <em>presetValue()</em>.
-</div>
 <p>
    Using this methods, the developer is supported to implement custom form taglibs as described in
    chapter 7.
 </p>
 <div class="hint">
    <p>
-      Since release 1.12 attribute whitelisting was introduced along with the client side form
-      validator extension. This mechanism is responsible to only render XHTML compatible attributes
-      to the HTML source code. Not suitable attributes - e.g. used for validation control - are
-      ignored.
+      White-listing has been introduced along with the client side form validator extension. This mechanism is
+      responsible to only render XHTML compatible attributes to the HTML source code. Not suitable attributes -
+      e.g. used for validation control - are ignored.
    <p>
    <p>
       Creating custom form taglibs you must care about the attributes of your taglib. Hence, we
@@ -175,26 +172,30 @@ class SpecialFormControlTag extends AbstractFormControl {
 </div>
 
 <h3 id="Chapter-3-Validation"><a href="#Chapter-3-Validation">3. Validation</a></h3>
-Validation is executed via the <strong>form:addvalidator</strong>, that attaches a validator to the
-desired form control. The validator is executed, when the click event of a form button is fired.
-Having a look at the timing, validation is executed within the <strong>onAfterAppend()</strong>
-method of each taglib. This is after the analysis phase (at this time, the <strong>onParseTime()</strong>
-of each taglib is executed) and the DOM tree is fully created by the page controller.
-<br />
-<br />
-Within the <strong>onAfterAppend()</strong> method of the <strong>form:addvalidator</strong> tag,
-the validator is created and initialized with the necessary information (button and target form
-control) and given to the target element. The element itself executes the validator in case it is
-active and checks the result. In case of errors, the <strong>notify()</strong> method of the
-validator is called.
-<br />
-<br />
-<br />
+<p>
+   Validation is executed via the <strong>form:addvalidator</strong>, that attaches a validator to the
+   desired form control. The validator is executed, when the click event of a form button is fired.
+   Having a look at the timing, validation is executed within the <strong>onAfterAppend()</strong>
+   method of each taglib. This is after the analysis phase (at this time, the <strong>onParseTime()</strong>
+   of each taglib is executed) and the DOM tree is fully created by the page controller.
+</p>
+<p>
+   Within the <strong>onAfterAppend()</strong> method of the <strong>form:addvalidator</strong> tag,
+   the validator is created and initialized with the necessary information (button and target form
+   control) and given to the target element. The element itself executes the validator in case it is
+   active and checks the result. In case of errors, the <strong>notify()</strong> method of the
+   validator is called.
+</p>
+
 <h4 id="Chapter-3-1-Validation-status-query"><a href="#Chapter-3-1-Validation-status-query">3.1. Validation status query</a></h4>
-Since each form element knows about it's validation status within the new implementation, the 
-form's <em>isValid()</em> method must query the status of each form element. Using a document
-controller, you can get the form status as follows:
+<p>
+   Since each form element knows about it's validation status within the new implementation, the
+   form's <em>isValid()</em> method must query the status of each form element. Using a document
+   controller, you can get the form status as follows:
+</p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class FormController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('MyForm');
@@ -207,8 +208,12 @@ class FormController extends BaseDocumentController {
    }
 }
 </gen:highlight>
-Further, you can ask a single form element to return it's status using the subsequent PHP code:
+<p>
+   Further, you can ask a single form element to return it's status using the subsequent PHP code:
+</p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class FormController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('MyForm');
@@ -219,8 +224,12 @@ class FormController extends BaseDocumentController {
    }
 }
 </gen:highlight>
-To decide, whether a button has been clicked, use the following code:
+<p>
+   To decide, whether a button has been clicked, use the following code:
+</p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class FormController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('MyForm');
@@ -237,23 +246,21 @@ class FormController extends BaseDocumentController {
    classes <strong>HtmlFormTag</strong>, <strong>AbstractFormControl</strong> and the dedicated
    form taglibs (e.g. <strong>TextFieldTag</strong>).
 </div>
-<br />
-<br />
+
 <h4 id="Chapter-3-2-Display-of-validation-messages"><a href="#Chapter-3-2-Display-of-validation-messages">3.2. Display of validation messages</a></h4>
-Introducin form validation, the fields containing wrong data are often marked with red borders and
-the user is presented a validation message. To achieve this, the taglibs
-<strong>&lt;form:error /&gt;</strong> (used for global error messages) and
-<strong>&lt;form:listener /&gt;</strong> can be used. As an alternative, you may use place holders,
-that are filled with the appropriate error messages within the controller code.
-<br />
-<br />
-<br />
+<p>
+   Introducing form validation, the fields containing wrong data are often marked with red borders and
+   the user is presented a validation message. To achieve this, the taglibs
+   <strong>&lt;form:error /&gt;</strong> (used for global error messages) and
+   <strong>&lt;form:listener /&gt;</strong> can be used. As an alternative, you may use place holders,
+   that are filled with the appropriate error messages within the controller code.
+</p>
+
 <h5 id="Chapter-3-2-1-Form-error"><a href="#Chapter-3-2-1-Form-error">3.2.1. Form error</a></h5>
-The <strong>&lt;form:error /&gt;</strong> displays it's content, in case the form is not valid -
-regardless which field is invalid. For this reason, the tag queries the form's status at transformation
-time:
-<br />
-<br />
+<p>
+   The <strong>&lt;form:error /&gt;</strong> displays it's content, in case the form is not valid -
+   regardless which field is invalid. For this reason, the tag queries the form's status at transformation time:
+</p>
 <em>Template:</em>
 <gen:highlight type="apf-xml">
 &lt;html:form name="product-form"&gt;
@@ -262,7 +269,7 @@ time:
    &lt;form:text name="title" minlength="20"/&gt;
    &lt;form:area name="description" minlength="30"/&gt;
    &lt;form:addvalidator
-      class="TextLengthValidator"
+      class="APF\tools\form\validator\TextLengthValidator"
       control="code|title|description"
       button="send"
    /&gt;
@@ -271,6 +278,8 @@ time:
 </gen:highlight>
 <em>Controller:</em>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class FormController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('product-form');
@@ -285,15 +294,15 @@ class FormController extends BaseDocumentController {
 </p>
 
 <h5 id="Chapter-3-2-2-Listener"><a href="#Chapter-3-2-2-Listener">3.2.2. Listener</a></h5>
-The <strong>&lt;form:listener /&gt;</strong> tag is aimed to display field specific errors. As noted
-in the introduction chapter, the <strong>notify()</strong> method is called, when a form control
-is considered invalid. This method then notifies all listener tags, that have registered on this
-event to display their content at transformation time.
-<br />
-<br />
-In the below, field specific messages are displayed in case a desired field is marked invaluid:
-<br />
-<br />
+<p>
+   The <strong>&lt;form:listener /&gt;</strong> tag is aimed to display field specific errors. As noted
+   in the introduction chapter, the <strong>notify()</strong> method is called, when a form control
+   is considered invalid. This method then notifies all listener tags, that have registered on this
+   event to display their content at transformation time.
+</p>
+<p>
+   In the below, field specific messages are displayed in case a desired field is marked invaluid:
+</p>
 <em>Template:</em>
 <gen:highlight type="apf-xml">
 &lt;html:form name="product-form"&gt;
@@ -304,7 +313,7 @@ In the below, field specific messages are displayed in case a desired field is m
    &lt;form:listener control="description"&gt;Please provide a verbose product description!&lt;/form:listener&gt;
    &lt;form:area name="description" minlength="30"/&gt;
    &lt;form:addvalidator
-      class="TextLengthValidator"
+      class="APF\tools\form\validator\TextLengthValidator"
       control="code|title|description"
       button="send"
    /&gt;
@@ -313,6 +322,8 @@ In the below, field specific messages are displayed in case a desired field is m
 </gen:highlight>
 <em>Controller:</em>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class FormController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('product-form');
@@ -348,6 +359,8 @@ class FormController extends BaseDocumentController {
    case it contains an <em>e</em>:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class SearchController extends BaseDocumentController {
 
    public function transformContent() {
@@ -397,11 +410,15 @@ class SearchController extends BaseDocumentController {
       id. This can be used generating dynamic forms.
    </li>
 </ul>
-<br />
+
 <h4 id="Chapter-4-1-Select-by-name"><a href="#Chapter-4-1-Select-by-name">4.1. Select by name</a></h4>
-Are you faced with the task to gather the values of the form described in chapter 3.2.2., you can
-use the subsequent controller code:
+<p>
+   In case you are facing the task to gather the values of the form described in chapter 3.2.2., you can
+   use the subsequent controller code:
+</p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class FormController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('product-form');
@@ -425,11 +442,12 @@ class FormController extends BaseDocumentController {
    Using text ares, the content of the tag is not contained in the <strong>value</strong> attribute
    but within the content of the tag. This is identical to the HTML tag definition.
 </div>
-<br />
-Due to the fact, that an APF form is a DOM subtree containing form taglibs, a place holder within
-an error tag can be addressed with two steps. First, get the instance of the error tag, and second
-get the place holder's instance from the error tag. To have a dedicated example, consider the
-following form definition:
+<p>
+   Due to the fact, that an APF form is a DOM subtree containing form taglibs, a place holder within
+   an error tag can be addressed with two steps. First, get the instance of the error tag, and second
+   get the place holder's instance from the error tag. To have a dedicated example, consider the
+   following form definition:
+</p>
 <gen:highlight type="apf-xml">
 &lt;html:form name="product-form"&gt;
    &lt;form:error name="error"&gt;
@@ -438,9 +456,13 @@ following form definition:
    ...
 &lt;/html:form&gt;
 </gen:highlight>
-To fill the place holder within the <strong>&lt;form:error /&gt;</strong> tag use the following
-controller code:
+<p>
+   To fill the place holder within the <strong>&lt;form:error /&gt;</strong> tag use the following
+   controller code:
+</p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class FormController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('product-form');
@@ -460,18 +482,21 @@ class FormController extends BaseDocumentController {
    content of the id attribute of the desired form element in combination with the
    <em>getFormElementByID()</em> method.
 </div>
-<br />
-<br />
+
 <h4 id="Chapter-4-2-Selection-by-tag"><a href="#Chapter-4-2-Selection-by-tag">4.2. Selection by tag</a></h4>
-In some cases, it may be useful to select form elements by it's tag name. For this application case,
-the <strong>getFormElementsByTagName()</strong> method is available. It returns a list of form controls
-filtered by the given tag name.
-<br />
-<br />
-In combination with the <int:link pageid="063" anchor="Chapter-4-3-Saving-objects" />
-the method can be used to read the content of the form elements and directly map them to a
-<strong>GenericDomainObject</strong>. Achieving this, you can use the following code:
+<p>
+   In some cases, it may be useful to select form elements by it's tag name. For this application case,
+   the <strong>getFormElementsByTagName()</strong> method is available. It returns a list of form controls
+   filtered by the given tag name.
+</p>
+<p>
+   In combination with the <int:link pageid="063" anchor="Chapter-4-3-Saving-objects" />
+   the method can be used to read the content of the form elements and directly map them to a
+   <strong>GenericDomainObject</strong>. Achieving this, you can use the following code:
+</p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class EditController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('...');
@@ -487,45 +512,49 @@ class EditController extends BaseDocumentController {
    }
 }
 </gen:highlight>
-Please note, that the method returns only those elements which exist as direct child nodes in all
-cases.
-<br />
-<br />
-<br />
+<p>
+   Please note, that the method returns only those elements which exist as direct child nodes in all cases.
+</p>
+
 <h3 id="Chapter-5-Manipulation-of-forms"><a href="#Chapter-5-Manipulation-of-forms">5. Manipulation of forms</a></h3>
-The implementation of the form taglibs of the framework included several opportunities to manipulate
-form elements or their values. The next chapters thus describe solutions for the most frequent tasks.
-<br />
-<br />
-<br />
+<p>
+   The implementation of the form taglibs of the framework included several opportunities to manipulate
+   form elements or their values. The next chapters thus describe solutions for the most frequent tasks.
+</p>
+
 <h4 id="Chapter-5-1-Presetting"><a href="#Chapter-5-1-Presetting">5.1. Form presetting</a></h4>
-To preset form controls (e.g. within an edit dialog) the
+<p>
+   To preset form controls (e.g. within an edit dialog) the
+</p>
 <ul>
    <li><strong>getFormElementByName()</strong>,</li>
    <li><strong>getFormElementByTagName()</strong>,</li>
    <li><strong>getFormElementByID()</strong> oder</li>
    <li><strong>getFormElementByObjectID()</strong></li>
 </ul>
-methods can be used to gather an instance of the desired form control. After that, you can take one
-of the standard method
+<p>
+   methods can be used to gather an instance of the desired form control. After that, you can take one
+   of the standard method
+</p>
 <ul>
    <li><strong>getAttribute()</strong></li>
 </ul>
-or
+<p>
+   or
+</p>
 <ul>
    <li><strong>setAttribute()</strong></li>
 </ul>
-respectively to retrieve or fill the content.
-<br />
-<br />
-The subsequent code box defines a form, that is filled using the php code below:
-<br />
-<br />
+<p>
+   respectively to retrieve or fill the content.
+</p>
+<p>
+   The subsequent code box defines a form, that is filled using the php code below:
+</p>
 <em>Template:</em>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace="tools::form::taglib"
-   class="HtmlFormTag"
+   class="APF\tools\form\taglib\HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -554,15 +583,16 @@ $fFirstName->setAttribute('value','...');
 $lastName = &$form->getFormElementByName('LastName');
 $lastName->setAttribute('value','...');
 </gen:highlight>
-<br />
-<h4 id="Chapter-5-2-Prefilling-of-form-controls"><a href="#Chapter-5-2-Prefilling-of-form-controls">5.2. Prefilling of form controls</a></h4>
-Treatment of select and multi select fields is a bit different to normal form controls. But, the
-framework provides methods to ease prefilling of select fields. The subsequent code is used to
-prefill a form, that contains select fields in addition to normal text fields:
+
+<h4 id="Chapter-5-2-Prefilling-of-form-controls"><a href="#Chapter-5-2-Prefilling-of-form-controls">5.2. Pre-filling of form controls</a></h4>
+<p>
+   Treatment of select and multi select fields is a bit different to normal form controls. But, the
+   framework provides methods to ease pre-filling of select fields. The subsequent code is used to
+   pre-fill a form, that contains select fields in addition to normal text fields:
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace="tools::form::taglib"
-   class="HtmlFormTag"
+   class="APF\tools\form\taglib\HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -586,7 +616,9 @@ prefill a form, that contains select fields in addition to normal text fields:
    &lt;form:hidden name="userid" /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-The below controller code prefills the form:
+<p>
+   The below controller code prefills the form:
+</p>
 <gen:highlight type="php">
 $form = &$this->getForm('UserCreate');
 $salutations = array(...);
@@ -603,9 +635,10 @@ for($i = 0; $i < count($groups); $i++){
 <div class="hint">
    In order to mark options as selected, please use the <strong>setOption2Selected()</strong> method.
 </div>
-<br />
-The following code box gives presents an example taken from the <int:link pageid="095" />.
-The controller code first fills the select field and then preselects the desired option.
+<p>
+   The following code box gives presents an example taken from the <int:link pageid="095" />.
+   The controller code first fills the select field and then preselects the desired option.
+</p>
 <gen:highlight type="php">
 $form = &$this->getForm('PermissionSetEdit');
 
@@ -622,7 +655,7 @@ for($i = 0; $i < count($selectedPermissions); $i++){
    $permField->setOption2Selected($selectedPermissions[$i]->getProperty('PermissionID'));
 }
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-5-3-Readout-of-form-controls"><a href="#Chapter-5-3-Readout-of-form-controls">5.3. Readout of form controls</a></h4>
 Readout of form controls is similar to prefilling. Please note, that simple and multi select fields
 are handled a little bit different. The following code example shows how the values can be read out
@@ -667,7 +700,6 @@ for($i = 0; $i < count($selectedGroups); $i++){
    echo $selectedGroups[$i]->getAttribute('value').', '.$selectedGroups[$i]->getContent();
 }
 </gen:highlight>
-      
 <div class="warn">
    Analyzing dynamically filled select fields only works in case the field is filled with the desired options prior
    to reading the selected option(s). In case you do not fill the options, <em>getSelectedOption()</em> or
@@ -684,53 +716,47 @@ for($i = 0; $i < count($selectedGroups); $i++){
 <ul>
   <li>addFormElement()</li>
   <li>addFormContent()</li>
-</ul>
-and as of release 1.7
-<ul>
   <li>addFormContentBeforeMarker()</li>
   <li>addFormContentAfterMarker()</li>
   <li>addFormElementBeforeMarker()</li>
   <li>addFormElementAfterMarker()</li>
 </ul>
-The first two functions can be used to add content (i.e. plain text or html) or form elements at the
-end of the form. The latter ones are intended to add content or form at certain positions. For this
-reason, the <strong>&lt;form:marker /&gt;</strong> tag was introduced. The tag itself does not generate
-any output, but can be used for positioning purposes along with the "<em>addForm*[Before|After]Marker()</em>"
-methods.
-<br />
-<br />
-The following chapters describe, how a dynamic form can be generated displaying form coordinate fields
-(triangle, square, ...). Depending on the type, the corresponding fields are displayed. If the type
-is set to "square", four fields are displayed ...
-<br />
-<br />
+<p>
+   The first two functions can be used to add content (i.e. plain text or html) or form elements at the
+   end of the form. The latter ones are intended to add content or form at certain positions. For this
+   reason, the <strong>&lt;form:marker /&gt;</strong> tag was introduced. The tag itself does not generate
+   any output, but can be used for positioning purposes along with the "<em>addForm*[Before|After]Marker()</em>"
+   methods.
+</p>
+<p>
+   The following chapters describe, how a dynamic form can be generated displaying form coordinate fields
+   (triangle, square, ...). Depending on the type, the corresponding fields are displayed. If the type
+   is set to "square", four fields are displayed ...
+</p>
 <img src="http://media.adventure-php-framework.org/content/dynamic_forms_02.png" alt="APF - dynamische Form generation; selection of the 'square' type" />
-<br />
-<br />
-... in case of "triangle" three fields are presented:
-<br />
-<br />
+<p>
+   ... in case of "triangle" three fields are presented:
+</p>
 <img src="http://media.adventure-php-framework.org/content/dynamic_forms_01.png" alt="APF - dynamische Form generation; selection of the 'triangle' type" />
-<br />
-<br />
-<br />
+
 <h4 id="Chapter-6-1-Form-definition"><a href="#Chapter-6-1-Form-definition">6.1. Form definition</a></h4>
-As already mentioned, the dynamic definition can be done in two flavours. While using
-<em>addFormElement()</em> and/or <em>addFormContent()</em>, no marker is needed. Instead, the
-following example uses marker, because the form already contains structural elements (e.g. table).
-<br />
-<br />
-The following code box shows the form definition needed to display the form denoted above. To keep
-things simple, no CSS was added. Taking a closer look at the definition, you can see, that the form
-consists of a static select field, that defines the types available and a marker tag for positioning.
-Further, a document controller is specified, to add the desired form elements in front of the marker:
+<p>
+   As already mentioned, the dynamic definition can be done in two flavours. While using
+   <em>addFormElement()</em> and/or <em>addFormContent()</em>, no marker is needed. Instead, the
+   following example uses marker, because the form already contains structural elements (e.g. table).
+</p>
+<p>
+   The following code box shows the form definition needed to display the form denoted above. To keep
+   things simple, no CSS was added. Taking a closer look at the definition, you can see, that the form
+   consists of a static select field, that defines the types available and a marker tag for positioning.
+   Further, a document controller is specified, to add the desired form elements in front of the marker:
+</p>
 <gen:highlight type="apf-xml">
 &lt;@controller
    class="VENDOR\..\SelectController"
 @&gt;
 &lt;core:addtaglib
-   namespace="tools::form::taglib"
-   class="HtmlFormTag"
+   class="APF\tools\form\taglib\HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -756,14 +782,18 @@ Further, a document controller is specified, to add the desired form elements in
   &lt;/table&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-6-2-Controller"><a href="#Chapter-6-2-Controller">6.2. Controller</a></h4>
-The document controller is responsible for generating the form field, that depends on the type of
-the geometrical shape. For this reason, the constructor contains a definition of the form fields
-that should be displayed for a concrete type. Afterwards, the typ is read from the select field and
-the form is enhanced with additional content and fields. The following code box presents the
-implementation of the document controller needed for this functionality:
+<p>
+   The document controller is responsible for generating the form field, that depends on the type of
+   the geometrical shape. For this reason, the constructor contains a definition of the form fields
+   that should be displayed for a concrete type. Afterwards, the typ is read from the select field and
+   the form is enhanced with additional content and fields. The following code box presents the
+   implementation of the document controller needed for this functionality:
+</p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class SelectController extends BaseDocumentController {
 
    // specify form element container
@@ -817,7 +847,7 @@ class SelectController extends BaseDocumentController {
          $currentElement->setAttribute('style','width: 200px;');
 
          // add a line break
-         $form->addFormContentBeforeMarker('fields','<br />');
+         $form->addFormContentBeforeMarker('fields','');
 
       }
 
@@ -874,7 +904,7 @@ for($i = 0; $i < count($this->formElements[$CurrentType]); $i++){
    $currentElement->addValidator($validator);
 
    // add a line break
-   $form->addFormContentBeforeMarker('fields','<br />');
+   $form->addFormContentBeforeMarker('fields','');
 
 }
 </gen:highlight>
@@ -889,59 +919,74 @@ for($i = 0; $i < count($this->formElements[$CurrentType]); $i++){
 </div>
 
 <h4 id="Chapter-6-4-Notes"><a href="#Chapter-6-4-Notes">6.4. Notes</a></h4>
-A APF form element does need information about the name of itself already at creation time. If the
-element doesn't know it's own name, presetting and validation cannot be enabled. In order to use
-presetting and validation in combination with dynamic form elements, the <em>addFormElement()</em>,
-<em>addFormElementBeforeMarker()</em> and <em>addFormElementBeforeMarker()</em> functions possess a
-third parameter. This parameter expects an associative list of tag attributes, that are applied to
-the form object on creation time. Creating dynamic form elements, it is thus recommended to at least
-apply the name of the tag to the third argument:
+<p>
+   An APF form element does need information about the name of itself already at creation time. If the
+   element doesn't know it's own name, presetting and validation cannot be enabled. In order to use
+   presetting and validation in combination with dynamic form elements, the <em>addFormElement()</em>,
+   <em>addFormElementBeforeMarker()</em> and <em>addFormElementBeforeMarker()</em> functions possess a
+   third parameter. This parameter expects an associative list of tag attributes, that are applied to
+   the form object on creation time. Creating dynamic form elements, it is thus recommended to at least
+   apply the name of the tag to the third argument:
+</p>
 <gen:highlight type="php">
 array(
       'name' => 'current_name'
      )
 </gen:highlight>
-Please note, that the tag attributes are also interesting for addressing the form objects after
-appending them to the form via the <em>getFormElementByName()</em> or <em>getFormElementByID()</em>
-methods.
-<br />
-<br />
-<br />
+<p>
+   Please note, that the tag attributes are also interesting for addressing the form objects after
+   appending them to the form via the <em>getFormElementByName()</em> or <em>getFormElementByID()</em>
+   methods.
+</p>
+
 <h3 id="Chapter-7-Enhancement-of-form-controls"><a href="#Chapter-7-Enhancement-of-form-controls">7. Enhancement of form controls</a></h3>
-The concept of the APF's page controller allows you to write own taglibs to create reusable elements.
-This also continues with forms. Custom form controls can be added using the <strong>&lt;form:addtaglib /&gt;</strong>
-tag. This tag acts similar to the <strong>&lt;core:addtaglib /&gt;</strong>, but is restricted to
-forms.
-<br />
-<br />
-The difference between a normal taglib and a form taglib is the fact, that each form taglib implements
-the abstract <strong>AbstractFormControl</strong> class. Hence, the form control inherits an advanced tag
-definition and some more functionality to enable the <strong>&lt;html:form /&gt;</strong> tag to
-handle the control. The extra functionality mentioned in the last sentence merely consists of
-validation and filter handling code.
-<br />
-<br />
-The next three chapters describe the creation of custom form controls, validators and filters.
-Besiders, implementation examples are presented.
-<br />
-<br />
-<br />
+<p>
+   The concept of the APF's page controller allows you to write own taglibs to create reusable elements.
+   This also continues with forms. Custom form controls can be added using the <strong>&lt;form:addtaglib /&gt;</strong>
+   tag. This tag acts similar to the <strong>&lt;core:addtaglib /&gt;</strong>, but is restricted to
+   forms.
+</p>
+<p>
+   The difference between a normal taglib and a form taglib is the fact, that each form taglib extends
+   <strong>AbstractFormControl</strong> class or - effectively - implements the <em>FormControl</em> interface. Hence,
+   the form control inherits an advanced tag definition and some more functionality to enable the
+   <strong>&lt;html:form /&gt;</strong> tag to handle the control. The extra functionality mentioned in the last
+   sentence merely consists of validation and filter handling code.
+</p>
+<div class="warn">
+   <p>
+      Please note, that the <em>&lt;html:form /&gt;</em> tag only treats tags as form elements in case they implement
+      the <em>FormControl</em> interface. All other tags are not included in validation, filtering and requesting the
+      current status.
+   </p>
+   <p>
+      This allows you to use any kind of tags within forms that are not part of the form's functionality (e.g. field
+      labels.
+   </p>
+</div>
+<p>
+   The next three chapters describe the creation of custom form controls, validators and filters.
+   Besides, implementation examples are presented.
+</p>
+
 <h4 id="Chapter-7-1-Form-controls"><a href="#Chapter-7-1-Form-controls">7.1. Form controls</a></h4>
-As mentioned above, an APF form control is defined by the abstract class <strong>AbstractFormControl</strong>.
-In order to implement a custom form element, the class' functionality must be enhanced.
-<br />
-<br />
-As an example, a form element should be discussed that generates a hidden input field in order to
-protect a form. In the next chapter, we are going to implement the appropriate validator. In case,
-the control is filled, we consider the field invalid and assume, that it was filled by automated
-scripts. Otherwise, the field is defined to be valid. In various blog entries this kind of fields
-are also as called
-<a class="external" href="http://nedbatchelder.com/text/stopbots.html" title="Stopping spambots with hashes and honeypots">honeypot fields</a>.
-<br />
-<br />
-Let's start with the basics of the element. As described in the last sentence, the tag should
-generate a hidden text input field. To achieve this, the taglib must return the desired source
-code:
+<p>
+   As mentioned above, an APF form control is defined by the abstract class <strong>AbstractFormControl</strong>.
+   In order to implement a custom form element, the class' functionality must be enhanced.
+</p>
+<p>
+   As an example, a form element should be discussed that generates a hidden input field in order to
+   protect a form. In the next chapter, we are going to implement the appropriate validator. In case,
+   the control is filled, we consider the field invalid and assume, that it was filled by automated
+   scripts. Otherwise, the field is defined to be valid. In various blog entries this kind of fields
+   are also as called
+   <a class="external" href="http://nedbatchelder.com/text/stopbots.html" title="Stopping spambots with hashes and honeypots">honeypot fields</a>.
+</p>
+<p>
+   Let's start with the basics of the element. As described in the last sentence, the tag should
+   generate a hidden text input field. To achieve this, the taglib must return the desired source
+   code:
+</p>
 <gen:highlight type="php">
 class HoneypotFormControlTag extends AbstractFormControl {
    public function transform(){
@@ -954,13 +999,6 @@ class HoneypotFormControlTag extends AbstractFormControl {
    }
 }
 </gen:highlight>
-<div class="hint">
-   Before release 1.14
-   <gen:highlight type="php">$htmlCode .= $this->getAttributesAsString($this->__Attributes);</gen:highlight>
-   must be replaced by
-   <gen:highlight type="php">$htmlCode .= $this->__getAttributesAsString($this->__Attributes);</gen:highlight>
-   due to API changes.
-</div>
 <p>
    Due to the fact, that validation and filter attachment as well as the method returning the validity
    status of the tag is already included in the <strong>AbstractFormControl</strong> class, the code printed
@@ -972,8 +1010,7 @@ class HoneypotFormControlTag extends AbstractFormControl {
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace="tools::form::taglib"
-   class="HtmlFormTag"
+   class="APF\tools\form\taglib\HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -984,28 +1021,30 @@ class HoneypotFormControlTag extends AbstractFormControl {
    ...
 &lt;/html:form&gt;
 </gen:highlight>
-The real functionality is now included in the <strong>honepot field</strong> validator. See the
-next chapter for details.
-<br />
-<br />
-<br />
+<p>
+   The real functionality is now included in the <strong>honepot field</strong> validator. See the
+   next chapter for details.
+</p>
+
 <h4 id="Chapter-7-2-Validators"><a href="#Chapter-7-2-Validators">7.2. Validators</a></h4>
-Validators are defined separately and are attached as observer since release <strong>1.11</strong>.
-In order to support this mechanism, a form control must be aware of validators. In case of the honey
-pot field, the functionality is already included in the tag, because it extends the base class
-<strong>AbstractFormControl</strong>. Thus, the validator is applied the content of the <strong>value</strong>
-attribute and is thus able to act as descibed in the introduction.
-<br />
-<br />
-For convenience, we call the validator <strong>HoneypotValidator</strong>. In common sense, it is a
-text field validator and can thus use the <strong>TextFieldValidator</strong> class as a basis. This
-class derives from <strong>AbstractFormValidator</strong>, what is the bas class for all validators.
-<br />
-<br />
-Each validator must implement the <strong>validate()</strong> method, that is applied the content to
-validate. In case of the <em>HoneypotValidator</em> the content of the text field must be empty to
-consider the control valid. If not, the field is marked as invalid. The following code can be used
-to implement the descibed functionality:
+<p>
+   Validators are defined separately and are attached as observer since release <strong>1.11</strong>.
+   In order to support this mechanism, a form control must be aware of validators. In case of the honey
+   pot field, the functionality is already included in the tag, because it extends the base class
+   <strong>AbstractFormControl</strong>. Thus, the validator is applied the content of the <strong>value</strong>
+   attribute and is thus able to act as described in the introduction.
+</p>
+<p>
+   For convenience, we call the validator <strong>HoneypotValidator</strong>. In common sense, it is a
+   text field validator and can thus use the <strong>TextFieldValidator</strong> class as a basis. This
+   class derives from <strong>AbstractFormValidator</strong>, what is the bas class for all validators.
+</p>
+<p>
+   Each validator must implement the <strong>validate()</strong> method, that is applied the content to
+   validate. In case of the <em>HoneypotValidator</em> the content of the text field must be empty to
+   consider the control valid. If not, the field is marked as invalid. The following code can be used
+   to implement the described functionality:
+</p>
 <gen:highlight type="php">
 class HoneypotValidator extends TextFieldValidator {
    public function validate($input){
@@ -1017,11 +1056,13 @@ class HoneypotValidator extends TextFieldValidator {
    ...
 }
 </gen:highlight>
-Due to the fact, that <strong>TextFieldValidator</strong> already contains the functionality that
-is necessary to notify a &quot;real&quot; text field and mark it with a special css class in case
-of errors. As of this application case, we do not need this functionality and though we have to
-suppress it. For this reason, we are going to overwrite the <strong>notify()</strong> method
-(defined within <strong>TextFieldValidator</strong>), that is called when a field failed validation:
+<p>
+   Due to the fact, that <strong>TextFieldValidator</strong> already contains the functionality that
+   is necessary to notify a &quot;real&quot; text field and mark it with a special css class in case
+   of errors. As of this application case, we do not need this functionality and though we have to
+   suppress it. For this reason, we are going to overwrite the <strong>notify()</strong> method
+   (defined within <strong>TextFieldValidator</strong>), that is called when a field failed validation:
+</p>
 <gen:highlight type="php">
 class HoneypotValidator extends TextFieldValidator {
    public function validate($input){
@@ -1037,20 +1078,22 @@ class HoneypotValidator extends TextFieldValidator {
    }
 }
 </gen:highlight>
-In contrast to the implementation of the <strong>TextFieldValidator</strong> class, the line
-<strong>TextFieldValidator</strong> die Zeile
+<p>
+   In contrast to the implementation of the <strong>TextFieldValidator</strong> class, the line
+   <strong>TextFieldValidator</strong> die Zeile
+</p>
 <gen:highlight type="php">
 $this->markControl($this->control);
 </gen:highlight>
-is not included. This disables the optical marking of the form element using a custom css class.
-<br />
-<br />
-The following code box describes the application of the validator together with the above honeypot
-field:
+<p>
+   is not included. This disables the optical marking of the form element using a custom css class.
+</p>
+<p>
+   The following code box describes the application of the validator together with the above honeypot field:
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace="tools::form::taglib"
-   class="HtmlFormTag"
+   class="APF\tools\form\taglib\HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -1059,34 +1102,36 @@ field:
    &lt;form:honeypot name="check" /&gt;
    &lt;form:addvalidator
       namespace="..."
-      class="HoneypotValidator"
+      class="APF\tools\form\validator\HoneypotValidator"
       control="check"
       button="send"
    /&gt;
    &lt;form:button name="send" value="Send" /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
-Thanks to the independent definition and implementation of the validator, it can also be applied to
-other text fields. These are all text fields and text areas shipped with the APF release.
-<br />
-<br />
-<br />
+<p>
+   Thanks to the independent definition and implementation of the validator, it can also be applied to
+   other text fields. These are all text fields and text areas shipped with the APF release.
+</p>
+
 <h4 id="Chapter-7-3-Filter"><a href="#Chapter-7-3-Filter">7.3. Filter</a></h4>
-Applying the honeypot field no filter is needed. Hence, this chapter describes a filter, that
-substitutes German umlauts with their phoneme equivalents (e.g. ä -> ae).
-<br />
-<br />
-The <strong>GermanUmlautsFilter</strong> thus implements the <strong>AbstractFormFilter</strong> class
-that is the base class for all form filters just as the <strong>AbstractFormValidator</strong> is
-for validators. The abstract form filter class defines the interface for all concrete form filter
-implementations.
-<br />
-<br />
-Further, each form filter implements <strong>filter()</strong> method. The function takes the
-content to filter as an argument and returns the filtered content.
-<br />
-<br />
-The skeleton of the filter is as follows:
+<p>
+   Applying the honeypot field no filter is needed. Hence, this chapter describes a filter, that
+   substitutes German umlauts with their phoneme equivalents (e.g. ä -> ae).
+</p>
+<p>
+   The <strong>GermanUmlautsFilter</strong> thus implements the <strong>AbstractFormFilter</strong> class
+   that is the base class for all form filters just as the <strong>AbstractFormValidator</strong> is
+   for validators. The abstract form filter class defines the interface for all concrete form filter
+   implementations.
+</p>
+<p>
+   Further, each form filter implements <strong>filter()</strong> method. The function takes the
+   content to filter as an argument and returns the filtered content.
+</p>
+<p>
+   The skeleton of the filter is as follows:
+</p>
 <gen:highlight type="php">
 class GermanUmlautsFilter extends AbstractFormFilter {
    public function filter($input){
@@ -1094,8 +1139,10 @@ class GermanUmlautsFilter extends AbstractFormFilter {
    }
 }
 </gen:highlight>
-The functionality of the filter is a simple string replace call using the PHP standard function
-<strong>str_replace()</strong>:
+<p>
+   The functionality of the filter is a simple string replace call using the PHP standard function
+   <strong>str_replace()</strong>:
+</p>
 <gen:highlight type="php">
 class GermanUmlautsFilter extends AbstractFormFilter {
    public function filter($input){
@@ -1107,11 +1154,12 @@ class GermanUmlautsFilter extends AbstractFormFilter {
    }
 }
 </gen:highlight>
-The application of the filter using a text field or a text area can be taken from the below code box:
+<p>
+   The application of the filter using a text field or a text area can be taken from the below code box:
+</p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace="tools::form::taglib"
-   class="HtmlFormTag"
+   class="APF\tools\form\taglib\HtmlFormTag"
    prefix="html"
    name="form"
 /&gt;
@@ -1119,8 +1167,7 @@ The application of the filter using a text field or a text area can be taken fro
    &lt;form:text name="name" /&gt;
    &lt;form:area name="comment" /&gt;
    &lt;form:addfilter
-      namespace="..."
-      class="GermanUmlautsFilter"
+      class="...\GermanUmlautsFilter"
       control="name|comment"
       button="send"
    /&gt;
@@ -1196,6 +1243,8 @@ The application of the filter using a text field or a text area can be taken fro
    In order to hide the checkbox for the permanent log-in you may use the following controller code:
 </p>
 <gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
 class LoginController extends BaseDocumentController {
 
    public function transformContent() {
