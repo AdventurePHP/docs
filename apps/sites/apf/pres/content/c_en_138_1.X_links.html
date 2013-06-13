@@ -208,8 +208,6 @@ interface LinkScheme {
    as follows:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\Url;
-
 // creating the url abstraction from the current url
 $url = Url::fromCurrent();
 
@@ -235,7 +233,7 @@ $url = new Url(null, null, null, '/pages/news', array('page' => 3));
 $url = new Url(null, null, null, null, array('page' => 3));
 </gen:highlight>
 <p>
-   After creation, the url representation can be manipulated using the methods
+   After creation, the url represetnation can be manipulated using the methods
 </p>
 <ul>
    <li><em>setScheme()</em></li>
@@ -255,9 +253,6 @@ $url = new Url(null, null, null, null, array('page' => 3));
    can be passed to the <em>LinkGenerator</em> for formatting:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
 // add or overwrite the current parameters using an associative array
 $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
             'page' => 5,
@@ -278,9 +273,6 @@ $link = LinkGenerator::generateUrl(Url::fromCurrent()
    can be adapted like this:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
 $link = LinkGenerator::generateUrl(Url::fromString('/pages/news?page=3&print=true')
             ->setScheme('https')
             ->setHost('example.com')
@@ -309,11 +301,6 @@ https://example.com/pages/news?page=4
    then overwrites the global link scheme:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
-use VENDOR\...\link\AjaxLinkScheme;
-
 $ajaxUrl = LinkGenerator::generateUrl(Url::fromString('news.php')
             ->setQueryParameter('page', 4), new AjaxLinkScheme());
 </gen:highlight>
@@ -322,9 +309,6 @@ $ajaxUrl = LinkGenerator::generateUrl(Url::fromString('news.php')
    convenience, you can also re-use an existing link scheme to be configured for the current case:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
 $scheme = LinkGenerator::cloneLinkScheme();
 $scheme->setSpecialParameter(true);
 
@@ -354,11 +338,8 @@ $specialUrl = LinkGenerator::generateUrl(Url::fromCurrent()
    name as well as a set of parameters:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
 $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
-         'APF\tools\media',
+         'tools::media', 
          'streamMedia',
          array(
             'namespace' => 'modules_usermanagement_pres_images',
@@ -394,13 +375,8 @@ $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
    <em>LinkGenerator::generateActionUrl()</em> accepts a custom link scheme, too:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
-use VENDOR\...\link\SpecialLinkScheme;
-
 $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
-         'APF\tools\media',
+         'tools::media', 
          'streamMedia',
          array(
             'namespace' => 'modules_usermanagement_pres_images',
@@ -423,8 +399,6 @@ $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
    like this:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-
 // use dedicated link scheme with special configuration
 $scheme = LinkGenerator::cloneLinkScheme();
 $scheme->setEncodeAmpersands(true);
@@ -471,9 +445,6 @@ $url = LinkGenerator::generateUrl(...);
    The code to generate this layout is as follows:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkScheme;
-use APF\tools\link\Url;
-
 class SpecialLinkScheme implements LinkScheme {
 
    private $encodeAmpersands = true;
@@ -507,7 +478,7 @@ class SpecialLinkScheme implements LinkScheme {
       $link = $this->formatLink($url);
       
       $link .= strpos('?') !== false ? '&' : '?';
-      $link .= str_replace('\\', '_', $namespace) . '-action:' . $name;
+      $link .= str_replace('::', '_', $namespace) . '-action:' . $name;
 
       $actionParams = array();
       foreach ($params as $name => $value) {
@@ -559,29 +530,22 @@ class SpecialLinkScheme implements LinkScheme {
    file as follows:
 </p>
 <gen:highlight type="php">
-// global configuration using an existing link scheme
-include('./APF/core/bootstrap.php');
-
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\RewriteLinkScheme;
-
+// globale configuration using an existing link scheme
+include('../apps/core/pagecontroller/pagecontroller.php');
+import('tools::link', 'LinkGenerator');
 LinkGenerator::setLinkScheme(new RewriteLinkScheme(true));
 
-// global configuration using a custom link scheme
-include('./APF/core/bootstrap.php');
-
-use APF\tools\link\LinkGenerator;
-use VENDOR\...\link\SpecialLinkScheme;
-
+// globale configuration using a custom link scheme
+include('../apps/core/pagecontroller/pagecontroller.php');
+import('tools::link', 'LinkGenerator');
+import('...', 'SpecialLinkScheme');
 LinkGenerator::setLinkScheme(new SpecialLinkScheme());
 </gen:highlight>
 <p>
    With no special configuration present within the bootstrap file the <em>DefaultLinkScheme</em>
-   will be used. The basic configuration of the link generation happens within <em>APF/core/bootstrap.php</em>.
+   will be used as long as the <em>URLRewriting</em> <int:link pageid="067">registry key</int:link>
+   from the <em>apf::core</em> namespace contains the value <em>false</em>. If you have activated
+   url rewriting through the registry the <em>RewriteLinkScheme</em> is used.
 </p>
-<div class="hint">
-   Details on the configuration of the transparent URL rewriting feature of the APF can be taken from chapter
-   <int:link pageid="069" />.
-</div>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_138" />

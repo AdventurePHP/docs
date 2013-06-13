@@ -155,7 +155,8 @@ final class LinkGenerator {
    Die Methode <em>generateActionUrl()</em> ist dazu gedacht, eine explizite Adressierung einer Action
    zu erzeugen. Actions, die aus Gründen der Funktion immer in der URL beibehalten werden sollen,
    werden von den mitgelieferten Link-Schemen bereits automatisch in die generierte URL eingebettet.
-   Details zur Konfiguration können <int:link pageid="012" anchor="Chapter-7-Generierung-von-Links">Kapitel 7</int:link>
+   Details zur Konfiguration können 
+   <int:link pageid="012" anchor="Chapter-2-4-3-FrontcontrollerLinkHandler">Kapitel 2.4.3</int:link>
    der Front-Controller-Dokumentation entnommen werden.
 </div>
 
@@ -198,7 +199,7 @@ interface LinkScheme {
    <em>DefaultLinkScheme</em> und <em>RewriteLinkScheme</em>. Ersteres ist für die Formatierung von
    &quot;normalen&quot; URLs zuständig, letzteres kümmerst sich um umgeschriebene URLs gemäß der
    Layout Definition im Kapitel <int:link pageid="137" anchor="Chapter-4-2-Rewrite-URLs">Rewrite-URLs</int:link>
-   in der Filter-Dokumentation bzw. <int:link pageid="012" anchor="Chapter-3-2-2-Dynamische-Actions">URL-Layout</int:link>
+   in der Filter-Dokumentation bzw. <int:link pageid="012" anchor="Chapter-2-4-1-URL-Layout">URL-Layout</int:link>
    in der Front-Controller-Dokumentation.
 </p>
 
@@ -214,8 +215,6 @@ interface LinkScheme {
    Möglichkeiten:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\Url;
-
 // Erzeugen einer relativen URL aus der Aktuellen
 $url = Url::fromCurrent();
 
@@ -264,9 +263,6 @@ $url = new Url(null, null, null, null, array('page' => 3));
    <em>LinkGenerator</em> formatiert werden. Dies ist wie folgt machbar:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
 // Ergänzen bzw. Überschreiben der aktuellen Parameter über ein assoziatives Array
 $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
             'page' => 5,
@@ -288,9 +284,6 @@ $link = LinkGenerator::generateUrl(Url::fromCurrent()
    ist. Anschließend lassen sich die Parameter sowie die übrigen Eigenschaften wie folgt manipulieren:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
 $link = LinkGenerator::generateUrl(Url::fromString('/pages/news?page=3&print=true')
             ->setScheme('https')
             ->setHost('example.com')
@@ -320,11 +313,6 @@ https://example.com/pages/news?page=4
    Fall kann der Methoden <em>generateUrl()</em> das gewünschte Schema mitgegeben werden:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
-use VENDOR\...\link\AjaxLinkScheme;
-
 $ajaxUrl = LinkGenerator::generateUrl(Url::fromString('news.php')
             ->setQueryParameter('page', 4), new AjaxLinkScheme());
 </gen:highlight>
@@ -334,9 +322,6 @@ $ajaxUrl = LinkGenerator::generateUrl(Url::fromString('news.php')
    Anwendungsfall einzusetzen:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
 $scheme = LinkGenerator::cloneLinkScheme();
 $scheme->setSpecialParameter(true);
 
@@ -348,7 +333,7 @@ $specialUrl = LinkGenerator::generateUrl(Url::fromCurrent()
 <p>
    Front-Controller-Actions besitzten ein Flag, das anzeigt, ob die Repräsentation einer Action in
    der zu generierenden URL eingebunden werden soll oder nicht. Dies ist - wie im
-   <int:link pageid="012" anchor="Chapter-7-Generierung-von-Links">Kapitel 7</int:link>
+   <int:link pageid="012" anchor="Chapter-2-4-3-FrontcontrollerLinkHandler">Kapitel 2.4.3</int:link>
    beschrieben - eine technische Möglichkeit, die Entkopplung von Software-Komponenten über die URL
    auch für Action-Anweisungen zu realisieren. Für den Entwickler ist diese Möglichkeit insbesondere
    dann wichtig, wenn eine Action zur Steuerung einer Applikation dauerhaft in der URL bestehen
@@ -368,11 +353,8 @@ $specialUrl = LinkGenerator::generateUrl(Url::fromCurrent()
    Action-Namen und einem Satz an Parametern generieren:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
 $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
-         'APF\tools\media',
+         'tools::media', 
          'streamMedia',
          array(
             'namespace' => 'modules_usermanagement_pres_images',
@@ -412,13 +394,8 @@ $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
    <em>LinkGenerator::generateActionUrl()</em> ein explizites Link-Schema mitgegeben werden:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
-use VENDOR\...\link\SpecialLinkScheme;
-
 $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
-         'APF\tools\media',
+         'tools::media', 
          'streamMedia',
          array(
             'namespace' => 'modules_usermanagement_pres_images',
@@ -441,8 +418,6 @@ $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
    das Und-Zeichen zu escapen, können folgende Maßnahmen ergriffen werden:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkGenerator;
-
 // Angepasstes Link-Schema für dedizierte Generierung nutzen
 $scheme = LinkGenerator::cloneLinkScheme();
 $scheme->setEncodeAmpersands(true);
@@ -492,9 +467,6 @@ $url = LinkGenerator::generateUrl(...);
    Der zugehörige Code sieht folgendes vor:
 </p>
 <gen:highlight type="php">
-use APF\tools\link\LinkScheme;
-use APF\tools\link\Url;
-
 class SpecialLinkScheme implements LinkScheme {
 
    private $encodeAmpersands = true;
@@ -528,7 +500,7 @@ class SpecialLinkScheme implements LinkScheme {
       $link = $this->formatLink($url);
       
       $link .= strpos('?') !== false ? '&' : '?';
-      $link .= str_replace('\\', '_', $namespace) . '-action:' . $name;
+      $link .= str_replace('::', '_', $namespace) . '-action:' . $name;
 
       $actionParams = array();
       foreach ($params as $name => $value) {
@@ -583,29 +555,21 @@ class SpecialLinkScheme implements LinkScheme {
 </p>
 <gen:highlight type="php">
 // Globale Konfiguration eines bestehenden Link-Schema
-include('./APF/core/bootstrap.php');
-
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\RewriteLinkScheme;
-
+include('../apps/core/pagecontroller/pagecontroller.php');
+import('tools::link', 'LinkGenerator');
 LinkGenerator::setLinkScheme(new RewriteLinkScheme(true));
 
 // Globale Konfiguration eines eigenen Link-Schema
-include('./APF/core/bootstrap.php');
-
-use APF\tools\link\LinkGenerator;
-use VENDOR\...\link\SpecialLinkScheme;
-
+include('../apps/core/pagecontroller/pagecontroller.php');
+import('tools::link', 'LinkGenerator');
+import('...', 'SpecialLinkScheme');
 LinkGenerator::setLinkScheme(new SpecialLinkScheme());
 </gen:highlight>
 <p>
    Wird keine Konfiguration in der Bootstrap-Datei vorgenommen, so wird das <em>DefaultLinkScheme</em>
-   verwendet. Die Basis-Konfiguration der Link-Generierung findet wie auch andere Konfigurationen in der
-   <em>APF/core/bootstrap.php</em>-Datei statt.
+   verwendet, solange der <int:link pageid="067">Registry-Key</int:link> <em>URLRewriting</em> aus 
+   dem Namespace <em>apf::core</em> den Wert <em>false</em> besitzt. Ist das URL-Rewriting aktiviert,
+   so kommt das <em>RewriteLinkScheme</em> zum Einsatz.
 </p>
-<div class="hint">
-   Details zur Konfiguration des mit dem APF ausgelieferten Features zum transparenten Umschreiben von URLs entnehmen
-   Sie bitte Kapitel <int:link pageid="069" />.
-</div>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_138" />
