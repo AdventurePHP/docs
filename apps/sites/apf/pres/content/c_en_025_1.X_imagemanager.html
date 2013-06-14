@@ -1,29 +1,31 @@
-<doku:title parent="119" tags="imagemanager,image" title="ImageManager" urlname="ImageManager">
+<doku:title parent="119" tags="imagemanager" title="ImageManager" urlname="ImageManager">
   The ImageManager component implements methods to edit pictures. Here JPEG and GIF are as well
   supported as PNG images if the PHP GDLib is available in the correct version.
 </doku:title>
-<p>
-   The <strong>ImageManager</strong> component implements methods to edit pictures. Here JPEG and GIF
-   are as well supported as PNG images if the PHP GDLib is available in the correct version.
-</p>
-<p>
-   For image handling purposes, the two static methods
-</p>
+<div class="hint">
+   The documentation for this component relevant until revision 1.8 can be found on <int:link pageid="105" />.
+</div>
+The <strong>ImageManager</strong> component implements methods to edit pictures. Here JPEG and GIF
+are as well supported as PNG images if the PHP GDLib is available in the correct version. To use the
+<strong>ImageManager</strong> it must be included into the current application using
+<gen:highlight type="php">
+  import('tools::image','ImageManager');
+</gen:highlight>
+before instanciating it. For image handling purposes, the two static methods
 <ul>
   <li>showImageAttributes() and</li>
   <li>resizeImage()</li>
 </ul>
-<p>
-   are available.
-</p>
-
+are available. The methods available previous to release 1.9 are documented on the
+<int:link pageid="105">old documentation</int:link> page.
+<br />
+<br />
+<br />
 <h3 id="Chapter-1-Displaying-image-attributes"><a href="#Chapter-1-Displaying-image-attributes">1. Displaying image attributes</a></h3>
-<p>
-   The method <strong>showImageAttributes()</strong> is intended to return the attributes of an image.
-   It returns an associative array or the value of a dedicated attribute. Hence, the code
-</p>
+The method <strong>showImageAttributes()</strong> is intended to return the attributes of an image.
+It returns an associative array or the value of a dedicated attribute. Hence, the code
 <gen:highlight type="php">
-use APF\tools\image\ImageManager;
+import('tools::image','ImageManager');
 $image = './images/my_new_dog.png';
 echo printObject(ImageManager::getImageAttributes($image));
 </gen:highlight>
@@ -38,24 +40,18 @@ Array
     [bitdepth] => 8
 )
 </gen:highlight>
-<p>
-   If the second argument contains the name of the desired attribute, the return value contains the
-   value of the attribute directly. Thus, the code
-</p>
+If the second argument contains the name of the desired attribute, the return value contains the
+value of the attribute directly. Thus, the code
 <gen:highlight type="php">
-use APF\tools\image\ImageManager;
+import('tools::image','ImageManager');
 $image = './images/my_new_dog.png';
 echo ImageManager::getImageAttributes($image,'type');
 </gen:highlight>
-<p>
-   creates the output
-</p>
+creates the output
 <gen:highlight type="code">
 png
 </gen:highlight>
-<p>
-   The following list describes the attributes available:
-</p>
+The following list describes the attributes available:
 <ul>
   <li><strong>width</strong>: the width of the image</li>
   <li><strong>height</strong>: the height of the image</li>
@@ -64,17 +60,15 @@ png
   <li><strong>bitdepth</strong>: the bitdepth of the image</li>
   <li><strong>colormode</strong>: the color mode (RGB or CMYK)</li>
 </ul>
-
+<br />
 <h3 id="Chapter-2-Resize-images"><a href="#Chapter-2-Resize-images">2. Resize images</a></h3>
-<p>
-   In order to change the dimensions of an image, the <strong>resizeImage()</strong> method can be used.
-   To achieve this, the source image and the target dimensions must be applied as arguments. If no target
-   image is given or the param contains the value <em>null</em>, the resized image is flushed to STDOUT.
-   As an optional parameter, the quality of JPEG images can be set. The following code snippet shows,
-   how the <em>ImageManager</em> can be used to generate thumbnails:
-</p>
+In order to change the dimensions of an image, the <strong>resizeImage()</strong> method can be used.
+To achieve this, the source image and the target dimensions must be applied as arguments. If no target
+image is given or the param contains the value <em>null</em>, the resized image is flushed to STDOUT.
+As an optional parameter, the quality of JPEG images can be set. The following code snippet shows,
+how the <em>ImageManager</em> can be used to generate thumbnails:
 <gen:highlight type="php">
-use APF\tools\image\ImageManager;
+import('tools::image','ImageManager');
 $image = './images/my_new_dog.png';
 $picto = './images/my_new_dog_small.png';
 $attributes = ImageManager::getImageAttributes($image);
@@ -82,24 +76,21 @@ $width = round((int)$attributes['width'] / 10,0); // resize to 10%
 $height = round((int)$attributes['height'] / 10,0); // resize to 10%
 ImageManager::resizeImage($image,$width,$height,$picto);
 </gen:highlight>
-<p>
-   If a JPEG image should be flushed to STDOUT after resizing, but the quality of the target image should
-   be set to a value of <em>90</em>, this can be done with the following code snippet:
-</p>
+If a JPEG image should be flushed to STDOUT after resizing, but the quality of the target image should
+be set to a value of <em>90</em>, this can be done with the following code snippet:
 <gen:highlight type="php">
-use APF\tools\image\ImageManager;
+import('tools::image','ImageManager');
 $image = './images/my_old_dog.jpg';
 ImageManager::resizeImage($image,$width,$height,null,90);
 </gen:highlight>
-
+<br />
 <h3 id="Chapter-3-Application-sample-ImageResizer"><a href="#Chapter-3-Application-sample-ImageResizer">3. Application sample: ImageResizer</a></h3>
-<p>
-   A typical application case for the <em>ImageManager</em> ist the delivery of images with dynamic sizes
-   via a front controller action. The following code depicts the content of the <em>run()</em> method of
-   the action, that additionally caches images, that were already delivered:
-</p>
+A typical application case for the <em>ImageManager</em> ist the delivery of images with dynamic sizes
+via a front controller action. The following code depicts the content of the <em>run()</em> method of
+the action, that additionally caches images, that were already delivered:
 <gen:highlight type="php">
-use APF\tools\image\ImageManager;
+// include the necessary libraries
+import('tools::image','ImageManager');
 
 // gather the relevant params from the action input
 $image = urldecode($this->input->getAttribute('image'));
@@ -171,5 +162,5 @@ header('Content-Length: '.strlen($imageSource));
 echo $imageSource;
 exit(0);
 </gen:highlight>
-
+<br />
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_025" />
