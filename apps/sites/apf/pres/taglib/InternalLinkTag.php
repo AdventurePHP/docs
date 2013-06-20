@@ -42,9 +42,9 @@ class InternalLinkTag extends Document {
       // setup version
       /* @var $model APFModel */
       $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
-      $defaultVersion = $model->getDefaultVersionId();
+      $currentVersion = $model->getVersionId();
 
-      $version = $this->getAttribute('version', $defaultVersion);
+      $version = $this->getAttribute('version', $currentVersion);
 
       // setup link text
       /* @var $urlMan UrlManager */

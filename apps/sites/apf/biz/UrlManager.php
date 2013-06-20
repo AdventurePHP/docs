@@ -41,15 +41,9 @@ final class UrlManager extends APFObject {
     */
    public function getPageTitle($pageId, $lang, $versionId) {
 
-      /* @var $t BenchmarkTimer */
-      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
-      $id = 'UrlManager::getPageTitle(' . $pageId . ', ' . $lang . ', ' . $versionId . ')';
-      $t->start($id);
-
       // deliver cached content, if possible
       $hash = md5($pageId . $lang . $versionId);
       if (isset($this->titleCache[$hash])) {
-         $t->stop($id);
          return $this->titleCache[$hash];
       }
 
@@ -65,16 +59,16 @@ final class UrlManager extends APFObject {
       $result = $sql->executeTextStatement($select);
       $data = $sql->fetchData($result);
 
-      if (empty($data['Title'])) {
-         /* @var $model APFModel */
-         $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
-         $title = $this->getPageTitle($pageId, $lang, $model->getDefaultVersionId());
+      /* @var $model APFModel */
+      $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
+      $defaultVersionId = $model->getDefaultVersionId();
+      if (empty($data['Title']) && $versionId != $defaultVersionId) {
+         $title = $this->getPageTitle($pageId, $lang, $defaultVersionId);
       } else {
          $title = $data['Title'];
       }
 
       $this->titleCache[$hash] = $title;
-      $t->stop($id);
       return $this->titleCache[$hash];
 
    }
@@ -111,15 +105,9 @@ final class UrlManager extends APFObject {
          throw new \InvalidArgumentException('Version identifier must not be null or empty!');
       }
 
-      /* @var $t BenchmarkTimer */
-      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
-      $id = 'UrlManager::generateLink(' . $pageId . ', ' . $lang . ', ' . $versionId . ')';
-      $t->start($id);
-
       // deliver cached content, if possible
       $hash = md5($pageId . $lang . $versionId);
       if (isset($this->linkCache[$hash])) {
-         $t->stop($id);
          return $this->linkCache[$hash];
       }
 
@@ -165,7 +153,6 @@ final class UrlManager extends APFObject {
          $this->linkCache[$hash] = '/' . $urlLangIdent . '/' . $pageIdent . '/' . $urlVersionIdent . '/' . $versionId;
       }
 
-      $t->stop($id);
       return $this->linkCache[$hash];
    }
 
