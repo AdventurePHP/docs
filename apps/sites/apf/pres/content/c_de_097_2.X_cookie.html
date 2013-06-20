@@ -1,0 +1,156 @@
+<doku:title parent="119" tags="cookie" title="Cookie" urlname="Cookie">
+   Die Klasse Cookie abstrahiert die in PHP verfügbaren Funktionen zum Lesen und Schreiben von Cookies gemäß
+   RFC-6265. Durch das einfach zu nutzende Interface können Sie Cookies in Ihrer Applikation ohne Kenntnis der
+   genutzten PHP-Funktionen verwenden.
+</doku:title>
+<p>
+   Die Klasse <em>Cookie</em> abstrahiert die in PHP verfügbaren Funktionen zum Lesen und Schreiben von <em>Cookies</em>
+   gemäß <a class="external" href="http://tools.ietf.org/html/rfc6265">RFC-6265</a>. Durch das einfach zu nutzende
+   Interface können Sie <em>Cookies</em> in Ihrer Applikation ohne Kenntnis der genutzten PHP-Funktionen verwenden.
+</p>
+<p>
+   Weitere Informationen zur Unterstützung von Cookies in PHP finden Sie unter
+   <a class="external" href="http://www.php.net/setcookie">php.net/setcookie</a>.
+</p>
+
+<h3 id="Chapter-1-Erzeugen-eines-Cookies"><a href="#Chapter-1-Erzeugen-eines-Cookies">1. Erzeugen eines Cookies</a></h3>
+<p>
+   Um ein <em>Cookie</em> zu erzeugen, besitzt die Klasse <em>Cookie</em> aus dem Namespace <em>APF\tools\cookie</em>
+   einen Konstruktor, der alle notwendigen Parameter entgegen nimmt. Diese sind:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Variable</td>
+         <td>Beschreibung</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td><em>$name</em></td>
+         <td>
+            Name des Cookies. Dieser Parameter muss stets bei der Erzeugung angegeben werden, da der Name als eindeutiger
+            Referenznamen verwendet wird.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$expireTime</em></td>
+         <td>
+            Zeitpunkt des Ablaufs der Gültigkeit. Diese optionale Angabe definiert die Lebenszeit des Cookies. Standard
+            ist 1 Tag.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$domain</em></td>
+         <td>
+            Domain, für die das Cookie gültig ist. Als Standard-Wert wird die aktuell genutzte Domain verwendet.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$path</em></td>
+         <td>
+            Pfad unterhalb der angegebenen Domain für die das Cookie gültig ist. Standard-Wert ist <em>/</em> - sprich
+            alles unterhalb der angegebenen Domain.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$secure</em></td>
+         <td>
+            Definiert, ob das Cookie nur bei sicherer Verbindung (HTTPS) übertragen wird (<em>true</em>) oder nicht
+            (<em>false</em>). Standard-Wert ist <em>false</em>.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$httpOnly</em></td>
+         <td>
+            Definiert, ob das Cookie per Java-Script verändert werden darf (<em>false</em>) oder nicht
+            (<em>true</em>). Standard-Wert ist <em>false</em>.
+         </td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   Um ein <em>Cookie</em> zu erzeugen bzw. zu lesen können Sie im einfachsten Fall folgenden Code nutzen:
+</p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_des_cookies');
+
+$tenDaysInSeconds = 60 * 60 * 24 * 10;
+$cookie = new Cookie(
+   'name_des_cookies',
+   time() + $tenDaysInSeconds
+);
+</gen:highlight>
+<p>
+   Je nach Anforderung lassen sich mit den im Konstruktor als optional deklarierten Parametern weitere Konfigurationen
+   realisieren. Beispiel:
+</p>
+<gen:highlight type="php">
+$tenDaysInSeconds = 60 * 60 * 24 * 10;
+$cookie = new Cookie(
+   'name_des_cookies',
+   time() + $tenDaysInSeconds,
+   '.adventure-php-framework.org',
+   '/Seite',
+   true,
+   true
+);
+</gen:highlight>
+<p>
+   Das in der letzten Code-Box definierte, sichere Cookie ist für die Domain <em>adventure-php-framework.org</em> und
+   alle ihre Sub-Domains sowie darunter jedoch nur für den Pfad <em>/Seite</em> gültig. Weiterhin darf das Cookie nicht
+   per Java-Script manipuliert werden.
+</p>
+
+<h3 id="Chapter-2-Auslesen-eines-Cookies"><a href="#Chapter-2-Auslesen-eines-Cookies">2. Auslesen eines Cookies</a></h3>
+<p>
+   Zum Auslesen des Cookies können Sie die Methode <em>getValue()</em> der Klasse <em>Cookie</em> nutzen. Dieser kann
+   optional ein Standard-Wert übergeben werden. Beispiel:
+</p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_des_cookies');
+$value = $cookie->getValue();
+</gen:highlight>
+<p>
+   Ist das Cookie nicht vorhanden, wird der Standart-Wert zurück geliefert. Möchten Sie zur Vereinfachung der
+   Implementierung den Standard-Wert verändern, nutzen Sie bitte das optionale Argument der Methode <em>getValue()</em>.
+   In allen anderen Fällen erhalten Sie den Wert des Cookies.
+</p>
+
+<h3 id="Chapter-3-Schreiben-von-Inhalten"><a href="#Chapter-3-Schreiben-von-Inhalten">3. Schreiben von Inhalten</a></h3>
+<p>
+   Um ein Cookie mit einem Wert zu füllen, nutzen Sie bitte die Methode <em>setValue()</em>:
+</p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_des_cookies');
+$cookie->setValue('wert_des_cookies');
+</gen:highlight>
+<p>
+   Beim Setzen eines Wertes wird das Cookie automatisch angelegt.
+</p>
+<div class="warn">
+   Bitte beachten Sie, dass der Wert eines Cookies vom Typ <em>string</em> ist. Beabsichtigen Sie komplexere Strukturen
+   zu speichern, müssen Sie selbst für die De- und Encodierung sorgen. Hierzu können beispielsweise die Funktionen
+   <em>serialize()</em> und <em>unserialize()</em> genutzt werden.
+</div>
+<div class="hint">
+   Bitte beachten Sie weiterhin, dass die Größe von Cookies direkten Einfluss auf die Anfrage-Performance hat, da Cookies
+   im HTTP-Anfragen mitgeliefert werden. Achten Sie daher immer auf eine möglichst kleine Datenmenge. Die Datenmenge
+   kann beispielsweise durch ein eigenes, komprimiertes Datenformat oder durch Nutzung von Komprimierungsfunktionen
+   erreicht werden.
+</div>
+
+<h3 id="Chapter-4-Loeschen-eines-Cookies"><a href="#Chapter-4-Loeschen-eines-Cookies">4. Löschen eines Cookies</a></h3>
+<p>
+   Möchten Sie ein Cookie löschen, so steht Ihnen die Funktion <em>delete()</em> zur Verfügung:
+</p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_des_cookies');
+$cookie->delete();
+</gen:highlight>
+<p>
+   Ab der nächsten Anfrage ist das Cookie nicht mehr vorhanden. Die Methode <em>getValue()</em> wird daher den
+   Standard-Wert zurück liefern.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_097" />

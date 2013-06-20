@@ -1,0 +1,151 @@
+<doku:title parent="119" tags="cookie" title="Cookie" urlname="Cookie">
+   Class Cookie encapsulates available PHP functions for reading and writing of Cookies according to RFC-6265. Given
+   the easy-to-use interface you can use Cookies within your application without deeper knowledge of the underlying
+   PHP API.
+</doku:title>
+<p>
+   Class <em>Cookie</em> encapsulates available PHP functions for reading and writing of <em>Cookies</em> according to
+   <a class="external" href="http://tools.ietf.org/html/rfc6265">RFC-6265</a>. Given the easy-to-use interface you can
+   use <em>Cookies</em> within your application without deeper knowledge of the underlying PHP API.
+</p>
+<p>
+   Further information on the cookie support in PHP can be found under
+   <a class="external" href="http://www.php.net/setcookie">php.net/setcookie</a>.
+</p>
+
+<h3 id="Chapter-1-Creating-a-Cookie"><a href="#Chapter-1-Creating-a-Cookie">1. Creating a Cookie</a></h3>
+<p>
+   To create a <em>Cookie</em> the <em>Cookie</em> class from the <em>APF\tools\cookie</em> namespace provides a
+   constructor that allows to specify all parameters necessary. These are:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Parameter</td>
+         <td>Description</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td><em>$name</em></td>
+         <td>
+            Name of the Cookie. This parameter is mandatory to create a Cookie since it is used as a reference name.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$expireTime</em></td>
+         <td>
+            Time of expiry. This optional parameter defines the life time of the Cookie. Default is 1 day.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$domain</em></td>
+         <td>
+            Specifies the domain the Cookie is valid for. Default value is the name of the current host.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$path</em></td>
+         <td>
+            Specifies the path below the domain the Cookie is valid for. Default value is <em>/</em> which means everything
+            below the domain defined for the Cookie instance.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$secure</em></td>
+         <td>
+            Defines whether the Cookie is only sent along with secure connections (HTTPS) (<em>true</em>) or not
+            (<em>false</em>). Default value is <em>false</em>.
+         </td>
+      </tr>
+      <tr>
+         <td><em>$httpOnly</em></td>
+         <td>
+            Defines whether the Cookie can be manipulated via Java-Script (<em>false</em>) or not (<em>true</em>).
+            Default is <em>false</em>.
+         </td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   In order to create a <em>Cookie</em> or read it's value you may use the following code:
+</p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_of_the_cookie');
+
+$tenDaysInSeconds = 60 * 60 * 24 * 10;
+$cookie = new Cookie(
+   'name_of_the_cookie',
+   time() + $tenDaysInSeconds
+);
+</gen:highlight>
+<p>
+   Depending on the use case scenario you can realize further configuration sets given the optional parameters. Example:
+</p>
+<gen:highlight type="php">
+$tenDaysInSeconds = 60 * 60 * 24 * 10;
+$cookie = new Cookie(
+   'name_of_the_cookie',
+   time() + $tenDaysInSeconds,
+   '.adventure-php-framework.org',
+   '/Seite',
+   true,
+   true
+);
+</gen:highlight>
+<p>
+   The secure Cookie defined within the above code box is valid for the <em>adventure-php-framework.org</em> domain and
+   all it's sub-domains but only with a path named <em>/Seite</em>. Further, the Cookie cannot be manipulated via
+   Java Script.
+</p>
+
+<h3 id="Chapter-2-Reading-a-Cookie"><a href="#Chapter-2-Reading-a-Cookie">2. Reading a Cookie</a></h3>
+<p>
+   Reading a Cookie can be done with the <em>getValue()</em> method of the <em>Cookie</em> class. You can optionally
+   pass a default value. Example:
+</p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_of_the_cookie');
+$value = $cookie->getValue();
+</gen:highlight>
+<p>
+   In case the Cookie is not existent the default value is returned. If you want to change the default value returned
+   to ease implementation please use the optional argument of the <em>getValue()</em> method. In all other cases, the
+   value of the cookie is returned.
+</p>
+
+<h3 id="Chapter-3-Writing-a-value"><a href="#Chapter-3-Writing-a-value">3. Writing a value</a></h3>
+<p>
+   To fill a Cookie with a desired value please use the <em>setValue()</em> method:
+</p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_of_the_cookie');
+$cookie->setValue('wert_des_cookies');
+</gen:highlight>
+<p>
+   Setting the value, the Cookie is automatically created.
+</p>
+<div class="warn">
+   Please note, that the value of a Cookie is always a <em>string</em>. If you intend to save more complex data
+   structures you must take care of de- and encoding yourself. For this reason, you may want to use the
+   <em>serialize()</em> and <em>unserialize()</em> functions.
+</div>
+<div class="hint">
+   Further, please note, that the size of Cookies directly impacts the request performance. This is because Cookies are
+   contained within the HTTP request header. Hence, it is strongly recommended to keep the amount of data small. You
+   may want to use a custom data format or compressing functions.
+</div>
+
+<h3 id="Chapter-4-Deleting-a-Cookie"><a href="#Chapter-4-Deleting-a-Cookie">4. Deleting a Cookie</a></h3>
+<p>
+   In order to delete a Cookie you are provided the <em>delete()</em> function:
+</p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_of_the_cookie');
+$cookie->delete();
+</gen:highlight>
+<p>
+   As of the next request, the Cookie is no longer available. <em>getValue()</em> will then return the default value.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_097" />

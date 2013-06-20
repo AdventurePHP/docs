@@ -5,9 +5,6 @@ use APF\core\frontcontroller\FrontcontrollerInput;
 
 class StatInput extends FrontcontrollerInput {
 
-   public function StatInput() {
-   }
-
    public function getLanguage() {
       return $this->getAttribute('lang');
    }
