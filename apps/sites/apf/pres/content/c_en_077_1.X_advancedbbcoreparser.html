@@ -1,0 +1,119 @@
+<doku:title parent="119" tags="advancedbbcodeparser" title="AdvancedBBCodeParser" urlname="AdvancedBBCodeParser">
+  The AdvancedBBCodeParser provides a generic implementation for parsing BBCode style formatting tags
+  within strings.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+The <strong>AdvancedBBCodeParser</strong> is a generic implementation of a bbcode formatter. In contrast
+to the previous implementation, this component is much more lightweight and the parser logic is
+highly extensible. The parser itself contains a set of four output provider, that can handle font
+styles (bold, italic, underlined), font sizes and colors (depending on the corresponding
+configuration files) and new lines.
+<br />
+<br />
+<br />
+<h3 id="Chapter-2-Class-design"><a href="#Chapter-2-Class-design">2. Class design</a></h3>
+The bbcode parser consists of three classes: the <strong>BBCodeParserDefinition</strong>, that represent
+an output provider, a provider implementation interface class (<strong>BBCodeParserProvider</strong>)
+and the parser itself (<strong>AdvancedBBCodeParser</strong>). Due to the fact, that each provider
+must be able to load a configuration file depending on the current context of the application, the
+<strong>AdvancedBBCodeParser</strong> must be created via the service manager.
+<br />
+<br />
+In case of extending the list of providers or replacing a particular one, the newly implemented
+class must inherit from the <strong>BBCodeParserProvider</strong> class. The following code box
+presents a simple provider implementation:
+<gen:highlight type="php">
+class NewLineProvider extends BBCodeParserProvider {
+
+   public function getOutput($string){
+      return nl2br($string);
+   }
+
+}
+</gen:highlight>
+Thanks to the generic implementation, the <strong>AdvancedBBCodeParser</strong> can execute as many
+providers as you like.
+<br />
+<br />
+<br />
+<h3 id="Chapter-3-Application"><a href="#Chapter-3-Application">3. Application</a></h3>
+In case of standard application, you need to provide the necessary configuration files, that contain
+the font size and color definitions used by the default provider. These configuration files are
+expected to reside in the <strong>config::tools::string::bbcpprovider</strong> namespace and the
+current context path. Thereby, the font size definition must be included in the
+<gen:highlight type="apf-xml">{ENVIRONMENT}_fontsize.ini</gen:highlight>
+file and the color definition must be stored in the file
+<gen:highlight type="apf-xml">{ENVIRONMENT}_fontcolor.ini</gen:highlight>
+The two configuration files do consist of a fixed section and a mutable amount of size or color
+directives:
+<br />
+<br />
+<strong>DEFAULT_fontsize.ini:</strong>
+<gen:highlight type="ini">
+[Sizes]
+1 = "10px"
+2 = "12px"
+3 = "16px"
+4 = "18px"
+5 = "24px"
+6 = "32px"
+</gen:highlight>
+<br />
+<strong>DEFAULT_fontcolor.ini:</strong>
+<gen:highlight type="apf-xml">
+[Colors]
+green = "#56a437"
+blue = "#002488"
+lightblau = "rgb(102 153 255)"
+orange = "rgb(233 142 31)"
+gray = "#666666"
+red = "red"
+</gen:highlight>
+After providing these configuration files, the parser can be used like described in the following
+code box:
+<gen:highlight type="php">
+$bP = &$this->getServiceObject('tools::string','AdvancedBBCodeParser');
+echo $bP->parseCode($string);
+</gen:highlight>
+<br />
+<br />
+<h3 id="Chapter-4-Enhanced-configuration"><a href="#Chapter-4-Enhanced-configuration">4. Enhanced configuration</a></h3>
+In order to add further provider or replace existing ones, the <strong>addProvider()</strong> and
+<strong>removeProvider()</strong> functions can be used. Please use the following alias names to
+address the existing providers:
+<ul>
+  <li>
+    <strong>standard.font.style</strong>: Formats the font variants (bold, italic, underlined)
+  </li>
+  <li>
+    <strong>standard.font.size</strong>: Formats the font size declarations
+  </li>
+  <li>
+    <strong>standard.font.color</strong>: Formats the font color tags
+  </li>
+
+  <li>
+    <strong>standard.newline</strong>: Replaces newlines by HTML linebreaks
+  </li>
+</ul>
+When adding new output provider, the aliases can be choosen as desired. The following code sample
+explains, how to replace existing provider and how to add new output formatter:
+<gen:highlight type="php">
+$bP = &$this->getServiceObject('tools::string','AdvancedBBCodeParser');
+
+// replace an existing provider
+$fontProv = new BBCodeParserDefinition('my::namespace::bbcp','MyFontParser');
+$bP->addProvider('standard.font.style',$fontProv);
+
+// add a new provider
+$specProv = new BBCodeParserDefinition('my::namespace::bbcp','MySpecialParser');
+$bP->addProvider('special_provider',$specProv);
+
+// remove an existing provider
+$bP->removeProvider('standard.newline');
+
+echo $bP->parseCode($string);
+</gen:highlight>
+<br />
+<br />
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_077" />
