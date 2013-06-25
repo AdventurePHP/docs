@@ -5,9 +5,10 @@
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
 <p>
    The <em>RandomStringManager</em> is an easy to use tool of the APF to create quick and easy random formatted and
-   non-formatted hashes and strings. The developer can configure the chars to use for creating the hash and the
-   length of the resulting hash. If no configuration was given, a default configuration is used for creating the hash.
+   none-formatted hashes and strings. The developer can configure the chars to use for creating the hash and the
+   length of the resulting hash. If no configuration was given, a default configaration is used for creating the hash.
 </p>
+
 <div class="warn">
    Symbols and special characters will be encoded as UTF-8. A particular configuration is not available at the moment.
 </div>
@@ -15,11 +16,11 @@
 <h3 id="Chapter-2-random-strings"><a href="#Chapter-2-random-strings">2. Creating random strings</a></h3>
 <p>
    The <em>RandomStringManager</em> is providing 2 methods:
+   <ul>
+      <li>createHash()</li>
+      <li>advancedCreateHash()</li>
+   </ul>
 </p>
-<ul>
-   <li>createHash()</li>
-   <li>advancedCreateHash()</li>
-</ul>
 
 <h3 id="Chapter-2-1-Default-Configuration"><a href="#Chapter-2-1-Default-Configuration">2.1. The Default Configuration</a></h3>
 <p>
@@ -40,7 +41,8 @@
 <gen:highlight type="php">
 // Initialisation of the manager
 $randomString = $this->getAndInitServiceObject(
-   'APF\tools\string\RandomStringManager',
+   'tools::string',
+   'RandomStringManager',
    array('chars' => '', 'length' => '10')
 );
 
@@ -72,7 +74,8 @@ $hash = $randomString->createHash();
 <gen:highlight type="php">
 // Initialisation of the manager
 $randomString = $this->getAndInitServiceObject(
-   'APF\tools\string\RandomStringManager',
+   'tools::string',
+   'RandomStringManager',
    array('chars' => '0123456789ABCDEF', 'length' => 3)
 );
 
@@ -94,37 +97,33 @@ $hash = $randomString->advancedCreateHash('SELECT id,allHex FROM hexcode WHERE a
 
 <h3 id="Chapter-3-Serials"><a href="#Chapter-3-Serials">3. Creating random string with formatting (serial number)</a></h3>
 <p>
-   You can use the <em>RandomStringManager</em> to create string with a given formatting. This could be useful for
-   example:
+   Since release of APF in version 1.16 you can use the <em>RandomStringManager</em> to create string with a given formatting.
+   This could be useful for example:
+   <ul>
+      <li>Creating serial numbers</li>
+      <li>Creating coupon codes</li>
+   </ul>
 </p>
-<ul>
-   <li>Creating serial numbers</li>
-   <li>Creating coupon codes</li>
-</ul>
 
 <h4 id="Chapter-3-1-Standard"><a href="#Chapter-3-1-Standard">3.1. The Default Configuration</a></h4>
 <p>
    By default the <em>RandomStringManager</em> is using the following configuration:
-</p>
-<ul>
-   <li>Characters: 1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</li>
-   <li>Delimiter: -</li>
-   <li>Formatting (Scheme): XXX9-XX99-X99X-99XX</li>
-</ul>
-<p>
+   <ul>
+      <li>Characters: 1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</li>
+      <li>Delimiter: -</li>
+      <li>Formatting (Scheme): XXX9-XX99-X99X-99XX</li>
+   </ul>
    The characters used in the scheme an thy modification of the scheme will be explained below:
-</p>
-<ul>
-   <li>X: big letter on this position</li>
-   <li>x: small letter on this position</li>
-   <li>9: number on this position</li>
-   <li>-: delimiter on this position</li>
-</ul>
-<div class="warn">
-   Definition of the delimiter and use of the delimiter must be identical! To change "-" to "." you need first to define the
-   delimiter and then specify the location of it in the scheme!
-</div>
-<p>
+   <ul>
+      <li>X: big letter on this position</li>
+      <li>x: small letter on this position</li>
+      <li>9: number on this position</li>
+      <li>-: delimiter on this position</li>
+   </ul>
+   <div class="warn">
+      Definition of the delimiter and use of the delimiter must be identical! To change "-" to "." you need first to define the
+      delimiter and then specify the location of it in the scheme!
+   </div>
    That means: A serial number containing of four blocks seperated by "-" is generated. Used are only big letters and numbers.
 </p>
 
@@ -139,7 +138,7 @@ $hash = $randomString->advancedCreateHash('SELECT id,allHex FROM hexcode WHERE a
    Example of use:
 </p>
 <gen:highlight type="php">
-$randomString = $this->getAndInitServiceObject('APF\tools\string\RandomStringManager', array());
+$randomString = $this->getAndInitServiceObject('tools::string', 'RandomStringManager', array());
 echo $randomString->createSerial();
 </gen:highlight>
 <p>
@@ -155,13 +154,13 @@ echo $randomString->createSerial();
    f.bb.rre.2964.YTCN
 </p>
 <gen:highlight type="php">
-$config = array(
+$Config = array(
       'chars' => '23456789abcdefghkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ',
       'delimiter' => '.',
       'scheme' => 'x.xx.xxx.9999.XXXX'
 );
  
-$randomString = $this->getAndInitServiceObject('APF\tools\string\RandomStringManager', $config);
+$randomString = $this->getAndInitServiceObject('tools::string', 'RandomStringManager', $Config);
 echo $randomString->createSerial();
 </gen:highlight>
 <p>
@@ -172,41 +171,42 @@ echo $randomString->createSerial();
 
 <h3 id="Chapter-4-DIService"><a href="#Chapter-4-DIService">4. Obtain RandomStringManager as DIService</a></h3>
 <p>
-   The <em>RandomStringManager</em> can also be obtained using the DIServiceManager.
+   Since release of APF in version 1.16 the <em>RandomStringManager</em> can be obtained using the DIServiceManager.
 </p>
 <p>
    Example:
 </p>
 <gen:highlight type="php">
-$string = $this->getDIServiceObject('VENDOR\services', 'string-service');
+$string = $this->getDIServiceObject('tools::string', 'myString');
  
-// Create hash
+//Create hash
 echo $string->createHash();
  
-// Create serial number
+//create serial number
 echo $string->createSerial();
 </gen:highlight>
 
 <p>
-   Example configuration:
+   Example configuration <em>config/tools/String/CONTEXT/ENVIRONMENT_serviceobjects.ini</em>:
 </p>
 <gen:highlight type="ini">
-[string-service]
-class = "APF\tools\string\RandomStringManager"
+[myString]
+namespace = "tools::string"
+class = "RandomStringManager"
 servicetype = "SINGLETON"
-
+ 
 ; necessary configuration for creating random strings and serial numbers
 conf.chars.method = "setChars"
 conf.chars.value = "23456789abcdefghkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
 conf.length.method = "setLength"
 conf.length.value = "16"
-
+ 
 ; necessary configuration for creating serial numbers
 conf.delimiter.method = "setDelimiter"
 conf.delimiter.value = "-"
 conf.scheme.method = "setScheme"
-conf.scheme.value = "XXX9-XX99-X99X-99XX" ; X = big letter, , x = small letter, 9 = number, - = delimiter (must be equal to value of method setDelimiter!!)
-
+conf.scheme.value = "XX9-XX99-X99X-99XX" ; X = big letter, , x = small letter, 9 = number, - = delimiter (must be equal to value of method setDelimiter!!)
+ 
 ; necessary configuration to check existing random strings in database
 conf.conn.method = "setConnectionKey"
 conf.conn.value = "database-2"

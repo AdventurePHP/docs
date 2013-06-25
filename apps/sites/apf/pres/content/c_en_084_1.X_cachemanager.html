@@ -10,7 +10,7 @@
    you to enhance the list of providers easily.
 </p>
 <p>
-   In order to easily address any kind of cache items you can use so-called <em>CacheKeys</em>.
+   In order to easily address any kind of cache item release 1.13 introduced so called <em>CacheKeys</em>.
    These are complex keys consisting of any kind of attributes that can be used to load and save
    cache items (simple strings, objects, lists, ...).
 </p>
@@ -18,17 +18,19 @@
 <h3 id="Chapter-1-Configuration"><a href="#Chapter-1-Configuration">1. Configuration</a></h3>
 <p>
    The <em>CacheManager</em> expects the configuration file <em>cacheconfig.ini</em> within
-   <em>APF\tools\cache</em> namespace. For each cache manager, one configuration section must be
+   <em>tools::cache</em> namespace. For each cache manager, one configuration section must be
    present in the configuration containing the following directives at minimal:
 </p>
 <gen:highlight type="ini">
 [my_cache_instance]
-Cache.Provider = ""
+Cache.Provider.Namespace = ""
+Cache.Provider.Class = ""
 Cache.Active = ""
 </gen:highlight>
 <p>
-   <em>Cache.Provider</em> contains the fully-qualified class name of the cache provider and
-   <em>Cache.Active</em> defines the activity state of the cache manager. In case, the
+   The <strong>Cache.Provider.Namespace</strong> parameter defines the namespace of the provider
+   implementation, <strong>Cache.Provider.Class</strong> contains the class name and
+   <strong>Cache.Active</strong> defines the activity state of the cache manager. In case, the
    configuration directive contains "true", the cache manager is considered active, otherwise not.
 </p>
 <p>
@@ -41,19 +43,21 @@ Cache.Active = ""
    The cache manager design includes the possibility to create several cache manager instances 
    within one application or one module. For this reason, a factory is used to create the cache 
    managers. Therefore, the <em>CacheManagerFabric</em> features the <em>getCacheManager()</em>
-   method, that creates the desired cache manager corresponding to the configuration section. Hence,
+   method, that creates the desired cache manager corresponing to the configuration section. Hence, 
    the fabric is created via the service manager, the fabric is a singleton to not slow down the
    performance of the component due to several initialisation processes. Caching components have to
    be fast per se!
 </p>
 <p>The following code box provides a typical application sample:</p>
 <gen:highlight type="php">
-use APF\tools\cache\CacheManagerFabric;
-use APF\tools\cache\key\SimpleCacheKey;
-
-$cMF = &$this->getServiceObject('APF\tools\cache\CacheManagerFabric');
+$cMF = &$this->getServiceObject('tools::cache', 'CacheManagerFabric');
 $cM = &$cMF->getCacheManager('{config_section}');
 
+// for releases < 1.13
+$cacheKey = 'my_cache_key';
+$cacheContent = $cM->getFromCache($cacheKey);
+
+// for releases >= 1.13
 $cacheKey = new SimpleCacheKey('my_cache_key');
 $cacheContent = $cM->getFromCache($cacheKey);
 
@@ -95,19 +99,20 @@ if(/* ... */){
 
 <h3 id="Chapter-3-Included-provider"><a href="#Chapter-3-Included-provider">3. Included provider</a></h3>
 <p>
-   The framework already includes ready-to-use provider. These are aimed to solve common caching
+   The framework already includes four ready-to-use provider. These are aimed to solve common caching
    issues. If there is not provider fitting your requirements, an own provider can be implemented as
    described in chapter 4.
 </p>
-<p>
-   The <em>AdvancedTextCacheProvider</em> thus enhances the <em>TextCacheProvider</em> and the
+<div class="hint">
+   Release 1.13 introduces two more providers, that can handle complex cache keys. The
+   <em>AdvancedTextCacheProvider</em> thus enhances the <em>TextCacheProvider</em> and the
    <em>AdvancedObjectCacheProvider</em> enables the <em>AdvancedTextCacheProvider</em> to store any
    kind of PHP objects. Details can be taken from the chapters 3.5 and 3.6.
-</p>
+</div>
 
 <h4 id="Chapter-3-1-Text-cache-provider"><a href="#Chapter-3-1-Text-cache-provider">3.1. Text cache provider</a></h4>
 <p>
-   The text cache provider implements a simple filesystem-based caching component. Therefore, the
+   The text cache provider implements a simple filesystem-based caching component. Threrefore, the
    cache is saved to the configured base folder with an advanced file system structure designed for
    good performance. The main folder is named as the first two characters of the md5 checksum of the
    cache key the sub folders are named as the entire hash key.
@@ -115,7 +120,8 @@ if(/* ... */){
 <p>To use this provider, the referenced configuration section must look like this:</p>
 <gen:highlight type="ini">
 [text_cache]
-Cache.Provider = "APF\tools\cache\provider\TextCacheProvider"
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "TextCacheProvider"
 Cache.Active = ""
 Cache.BaseFolder = ""
 Cache.Namespace = ""
@@ -125,7 +131,7 @@ Cache.Namespace = ""
    <em>Cache.BaseFolder</em> contains the cache base folder, that is managed by the CacheManager,
    the attribute <em>Cache.Namespace</em> names the namespace, that is the first structural
    element within the base folder. Please note, that the sections of the namespace must be separated
-   by &quot;\&quot; to create the desired sub folder structure.
+   by &quot;::&quot; to create the desired subfolder structure.
 </p>
 <p>
    The optional <em>Cache.FolderPermission</em> configuration directive can be used to define the
@@ -133,12 +139,15 @@ Cache.Namespace = ""
 </p>
 <div class="hint">
    The text cache provider uses the <int:link pageid="085" /> for cache folder management. For this 
-   reason, the user that is assigned to the web server, must have write permissions to the base folder.
+   reason, the user that is assigned to the webserver, must have write permissions to the base folder.   
 </div>
 <p>
-   This provider supports the <em>SimpleCacheKey</em> and <em>AdvancedCacheKey</em> class to identify a dedicated
+   Since 1.13, this provider supports the <em>SimpleCacheKey</em> class to identify a dedicated
    cache item.
 </p>
+<div class="hint">
+   Since release 1.17 the <em>TextCacheProvider</em> also supports usage of the <em>AdvancedCacheKey</em>.
+</div>
 
 <h4 id="Chapter-3-2-Object-cache-provider"><a href="#Chapter-3-2-Object-cache-provider">3.2. Object cache provider</a></h4>
 <p>
@@ -150,7 +159,8 @@ Cache.Namespace = ""
 <p>To use the provider, the following directives have to be included in the configuration section:</p>
 <gen:highlight type="ini">
 [object_cache]
-Cache.Provider = "APF\tools\cache\provider\ObjectCacheProvider"
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "ObjectCacheProvider"
 Cache.Active = ""
 Cache.BaseFolder = ""
 Cache.Namespace = ""
@@ -161,7 +171,8 @@ Cache.Namespace = ""
    file permission mask for cache folders that are created by the provider.
 </p>
 <p>
-   This provider supports the <em>SimpleCacheKey</em> class to identify a dedicated cache item.
+   Since 1.13, this provider supports the <em>SimpleCacheKey</em> class to identify a dedicated
+   cache item.
 </p>
 
 <h4 id="Chapter-3-3-Mem-cache-provider"><a href="#Chapter-3-3-Mem-cache-provider">3.3. Mem cache provider</a></h4>
@@ -176,7 +187,8 @@ Cache.Namespace = ""
 </p>
 <gen:highlight type="ini">
 [mem_cache]
-Cache.Provider = "APF\tools\cache\provider\MemCacheProvider"
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "MemCacheProvider"
 Cache.Active = ""
 Cache.Host = ""
 Cache.Port = ""
@@ -190,10 +202,12 @@ Cache.Namespace = ""
    as described in the above code sample.
 </p>
 <div class="warn">
-   To use the <em>MemCacheProvider</em>, the PHP extension <em>memcache</em> must be loaded!
+   To use the <em>MemCacheProvider</em>, the PHP extension <em>memcache</em>
+   must be loaded!
 </div>
 <p>
-   This provider supports the <em>SimpleCacheKey</em> class to identify a dedicated cache item.
+   Since 1.13, this provider supports the <em>SimpleCacheKey</em> class to identify a dedicated
+   cache item.
 </p>
 
 <h4 id="Chapter-3-4-Database-cache-provider"><a href="#Chapter-3-4-Database-cache-provider">3.4. Database cache provider</a></h4>
@@ -203,7 +217,8 @@ Cache.Namespace = ""
 </p>
 <gen:highlight type="ini">
 [database_cache]
-Cache.Provider = "APF\tools\cache\provider\DBCacheProvider"
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "DBCacheProvider"
 Cache.Active = ""
 Cache.Connection = ""
 Cache.Table = ""
@@ -231,7 +246,8 @@ CREATE TABLE `database_cache` (
    <em>cachekey</em> and <em>value</em> must be named as printed above.
 </p>
 <p>
-   This provider supports the <em>SimpleCacheKey</em> class to identify a dedicated cache item.
+   Since 1.13, this provider supports the <em>SimpleCacheKey</em> class to identify a dedicated
+   cache item.
 </p>
 
 <h4 id="Chapter-3-5-Enhanced-text-cache-provider"><a href="#Chapter-3-5-Enhanced-text-cache-provider">3.5. Enhanced text cache provider</a></h4>
@@ -246,7 +262,8 @@ CREATE TABLE `database_cache` (
    In order to use this provider, the following configuration section must be created:
 </p>
 <gen:highlight type="ini">
-Cache.Provider = "APF\tools\cache\provider\AdvancedTextCacheProvider"
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "AdvancedTextCacheProvider"
 Cache.Active = ""
 Cache.BaseFolder = ""
 Cache.Namespace = ""
@@ -260,9 +277,6 @@ Cache.Namespace = ""
    Please note the next code box to see how to read and write complex cache items:
 </p>
 <gen:highlight type="php">
-use APF\tools\cache\CacheManagerFabric;
-use APF\tools\cache\key\AdvancedCacheKey;
-
 $pageId = /* ... */;
 $currentUrl = $_SERVER['REQUEST_URI'];
 
@@ -299,7 +313,8 @@ if(/* ... */){
    In order to use this provider, the following configuration section must be created:
 </p>
 <gen:highlight type="ini">
-Cache.Provider = "APF\tools\cache\provider\AdvancedObjectCacheProvider"
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "AdvancedObjectCacheProvider"
 Cache.Active = ""
 Cache.BaseFolder = ""
 Cache.Namespace = ""
@@ -313,7 +328,7 @@ Cache.Namespace = ""
 <h4 id="Chapter-3-7-APC-cache-provider"><a href="#Chapter-3-7-APC-cache-provider">3.7. APC cache provider</a></h4>
 <p>
    Using the <em>ApcCacheProvider</em> you can store content request-independently within an
-   <a class="external" href="http://www.php.net/manual/en/book.apc.php">APC Shared Memory Segment</a>.
+   <a class="external" href="http://www.php.net/manual/en/book.apc.php">APC Shared Memory Segment</a> since release 1.17.
 </p>
 <div class="hint">
    Use the <em>ApcCacheProvider</em> to decrease the I/O access of your application and thus speed it up.
@@ -322,7 +337,8 @@ Cache.Namespace = ""
    In order to use the provider the following configuration section must be created:
 </p>
 <gen:highlight type="ini">
-Cache.Provider = "APF\tools\cache\provider\ApcCacheProvider"
+Cache.Provider.Namespace = "tools::cache::provider"
+Cache.Provider.Class = "ApcCacheProvider"
 Cache.Active = ""
 Cache.Namespace = ""
 [Cache.ExpireTime = ]
@@ -338,10 +354,10 @@ Cache.Namespace = ""
 <p>
    Reading, saving, and deletion just works as with all the other providers described above.
 </p>
-<p>
+<div class="hint">
    The <em>ApcCacheProvider</em> both supports the usage of the <em>SimpleCacheKey</em> as well as the
    <em>AdvancedCacheKey</em>. Hence, you can create complex cache structures as desired.
-</p>
+</div>
 
 <h3 id="Chapter-4-Enhancement"><a href="#Chapter-4-Enhancement">4. Enhancement</a></h3>
 <p>
@@ -354,25 +370,23 @@ Cache.Namespace = ""
 </p>
 <p>
    These functions is given the desired cache key and the cache content as desired. To access
-   the configuration params defined in the dedicated section, the protected
-   function <em>getConfigAttribute()</em> can be used. Therefore it is necessary to derive from
+   the configuration params defined in the dedicated section, the private
+   <em>getConfigAttribute()</em> function can be used. Therefore it is necessary to derive from
    <em>CacheBase</em>. Applying the name of the attribute, the method returns the content of the
    given directive. For operating purposes, the method throws an exception, if the attribute is
    not existing or empty. Details can be taken from the API definition for the class on the
-   <int:link pageid="008" /> page.
+   <int:link pageid="008" title="Downloads">downloads</int:link> page.
 </p>
 <p>
-   The cache keys are represented by dedicated data types. The scheme is described by the <em>CacheKey</em> interface.
-   The APF ships the implementations <em>SimpleCacheKey</em> and <em>AdvancedCacheKey</em>.
+   The cache keys are represented by dedicated data types since release 1.13. The scheme is described
+   by the <em>CacheKey</em> interface. The APF ships the implementations <em>SimpleCacheKey</em>
+   and <em>AdvancedCacheKey</em>.
 </p>
 <p>
    Thanks to the fact, that a provider is addressed by it's namespace and class name, an own provider
    can be stored where ever you want. The body of a application specific provider looks like this:
 </p>
 <gen:highlight type="php">
-use APF\tools\cache\CacheBase;
-use APF\tools\cache\CacheProvider;
-
 class MyCacheProvider extends CacheBase implements CacheProvider {
 
    public function read(CacheKey $cacheKey){
@@ -396,9 +410,6 @@ class MyCacheProvider extends CacheBase implements CacheProvider {
    The code box below gives you an idea, how a cache provider for image resources could look like:
 </p>
 <gen:highlight type="php">
-use APF\tools\cache\provider\TextCacheProvider;
-use APF\tools\filesystem\FilesystemManager;
-
 class PNGImageCacheProvider extends TextCacheProvider {
 
    public function read(CacheKey $cacheKey){
