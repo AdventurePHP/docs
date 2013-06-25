@@ -753,6 +753,79 @@ role.a = "Account functionality"
 role.b = "Editorial functionality"
 </gen:highlight>
 
+<h6 id="Chapter-3-2-2-8-Konfiguration-der-Verschlüsselung-von-Benutzerdaten"><a href="#Chapter-3-2-2-8-Konfiguration-der-Verschlüsselung-von-Benutzerdaten">3.2.2.8. Konfiguration der Verschlüsselung von Benutzerdaten</a></h6>
+<p>
+    Seit Version 2.0 beinhaltet die Benutzer-Verwaltung ein weiteres Sicherheitsfeature: Auf Wunsch ist es nun möglich, 
+    beliebige Felder (abgesehen von der Benutzer-ID) des <em>UmgtUser</em>-Objektes automatisch zu verschlüsseln. Dies 
+    geschieht transparent für die Anwendung, sodass die Anwendung selber sich um nichts kümmern muss. Die gewünschten 
+    Felder werden vor dem Speichern in die Datenbank automatisch verschlüsselt, und nach dem Laden aus der Datenbank 
+    automatisch entschlüsselt. Der verschlüsselte Wert wird base64-kodiert in der Datenbank abgespeichert.
+</p>
+<p>
+   Der Schlüssel für die Verschlüsselung setzt sich dabei aus zwei Teilen zusammen: 
+    <ul>
+        <li>Hardcoded Teil: Dieser Teil des Schlüssels ist fest in den APF-Code einprogrammiert</li>
+        <li>Konfigurierbarer Teil: Dieser Teil wird aus der Konfiguration der Benutzerverwaltung geladen, 
+            und sollte für jede Anwendung einzigartig sein.</li>
+    </ul>
+    Aus diesen beiden Teilen wird nach einem eigenen Algorithmus ein Schlüssel mit der benötigten Länge generiert. 
+    Dabei wird sichergestellt, dass Teile aus beiden Schlüsseln verwendet werden.
+    Als Verschlüsselungsalgorithmus wird <a href="https://en.wikipedia.org/wiki/Triple_des" target="_blank">Triple DES</a> 
+    im ECB Modus verwendet.
+</p>
+<p>
+    Um die Konfiguration zu aktivieren sind 2 Schritte erforderlich:
+</p>
+<p>
+    <b>1. Konfiguration:</b><br>
+    In der Datei <em>{ENVIRONMENT}_umgtconfig.ini</em> müssen 2 Einträge in der <em>[Default]</em>-Sektion 
+    angelegt/angepasst werden:
+</p>
+<gen:highlight type="ini">
+    FieldEncryption.FieldNames = "EMail|Username|Password|..."
+    FieldEncryption.Key = "..."
+</gen:highlight>
+<p>
+    Der Wert von <em>FieldEncryption.FieldNames</em> definiert, auf welche Felder 
+    des <em>UmgtUser</em>-Objektes die Verschlüsselung angewendet werden soll. 
+    Mehrere Felder können per <em>|</em> getrennt werden. Abgesehen von der <em>UserID</em> ist
+    es möglich jedes beliebige Feld zu verschlüsseln. Sofern dass <em>Password</em>-Feld verschlüsselt
+    wird, wird das Passwort zuerst mit dem konfigurierten Provider gehasht, und anschließend dieser Hash 
+    verschlüsselt abgespeichert.    
+</p>
+<p>
+    Der Wert des <em>FieldEncryption.Key</em> sollte ein möglichst langer Schlüssel 
+    mit Sonderzeichen sein, welcher für jede Anwendung einzigartig sein sollte. 
+</p>
+
+<p>
+    <b>2. Aktivierung</b><br>
+    Damit die Verschlüsselung "on-the-fly" erledigt werden kann, ist es notwendig diese über 
+    2 Zeilen Code zu aktivieren, bevor das erste mal mit <em>UmgtUser</em>-Objekten gearbeitet wird 
+    oder diese aus der Datenbank geladen werden. Wir empfehlen diese Zeilen einfach in die bootstrap-Datei 
+    (z.B. <em>index.php</em>) einzufügen:
+</p>
+<gen:highlight type="php">
+    use APF\core\service\DIServiceManager;
+    $umgt = DIServiceManager::getServiceObject('APF\modules\usermanagement\biz', 'UmgtManager', {CONTEXT}, {LANGUAGE});
+    $umgt->activateEncryption();
+</gen:highlight>
+<p>
+    Diese Zeilen müssen nach der Einbindung des APF-Core und dem Setzen von Einstellungen an den
+    Konfigurationsprovidern eingefügt werden. Die Platzhalter für Context und Sprache müssen
+    entsprechend Ihrer Anwendung ersetzt werden.
+</p>
+
+<div class="hint">
+   <b>Bitte beachten Sie:</b> <br>
+   Ein Verlust des konfigurierten Schlüssels hat den Verlust aller verschlüsselten Daten zur Folge.<br>
+   Wenn eine bestehende Anwendung nachträglich Verschlüsselung erhalten soll, muss der Entwickler 
+   sich selbst um die Verschlüsselung der bestehenden Daten kümmern. Der <em>UserFieldEncryptionProvider</em> kann hierbei
+   nach dessen Konfiguration eingesetzt werden, um die Felder manuell zu verschlüsseln.
+</div>
+
+
+
 
 <h3 id="Chapter-4-Bedienung-des-Verwaltungs-Frontends"><a href="#Chapter-4-Bedienung-des-Verwaltungs-Frontends">4. Bedienung des Verwaltungs-Frontends</a></h3>
 <p>
