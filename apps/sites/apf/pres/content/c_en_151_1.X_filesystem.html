@@ -12,10 +12,11 @@
 
 <h4 id="Chapter-2-1-Creating-files"><a href="#Chapter-2-1-Creating-files">2.1. Creating files</a></h4>
 <p>
-   To create a new file you can use the <em>File</em> class:
+   To create a new file you need to import the class <em>File</em> into the current script. For thiy you can use the <em>import()</em> function or the 
+   (DI)ServiceManager.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
+import('tools::filesystem', 'File');
 $file = new File();
 $file->create('path/to/my/new/file/filename.txt');
 </gen:highlight>
@@ -25,7 +26,7 @@ $file->create('path/to/my/new/file/filename.txt');
    Do you want to fill the File-Domain-Object with the data of an existing file simply call the method <em>open()</em>.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
+import('tools::filesystem', 'File');
 $file = new File();
 $file->open('path/to/an/existing/file/filename.php');
 </gen:highlight>
@@ -35,7 +36,7 @@ $file->open('path/to/an/existing/file/filename.php');
    Before deleting a file it must be created with <em>create()</em> or opened with <em>open()</em>. Subsequently the file can be removed by calling <em>delete()</em>.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
+import('tools::filesystem', 'File');
 
 $file = new File();
 $file->create('path/to/my/new/file/filename.html');
@@ -53,8 +54,8 @@ $file->delete();
    The function expects as its first parameter an instance of the class <em>Folder</em>, which serves as destination of the copy.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
-use APF\tools\filesystem\File;
+import('tools::filesystem', 'Folder');
+import('tools::filesystem', 'File');
 
 // Creating destination directory
 $targetFolder = new Folder();
@@ -81,11 +82,10 @@ $file->createCopy($targetFolder, 'NewNameOfTheCopy.php');
    In the following example first a new file is created, then it is copied, and at the end the contents of the copy is changed with the <em>writeContent()</em> method.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->create('folder/another/myFile.php');
      ->createCopy($targetFolder)
-     ->writeContent('I am a copy.');
+     ->writeContent('Ich bin eine Kopie.');
 </gen:highlight>
 <p>
    Is the 3rd and last parameter of the <em>createCopy()</em> method set to <em>false</em>, a <em>Boolean</em> is returned instead of a <em>File</em> object.
@@ -96,9 +96,6 @@ $file->create('folder/another/myFile.php');
    The <em>moveTo()</em> method allows you to move a file to another directory. It only has one parameter, which defines the target directory (like <em>createCopy()</em>).
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
-use APF\tools\filesystem\File;
-
 $targetFolder = new Folder();
 $targetFolder->open('my/target/folder');
 
@@ -111,7 +108,6 @@ $file->open('path/to/my/file.php')->moveTo($targetFolder);
    Using the function <em>renameTo()</em> can rename files - returns a Boolean value.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->create('path/to/my/file.txt')->renameTo('myNewName.txt');
 </gen:highlight>
@@ -126,7 +122,6 @@ $file->create('path/to/my/file.txt')->renameTo('myNewName.txt');
       <li><em>prependContent($content)</em> – content is above the current</li>
 </ul>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->open('path/to/my/file.txt')
      ->writeContent('PHP');
@@ -140,7 +135,6 @@ echo $file->getContent(); // Result: Adventure PHP Framework!
    With the method <em>makeDownload()</em> can be created a download of the currently opened file:
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->create('path/to/my/downloadable/file.pdf')->makeDownload();
 </gen:highlight>
@@ -149,38 +143,39 @@ $file->create('path/to/my/downloadable/file.pdf')->makeDownload();
    with the content of the file <em>file.pdf</em>.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->open('path/to/my/downloadable/file.pdf')->makeDownload('filesystem.pdf');
 </gen:highlight>
 
 <h4 id="Chapter-2-9-Further-methods"><a href="#Chapter-2-9-Further-methods">2.9. Further methods</a></h4>
-<ul>
-   <li><strong>changeOwnerTo($owner)</strong>: Expect as parameter the new owner of the file.</li>
-   <li><strong>changeModeTo($mode)</strong>: Change the permissions to the one in <em>$mode</em> (eg, 0755) defined.</li>
-   <li><strong>isWritable()</strong>: Returns <em>true</em> if the file is writable – otherwise <em>false</em>.</li>
-   <li><strong>isReadable()</strong>: Returns <em>true</em> if the file is readable – otherwise <em>false</em>.</li>
-   <li><strong>getParentFolder()</strong>: Returns the parent directory in form of a <em>Folder</em> object.</li>
-   <li><strong>getOwner()</strong>: Returns the owner of the file.</li>
-   <li><strong>getPermissions()</strong>: Returns the permission of the file.</li>
-   <li><strong>getName()</strong>: Returns the filename (eg, filename.txt).</li>
-   <li><strong>getBasePath()</strong>: Returns the path to the file. For file <em>my/folder/file.txt</em> the function would return <em>my/folder</em>.</li>
-   <li><strong>getPath()</strong>: Returns the complete path to the file (eg, my/folder/file.txt).</li>
-   <li><strong>getSize()</strong>: Returns the filesize (in Bytes).</li>
-   <li><strong>getContent()</strong>: Returns the content of the file.</li>
-   <li><strong>getMimeType()</strong>: Returns the Mime-Type of the file. This method returns always <em>null</em> if the PHP extension <em>fileinfo</em> is not installed.</li>
-   <li><strong>getExtension()</strong>: Returns the suffix of the file - for <em>filename.txt</em> <em>txt</em>.</li>
-</ul>
+<p>
+   <ul>
+      <li><strong><em>changeOwnerTo($owner)</em></strong></li> Expect as parameter the new owner of the file.
+      <li><strong><em>changeModeTo($mode)</em></strong></li> Change the permissions to the one in <em>$mode</em> (eg, 0755) defined.
+      <li><strong><em>isWritable()</em></strong></li> Returns <em>true</em> if the file is writable – otherwise <em>false</em>.
+      <li><strong><em>isReadable()</em></strong></li> Returns <em>true</em> if the file is readable – otherwise <em>false</em>.
+      <li><strong><em>getParentFolder()</em></strong></li> Returns the parent directory in form of a <em>Folder</em> object.
+      <li><strong><em>getOwner()</em></strong></li> Returns the owner of the file.
+      <li><strong><em>getPermissions()</em></strong></li> Returns the permission of the file.
+      <li><strong><em>getName()</em></strong></li> Returns the filename (eg, filename.txt).
+      <li><strong><em>getBasePath()</em></strong></li> Returns the path to the file. For file <em>my/folder/file.txt</em> the function would return <em>my/folder</em>.
+      <li><strong><em>getPath()</em></strong></li> Returns the complete path to the file (eg, my/folder/file.txt).
+      <li><strong><em>getSize()</em></strong></li> Returns the filesize (in Bytes).
+      <li><strong><em>getContent()</em></strong></li> Returns the content of the file.
+      <li><strong><em>getMimeType()</em></strong></li> Returns the Mime-Type of the file. This method returns always <em>null</em> if the PHP extension <em>fileinfo</em> is not installed.
+      <li><strong><em>getExtension()</em></strong></li> Returns the suffix of the file - for <em>filename.txt</em> <em>txt</em>.
+   </ul>
+</p>
 
 <h3 id="Chapter-3-API-Directories"><a href="#Chapter-3-API-Directories">3. API for directories</a></h3>
 
 <h4 id="Chapter-3-1-Create-directory"><a href="#Chapter-3-1-Create-directory">3.1. Create directory</a></h4>
 <p>
-   To create a new directory you need to import the class <em>Folder</em> into the current script. For this you can use the <em>import()</em> function or the
+   To create a new directory you need to import the class <em>Folder</em> into the current script. For this you can use the <em>import()</em> function or the 
    (DI)ServiceManager.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 $folder = new Folder();
 $folder->create('path/to/my/new/folder');
 </gen:highlight>
@@ -190,7 +185,7 @@ $folder->create('path/to/my/new/folder');
    Do you want to fill the Folder-Domain-Object with the data of an existing directory simply call the method <em>open()</em>.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 $folder = new Folder();
 $folder->open('path/to/an/existing/folder');
 </gen:highlight>
@@ -203,7 +198,7 @@ $folder->open('path/to/an/existing/folder');
    Before deleting a directory it must be created with <em>create()</em> or opened with <em>open()</em>. Subsequently the file can be removed by calling <em>delete()</em>.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 
 $folder = new Folder();
 $folder->create('path/to/my/new/folder');
@@ -218,7 +213,7 @@ $folder->delete();
    The methods <em>create()</em> and <em>open()</em> implements the fluent interface. You can also use the <em>delete</em> method directly to the return value:
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 
 $folder = new Folder();
 $folder->create('path/to/my/new/folder')->delete();
@@ -234,7 +229,7 @@ $folder->open('path/to/my/existing/folder')->delete();
    The function expects as its first parameter an instance of the class <em>Folder</em>, which serves as destination of the copy.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 
 // Creating destination directory
 $targetFolder = new Folder();
@@ -258,8 +253,6 @@ $folder->open('path/to/my/folder')
    In the following example first a new directory is created, then it is copied, and at the end the copy gets deleted.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
-
 $targetFolder = new Folder();
 $targetFolder->open('target/folder/of/my/copy');
 
@@ -277,8 +270,6 @@ $folder->create('path/to/my/folder');
    The <em>moveTo()</em> method allows you to move a directory to another directory. It only has one parameter, which defines the target directory (like <em>createCopy()</em>).
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
-
 $targetFolder = new Folder();
 $targetFolder->open('my/target/folder');
 
@@ -291,7 +282,6 @@ $folder->open('path/to/my/folder')->moveTo($targetFolder);
    Using the function <em>renameTo()</em> can rename directories - returns a Boolean value.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
 $folder = new Folder();
 $folder->create('path/to/my/folder')->renameTo('myNewFolderName');
 </gen:highlight>
@@ -302,24 +292,23 @@ $folder->create('path/to/my/folder')->renameTo('myNewFolderName');
    <em>File</em>- and <em>Folder</em> objects which represents the content of the directory.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
 $folder = new Folder();
 $children = $folder->open('path/to/my/folder')->getContent();
 </gen:highlight>
 
 <h4 id="Chapter-3-8-Further-methods"><a href="#Chapter-3-8-Further-methods">3.8. Further methods</a></h4>
-<ul>
-   <li><strong>changeOwnerTo($owner)</strong>: Expect as parameter the new owner of the file.</li>
-   <li><strong>changeModeTo($mode)</strong>: Change the permissions to the one in <em>$mode</em> (eg, 0755) defined.</li>
-   <li><strong>isWritable()</strong>: Returns <em>true</em> if the directory is writable – otherwise <em>false</em>.</li>
-   <li><strong>isReadable()</strong>: Returns <em>true</em> if the directory is readable – otherwise <em>false</em>.</li>
-   <li><strong>getParentFolder()</strong>: Returns the parent directory in form of a <em>Folder</em> object.</li>
-   <li><strong>getOwner()</strong>: Returns the owner of the directory.</li>
-   <li><strong>getPermissions()</strong>: Returns the permission of the directory.</li>
-   <li><strong>getName()</strong>: Returns the name of the directory.</li>
-   <li><strong>getBasePath()</strong>: Returns the path to the directory. For directory <em>path/to/my/folder</em> the function would return <em>path/to/my</em>.</li>
-   <li><strong>getPath()</strong>: Returns the complete path to the directory.</li>
-   <li><strong>getSize()</strong>: Returns the size of the directory (in Bytes).</li>
-</ul>
-
-<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_151"/>
+<p>
+   <ul>
+      <li><strong><em>changeOwnerTo($owner)</em></strong></li> Expect as parameter the new owner of the file.
+      <li><strong><em>changeModeTo($mode)</em></strong></li> Change the permissions to the one in <em>$mode</em> (eg, 0755) defined.
+      <li><strong><em>isWritable()</em></strong></li> Returns <em>true</em> if the directory is writable – otherwise <em>false</em>.
+      <li><strong><em>isReadable()</em></strong></li> Returns <em>true</em> if the directory is readable – otherwise <em>false</em>.
+      <li><strong><em>getParentFolder()</em></strong></li> Returns the parent directory in form of a <em>Folder</em> object.
+      <li><strong><em>getOwner()</em></strong></li> Returns the owner of the directory.
+      <li><strong><em>getPermissions()</em></strong></li> Returns the permission of the directory.
+      <li><strong><em>getName()</em></strong></li> Returns the name of the directory.
+      <li><strong><em>getBasePath()</em></strong></li> Returns the path to the directory. For directory <em>path/to/my/folder</em> the function would return <em>path/to/my</em>.
+      <li><strong><em>getPath()</em></strong></li> Returns the complete path to the directory.
+      <li><strong><em>getSize()</em></strong></li> Returns the size of the directory (in Bytes).
+   </ul>
+</p>

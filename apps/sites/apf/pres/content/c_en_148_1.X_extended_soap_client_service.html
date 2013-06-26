@@ -9,7 +9,7 @@
    the API of the custom implementation has been straightened to gain ease of use.
 </p>
 <p>
-   The APF SOAP client implementation supports all functionality of PHP's native <em>SoapClient</em> but eases
+   The APF SOAP client implementation supports all functionalities of PHP's native <em>SoapClient</em> but eases
    configuration of the <em>ExtendedSoapClientService</em> using the APF DI container.
 </p>
 
@@ -26,8 +26,6 @@
    you may use the following code:
 </p>
 <gen:highlight type="php">
-use APF\tools\soap\ExtendedSoapClientService;
-
 $service = new ExtendedSoapClientService();
 $service->setWsdlUrl('./login-service.wsdl');
 $service->setLocation('https://example-com/services/login/soap');
@@ -64,7 +62,8 @@ $result = $service->Login(array(
 <gen:highlight type="ini">
 [LoginService]
 servicetype = "..."
-class = "APF\tools\soap\ExtendedSoapClientService"
+namespace = "tools::soap"
+class = "ExtendedSoapClientService"
 
 conf.wsdl.method = "setWsdlUrl"
 conf.wsdl.value = "./login-service.wsdl"
@@ -251,8 +250,6 @@ conf.xyz.value = "..."
    The configuration methods support the <em>fluent interface</em> technique. Using configuration by code you may use the
    following way:
 <gen:highlight type="php">
-use APF\tools\soap\ExtendedSoapClientService;
-
 $service = new ExtendedSoapClientService();
 $service
    ->setProxyHost('proxy-server')
@@ -288,8 +285,6 @@ $service
    an XML document based on <em>SimpleXMLElement</em>. Example:
 </p>
 <gen:highlight type="php">
-use APF\tools\soap\ExtendedSoapClientService;
-
 $request = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
                <soapenv:Header/>
                <soapenv:Body>
@@ -332,8 +327,6 @@ $responseXml = $client->executeRequest('Authenticate', $request);
    definition. The result is returned as DTOs (if configured!). Example:
 </p>
 <gen:highlight type="php">
-use APF\tools\soap\ExtendedSoapClientService;
-
 $request = array(
    'ConsumerIdentification' => array(
       'ConsumerAuthentication' => array(
@@ -403,6 +396,7 @@ $request->Authentication->Security->Secret = '...';
 class WsdlObjectMapping extends APFObject {
 
    public function __construct($wsdlType = null,
+                               $phpClassNamespace = null,
                                $phpClassName = null) {
       ...
    }
@@ -412,6 +406,14 @@ class WsdlObjectMapping extends APFObject {
    }
 
    public function getPhpClassName() {
+      ...
+   }
+
+   public function setPhpClassNamespace($phpClassNamespace) {
+      ...
+   }
+
+   public function getPhpClassNamespace() {
       ...
    }
 
@@ -470,7 +472,8 @@ class WsdlObjectMapping extends APFObject {
 <gen:highlight type="ini">
 [LoginService]
 servicetype = "..."
-class = "APF\tools\soap\ExtendedSoapClientService"
+namespace = "tools::soap"
+class = "ExtendedSoapClientService"
 
 conf.wsdl.method = "setWsdlUrl"
 conf.wsdl.value = "./login-service.wsdl"
@@ -479,16 +482,20 @@ conf.service.method = "setLocation"
 conf.service.value = "https://example-com/services/login/soap"
 
 init.auth-response.method = "registerWsdlObjectMapping"
-init.auth-response.name = "VENDOR\...\AuthenticationResponseMapping"
+init.auth-response.namespace = "..."
+init.auth-response.name = "AuthenticationResponseMapping"
 
 [AuthenticationResponseMapping]
 servicetype = "NORMAL"
-class = "APF\tools\soap\WsdlObjectMapping"
+namespace = "tools::soap"
+class = "WsdlObjectMapping"
 
 conf.type.method = "setWsdlType"
 conf.type.value = "AuthenticationResponseType"
+conf.ns.method = "setPhpClassNamespace"
+conf.ns.value = "sample::namespace"
 conf.class.method = "setPhpClassName"
-conf.class.value = "VENDOR\...\AuthenticationResponse"
+conf.class.value = "AuthenticationResponse"
 </gen:highlight>
 <p>
    The &quot;service&quot; <em>AuthenticationResponseMapping</em> defines an object mapping for the
@@ -544,13 +551,11 @@ class AuthenticationResponse {
    Registering a data type for a SOAP request can be done as follows:
 </p>
 <gen:highlight type="php">
-use APF\tools\soap\ExtendedSoapClientService;
-use APF\tools\soap\WsdlObjectMapping;
-
 $client->registerWsdlObjectMapping(
    new WsdlObjectMapping(
       'AuthenticationResponseType',
-      'VENDOR\...\AuthenticationResponse'
+      '...',
+      'AuthenticationResponse'
    )
 );
 </gen:highlight>
@@ -578,16 +583,11 @@ $client->registerWsdlObjectMapping(
    to a log file in case of errors like this:
 </p>
 <gen:highlight type="php">
-use APF\core\logging\Logger;
-use APF\core\logging\LogEntry;
-use APF\core\singleton\Singleton;
-use APF\tools\soap\ExtendedSoapClientService;
-
 /* @var $client ExtendedSoapClientService */
 $client = $this->getDIServiceObject('...', 'LoginService');
 
 /* @var $logger Logger */
-$logger = Singleton::getInstance('APF\core\logging\Logger');
+$logger = Singleton::getInstance('Logger');
 
 try {
    $response = $client->Authenticate($request);
@@ -602,22 +602,16 @@ try {
    In case you intend to log every request and response this can be done with the threshold feature of the <em>Logger</em>:
 </p>
 <gen:highlight type="php">
-use APF\core\registry\Registry;
-use APF\core\logging\Logger;
-use APF\core\logging\LogEntry;
-use APF\core\singleton\Singleton;
-use APF\tools\soap\ExtendedSoapClientService;
-
 /* @var $client ExtendedSoapClientService */
 $client = $this->getDIServiceObject('...', 'LoginService');
 
 /* @var $logger Logger */
-$logger = Singleton::getInstance('APF\core\logging\Logger');
+$logger = Singleton::getInstance('Logger');
 
 $logTarget = 'service_calls';
 
 $writer = clone $l->getLogWriter(
-   Registry::retrieve('APF\core', 'InternalLogTarget')
+   Registry::retrieve('apf::core', 'InternalLogTarget')
 );
 $l->addLogWriter($logTarget, $writer);
 
@@ -736,13 +730,6 @@ interface AuthenticationService {
    allow injection of the SOAP client.
 </p>
 <gen:highlight type="php">
-use APF\core\logging\Logger;
-use APF\core\logging\LogEntry;
-use APF\core\singleton\Singleton;
-use APF\tools\soap\ExtendedSoapClientService;
-
-use VENDOR\...\AuthenticationService;
-
 class AuthenticationServiceImpl implements AuthenticationService {
 
    /**
@@ -756,7 +743,7 @@ class AuthenticationServiceImpl implements AuthenticationService {
 
    public function authenticate($username, $password) {
       /* @var $logger Logger */
-      $logger = &Singleton::getInstance('APF\core\logging\Logger');
+      $logger = &Singleton::getInstance('Logger');
 
       $request = array(
          'ConsumerIdentification' => array(
@@ -779,7 +766,7 @@ class AuthenticationServiceImpl implements AuthenticationService {
       try {
          $this->client->Authenticate($request);
          return true;
-      } catch (\Exception $e) {
+      } catch (Exception $e) {
          $logger->logEntry(
                            'service_calls',
                            'Authentication failed: ' . $e->getMessage(),
@@ -810,15 +797,17 @@ class AuthenticationServiceImpl implements AuthenticationService {
 <gen:highlight type="ini">
 [LoginService]
 servicetype = "SINGLETON"
-class = "VENDOR\...\AuthenticationServiceImpl"
+namespace = "projects::foo::biz"
+class = "AuthenticationServiceImpl"
 
 init.soap-client.method = "setClient"
-init.soap-client.namespace = "VENDOR\..."
+init.soap-client.namespace = "projects::foo::biz"
 init.soap-client.name = "SoapService"
 
 [SoapService]
 servicetype = "SINGLETON"
-class = "APF\tools\soap\ExtendedSoapClientService"
+namespace = "tools::soap"
+class = "ExtendedSoapClientService"
 
 conf.wsdl.method = "setWsdlUrl"
 conf.wsdl.value = "http://example.com/.../soap?wsdl"
@@ -829,14 +818,12 @@ conf.service.value = "http://example.com/.../soap"
 
 <h5 id="Chapter-4-3-4-Usage-of-the-service"><a href="#Chapter-4-3-4-Usage-of-the-service">4.3.4. Usage of the service</a></h5>
 <p>
-   Assuming that the configuration resides with the <em>VENDOR\...</em> namespace, the <em>LoginService</em> may
+   Assuming that the configuration resides with the <em>projects::foo::biz</em> namespace, the <em>LoginService</em> may
    be used as follows:
 </p>
 <gen:highlight type="php">
-use VENDOR\...\AuthenticationServiceImpl;
-
 /* @var $service AuthenticationServiceImpl */
-$service = &$this->getDIServiceObject('VENDOR\...', 'LoginService');
+$service = &$this->getDIServiceObject('projects::foo::biz', 'LoginService');
 
 if ($service->authenticate($username, $password)) {
    echo 'Login succeeded!';

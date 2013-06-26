@@ -12,10 +12,11 @@
 
 <h4 id="Chapter-2-1-Dateien-erstellen"><a href="#Chapter-2-1-Dateien-erstellen">2.1. Dateien erstellen</a></h4>
 <p>
-   Um eine neue Datei zu erstellen, kann die Klasse <em>File</em> genutzt werden:
+   Um eine neue Datei zu erstellen, muss die Klasse <em>File</em> erst in das aktuelle Script importiert werden. Dies kann entweder über die <em>import()</em>-Funktion
+   oder über den (DI)ServiceManager geschehen.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
+import('tools::filesystem', 'File');
 $file = new File();
 $file->create('path/to/my/new/file/filename.txt');
 </gen:highlight>
@@ -25,7 +26,7 @@ $file->create('path/to/my/new/file/filename.txt');
    Möchten Sie das File-Domänen-Objekt mit den Daten einer bereits existierenden Datei füllen, genügt ein Aufruf der Methode <em>open()</em>.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
+import('tools::filesystem', 'File');
 $file = new File();
 $file->open('path/to/an/existing/file/filename.php');
 </gen:highlight>
@@ -36,7 +37,7 @@ $file->open('path/to/an/existing/file/filename.php');
    <em>delete()</em> entfernt werden.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
+import('tools::filesystem', 'File');
 
 $file = new File();
 $file->create('path/to/my/new/file/filename.html');
@@ -54,8 +55,8 @@ $file->delete();
    Die Funktion erwartet als ersten Parameter eine Instanz der Klasse <em>Folder</em>, welche als Zielverzeichnis der Kopie dient.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
-use APF\tools\filesystem\File;
+import('tools::filesystem', 'Folder');
+import('tools::filesystem', 'File');
 
 // Erstellen des Zielverzeichnisses
 $targetFolder = new Folder();
@@ -84,7 +85,6 @@ $file->createCopy($targetFolder, 'NewNameOfTheCopy.php');
    <em>writeContent()</em>-Methode geändert.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->create('folder/another/myFile.php');
      ->createCopy($targetFolder)
@@ -101,9 +101,6 @@ $file->create('folder/another/myFile.php');
    <em>createCopy()</em>-Methode das Zielverzeichnis definiert.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
-use APF\tools\filesystem\File;
-
 $targetFolder = new Folder();
 $targetFolder->open('my/target/folder');
 
@@ -116,7 +113,6 @@ $file->open('path/to/my/file.php')->moveTo($targetFolder);
    Über die Funktion <em>renameTo()</em> lassen sich Dateien umbenennen – zurückgegeben wird ein boolescher Wert.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->create('path/to/my/file.txt')->renameTo('myNewName.txt');
 </gen:highlight>
@@ -131,7 +127,6 @@ $file->create('path/to/my/file.txt')->renameTo('myNewName.txt');
       <li><em>prependContent($content)</em> – stellt Inhalt dem Aktuellen voran</li>
 </ul>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->open('path/to/my/file.txt')
      ->writeContent('PHP');
@@ -145,7 +140,6 @@ echo $file->getContent(); // Resultat: Adventure PHP Framework!
    Mit der Methode <em>makeDownload()</em> kann von der aktuell geöffneten Datei ein Download erstellt werden:
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->create('path/to/my/downloadable/file.pdf')->makeDownload();
 </gen:highlight>
@@ -154,28 +148,29 @@ $file->create('path/to/my/downloadable/file.pdf')->makeDownload();
    <em>filesystem.pdf</em> mit dem Inhalt der Datei <em>file.pdf</em> erzeugt.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\File;
 $file = new File();
 $file->open('path/to/my/downloadable/file.pdf')->makeDownload('filesystem.pdf');
 </gen:highlight>
 
 <h4 id="Chapter-2-9-weitere-Methoden"><a href="#Chapter-2-9-weitere-Methoden">2.9. Weitere Methoden</a></h4>
-<ul>
-   <li><strong>changeOwnerTo($owner)</strong>: Erwartet als Parameter den Namen des neuen Eigentümers der Datei.</li>
-   <li><strong>changeModeTo($mode)</strong>: Ändert die Zugriffsrechte zu den in <em>$mode</em> (bspw. 0755) definierten.</li>
-   <li><strong>isWritable()</strong>: Gibt <em>true</em> zurück, sofern die Datei beschreibbar ist – andernfalls <em>false</em>.</li>
-   <li><strong>isReadable()</strong>: Gibt <em>true</em> zurück, sofern die Datei lesbar ist – andernfalls <em>false</em>.</li>
-   <li><strong>getParentFolder()</strong>: Gibt das Elternverzeichnis in Form eines <em>Folder</em>-Objektes zurück.</li>
-   <li><strong>getOwner()</strong>: Gibt den Eigentümer der Datei zurück.</li>
-   <li><strong>getPermissions()</strong>: Gibt die Zugriffsrechte der Datei zurück.</li>
-   <li><strong>getName()</strong>: Gibt den Namen der Datei zurück (Bsp: filename.txt).</li>
-   <li><strong>getBasePath()</strong>: Gibt den Pfad zur Datei zurück. Bei der Datei <em>my/folder/file.txt</em> würde diese Funktion <em>my/folder</em> zurückgeben.</li>
-   <li><strong>getPath()</strong>: Gibt den kompletten Pfad der Datei zurück (Bsp: my/folder/file.txt).</li>
-   <li><strong>getSize()</strong>: Gibt die Größe der Datei (in Bytes) zurück.</li>
-   <li><strong>getContent()</strong>: Liefert den Inhalt der Datei.</li>
-   <li><strong>getMimeType()</strong>: Gibt den Mime-Type der Datei zurück. Ist die PHP-Erweiterung <em>fileinfo</em> nicht installiert, liefert diese Methode stets <em>null</em>.</li>
-   <li><strong>getExtension()</strong>: Liefert die Dateiendung der aktuellen Datei – bei <em>filename.txt</em> wäre das <em>txt</em>.</li>
-</ul>
+<p>
+   <ul>
+      <li><strong><em>changeOwnerTo($owner)</em></strong></li> Erwartet als Parameter den Namen des neuen Eigentümers der Datei.
+      <li><strong><em>changeModeTo($mode)</em></strong></li> Ändert die Zugriffsrechte zu den in <em>$mode</em> (bspw. 0755) definierten.
+      <li><strong><em>isWritable()</em></strong></li> Gibt <em>true</em> zurück, sofern die Datei beschreibbar ist – andernfalls <em>false</em>.
+      <li><strong><em>isReadable()</em></strong></li> Gibt <em>true</em> zurück, sofern die Datei lesbar ist – andernfalls <em>false</em>.
+      <li><strong><em>getParentFolder()</em></strong></li> Gibt das Elternverzeichnis in Form eines <em>Folder</em>-Objektes zurück.
+      <li><strong><em>getOwner()</em></strong></li> Gibt den Eigentümer der Datei zurück.
+      <li><strong><em>getPermissions()</em></strong></li> Gibt die Zugriffsrechte der Datei zurück.
+      <li><strong><em>getName()</em></strong></li> Gibt den Namen der Datei zurück (Bsp: filename.txt).
+      <li><strong><em>getBasePath()</em></strong></li> Gibt den Pfad zur Datei zurück. Bei der Datei <em>my/folder/file.txt</em> würde diese Funktion <em>my/folder</em> zurückgeben.
+      <li><strong><em>getPath()</em></strong></li> Gibt den kompletten Pfad der Datei zurück (Bsp: my/folder/file.txt).
+      <li><strong><em>getSize()</em></strong></li> Gibt die Größe der Datei (in Bytes) zurück.
+      <li><strong><em>getContent()</em></strong></li> Liefert den Inhalt der Datei.
+      <li><strong><em>getMimeType()</em></strong></li> Gibt den Mime-Type der Datei zurück. Ist die PHP-Erweiterung <em>fileinfo</em> nicht installiert, liefert diese Methode stets <em>null</em>.
+      <li><strong><em>getExtension()</em></strong></li> Liefert die Dateiendung der aktuellen Datei – bei <em>filename.txt</em> wäre das <em>txt</em>.
+   </ul>
+</p>
 
 <h3 id="Chapter-3-API-Verzeichnisse"><a href="#Chapter-3-API-Verzeichnisse">3. API für Verzeichnisse</a></h3>
 
@@ -185,7 +180,7 @@ $file->open('path/to/my/downloadable/file.pdf')->makeDownload('filesystem.pdf');
    oder über den (DI)ServiceManager geschehen.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 $folder = new Folder();
 $folder->create('path/to/my/new/folder');
 </gen:highlight>
@@ -195,7 +190,7 @@ $folder->create('path/to/my/new/folder');
    Möchten Sie das Folder-Domänen-Objekt mit den Daten eines bereits existierenden Verzeichnisses füllen, genügt ein Aufruf der Methode <em>open()</em>.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 $folder = new Folder();
 $folder->open('path/to/an/existing/folder');
 </gen:highlight>
@@ -208,7 +203,7 @@ $folder->open('path/to/an/existing/folder');
    Vor dem Löschen eines Verzeichnisses muss eines erst mit <em>create()</em> erstellt oder ein bereits existierendes mit <em>open()</em> geöffnet werden.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 
 $folder = new Folder();
 $folder->create('path/to/my/new/folder');
@@ -224,7 +219,7 @@ $folder->delete();
    <em>delete()</em>-Methode auf dem Rückgabewert aufgerufen werden:
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 
 $folder = new Folder();
 $folder->create('path/to/my/new/folder')->delete();
@@ -240,7 +235,7 @@ $folder->open('path/to/my/existing/folder')->delete();
    Die Funktion erwartet als ersten Parameter eine Instanz der Klasse <em>Folder</em>, welche als Zielverzeichnis der Kopie dient.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
+import('tools::filesystem', 'Folder');
 
 // Erstellen des Zielverzeichnisses
 $targetFolder = new Folder();
@@ -265,8 +260,6 @@ $folder->open('path/to/my/folder')
    In dem folgenden Beispiel wird zuerst ein neues Verzeichnis erstellt, anschließend wird dieses kopiert und am Ende wird die Kopie wieder gelöscht.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
-
 $targetFolder = new Folder();
 $targetFolder->open('target/folder/of/my/copy');
 
@@ -285,8 +278,6 @@ $folder->create('path/to/my/folder');
    bei der <em>createCopy()</em>-Methode das Zielverzeichnis definiert.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
-
 $targetFolder = new Folder();
 $targetFolder->open('my/target/folder');
 
@@ -299,7 +290,6 @@ $folder->open('path/to/my/folder')->moveTo($targetFolder);
    Über die Funktion <em>renameTo()</em> lassen sich Verzeichnisse umbenennen – zurückgegeben wird ein boolescher Wert.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
 $folder = new Folder();
 $folder->create('path/to/my/folder')->renameTo('myNewFolderName');
 </gen:highlight>
@@ -310,24 +300,23 @@ $folder->create('path/to/my/folder')->renameTo('myNewFolderName');
    Array, gefüllt mit <em>File</em>- und <em>Folder</em>-Objekten, die den Inhalt des Verzeichnisses repräsentieren.
 </p>
 <gen:highlight type="php">
-use APF\tools\filesystem\Folder;
 $folder = new Folder();
 $children = $folder->open('path/to/my/folder')->getContent();
 </gen:highlight>
 
 <h4 id="Chapter-3-8-weitere-Methoden"><a href="#Chapter-3-8-weitere-Methoden">3.8. Weitere Methoden</a></h4>
-<ul>
-   <li><strong>changeOwnerTo($owner)</strong>: Erwartet als Parameter den Namen des neuen Eigentümers des Verzeichnisses.</li>
-   <li><strong>changeModeTo($mode)</strong>: Ändert die Zugriffsrechte zu den in <em>$mode</em> (bspw. 0755) definierten.</li>
-   <li><strong>isWritable()</strong>: Gibt <em>true</em> zurück, sofern das Verzeichnis beschreibbar ist – andernfalls <em>false</em>.</li>
-   <li><strong>isReadable()</strong>: Gibt <em>true</em> zurück, sofern das Verzeichnis lesbar ist – andernfalls <em>false</em>.</li>
-   <li><strong>getParentFolder()</strong>: Gibt das Elternverzeichnis in Form eines <em>Folder</em>-Objektes zurück.</li>
-   <li><strong>getOwner()</strong>: Gibt den Eigentümer des Verzeichnisses zurück.</li>
-   <li><strong>getPermissions()</strong>: Gibt die Zugriffsrechte des Verzeichnisses zurück.</li>
-   <li><strong>getName()</strong>: Gibt den Namen des Verzeichnisses zurück.</li>
-   <li><strong>getBasePath()</strong>: Gibt den Pfad zum Verzeichnis zurück. Bei dem Verzeichnis <em>path/to/my/folder</em> würde diese Funktion <em>path/to/my</em> zurückgeben.</li>
-   <li><strong>getPath()</strong>: Gibt den kompletten Pfad des Verzeichnisses zurück.</li>
-   <li><strong>getSize()</strong>: Gibt die Größe des Verzeichnisses (in Bytes) zurück.</li>
-</ul>
-
-<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_151"/>
+<p>
+   <ul>
+      <li><strong><em>changeOwnerTo($owner)</em></strong></li> Erwartet als Parameter den Namen des neuen Eigentümers des Verzeichnisses.
+      <li><strong><em>changeModeTo($mode)</em></strong></li> Ändert die Zugriffsrechte zu den in <em>$mode</em> (bspw. 0755) definierten.
+      <li><strong><em>isWritable()</em></strong></li> Gibt <em>true</em> zurück, sofern das Verzeichnis beschreibbar ist – andernfalls <em>false</em>.
+      <li><strong><em>isReadable()</em></strong></li> Gibt <em>true</em> zurück, sofern das Verzeichnis lesbar ist – andernfalls <em>false</em>.
+      <li><strong><em>getParentFolder()</em></strong></li> Gibt das Elternverzeichnis in Form eines <em>Folder</em>-Objektes zurück.
+      <li><strong><em>getOwner()</em></strong></li> Gibt den Eigentümer des Verzeichnisses zurück.
+      <li><strong><em>getPermissions()</em></strong></li> Gibt die Zugriffsrechte des Verzeichnisses zurück.
+      <li><strong><em>getName()</em></strong></li> Gibt den Namen des Verzeichnisses zurück.
+      <li><strong><em>getBasePath()</em></strong></li> Gibt den Pfad zum Verzeichnis zurück. Bei dem Verzeichnis <em>path/to/my/folder</em> würde diese Funktion <em>path/to/my</em> zurückgeben.
+      <li><strong><em>getPath()</em></strong></li> Gibt den kompletten Pfad des Verzeichnisses zurück.
+      <li><strong><em>getSize()</em></strong></li> Gibt die Größe des Verzeichnisses (in Bytes) zurück.
+   </ul>
+</p>
