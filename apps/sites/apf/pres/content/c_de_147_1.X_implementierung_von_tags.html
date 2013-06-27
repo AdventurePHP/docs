@@ -136,11 +136,12 @@ $this->tagLibs[] = new TagLib(...);
 <gen:highlight type="php">
 final class TagLib {
 
+   private $namespace;
    private $class;
    private $prefix;
    private $name;
 
-   public function __construct($class, $prefix, $name) {
+   public function __construct($namespace, $class, $prefix, $name) {
    }
 
 }
@@ -264,8 +265,40 @@ foreach($this->children as $objectId => $DUMMY){
       </div>
    </li>
 </ul>
+<div class="warn">
+   Im Release 1.17 wurden alte Namenskonventionen von Methoden entfernt. Sofern Sie das APF in der Version 1.16 oder
+   kleiner verwenden lautet der Name der Parser-Funktion <em>__extractTagLibTags()</em> statt <em>extractTagLibTags()</em>.
+</div>
+<div class="warn">
+   Im Release 1.17 wurden alte Namenskonventionen von Klassen-Variablen entfernt. Dies betraf insbesondere die Signature
+   der Klassen <em>APFObject</em> und <em>Document</em>. Die folende Code-Box zeigt die Signatur der Klasse <em>Document</em>
+   vor Version 1.17:
+<gen:highlight type="php">
+class Document extends APFObject {
+
+   protected $__ObjectID = null;
+   protected $__ParentObject = null;
+   protected $__Children = array();
+   protected $__Content;
+   protected $__TagLibs = array();
+
+   public function __construct() {
+   }
+
+   public function onParseTime() {
+   }
+
+   public function onAfterAppend() {
+   }
+
+   public function transform() {
+   }
+
+}
+</gen:highlight>
+</div>
 <p>
-   Für die Transformation von Kind-Knoten können folgende Methoden genutzt werden:
+   Seit Release 1.16 können für die Transformation von Kind-Knoten folgende Methoden genutzt werden:
 </p>
 <ul>
    <li>
@@ -302,11 +335,9 @@ foreach($this->children as $objectId => $DUMMY){
    Als Beispiel soll die Ausgabe der aktuellen Uhrzeit aus <a href="#Chapter-2-Definition-eines-Tags">Kapitel 2</a>
    dienen. Hierzu muss der Tag lediglich zur Transformations-Zeit die Uhrzeit im gewünschten Format zurückgeben.
    Abhängigkeiten zu anderen Tags im Baum und die Notwendigkeit der Initialisierung bestehen nicht. Der Quellcode des
-   Tags gestaltet sich damit wie folgt (Namespace: <em>VENDOR\tags</em>):
+   Tags gestaltet sich damit wie folgt (Namespace: <em>examples::tags::pres</em>):
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 class HourDisplayTag extends Document {
 
    public function transform() {
@@ -320,7 +351,8 @@ class HourDisplayTag extends Document {
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="VENDOR\tags\HourDisplayTag"
+   namespace="examples::tags::pres"
+   class="HourDisplayTag"
    prefix="current"
    name="date"
 /&gt;
@@ -355,14 +387,14 @@ class HourDisplayTag extends Document {
    Die Basis-Struktur des Tags gestaltet sich wie folgt:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-use VENDOR\tags\GalleryDataSourceTag;
+import('examples::tags::pres', 'GalleryDataSourceTag');
 
 class GalleryTag extends Document {
 
    public function __construct() {
       $this->tagLibs[] = new TagLib(
-         'VENDOR\tags\GalleryDataSourceTag',
+         'examples::tags::pres',
+         'GalleryDataSourceTag',
          'gallery',
          'datasource'
       );
@@ -373,7 +405,8 @@ class GalleryTag extends Document {
 }
 </gen:highlight>
 <p>
-   Im Konstruktor des Tags wird dem Parser der <em>&lt;gallery:datasource /&gt;</em>-Tag bekannt gegeben.
+   Im Konstruktor des Tags wird dem Parser der <em>&lt;gallery:datasource /&gt;</em>-Tag bekannt gegeben. Damit der
+   Parser die Klasse <em>GalleryDataSourceTag</em> findet, wird sie per <em>import()</em> eingebunden.
 </p>
 
 <h5 id="Chapter-5-2-2-Konfiguration-des-Content-Provider"><a href="#Chapter-5-2-2-Konfiguration-des-Content-Provider">5.2.2. Konfiguration des Content-Provider</a></h5>
@@ -383,9 +416,6 @@ class GalleryTag extends Document {
    die Instanz übergeben kann:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-use VENDOR\..\ImageGalleryContentProvider;
-
 class GalleryTag extends Document {
 
    private $contentProvider;
@@ -443,9 +473,6 @@ class GalleryImage {
    erledigen, da zu diesem Zeitpunkt der Vater-Knoten bekannt ist:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-use VENDOR\tags\GalleryTag;
-
 class GalleryDataSourceTag extends Document {
 
    public function __construct() {
@@ -505,8 +532,6 @@ class GalleryDataSourceTag extends Document {
    Um den <em>GalleryDataSourceTag</em> zu erzeugen und auszuführen, reicht folgender Quellcode:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 class GalleryTag extends Document {
 
    ...
@@ -534,8 +559,6 @@ class GalleryTag extends Document {
    gestaltet sich die Methode <em>transform()</em> wie folgt:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 class GalleryTag extends Document {
 
    ...
@@ -581,8 +604,6 @@ class GalleryTag extends Document {
    Erweiterung passieren:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 class GalleryTag extends Document {
 
    ...
@@ -690,14 +711,16 @@ class GalleryTag extends Document {
          gelegenen Struktur verwenden, ordnet der Parser die Instanzen falsch zu. Beispiel:
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="VENDOR\..\FooBarTag"
+   namespace="..."
+   class="FooBarTag"
    prefix="foo"
    name="tag"
 /&gt;
 &lt;foo:bar id="..."/&gt;
 &lt;html:template name="..."&gt;
    &lt;template:addtaglib
-      class="VENDOR\..\FooBarTag"
+      namespace="..."
+      class="FooBarTag"
       prefix="foo"
       name="tag"
    /&gt;
@@ -747,7 +770,7 @@ class GalleryTag extends Document {
 <gen:highlight type="apf-xml">
 &lt;html:placeholder name="..." /&gt;
 &lt;core:importdesign
-   namespace="..."
+   namespace=""
    template="template2"
 /&gt;
 </gen:highlight>
@@ -787,7 +810,8 @@ class GalleryTag extends Document {
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="VENDOR\..\GetTextTag"
+   namespace="..."
+   class="GetTextTag"
    prefix="html"
    name="text"
 /&gt;
@@ -795,7 +819,8 @@ class GalleryTag extends Document {
 
 &lt;html:template name=""&gt;
    &lt;core:addtaglib
-         class="VENDOR\..\GetTextTag"
+         namespace="..."
+         class="GetTextTag"
          prefix="template"
          name="text"
       /&gt;
@@ -932,13 +957,11 @@ class GalleryTag extends Document {
    einer Liste hat damit folgende Gestalt:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 class UnorderedListTag extends Document {
 
    public function __construct() {
       $this->tagLibs = array(
-         new TagLib('SANDBOX\pres\taglib\ListElementTag', 'list', 'item')
+         new TagLib('sandbox::pres::taglib', 'ListElementTag', 'list', 'item')
       );
    }
 
@@ -966,13 +989,11 @@ class UnorderedListTag extends Document {
    Die Implementierung eines Listen-Elements kann wie folgt realisiert werden:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 class ListElementTag extends Document {
 
    public function __construct() {
       $this->tagLibs = array(
-         new TagLib('SANDBOX\pres\taglib\UnorderedListTag', 'html', 'list')
+         new TagLib('sandbox::pres::taglib', 'UnorderedListTag', 'html', 'list')
       );
    }
 
@@ -1020,8 +1041,6 @@ class ListElementTag extends Document {
    Transformationszeit. Dies kann mit folgender Implementierung bewerkstelligt werden:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 class TranslationTextTag extends Document {
 
    public function transform() {
@@ -1047,8 +1066,6 @@ class TranslationTextTag extends Document {
    Die zugehörige Implementierung kann wie folgt aussehen:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 class MAMImageTag extends Document {
 
    public function transform() {
@@ -1100,8 +1117,7 @@ class MAMImageTag extends Document {
    zu folgender Implementierung:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-use APF\tools\string\StringAssistant;
+import('tools::string', 'StringAssistant');
 
 class EntityEncodeTag extends Document {
 
@@ -1145,7 +1161,8 @@ class EntityEncodeTag extends Document {
 &lt;/html:template&gt;
 &lt;html:template name="test2"&gt;
    &lt;template:addtaglib
-      class="VENDOR\..\TemplateNameDisplayTag"
+      namespace="..."
+      class="TemplateNameDisplayTag"
       prefix="template"
       name="display-name"
    /&gt;
@@ -1157,8 +1174,6 @@ class EntityEncodeTag extends Document {
    gleicher Ebene hängen wie sein Vater. Hierzu kann folgende Implementierung genutzt werden:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 class TemplateNameDisplayTag extends Document {
    public function transform() {
       $template = &$this->getParentObject();
@@ -1191,7 +1206,8 @@ class TemplateNameDisplayTag extends Document {
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="APF\extensions\navigation\pres\tags\NavigationNodeTag"
+   namespace="extensions::navigation::pres::tags"
+   class="NavigationNodeTag"
    prefix="navi"
    name="template"
 /&gt;
@@ -1224,8 +1240,7 @@ class TemplateNameDisplayTag extends Document {
    Zur Befüllung des <em>&lt;navi:template /&gt;</em>-Tags in einem Template lässt sich folgender Controller nutzen:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\BaseDocumentController;
-use APF\extensions\navigation\biz\SimpleNavigationNode;
+import('extensions::navigation::biz', 'SimpleNavigationNode');
 
 class NavigationTagExampleController extends BaseDocumentController {
    public function transformContent() {
@@ -1247,8 +1262,6 @@ class NavigationTagExampleController extends BaseDocumentController {
    Die folgende Code-Box zeigt nun die Implementierung der Tags:
 </p>
 <gen:highlight type="php">
-use APF\core\pagecontroller\Document;
-
 interface NavigationNode {
    public function getLabel();
    public function getUrl();
@@ -1315,8 +1328,8 @@ class NavigationNodeTag extends Document {
 
    public function __construct() {
       $this->tagLibs = array(
-         new TagLib('APF\extensions\navigation\pres\tags\NavigationItemTag', 'navi', 'item'),
-         new TagLib('APF\extensions\navigation\pres\tags\NavigationContentTag', 'navi', 'content')
+         new TagLib('extensions::navigation::pres::tags', 'NavigationItemTag', 'navi', 'item'),
+         new TagLib('extensions::navigation::pres::tags', 'NavigationContentTag', 'navi', 'content')
       );
    }
 
@@ -1366,7 +1379,7 @@ class NavigationItemTag extends Document {
 
    public function __construct() {
       $this->tagLibs = array(
-         new TagLib('APF\extensions\navigation\pres\tags\ItemTemplateContentTag', 'item', 'content')
+         new TagLib('extensions::navigation::pres::tags', 'ItemTemplateContentTag', 'item', 'content')
       );
    }
 
