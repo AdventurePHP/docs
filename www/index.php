@@ -50,23 +50,27 @@ use APF\tools\link\LinkGenerator;
 LinkGenerator::setLinkScheme(new RewriteLinkScheme());
 
 // configure page values
-Registry::register('APF\sites\apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumentation/Build/RELEASES');
+Registry::register('APF\sites\apf', 'Releases.LocalDir', '...');
 Registry::register('APF\sites\apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
-//Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
-Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://apfforum');
+Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
 Registry::register('APF\sites\apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
 
 // special script kiddie error handler ;)
-/*import('sites::apf::biz::errorhandler', 'LiveErrorHandler');
-import('sites::apf::biz::exceptionhandler', 'LiveExceptionHandler');
+use APF\sites\apf\biz\errorhandler\LiveErrorHandler;
+use APF\core\errorhandler\GlobalErrorHandler;
+
 GlobalErrorHandler::registerErrorHandler(new LiveErrorHandler());
-GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());*/
+
+use APF\core\exceptionhandler\GlobalExceptionHandler;
+use APF\sites\apf\biz\exceptionhandler\LiveExceptionHandler;
+
+GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());
 
 // special output filter
 OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 
 // register downloads environment
-Registry::register('APF\sites\apf', 'sitemap.env', 'dev');
+Registry::register('APF\sites\apf', 'sitemap.env', 'prod');
 
 // send HTTP caching headers
 HttpCacheManager::sendHtmlCacheHeaders();
