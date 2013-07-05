@@ -1,0 +1,193 @@
+<doku:title parent="071" tags="apf,installation,download,first steps,tutorial,beginning" title="Download, installation and first steps" urlname="Download-installation-and-first-steps">
+   This step-by-step tutorial describes how to set up the adventure PHP Framework, beginning with
+   the download and ending with an &quot;Hello world&quot; application.
+</doku:title>
+<img src="http://media.adventure-php-framework.org/content/first-steps.png" alt="Download, installation und first steps" class="leftTeaser"/>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+This is a step-by-step tutorial, which shows you how to set up and use the Adventure PHP Framework
+(short: APF).
+
+<h3 id="Chapter-2-Requirements"><a href="#Chapter-2-Requirements">2. Requirements</a></h3>
+First, you need a PHP capable server. As local test server under windows you might have a look at 
+<a class="external" href="http://www.apachefriends.org/en/xampp.html" title="XAMPP for windows">XAMPP page</a>. It
+contains an installation of all important server components like Apache, PHP, MySQL, etc. Depending
+on your setup, you need to adjust the paths used in this tutorial. On LINUX/UNIX boxes you might
+install the PHP libraries using your favorite package manager.
+
+<h3 id="Chapter-3-Download"><a href="#Chapter-3-Download">3. Download</a></h3>
+Under <a href="http://adventure-php-framework.org/Page/008-Downloads" title="APF Downloads">Downloads</a>
+you can always find the latest version. Writing this tutorial, version 1.10 was the latest.
+<br />
+<br />
+There, the following packages are available:
+<ul>
+   <li>
+      Example project: (apf-demopack-*):
+      <br />
+      Contains all necessary APF files and some examples. It's designed for beginners.
+   </li>
+   <li>
+      Framework code release: (apf-codepack-*):
+      <br />
+      This contains all necessary APF files. It is designed for daily use.
+   </li>
+   <li>
+      Sample configuration package: (apf-configpack-*):
+      <br />
+      This contains some sample configurations, which are useful while creating the own configurations.
+   </li>
+</ul>
+For this tutorial we will use the "framework code release", which you can download now.
+
+<h3 id="Chapter-4-Installation"><a href="#Chapter-4-Installation">4. Installation</a></h3>
+You need to understand the structure of the folders first. This tutorial expects the document root
+(the folder which is being opened when you visit <em>http://localhost/</em> in your browser) under
+<em>/xampp/htdocs</em>.
+<br />
+<br />
+The APF is designed delivering a website using only one file. This file (e.g. <em>index.php</em>)is
+called "bootstrap" file. We create the folder <em>/xampp/htdocs/APF/sites/helloworld/</em> for it.
+Here you can further place public accessible files (e.g. pictures).
+<br />
+<br />
+For security reasons the APF files should not be public accessible, otherwise the public might read
+your configuration files. The best way would be, placing the package above the document root. If that's 
+not possible (e.g. on a simple webspace without control of the document root) follow step 4.2, where
+a special security rule is being created, otherwise follow step 4.1.
+
+<h4 id="Chapter-4-1-Installation-above-document-root"><a href="#Chapter-4-1-Installation-above-document-root">4.1. Installation above the document root</a></h4>
+Because the document root is placed at <em>/xampp/htdocs/</em>, we will create <em>/xampp/APF/</em>. 
+Now we extract the before downloaded package in here.
+<br />
+<br />
+Now there should be the following directory structure:
+<gen:highlight type="code">
+/xampp/APF/apps/
+    core/
+    modules/
+    tools/
+</gen:highlight>
+If everything is fine, you can skip section 4.2.
+
+<h4 id="Chapter-4-2-Installation-under-document-root"><a href="#Chapter-4-2-Installation-under-document-root">4.2. Installation under document root</a></h4>
+We need to take care that we secure the APF files from public requests. We already created
+<em>/xampp/htdocs/APF/</em>, so we just extract the before downloaded package in here. Now there
+should be the following directory structure:
+<gen:highlight type="code">
+/xampp/htdocs/APF/apps/
+    core/
+    modules/
+    tools/
+</gen:highlight>
+<br />
+<br />
+For securing the APF files, we create a <strong>.htaccess</strong> file within
+<em>/xampp/htdocs/APF/apps/</em> using the following content:
+<gen:highlight type="shell">
+# Deny all requests
+Order allow,deny
+deny from all
+</gen:highlight>
+<div class="hint">
+   When uploading the .htaccess file via FTP you need to make sure that ASCII-mode is enabled,
+   otherwise there could be problems.
+</div>
+
+<h3 id="Chapter-5-First-steps"><a href="#Chapter-5-First-steps">5. First steps</a></h3>
+<div class="hint">
+   We dont provide always the full path from now on. We will now call <em>/apps/</em> the folder 
+   with the APF files, and <em>/APF/</em> the public accessible folder.
+</div>
+<br />
+Let's explain the folders first:
+<ul>
+   <li>
+      <strong>/apps/core/</strong>: Contains all important APF base libs.
+   </li>
+   <li>
+      <strong>/apps/modules</strong>: Contains some optional modules which are provided together 
+      with the APF. If you want to use them, you need to configure them first. How this works can be
+      read in the tutorials on the
+      <int:link pageid="119" anchor="Modules">overview page of built-in modules</int:link>.
+   </li>
+   <li>
+      <strong>/apps/tools</strong>: Contains some little but useful tools.
+   </li>
+</ul>
+We will create the file <strong>/APF/sites/helloworld/index.php</strong> now. We will write
+a simple "hello world!" application, in order to explain the base functions.
+<br />
+<br />
+<div class="hint">
+   Hereafter the term <em>namespace</em> will be used instead of <em>folder</em>. The reason for
+   this is the following: The namespace is a relative addressing from the <strong>/apps</strong>
+   folder. In the namespace all "/" must be replaced with "::".
+</div>
+<br />
+We now need to create the namespace for the template. For that reason we will create the folder 
+<strong>/apps/sites/helloworld</strong>, and in this we create the folders
+<strong>/pres/templates</strong>. Because the APF supports 3 layer applications (presentation,
+business and data) the <strong>pres</strong> means the presentation layer, in which the
+<strong>.html</strong> templates are stored in <strong>/templates</strong>. We only need one
+template for this example:
+<gen:highlight type="code">helloworld.html</gen:highlight>
+We just write
+<gen:highlight type="code">Hello World!</gen:highlight>
+in it.
+<br />
+Now we edit the before created index.php. It will contain the following: (Description follows below):
+<gen:highlight type="php">
+// include page controller (for the under 4.1 configured folder)
+include_once('../../../APF/apps/core/pagecontroller/pagecontroller.php');
+
+// include page controller (for the under 4.2 configured folder)
+//include_once('../../apps/core/pagecontroller/pagecontroller.php');
+
+// include and configure the front controller
+import('core::frontcontroller', 'Frontcontroller');
+$fC = &Singleton::getInstance('Frontcontroller');
+
+// start request processing and send result to the client
+echo $fC->start('sites::helloworld::pres::templates', 'helloworld');
+</gen:highlight>
+
+<!-- Text überarbeiten! -->
+<p>
+   At first we include the front controller. Here you need to choose the right variation
+   for the step you followed before. Then we create the front controller instance. Thereafter, the
+   the template we have created is passed as root template and the front controller is started. The
+   first parameter is the namespace, the second one is the path to the template with the name of the
+   template file. File names are always provides without extensions in the APF, because the framework
+   convention tells how they have to be called (*.html for templates, *.ini for configuration files,
+   *.php for PHP-files). At last the transform page is displayed by an <em>echo</em>.
+</p>
+<p>
+   The exact function of the front controller can be read about on the <int:link pageid="012"/> page.
+</p>
+<p>
+   To see the result we visit
+</p>
+<gen:highlight type="code">http://localhost/APF/sites/helloworld/index.php</gen:highlight>
+There should be displayed <em>Hello World!</em> now.
+
+<h3 id="Chapter-6-Summary"><a href="#Chapter-6-Summary">6. Summary</a></h3>
+<p>
+   Now the base functionality of the APF should be clear. In order to get to know the many other
+   functions, you should read some more tutorials. I suggest the <int:link pageid="048" /> tutorial as a next step.
+</p>
+<div class="foreignAuthor">
+   <img src="http://media.adventure-php-framework.org/content/ralf_schubert_screeze.gif" alt="Ralf Schubert thinks the APF is brilliant!">
+   <p><em>This article was exclusively written for adventure-php-framework.org.</em></p>
+   <p class="author"><strong>About the author:</strong></p>
+   <p>
+      <strong>Ralf Schubert</strong>, an enthusiastic APF developer likes the framework giving the chance
+      to easily develop reusable gui elements (aka. widgets). This is one of the reasons, why he had
+      chosen the APF to be his application development framework of choice.
+   </p>
+   <p>
+      To support beginners, he wrote this article to give a brief introduction into the framework and to
+      ease the first steps using the APF.
+   </p>
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_111" />

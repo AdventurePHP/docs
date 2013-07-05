@@ -155,72 +155,62 @@ Require all denied
    </li>
 </ul>
 <p>
-   Legen Sie nun die Datei <em>/xampp/htdocs/index.php</em> an. Wir werden nun eine einfache "Hallo Welt"-Applikation
-   schreiben, um die Funktionalität des APF zu erklären.
+   Legen Sie nun die Datei <em>/xampp/htdocs/index.php</em> an. Wir werden nun eine einfache
+   &quot;Hallo Welt&quot;-Applikation schreiben, um die Funktionalität des APF zu erklären.
 </p>
 <div class="hint">
    Im Folgenden wird der Begriff <em>Namespace</em> statt der Bezeichung <em>Ordner</em> verwendet.
    Das hat folgenden Hintergrund: der Namespace ist eine relative Adressierung ausgehend vom
-   <strong>/APF</strong>-Ordner. Bei Namespaces müssen alle "/" im Ordner-Pfad durch "\"
+   <strong>/APF</strong>-Ordner. Bei Namespaces müssen alle &quot;/&quot;" im Ordner-Pfad durch &quot;\&quot;
    ersetzt werden.
 </div>
 <p>
-   Es muss nun der Namespace für das Template erstellt werden. Hierzu legen wir die Ordner
-   <strong>/apps/sites/helloworld</strong> an. Darin werden die Ordner <strong>/pres/templates</strong>
-   angelegt. Da das APF auf einem 3 Schichten Modell aufbaut (Präsentation, Verwaltung und Daten),
-   steht das <strong>pres</strong> hier für die Präsentationssschicht, in der unter dem Ordner
-   <strong>/templates</strong> die <strong>.html</strong> Templates gespeichert werden. Wir
-   benötigen für dieses Beispiel nur ein einziges Template:
-</p>
-<gen:highlight type="apf-xml">helloworld.html</gen:highlight>
+   Zur Generierung der Anzeige legen wir nun ein Template mit dem Namen <em>helloworld.html</em> im Ordner
+   <em>/APF/helloworld</em> an und füllen dieses mit dem Inhalt:
+<gen:highlight type="apf-xml">Hallo Welt!</gen:highlight>
 <p>
-   In dieses Template schreiben wir jetzt einfach folgenden Inhalt:
-</p>
-<gen:highlight type="apf-xml">Hallo Welt! Hello World!</gen:highlight>
-<p>
-   Jetzt editieren wir die zuvor angelegte index.php. Sie bekommt folgenden Inhalt (Erklärung folgt darunter):
+   Zur Generierung der Ausgabe erweitern Sie bitte die zuvor angelegte <em>index.php</em> mit folgenden Inhalt (Erklärung
+   folgt darunter):
 </p>
 <gen:highlight type="php">
-// Page-Controller einbinden (für den unter 4.1 konfigurierten Ordner)
-include_once('../../../APF/apps/core/pagecontroller/pagecontroller.php');
+// Bootstrap-Datei für den unter 4.1 konfigurierten Ordner einbinden
+include('../APF/core/bootstrap.php');
 
-// Page-Controller einbinden (für den unter 4.2 konfigurierten Ordner)
-//include_once('../../apps/core/pagecontroller/pagecontroller.php');
+// Bootstrap-Datei für den unter 4.2 konfigurierten Ordner einbinden
+include('./APF/core/bootstrap.php');
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
 
 // Front-Controller erzeugen und konfigurieren
-import('core::frontcontroller', 'Frontcontroller');
-$fC = &Singleton::getInstance('Frontcontroller');
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
 
 // Request-Abarbeitung starten und Ergebnis zum Client senden
-echo $fC->start('sites::helloworld::pres::templates', 'helloworld');
+echo $fC->start('APF\helloworld', 'helloworld');
 </gen:highlight>
 <p>
-   Zuerst wird der Page- und Front-Controller eingebunden. Hier muss die Variante gewählt werden,
-   die bei der Installation verfolgt wurde. Als nächstes wird der Front-Controller erzeugt. Daraufhin
-   wird das Template welches wir eben erstellt haben als Start-Template übergeben und der Front-Controller
-   gestartet. Der erste Parameter ist dabei der Namespace, der zweite Parameter dann der Pfad zum
-   Template, und der Name der Templatedatei. Namen werden im APF immer ohne die Dateiendung angegeben,
-   da die Konvention des Frameworks schon sagt, wie diese lauten müssen (*.html für Templates,
-   *.ini für Konfigurationsdateien, *.php für PHP-Dateien). Zuletzt per <em>echo</em> die erzeugte
-   Seite ausgegeben.
+   Zuerst wird die Datei <em>bootstrap.php</em> eingebunden, die die Basis-Konfiguration des Frameworks vornimmt.
+   Anschließend wird der Front-Controller erzeugt und mit dem initialen Template gestartet. Der erste Parameter
+   der <em>start()</em>-Methode ist dabei der Namespace (=der Pfad zum Template) und der zweite Parameter benennt die
+   Templatedatei. Template-Namen werden im APF immer ohne die Dateiendung angegeben, da die Endung <em>*.html</em> per
+   Konvention amgehangen wird. Zuletzt wird noch per <em>echo</em> die erzeugte Seite ausgegeben.
 </p>
 <p>
-   Die genaue Funktionsweise des Front-Controller kann unter <int:link pageid="012" /> nachgelesen
-   werden.
+   Die genaue Funktionsweise des Front-Controller kann unter <int:link pageid="012" /> nachgelesen werden.
 </p>
 <p>
-   Um das Ergebnis zu betrachten rufen wir
+   Um das Ergebnis zu betrachten rufen wir die URL
 </p>
-<gen:highlight type="code">http://localhost/APF/sites/helloworld/index.php</gen:highlight>
+<gen:highlight type="code">http://localhost/index.php</gen:highlight>
 <p>
-   auf. Dort sollte nun <em>Hallo Welt! Hello World!</em> erscheinen.
+   auf. Dort sollte nun <em>Hallo Welt!</em> erscheinen.
 </p>
 
 <h3 id="Chapter-6-Fazit"><a href="#Chapter-6-Fazit">6. Fazit</a></h3>
 <p>
    Jetzt sollte die grundlegende Funktionalität des APF bekannt sein. Um die vielen anderen
    Funktionen kennenzulernen, empfiehlt es sich noch ein paar weitere Tutorials zu lesen. Als
-   nächstes Tutorial schlage ich das <int:link pageid="048" /> vor.
+   nächstes Tutorial schlagen wir <int:link pageid="048" /> vor.
 </p>
 <div class="foreignAuthor">
    <img src="http://media.adventure-php-framework.org/content/ralf_schubert_screeze.gif" alt="Ralf Schubert findet das APF genial!"/>
