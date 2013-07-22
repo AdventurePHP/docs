@@ -1,0 +1,202 @@
+<doku:title parent="119" tags="singleton,sessionsingleton,applicationsingleton" title="Erzeugung von Objekten" urlname="Erzeugung-von-Objekten">
+   Das Adventure PHP Framework implementiert drei spezielle Formen des Singleton-Entwurfsmusters:
+   eine abstrakte Singleton-Klasse und eine abstrakte Session-Singleton-Klasse und eine
+   Applikations-Singleton-Implementierung um Instanzen innerhalb einer Anwendung zu verwalten.
+</doku:title>
+<p>
+   Das Singleton-Pattern ist ein in der Entwicklung weit verbreitetes Pattern. Es gehört zur
+   Gruppe der Erzeuger-Pattern und wird vielfach deshalb eingesetzt um Informationen oder Funktionen
+   von definierten Objekten innerhalb eines definierten Gültigkeitsbereichs zur Verfügung zu haben.
+</p>
+<p>
+   Das APF implementiert drei Formen des Patterns für unterschiedliche Gültigkeitsbereiche:
+</p>
+<ul>
+   <li>
+      <strong>Singleton</strong>: Mit Hilfe dieser Implementierung lassen sich Objekte erzeugen, die innerhalb einer
+      Anfrage eindeutig und einmalig sind. Mit jedem weiteren Request verlieren sie ihre Gültigkeit und die Klasse wird
+      neu erzeugt.
+   </li>
+   <li>
+      <strong>SessionSingleton</strong>: Über diese Klasse lassen sich Objekte erzeugen, die innerhalb eines Besuchs
+      (Session) gültig sind. Sobald die Session abgelaufen ist, verlieren sie ihre Gültigkeit und werden neu erzeugt.
+   </li>
+   <li>
+      <strong>ApplicationSingleton</strong>: Nutzen Sie innerhalb einer Anwendung Komponenten, die über mehrere Anfragen
+      und Besuche hinweg nutzbar sind, so können Sie diese Implementierung zur Erzeugung Ihrer Objekte nutzen. Der
+      Status wird so lange aufrecht erhalten, bis der Web-Server neu gestartet wird.
+   </li>
+</ul>
+<div class="hint">
+   Bitte beachten Sie, dass die angegebenen Gültigkeitsbereiche nur dann erreicht bzw. eingehalten werden, wenn Sie
+   die Klassen mit den oben genannten Implementierungen oder dem <int:link pageid="107">ServiceManager</int:link> oder
+   dem <int:link pageid="107">DIServiceManager</int:link> erzeugen.
+</div>
+<div class="warn">
+   Die Nutzung der <em>ApplicationSingleton</em>-Implementierung setzt die PHP-Erweiterung <em>APC</em> voraus.
+</div>
+<div class="warn">
+   Bitte beachten Sie beim Einsatz von <em>SessionSingleton</em> und <em>ApplicationSingleton</em> die
+   Serialisierungs-Mechanismen von PHP. Dies bedeutet beispielsweise, dass Resourcen (File-Pointer, Datenbank-Verbindungen)
+   nicht searialisiert werden können und ggf. nach dem Wiederherstellen in einem weiteren Request neu initialisiert
+   werden müssen.
+</div>
+<p>
+   Die oben aufgeführten Gültigkeitsbereiche lassen sich beim Entwurf einer Anwendung dazu einsetzen, gemeinsam genutzte
+   Elemente (z.B. Business-Services, Anbindungen an Datenquellen oder externe Systeme) für unterschiedliche Teile der
+   Software zu konfigurieren und zur Verfügung zu stellen. Dies trägt nicht nur zu einer besseren Performance bei, sondern
+   ermöglicht auch die gemeinsame und für die Applikationsteile gekapselte Konfiguration und Initialisierung.
+</p>
+<p>
+   Das Adventure PHP Framework implementiert dabei das <em>abstrakte Singleton Pattern</em> und stellt zur Erzeugung die
+   zuvor genannten Implementierungen bereit. Damit lassen sich im Gegensatz zum <em>einfachen Singleton Pattern</em>
+   können beliebige Klassen in den verfügbaren Arten erzeugen, es bleibt jedoch gleichzeitig die Testbarkeit vollständig
+   erhalten.
+</p>
+<p>
+   Die folgenden Kapitel zeigen Ihnen die Details zu den einzelnen Implementierungen auf und geben Beispiele und Hinweise
+   für die Verwendung.
+</p>
+
+<h3 id="Chapter-1-Singleton"><a href="#Chapter-1-Singleton">1. Singleton</a></h3>
+<p>
+   Beabsichtigen Sie innerhalb einer HTTP-Anfrage eine eindeutige und einmalige Instanz einer Klasse zu nutzen, können
+   Sie diese an allen benötigten Stellen via
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use VENDOR\..\FooModel;
+
+$model = Singleton::getInstance('VENDOR\..\FooModel');
+</gen:highlight>
+<p>
+   erzeugen und anschließend verwenden. Sollte die Instanz innerhalb der Anfrage noch nicht erzeugt worden sein, wird
+   diese im Hintergrund angelegt und zurückgegeben. Sofern das Objekt bereits angefragt wurde, erhalten sie die bereits
+   erzeugte Instanz.
+</p>
+<p>
+   Die Methode <em>getInstance()</em> erlaubt neben der Angabe der zu erzeugenden Klasse die Übergabe einer
+   Instanz-Identifikation. Diese kann genutzt werden, wenn Sie innerhalb einer Applikation mehrere, gemeinsam genutzte
+   Instanzen einer Klasse parallel zueinander nutzen möchten. Dies ist beispielsweise dann gegeben, wenn Sie Verbindungen
+   zu mehreren Datenbanken über eine einzige Verbindungs-Implementierung tätigen wollen.
+</p>
+<p>
+   Die Anwendung gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use APF\core\database\MySQLiHandler;
+
+$connectionOne = Singleton::getInstance('APF\core\database\MySQLiHandler', 'ConnOne');
+
+$connectionTwo = Singleton::getInstance('APF\core\database\MySQLiHandler', 'ConnTwo');
+</gen:highlight>
+<p>
+   Die beiden Variablen <em>$connectionOne</em> und <em>$connectionTwo</em> beinhalten nun je eine Instanz der Klasse
+   <em>APF\core\database\MySQLiHandler</em>, jedoch mit unterschiedlicher Instanz-Konfiguration (z.B. andere Datenbank).
+</p>
+<div class="warn">
+   Bitte beachten Sie, dass beim Bezug der jeweiligen Instanz (z.B. <em>ConnOne</em>) der zweite Parameter beim Aufruf
+   der Methode <em>getInstance()</em> immer mitgegeben werden muss. Andernfalls erhalten Sie eine neue Instanz der
+   Klasse.
+</div>
+
+<h3 id="Chapter-2-SessionSingleton"><a href="#Chapter-2-SessionSingleton">2. SessionSingleton</a></h3>
+<p>
+   Möchten Sie Informationen innerhalb eines Besuchs - als innerhalb einer HTTP-Session - Request-übergreifend speichern
+   und nutzen, bietet sich die Erzeugung eines Daten-Behälters als <em>SessionSingleton</em>-Instanz an. Um beispielweise
+   eine Instanz eines Models für einen mehrseitigen Workflow zu erzeugen, können Sie dieses an allen benötigten Stellen
+   via
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\SessionSingleton;
+use VENDOR\..\FooModel;
+
+$model = SessionSingleton::getInstance('VENDOR\..\FooModel');
+</gen:highlight>
+<p>
+   erzeugen und anschließend verwenden. Sollte die Instanz innerhalb der Session noch nicht erzeugt worden sein, wird
+   diese im Hintergrund angelegt und zurückgegeben. Sofern das Objekt bereits angefragt wurde, erhalten sie die bereits
+   erzeugte Instanz. Damit lassen sich die Angaben eines Benutzers auf einem mehrseitigen Formular bequem speichern und
+   am Ende des Workflows verarbeiten.
+</p>
+<p>
+   Die Methode <em>getInstance()</em> erlaubt neben der Angabe der zu erzeugenden Klasse die Übergabe einer
+   Instanz-Identifikation. Diese kann genutzt werden, wenn Sie innerhalb einer Applikation mehrere, gemeinsam genutzte
+   Instanzen einer Klasse parallel zueinander nutzen möchten. Dies ist beispielsweise dann gegeben, wenn Sie mehrere
+   Workflows mit der gleichen Code-Basis innerhalb einer Anwendung nutzen können wollen.
+</p>
+<p>
+   Die Anwendung gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use VENDOR\..\FooModel;
+
+$modelOne = SessionSingleton::getInstance('VENDOR\..\FooModel', 'WorkflowOne');
+
+$modelTwo = SessionSingleton::getInstance('VENDOR\..\FooModel', 'WorkflowTwo');
+</gen:highlight>
+
+<h3 id="Chapter-3-ApplicationSingleton"><a href="#Chapter-3-ApplicationSingleton">3. ApplicationSingleton</a></h3>
+<p>
+   Möchten Sie Informationen für alle Besucher und einmalig innnerhalb einer Applikation Request-übergreifend nutzen,
+   so bietet sich die Erzeugung des Daten-Behälters als <em>ApplicationSingleton</em>-Instanz an. Diese Erzeugungsmethode
+   ist beispielsweise dann interessant, wenn das Objekt aufwändig initialisiert werden muss, die Verwendung jedoch für
+   alle Besucher und alle damit verbundenen Anfragen genutzt werden kann (z.B. Verbindung zu einer externen Schnittstelle
+   wie einem Wetter-Dienst).
+</p>
+<p>
+   Um eine Instanz eines Services, der innerhalb einer kompletten Anwendung genutzt werden kann, zu erzeugen, ist
+   folgender Code notwendig:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\ApplicationSingleton;
+use VENDOR\..\WeatherService;
+
+$service = ApplicationSingleton::getInstance('VENDOR\..\WeatherService');
+</gen:highlight>
+<p>
+   Sollte die Instanz innerhalb der Applikation noch nicht erzeugt worden sein, wird diese im Hintergrund angelegt und
+   zurückgegeben. Sofern das Objekt bereits angefragt wurde, erhalten sie die bereits erzeugte Instanz.
+</p>
+<p>
+   Die Methode <em>getInstance()</em> erlaubt neben der Angabe der zu erzeugenden Klasse die Übergabe einer
+   Instanz-Identifikation. Diese kann genutzt werden, wenn Sie innerhalb einer Applikation mehrere, gemeinsam genutzte
+   Instanzen einer Klasse parallel zueinander nutzen möchten. Dies ist beispielsweise dann gegeben, wenn Sie mehrere
+   Verbindungen zu unterschiedlichen Wetter-Diensten über dieselbe Service-Implementierung realisieren möchten.
+</p>
+<p>
+   Die Anwendung gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\ApplicationSingleton;
+use VENDOR\..\WeatherService;
+
+$serviceOne = ApplicationSingleton::getInstance('VENDOR\..\WeatherService', 'ServiceOne');
+
+$serviceTwo = ApplicationSingleton::getInstance('VENDOR\..\WeatherService', 'ServiceTwo');
+</gen:highlight>
+
+<h3 id="Chapter-4-Weiterfuehrende-Kapitel"><a href="#Chapter-4-Weiterfuehrende-Kapitel">4. Weiterführende Kapitel</a></h3>
+<p>
+   Basierend auf den in <a href="#Chapter-1-Singleton">Kapitel 1</a> (<em>Singleton</em>),
+   <a href="#Chapter-2-SessionSingleton">Kapitel 2</a> (<em>SessionSingleton</em>) und
+   <a href="#Chapter-3-ApplicationSingleton">Kapitel 3</a> (<em>ApplicationSingleton</em>) beschriebenen Erzeugungs-Methoden
+   bietet das APF weitere Hilfsmittel zur Erzeugung, Konfiguration und Verwaltung von Objekt-Instanzen an.
+</p>
+<p>
+   Der <int:link pageid="107">ServiceManager</int:link> bietet eine Abstraktion der genannten Methoden an und hilft
+   Ihnen bei der Konfiguration der erzeugten Objekte.
+</p>
+<p>
+   Der <int:link pageid="107">DIServiceManager</int:link> ist ein <em>Dependency-Injection-Container</em>, der Ihnen
+   hilft, Code und Konfiguration zu trennen, sowie durch Entkopplung der Komponenten Ihrer Anwendung die einfache
+   Austauschbarkeit von Komponenten und deren Testbarkeit sicherzustellen.
+</p>
+<div class="hint">
+   Bei der Erstellung von komplexen Anwendungen wird empfohlen, vorrangig den <em>DIServiceManager</em> zur Erzeugung
+   einzusetzen, da die oben aufgeführten Erzeugungs-Mechanismen keine Konfiguration der erzeugten Klassen anbieten.
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_030" />

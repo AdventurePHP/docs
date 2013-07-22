@@ -1,0 +1,191 @@
+<doku:title parent="119" tags="singleton,sessionsingleton,applicationsingleton" title="Creation of objects" urlname="Creation-of-objects">
+   The Adventure PHP Framework implements three special styles of the singleton pattern:
+   an abstract singleton class, a session singleton class and an application singleton mechanism to manage instances
+   within your application.
+</doku:title>
+<p>
+   The singleton pattern is one of the well-known software design patterns. It belongs to the group of creation patterns
+   and is often used to provide data or functionality of dedicated objects within a well-defined area of validity.
+</p>
+<p>
+   The APF implements three styles of the pattern for different areas of validity:
+</p>
+<ul>
+   <li>
+      <strong>Singleton</strong>: This implementation allows to create objects that are unique within one request. Within
+      subsequent requests the instances loose their validity and are thus created again.
+   </li>
+   <li>
+      <strong>SessionSingleton</strong>: This class allows you to create objects that are unique within one session.
+      In case the session ends objects created within this context will loos their validity and thus will be created
+      again.
+   </li>
+   <li>
+      <strong>ApplicationSingleton</strong>: In case you intend to use components throughout several requests and sessions
+      you may want to use this implementation. The status of the instance is maintained as long as the web server is
+      running.
+   </li>
+</ul>
+<div class="hint">
+   Please note that the areas of validity are only reached in case you retrieve the object instances with the classes
+   listed above in any case or using the <int:link pageid="107">ServiceManager</int:link> or the
+   <int:link pageid="107">DIServiceManager</int:link>.
+</div>
+<div class="warn">
+   Using the <em>ApplicationSingleton</em> implementation requires PHP extension <em>APC</em>.
+</div>
+<div class="warn">
+   Please be aware to deal with PHP's serialization features using <em>SessionSingleton</em> and <em>ApplicationSingleton</em>.
+   This means that resources (e.g. file pointers, database connections) cannot be serialized and thus need to be re-created
+   within subsequent requests.
+</div>
+<p>
+   The areas of validity listed above can be used to design applications that contain shared elements (e.g. business
+   services, database connections or connections to external systems) that can be configured and used within various
+   components. This does not only lead to better performance but also allows encapsulation of configuration and
+   initialization of certain application parts.
+</p>
+<p>
+   The Adventure PHP Framework implements the <em>abstract singleton pattern</em> and provides different implementations.
+   In contrast to the <em>simple singleton pattern</em> you can create various classes using the available styles but
+   in parallel ensure testability.
+</p>
+<p>
+   The following chapters describe the implementation flavours in depth and contain examples and hints on using them.
+</p>
+
+<h3 id="Chapter-1-Singleton"><a href="#Chapter-1-Singleton">1. Singleton</a></h3>
+<p>
+   In order to create a unique instance of a class valid within one HTTP request you may want to use the
+   following code:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use VENDOR\..\FooModel;
+
+$model = Singleton::getInstance('VENDOR\..\FooModel');
+</gen:highlight>
+<p>
+   In case the instance has not yet been created within the current request it is created for you in the background and
+   returned for further usage. In case the instance has already been created you will receive this instance.
+</p>
+<p>
+   The <em>getInstance()</em> allows to apply an instance identification besides the class to create. This parameter can
+   be used in case more than one instance is used within one application in parallel. You can use this facility in case
+   of multiple database connections based on the same connection implementation.
+</p>
+<p>
+   Usage is as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use APF\core\database\MySQLiHandler;
+
+$connectionOne = Singleton::getInstance('APF\core\database\MySQLiHandler', 'ConnOne');
+
+$connectionTwo = Singleton::getInstance('APF\core\database\MySQLiHandler', 'ConnTwo');
+</gen:highlight>
+<p>
+   Both variables <em>$connectionOne</em> and <em>$connectionTwo</em> now contain an instance of the
+   <em>APF\core\database\MySQLiHandler</em> class but with different instance configuration (e.g. different database).
+</p>
+<div class="warn">
+   Please note, that each instance (e.g. <em>ConnOne</em>) must be obtained invoking the second parameter calling
+   <em>getInstance()</em>. Otherwise, a new instance will be created.
+</div>
+
+<h3 id="Chapter-2-SessionSingleton"><a href="#Chapter-2-SessionSingleton">2. SessionSingleton</a></h3>
+<p>
+   In order to create a unique instance of a class valid within one HTTP session and across multiple HTTP requests you
+   may want to create data containers as <em>SessionSingleton</em> instance. To create an instance of a workflow model
+   that is intended to store data from a multi-page workflow you can use the following code:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\SessionSingleton;
+use VENDOR\..\FooModel;
+
+$model = SessionSingleton::getInstance('VENDOR\..\FooModel');
+</gen:highlight>
+<p>
+   In case the the model instance has not been created within the current session it will be created lazily and returned
+   back to the code it is used in. If the object has been requested before you will be returned the previously created
+   instance. This can be used to collect and store user data within a multi-page workflow to be processed at the
+   end of the flow.
+</p>
+<p>
+   The <em>getInstance()</em> allows to apply an instance identification besides the class to create. This parameter can
+   be used in case more than one instance is used within one application in parallel. You can use this facility to allow
+   multiple workflows using the same code base within one application.
+</p>
+<p>
+   Usage is as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use VENDOR\..\FooModel;
+
+$modelOne = SessionSingleton::getInstance('VENDOR\..\FooModel', 'WorkflowOne');
+
+$modelTwo = SessionSingleton::getInstance('VENDOR\..\FooModel', 'WorkflowTwo');
+</gen:highlight>
+
+<h3 id="Chapter-3-ApplicationSingleton"><a href="#Chapter-3-ApplicationSingleton">3. ApplicationSingleton</a></h3>
+<p>
+   To use information for all visitors and only one time within your application - independent from request and
+   session - you may want to create data containers as <em>ApplicationSingleton</em> instance. This creation method
+   is especially interesting in case object initialization is time-consuming but it can be used across all users and
+   hence across all requests. (e.g. connection to external weather forecast service).
+</p>
+<p>
+   In order to create a service that can be used allover your application please use the following code:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\ApplicationSingleton;
+use VENDOR\..\WeatherService;
+
+$service = ApplicationSingleton::getInstance('VENDOR\..\WeatherService');
+</gen:highlight>
+<p>
+   In case the the model instance has not been created within the current session it will be created lazily and returned
+   back to the code it is used in. If the object has been requested before you will be returned the previously created
+   instance.
+</p>
+<p>
+   The <em>getInstance()</em> allows to apply an instance identification besides the class to create. This parameter can
+   be used in case more than one instance is used within one application in parallel. You can use this facility to allow
+   multiple connections to different weather forecast service using the same service implementation.
+</p>
+<p>
+   Usage is as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\ApplicationSingleton;
+use VENDOR\..\WeatherService;
+
+$serviceOne = ApplicationSingleton::getInstance('VENDOR\..\WeatherService', 'ServiceOne');
+
+$serviceTwo = ApplicationSingleton::getInstance('VENDOR\..\WeatherService', 'ServiceTwo');
+</gen:highlight>
+
+<h3 id="Chapter-4-Further-reading"><a href="#Chapter-4-Further-reading">4. Further reading</a></h3>
+<p>
+   Based on the creation methods described in <a href="#Chapter-1-Singleton">chapter 1</a> (<em>Singleton</em>),
+   <a href="#Chapter-2-SessionSingleton">chapter  2</a> (<em>SessionSingleton</em>) und
+   <a href="#Chapter-3-ApplicationSingleton">chapter  3</a> (<em>ApplicationSingleton</em>) the APF offers further tools
+   to create, configure and maintain object instances.
+</p>
+<p>
+   The <int:link pageid="107">ServiceManager</int:link> offers an abstraction of the above-listed methods and helps to
+   configure the created objects.
+</p>
+<p>
+   The <int:link pageid="107">DIServiceManager</int:link> is an <em>dependency injection container</em> that helps to
+   separate code and configuration as well as to decouple components within your application to ensure exchangeability
+   and testability.
+</p>
+<div class="hint">
+   Creating complex applications it is recommended to to use the <em>DIServiceManager</em> to create instances since the
+   above-listed mechanisms do not provide configuration facilities.
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_030" />
