@@ -195,5 +195,40 @@ class MainController extends BaseDocumentController {
 }
 </gen:highlight>
 </div>
+<p>
+   In order to simplify display of lists you may want to directly fill place holders. Fur this reason, you can combine
+   two features: the third parameter of the <em>setPlaceHolder()</em> method allows to append content to a place holder
+   and the <em>TemplateTag</em> supports direct output generation implementing the <em>__toString()</em>-Method which
+   internally transforms the template.
+</p>
+<p>
+   The controller implementation can be rewritten as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class ListController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $row = $this->getTemplate('table-row');
+
+      foreach ($this->getItems() as $item) {
+         $row->setPlaceHolder('question', $item->getQuestion());
+         $row->setPlaceHolder('answer', $item->getAnswer());
+         $this->setPlaceHolder('table-rows', $row, true);
+      }
+
+   }
+
+   /**
+    * @return FaqEntry[]
+    */
+   private function getItems() {
+      ...
+   }
+
+}
+</gen:highlight>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_047" />

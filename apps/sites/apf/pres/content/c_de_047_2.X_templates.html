@@ -203,5 +203,40 @@ class MainController extends BaseDocumentController {
 }
 </gen:highlight>
 </div>
+<p>
+   Um die Ausgabe von Listen zu vereinfachen, können Sie Platzhalter auch direkt befüllen. Hierzu lassen sich zwei
+   Funktionalitäten kombinieren: mit dem dritten Parameter der Methode <em>setPlaceHolder()</em> kann weiterer
+   Inhalt zu einem Platzhalter hinzugefügt werden und das <em>TemplateTag</em> untertützt die direkte Ausgabe, da es
+   innerhalb der <em>__toString()</em>-Methode das Template automatisch transformiert.
+</p>
+<p>
+   Die Implementierung des Controllers kann damit wie folgt vereinfacht werden:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class ListController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $row = $this->getTemplate('table-row');
+
+      foreach ($this->getItems() as $item) {
+         $row->setPlaceHolder('question', $item->getQuestion());
+         $row->setPlaceHolder('answer', $item->getAnswer());
+         $this->setPlaceHolder('table-rows', $row, true);
+      }
+
+   }
+
+   /**
+    * @return FaqEntry[]
+    */
+   private function getItems() {
+      ...
+   }
+
+}
+</gen:highlight>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_047" />
