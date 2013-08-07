@@ -3,6 +3,108 @@
   particular, it details the dependency injection container added in release 1.10. The
   DIServiceManager enables the developer to use objects pre-configured by dependency injection.
 </doku:title>
+<h3 id="Chapter-3-ServiceManager-usage"><a href="#Chapter-3-ServiceManager-usage">3. Usage of the ServiceManager</a></h3>
+<p>
+   As already mentioned above, every class, that inherits from <strong>APFObject</strong> features
+   wrapper methods for creating singleton and of version 1.5.1 creating session singleton service
+   layers. You are provided two different possibilities: simple service objects and pre-initialized
+   objects. Generally, standard singleton objects meet the needs of the application. In more complex
+   applications the service layers often need to be initialized prior to use.
+</p>
+<p>
+   Since version 1.5.1 both methods are provided with another optional argument, that indicates the
+   way, the service object is created.
+</p>
+<p>
+   A &quot;service object&quot; or &quot;service layer&quot; commonly is an instance of any kind of class, that provides
+   a kind of service to another software layer. Here, software layer is a notion, that is described by
+   the <strong>three tier architecture</strong> pattern. In case of a business layer communicating
+   with the data layer, the latter is called a &quot;service layer&quot; for the business layer.
+</p>
+
+<h4 id="Chapter-3-1-getServiceObject"><a href="#Chapter-3-1-getServiceObject">3.1. getServiceObject()</a></h4>
+<p>
+   Merely, the following code part can be used to create service objects:
+</p>
+<gen:highlight type="php">
+$service = &$this->getServiceObject('service::layer::namespace', 'ServiceLayerClassName'[, '{MODE}']);
+</gen:highlight>
+<p>
+   <em>{MODE}</em> can be filled with on of the values presented in the list below:
+</p>
+<ul>
+  <li>
+     <strong>NORMAL</strong>: class will be created and configured "normally"
+  </li>
+  <li>
+     <strong>SINGLETON</strong>: class will be created and configured "singleton"
+  </li>
+  <li>
+     <strong>SESSIONSINGLETON</strong>: class will be created and configured "session singleton"
+  </li>
+</ul>
+<p>
+   In case <em>{MODE}</em> is not applied, the service object is created in <em>SINGLETON</em> mode.
+</p>
+
+<h4 id="Chapter-3-2-getAndInitServiceObject"><a href="#Chapter-3-2-getAndInitServiceObject">3.2. getAndInitServiceObject()</a></h4>
+<p>
+   In order to create an instance using the <strong>getAndInitServiceObject()</strong> method, the
+   desired class must inherit from <strong>APFObject</strong> and implement the abstract
+   <strong>init()</strong> function. The <strong>init()</strong> method is designed to initialize the
+   class using the initialization parameter taken as an argument of <strong>init()</strong>. The
+   parameter can be any kind of data type. Usually strings or arrays are used. If you intend to create
+   an instance of the class
+</p>
+<gen:highlight type="php">
+class MyServiceLayer extends APFObject {
+
+   private $mySpecialParam = null;
+
+   public function init($initParam){
+      $this->mySpecialParam = $initParam;
+   }
+
+}
+</gen:highlight>
+<p>
+   using the method <em>getAndInitServiceObject()</em>, the following lines must be placed
+   in you application's code:
+</p>
+<gen:highlight type="php">
+$service = &$this->getAndInitServiceObject('service::layer::namespace','MyServiceLayer','InitParamValue','{MODE}');
+</gen:highlight>
+<p>
+   <strong>InitParamValue</strong> is to be replaced with the configuration value of your choice.
+   <strong>{MODE}</strong> must be filled with on of the values presented in the list below:
+</p>
+<ul>
+  <li><strong>NORMAL</strong>: Class will be created and configured "normally"</li>
+  <li><strong>SINGLETON</strong>: Class will be created and configured "singleton"</li>
+  <li><strong>SESSIONSINGLETON</strong>: Class will be created and configured "session singleton"</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
 <p>
    Encapsulation of functionality within separate components is common in the object orientated world.
