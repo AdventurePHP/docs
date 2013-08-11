@@ -1056,6 +1056,8 @@ conf.to.value="23:59:59"
    Treiber-Implementierungen - in unserem Fall den <em>MySQLiHandler</em>. Diese gestaltet sich wie folgt:
 </p>
 <gen:highlight type="php">
+namespace ACME\shop\ui\checkout;
+
 use APF\core\database\MySQLiHandler;
 
 class DatabaseConfiguredShipmentDateCalculator implements PreliminaryShipmentDateCalculator {
@@ -1095,168 +1097,96 @@ class DatabaseConfiguredShipmentDateCalculator implements PreliminaryShipmentDat
 <h6 id="Chapter-4-4-4-2-Konfiguration"><a href="#Chapter-4-4-4-2-Konfiguration">4.4.4.2. Konfiguration</a></h6>
 <p>
    Um den Service <em>DatabaseConfiguredShipmentDateCalculator</em> nutzen können ist eine entsprechende Konfiguration
-   notwendig. Diese definiert zum einen den Haupt-Service inkl. Konfiguration als auch den abhängigen Service...
-</p>
-
-<!--
-   4) Konfiguration mit einem weiteren Service
-      - gleicher Namespace
-      - anderer Namespace
-      - anderer Namespace, anderer VENDOR
--->
-
-
-
-
-
-<hr />
-
-<h5 id="Chapter-4-4-6-Eigene-Implementierung-von-APFDIService"><a href="#Chapter-4-4-6-Eigene-Implementierung-von-APFDIService">4.4.6. Eigene Implementierung von APFDIService</a></h5>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<hr />
-<p>
-   Im folgenden Beispiel soll eine Business-Schicht-Komponente mit statischen Konfigurationsparametern,
-   dem zur Applikation gehörenden Daten-Schicht-Service und einem Provider, der sich um die
-   Bereitstellung von Konfigurationsparametern kümmert initialisiert werden. Der Name des Services
-   soll <em>GuestbookService</em> lauten, der Namespace der Komponente ist
-   <em>modules::guestbook</em>. Die Implementierung des Services übernimmt die Klasse
-   <em>GuestbookManager</em> aus dem Namespace <em>modules::guestbook::biz</em>.
+   notwendig. Diese definiert Service selbst und die abhängigen Strukturen (Datenbank-Verbindung über den <em>MySQLiHandler</em>)
+   und dessen Konfiguration.
 </p>
 <p>
-   Um den <em>dependency injection</em>-Container nutzen zu können, muss zunächst eine
-   Konfiguration für den <em>GuestbookService</em> angelegt werden. Die Datei
-</p>
-<gen:highlight type="code">
-/config/modules/guestbook/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
-</gen:highlight>
-<p>angelegt und mit der Definition des Services gefüllt werden:</p>
-<gen:highlight type="ini">
-[GuestbookService]
-class = "GuestbookManager"
-namespace = "modules::guestbook::biz"
-servicetype = "SINGLETON"
-</gen:highlight>
-<p>
-   Für die Datenschicht-Komponente und den Provider muss ebenso eine Konfiguration extistieren.
-   Der Namespace der Datenschicht-Komponente <em>DataService</em> lautet dabei
-   <em>modules::guestbook</em>, der Provider mit dem Namen <em>ExtendedConfigProvider</em>
-   residiert im Namespace <em>modules::guestbook::provider</em>. Da der Namespace der
-   Datenschicht-Komponente mit der ds <em>GuestbookService</em> identisch ist, kann die
-   Konfiguration desselben in der oben erstellten Konfigurationsdatei vorgenommen werden. Der Provider
-   hingegen muss in einer eigenen Konfigurationsdatei definiert werden. Diese lautet:
-</p>
-<gen:highlight type="code">
-/config/modules/guestbook/provider/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
-</gen:highlight>
-<p>
-   Der Inhalt der Datei <em>{ENVIRONMENT}_serviceobjects.ini</em> unter dem Namespace <em>modules::guestbook</em> hat 
-   damit den folgenden Inhalt:
+   Die Definition des Service lautet wie folgt:
 </p>
 <gen:highlight type="ini">
-[GuestbookService]
-namespace = "modules::guestbook::biz"
-class = "GuestbookManager"
-servicetype = "..."
-
-[DataService]
-namespace = "modules::guestbook::biz"
-class = "GuestbookMapper"
-servicetype = "..."
+[shipment-date-calculator]
+class="ACME\shop\order\DatabaseConfiguredShipmentDateCalculator"
+servicetype="SINGLETON"
 </gen:highlight>
 <p>
-   Die Datei <em>{ENVIRONMENT}_serviceobjects.ini</em> aus dem Namespace
-   <em>modules::guestbook::provider</em> beinhaltet die Konfiguration des Konfigurationsservice:
+   Zur Konfiguration der Datenbank-Verbindung - in diesem Fall ebenfalls eine Service-Definition, die später zur
+   Initialisierung eingesetzt wird - kann die folgende Sektion verwendet werden:
 </p>
 <gen:highlight type="ini">
-[ExtendedConfigProvider]
-namespace = "modules::guestbook::biz::provider"
-class = "SpecialConfigProvider"
-servicetype = "..."
+[shipment-database]
+class="APF\core\database\MySQLiHandler"
+servicetype="SINGLETON"
+
+setupmethod = "setup"
+
+conf.host.method = "setHost"
+conf.host.value = "localhost"
+
+conf.name.method = "setDatabaseName"
+conf.name.value = "..."
+
+conf.user.method = "setUser"
+conf.user.value = "root"
+
+conf.pass.method = "setPass"
+conf.pass.value = "..."
+
+conf.charset.method = "setCharset"
+conf.charset.value = "utf8"
+
+conf.collation.method = "setCollation"
+conf.collation.value = "utf8_general_ci"
 </gen:highlight>
 <p>
-   Um dem <em>DIServiceManager</em> mitzuteilen, dass dieser mit den beiden genannten
-   Komponenten und zwei statischen Parametern initialisiert werden soll, muss die Sektion
-   <em>GuestbookService</em> um die Initialisierungsanweisungen erweitert werden. Diese haben
-   die folgende Gestalt:
+   Die Sektion <em>shipment-database</em> definiert zunächst die Service-Implementierung, die in diesem Fall eine
+   mit dem APF mitgelieferte Komponente ist - die Klasse <em>MySQLiHandler</em>. Da diese das
+   <em>DatabaseConnection</em>-Interface implementiert ist es möglich, eine Instanz mit Hilfe des <em>DIServiceManager</em>
+   zu erzeugen.
+</p>
+<p>
+   Nach der Konfiguration mit unterschiedlichen <em>conf.*</em>-Sektionen wird die Instanz mit der in
+   <a href="#Chapter-4-4-3-Nutzung-der-Initialisierungs-Methode">Kapitel 4.4.3.</a> beschriebenen <em>setupmethod</em>
+   initialisiert und ist damit für die Verwendung bereit.
+</p>
+<p>
+   Um die Datenbank-Verbindung im <em>DatabaseConfiguredShipmentDateCalculator</em> nutzen zu können, muss diese noch
+   in den Service injiziert werden. Dies lässt sich mit der folgenden Erweiterung der Konfigurations-Sektion
+   <em>shipment-date-calculator</em> erreichen:
 </p>
 <gen:highlight type="ini">
-init.database.method = "setDBService"
-init.database.name = "modules::guestbook"
-init.database.namespace = "DataService"
+[shipment-date-calculator]
+class="ACME\shop\order\DatabaseConfiguredShipmentDateCalculator"
+servicetype="SINGLETON"
 
-init.exconf.method = "setConfigProvider"
-init.exconf.name = "modules::guestbook::provider"
-init.exconf.namespace = "ExtendedConfigProvider"
-
-conf.appname.method = "setAppId"
-conf.appname.value = "123"
-
-conf.cache.method = "setCacheActive"
-conf.cache.value = "false"
+init.db.method = "setConnection"
+init.db.namespace = "ACME\shop\order"
+init.db.name = "shipment-database"
 </gen:highlight>
+<div class="hint">
+   Das in diesem Kapitel beschriebene Beispiel geht davon aus, dass die beiden Services in einer Konfigurations-Datei
+   definiert sind. Trifft dies für Ihre Applikatin nicht zu, muss der Namespace im Attribut <em>init.db.namespace</em>
+   entsprechend ausgetauscht werden.
+</div>
 <p>
-   Wie dem Kasten zu entnehmen ist, können beliebig viele Initialisierungen definiert werden. Hierzu
-   ist es lediglich notwendig Schlüssel für die Sub-Sektionen zu vergeben.
-</p>
-<p>Die Nutzung des <em>GuestbookService</em> gestaltet sich dann wie folgt:</p>
-<gen:highlight type="php">
-class ServiceConsumer extends APFObject {
-
-   public function doSomething(){
-      $service =
-         &$this->getDIServiceObject(
-            'modules::guestbook',
-            'GuestbookService'
-         );
-      $service->doSomethingElse();
-}
-</gen:highlight>
-<p>Die Implementierung des Services (Klasse: <em>GuestbookManager</em>) hat dabei folgende Gestalt:</p>
-<gen:highlight type="php">
-class GuestbookManager extends APFObject {
-
-   public function setDBService($dbService){
-      $this->dbService = $dbService;
-   }
-
-   public function setConfigProvider($provider){
-      $this->configProvider = $provider;
-   }
-
-   public function setAppId($appId){
-      $this->appId = $appId;
-   }
-
-   public function setCacheActive($cacheActive){
-      $this->cacheActive = $cacheActive;
-   }
-
-   public function doSomethingElse(){
-   }
-
-   ...
-
-}
-</gen:highlight>
-<p>
-   Innerhalb der Methode <em>doSomethingElse()</em> stehen dann alle injizierten Parameter zur Nutzung bereit.
+   Bei der Nutzung des Service <em>shipment-date-calculator</em> steht Ihnen in der Methode <em>getShipmentDate()</em>
+   nun der Zugriff auf eine initialisierte Datenbank-Verbindung zur Verfügung.
 </p>
 <div class="hint">
    Ein weiteres Beispiel findest sich auf der Wiki-Seite
    <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Erzeugen_des_GORM_mit_dem_DIServiceManager" title="Erzeugen des GORM mit dem DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>.
 </div>
+
+<h5 id="Chapter-4-4-5-Implementierung-von-APFDIService"><a href="#Chapter-4-4-5-Implementierung-von-APFDIService">4.4.5. Implementierung von APFDIService</a></h5>
+<p>
+   Möchten Sie das Interface <em>APFDIService</em> selbst implementieren und nicht von <em>APFObject</em> erben, müssen
+   einige Punkete beachtet werden. Diese sind:
+</p>
+<ul>
+   <li>Kontext, Sprache und Service-Typ müssen selbst verwaltet werden.</li>
+   <li>Initialisierung und das markieren des Services müssen selbst erledigt werden.</li>
+</ul>
+
+<!-- here we go ... -->
+
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_107" />
