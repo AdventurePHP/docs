@@ -1,9 +1,9 @@
 <doku:title parent="119" tags="requesthandler" title="RequestHandler" urlname="RequestHandler">
-  The RequestHandler class is intended to easily access the $_REQUEST content.
+  The RequestHandler class is intended to easily access the $_REQUEST, $_GET, or $_POST content.
 </doku:title>
 <p>
    The <em>RequestHandler</em> class is intended to easily access the REQUEST content. Therefore,
-   the component uses the <em>$_REQUEST</em> array.
+   the component uses the <em>$_REQUEST</em>, <em>$_GET</em>, or the <em>$_POST</em> array.
 </p>
 <p>
    The application of the static class looks as follows:
@@ -13,10 +13,14 @@ use APF\tools\request\RequestHandler;
 
 // get a single request value
 $value = RequestHandler::getValue('foo', 'bar');
+$value = RequestHandler::getValue('foo', 'bar', RequestHandler::USE_GET_PARAMS);
+$value = RequestHandler::getValue('foo', 'bar', RequestHandler::USE_POST_PARAMS);
 
 // define a param array with default values
 $params = array('foo' => 'bar', 'baz');
 $values = RequestHandler::getValues($params);
+$values = RequestHandler::getValues($params, RequestHandler::USE_GET_PARAMS);
+$values = RequestHandler::getValues($params, RequestHandler::USE_POST_PARAMS);
 </gen:highlight>
 <p>
    The <em>$value</em> variable does contain the value of the request param <em>foo</em>. If the
@@ -26,5 +30,12 @@ $values = RequestHandler::getValues($params);
    value is set to <em>bar</em>. If the <em>baz</em> param is not found, <em>null</em> is returned
    in that offset. Further details can be taken from the API documentation.
 </p>
+<div class="hint">
+   Nutzen Sie die Konstanten <em>RequestHandler::USE_GET_PARAMS</em>, <em>RequestHandler::USE_POST_PARAMS</em> oder
+   <em>RequestHandler::USE_REQUEST_PARAMS</em> (Standard) um die Quelle der gewünschten Daten zu wählen. Möchten Sie
+   Daten lediglich im Fall einer <em>HTTP-GET</em>- oder <em>HTTP-POST</em>-Anfrage erhalten, so bietet sich die Übergabe
+   des dritten, optionalen Parameters an. In allen anderen Fällen werden die Daten aus dem <em>$_REQUEST</em>-Array
+   ausgelesen.
+</div>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_096" />
