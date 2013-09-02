@@ -666,26 +666,20 @@ class PreliminaryShipmentDateController extends BaseDocumentController {
       <int:link pageid="154" /> which defines <em>/path/to/ACME</em> as base path.
    </li>
    <li>
-      <!-- hier weiter -->
-
-
-
-
-      Als Kontext der Applikation wurde dem <int:link pageid="012" /> der Wert <em>customer-one</em> übergeben.
+      Context of the application passed to the <int:link pageid="012" /> is <em>customer-one</em>.
    </li>
    <li>
-      Die konfigurierte Umgebung, in der die Applikation eingesetzt wird wurde nicht verändert und lautet damit
-      <em>DEFAULT</em>.
+      Environment has been left as is for the current application and is thus <em>DEFAULT</em>.
    </li>
 </ul>
 <p>
-   Unter den genannten Annahmen erwartet der <em>DIServiceManager</em> die Konfigurations-Datei
+   Assuming the above points the <em>DIServiceManager</em> expects the configuration file
 </p>
 <gen:highlight type="code">
 /path/to/ACME/config/shop/order/customer-one/DEFAULT_serviceobjects.ini
 </gen:highlight>
 <p>
-   mit dem Inhalt
+   to be filled withe
 </p>
 <gen:highlight type="ini">
 [shipment-date-calculator]
@@ -693,18 +687,18 @@ class="ACME\shop\order\SimpleShipmentDateCalculator"
 servicetype="SINGLETON"
 </gen:highlight>
 
-<h5 id="Chapter-4-4-2-Initialisierung-eines-einfachen-Services"><a href="#Chapter-4-4-2-Initialisierung-eines-einfachen-Services">4.4.2. Initialisierung eines einfachen Services</a></h5>
+<h5 id="Chapter-4-4-2-Initialization-of-a-simple-service"><a href="#Chapter-4-4-2-Initialization-of-a-simple-service">4.4.2. Initialization of a simple service</a></h5>
 <p>
-   In <a href="#Chapter-4-4-1-Creation-of-a-simple-service">Kapitel 4.4.1</a> wurde der <em>SimpleShipmentDateCalculator</em>
-   statisch konfiguriert, sprich die Anzahl der durchschnittlich notwendigen Liefertage innerhalb des Codes der
-   Klasse definiert. In diesem Kapitel erweitern wir die Definition des Interfaces und die Implementierung des Services
-   so, dass eine konfigurierbare Anzahl von Tagen mitgegeben werden kann.
+   In <a href="#Chapter-4-4-1-Creation-of-a-simple-service">chapter 4.4.1</a> <em>SimpleShipmentDateCalculator</em> has
+   been configured statically. This means, the average shipment days have been configured within the code. Withing this
+   chapter, the definition of the interface and the implementation should be improved to take a configurable amount of
+   days as configuration parameter.
 </p>
 
-<h6 id="Chapter-4-4-2-1-Implementierung"><a href="#Chapter-4-4-2-1-Implementierung">4.4.2.1. Implementierung</a></h6>
+<h6 id="Chapter-4-4-2-1-Implementation"><a href="#Chapter-4-4-2-1-Implementation">4.4.2.1. Implementation</a></h6>
 <p>
-   Das Interface <em>PreliminaryShipmentDateCalculator</em> erhält eine zusätzliche Methode <em>setShipmentPeriod()</em>
-   um den Service konfigurieren zu können:
+   Interface <em>PreliminaryShipmentDateCalculator</em> now contains an additional method <em>setShipmentPeriod()</em>
+   to allow the service to be configured:
 </p>
 <gen:highlight type="php">
 namespace ACME\shop\order;
@@ -723,7 +717,7 @@ interface PreliminaryShipmentDateCalculator {
 }
 </gen:highlight>
 <p>
-   Die Implementierung des Service erweitert sich damit wie folgt:
+   The implementation is thus extended as follows:
 </p>
 <gen:highlight type="php">
 namespace ACME\shop\order;
@@ -746,10 +740,10 @@ class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator 
 }
 </gen:highlight>
 
-<h6 id="Chapter-4-4-2-2-Konfiguration"><a href="#Chapter-4-4-2-2-Konfiguration">4.4.2.2. Konfiguration</a></h6>
+<h6 id="Chapter-4-4-2-2-Configuration"><a href="#Chapter-4-4-2-2-Configuration">4.4.2.2. Configuration</a></h6>
 <p>
-   Basierend auf den Annahmen in <a href="#Chapter-4-4-1-3-Configuration">Kapitel 4.4.1.3</a> kann die Konfigurations-Sektion
-   <em>shipment-date-calculator</em> wie folgt erweitert werden:
+   Based on the assumptions in <a href="#Chapter-4-4-1-3-Configuration">chapter 4.4.1.3</a> the configuration of the
+   <em>shipment-date-calculator</em> section can be enhanced as follows:
 </p>
 <gen:highlight type="ini">
 [shipment-date-calculator]
@@ -760,50 +754,47 @@ conf.shipment-days.method="setShipmentPeriodInDays"
 conf.shipment-days.value="7"
 </gen:highlight>
 <p>
-   Bei der Nutzung des Service wird nun gegenüber <a href="#Chapter-4-4-1-2-Usage">Kapitel 4.4.1.2</a> ein Datum von
-   7 Tagen als Lieferungs-Datum ausgegeben.
+   Using the service the delivery date is 7 days compared to the configuration in
+   <a href="#Chapter-4-4-1-2-Usage">chapter 4.4.1.2</a>.
 </p>
 <div class="hint">
-   Da mit dieser Service-Definition eine saubere Trennung zwischen Code und Konfiguration eingeführt wurde, kann die
-   Lieferzeit jederzeit und für unterschiedliche Applikationen und Umgebungen ohne Änderung von Quellcode angepasst
-   werden.
+   With this change a clear separation of code and configuration has been introduced. This allows to define different
+   shipment days for different applications and different environments without changing the code.
 </div>
 
-<h5 id="Chapter-4-4-3-Nutzung-der-Initialisierungs-Methode"><a href="#Chapter-4-4-3-Nutzung-der-Initialisierungs-Methode">4.4.3. Nutzung der Initialisierungs-Methode</a></h5>
+<h5 id="Chapter-4-4-3-Using-the-initialization-method"><a href="#Chapter-4-4-3-Using-the-initialization-method">4.4.3. Using the initialization method</a></h5>
 <p>
-   Die Konstruktion bzw. die Konfiguration von Objekten und Services ist immer dann eine Herausforderung, wenn interne
-   Zustände oder Ressourcen (z.B. Datenbank-Verbinungen) in Abhängigkeit zu mehreren Konfigurations-Parametern stehen.
-   In diesem Fall ist es erforderlich, zunächst alle Abhängigkeiten aufzulösen, bzw. die benötigten Ressourcen zu
-   injizieren und anschließend den &quot;Betriebs-Zustand&quot; der Instanz herzustellen.
+   Construction or configuration of objects is challenging in case internal states or resources (e.g. database connections)
+   are dependent on one or more configuration parameters. In such cases it is necessary to first resolve all dependencies
+   or resources and after that create &quot;operating state&quot; of the respective instance.
 </p>
 <p>
-   Eine denkbare Lösung ist, die Parameter in einer definierten, gleichbleibenden Reihenfolge in der Konfiguration zu
-   definieren und im <em>Setter</em> des letzten Parameters den gewünschten Objektzustand herzustellen. Dies birgt
-   allerdings die Gefahr, dass bei fehlerhafter Konfiguration oder bei Session-übergreifender Nutzung der Status des
-   Objekts nicht garantiert werden kann.
+   One possible solution is to use the <em>setter</em> methods to inject configuration parameters and to keep order for
+   all object usages while utilizing the last one to create the operating state. This approach is dangerous since with
+   inappropriate use or using the instance across the session the integrity of the internal object state cannot be
+   guaranteed.
 </p>
 <p>
-   Um Fehler bei der Initialisierung zu vermeiden, bietet der <em>DIServiceManager</em> die Ausführung einer
-   Initialisierungs-Methode an. Diese kann innerhalb der Konfiguration eines Service mit dem Attribut <em>setupmethod</em>
-   definiert werden.
+   In order to avoid issues with initialization the <em>DIServiceManager</em> offers execution of an initialization
+   method. It can be defined within the service configuration using the <em>setupmethod</em> attribute.
 </p>
 <div class="hint">
-   Der <em>DIServiceManager</em> ruft die Methode am Ende der Konfiguration eines Objektes durch die in den
-   <em>conf.*</em>- und <em>init.*</em>-Bereichen definierten Abhängigkeiten aus. Damit ist sichergestellt, dass alle
-   notwendigen Informationen zur Initialisierung vorliegen.
+   The <em>DIServiceManager</em> calls the specified method at the end of the configuration process - meaning after
+   injecting all dependencies defined within within the respective <em>conf.*</em> and <em>init.*</em> sections. This
+   ensures that all necessary information is available for finally initializing the instance.
 </div>
 
-<h6 id="Chapter-4-4-3-1-Implementierung"><a href="#Chapter-4-4-3-1-Implementierung">4.4.3.1. Implementierung</a></h6>
+<h6 id="Chapter-4-4-3-1-Implementation"><a href="#Chapter-4-4-3-1-Implementation">4.4.3.1. Implementation</a></h6>
 <p>
-   Im folgenden Beispiel soll der <em>SimpleShipmentDateCalculator</em> aus <a href="#Chapter-4-4-2-Initialisierung-eines-einfachen-Services">Kapitel 4.4.2</a>
-   um die Möglichkeit erweitert werden ein potentielles Liefer-Datum aus einem Basis-Wert und einem Uhrzeit-abhängigen
-   Faktor zu berechnen. Der Faktor soll aus zwei Konfigurations-Parametern berechnet werden und gilt innerhalb der
-   durch die beiden Parameter definierten Uhrzeiten.
+   Within the following example <em>SimpleShipmentDateCalculator</em> from <a href="#Chapter-4-4-2-Initialization-of-a-simple-service">chapter 4.4.2</a>
+   will be extended to calculate the potential shipment date basic value and a time-dependent factor. The factor is
+   calculated by two different configuration parameters and is only valid within the time slot defined by the two
+   parameters.
 </p>
 <p>
-   Die <em>setupmethod</em> dient nun dazu, die Berechnung des Faktors auszuführen, damit dieser bei der Berechnung des
-   Liefer-Datums in der <em>getShipmentDate()</em>-Methode zur Verfügung steht. Hierzu erweitern wir zunächst das
-   Interface <em>PreliminaryShipmentDateCalculator</em>, um die Start- und End-Uhrzeit zu definieren:
+   <em>setupmethod</em> is used to execute calculation of the factor that <em>getShipmentDate()</em> can rely on an
+   existing factor rather than initialize it on-demand calculating the shipment date. For this reason let's first extend
+   the <em>PreliminaryShipmentDateCalculator</em> interface to set the start and end time:
 </p>
 <gen:highlight type="php">
 namespace ACME\shop\order;
@@ -832,7 +823,7 @@ interface PreliminaryShipmentDateCalculator {
 }
 </gen:highlight>
 <p>
-   Die Implementierung des Service erweitert sich damit wie folgt:
+   The implementation of the services can then be extended as follows:
 </p>
 <gen:highlight type="php">
 namespace ACME\shop\order;
@@ -875,8 +866,8 @@ class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator 
 }
 </gen:highlight>
 <p>
-   Die Berechnung des <em>$dynamicFactor</em> soll nun in der Methode <em>initialize()</em> erfolgen. Die Implementierung
-   der Klasse <em>SimpleShipmentDateCalculator</em> erweitert sich damit nochmals wie folgt:
+   Calculation of the <em>$dynamicFactor</em> should now be done within the <em>initialize()</em> method. The
+   implementation of <em>SimpleShipmentDateCalculator</em> is thus extended one more time:
 </p>
 <gen:highlight type="php">
 class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator {
@@ -934,24 +925,24 @@ class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator 
 }
 </gen:highlight>
 <div class="hint">
-   Die Methode <em>initialize()</em> wurde bewusst nicht zum Interface hinzugefügt, da diese aus Sicht des Anwendungs-Codes
-   eine Besonderheit der Implementierung darstellt. Sofern Sie in jedem Fall beabsichtigen, die Instanz über den
-   <em>DIServiceManager</em> zu erzeugen ist es sinnvoll das Interface um die Methode <em>initialize()</em> zu ergänzen.
+   <em>initialize()</em> has not been added to the interface since initialization is considered an implementation
+   specific of the current service. In case initialization as described above is something that is essential for the
+   service for every implementation and you intend to create the instance using the <em>DIServiceManager</em> under all
+   circumstances you may add <em>initialize()</em> the the interface as well.
 </div>
 <div class="warn">
    <p>
-      Die Instanz der Klasse <em>SimpleShipmentDateCalculator </em> wird in der Methode <em>initialize()</em> nicht als
-      initialisiert markiert. Dies führt dazu, dass der <em>DIServiceManager</em> die Methode <em>initialize()</em> bei
-      einer erneuten Anfrage des Objekts nochmals ausführt.
+      The instance of <em>SimpleShipmentDateCalculator</em> is not explicitly marked as initialized within
+      <em>initialize()</em>. This leads to the fact that the <em>DIServiceManager</em> calls <em>initialize()</em> with
+      any new request of this object again.
    </p>
    <p>
-      Ist der Zustand des Objektes nach der Initialisierung über einen längeren Zeitraum (z.B. die gesamte Lebensdauer
-      des Objektes) gültig, kann dieses als initialisiert markiert werden. Der <em>DIServiceManager</em> ruft die
-      <em>setupmethod</em> danach nicht mehr auf. Dies wird insbesonders für aufwendige Initialisierungsvorgänge
-      empfohlen.
+      In case the state of the object after initialization is valid for a longer period of time (e.g. for the entire
+      lifetime of the object) you can mark it as initialized. The <em>DIServiceManager</em> then does not call
+      <em>setupmethod</em> again. This is especially recommended for expensive initialization code.
    </p>
    <p>
-      Die Implementierung der Methode <em>initialize()</em> ändert sich dafür wie folgt:
+      To do so implementation of <em>initialize()</em> has to be changed as follows:
    </p>
 <gen:highlight type="php">
 class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator {
@@ -970,17 +961,17 @@ class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator 
 </gen:highlight>
 </div>
 <p>
-   Nun sind alle Vorarbeiten erledigt um den Service initialisieren zu können. Das folgende Kapitel zeigt Ihnen, wie
-   Sie den Service zur Nutzung konfigurieren.
+   Now, all preparations are done to initialize the service. The next chapter describes how to configure the service
+   for it's usage.
 </p>
 
-<h6 id="Chapter-4-4-3-2-Konfiguration"><a href="#Chapter-4-4-3-2-Konfiguration">4.4.3.2. Konfiguration</a></h6>
+<h6 id="Chapter-4-4-3-2-Configuration"><a href="#Chapter-4-4-3-2-Configuration">4.4.3.2. Configuration</a></h6>
 <p>
-   Die Implementierung des <em>SimpleShipmentDateCalculator</em> wurde im vorangegangenen Kapitel so angepasst, dass
-   dieser mit den relevanten Konfigurations-Parametern ausgestattet und initialisiert werden kann.
+   Within the previous chapter <em>SimpleShipmentDateCalculator</em> has been adapted to take all necessary configuration
+   parameters to allows dynamic initialization.
 </p>
 <p>
-   Um die erweiterte Service-Implementierung nutzen zu können, ist folgende Konfiguration erforderlich:
+   To use the enhanced service implementation the configuration has to be adapted as follows:
 </p>
 <gen:highlight type="ini">
 [shipment-date-calculator]
@@ -999,32 +990,30 @@ conf.to.method="setEndTime"
 conf.to.value="23:59:59"
 </gen:highlight>
 <p>
-   Bei der Nutzung des <em>shipment-date-calculator</em> wird nun zwischen 18Uhr und 0Uhr ein dynamischer Faktor
-   zur Auslieferungsdauer hinzugefügt.
+   Using the <em>shipment-date-calculator</em> service a dynamic factor is added to the delivery date between 6pm and 0pm.
 </p>
 
-<h5 id="Chapter-4-4-4-Initialisierung-eines-komplexen-Service"><a href="#Chapter-4-4-4-Initialisierung-eines-komplexen-Service">4.4.4. Initialisierung eines komplexen Service</a></h5>
+<h5 id="Chapter-4-4-4-Initialisation-of-complex-services"><a href="#Chapter-4-4-4-Initialisation-of-complex-services">4.4.4. Initialisation of complex services</a></h5>
 <p>
-   In diesem Kapitel widmen wir uns der Initialisierung eines Services mit einem anderen. Dies wird immer dann der Fall
-   sein, wenn einfache Datentypen in <em>conf.*</em>-Sektionen für die Repräsentation der Konfigurations-Daten nicht mehr
-   ausreichend sind, oder ein Service einen anderen vollwertigen Service (beispielsweise eine Datenbank-Verbindung) für
-   seine Arbeit benötigt.
+   This chapter is about the initialization of services using other services. You may use this approach in case simple
+   data types used within <em>conf.*</em> sections are no longer sufficient or one service requires another service to
+   for it's work (e.g. database connection).
 </p>
 <p>
-   Zur Initialierung eines Services lassen sich die <em>init.*</em>-Sektionen nutzen. Diese ermöglichen mit Hilfe einer
-   Methode einen definierten Service an einen anderen Service zu übergeben. In diesem Kapitel entwerfen wir den
-   <em>DatabaseConfiguredShipmentDateCalculator</em>, der die Lieferzeiten an Hand einer Datenbank-Tabelle evaluiert.
+   Initializing services can be done with <em>init.*</em> sections. There you can apply a service instance to a dedicated
+   method of the service to initialize. Within this chapter we will create the <em>DatabaseConfiguredShipmentDateCalculator</em>
+   that evaluates the shipment dates using a database table.
 </p>
 
-<h6 id="Chapter-4-4-4-1-Implementierung"><a href="#Chapter-4-4-4-1-Implementierung">4.4.4.1. Implementierung</a></h6>
+<h6 id="Chapter-4-4-4-1-Implementation"><a href="#Chapter-4-4-4-1-Implementation">4.4.4.1. Implementation</a></h6>
 <p>
-   Zur Implementierung des <em>DatabaseConfiguredShipmentDateCalculator</em> nutzen wir die Interface-Definition
-   <em>PreliminaryShipmentDateCalculator</em> aus <a href="#Chapter-4-4-1-1-Implementation">Kapitel 4.4.1.1</a>, die
-   Implementierung der Methode <em>getShipmentDate()</em> vorschreibt.
+   Implementation of the <em>DatabaseConfiguredShipmentDateCalculator</em> is based on the interface definition
+   <em>PreliminaryShipmentDateCalculator</em> described in <a href="#Chapter-4-4-1-1-Implementation">chapter 4.4.1.1</a>
+   that requires the <em>getShipmentDate()</em> method to be implemented.
 </p>
 <p>
-   Für den Aufbau der Datenbank-Verbindung nutzen wir den <int:link pageid="031" /> bzw. die konkreten
-   Treiber-Implementierungen - in unserem Fall den <em>MySQLiHandler</em>. Diese gestaltet sich wie folgt:
+   Connecting to the database the <int:link pageid="031" /> or a dedicated driver implementation respectively is used -
+   in this case the <em>MySQLiHandler</em>. Implementation is as follows:
 </p>
 <gen:highlight type="php">
 namespace ACME\shop\ui\checkout;
@@ -1055,18 +1044,19 @@ class DatabaseConfiguredShipmentDateCalculator implements PreliminaryShipmentDat
 }
 </gen:highlight>
 <p>
-   Ähnlich wie in <a href="#Chapter-4-4-3-Nutzung-der-Initialisierungs-Methode">Kapitel 4.4.3</a> definiert der
-   <em>DatabaseConfiguredShipmentDateCalculator</em> die Methode <em>setDatabaseConnection()</em> mit der die Konfiguration
-   des Services vorgenommen werden kann. In diesem Fall nimmt die Methode keinen skalaren Wert, sondern eine Instanz
-   der Klasse <em>MySQLiHandler</em> entgegen.
+   Similar to <a href="#Chapter-4-4-3-Using-the-initialization-method">chapter 4.4.3</a> the
+   <em>DatabaseConfiguredShipmentDateCalculator</em> defines <em>setDatabaseConnection()</em> to allow configuration of
+   the service. In this case using an instance of <em>MySQLiHandler</em> instead of any scalar value.
 </p>
 <p>
-   Innerhalb der Methode <em>getShipmentDate()</em> wird die Datenbank-Verbindung dann zur Evaluierung des Lieferzeitraums
-   genutzt und erwartet, dass die Datenbank-Verbindung zu diesem Zeitpunkt aufgebaut ist.
+   Within <em>getShipmentDate()</em> the database connection is used to evaluate the shipment date and the method relies
+   on the database connection being present.
 </p>
 
-<h6 id="Chapter-4-4-4-2-Konfiguration"><a href="#Chapter-4-4-4-2-Konfiguration">4.4.4.2. Konfiguration</a></h6>
+<h6 id="Chapter-4-4-4-2-Configuration"><a href="#Chapter-4-4-4-2-Configuration">4.4.4.2. Configuration</a></h6>
 <p>
+   <!-- hier weiter -->
+
    Um den Service <em>DatabaseConfiguredShipmentDateCalculator</em> nutzen können ist eine entsprechende Konfiguration
    notwendig. Diese definiert Service selbst und die abhängigen Strukturen (Datenbank-Verbindung über den <em>MySQLiHandler</em>)
    und dessen Konfiguration.
@@ -1116,7 +1106,7 @@ conf.collation.value = "utf8_general_ci"
 </p>
 <p>
    Nach der Konfiguration mit unterschiedlichen <em>conf.*</em>-Sektionen wird die Instanz mit der in
-   <a href="#Chapter-4-4-3-Nutzung-der-Initialisierungs-Methode">Kapitel 4.4.3.</a> beschriebenen <em>setupmethod</em>
+   <a href="#Chapter-4-4-3-Using-the-initialization-method">Kapitel 4.4.3.</a> beschriebenen <em>setupmethod</em>
    initialisiert und ist damit für die Verwendung bereit.
 </p>
 <p>
@@ -1194,7 +1184,7 @@ init.db.name = "shipment-database"
       <tr>
          <td>
             Die in den Kapiteln <a href="#Chapter-4-4-1-Creation-of-a-simple-service">4.4.1</a> bis
-            <a href="#Chapter-4-4-4-Initialisierung-eines-komplexen-Service">4.4.4</a> beschriebene Art der Nutzung sieht
+            <a href="#Chapter-4-4-4-Initialisation-of-complex-services">4.4.4</a> beschriebene Art der Nutzung sieht
             den direkten Bezug der gewünschten Instanzen vom <em>DIServiceManager</em> vor. Ihnen steht es dabei frei,
             die Convenience-Methode <em>APFObject::getDIserviceObject()</em> zu nutzen oder direkt auf
             <em>DIServieceManager::getServiceObject()</em> zuzugreifen.
@@ -1206,7 +1196,7 @@ init.db.name = "shipment-database"
       <tr>
          <td>
             <p>
-               <a href="#Chapter-4-4-4-Initialisierung-eines-komplexen-Service">Kapitel 4.4.4</a> beschreibt die Initialisierung
+               <a href="#Chapter-4-4-4-Initialisation-of-complex-services">Kapitel 4.4.4</a> beschreibt die Initialisierung
                und Konfiguration von Services mit einfachen Werten und wiederum anderen Services. Der z.B. von einem Controller
                angefragte Service ist bei Bezug bereits fertig konfiguriert und der Anwender muss keine weiteren Code
                investieren (<em>inversion of control</em>).
