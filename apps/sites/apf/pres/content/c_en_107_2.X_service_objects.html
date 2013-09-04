@@ -1056,13 +1056,11 @@ class DatabaseConfiguredShipmentDateCalculator implements PreliminaryShipmentDat
 <h6 id="Chapter-4-4-4-2-Configuration"><a href="#Chapter-4-4-4-2-Configuration">4.4.4.2. Configuration</a></h6>
 <p>
    <!-- hier weiter -->
-
-   Um den Service <em>DatabaseConfiguredShipmentDateCalculator</em> nutzen können ist eine entsprechende Konfiguration
-   notwendig. Diese definiert Service selbst und die abhängigen Strukturen (Datenbank-Verbindung über den <em>MySQLiHandler</em>)
-   und dessen Konfiguration.
+   To use service <em>DatabaseConfiguredShipmentDateCalculator</em> a respective configuration is required that defines
+   the service and it's dependent components (database connection via <em>MySQLiHandler</em>) and their configuration.
 </p>
 <p>
-   Die Definition des Service lautet wie folgt:
+   The definition is as follows:
 </p>
 <gen:highlight type="ini">
 [shipment-date-calculator]
@@ -1070,8 +1068,8 @@ class="ACME\shop\order\DatabaseConfiguredShipmentDateCalculator"
 servicetype="SINGLETON"
 </gen:highlight>
 <p>
-   Zur Konfiguration der Datenbank-Verbindung - in diesem Fall ebenfalls eine Service-Definition, die später zur
-   Initialisierung eingesetzt wird - kann die folgende Sektion verwendet werden:
+   Configuration of the database connection - another service definition that is used for initialization purposes later
+   one - can be done with the following section:
 </p>
 <gen:highlight type="ini">
 [shipment-database]
@@ -1099,20 +1097,18 @@ conf.collation.method = "setCollation"
 conf.collation.value = "utf8_general_ci"
 </gen:highlight>
 <p>
-   Die Sektion <em>shipment-database</em> definiert zunächst die Service-Implementierung, die in diesem Fall eine
-   mit dem APF mitgelieferte Komponente ist - die Klasse <em>MySQLiHandler</em>. Da diese das
-   <em>DatabaseConnection</em>-Interface implementiert ist es möglich, eine Instanz mit Hilfe des <em>DIServiceManager</em>
-   zu erzeugen.
+   Section <em>shipment-database</em> first defines the service implementation that is an APF component in this case -
+   class <em>MySQLiHandler</em>. Since it implements the <em>DatabaseConnection</em> interface you can create instances
+   using the <em>DIServiceManager</em>.
 </p>
 <p>
-   Nach der Konfiguration mit unterschiedlichen <em>conf.*</em>-Sektionen wird die Instanz mit der in
-   <a href="#Chapter-4-4-3-Using-the-initialization-method">Kapitel 4.4.3.</a> beschriebenen <em>setupmethod</em>
-   initialisiert und ist damit für die Verwendung bereit.
+   After configuration using various <em>conf.*</em> sections the instance is finally initialized using the <em>setupmethod</em>
+   described in <a href="#Chapter-4-4-3-Using-the-initialization-method">chapter 4.4.3.</a> and is then ready for usage.
 </p>
 <p>
-   Um die Datenbank-Verbindung im <em>DatabaseConfiguredShipmentDateCalculator</em> nutzen zu können, muss diese noch
-   in den Service injiziert werden. Dies lässt sich mit der folgenden Erweiterung der Konfigurations-Sektion
-   <em>shipment-date-calculator</em> erreichen:
+   To use this database connection within our <em>DatabaseConfiguredShipmentDateCalculator</em> implementation it has to
+   be injected into the service. You can do so by extending the <em>shipment-date-calculator</em> configuration section
+   as follows:
 </p>
 <gen:highlight type="ini">
 [shipment-date-calculator]
@@ -1124,142 +1120,140 @@ init.db.namespace = "ACME\shop\order"
 init.db.name = "shipment-database"
 </gen:highlight>
 <div class="hint">
-   Das in diesem Kapitel beschriebene Beispiel geht davon aus, dass die beiden Services in einer Konfigurations-Datei
-   definiert sind. Trifft dies für Ihre Applikation nicht zu, muss der Namespace im Attribut <em>init.db.namespace</em>
-   entsprechend ausgetauscht werden.
+
+   The above configuration assumes that both services are defined within one single configuration file. In case your
+   application behaves different, please adapt <em>init.db.namespace</em> to point to the desired namespace.
 </div>
 <p>
-   Bei der Nutzung des Service <em>shipment-date-calculator</em> steht Ihnen in der Methode <em>getShipmentDate()</em>
-   nun der Zugriff auf eine initialisierte Datenbank-Verbindung zur Verfügung.
+   Using the <em>shipment-date-calculator</em> service <em>getShipmentDate()</em> can directly access the database
+   connection that is ready to use.
 </p>
 <div class="hint">
-   Ein weiteres Beispiel findest sich auf der Wiki-Seite
-   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Erzeugen_des_GORM_mit_dem_DIServiceManager" title="Erzeugen des GORM mit dem DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>.
+   Another example can be taken from wiki page
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Erzeugen_des_GORM_mit_dem_DIServiceManager" title="Erzeugen des GORM mit dem DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>
+   (German)xd.
 </div>
 
-<h5 id="Chapter-4-4-5-Implementation-of-APFDIService"><a href="#Chapter-4-4-5-Implementation-of-APFDIService">4.4.5. Implementierung von APFDIService</a></h5>
+<h5 id="Chapter-4-4-5-Implementation-of-APFDIService"><a href="#Chapter-4-4-5-Implementation-of-APFDIService">4.4.5. Implementation of APFDIService</a></h5>
 <p>
-   Die Klasse <em>APFObject</em> implementiert das <em>APFDIService</em>-Interface und stellt damit alle notwendigen
-   Voraussetzungen zur Verfügung um Objekte dieses Typs mit dem <em>DIServiceManager</em> zu erzeugen. Ist dies nicht
-   gewünscht - etwa um die von der Klasse <em>APFObject</em> ausgehenden Abhängigkeiten zu lösen -, so können Sie
-   jederzeit die Abhängigkeit durch eine eigene Implementierung des <em>APFDIService</em>-Interface unterbrechen.
+   <em>APFObject</em> already implements the <em>APFDIService</em> interface and provides all basic conditions to create
+   objects with the <em>DIServiceManager</em>. In case you intend to resolve this dependency you can implement the interface
+   directly within your service at any time.
 </p>
 <p>
-   Für Ihre eigene Implementierung des <em>APFDIService</em>-Interface gilt es folgende Punkte zu beachten:
+   For your custom implementation of the <em>APFDIService</em> interface please keep the following in mind:
 </p>
 <ul>
    <li>
-      Die Verwaltung der Attribute <em>Kontext</em>, <em>Sprache</em> und <em>Service-Typ</em> muss von der
-      Implementierung selbst übernommen werden. Konkret muss die Implementierung des Interfaces dafür sorgen, dass
-      die Werte innerhalb einer Instanz gespeichert und bei Aufruf der entsprechenden Interface-Methoden (z.B.
-      <em>getContext()</em>) zurückgegeben werden.
+      Managing <em>context</em>, <em>language</em> and <em>service type</em> is part of your implementation now. This
+      means that the respective values are stored and returned as per interface definition (e.g. <em>getContext()</em>).
    </li>
    <li>
-      Die Initialisierung und Markierung des Services erfolgt mit Hilfe der Methoden <em>markAsInitialized()</em> und
-      <em>markAsPending()</em>, die Abfrage nimmt der <em>DIServiceManager</em> mit Hilfe der Methode <em>isInitialized()</em>
-      vor. Die Speicherung des Initialisierungszustandes und die entsprechende Rückgabe obliegt Ihrer Implementierung.
+      Initialization and marking the service' initialization state is done using <em>markAsInitialized()</em> as well as
+      <em>markAsPending()</em>. The current state is requested by the  <em>DIServiceManager</em> invoking
+      <em>isInitialized()</em>. Storing and returning the initialization state is to be handled by your implementation.
    </li>
 </ul>
 <div class="hint">
-   Bei der Implementierung von eigenen Services, die mit einer speziellen <em>setupmethod</em> initialisiert werden
-   lässt sich die Markierung des Services als bereits initialisiert auch in der <em>isInitialized()</em>-Methode vornehmen.
-   Nutzen Sie das <em>APFObject</em> als Basis, können Sie die Initialisierung lediglich in der <em>setupmethod</em>
-   über die Methode <em>markAsInitialized()</em> abbilden.
+   Implementing custom services initialized by <em>setupmethod</em> marking services as initialized can also be done
+   within the <em>isInitialized()</em> method. Using <em>APFObject</em> as your basis for implementation flagging the
+   current instance as initialized has to happen during initialization with the <em>setupmethod</em> calling
+   <em>markAsInitialized()</em>.
 </div>
 
-<h5 id="Chapter-4-4-6-Nutzung-von-Services"><a href="#Chapter-4-4-6-Nutzung-von-Services">4.4.6. Nutzung von Services</a></h5>
+<h5 id="Chapter-4-4-6-Usage-of-services"><a href="#Chapter-4-4-6-Usage-of-services">4.4.6. Usage of services</a></h5>
 <p>
-   Die Nutzung von Services, die mit dem <em>DIServiceManager</em> erzeugt wurden kann auf unterschiedliche Arten erfolgen.
-   Einige davon wurden bereits in den letzten Kapitel besprochen. Die folgende Tabelle fasst alle Möglichkeiten zusammen
-   und gibt Ihnen weitere Hinweise und Tipps:
+   Consuming services created with the <em>DIServiceManager</em> has many flavours. Some of them have already been
+   discussed within previous chapters. The following table summarizes all possibilities and includes further hints and
+   tips:
 </p>
 <table>
    <thead>
       <tr>
-         <td>Beschreibung</td>
-         <td>Einsatzgebiet</td>
+         <td>Descriptions</td>
+         <td>Areas of usage</td>
       </tr>
    </thead>
    <tbody>
       <tr>
          <td>
-            Die in den Kapiteln <a href="#Chapter-4-4-1-Creation-of-a-simple-service">4.4.1</a> bis
-            <a href="#Chapter-4-4-4-Initialisation-of-complex-services">4.4.4</a> beschriebene Art der Nutzung sieht
-            den direkten Bezug der gewünschten Instanzen vom <em>DIServiceManager</em> vor. Ihnen steht es dabei frei,
-            die Convenience-Methode <em>APFObject::getDIserviceObject()</em> zu nutzen oder direkt auf
-            <em>DIServieceManager::getServiceObject()</em> zuzugreifen.
+            Chapters <a href="#Chapter-4-4-1-Creation-of-a-simple-service">4.4.1</a> up to
+            <a href="#Chapter-4-4-4-Initialisation-of-complex-services">4.4.4</a> describe using the
+            <em>DIServiceManager</em> to obtain an instance. You may either use convenience method
+            <em>APFObject::getDIServiceObject()</em> or <em>DIServiceManager::getServiceObject()</em> directly.
          </td>
          <td>
-            Diese Art der Anwendung wird für <int:link pageid="006" /> und die <int:link pageid="147"/> empfohlen.
-         </td>
-      </tr>
-      <tr>
-         <td>
-            <p>
-               <a href="#Chapter-4-4-4-Initialisation-of-complex-services">Kapitel 4.4.4</a> beschreibt die Initialisierung
-               und Konfiguration von Services mit einfachen Werten und wiederum anderen Services. Der z.B. von einem Controller
-               angefragte Service ist bei Bezug bereits fertig konfiguriert und der Anwender muss keine weiteren Code
-               investieren (<em>inversion of control</em>).
-            </p>
-            <p>
-               Innerhalb eines Services kann ein über den DI-Container injizierter Service direkt genutzt werden ohne
-               diesen aktiv vom <em>DIServiceManager</em> zu beziehen. Dies erleichtert die Implementierung und entfernt
-               explizite Abhängigkeiten um Transparenz und Testbarkeit zu verbessern.
-            </p>
-            <p>
-               Diese Möglichkeit steht auch für Document-Controller zur Verfügung.
-               Kapitel 4 der
-               <int:link pageid="006" anchor="Chapter-4-Erzeugung-eines-Controllers-ueber-den-DI-Container" />-Dokumentation
-               beschreibt die notwendigen Maßnahmen um einen Controller über den <em>DIServiceManager</em> zu erzeugen.
-            </p>
-         </td>
-         <td>
-            Diese Art der Anwendung wird für <int:link pageid="006" /> empfohlen, die komplexe Services bezieht bzw. auf
-            mehr als einen Service zurückgreift. Ferner ist diese Vorgehensweise nützlich um Code innerhalb von
-            Controllern besser testbar zu gestalten.
+            This kind of usage is recommended for <int:link pageid="006" /> and <int:link pageid="147"/>.
          </td>
       </tr>
       <tr>
          <td>
             <p>
-               Analog zur Erzeugung von Document-Controllern ist es ebenfalls möglich, <em>Front-Controller-Actions</em>
-               über den DI-Container zu erzeugen. Dies erleichtert ebenfalls die Implementierung und entfernt explizite
-               Abhängigkeiten im Code um Transparenz und Testbarkeit zu verbessern.
+               <a href="#Chapter-4-4-4-Initialisation-of-complex-services">Chapter 4.4.4</a> outlines initialisation
+               and configuration of services with multiple values and other services. The service requested by e.g. a
+               document controller is already finally configured after retrieval and the user does not have to investigate
+               further (<em>inversion of control</em>).
             </p>
             <p>
-               Kapitel 3.3 der
-               <int:link pageid="012" anchor="Chapter-3-3-Erzeugung-einer-Action-ueber-den-DI-Container" />-Dokumentation
-               beschreibt die notwendigen Maßnahmen um eine Action über den <em>DIServiceManager</em> zu erzeugen.
+               Within a service you can directly use another service that has been injected by the DI container without
+               approaching the <em>DIServiceManager</em>. This eases implementation and removes explicit dependencies and
+               thus improves transparency and testability.
+            </p>
+            <p>
+               This kind of usage scenario is also available for document controllers. Chapter 4 of the
+               <int:link pageid="006" anchor="Chapter-4-Controller-creation-via-DI-container" /> documentation
+               describes the necessary steps to create controllers with the <em>DIServiceManager</em>.
             </p>
          </td>
          <td>
-            Diese Art der Anwendung wird für <int:link pageid="012" />-Actions empfohlen, die komplexe Services bezieht
-            bzw. auf mehr als einen Service zurückgreift. Ferner ist diese Vorgehensweise nützlich um Code innerhalb von
-            Actions besser testbar zu gestalten.
+            It is recommended to use this approach for <int:link pageid="006" /> that make use of complex services or
+            use several services. Besides, you can use this paradigm to improve testability of controllers through
+            removal of explicit dependencies.
+         </td>
+      </tr>
+      <tr>
+         <td>
+            <p>
+               Similar to creation of document controllers you can also create <em>front controller actions</em> with
+               the DI container. This eases implementation and removes explicit dependencies to improve transparency and
+               testability as well.
+            </p>
+            <p>
+               Chapter 3.3 of the
+               <int:link pageid="012" anchor="Chapter-3-3-Action-creation-via-DI-container" /> documentation summarizes
+               the steps to create actions with the <em>DIServiceManager</em>.
+            </p>
+         </td>
+         <td>
+            This kind of usage is recommended for <int:link pageid="012" /> actions that make ise of complex actions or
+            use several services. Besides, you can use this paradigm to improve testability of actions through
+            removal of explicit dependencies.
          </td>
       </tr>
    </tbody>
 </table>
+<!--
+   ==> translate 006 kapitel 4 und 012 kapitel 3.3 (kommt von Jan Wiese)
+-->
 
-<h4 id="Chapter-4-5-Gueltigkeitsbereiche"><a href="#Chapter-4-5-Gueltigkeitsbereiche">4.5. Gültigkeitsbereiche</a></h4>
+<h4 id="Chapter-4-5-Areas-of-validity"><a href="#Chapter-4-5-Areas-of-validity">4.5. Areas of validity</a></h4>
 <p>
-   Das Adventure PHP Framework stellt mehrere Möglichkeiten zur <int:link pageid="030" /> zur Verfügung. Mit diesen lassen
-   sich Instanzen mit unterschiedlichen Gültigkeitsbereichen erstellen und innerhalb der Applikation verwenden. Erstellen
-   Sie Services mit dem <em>ServiceManager</em> oder <em>DIServiceManager</em> stehen Ihnen diese Möglichkeiten ebenfalls
-   zur Verfügung. Bei der Nutzung der Methode <em>APFObject::getServiceObject()</em> in
-   <a href="#Chapter-3-2-2-Using-the-wrapper">Kapitel 3.2.2</a> und der Konfiguration von Services in
-   <a href="#Chapter-4-3-Configuration">Kapitel 4.3</a> lassen sich die Gültigkeitsbereiche jeweils programmatisch bzw.
-   konfigurativ pro Instanz definieren.
+   The Adventure PHP Framework offers several possibility for <int:link pageid="030" /> that allow creating instances
+   with different kind of areas of validity. Using <em>ServiceManager</em> or <em>DIServiceManager</em> you can also
+   leverage these mechanisms. Creating objects with <em>APFObject::getServiceObject()</em> described in
+   <a href="#Chapter-3-2-2-Using-the-wrapper">chapter 3.2.2</a> and configure services as noted in
+   <a href="#Chapter-4-3-Configuration">chapter 4.3</a> the area of validity can be defined programatically or by
+   configuration per instance.
 </p>
 <p>
-   Die folgende Tabelle führt die vorhandenen Gültigkeitsbereiche und deren empfohlenen Einsatz auf:
+   The following table describes the available areas of validity and their recommended use case scenario:
 </p>
 <table>
    <thead>
       <tr>
-         <td>Gültigkeitsbereich</td>
-         <td>Beschreibung</td>
-         <td>Einsatzgebiete</td>
+         <td>Area of validity</td>
+         <td>Description</td>
+         <td>Use case</td>
       </tr>
    </thead>
    <tbody>
@@ -1268,13 +1262,13 @@ init.db.name = "shipment-database"
             <em>NORMAL</em>
          </td>
          <td>
-            Objekt wird bei jeder Anfrage an den <em>ServiceManager</em> bzw. <em>DIServiceManager</em> neu erzeugt und
-            ggf. initiaisiert.
+            Object is being created at any request to <em>ServiceManager</em> or <em>DIServiceManager</em> and is thus
+            probably initialized every time.
          </td>
          <td>
-            Soll ein neu erzeugtes Objekt mit <em>Kontext</em> und <em>Sprache</em> ausgestattet werden, jedoch
-            bei jedem Anwendungsfall unterschiedlich sein, kann dieser Gültigkeitsbereich genutzt werden. Für
-            Services wird i.d.R. jedoch der Gültigkeitsbereich <em>SINGLETON</em> empfohlen.
+            In case a new object should be automatically applied with the current <em>context</em> and <em>language</em>
+            but there is no need to operate on the same instance this area of validity is recommended. In general
+            <em>SINGLETON</em> is recommended for services.
          </td>
       </tr>
       <tr>
@@ -1282,16 +1276,16 @@ init.db.name = "shipment-database"
             <em>SINGLETON</em>
          </td>
          <td>
-            Objekt wird lediglich bei der ersten Anfrage an den <em>ServiceManager</em> bzw. <em>DIServiceManager</em>
-            neu erzeugt und ggf. initialisiert und ist innerhalb einer HTTP-Anfrage gültig.
+            Object is created and initialized on first request at <em>ServiceManager</em> or <em>DIServiceManager</em>
+            only. It is considered valid during the entire HTTP request.
          </td>
          <td>
-            Objekte mit diesem Gültigkeitsbereich können zum Austausch von Informationen zwischen unterschiedlichen
-            HMVC-Elementen innerhalb einer Anfrage verwendet werden.
+            Objects having this area of validity can be used to exchange information between different HMVC elements
+            within one HTTP request.
             <br />
             <br />
-            Ein weiterer Anwendungsfall ist die mehrfache Verwendung eines Service an unterschiedlichen Stellen innerhalb
-            einer HTTP-Anfrage, dessen Initialisierung aufwendig ist und daher nur einmal durchgeführt werden soll.
+            Another use case is multiple usage of services within different areas of the software and within one HTTP
+            request in case initialization is complex and should therefore be performed only once.
          </td>
       </tr>
       <tr>
@@ -1299,17 +1293,17 @@ init.db.name = "shipment-database"
             <em>SESSION_SINGLETON</em>
          </td>
          <td>
-            Objekt wird lediglich bei der ersten Anfrage an den <em>ServiceManager</em> bzw. <em>DIServiceManager</em>
-            neu erzeugt und ggf. initialisiert und ist innerhalb einer HTTP-Session gültig.
+            Object is created and initialized on first request at <em>ServiceManager</em> or <em>DIServiceManager</em>
+            only. It is considered valid during the entire HTTP session.
          </td>
          <td>
-            Objekte mit diesem Gültigkeitsbereich können als View-Model für z.B. mehrseitige Workflows genutzt werden.
-            Darin lassen sich über mehrere HTTP-Anfragen innerhalb eines Besuchs die Daten zwischenspeichern und am
-            Ende konsolidiert verarbeiten.
+            Objects having this area of validity can be used as view model e.g. for multi-page workflows to temporarily
+            store data across multiple HTTP requests within one visit being processed at the end of a user flow
+            consolidated.
             <br />
             <br />
-            Ein weiterer Anwendungsfall ist die mehrfache Verwendung eines Service an unterschiedlichen Stellen innerhalb
-            eines Besuchs, dessen Initialisierung aufwendig ist und daher nur einmal durchgeführt werden soll.
+            Another use case is multiple usage of services within different areas of the software and within one HTTP
+            session in case initialization is complex and should therefore be performed only once.
          </td>
       </tr>
       <tr>
@@ -1317,30 +1311,29 @@ init.db.name = "shipment-database"
             <em>APPLICATION_SINGLETON</em>
          </td>
          <td>
-            Objekt wird lediglich bei der ersten Anfrage an den <em>ServiceManager</em> bzw. <em>DIServiceManager</em>
-            neu erzeugt und ggf. initialisiert und ist für die Laufzeit des Web-Servers gültig.
+            Object is created and initialized on first request at <em>ServiceManager</em> or <em>DIServiceManager</em>
+            only. It is considered valid during the entire web server uptime.
          </td>
          <td>
-            Objekte mit diesem Gültigkeitsbereich können zum Austausch von Daten einer Anwendung unabhängig von einer
-            Anfrage oder einem Besuch genutzt werden.
+            Objects having this area of validity can be used to exchange data across components within your application
+            independent of request or session.
             <br />
             <br />
-            Ein weiterer Anwendungsfall ist die mehrfache Verwendung eines Service an unterschiedlichen Stellen innerhalb
-            einer Applikation, dessen Initialisierung aufwendig ist und daher nur einmal durchgeführt werden soll.
+            Another use case is multiple usage of services within different areas of the software and within an entire
+            application in case initialization is complex and should therefore be performed only once.
          </td>
       </tr>
    </tbody>
 </table>
 <div class="warn">
    <p>
-      Bitte beachten Sie, dass bei Nutzung des Gültigkeitsbereichs <em>SESSION_SINGLETON</em> und <em>APPLICATION_SINGLETON</em>
-      die Inhalte eines Objekts zwischen zwei Anfragen serialisiert werden. Da Resourcen (File-Pointer,
-      Datenbank-Verbindungen) nicht searialisiert werden können müssen diese ggf. in der nächsten Anfrage neu
-      initialisiert werden müssen.
+      Please note that using <em>SESSION_SINGLETON</em> and <em>APPLICATION_SINGLETON</em> as desired area of validity
+      objects will be serialized between different requests. Since resources (e.g. file pointer, database connections)
+      cannot be serialized they have to be re-initialized at every new request if necessary.
    </p>
    <p>
-      Um in einer Klasse <em>DataMapper</em>, die als Service über den <em>ServiceManager</em> oder <em>DIServiceManager</em>
-      bezogen wird, eine Datenbank-Verbindung zu verwalten können Sie folgenden Code nutzen:
+      In order to maintain a database connection within class <em>DataMapper</em> that is requested from
+      <em>ServiceManager</em> oer <em>DIServiceManager</em> you may want to use the following code:
    </p>
 <gen:highlight type="php">
 class DataMapper extends APFObject {
@@ -1359,14 +1352,14 @@ class DataMapper extends APFObject {
 }
 </gen:highlight>
    <p>
-      Sobald Sie den Service in einer weiteren Anfrage erneut beziehen, wird die Methode <em>__wakeup()</em> aufgerufen
-      und die Verbindung wieder hergestellt.
+      As soon as the service is requested within a subsequent request <em>__wakeup()</em> is called and the connection
+      is re-created.
    </p>
    <p>
-      Nutzen Sie den <em>DIServiceManager</em> und ist für Ihren Service eine <em>setupmethod</em> konfiguriert, können
-      Sie bei der Serialisierung den Initialisierugstatus des Objekts zurück zu setzen. Dies sorgt ebenfalls dafür, dass
-      das Objekt beim nächsten Bezug über die <em>setupmethod</em> neu initialisiert wird. Hierzu lässt sich folgender
-      Code nutzen:
+      In case your are using the <em>DIServiceManager</em> and you make use of the <em>setupmethod</em> you can also
+      reset the initialization status of your instance. This ensures that the <em>setupmethod</em> is called again at
+      the first request of the respective service and thus the service is re-initialized. To use this approach you may
+      want to use the following code:
    </p>
 <gen:highlight type="php">
 class DataMapper extends APFObject {
@@ -1389,8 +1382,8 @@ class DataMapper extends APFObject {
 }
 </gen:highlight>
    <p>
-      Diese Möglichkeit ist jedoch an den <em>DIServiceManager</em> gebunden und setzt voraus, dass Sie Ihren Service
-      mit einer <em>setupmethod</em> initialisieren.
+      This option is limited to usage with the <em>DIServiceManager</em> and requires usage of the <em>setupmethod</em>
+      to initialize the service.
    </p>
 </div>
 
