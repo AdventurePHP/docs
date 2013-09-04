@@ -46,7 +46,6 @@ class ChangeLangAction extends AbstractFrontcontrollerAction {
       $forwardUrl = $urlMan->generateLink($targetPageId, $targetLang, $targetVersion);
 
       HeaderManager::forward($forwardUrl);
-      exit();
    }
 
 }
