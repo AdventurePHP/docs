@@ -2,8 +2,8 @@
 ini_set('session.cache_limiter', 'none');
 date_default_timezone_set('Europe/Berlin');
 
-$apfClassLoaderRootPath = dirname(dirname(dirname($_SERVER['SCRIPT_FILENAME']))) . '/apps';
-require('../../apps/core/bootstrap.php');
+$apfClassLoaderRootPath = dirname(dirname(dirname($_SERVER['SCRIPT_FILENAME']))) . '/APF';
+require('../../APF/core/bootstrap.php');
 
 use APF\core\frontcontroller\Frontcontroller;
 use APF\core\singleton\Singleton;

@@ -1,0 +1,114 @@
+<doku:title parent="119" tags="page-controller,pagecontroller,controller,templates,mvc,hmvc,basics" title="Page controller" urlname="Page-controller">
+  The page controller provides a generic environment to implement applications using the MVC pattern.
+  This includes mechanisms to load and manage templates using taglibs, executing controllers and
+  manage the DOM tree created by the controller.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   The page controller is the heart of the Adventure PHP Framework. The functionality of the page controller
+   is to provide a reusable environment for applications, that are implemented following the <strong>MVC</strong>
+   pattern. It features a unique mechanism to load and handle <int:link pageid="047">templates</int:link> with aid of
+   the functionality contained in <int:link pageid="147">tags</int:link>, to execute
+   <int:link pageid="006">controllers</int:link> and to manage the MVC tree, that was build by the taglib functionality.
+</p>
+<p>
+   Because of the DOM tree structure, the page controller is a HMVC controller. This pattern describes,
+   that a hierarchical DOM tree consists of any count of MVC cells, that are managed by a generic
+   component (here: the APF page controller). Applying the HMVC pattern, you assume, that a model is
+   not bound to one MVC cell strictly, but is available for more than one DOM nodes. This makes it
+   possible to easily and flexibly develop modules and applications.
+</p>
+
+<h3 id="Chapter-2-Functionality"><a href="#Chapter-2-Functionality">2. Functionality</a></h3>
+<p>
+   Due to the fact, that the page controller does only provide a framework, or is responsible to operate
+   it's workflow respectively, the application logic can directly be influenced by
+   <int:link pageid="147">tags</int:link> and <int:link pageid="006">controllers</int:link>.
+   This means, that the page controller is application logic independent. For this reason it is
+   possible to create tags with different functions (e.g. forms, include further templates,
+   place holders, ...). The workflow diagram describes the actions, that are passed through, and the
+   points, the developer can influence to apply the requirements of his application to. Click on the
+   image to enlarge it!
+</p>
+
+<h4 id="Chapter-2-1-Activity-diagram"><a href="#Chapter-2-1-Activity-diagram">2.1. Activity diagram</a></h4>
+<a href="http://media.adventure-php-framework.org/content/pagecontroller_timing_model.png" title="Page controller timing model (Zum Vergrößern klicken!)">
+  <img src="http://media.adventure-php-framework.org/content/pagecontroller_timing_model.png" alt="Page controller timing model (APF)" style="width: 560px;"/>
+</a>
+
+<h4 id="Chapter-2-2-Description"><a href="#Chapter-2-2-Description">2.2. Description</a></h4>
+<p>
+   The following list describes the workflow again in textual form:
+</p>
+<ul>
+  <li>
+    At the beginning of a request the
+    <int:link pageid="013" anchor="Chapter-5-1-Creating-the-bootstrap-file">bootstrap file</int:link> (typically:
+    <em>index.php</em>) is called.
+  </li>
+  <li>
+    As of the <em>loadDesign()</em>, the initial <int:link pageid="047">template</int:link> is
+    loaded and parsed.
+  </li>
+  <li>
+    During the parse operation, the page controller looks up, if the <int:link pageid="047">template</int:link>
+    contains <int:link pageid="006">document controller</int:link> declarations and further tags as
+    described on <int:link pageid="046" />.
+  </li>
+  <li>
+    If a <int:link pageid="006">document controller</int:link> tag is included,
+    this information is extracted from the content and prepared for the transformation.
+  </li>
+  <li>
+    If known tags as described on <int:link pageid="046" /> are included, they are analyzed and
+    linked as child objects into the current DOM node.
+  </li>
+  <li>
+    During the parse operation of the current tag, the corresponding tag lib class (PHP class) is
+    created and the attributes and the content is applied to that instance. After that, the
+    <em>onParseTime()</em> method is called (see <int:link pageid="147" />).
+    The implementation of this function affects the proceeding of the content of the tag, that can
+    possibly contain further tags. Thus, the content is typically processed for known tags and so on...
+  </li>
+  <li>
+    After parsing a node, it is linked to the DOM tree as a child of the current node. Then, the
+    <em>onAfterAppend()</em> method is called on each of the children. As of this moment,
+    the single nodes "know" their neighbours through the <em>$this->parentObject</em> and
+    <em>$this->children</em> references. Hence, the <em>onAfterAppend()</em> contains
+    tag functionality, that needs to know it's related DOM nodes.
+  </li>
+  <li>
+    If the <em>loadDesign()</em> method has finished, a complete APF DOM tree is available,
+    that consists of a number of nodes, that are directly influenced by the template and tag definition
+    the developer created.
+  </li>
+  <li>
+    On the <em>$page->transform()</em> call, the DOM tree is traversed recursively and each element
+    is transformed. Thereby, each node is responsible for it's transformation itself. Because most
+    of the nodes typically extend the <em>Document</em> class, tha workflow is as follows:
+    at first, the method checks, if a document controller was defined. If yes, the class is created
+    and applied with the references, attributes and contents necessary for transformation. After that
+    the <em>transformContent()</em> is called.
+  </li>
+  <li>
+    After the <int:link pageid="006">document controller</int:link> execution the list of child
+    nodes of the current DOM node is walked through and transformed by calling the <em>transform()</em>
+    method on each of the children. Each node is responsible for it's transformation itself. The
+    only thing, that is important is, that the function call must return the transformed content of
+    the node, because the calling node has to continue processing it.
+  </li>
+</ul>
+
+<h3 id="Chapter-3-Further-resources"><a href="#Chapter-3-Further-resources">3. Further resources</a></h3>
+<p>
+   Further information can be found in the German language forum thread
+   <a linkrewrite="false" href="http://forum.adventure-php-framework.org/viewtopic.php?f=4&amp;t=62" title="Ein Einfaches Formular erstellen.">Ein Einfaches Formular erstellen.</a>
+   (German).
+</p>
+<p>
+   Further reading on the timing model can be found in the
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Timing-Modell_des_Page-Controller">Wiki</a>
+   (German).
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_098" />
