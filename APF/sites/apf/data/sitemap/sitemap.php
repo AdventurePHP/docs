@@ -1,6 +1,5 @@
 <?php
 /**
- * @package APF\sites\apf\data\sitemap
  * @file sitemap.php
  *
  * Script wrapper file for the sitemap service.
@@ -21,7 +20,7 @@ ini_set('memory_limit', '300M');
 use APF\sites\apf\data\sitemap\XmlSiteMapCreator;
 
 $xSC = new XmlSiteMapCreator();
-$xSC->setContext('sites::apf');
+$xSC->setContext('sites\apf');
 
 $fH = fopen('sitemap.xml', 'w+');
 fwrite($fH, $xSC->createSitemap());
