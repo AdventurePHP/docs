@@ -9,8 +9,8 @@ date_default_timezone_set('Europe/Berlin');
 ob_start();
 
 // pre-define the root path of the root class loader (if necessary)
-$apfClassLoaderRootPath = dirname(dirname($_SERVER['SCRIPT_FILENAME'])) . '/apps';
-include('../apps/core/bootstrap.php');
+$apfClassLoaderRootPath = dirname(dirname($_SERVER['SCRIPT_FILENAME'])) . '/APF';
+include('../APF/core/bootstrap.php');
 
 use APF\core\benchmark\BenchmarkTimer;
 use APF\core\frontcontroller\Frontcontroller;
