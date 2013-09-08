@@ -2403,6 +2403,11 @@ if (! this.sh_languages) {
 sh_languages['ini'] = [
   [
     [
+      /^\[(.+)=(.+)\]$/, // single line optional attributes
+      'sh_comment',
+      1
+    ],
+    [
       /#/g,
       'sh_comment',
       1
