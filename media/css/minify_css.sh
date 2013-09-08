@@ -3,7 +3,7 @@
 # Script to minify the css files into one single shrinked css file to optimize performance.        #
 ####################################################################################################
 
-BASEPATH=/cygdrive/d/Entwicklung/yuicompressor-2.4.2
+BASEPATH=/cygdrive/c/Users/Christian/Entwicklung/Tools/yuicompressor-2.4.2
 LIBPATH=$BASEPATH/lib
 BUILDPATH=$BASEPATH/build
 CSSPATH=$(pwd)
