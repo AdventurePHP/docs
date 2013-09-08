@@ -442,4 +442,98 @@ WHERE somefield = '[somefield]';
    Ein weiteres Anwendungs-Beispiel ist unter <int:link pageid="032"/> beschrieben.
 </div>
 
+<h3 id="Chapter-6-Erzeugung-von-Datenbank-Verbindungen-mit-dem-DI-Container"><a href="#Chapter-6-Erzeugung-von-Datenbank-Verbindungen-mit-dem-DI-Container">6. Erzeugung von Datenbank-Verbindungen mit dem DI-Container</a></h3>
+<p>
+   Neben der in <a href="#Chapter-2-Anwendung">Kapitel 2</a> beschriebenen Art der Erzeugung von
+   Datenbank-Verbindungen über den <em>ConnectionManager</em> können Sie auch den DI-Container des APF nutzen. Die
+   folgenden Kapitel beschreiben die Nutzung des <int:link pageid="107" anchor="Chapter-4-DIServiceManager">DIServiceManager</int:link>
+   um Datenbank-Verbindungen als Service zu erzeugen und zu verwenden.
+</p>
+
+<h4 id="Chapter-6-1-Konfiguration"><a href="#Chapter-6-1-Konfiguration">6.1. Konfiguration</a></h4>
+<p>
+   Um Services bzw. Objekte mit dem <em>DIServiceManager</em> erzeugen zu können, müssen diese zunächst durch eine
+   Konfiguration beschrieben werden. Eine Datenbank-Verbindung lässt sich wie auch andere Services durch eine
+   Konfigurations-Sektion mit den gewünschten Inhalten erstellen. Um eine Instanz des
+   <a href="#Chapter-4-3-MySQLi-Treiberschicht">MySQLiHandler</a> zu beziehen ist folgende Definition notwendig:
+</p>
+<gen:highlight type="ini">
+[mysql-connection]
+class = "APF\core\database\MySQLiHandler"
+servicetype = "SINGLETON"
+setupmethod = "setup"
+
+conf.host.method = "setHost"
+conf.host.value = "localhost"
+
+conf.name.method = "setDatabaseName"
+conf.name.value = "products"
+
+conf.user.method = "setUser"
+conf.user.value = "root"
+
+conf.pass.method = "setPass"
+conf.pass.value = "..."
+
+conf.charset.method = "setCharset"
+conf.charset.value = "utf8"
+
+conf.collation.method = "setCollation"
+conf.collation.value = "utf8_general_ci"
+</gen:highlight>
+<div class="hint">
+   Zur Konfiguration können Sie alle in der Klasse <em>MySQLiHandler</em> vorhandenen Setter nutzen. Möchten Sie
+   beispielsweise den Debug-Modus aktivieren (Details siehe <a href="#Chapter-1-Konfiguration">Kapitel 1</a>) und den
+   zu nutzenden <em>LogWriter</em> ändern (Details siehe <int:link pageid="023" anchor="Chapter-3-1-Verwalten-von-LogWritern" />),
+   können Sie für jede Option einfach eine weitere Gruppe hinzufügen. Beispiel:
+<gen:highlight type="ini">
+conf.debug.method = "setDebug"
+conf.debug.value = "true"
+
+conf.log-target.method = "setLogTarget"
+conf.log-target.value = "..."
+</gen:highlight>
+</div>
+<div class="warn">
+   Bitte achten Sie darauf, die Datenbank-Verbindung mit der Methode <em>setup()</em> zu initialisieren. Andernfalls
+   wird die Instanz der Klasse <em>MySQLiHandler</em> zwar erzeugt, die Verbindung zur Datenbank jedoch nicht aufgebaut.
+   Details zur Nutzung des Attributs <em>setupmethod</em> können Sie im Kapitel
+   <int:link pageid="107" anchor="Chapter-4-4-3-Nutzung-der-Initialisierungs-Methode" />
+   nachlesen.
+</div>
+<p>
+   Die beschriebene Art der Konfiguration lässt sich auf alle mit dem APF mitgelieferten Datenbank-Treiber anwenden.
+</p>
+
+<h4 id="Chapter-6-2-Anwendung"><a href="#Chapter-6-2-Anwendung">6.2. Anwendung</a></h4>
+<p>
+   Die in <a href="#Chapter-6-1-Konfiguration">Kapitel 6.1</a> definierte Datenbank-Verbindung können Sie nun beispielsweise
+   in einem Controller über den <em>DIServiceManager</em> beziehen. Hierzu lässt sich folgender Code nutzen:
+</p>
+<gen:highlight type="php">
+use APF\core\database\MySQLiHandler;
+use APF\core\pagecontroller\BaseDocumentController;
+
+class DoSomethingController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      /* @var $conn MySQLiHandler */
+      $conn = $this->getDIServiceObject('VENDOR\..\data', 'mysql-connection');
+
+      $conn->executeTextStatement('SELECT * FROM ...');
+
+      ...
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Der im vorangegangenen Kapitel definierte Service lässt sich nun nicht nur direkt verwenden, sondern kann auch zur
+   Initialisierung weiterer Services genutzt werden. Details hierzu entnehmen Sie bitte
+   <int:link pageid="107" anchor="Chapter-4-4-4-Initialisierung-eines-komplexen-Service">Kapitel 4.4.4</int:link> der
+   <em>DIServiceManager</em>-Dokumentation.
+</p>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_031" />

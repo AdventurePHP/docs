@@ -419,4 +419,97 @@ WHERE somefield = '[somefield]';
    A further sample is described under <int:link pageid="032"/>.
 </div>
 
+<h3 id="Chapter-6-Creation-of-database-connections-with-DI-container"><a href="#Chapter-6-Creation-of-database-connections-with-DI-container">6. Creation of database connections with DI container</a></h3>
+<p>
+   Besides the way of creating database connections described in <a href="#Chapter-2-Practice">chapter 2</a> using the
+   <em>ConnectionManager</em> you can also utilize the APF DI container. The following chapters describe creating
+   database connections as services using the <int:link pageid="107" anchor="Chapter-4-DIServiceManager">DIServiceManager</int:link>
+   in detail.
+</p>
+
+<h4 id="Chapter-6-1-Configuration"><a href="#Chapter-6-1-Configuration">6.1. Configuration</a></h4>
+<p>
+   In order to create services or objects respectively with the <em>DIServiceManager</em> a configuration is required.
+   A database connection can be defined by a configuration section including all relevant information just as any other
+   service. To create an instance of the <a href="#Chapter-4-3-MySQLi-driver">MySQLiHandler</a> the following definition
+   can be used:
+</p>
+<gen:highlight type="ini">
+[mysql-connection]
+class = "APF\core\database\MySQLiHandler"
+servicetype = "SINGLETON"
+setupmethod = "setup"
+
+conf.host.method = "setHost"
+conf.host.value = "localhost"
+
+conf.name.method = "setDatabaseName"
+conf.name.value = "products"
+
+conf.user.method = "setUser"
+conf.user.value = "root"
+
+conf.pass.method = "setPass"
+conf.pass.value = "..."
+
+conf.charset.method = "setCharset"
+conf.charset.value = "utf8"
+
+conf.collation.method = "setCollation"
+conf.collation.value = "utf8_general_ci"
+</gen:highlight>
+<div class="hint">
+   Configuring the services all setter methods of the <em>MySQLiHandler</em> class can be included. If you want to
+   activate the debug mode (details see <a href="#Chapter-1-Configuration">chapter 1</a>) and change the
+   <em>LogWriter</em> (details see <int:link pageid="023" anchor="Chapter-3-1-LogWriter-management" />), please add
+   another group for each option. Example:
+<gen:highlight type="ini">
+conf.debug.method = "setDebug"
+conf.debug.value = "true"
+
+conf.log-target.method = "setLogTarget"
+conf.log-target.value = "..."
+</gen:highlight>
+</div>
+<div class="warn">
+   Please be aware to initialize the database connection with the <em>setup()</em> method. Otherwise, the instance of
+   <em>MySQLiHandler</em> is created but connection to database is not established. Details on using the <em>setupmethod</em>
+   attribute can be taken from chapter <int:link pageid="107" anchor="Chapter-4-4-3-Using-the-initialization-method" />.
+</div>
+<p>
+   The way of creating configurations can be applied to each database driver delivered with the APF.
+</p>
+
+<h4 id="Chapter-6-2-Usage"><a href="#Chapter-6-2-Usage">6.2. Usage</a></h4>
+<p>
+   The database connection defined in <a href="#Chapter-6-1-Configuration">chapter 6.1</a> can be retrieved from the
+   <em>DIServiceManager</em> for usage within a document controller for instance. For this reason, you may want to use
+   the following code:
+</p>
+<gen:highlight type="php">
+use APF\core\database\MySQLiHandler;
+use APF\core\pagecontroller\BaseDocumentController;
+
+class DoSomethingController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      /* @var $conn MySQLiHandler */
+      $conn = $this->getDIServiceObject('VENDOR\..\data', 'mysql-connection');
+
+      $conn->executeTextStatement('SELECT * FROM ...');
+
+      ...
+
+   }
+
+}
+</gen:highlight>
+<p>
+   The service defined within the previous chapter can not only be used directly but also to initialize other services.
+   Details on that can be taken from
+   <int:link pageid="107" anchor="Chapter-4-4-4-Initialisation-of-complex-services">chapter 4.4.4</int:link> of the
+   <em>DIServiceManager</em> documentation.
+</p>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_031" />
