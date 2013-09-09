@@ -1,8 +1,11 @@
 <?php
 namespace APF\sites\apf\pres\controller;
 
+use APF\core\logging\LogEntry;
+use APF\core\logging\Logger;
 use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\registry\Registry;
+use APF\core\singleton\Singleton;
 use APF\sites\apf\biz\ApfSearchManager;
 use APF\sites\apf\biz\ForumSearchResult;
 use APF\sites\apf\biz\PageSearchResult;
@@ -12,9 +15,6 @@ use APF\sites\apf\biz\WikiSearchResult;
 use APF\tools\link\LinkGenerator;
 use APF\tools\link\Url;
 use APF\tools\request\RequestHandler;
-use APF\core\logging\LogEntry;
-use APF\core\singleton\Singleton;
-use APF\core\logging\Logger;
 
 /**
  * @package APF\sites\apf\pres\controller
@@ -90,6 +90,8 @@ class SearchController extends BaseDocumentController {
 
       for ($i = 0; $i < $count; $i++) {
 
+         $template->setPlaceHolder('Icon', $this->getIconCode($list[$i]));
+
          // display title
          $template->setPlaceHolder('Title', $this->getTitle($list[$i]));
 
@@ -151,6 +153,16 @@ class SearchController extends BaseDocumentController {
       } else {
          /* @var $result ForumSearchResult */
          return $result->getTitle();
+      }
+   }
+
+   private function getIconCode(SearchResult $result) {
+      if ($result instanceof WikiSearchResult) {
+         return '&#xe001;';
+      } else if ($result instanceof ForumSearchResult) {
+         return '&#xe002;';
+      } else {
+         return '&#xe000;';
       }
    }
 
