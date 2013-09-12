@@ -1,10 +1,12 @@
 <?php
 namespace APF\sites\apf\biz;
 
+use APF\core\benchmark\BenchmarkTimer;
 use APF\core\database\AbstractDatabaseHandler;
 use APF\core\database\ConnectionManager;
 use APF\core\pagecontroller\APFObject;
-use \DateTime;
+use APF\core\singleton\Singleton;
+use DateTime;
 
 /**
  * @package APF\sites\apf\biz
@@ -33,6 +35,11 @@ class ApfSearchManager extends APFObject {
     * Version 0.3, 05.11.2008 (Added value escaping for the search string to avoid sql injections)<br />
     */
    public function loadSearchResult($searchTerm) {
+
+      /* @var $t BenchmarkTimer */
+      $t = Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+      $id = 'ApfSearchManager::loadSearchResult(' . $searchTerm . ')';
+      $t->start($id);
 
       $config = $this->getConfiguration('APF\sites\apf\biz', 'fulltextsearch.ini');
 
@@ -86,10 +93,16 @@ class ApfSearchManager extends APFObject {
          $results[] = $this->mapPageResult2DomainObject($data);
       }
 
+      $t->stop($id);
       return $results;
    }
 
    public function loadForumSearchResults($searchTerm) {
+
+      /* @var $t BenchmarkTimer */
+      $t = Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+      $id = 'ApfSearchManager::loadForumSearchResults(' . $searchTerm . ')';
+      $t->start($id);
 
       $conn = $this->getForumConnection();
 
@@ -119,7 +132,6 @@ ORDER BY `word_count` ASC;';
       }
 
       // 2) search matching words in posts
-      // TODO introduce UNION SELECT
       $statement = 'SELECT
     p.`post_id`
 FROM
@@ -129,7 +141,7 @@ FROM
 WHERE
     m0.`word_id` IN(' . implode(', ', $wordsIds) . ')
 GROUP BY p.`post_id` , p.`post_time`
-ORDER BY p.`post_time` DESC;';
+ORDER BY p.`post_time` DESC';
       $result = $conn->executeTextStatement($statement);
 
       $postIds = array();
@@ -143,6 +155,7 @@ ORDER BY p.`post_time` DESC;';
       }
 
       // 3) load post and forum data to display
+      //    --> grouping by "p.`topic_id`" does the trick to display one topic only once
       $statement = 'SELECT
     p.`post_id`,
     p.`topic_id`,
@@ -158,7 +171,9 @@ FROM
     `de_phpbb3_forums` f ON (p.`forum_id` = f.`forum_id`)
 WHERE
     p.`post_id` IN (' . implode(', ', $postIds) . ')
-ORDER BY p.`post_time` DESC;';
+GROUP BY p.`topic_id`
+ORDER BY p.`post_time` DESC
+LIMIT 20';
       $result = $conn->executeTextStatement($statement);
 
       $list = array();
@@ -166,10 +181,16 @@ ORDER BY p.`post_time` DESC;';
          $list[] = $this->mapForumResultToDomainObject($data);
       }
 
+      $t->stop($id);
       return $list;
    }
 
    public function loadWikiSearchResults($searchTerm) {
+
+      /* @var $t BenchmarkTimer */
+      $t = Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+      $id = 'ApfSearchManager::loadWikiSearchResults(' . $searchTerm . ')';
+      $t->start($id);
 
       $conn = $this->getWikiConnection();
 
@@ -195,6 +216,52 @@ LIMIT 20';
          $list[] = $this->mapWikiResultToDomainObject($data);
       }
 
+      $t->stop($id);
+      return $list;
+   }
+
+   public function loadTrackerSearchResults($searchTerm) {
+
+      /* @var $t BenchmarkTimer */
+      $t = Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+      $id = 'ApfSearchManager::loadTrackerSearchResults(' . $searchTerm . ')';
+      $t->start($id);
+
+      $conn = $this->getTrackerConnection();
+
+      $where = array();
+      $parts = explode(' ', $searchTerm);
+      foreach ($parts as $part) {
+         $value = trim($conn->escapeValue($part));
+         $where[] = 'summary LIKE \'%' . $value . '%\'';
+         $where[] = 'mantis_bug_text_table.description LIKE \'%' . $value . '%\'';
+         $where[] = 'mantis_bug_text_table.additional_information LIKE \'%' . $value . '%\'';
+         $where[] = 'mantis_bugnote_text_table.note LIKE \'%' . $value . '%\'';
+      }
+
+      $select = 'SELECT DISTINCT mantis_bug_table.*
+FROM mantis_bug_table
+JOIN mantis_project_table ON mantis_project_table.id = mantis_bug_table.project_id
+JOIN mantis_bug_text_table ON mantis_bug_table.bug_text_id = mantis_bug_text_table.id
+LEFT JOIN mantis_bugnote_table ON mantis_bug_table.id = mantis_bugnote_table.bug_id
+LEFT JOIN mantis_bugnote_text_table ON mantis_bugnote_table.bugnote_text_id = mantis_bugnote_text_table.id
+WHERE
+    mantis_project_table.enabled = 1
+    AND (' . implode('OR ', $where) . ')
+ORDER BY
+    mantis_bug_table.sticky DESC,
+    mantis_bug_table.last_updated DESC,
+    mantis_bug_table.date_submitted DESC
+LIMIT 20;';
+
+      $result = $conn->executeTextStatement($select);
+
+      $list = array();
+      while ($data = $conn->fetchData($result)) {
+         $list[] = $this->mapTrackerResultToDomainObject($data);
+      }
+
+      $t->stop($id);
       return $list;
    }
 
@@ -214,6 +281,15 @@ LIMIT 20';
       /* @var $cm \APF\core\database\ConnectionManager */
       $cm = $this->getServiceObject('APF\core\database\ConnectionManager');
       return $cm->getConnection('Forum');
+   }
+
+   /**
+    * @return AbstractDatabaseHandler
+    */
+   private function getTrackerConnection() {
+      /* @var $cm \APF\core\database\ConnectionManager */
+      $cm = $this->getServiceObject('APF\core\database\ConnectionManager');
+      return $cm->getConnection('Tracker');
    }
 
    /**
@@ -281,6 +357,14 @@ LIMIT 20';
       $result->setForumId($data['forum_id']);
       $result->setTopicId($data['topic_id']);
       $result->setPostId($data['post_id']);
+      return $result;
+   }
+
+   private function mapTrackerResultToDomainObject(array $data) {
+      $result = new TrackerSearchResult();
+      $result->setTitle($data['summary']);
+      $result->setLastModified(DateTime::createFromFormat('U', $data['last_updated']));
+      $result->setPageId($data['id']);
       return $result;
    }
 

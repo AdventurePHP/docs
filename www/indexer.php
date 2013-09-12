@@ -25,6 +25,7 @@ Registry::register('APF\sites\apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumen
 Registry::register('APF\sites\apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
 Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
 Registry::register('APF\sites\apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
+Registry::register('APF\sites\apf', 'TrackerBaseURL', 'http://tracker.adventure-php-framework.org');
 
 // special output filter (to filter scriptlet tags out of the index!)
 use APF\core\filter\OutputFilterChain;

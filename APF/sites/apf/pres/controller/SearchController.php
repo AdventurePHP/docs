@@ -4,12 +4,14 @@ namespace APF\sites\apf\pres\controller;
 use APF\core\logging\LogEntry;
 use APF\core\logging\Logger;
 use APF\core\pagecontroller\BaseDocumentController;
+use APF\core\pagecontroller\TemplateTag;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
 use APF\sites\apf\biz\ApfSearchManager;
 use APF\sites\apf\biz\ForumSearchResult;
 use APF\sites\apf\biz\PageSearchResult;
 use APF\sites\apf\biz\SearchResult;
+use APF\sites\apf\biz\TrackerSearchResult;
 use APF\sites\apf\biz\UrlManager;
 use APF\sites\apf\biz\WikiSearchResult;
 use APF\tools\link\LinkGenerator;
@@ -60,12 +62,17 @@ class SearchController extends BaseDocumentController {
       // display results
       if (strlen($searchTerm) >= 3) {
 
+         $section = $this->getTemplate('Results');
+
          /* @var $m ApfSearchManager */
          $m = & $this->getServiceObject('APF\sites\apf\biz\ApfSearchManager');
 
-         $this->displayResultList($m->loadSearchResult($searchTerm), 'WebsiteResult');
-         $this->displayResultList($m->loadWikiSearchResults($searchTerm), 'WikiResult');
-         $this->displayResultList($m->loadForumSearchResults($searchTerm), 'ForumResult');
+         $this->displayResultList($m->loadSearchResult($searchTerm), $section, 'WebsiteResult');
+         $this->displayResultList($m->loadWikiSearchResults($searchTerm), $section, 'WikiResult');
+         $this->displayResultList($m->loadForumSearchResults($searchTerm), $section, 'ForumResult');
+         $this->displayResultList($m->loadTrackerSearchResults($searchTerm), $section, 'TrackerResult');
+
+         $section->transformOnPlace(); // mark template to display item list
 
       }
 
@@ -73,9 +80,10 @@ class SearchController extends BaseDocumentController {
 
    /**
     * @param SearchResult[] $list The search results to display.
+    * @param TemplateTag $section The template to display the search results with.
     * @param string $placeHolderName The name of the place holder to set the result list to.
     */
-   private function displayResultList(array $list, $placeHolderName) {
+   private function displayResultList(array $list, TemplateTag $section, $placeHolderName) {
 
       // load language config
       $config = $this->getConfiguration('APF\sites\apf\biz', 'language.ini');
@@ -123,7 +131,7 @@ class SearchController extends BaseDocumentController {
       }
 
       // display buffer
-      $this->setPlaceHolder($placeHolderName, $buffer);
+      $section->setPlaceHolder($placeHolderName, $buffer);
 
    }
 
@@ -137,6 +145,8 @@ class SearchController extends BaseDocumentController {
          return $baseUrl . $url;
       } else if ($result instanceof WikiSearchResult) {
          return Registry::retrieve('APF\sites\apf', 'WikiBaseURL') . '/' . $result->getLanguage() . '/' . $result->getPageId();
+      } else if ($result instanceof TrackerSearchResult) {
+         return Registry::retrieve('APF\sites\apf', 'TrackerBaseURL') . '/view.php?id=' . $result->getPageId();
       } else {
          /* @var $result ForumSearchResult */
          return Registry::retrieve('APF\sites\apf', 'ForumBaseURL') . '/viewtopic.php?f=' . $result->getForumId() . '&amp;t=' . $result->getTopicId();
@@ -150,6 +160,8 @@ class SearchController extends BaseDocumentController {
          return $urlMan->getPageTitle($result->getPageId(), $result->getLanguage(), $result->getVersionId());
       } else if ($result instanceof WikiSearchResult) {
          return $result->getTitle();
+      } else if ($result instanceof TrackerSearchResult) {
+         return $result->getTitle();
       } else {
          /* @var $result ForumSearchResult */
          return $result->getTitle();
@@ -161,6 +173,8 @@ class SearchController extends BaseDocumentController {
          return '&#xe001;';
       } else if ($result instanceof ForumSearchResult) {
          return '&#xe002;';
+      } else if ($result instanceof TrackerSearchResult) {
+         return '&#xe003;';
       } else {
          return '&#xe000;';
       }

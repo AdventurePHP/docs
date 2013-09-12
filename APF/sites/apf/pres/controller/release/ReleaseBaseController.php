@@ -5,6 +5,7 @@ use APF\core\benchmark\BenchmarkTimer;
 use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
+use APF\sites\apf\biz\APFModel;
 use APF\sites\apf\biz\UrlManager;
 use APF\tools\filesystem\FilesystemManager;
 

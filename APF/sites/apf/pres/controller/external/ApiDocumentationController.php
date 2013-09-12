@@ -1,7 +1,6 @@
 <?php
 namespace APF\sites\apf\pres\controller\external;
 
-use APF\tools\filesystem\FilesystemManager;
 use APF\sites\apf\pres\controller\release\ReleaseBaseController;
 
 /**
