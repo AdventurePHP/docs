@@ -1,80 +1,309 @@
-<doku:title parent="071" tags="tutorials,eigene webseite,erste webseite,einsteiger" title="Erstellen einer Webseite" urlname="Webseite-erstellen">
-  Das Tutorial 'Webseite erstellen' zeigt, wie einfach eine Webseite mit dem Framework aufgebaut
+<doku:title parent="071" tags="tutorial,web seite,webseite,einsteiger" title="Erstellen einer Webseite" urlname="Webseite-erstellen">
+  Das vorliegende Tutorial 'Webseite erstellen' zeigt, wie einfach eine Webseite mit dem Framework aufgebaut
   werden kann. In weiterführenden Kapiteln beschreibt der Autor, wie dynamische Inhalte in der
   Seite angezeigt werden können.
 </doku:title>
 <h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
-Das vorliegende Tutorial soll aufbauend auf den Ausführungen in den <int:link pageid="013" />
-zeigen, wie auf einfache Weise eine Webseite mit den Mitteln des Adventure PHP Frameworks erstellt
-werden kann. Um die Anleitung einfach zu gestalten wird von einem aufwändigen Design Abstand
-genommen.
+<p>
+   Das Adventure PHP Framework versteht sich als Hilfe zur Erstellung von Web-Seiten und -Applikationen. Dieses Tutorial
+   zeigt Ihnen basierend auf den Inhalten der Kapitel <int:link pageid="013" />, <int:link pageid="014" /> und
+   <int:link pageid="111" /> Möglichkeiten auf, dynamische Web-Seiten einfach und schnell zu erstellen.
+</p>
 
 <h3 id="Chapter-2-Anforderungen"><a href="#Chapter-2-Anforderungen">2. Anforderungen</a></h3>
 <p>
-   Die zu erstellende Webseite soll Platz für ein Key-Visual, einen Header-Bereich, ein Menü
-   und einen Bereich für den Inhalt und einen Footer bieten. Im Content-Bereich soll dynamischer
-   Inhalt abhängig von einem URL-Parameter angezeigt werden. Grafisch betrachtet soll die Seite
-   dann folgendes Aussehen haben:
+   Um Ihnen die Erstellung einer Web-Seite und die Implementierung der zugehörigen Komponenten an konkreten Code-Beispielen
+   erläutern zu können, definieren wir zunächst Anforderungen an die zu erstellende Web-Seite.
 </p>
-<img src="http://media.adventure-php-framework.org/content/tutorial_webseiteerstellen_design_webseite.png" style="width: 560px;" alt="Meine erste Webseite mit dem Adventure PHP Framework" />
+<p>
+   Diese soll über folgende drei Bereiche verfügen:
+</p>
+<ul>
+   <li>
+      <strong>Header:</strong>
+      Im Header-Bereich der Seite ist das Logo und die Navigation zu finden. Die Navigation kann aus einer beliebigen
+      Anzahl an Navigations-Punkten bestehen - jedoch nur soviele das Design zulässt.
+   </li>
+   <li>
+      <strong>Inhalts-Bereich:</strong>
+      Der Inhalts-Bereich erstreckt sich über die gesammte Breite der Seite und kann eine beliebige Höhe - je nach
+      Menge der Inhalte - einnehmen.
+   </li>
+   <li>
+      <strong>Footer:</strong>
+      Im unteren Bereich der Seite befinden sich allgemeine Inhalte und Verweise (z.B. Impressum). Der dort präsentierte
+      Inhalt ist für alle Seiten gleich.
+   </li>
+</ul>
+<p>
+   Die Anordnung der genannten Bereiche soll der folgenden Darstellung genügen:
+</p>
+<img src="http://media.adventure-php-framework.org/content/Web-Seite-erstellen-Tutorial.png" alt="Tutorial: Web-Seite mit dem Adventure PHP Framework erstellen" />
+<p>
+   Logo und Navigation sind auf gleicher Höhe im Header-Bereich verortet. Inhalts- und Footer-Bereich erstrecken sich
+   über die gesamte Breite und nehmen jeweils den Platz ein, den die Inhalte hinsichtlich ihrer Höhe benötigen.
+</p>
+<div class="hint">
+   Dieses Tutorial legt den Fokus auf die technische Implementierung einer Webseite mit dem APF. Details zur Erstellung
+   und Verwendung von CSS werden bewusst ausgeklammert.
+</div>
 
-<h3 id="Chapter-3-Installation-Konfiguration"><a href="#Chapter-3-Installation-Konfiguration">3. Installation und Konfiguration</a></h3>
-An dieser Stelle geht der Autor davon aus, dass der Leser lediglich ein <em>Code-Pack</em> (Pakete mit
-dem Namen <strong>apf-codepack-*.[zip | tar.gz | tar.bz2]</strong>) auf der
-<int:link pageid="008">Download-Seite</int:link> bezogen hat. Diese Pakete beinhalten
-den Quellcode des Frameworks, die Strukturen einer Webseite bzw. die Konfigurationen werden nicht
-mitgeliefert. Nun muss das Paket in einen beliebigen Ordner unterhalb des DocumentRoot des lokalen
-Webservers entpackt werden. Um eine einheitliche Sprechweise zu haben, soll dieser Ordner
-<strong>apps/</strong> genannt werden. Aus Gründen der Übersichtlichkeit wird der Ordner
-<strong>apps/</strong> in einen Ordner <strong>testwebsite/</strong>, der unter dem DocumentRoot des
-Webservers erstellt wurde verschoben werden. Als weitere Schritte müssen nun die Strukturen
-für die Webseite generiert und die nach <int:link pageid="013" />
-notwenigen Konfigurationsdateien erstellt werden. Dazu ist folgende Vorgehensweise ratsam:
-<br />
-<br />
-<br />
-<h4 id="Chapter-3-1-Ordner-Struktur"><a href="#Chapter-3-1-Ordner-Struktur">3.1. Ordner-Struktur der Webseite erstellen</a></h4>
-Hierzu soll unter <strong>testwebsite/apps/</strong> die Struktur
-<br />
+<h3 id="Chapter-3-Die-Basis"><a href="#Chapter-3-Die-Basis">3. Die Basis</a></h3>
+<p>
+   Um eine Web-Seite mit dem APF zu erstellen müssen zunächst einige Basis-Arbeiten vorgenommen werden. Diese umfassen
+   die Installation und Konfiguration des Frameworks sowie das Erstellen einer Ordner- bzw. Namespace-Struktur. Die
+   folgenden Kapitel zeigen Ihnen, wie Sie das Basis-Setup schnell und einfach erledigen können.
+</p>
+
+<h4 id="Chapter-3-1-Installation-und-Konfiguration"><a href="#Chapter-3-1-Installation-und-Konfiguration">3.1. Installation und Konfiguration</a></h4>
+<p>
+   Erstellen Sie zunächst mit der IDE Ihrer Wahl (das <int:link pageid="149" /> empfiehlt <int:link pageid="131">PHPStorm</int:link>).
+   Basierend auf dem Empfehlungen in Kapitel <int:link pageid="111" anchor="Chapter-4-Installation" /> erstellen wir
+   darin zunächst die grundlegende Ordner-Struktur:
+</p>
 <gen:highlight type="code">
-sites/
-      testwebsite/
-                  pres/
-                       templates/
-                       documentcontroller/
+/APF
+/htdocs
+       /images
+       /css
+       /js
 </gen:highlight>
 <p>
-   erstellt werden. Diese dient später zur strukturierten Aufnahme der Template- und Controller-
-   Dateien der Webseite.
+   <em>APF</em> nutzen wir im Anschluss für die Installation des Frameworks. Der Ordner ist aus Sicherheitsgründen nicht
+   über HTTP erreichbar. In <em>htdocs</em> legen wir alle von aussen erreichbare Inhalte wie die Boostrap-Datei, Bilder,
+   CSS- und Java-Script-Dateien.
+</p>
+<p>
+   Zur Installation des Adventure PHP Framework laden Sie sich die Dateien <em>apf-codepack-*</em> und
+   <em>apf-configpack-*</em> unter <int:link pageid="008"/> herunter und endpacken diese in das Verzeichnis <em>APF</em>.
+   Die Ordner-Struktur ergänzt sich damit wie folgt:
+</p>
+<gen:highlight type="code">
+/APF
+    /config
+    /core
+    /extensions
+    /modules
+    /tools
+/htdocs
+       /images
+       /css
+       /js
+</gen:highlight>
+<p>
+   Im Ordner <em>config</em> finden Sie Beispiel-Konfigurationen, die wir später als Basis nutzen werden, die übrigen
+   Ordner beinhalten die Code-Basis des Frameworks.
 </p>
 
-<h4 id="Chapter-3-2-Bootstrap-Datei"><a href="#Chapter-3-2-Bootstrap-Datei">3.2. Bootstrap-Datei anlegen</a></h4>
+<h4 id="Chapter-3-2-Erstellen-der-Applikations-Struktur"><a href="#Chapter-3-2-Erstellen-der-Applikations-Struktur">3.2. Erstellen der Applikations-Struktur</a></h4>
 <p>
-   Da das Framework für die Verwendung einer zentralen Bootstrap-Datei konzipiert wurde, über
-   die alle Requests der Besucher abgehandelt werden, muss diese nun im Ordner <strong>testwebsite/</strong>
-   angelegt werden. Der Inhalt der Datei kann aus der aktuellen <strong>index.php</strong> der
-   Dokumentationswebseite kopiert und wie folgt angepasst werden. Der Einfachheit wegen wird auf die
-   Verwendung des FrontControllers verzichtet, da auch dies die Handhabung für den Einsteiger
-   erleichtert.
+   Analog zur Ordner-Struktur des APF erstellen wir nun einen eigenen Bereich in dem die Code-Dateien der Webseite
+   abgelegt werden. Die Ordner-Struktur erweitert sich damit wie folgt:
+</p>
+<gen:highlight type="code">
+/APF
+    /config
+    /core
+    /extensions
+    /modules
+    /tools
+/PAGE
+/htdocs
+       /images
+       /css
+       /js
+</gen:highlight>
+<p>
+   Im Ordner <em>PAGE</em> werden in den folgenden Kapitel alle Bestandteile der Web-Seite abgelegt. Das Kapitel
+   <int:link pageid="154" anchor="Chapter-3-StandardClassLoader" /> beschreibt die Möglichkeit, Komponenten des Frameworks
+   von dem Elementen Ihrer Applikation zu trennen. Dazu definieren wir einen eigenen <em>Hersteller</em> (<em>Vendor</em>)
+   mit dem Namen <em>PAGE</em>, für den ein separater <em>StandardClassLoader</em> konfiguriert wird. Dieser verweist
+   auf das Verzeichnis <em>/PAGE</em> statt auf <em>/APF</em>.
+</p>
+<p>
+   Innerhalb der Applikation werden wir in den nachfolgenden Kapiteln eigene Templates und Controller erstellen. Hierzu
+   legen wir schon jetzt eine entsprechende Struktur an:
+</p>
+<gen:highlight type="code">
+/APF
+    /config
+    /core
+    /extensions
+    /modules
+    /tools
+/PAGE
+     /controller
+     /templates
+/htdocs
+       /images
+       /css
+       /js
+</gen:highlight>
+
+<h4 id="Chapter-3-3-Erstellen-der-Bootstrap-Datei"><a href="#Chapter-3-3-Erstellen-der-Bootstrap-Datei">3.3. Erstellen der Bootstrap-Datei</a></h4>
+<p>
+   Das APF wurde für die Verwendung einer zentralen Bootstrap-Datei konzipiert über die alle Anfragen entgegen genommen
+   und bearbeitet werden. Dies vereinfacht nicht nur die Implementierung, sondern sorgt auch dafür, dass es nur einen
+   zentralen Einstiegspunkt in Ihre Applikation gibt, der mit entsprechenden Maßnahmen abgesichert werden kann.
+</p>
+<p>
+   Den Aufbau einer einfachen <em>index.php</em> ist unter <int:link pageid="013" anchor="Chapter-5-1-Aufbau-der-Bootstrap-Datei" />
+   beschrieben. Wir nutzen den dort aufgeführten Code-Block und füllen die im Ordner <em>htdocs</em> erstellte Datei
+   <em>index.php</em> mit einem leicht angepassten Inhalt:
 </p>
 <gen:highlight type="php">
-// Page-Controller einbinden (APF-Core-Library)
-include_once('./apps/core/pagecontroller/pagecontroller.php');
+include('../APF/core/bootstrap.php');
 
-// Front-Controller einbinden
-import('core::frontcontroller', 'Frontcontroller');
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
 
-// Front-Controller erzeugen und konfigurieren
-$fC = &Singleton::getInstance('Frontcontroller');
-$fC->setContext('projectone');
-
-// Request-Abarbeitung starten und Ergebnis zum Client senden
-echo $fC->start('sites::testwebsite::pres::templates', 'website');
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+echo $fC->start('...', '...');
 </gen:highlight>
 <p>
-   In der Code-Darstellung sind bereits implizit weitere Vereinbarungen über die Struktur des
-   Codes enthalten, die die weiteren Schritte beeinflussen.
+   Standardmäßig wird nur ein <em>ClassLoader</em> für den Hersteller <em>APF</em> registriert. Da wir beabsichtigen,
+   Framework-Code von Applikations-Code zu trennen, ist es notwendig für den Hersteller <em>PAGE</em> einen eigenen
+   <em>StandardClassLoader</em> zu konfigurieren und zu registrieren:
 </p>
+<gen:highlight type="php">
+include('../APF/core/bootstrap.php');
+
+use APF\core\loader\RootClassLoader;
+use APF\core\loader\StandardClassLoader;
+
+$classLoader = new StandardClassLoader('PAGE', '../PAGE');
+RootClassLoader::addLoader($classLoader);
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+echo $fC->start('...', '...');
+</gen:highlight>
+<p>
+   Wie im Kapitel <int:link pageid="154" /> beschrieben lässt sich durch die Registrierung eines eigenen <em>ClassLoader</em>
+   nicht nur eine Trennung des Codes, sondern auch eine Trennung der Konfiguration erreichen. Hinweise hierzu entnehmen
+   Sie bitte den folgenden Kapiteln.
+</p>
+
+<h4 id="Chapter-3-4-Erstellen-des-Master-Templates"><a href="#Chapter-3-4-Erstellen-des-Master-Templates">3.4. Erstellen des Master-Templates</a></h4>
+<p>
+   Als letzten Schritt der Basis-Konfiguration erstellen wir noch ein Master-Template, das den Einstieg in die Applikation
+   darstellt. Dieses legen wir im Ordner <em>/PAGE/templates</em> ab und vergeben den Namen <em>main.html</em>. Als
+   initialen Inhalt können Sie gerne einen einfachen Text wählen, dies ist jedoch nicht zwingend notwendig.
+</p>
+<p>
+   Unsere <em>index.php</em> komplettiert sich damit wie folgt:
+</p>
+<gen:highlight type="php">
+include('../APF/core/bootstrap.php');
+
+use APF\core\loader\RootClassLoader;
+use APF\core\loader\StandardClassLoader;
+
+$classLoader = new StandardClassLoader('PAGE', '../PAGE');
+RootClassLoader::addLoader($classLoader);
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+echo $fC->start('PAGE\templates', 'main');
+</gen:highlight>
+<p>
+   Rufen Sie die Bootstrap-Seite nun in Ihrem Browser auf, so sehen Sie entweder eine weiße Seite oder den entsprechenden
+   Inhalt. Basis-Installation und -Konfiguration sind nun abgeschlossen.
+</p>
+
+<h3 id="Chapter-4-Erstellen-der-Web-Seiten-Struktur"><a href="#Chapter-4-Erstellen-der-Web-Seiten-Struktur">4. Erstellen der Web-Seiten-Struktur</a></h3>
+<p>
+   Gemäß den in <a href="#Chapter-2-Anforderungen">Kapitel 2</a> beschriebenen Anforderungen besteht die Webseite aus
+   drei Bereichen: Header, Inhalts-Bereich und Footer. In den folgenden Kapitel legen wir nun Schritt für Schritt die
+   notwendigen Templates und deren Inhalte an.
+</p>
+
+<h4 id="Chapter-4-1-Basis-Template"><a href="#Chapter-4-1-Basis-Template">4.1. Basis-Template</a></h4>
+<p>
+   Das Basis-Template <em>main.html</em> gibt neben dem zentralen Einstiegspunkt in die Applikation auch die Basis-Struktur
+   der Web-Seite oder Anwendung vor. Aus diesem Grund sehen wir darin die oben genannten Bereiche in der HTML-Struktur vor:
+</p>
+<gen:highlight type="apf-xml">
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Meine Web-Seite</title>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+      <script type="text/javascript" src="/js/scripts.js"></script>
+   </head>
+   <body>
+      <header>
+         <img src="/images/header-logo.png" alt="Meine Web-Seite" />
+         <nav>
+            ...
+         </nav>
+      </header>
+      <section id="content">
+         ...
+      </section>
+      <footer>
+         ...
+      </footer>
+   </body>
+</html>
+</gen:highlight>
+<p>
+   Im Bereich des <em>&lt;nav /&gt;</em>-Tags soll später die Navigation angezeigt werden, <em>&lt;section id="content"/>&gt;</em>
+   zeigt den Inhalt an und im <em>&lt;footer /&gt;</em> wird der Footer präsentiert.
+</p>
+<p>
+   In den folgenden Kapitel werden diese Bereiche mit Inhalten gefüllt, die Erstellung des Basis-Templates ist damit
+   abgeschlossen.
+</p>
+
+<h4 id="Chapter-4-2-URL-Struktur"><a href="#Chapter-4-2-URL-Struktur">4.2. URL-Struktur</a></h4>
+<!--
+   ... noch in's Reine schreiben!
+-->
+<p>
+   Bevor wie die Inhalts-Bereiche füllen, müssen wir uns noch Gedanken über eine wichtige Sache machen: URL-Struktur
+   und was wir darin abbilden möchten.
+</p>
+<p>
+   In den Anforderungen sehen wir hier lediglich, dass dynamische Inhalte angezeigt werden sollen. Dies können wir
+   sehr einfach über einen Parameter zur Unterscheidung der Seiten tun: <em>page</em>. Ist der URL-Parameter vorhanden
+   soll die damit referenzierte Seite geladen werden, falls nicht, soll die Startseite angezeigt werden.
+</p>
+<p>
+   Diese Struktur bzw. diese Vereinbarung werden wir nun im Content-Bereich nutzen um den jeweils gewünschten Inhalt
+   anzuzeigen. Um das Tutorial nicht zu sehr kompliziert zu machen, nutzen wir ein Standard-URL-Layout, das vom
+   APF komplett unterstützt wird (Details siehe <int:link pageid="069" anchor="Chapter-3-1-Standard-URLs"/>).
+</p>
+
+<h4 id="Chapter-4-3-Header"><a href="#Chapter-4-3-Header">4.3. Header</a></h4>
+<p>
+
+</p>
+
+<h4 id="Chapter-4-4-Footer"><a href="#Chapter-4-4-Footer">4.4. Footer</a></h4>
+<p>
+
+</p>
+
+<h3 id="Chapter-5-Anzeige-von-dynamischen-Inhalten"><a href="#Chapter-5-Anzeige-von-dynamischen-Inhalten">5. Anzeige von dynamischen Inhalten</a></h3>
+<p>
+
+</p>
+
+
+
+
+
+
+
+
+
+<hr />
 
 <h4 id="Chapter-3-3-Template-Dateien"><a href="#Chapter-3-3-Template-Dateien">3.3. Template-Dateien anlegen</a></h4>
 Wie im Code-Ausschnitt der <em>index.php</em> bereits festgelegt wurde, soll das zentrale Template
