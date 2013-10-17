@@ -2,8 +2,8 @@
 namespace APF\thirdparty\statistics\biz;
 
 use APF\core\benchmark\BenchmarkTimer;
-use APF\core\session\Session;
 use APF\core\pagecontroller\APFObject;
+use APF\core\session\Session;
 use APF\core\singleton\Singleton;
 use APF\thirdparty\statistics\data\ReportingStatMapper;
 use APF\thirdparty\statistics\data\StatMapper;
@@ -205,6 +205,10 @@ class StatManager extends APFObject {
       return $return;
    }
 
+   private function getUserAgent() {
+      return isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'n/a';
+   }
+
    /**
     * @public
     *
@@ -240,8 +244,10 @@ class StatManager extends APFObject {
          'Linux' => 'Linux'
       );
 
+      $userAgent = $this->getUserAgent();
+
       foreach ($osTable as $key => $value) {
-         if (substr_count($_SERVER['HTTP_USER_AGENT'], $key) > 0) {
+         if (substr_count($userAgent, $key) > 0) {
             $os = $value;
             break;
          }
@@ -274,6 +280,8 @@ class StatManager extends APFObject {
          'Konqueror' => '[BROWSER] Konqueror',
          'Konqueror/3.4' => '[BROWSER] Konqueror 3.4',
          'Konqueror/3.3' => '[BROWSER] Konqueror 3.3',
+         'MSIE 11' => '[BROWSER] Internet Explorer 11',
+         'MSIE 10' => '[BROWSER] Internet Explorer 10',
          'MSIE 9' => '[BROWSER] Internet Explorer 9',
          'MSIE 8' => '[BROWSER] Internet Explorer 8',
          'MSIE 7' => '[BROWSER] Internet Explorer 7',
@@ -288,11 +296,6 @@ class StatManager extends APFObject {
          'Opera/9' => '[BROWSER] Opera 9',
          'Opera/8' => '[BROWSER] Opera 8',
          'Opera' => '[BROWSER] Opera',
-         'Firefox/8' => '[BROWSER] Firefox 8',
-         'Firefox/7' => '[BROWSER] Firefox 7',
-         'Firefox/6' => '[BROWSER] Firefox 6',
-         'Firefox/5' => '[BROWSER] Firefox 5',
-         'Firefox/4' => '[BROWSER] Firefox 4',
          'Firefox/3' => '[BROWSER] Firefox 3',
          'Firefox/2' => '[BROWSER] Firefox 2',
          'Firefox' => '[BROWSER] Firefox',
@@ -343,21 +346,23 @@ class StatManager extends APFObject {
 
       $browser = '';
 
-      foreach ($browserTable as $Key => $Value) {
-         if (substr_count($_SERVER['HTTP_USER_AGENT'], $Key) > 0) {
-            $browser = $Value;
+      $userAgent = $this->getUserAgent();
+
+      foreach ($browserTable as $key => $value) {
+         if (substr_count($userAgent, $key) > 0) {
+            $browser = $value;
             break;
          }
       }
-      foreach ($botTable as $Key => $Value) {
-         if (substr_count($_SERVER['HTTP_USER_AGENT'], $Key) > 0) {
-            $browser = $Value;
+      foreach ($botTable as $key => $value) {
+         if (substr_count($userAgent, $key) > 0) {
+            $browser = $value;
             break;
          }
       }
 
       if (empty($browser) || $browser == ' ') {
-         $browser = $_SERVER['HTTP_USER_AGENT'];
+         $browser = $userAgent;
       }
 
       return $browser;
