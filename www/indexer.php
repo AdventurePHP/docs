@@ -18,10 +18,12 @@ $stdWriter = $l->getLogWriter(
    Registry::retrieve('APF\core', 'InternalLogTarget')
 );
 $l->addLogWriter('fulltextsearchindexer', clone $stdWriter);
+$l->addLogWriter('mysqli', clone $stdWriter);
 $l->addLogWriter('mysqlx', clone $stdWriter);
+$l->addLogWriter('searchlog', clone $stdWriter);
 
 // configure page values (to avoid rendering errors during index creation!)
-Registry::register('APF\sites\apf', 'Releases.LocalDir', 'D:/Entwicklung/Dokumentation/Build/RELEASES');
+Registry::register('APF\sites\apf', 'Releases.LocalDir', 'C:/Users/Christian/Entwicklung/Build/RELEASES');
 Registry::register('APF\sites\apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
 Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
 Registry::register('APF\sites\apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
