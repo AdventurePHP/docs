@@ -29,6 +29,7 @@ $defaultWriter = $l->getLogWriter(
    Registry::retrieve('APF\core', 'InternalLogTarget')
 );
 $l->addLogWriter('mysqlx', clone $defaultWriter);
+$l->addLogWriter('mysqli', clone $defaultWriter);
 $l->addLogWriter('searchlog', clone $defaultWriter);
 
 // configure url rewriting feature
@@ -54,6 +55,7 @@ Registry::register('APF\sites\apf', 'Releases.LocalDir', '...');
 Registry::register('APF\sites\apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
 Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
 Registry::register('APF\sites\apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
+Registry::register('APF\sites\apf', 'TrackerBaseURL', 'http://tracker.adventure-php-framework.org');
 
 // special script kiddie error handler ;)
 use APF\sites\apf\biz\errorhandler\LiveErrorHandler;
