@@ -2,7 +2,8 @@
 namespace APF\sites\apf\pres\controller\quicknavi;
 
 use APF\core\pagecontroller\BaseDocumentController;
-use APF\core\registry\Registry;
+use APF\tools\link\LinkGenerator;
+use APF\tools\link\Url;
 
 /**
  * @package APF\sites\apf\pres\controller\quicknavi
@@ -17,8 +18,7 @@ use APF\core\registry\Registry;
 class SocialBookmarkBarController extends BaseDocumentController {
 
    public function transformContent() {
-      $currentUrl = Registry::retrieve('APF\core', 'CurrentRequestURL');
-      $this->setPlaceHolder('currentUrl', $currentUrl);
+      $this->setPlaceHolder('currentUrl', LinkGenerator::generateUrl(Url::fromCurrent(true)));
    }
 
 }
