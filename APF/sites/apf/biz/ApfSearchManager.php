@@ -146,7 +146,9 @@ ORDER BY p.`post_time` DESC';
 
       $postIds = array();
       while ($data = $conn->fetchData($result)) {
-         $postIds[] = $data['post_id'];
+         if(!empty($data['post_id'])){
+            $postIds[] = $data['post_id'];
+         }
       }
 
       // only go ahead if we have matching posts
