@@ -42,20 +42,8 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     */
    protected $releasesBaseURL = null;
 
-   /**
-    * @var boolean Indicates, whether to display the PHP4 files of the release.
-    */
-   protected $displayPHP4Files = false;
-
-   /**
-    * @var boolean Indicates, whether to display the PHP5 files of the release.
-    */
-   protected $displayPHP5Files = true;
-
-   private static $PHP4_RELEASE_FILE_INDICATOR = '-php4';
    private static $PHP5_RELEASE_FILE_INDICATOR = '-php5';
    private static $NOARCH_RELEASE_FILE_INDICATOR = '-noarch';
-   private static $PERFCODE_RELEASE_FILE_INDICATOR = '-perfcodepack';
    private static $CODE_RELEASE_FILE_INDICATOR = '-codepack';
 
    private static $SNAPSHOT_RELEASE_FOLDER_NAME = 'snapshot';
@@ -136,8 +124,6 @@ abstract class ReleaseBaseController extends BaseDocumentController {
 
       $return = 0;
 
-      //echo '<br />"'.$OffsetOne.'" | "'.$OffsetTwo.'" | Ergebnis:';
-
       if (substr_count($offsetOne, '-') > 0 && substr_count($offsetTwo, '-') > 0) {
 
          $dashPosOneValue = strpos($offsetOne, '-');
@@ -147,9 +133,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
 
          if ($offsetOneValue == $offsetTwoValue) {
 
-            /*echo */
             $OffsetOneSecondValue = substr($offsetOne, $dashPosOneValue + 1);
-            /*echo ':'.*/
             $OffsetTwoSecondValue = substr($offsetTwo, $dashPosTwoValue + 1);
 
             $IdenticalValuesArray = array();
@@ -177,9 +161,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
 
          if ($offsetOneValue == $offsetTwoValue) {
 
-            /*echo */
             $OffsetOneSecondValue = substr($offsetOne, $dashPosOneValue + 1);
-            /*echo ':'.*/
             $OffsetTwoSecondValue = $offsetTwo;
 
             $IdenticalValuesArray = array();
@@ -240,7 +222,12 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     * Version 0.1, 29.12.2009<br />
     */
    public static function normalizeVersionNumber($version) {
+      $version = preg_replace('/[A-Za-z\-]/', '', $version);
       $version = str_replace('.', '', $version);
+      $length = strlen($version);
+      if ($length < 3) {
+         $version .= str_repeat('0', 3 - $length);
+      }
       return (int)$version;
    }
 
@@ -262,14 +249,6 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       $templateReleaseHead = & $this->getTemplate('ReleaseHead');
       $templateReleaseFile = & $this->getTemplate('ReleaseFile');
 
-      // gather version -------------------------------------------------------------------------
-      $dashOffset = strpos($releaseNumber, '-');
-      if ($dashOffset !== false) {
-         $rawVersion = substr($releaseNumber, 0, $dashOffset);
-      } else {
-         $rawVersion = $releaseNumber;
-      }
-      $version = ReleaseBaseController::normalizeVersionNumber($rawVersion);
       // ----------------------------------------------------------------------------------------
 
       // fill release number
@@ -286,24 +265,11 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       $files = $this->filterFiles($files);
 
       // fill offline documentation
-      //echo '<br />$version: '.$version.', raw: '.$rawVersion.', $releaseNumber: '.$releaseNumber;
-      if ($version > 110) {
-         $docsFolder = 'docs';
-      } elseif ($version == 110 && substr_count($releaseNumber, 'RC') == 0) {
-         $docsFolder = 'docs';
-      } elseif ($version == 110 && substr_count($releaseNumber, 'RC') > 0) {
-         $docsFolder = 'doku';
-      } else {
-         $docsFolder = 'doku';
-      }
+      $docsFolder = 'docs';
       $dokuFiles = FilesystemManager::getFolderContent($this->releasesLocalDir . '/' . $releaseNumber . '/' . $docsFolder);
 
       // choose new template for versions > 1.10
-      if ($version >= 110) {
-         $templateOfflineDoku = & $this->getTemplate('OfflineDoku_110');
-      } else {
-         $templateOfflineDoku = & $this->getTemplate('OfflineDoku');
-      }
+      $templateOfflineDoku = & $this->getTemplate('OfflineDoku');
 
       $templateOfflineDoku->setPlaceHolder('ReleaseVersion', $releaseNumber);
       $bufferOfflineDoku = (string)'';
@@ -311,59 +277,6 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       for ($k = 0; $k < count($dokuFiles); $k++) {
 
          if (!is_dir($this->releasesLocalDir . '/' . $releaseNumber . '/' . $docsFolder . '/' . $dokuFiles[$k])) {
-
-            if ($version >= 110) {
-
-               if ($this->language == 'de') {
-                  $libType = 'Gepackte HTML-Seiten';
-                  $dokuType = 'Komplette Dokumentation';
-               } else {
-                  $libType = 'Packed html files';
-                  $dokuType = 'Complete docs';
-               }
-
-            } else {
-
-               // gather file type
-               switch (substr($dokuFiles[$k], strrpos($dokuFiles[$k], '.') + 1)) {
-
-                  case 'chm':
-                     $libType = 'chm';
-                     break;
-                  default:
-                     $libType = 'html + zip';
-                     break;
-
-               }
-
-               // gather docu type
-               if (substr_count($dokuFiles[$k], '-core-') > 0) {
-
-                  if ($this->language == 'de') {
-                     $dokuType = 'Core';
-                  } else {
-                     $dokuType = 'core';
-                  }
-
-               } elseif (substr_count($dokuFiles[$k], '-modules-') > 0) {
-
-                  if ($this->language == 'de') {
-                     $dokuType = 'Modules';
-                  } else {
-                     $dokuType = 'module';
-                  }
-
-               } else {
-
-                  if ($this->language == 'de') {
-                     $dokuType = 'Tools';
-                  } else {
-                     $dokuType = 'tool';
-                  }
-
-               }
-
-            }
 
             // extract build date
             preg_match('/-([0-9]{2}\.[0-9]{2}\.[0-9]{4})-/', $dokuFiles[$k], $matches);
@@ -386,16 +299,10 @@ abstract class ReleaseBaseController extends BaseDocumentController {
 
             }
 
-            if ($version < 110) {
-               $templateOfflineDoku->setPlaceHolder('LibType', $libType);
-               $templateOfflineDoku->setPlaceHolder('DokuType', $dokuType);
-            }
             $templateOfflineDoku->setPlaceHolder('BuildDate', $buildDate);
             $templateOfflineDoku->setPlaceHolder('DokuFileFull', $dokuFiles[$k]);
 
-            if ($version >= 110) {
-               $templateOfflineDoku->setPlaceHolder('DokuFile', $this->getDisplayFileName($dokuFiles[$k]));
-            }
+            $templateOfflineDoku->setPlaceHolder('DokuFile', $this->getDisplayFileName($dokuFiles[$k]));
 
             $templateOfflineDoku->setPlaceHolder('ReleasesBaseURL', $this->releasesBaseURL);
             $bufferOfflineDoku .= $templateOfflineDoku->transformTemplate();
@@ -405,17 +312,14 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       }
 
       // -- check version to be greater than 1.10, than display only one online api doku
-      if ($version >= 110) {
-         $templateDocumentation = & $this->getTemplate('Documentation_new');
-         $templateDocumentation->setPlaceHolder('DocsFolder', $docsFolder);
-      } else {
-         $templateDocumentation = & $this->getTemplate('Documentation');
-      }
+      $templateDocumentation = & $this->getTemplate('Documentation');
+      $templateDocumentation->setPlaceHolder('DocsFolder', $docsFolder);
+
       $templateDocumentation->setPlaceHolder('ReleaseVersion', $releaseNumber);
       $templateDocumentation->setPlaceHolder('OfflineDoku', $bufferOfflineDoku);
       $templateDocumentation->setPlaceHolder('ReleasesBaseURL', $this->releasesBaseURL);
 
-      // Generate changeset link. This is a link on the changeset page with the current
+      // Generate change-set link. This is a link on the change-set page with the current
       // release as it's param.
       $config = $this->getConfiguration('APF\sites\apf\pres', 'labels.ini');
       $title = $config->getSection($this->getLanguage())->getValue('downloads.changeset.text.linktext');
@@ -444,7 +348,6 @@ abstract class ReleaseBaseController extends BaseDocumentController {
 
             // gather file attributes
             $fileAttributes = FilesystemManager::getFileAttributes($this->releasesLocalDir . '/' . $releaseNumber . '/download/' . $files[$j]);
-            //echo printObject($FileAttributes);
 
             // fill template
             $templateReleaseFile->setPlaceHolder('Link', $this->releasesBaseURL . '/' . $releaseNumber . '/download/' . $files[$j]);
@@ -506,12 +409,6 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     * @private
     *
     * Filters the given list of files to contain only the desired branch files.
-    * In order to decide, which branch to display, adjust the
-    * <ul>
-    * <li>$this->displayPHP4Files</li>
-    * <li>$this->displayPHP5Files</li>
-    * </ul>
-    * properties within the derived classes.
     *
     * @param string[] $files The full file list.
     * @return string[] The filtered file list.
@@ -524,34 +421,18 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       $filteredList = array();
 
       foreach ($files as $file) {
-         //echo '<br />'.$file;
-
-         // disallow perfcode packages
-         if (substr_count($file, self::$PERFCODE_RELEASE_FILE_INDICATOR) > 0) {
-            continue;
-         }
 
          // allow noarch files
          if (substr_count($file, self::$NOARCH_RELEASE_FILE_INDICATOR) > 0) {
-            //echo ' -> yes';
-            $filteredList[] = $file;
-            continue;
-         }
-
-         // allow PHP4 files
-         if (substr_count($file, self::$PHP4_RELEASE_FILE_INDICATOR) > 0 && $this->displayPHP4Files === true) {
-            //echo ' -> yes';
             $filteredList[] = $file;
             continue;
          }
 
          // allow PHP5 files
-         if (substr_count($file, self::$PHP5_RELEASE_FILE_INDICATOR) > 0 && $this->displayPHP5Files === true) {
-            //echo ' -> yes';
+         if (substr_count($file, self::$PHP5_RELEASE_FILE_INDICATOR) > 0) {
             $filteredList[] = $file;
             continue;
          }
-
       }
 
       return $filteredList;
@@ -577,7 +458,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
    /**
     * @private
     *
-    * Wrapps the content of the releases with a div, that is used to
+    * Wraps the content of the releases with a div, that is used to
     * style the tables.
     *
     * @param string $content The release file content (table of files, docs, etc).
@@ -590,10 +471,10 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       $this->setPlaceHolder(
          'Content',
             '<div id="DownloadFiles">'
-                  . PHP_EOL
-                  . $content
-                  . PHP_EOL
-                  . '</div>'
+            . PHP_EOL
+            . $content
+            . PHP_EOL
+            . '</div>'
       );
    }
 
