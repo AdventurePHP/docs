@@ -268,7 +268,57 @@ class ProductListController extends BaseDocumentController {
 
 <h3 id="Chapter-4-Controller-creation-via-DI-container"><a href="#Chapter-4-Controller-creation-via-DI-container">4. Controller creation via DI container</a></h3>
 <p>
-   ... to be written ...
+   For more complex use cases document controllers can also be created with the
+   <int:link pageid="107" anchor="Chapter-4-DIServiceManager">DIServiceManager</int:link>. This offers a lot of advantages
+   compared to the classic approach:
+</p>
+<ul>
+    <li>
+       Dependent objects (e.g. business services, domain objects) can be configured easily and applied to the controller.
+       This avoids redundant code and improves testability of the controller since the implementation no longer defines
+       explicit code-based dependencies.
+    </li>
+    <li>
+       Using static and dynamic configuration facilities of an <em>APFDIService</em> controllers can be configured
+       easily for different use cases. A controller's behaviour can therefor be influenced by a simple configuration
+       parameter and can thus be re-used within different applications.
+    </li>
+</ul>
+<p>
+   In order to create controllers via the <em>DIServiceManager</em> an adaption of the controller declaration is
+   necessary. Here, the implementation is no longer referred to by the <em>class</em> attribute but using a service
+   declaration:
+</p>
+<gen:highlight type="apf-xml">
+<@controller
+   namespace="APF\sites\controller"
+   service="ContactController"
+@>
+</gen:highlight>
+<p>
+   The <em>namespace</em> attribute names the namespace of the service definition, <em>service</em> declares the
+   service definition that contains the document controller. Details on addressing services can be taken from chapter
+   <int:link pageid="107" anchor="Chapter-4-3-2-Service-definition" />.
+</p>
+<p>
+   In order to use the service declaration please create a service configuration accordingly. Details on the scheme of
+   service configurations can be read about in section
+   <int:link pageid="107" anchor="Chapter-4-3-Configuration">Configuration</int:link>.
+</p>
+<p>
+   The following code box contains a sample configuration that applies a static parameter to the controller
+   (<em>E-Mail</em>):
+</p>
+<gen:highlight type="ini">
+[ContactController]
+class = "APF\sites\documentcontroller\ContactController"
+servicetype = "NORMAL"
+conf.email.method = "setEMail"
+conf.email.value = "me@example.com"
+</gen:highlight>
+<p>
+   Further information on using the <em>Dependency Injection Containers</em> is contained in chapter
+   <int:link pageid="107" anchor="Chapter-4-4-Usage">Usage</int:link>.
 </p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_006" />

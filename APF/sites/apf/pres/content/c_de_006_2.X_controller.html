@@ -278,34 +278,56 @@ class ProductListController extends BaseDocumentController {
 
 <h3 id="Chapter-4-Erzeugung-eines-Controllers-ueber-den-DI-Container"><a href="#Chapter-4-Erzeugung-eines-Controllers-ueber-den-DI-Container">4. Erzeugung eines Controllers über den DI-Container</a></h3>
 <p>
-   Ein Documentcontroller kann auch über den DI-Service-Manager erzeugt werden. Dies bietet diverse Vorteile:
+   Für komplexere Anwendungsfälle lassen sich Document-Controller über den
+   <int:link pageid="107" anchor="Chapter-4-DIServiceManager">DIServiceManager</int:link> erzeugen. Dies bietet
+   gegenüber der klassischen Verwendung folgende Vorteile:
 </p>
 <ul>
-    <li>Injizierung von abhängigen Objekten, z.B. Domänenobjekte, die vom Controller abgebildet werden sollen oder Objekte der Businesslogik, die dem Controller Daten zur Verfpgung stellen</li>
-    <li>Übergeben von festen Parametern, um den Controller abhängig von Context und Namespace zu konfigurieren.</li>
+    <li>
+       Abhängige Objekte (z.B. Business-Services, Domänen-Objekte) lassen sich bequem konfigurieren und dem Controller
+       übergeben. Dies vermeidet redundanten Code und erhöht die Testbarkeit des Controllers da die
+       Controller-Implementierung keine explizite Abhängigkeiten definiert.
+    </li>
+    <li>
+       Die Möglichkeit der statischen und dynamischen Konfiguration eines <em>APFDIService</em> lassen sich auch zur
+       Konfiguration eines Document-Controllers nutzen. So lässt sich das Verhalten eines Controller beispielsweise
+       durch einen einfachen Konfigurationsparameter verändern um diesen in unterschiedlichen Applikation einzusetzen.
+    </li>
 </ul>
 <p>
-    Dazu muss das Controller-Tag anders aufgebaut werden. Es wird nun keine Klasse mehr angegeben, sondern der Service-Namespace und der Service-Name.
-    Dazu werden die Attribute <em>namespace</em> und <em>service</em> verwendet:
+   Um einen Controller mit dem <em>DIServiceManager</em> zu erzeugen ist eine angepasste Controller-Deklaration
+   notwendig. Die Implementierung wird dabei nicht mehr direkt über das <em>class</em>-Attribut angegeben, sondern
+   durch einen Verweis auf den zu nutzenden Service:
 </p>
 <gen:highlight type="apf-xml">
-<@controller namespace="APF\sites\documentcontroller" service="ContactController" @>
+<@controller
+   namespace="APF\sites\controller"
+   service="ContactController"
+@>
 </gen:highlight>
 <p>
-    Wir benötigen nun noch eine Konfigurationsdatei für den DI-Service-Manager, in diesem Fall unter <em>config/sites/documentcontroller/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini</em>:
+   Das Attribut <em>namespace</em> referenziert den Namespace der Service-Definition, <em>service</em> zeigt auf die
+   Service-Definition, die den Document-Controller beschreibt. Details zur Adressierung von Services entnehmen Sie
+   bitte dem Kapitel <int:link pageid="107" anchor="Chapter-4-3-2-Service-Definition" />.
+</p>
+<p>
+   Zur Verwendung der Service-Deklaration erstellen Sie bitte eine Service-Konfiguration. Details zum Aufbau von
+   Service-Konfigurationen entnehmen Sie bitte dem Kapitel <int:link pageid="107" anchor="Chapter-4-3-Konfiguration">Konfiguration</int:link>.
+</p>
+<p>
+   Die folgende Code-Box zeigt Ihnen eine Beispiel-Konfiguration, die den Controller mit einem statischen
+   Konfigurations-Parameter (<em>E-Mail</em>) ausstattet:
 </p>
 <gen:highlight type="ini">
 [ContactController]
 class = "APF\sites\documentcontroller\ContactController"
 servicetype = "NORMAL"
 conf.email.method = "setEMail"
-conf.email.value = "me@world.orbit"
+conf.email.value = "me@example.com"
 </gen:highlight>
 <p>
-    In diesem einfachen Beispiel nutzen wir den DI-Service-Manager, um dem Controller mitzuteilen, an welche E-Mail Adresse er das Kontaktformular verschicken soll. Diese muss nun nicht mehr fest in der
-    Klasse des Controllers angegeben oder vom Controller aus einer Konfiguration ausgelesen werden; Stattdessen nutzen wir die Funktionen des DI-Service-Managers.
+   Weitere Informationen zur Nutzung des <em>Dependency Injection Containers</em> finden Sie im Kapitel
+   <int:link pageid="107" anchor="Chapter-4-4-Anwendung">Anwendung</int:link>.
 </p>
-<p>
-    Weitere Informationen zur Konfiguration des DI-Service-Managers und zum injizieren von Objekten finden sich hier: <int:link pageid="107" />.
-</p>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_006"/>
