@@ -66,12 +66,13 @@ final class Url {
    private $path;
    private $query = array();
 
-   public function __construct($scheme, $host, $port, $path, array $query = array()) {
+   public function __construct($scheme, $host, $port, $path, array $query = array(), $anchor = null) {
       $this->scheme = $scheme;
       $this->host = $host;
       $this->port = $port;
       $this->path = $path;
       $this->query = $query;
+      $this->anchor = $anchor;
    }
 
    ...
@@ -89,6 +90,7 @@ final class Url {
          <td>Port</td>
          <td>Path</td>
          <td>Query</td>
+         <td>Anchor</td>
       </tr>
    </thead>
    <tbody>
@@ -98,6 +100,7 @@ final class Url {
          <td>:80</td>
          <td>/news-archive/2011</td>
          <td>?id=123&amp;print=true</td>
+         <td>#my-anchor</td>
       </tr>
    </tbody>
 </table>
@@ -233,6 +236,7 @@ $url = new Url('http', 'example.com', null, '/pages/news', array());
 $url = new Url('http', 'example.com', null, '/pages/news', array('page' => 3));
 $url = new Url(null, null, null, '/pages/news', array('page' => 3));
 $url = new Url(null, null, null, null, array('page' => 3));
+$url = new Url(null, null, null, null, array(), 'my-anchor');
 </gen:highlight>
 <p>
    After creation, the url representation can be manipulated using the methods
@@ -243,6 +247,7 @@ $url = new Url(null, null, null, null, array('page' => 3));
    <li><em>setPort()</em></li>
    <li><em>setPath()</em></li>
    <li><em>setQuery()</em></li>
+   <li><em>setAnchor()</em></li>
    <li><em>mergeQuery()</em></li>
    <li><em>setQueryParameter()</em></li>
    <li><em>resetQuery()</em></li>
@@ -331,6 +336,22 @@ $scheme->setSpecialParameter(true);
 $specialUrl = LinkGenerator::generateUrl(Url::fromCurrent()
             ->setQueryParameter('page', 4), $scheme);
 </gen:highlight>
+<p>
+   In both cases you can add anchors to the generated URL. This can be done by adding the desired value to the current
+   <em>Url</em> instance. Example:
+</p>
+<gen:highlight type="php">
+use APF\tools\link\LinkGenerator;
+use APF\tools\link\Url;
+
+$link = LinkGenerator::generateUrl(
+   Url::fromCurrent()->setAnchor('my-anchor')
+);
+</gen:highlight>
+<div class="warn">
+   Please note that the anchor support is provided by shipped <em>DefaultLinkScheme</em>. In case of a custom implementation
+   anchor support must be included - if desired - accordingly.
+</div>
 
 <h4 id="Chapter-3-3-Generating-action-links"><a href="#Chapter-3-3-Generating-action-links">3.3. Generating action links</a></h4>
 <p>
@@ -423,6 +444,10 @@ $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
       URL that have been added due to the <em>$keepInUrl</em> flag are discarded.
    </p>
 </div>
+<p>
+   Anchor support is also available for action URLs. Please note <a href="#Chapter-3-2-Generating-simple-links">chapter 3.2</a>
+   for details.
+</p>
 
 <h4 id="Chapter-3-4-Configuration-of-link-schemes"><a href="#Chapter-3-4-Configuration-of-link-schemes">3.4. Configuration of link schemes</a></h4>
 <p>

@@ -68,12 +68,13 @@ final class Url {
    private $path;
    private $query = array();
 
-   public function __construct($scheme, $host, $port, $path, array $query = array()) {
+   public function __construct($scheme, $host, $port, $path, array $query = array(), $anchor = null) {
       $this->scheme = $scheme;
       $this->host = $host;
       $this->port = $port;
       $this->path = $path;
       $this->query = $query;
+      $this->anchor = $anchor;
    }
 
    ...
@@ -91,6 +92,7 @@ final class Url {
          <td>Port</td>
          <td>Pfad</td>
          <td>Query</td>
+         <td>Sprungmarke</td>
       </tr>
    </thead>
    <tbody>
@@ -100,6 +102,7 @@ final class Url {
          <td>:80</td>
          <td>/news-archive/2011</td>
          <td>?id=123&amp;print=true</td>
+         <td>#meine-sprungmarke</td>
       </tr>
    </tbody>
 </table>
@@ -239,6 +242,7 @@ $url = new Url('http', 'example.com', null, '/pages/news', array());
 $url = new Url('http', 'example.com', null, '/pages/news', array('page' => 3));
 $url = new Url(null, null, null, '/pages/news', array('page' => 3));
 $url = new Url(null, null, null, null, array('page' => 3));
+$url = new Url(null, null, null, null, array(), 'meine-sprungmarke');
 </gen:highlight>
 <p>
    Nach der Erzeugung der URL-Repräsentation kann diese in beliebiger Weise mit dem Methoden
@@ -249,6 +253,7 @@ $url = new Url(null, null, null, null, array('page' => 3));
    <li><em>setPort()</em></li>
    <li><em>setPath()</em></li>
    <li><em>setQuery()</em></li>
+   <li><em>setAnchor()</em></li>
    <li><em>mergeQuery()</em></li>
    <li><em>setQueryParameter()</em></li>
    <li><em>resetQuery()</em></li>
@@ -343,6 +348,23 @@ $scheme->setSpecialParameter(true);
 $specialUrl = LinkGenerator::generateUrl(Url::fromCurrent()
             ->setQueryParameter('page', 4), $scheme);
 </gen:highlight>
+<p>
+   In beiden Fällen können Sie Sprungmarken an die generierten URLs anfügen. Dies erreichen Sie durch Hinzufügen des
+   gewünschten Wertes in der genutzten <em>Url</em>-Instanz. Beispiel:
+</p>
+<gen:highlight type="php">
+use APF\tools\link\LinkGenerator;
+use APF\tools\link\Url;
+
+$link = LinkGenerator::generateUrl(
+   Url::fromCurrent()->setAnchor('meine-sprungmarke')
+);
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass sich die Unterstützung von Sprungmarken auf das mit dem APF mitgelieferte <em>DefaultLinkScheme</em>
+   bezieht. Bei der Implementierung von eigenen <em>LinkScheme</em>s nehmen Sie selbst Einfluss auf die Funktionen und
+   die Unterstützung von Sprungmarken muss - sofern gewünscht - entsprechend beachtet werden.
+</div>
 
 <h4 id="Chapter-3-3-Generierung-von-Action-Links"><a href="#Chapter-3-3-Generierung-von-Action-Links">3.3. Generierung von Action-Links</a></h4>
 <p>
@@ -443,6 +465,10 @@ $url = LinkGenerator::generateActionUrl(Url::fromString('/pages/news'),
       generiert wurden, werden verworfen.
    </p>
 </div>
+<p>
+   Auch bei Aktion-URLs ist es möglich, Sprungmarken zu definieren. Bitte beachten Sie dazu die Hinweise in
+   <a href="#Chapter-3-2-Generierung-von-einfachen-Links">Kapitel 3.2</a>.
+</p>
 
 <h4 id="Chapter-3-4-Konfiguration-von-Link-Schemen"><a href="#Chapter-3-4-Konfiguration-von-Link-Schemen">3.4. Konfiguration von Link-Schemen</a></h4>
 <p>
