@@ -7,117 +7,96 @@
    module fully integrates with existing form elements.
 </p>
 <p>
-   ...
-
-
-   Zur Nutzung konfigurieren Sie lediglich eine <int:link pageid="012"/>-Action zur Auslieferung des CAPTCHA-Bildes und
-   integrieren den <em>&lt;form:captcha /&gt;</em>-Tag mit Hilfe von <em>&lt;form:addtaglib /&gt;</em> in das gewünschte
-   Formular.
+   Using the module you only have to configure a <int:link pageid="012"/> action that delivers the CAPTCHA image and
+   integrate the <em>&lt;form:captcha /&gt;</em> tag into the desired form using <em>&lt;form:addtaglib /&gt;</em>.
 </p>
 <div class="hint">
-   Starting with release 1.16 an alternative implementation is available to protect forms. Details can be read about
+   Besides this module an alternative implementation is available to protect forms. Details can be read about
    under <int:link pageid="150" />. It supports Google's CAPTCHA concept and both protects your pages from being
    requested by bots and helps to improve the OCR software used to digitize books.
 </div>
 
 <h3 id="Chapter-1-Configuration"><a href="#Chapter-1-Configuration">1. Configuration of the front controller action</a></h3>
 <p>
-   As mentioned above, the delivery of the captcha image is done by a front controller action included
-   in the module. To make sure, that the image is served correctly, the project must be configured using
-   the front controller. If your project uses the page controller, the bootstrap file must be adapted.
-   In case, your <em>index.php</em> contains
+   CAPTCHA image delivery is done via a <int:link pageid="012"/> action realisiert. Each action is described by a
+   separate configuration. You may want to use <em>/config/modules/captcha/biz/actions/EXAMPLE_actionconfig.ini</em>
+   from the <em>apf-configpack-*</em> release as a template.
 </p>
-<gen:highlight type="php">
-include_once('./apps/core/pagecontroller/pagecontroller.php');
-$page = new Page();
-$page->loadDesign('sites::demosite::pres::templates','website');
-echo $page->transform();
-</gen:highlight>
 <p>
-   these lines must be changed to
-</p>
-<gen:highlight type="php">
-include_once('./apps/core/pagecontroller/pagecontroller.php');
-import('core::frontcontroller','Frontcontroller');
-$fC = &Singleton::getInstance('Frontcontroller');
-$fC->setContext('sites::demosite');
-echo $fC->start('sites::demosite::pres::templates','website');
-</gen:highlight>
-<p>
-   The context of your application and the path and the name of the initial template must be set as
-   desired in your project.
-</p>
-<div class="hint">
-   The adaption described above is only necessary for releases up to 1.13. Since version 1.14 the
-   <int:link pageid="012"/> is used within the bootstrap file for request processing by default.
-</div>
-<p>
-   After this change is done, the front controller action must be configured. For this reason, the
-   front controller expects the configuration file
+   The front controller expects the configuration file under
 </p>
 <gen:highlight type="code">
 /APF/config/modules/captcha/biz/{CONTEXT}/{ENVIRONMENT}_actionconfig.ini
 </gen:highlight>
-containing the action configuration when calling the image url
-<gen:highlight type="code">
-/?APF_modules_captcha_biz-action:showCaptcha=name:...
-</gen:highlight>
-or in case of url rewriting activated, the url
-<gen:highlight type="code">
-/~/APF_modules_captcha_biz-action/showCaptcha/name/...
-</gen:highlight>
 <p>
-   (see source code of the taglib). <em>{CONTEXT}</em> and <em>{ENVIRONMENT}</em> must be
-   replaced with the correct values from your project. For details on configuration, please refer to
-   <int:link pageid="134" />.
+   where <em>{CONTEXT}</em> and <em>{ENVIRONMENT}</em> have to be replaced by values according to your project. Details
+   on the definition of configurations within the APF can be taken from <int:link pageid="134" />.
 </p>
-<p>
-   The content of the configuration file is as follows:
-</p>
-<gen:highlight type="ini">
-[showCaptcha]
-FC.ActionClass = "APF\modules\captcha\biz\actions\ShowCaptchaImageAction"
-</gen:highlight>
-The <strong>apf-configpack-*</strong> release files additionally contain a sample configuration
-file (<strong>EXAMPLE_actionconfig.ini</strong>) within the
-<strong>/config/modules/captcha/biz/actions</strong> folder.
-<br />
-<br />
-<br />
+
 <h3 id="Chapter-2-Inclusion"><a href="#Chapter-2-Inclusion">2. Inclusion of the tag</a></h3>
-In order to use the captcha tag, it must be announced within the desired form. This can be achieved
-using the <strong>&lt;form:addtaglib /&gt;</strong> tag, whose functionality is nearly the same as
-the <strong>&lt;core:addtaglib /&gt;</strong>. After that, the tag can be placed within the form.
-The following code box shows a typical example including the commonly used attributes of the tag:
+<p>
+   Using the tag it must be added prior to use within the desired form. This can be done with the
+   <em>&lt;form:addtaglib /&gt;</em> tag. Afterwards, the tag is known within the current form and can be used with the
+   prefix and name it has been registered. with. The following code box contains a use case that contains the main
+   configuration attributes of the tag:
+</p>
 <gen:highlight type="apf-xml">
 &lt;html:form name="MyForm" action="post"&gt;
    ...
    &lt;form:addtaglib
-      namespace="modules::captcha::pres::taglib"
-      class="SimpleCaptchaTag"
+      class="APF\modules\captcha\pres\taglib\SimpleCaptchaTag"
       prefix="form"
       name="captcha"
    /&gt;
    &lt;form:captcha
-      text_class="input_field"
-      text_style="width: 318px;"
-      clearonerror="true"
+      name="captcha"
+   /&gt;
+   &lt;form:addvalidator
+      class="APF\modules\captcha\pres\validator\CaptchaValidator"
+      control="captcha"
+      button="send"
    /&gt;
    ...
+   &lt;form:button name="send" /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
 <div class="hint">
-   Please note, that with version 1.11, it is necessary to apply a validator to the CAPTCHA field.
-   For this reason, the <em>CaptchaValidator</em> can be used. In case, the CAPTCHA field should be
-   secured, the <em>CaptchaFilter</em> located in <em>modules::captcha::pres::filter</em> can be
-   taken.
+   Please note to apply a validator to the CAPTCHA field. For this reason, you can use the <em>CaptchaValidator</em>
+   shipped with the APF. To add another portion of input security you may want to add a form filter. Therefore, you can
+   use the <em>APF\modules\captcha\pres\filter\CaptchaFilter</em> class:
+<gen:highlight type="apf-xml">
+&lt;html:form name="MeinFormular" action="post"&gt;
+   ...
+   &lt;form:addtaglib
+      class="APF\modules\captcha\pres\taglib\SimpleCaptchaTag"
+      prefix="form"
+      name="captcha"
+   /&gt;
+   &lt;form:captcha
+      name="captcha"
+   /&gt;
+   &lt;form:addvalidator
+      class="APF\modules\captcha\pres\validator\CaptchaValidator"
+      control="captcha"
+      button="send"
+   /&gt;
+   &lt;form:addfilter
+      class="APF\modules\captcha\pres\filter\CaptchaFilter"
+      control="captcha"
+      button="send"
+   /&gt;
+   ...
+   &lt;form:button name="send" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
 </div>
-Looking at the output of the form, the tag creates a captcha image and a text field, that can be used
-to fill in the captcha string. The list displayed afterwards describes the attributes of the captcha
-tag:
+<p>
+   As output of the tag an image tag is generated besides a text field to enter the result of the test. The following list
+   provides an overview of the available attributes as well as their meaning and usage:
+</p>
 <ul>
   <li><strong>image_style</strong>: CSS styles of the captcha image</li>
-  <li><strong>image_class</strong>: CSS classes of the captcha image</li><li>
+  <li><strong>image_class</strong>: CSS classes of the captcha image</li>
   <li><strong>image_id</strong>: HTML ID of the captcha image</li>
   <li><strong>text_style</strong>: CSS styles of the text field</li>
   <li><strong>text_class</strong>: CSS classes of the text field</li>
@@ -132,7 +111,7 @@ tag:
   <li>
     <strong>clearonformerror</strong>: This optional attribute indicates, that the content of the
     field is be cleared in case the <em>form contains any validation error</em>. If the field
-    contains an other value than "true" or is not present, the field is prefilled as usual.
+    contains an other value than "true" or is not present, the field is pre-filled as usual.
   </li>
   <li>
      <strong>disable_inline</strong>: If this optional attribute is set to <em>true</em> the inline
@@ -140,15 +119,17 @@ tag:
      are applied, that make the CAPTCHA image and the text field being displayed within one line.
   </li>
 </ul>
-<br />
+
 <h3 id="Chapter-3-Functionality"><a href="#Chapter-3-Functionality">3. Functionality of the tag</a></h3>
-By means of directly integrating the captcha tag into a form, the tag can influence the form's
-valiation. If the captcha string was correctly filled in the text field provided, the form's state
-is set to "valid". If not, the tag lib implementation marks the form as "invalid" and the user
-cannot finally submit the form. To ensure, that the form cannot be sent on wrong captcha string input,
-the form must be checked having the <strong>isSent()</strong> and <strong>isValid()</strong> event in
-the cooresponding controller. For security reasons, the captcha image is regenerated with each request.
-<br />
-<br />
-<br />
+<p>
+   By means of directly integrating the captcha tag into a form, the tag can influence the form's
+   validation. If the captcha string was correctly filled in the text field provided, the form's state
+   is set to valid. If not, the tag lib implementation marks the form as invalid and the user
+   cannot finally submit the form. To ensure, that the form cannot be sent on wrong captcha string input,
+   the form must be checked having the <em>isSent()</em> and <em>isValid()</em> event in the corresponding controller.
+</p>
+<p>
+   For security reasons, the captcha image is regenerated with each request.
+</p>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_094" />
