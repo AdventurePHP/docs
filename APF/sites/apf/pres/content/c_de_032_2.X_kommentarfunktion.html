@@ -34,7 +34,7 @@
    Zunächst soll die Ordner- bzw. Namespace-Struktur der Software angelegt werden. Da es sich bei
    der Kommentar-Funktion gemäß <int:link pageid="013"/> um ein Stück Software handelt, das in
    mehreren Projekten (=Webseiten) eingesetzt werden kann, wird das <em>Modul</em> im Ordner
-   <em>/apps/modules</em> abgelegt wird.
+   <em>/APF/modules</em> abgelegt wird.
 </p>
 <div class="hint">
    Für die Implementierung von eigenen Modulen wird davon abgeraten, den Ordner <em>modules</em> zu
@@ -71,10 +71,12 @@
 <h4 id="Chapter-2-2-Domain-Objekt"><a href="#Chapter-2-2-Domain-Objekt">2.2. Domain-Objekt</a></h4>
 <p>
    Als erste Klasse legen wir das von allen Schichten genutzte Domain-Objekt <em>ArticleComment</em>
-   an. Dazu wird die Datei <em>ArticleComment.php</em> im Ordner <em>/apps/modules/comments/biz</em>
+   an. Dazu wird die Datei <em>ArticleComment.php</em> im Ordner <em>/APF/modules/comments/biz</em>
    erstellt und mit folgenden Inhalt gefüllt:
 </p>
 <gen:highlight type="php">
+namespace APF\modules\comments\biz
+
 class ArticleComment {
 
    private $id = null;
@@ -156,16 +158,21 @@ class ArticleComment {
 </p>
 <p>
    Zunächst erstellen für unseren Mapper eine Datei mit dem Namen <em>commentMapper.php</em> unter
-   <em>/apps/modules/comments/data</em> und sehen folgenden Inhalt vor:
+   <em>/APF/modules/comments/data</em> und sehen folgenden Inhalt vor:
 </p>
 <gen:highlight type="php">
-import('modules::comments::biz', 'ArticleComment');
+namespace APF\modules\comments\data;
 
-class commentMapper extends APFObject {
+use APF\core\database\AbstractDatabaseHandler;
+use APF\core\database\ConnectionManager;
+use APF\core\pagecontroller\APFObject;
+use APF\modules\comments\biz\ArticleComment;
+
+class ArticleCommentMapper extends APFObject {
 
    public function loadArticleCommentByID($commentId) {
 
-      $SQL = &$this->getConnection();
+      $SQL = & $this->getConnection();
       $select = 'SELECT ArticleCommentID, Name, EMail, Comment, Date, Time
                     FROM article_comments
                     WHERE ArticleCommentID = \'' . $commentId . '\';';
@@ -175,7 +182,7 @@ class commentMapper extends APFObject {
 
    public function saveArticleComment(ArticleComment $comment) {
 
-      $conn = &$this->getConnection();
+      $conn = & $this->getConnection();
       if ($comment->getId() == null) {
          $insert = 'INSERT INTO article_comments
                        (Name, EMail, Comment, Date, Time, CategoryKey)
@@ -187,14 +194,15 @@ class commentMapper extends APFObject {
 
    private function &getConnection() {
 
-      $cM = &$this->getServiceObject('core::database', 'ConnectionManager');
-      $config = $this->getConfiguration('modules::comments', 'comments.ini');
+      /* @var $cM ConnectionManager */
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
+      $config = $this->getConfiguration('APF\modules\comments', 'comments.ini');
       $connectionKey = $config->getSection('Default')->getValue('Database.ConnectionKey');
       if ($connectionKey == null) {
-         throw new InvalidArgumentException('[commentMapper::getConnection()] The module\'s '
-                 . 'configuration file does not contain a valid database connection key. Please '
-                 . 'specify the database configuration according to the example configuration files!',
-                 E_USER_ERROR);
+         throw new \InvalidArgumentException('[ArticleCommentMapper::getConnection()] The module\'s '
+                  . 'configuration file does not contain a valid database connection key. Please '
+                  . 'specify the database configuration according to the example configuration files!',
+            E_USER_ERROR);
       }
       return $cM->getConnection($connectionKey);
    }
@@ -241,7 +249,7 @@ class commentMapper extends APFObject {
 </ul>
 <p>
    Um die für dieses Modul notwenige Datenbank-Layout anlegen zu können, muss das im Ordner
-   <em>/apps/modules/comments/data/scripts</em> vorhandene SQL-Script <em>init_comments.sql</em>
+   <em>/APF/modules/comments/data/scripts</em> vorhandene SQL-Script <em>init_comments.sql</em>
    ausgeführt werden.
 </p>
 <div class="hint">
@@ -259,7 +267,7 @@ class commentMapper extends APFObject {
 <h4 id="Chapter-2-4-Businessschicht"><a href="#Chapter-2-4-Businessschicht">2.4. Business-Schicht</a></h4>
 <p>
    Zur Business-Schicht zählt eine Manager-Klasse, die den Ablauf der Software regelt. Dazu legen
-   wir eine Datei mit dem Namen <em>commentManager.php</em> im Ordner <em>/apps/modules/comments/biz</em>
+   wir eine Datei mit dem Namen <em>commentManager.php</em> im Ordner <em>/APF/modules/comments/biz</em>
    an. Im Fall der Kommentar-Funktion (lesender Zugriff) muss diese lediglich die Daten aus der
    Datenschicht beziehen und zurück an die Präsentations-Schicht geben. 
 </p>
@@ -271,7 +279,9 @@ class commentMapper extends APFObject {
    Das Grundgerüst der Klasse sieht folgendes vor:
 </p>
 <gen:highlight type="php">
-class commentManager extends APFObject {
+namespace APF\modules\comments\biz;
+
+class ArticleCommentManager extends APFObject {
 
    protected $categoryKey;
 
@@ -317,18 +327,18 @@ $pM = &$pMF->getPagerManager('ArticleComments');
 </p>
 <gen:highlight type="ini">
 [ArticleComments]
-Pager.EntriesPerPage = "5"
+Pager.EntriesPerPage = "10"
 
 Pager.ParameterPageName = "PgrPg"
 Pager.ParameterCountName = "PgrAnz"
 
-Pager.StatementNamespace = "modules::comments"
+Pager.StatementNamespace = "APF\modules\comments"
 Pager.CountStatement = "load_entries_count.sql"
 Pager.CountStatement.Params = "CategoryKey:standard"
 Pager.EntriesStatement = "load_entry_ids.sql"
 Pager.EntriesStatement.Params = "CategoryKey:standard"
 
-Pager.DesignNamespace = "modules::pager::pres::templates"
+Pager.DesignNamespace = "APF\modules\pager\pres\templates"
 Pager.DesignTemplate = "pager_2"
 
 Pager.DatabaseConnection = "MySQLx"
@@ -408,12 +418,9 @@ LIMIT [Start],[EntriesCount];
 </p>
 <gen:highlight type="php">
 public function loadEntries() {
-
-   $pMF = &$this->getServiceObject('modules::pager::biz', 'PagerManagerFabric');
-   $pM = &$pMF->getPagerManager('ArticleComments');
-
-   $M = &$this->getServiceObject('modules::comments::data', 'commentMapper');
-   return $pM->loadEntriesByAppDataComponent($M, 'loadArticleCommentByID', array('CategoryKey' => $this->categoryKey));
+   $pager = & $this->getPagerManager();
+   $m = & $this->getServiceObject('APF\modules\comments\data\ArticleCommentMapper');
+   return $pager->loadEntriesByAppDataComponent($m, 'loadArticleCommentByID', array('CategoryKey' => $this->categoryKey));
 }
 </gen:highlight>
 <p>
@@ -428,23 +435,21 @@ public function loadEntries() {
    Objekte zu laden:
 </p>
 <gen:highlight type="php">
-public function loadEntries(){
+public function loadEntries() {
 
-   $pMF = &$this->getServiceObject('modules::pager::biz','PagerManagerFabric');
-   $pM = &$pMF->getPagerManager('ArticleComments');
+   $pager = & $this->getPagerManager();
 
-   $entries = $pM->loadEntries(array('CategoryKey' => $this->categoryKey));
+   $entries = $pager->loadEntries(array('CategoryKey' => $this->categoryKey));
 
-   $M = &$this->getServiceObject('modules::comments::data','commentMapper');
+   $m = & $this->getServiceObject('APF\modules\comments\data\ArticleCommentMapper');
 
    $entryList = array();
 
    for($i = 0; $i < count($entries); $i++){
-      $entryList[] = $M->loadArticleCommentByID($entries[$i]);
+      $entryList[] = $m->loadArticleCommentByID($entries[$i]);
    }
 
    return $entryList;
-
 }
 </gen:highlight>
 
@@ -464,7 +469,7 @@ public function loadEntries(){
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:importdesign
-   namespace="modules::comments::pres::templates"
+   namespace="APF\modules\comments\pres\templates"
    template="comment"
    categorykey="****"
 /&gt;
@@ -476,7 +481,7 @@ public function loadEntries(){
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:importdesign
-   namespace="modules::comments::pres::templates"
+   namespace="APF\modules\comments\pres\templates"
    template="[coview = listing]"
    incparam="coview"
 /&gt;
@@ -487,14 +492,10 @@ public function loadEntries(){
    <em>listing.html</em>:
 </p>
 <gen:highlight type="apf-xml">
-&lt;@controller
-   class="APF\modules\comments\pres\documentcontroller\CommentListingController"
-@&gt;
+&lt;@controller class="APF\modules\comments\pres\documentcontroller\CommentListingController" @&gt;
 &lt;div class="cm--list"&gt;
    &lt;div class="cm--list-head"&gt;
-      &lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.1" /&gt;
-      &lt;a rel="nofollow" href="&lt;html:placeholder name="Link" /&gt;#comments" title="&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt;
-      &lt;html:getstring namespace="modules::comments" config="language" entry="listing.text.3" /&gt;
+      &lt;html:getstring namespace="APF\modules\comments" config="language" entry="listing.text.1" /&gt; &lt;a rel="nofollow" href="&lt;html:placeholder name="Link" /&gt;#comments" title="&lt;html:getstring namespace="APF\modules\comments" config="language" entry="listing.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="APF\modules\comments" config="language" entry="listing.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt; &lt;html:getstring namespace="APF\modules\comments" config="language" entry="listing.text.3" /&gt;
    &lt;/div&gt;
    &lt;div class="cm--list-pager"&gt;
       &lt;html:placeholder name="Pager" /&gt;
@@ -509,8 +510,7 @@ public function loadEntries(){
          &lt;div class="cm--list-item-head-num"&gt;&lt;template:placeholder name="Number" /&gt;&lt;/div&gt;
          &lt;div class="cm--list-item-head-date"&gt;
             &lt;span&gt;&lt;template:placeholder name="Name" /&gt;&lt;/span&gt;
-            &lt;em&gt;&lt;template:placeholder name="Date" /&gt;,
-            &lt;template:placeholder name="Time" /&gt;&lt;/em&gt;
+            &lt;em&gt;&lt;template:placeholder name="Date" /&gt;, &lt;template:placeholder name="Time" /&gt;&lt;/em&gt;
          &lt;/div&gt;
          &lt;div style="clear: left;"&gt;&lt;/div&gt;
       &lt;/div&gt;
@@ -521,7 +521,7 @@ public function loadEntries(){
 &lt;/html:template&gt;
 &lt;html:template name="NoEntries"&gt;
    &lt;div class="cm--list-noentries"&gt;
-      &lt;template:getstring namespace="modules::comments" config="language" entry="noentries.text" /&gt;
+      &lt;template:getstring namespace="APF\modules\comments" config="language" entry="noentries.text" /&gt;
    &lt;/div&gt;
 &lt;/html:template&gt;
 </gen:highlight>
@@ -557,7 +557,7 @@ $categoryKey = $parent->getAttribute('categorykey', 'standard');
 <p>
    Da diese Funktion in beiden Document-Controllern (Erzeugen der Liste, Eintragen eines Kommentars)
    genutzt wird, findet sich diese Funktion in einmn gemeinsamen Basis-Document-Controller wieder.
-   Dieser wird in der Datei <em>/apps/modules/coments/pres/documentcontroller/CommentBaseDocumentControllerntroller.php</em>
+   Dieser wird in der Datei <em>/APF/modules/coments/pres/documentcontroller/CommentBaseDocumentControllerntroller.php</em>
    abgelegt und trägt den Namen <em>CommentBaseDocumentController</em>.
 </p>
 <p>
@@ -566,27 +566,39 @@ $categoryKey = $parent->getAttribute('categorykey', 'standard');
    eine entsprechende Meldung auszugeben. Dieser hat folgenden Inhalt:
 </p>
 <gen:highlight type="php">
+namespace APF\modules\comments\pres\documentcontroller;
+
+use APF\modules\comments\biz\ArticleComment;
+use APF\modules\comments\biz\ArticleCommentManager;
+use APF\modules\comments\pres\documentcontroller\CommentBaseDocumentController;
+use APF\tools\link\Url;
+use APF\tools\string\AdvancedBBCodeParser;
+use APF\tools\link\LinkGenerator;
+
 class CommentListingController extends CommentBaseDocumentController {
 
    public function transformContent() {
 
-      $M = &$this->getAndInitServiceObject('modules::comments::biz', 'commentManager', $this->getCategoryKey());
+      /* @var $m ArticleCommentManager */
+      $m = &$this->getAndInitServiceObject('APF\modules\comments\biz\ArticleCommentManager', $this->getCategoryKey());
 
-      $entries = $M->loadEntries();
+      $entries = $m->loadEntries();
 
-      $buffer = (string) '';
+      $buffer = (string)'';
       $template = &$this->getTemplate('ArticleComment');
 
-      $bP = &$this->getServiceObject('tools::string', 'AdvancedBBCodeParser');
+      /* @var $bP AdvancedBBCodeParser */
+      $bP = &$this->getServiceObject('APF\tools\string\AdvancedBBCodeParser');
       $bP->removeProvider('standard.font.color');
       $bP->removeProvider('standard.font.size');
 
       $i = 1;
       foreach ($entries as $entry) {
 
+         /* @var $entry ArticleComment */
          $template->setPlaceHolder('Number', $i++);
          $template->setPlaceHolder('Name', $entry->getName());
-         $template->setPlaceHolder('Date', date('d.m.Y', strtotime($entry->getDate())));
+         $template->setPlaceHolder('Date', \DateTime::createFromFormat('Y-m-d', $entry->getDate())->format('d.m.Y'));
          $template->setPlaceHolder('Time', $entry->getTime());
          $template->setPlaceHolder('Comment', $bP->parseCode($entry->getComment()));
 
@@ -594,24 +606,24 @@ class CommentListingController extends CommentBaseDocumentController {
       }
 
       if (count($entries) < 1) {
-         $templateNoEntries = &$this->getTemplate('NoEntries');
-         $buffer = $templateNoEntries->transformTemplate();
+         $Template__NoEntries = &$this->getTemplate('NoEntries');
+         $buffer = $Template__NoEntries->transformTemplate();
       }
 
       $this->setPlaceHolder('Content', $buffer);
 
-      $this->setPlaceHolder('Pager', $M->getPager('comments'));
+      $this->setPlaceHolder('Pager', $m->getPager('comments'));
 
-      $urlParams = $M->getURLParameter();
+      $urlParams = $m->getURLParameter();
 
       $this->setPlaceHolder('Link',
-              LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
-                          $urlParams['PageName'] => '',
-                          $urlParams['CountName'] => '',
-                          'coview' => 'form'
-                              )
-                      )
-              )
+         LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
+                  $urlParams['PageName'] => '',
+                  $urlParams['CountName'] => '',
+                  'coview' => 'form'
+               )
+            )
+         )
       );
    }
 
@@ -648,55 +660,45 @@ class CommentListingController extends CommentBaseDocumentController {
    abgefragt werden. Der Formular-View gestaltet sich wie folgt:
 </p>
 <gen:highlight type="apf-xml">
-&lt;@controller
-   class="APF\modules\comments\pres\documentcontroller\CommentCreateEntryController"
-@&gt;
-&lt;core:addtaglib
-   namespace="tools::form::taglib"
-   class="HtmlFormTag"
-   prefix="html"
-   name="form"
-/&gt;
+&lt;@controller class="APF\modules\comments\pres\documentcontroller\CommentCreateEntryController" @&gt;
+&lt;core:addtaglib class="APF\tools\form\taglib\HtmlFormTag" prefix="html" name="form" /&gt;
 &lt;div class="cm--create"&gt;
    &lt;div class="cm--create-head"&gt;
-      &lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.1" /&gt;
-      &lt;a href="&lt;html:placeholder name="back" /&gt;#comments" title="&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2.title" /&gt;"&gt;
-      &lt;strong&gt;&lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt;
-      &lt;html:getstring namespace="modules::comments" config="language" entry="formhint.text.3" /&gt;
+      &lt;html:getstring namespace="APF\modules\comments" config="language" entry="formhint.text.1" /&gt; &lt;a href="&lt;html:placeholder name="back" /&gt;#comments" title="&lt;html:getstring namespace="APF\modules\comments" config="language" entry="formhint.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="APF\modules\comments" config="language" entry="formhint.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt;&lt;html:getstring namespace="APF\modules\comments" config="language" entry="formhint.text.3" /&gt;
    &lt;/div&gt;
    &lt;div class="cm--create-form"&gt;
       &lt;html:form name="AddComment" method="post"&gt;
-         &lt;span&gt;&lt;form:getstring namespace="modules::comments" config="language" entry="form.name" /&gt;*&lt;/span&gt;
+         &lt;span&gt;&lt;form:getstring namespace="APF\modules\comments" config="language" entry="form.name" /&gt;*&lt;/span&gt;
          &lt;form:text
             maxlength="100"
             name="Name"
             class="cm--create-element-name"
          /&gt;
          &lt;form:addvalidator
-            class="TextLengthValidator"
+            class="APF\tools\form\validator\TextLengthValidator"
             button="Save"
             control="Name|Comment"
          /&gt;
          &lt;br /&gt;
-         &lt;span&gt;&lt;form:getstring namespace="modules::comments" config="language" entry="form.email" /&gt;*&lt;/span&gt;
+         &lt;span&gt;&lt;form:getstring namespace="APF\modules\comments" config="language" entry="form.email" /&gt;*&lt;/span&gt;
          &lt;form:text
             maxlength="100"
             name="EMail"
             class="cm--create-element-email"
          /&gt;
          &lt;form:addvalidator
-            class="EMailValidator"
+            class="APF\tools\form\validator\EMailValidator"
             button="Save"
             control="EMail"
          /&gt;
          &lt;form:addfilter
-            class="EMailFilter"
+            class="APF\tools\form\filter\EMailFilter"
             button="Save"
             control="EMail"
          /&gt;
          &lt;br /&gt;
          &lt;br /&gt;
-         &lt;form:getstring namespace="modules::comments" config="language" entry="form.comment" /&gt;
+         &lt;form:getstring namespace="APF\modules\comments" config="language" entry="form.comment" /&gt;
          &lt;br /&gt;
          &lt;form:area
             name="Comment"
@@ -706,23 +708,17 @@ class CommentListingController extends CommentBaseDocumentController {
          /&gt;
          &lt;br /&gt;
          &lt;br /&gt;
-         &lt;span&gt;&lt;form:getstring namespace="modules::comments" config="language" entry="form.confirm" /&gt;*&lt;/span&gt;
+         &lt;span&gt;&lt;form:getstring namespace="APF\modules\comments" config="language" entry="form.confirm" /&gt;*&lt;/span&gt;
          &lt;br /&gt;
          &lt;br /&gt;
-         &lt;form:addtaglib
-            namespace="modules::captcha::pres::taglib"
-            class="SimpleCaptchaTag"
-            prefix="form"
-            name="captcha"
-         /&gt;
+         &lt;form:addtaglib class="APF\modules\captcha\pres\taglib\SimpleCaptchaTag" prefix="form" name="captcha" /&gt;
          &lt;form:captcha
              text_class="cm--create-element-captcha"
              name="Captcha"
              clearonerror="true"
          /&gt;
          &lt;form:addvalidator
-            namespace="modules::captcha::pres::validator"
-            class="CaptchaValidator"
+            class="APF\modules\captcha\pres\validator\CaptchaValidator"
             control="Captcha"
             button="Save"
          /&gt;
@@ -741,6 +737,14 @@ class CommentListingController extends CommentBaseDocumentController {
    der ein Domain-Objekt übergeben werden muss. Hier der Code des Controllers:
 </p>
 <gen:highlight type="php">
+namespace APF\modules\comments\pres\documentcontroller;
+
+use APF\modules\comments\biz\ArticleComment;
+use APF\modules\comments\biz\ArticleCommentManager;
+use APF\modules\comments\pres\documentcontroller\CommentBaseDocumentController;
+use APF\tools\link\LinkGenerator;
+use APF\tools\link\Url;
+
 class CommentCreateEntryController extends CommentBaseDocumentController {
 
    public function transformContent() {
@@ -749,7 +753,8 @@ class CommentCreateEntryController extends CommentBaseDocumentController {
 
       if ($form->isSent() == true) {
 
-         $M = &$this->getAndInitServiceObject('modules::comments::biz', 'commentManager', $this->getCategoryKey());
+         /* @var $m ArticleCommentManager */
+         $m = &$this->getAndInitServiceObject('APF\modules\comments\biz\ArticleCommentManager', $this->getCategoryKey());
 
          if ($form->isValid() == true) {
 
@@ -763,7 +768,7 @@ class CommentCreateEntryController extends CommentBaseDocumentController {
             $comment = &$form->getFormElementByName('Comment');
             $articleComment->setComment($comment->getContent());
 
-            $M->saveEntry($articleComment);
+            $m->saveEntry($articleComment);
          } else {
             $this->buildForm();
          }
@@ -777,9 +782,9 @@ class CommentCreateEntryController extends CommentBaseDocumentController {
       $form = &$this->getForm('AddComment');
       $form->setAttribute('action', $_SERVER['REQUEST_URI'] . '#comments');
 
-      $config = $this->getConfiguration('modules::comments', 'language.ini');
+      $config = $this->getConfiguration('APF\modules\comments', 'language.ini');
       $button = &$form->getFormElementByName('Save');
-      $button->setAttribute('value', $config->getSection($this->language)->getValue('form.button'));
+      $button->setAttribute('value', $config->getSection($this->getLanguage())->getValue('form.button'));
 
       $form->transformOnPlace();
 
@@ -802,9 +807,10 @@ class CommentCreateEntryController extends CommentBaseDocumentController {
    erzeugte Seite auch wieder korrekt angezeigt wird.
 </p>
 <gen:highlight type="php">
-public function saveEntry(ArticleComment $articleComment) {
+public function saveEntry($articleComment) {
 
-   $M = &$this->getServiceObject('modules::comments::data', 'commentMapper');
+   /* @var $M ArticleCommentMapper */
+   $M = & $this->getServiceObject('APF\modules\comments\data\ArticleCommentMapper');
 
    $articleComment->setCategoryKey($this->categoryKey);
    $M->saveArticleComment($articleComment);
@@ -827,17 +833,15 @@ public function saveEntry(ArticleComment $articleComment) {
 <gen:highlight type="php">
 public function saveArticleComment(ArticleComment $comment) {
 
-   $conn = &$this->getConnection();
+   $conn = & $this->getConnection();
    if ($comment->getId() == null) {
       $insert = 'INSERT INTO article_comments
                     (Name, EMail, Comment, Date, Time, CategoryKey)
                     VALUES
-                    (\'' . $conn->escapeValue($comment->getName()) . '\',
-                    \'' . $conn->escapeValue($comment->getEmail()) . '\',
-                    \'' . $conn->escapeValue($comment->getComment()) . '\',
-                    CURDATE(),
-                    CURTIME(),
-                    \'' . $comment->getCategoryKey() . '\');';
+                    (\'' . $conn->escapeValue($comment->getName()) . '\',\''
+                     . $conn->escapeValue($comment->getEmail()) . '\',\''
+                     . $conn->escapeValue($comment->getComment()) . '\',CURDATE(),CURTIME(),\''
+                     . $comment->getCategoryKey() . '\');';
       $conn->executeTextStatement($insert);
    }
 }
