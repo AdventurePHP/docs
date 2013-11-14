@@ -1,39 +1,39 @@
-<doku:title parent="071" tags="tutorials,module,erweiterung von funktionen,wrapping,social bookmark" title="Enhancement of existing functionalities" urlname="Function-enhancement">
-  This tutorial depicts how existing functionalities can easily be enhanced and made capable for the
+<doku:title parent="071" tags="tutorials,module,enhancement,functionality,wrapping,social bookmark" title="Enhancement of existing functionality" urlname="Function-enhancement">
+  This tutorial depicts how existing functionality can easily be enhanced and made capable for the
   current use case.
 </doku:title>
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
-I'm sure, every developer was once faced with the situation, that an existing library helped to solve
-most of the previous tasks, but is not able to handle the current special case. Many developers then
-tend to implement a completely new function to meet the current case's needs. Others try to convulsively
-find another library that handles this case. All of these possibilities help you to get the goal, but
-reduce the maintainability of your software and increase error rate due to a "wild" combination of
-various external libraries and special functions for several special cases. Furthermore, each developer
-should keep in mind, that API changes originate changes to every function that uses the libray and
-is this equal to leaving the update path of the external library. Perhaps, even quick hacks won't
-work in the next version of the third party library.
-<br />
-<br />
-This tutorial wants to explain a method to enhance existing functionalities without changing the
-provided library. The tutorial assumes, that the used library is third party code. Otherwise, this
-method doesn't make sense.
-<br />
-<br />
-Maybe you now think, that an API change means, that the API was not designed well. In many cases you
-are right, but there are many APIs, that are not designed to meet every special case of your
-application.
-<br />
-<br />
-<br />
+<p>
+   I'm sure, every developer was once faced with the situation, that an existing library helped to solve
+   most of the previous tasks, but is not able to handle the current special case. Many developers then
+   tend to implement a completely new function to meet the current case's needs. Others try to convulsively
+   find another library that handles this case. All of these possibilities help you to get the goal, but
+   reduce the maintainability of your software and increase error rate due to a "wild" combination of
+   various external libraries and special functions for several special cases. Furthermore, each developer
+   should keep in mind, that API changes originate changes to every function that uses the libray and
+   is this equal to leaving the update path of the external library. Perhaps, even quick hacks won't
+   work in the next version of the third party library.
+</p>
+<p>
+   This tutorial wants to explain a method to enhance existing functionality without changing the
+   provided library. The tutorial assumes, that the used library is third party code. Otherwise, this
+   method doesn't make sense.
+</p>
+<p>
+   Maybe you now think, that an API change means, that the API was not designed well. In many cases you
+   are right, but there are many APIs, that are not designed to meet every special case of your
+   application.
+</p>
+
 <h3 id="Chapter-2-Taglib-example"><a href="#Chapter-2-Taglib-example">2. Taglib example</a></h3>
 <p>
-   The following example shows you how to enhance the <strong>socialbookmark</strong> library delivered
+   The following example shows you how to enhance the <em>socialbookmark</em> library delivered
    with each release to meet your demands.
 </p>
 
 <h4 id="Chapter-2-1-Problem-description"><a href="#Chapter-2-1-Problem-description">2.1. Problem description</a></h4>
 <p>
-   The socialbookmark library contained in each <strong>apf-codepack-*</strong> release are
+   The socialbookmark library contained in each <em>apf-codepack-*</em> release are
    intended to be included in the content area of your application via XML tag. For this reason, the
    module includes a taglib, whose characteristics are described on the <int:link pageid="093" /> page. The tag
    definition allows you to specify a page title within the tag definition, that is used as a title
@@ -43,58 +43,52 @@ application.
 </p>
 
 <h4 id="Chapter-2-2-Analysis-of-the-existing-API"><a href="#Chapter-2-2-Analysis-of-the-existing-API">2.2. Analysis of the existing API</a></h4>
-To analyze the existing API you must ask yourself the question: "<strong>What is already possible and
-what is really missing?</strong>". In case of the socialbookmark module, the answer is quite obvious:
-<strong>static titles</strong> are possible, <strong>dynamic titles</strong> not!
-<br />
-<br />
-<br />
+<p>
+   To analyze the existing API you must ask yourself the question: <em>What is already possible and
+   what is really missing?</em>. In case of the socialbookmark module, the answer is quite obvious:
+   <em>static titles</em> are possible, <em>dynamic titles</em> not!
+</p>
+
 <h4 id="Chapter-2-3-API-extension-by-wrapping"><a href="#Chapter-2-3-API-extension-by-wrapping">2.3. API extension by wrapping</a></h4>
-A very common way of extending a API is to wrap it. <strong>Wrapping</strong> means, that you build
-a layer around the existing library - in this case a taglib - to enhance the functionality without
-changing the library itself.
-<br />
-<br />
-Let's at first have a look at the existing library. The taglib implements the APFObject's
-<strong>transform()</strong> method. Within this function the class passes the necessary attributes
-to the <strong>socialbookmarkManager</strong> and asks him to give back the bookmark elements. The
-source code of the taglib (please refer to the <em>/apps/modules/socialbookmark/pres/taglib</em>
-folder in the <em>apf-codepack-*</em> release) is displayed in the following code box (comments
-werde dropped):
+<p>
+   A very common way of extending a API is to wrap it. <em>Wrapping</em> means, that you build
+   a layer around the existing library - in this case a taglib - to enhance the functionality without
+   changing the library itself.
+</p>
+<p>
+   Let's at first have a look at the existing library. The taglib implements the APFObject's
+   <em>transform()</em> method. Within this function the class passes the necessary attributes
+   to the <em>SocialBookmarkBarManager</em> and asks him to give back the bookmark elements. The
+   source code of the taglib (please refer to the <em>/APF/modules/socialbookmark/pres/taglib</em>
+   folder in the <em>apf-codepack-*</em> release) is displayed in the following code box (comments
+   were dropped):
+</p>
 <gen:highlight type="php">
+namespace APF\modules\socialbookmark\pres\taglib;
+
+use APF\core\pagecontroller\Document;
+use APF\modules\socialbookmark\biz\SocialBookmarkBarManager;
+
 class SocialBookmarkBarTag extends Document {
 
-   public function __construct(){
-      $this->attributes['width'] = '20';
-      $this->attributes['height'] = '20';
-      $this->attributes['title'] = null;
-      $this->attributes['url'] = null;
-      $this->attributes['target'] = null;
+   public function __construct() {
+      $this->setAttribute('width', '20');
+      $this->setAttribute('height', '20');
+      $this->setAttribute('title', null);
+      $this->setAttribute('url', null);
    }
 
-   public function transform(){
+   public function transform() {
 
-      // get bookmark manager
-      $sBM = &$this->getServiceObject('modules::socialbookmark::biz','SocialBookmarkBarManager');
+      $bm = & $this->getServiceObject('APF\modules\socialbookmark\biz\SocialBookmarkBarManager');
+      /* @var $bm SocialBookmarkBarManager */
 
-      // configure width and height
-      $sBM->set('Width',$this->attributes['width']);
-      $sBM->set('Height',$this->attributes['height']);
+      $bm->setImageWidth($this->getAttributes('width'));
+      $bm->setImageHeight($this->getAttributes('height'));
+      $bm->setUrl($this->getAttribute('url'));
+      $bm->setTitle($this->getAttribute('title'));
 
-      // konfigure URL parameters
-      if($this->attributes['url'] != null){
-         $sBM->set('URL',$this->attributes['url']);
-      }
-      if($this->attributes['title'] != null){
-         $sBM->set('Title',$this->attributes['title']);
-      }
-      if($this->attributes['target'] != null){
-         $sBM->set('Target',$this->attributes['target']);
-      }
-
-      // return bookmark HTML code
-      return $sBM->getBookmarkCode();
-
+      return $bm->getBookmarkCode();
    }
 
 }
@@ -106,14 +100,16 @@ class SocialBookmarkBarTag extends Document {
    <em>my:bookmark</em>. The taglib then contains the following source code:
 </p>
 <gen:highlight type="php">
-import('modules::socialbookmark::pres::taglib', 'SocialBookmarkBarTag');
+namespace VENDOR\socialbookmark\pres\tags;
+
+use APF\modules\socialbookmark\pres\taglib\SocialBookmarkBarTag;
 
 class MyBookmarkTag extends SocialBookmarkBarTag {
 
-   public function transform(){
+   public function transform() {
 
-      // gather the title of the current page
-      $title = /* current title */;
+      // gather title of current page
+      $title = ...;
 
       // fill the title attribute, that is used by the parent class
       $this->setAttributes('title', $title);
@@ -143,8 +139,7 @@ class MyBookmarkTag extends SocialBookmarkBarTag {
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   namespace="your::namespace"
-   class="MyBookmarkTag"
+   class="VENDOR\socialbookmark\pres\tags\MyBookmarkTag"
    prefix="my"
    name="bookmark"
 /&gt;
@@ -157,8 +152,8 @@ class MyBookmarkTag extends SocialBookmarkBarTag {
 <h4 id="Chapter-2-4-Update-handling"><a href="#Chapter-2-4-Update-handling">2.4. Update handling</a></h4>
 <p>
    In case of API changes to the third-party library, adaptation to the new API is limited to filling
-   the attribute <em>title</em>, because the call of the parent <strong>transform()</strong> is still
-   the same. A second advantage is, that the API of the wrapper class <strong>MyBookmarkTag</strong>
+   the attribute <em>title</em>, because the call of the parent <em>transform()</em> is still
+   the same. A second advantage is, that the API of the wrapper class <em>MyBookmarkTag</em>
    remains the same and the components using the API of the wrapper class must not be changed. The
    example described in the present tutorial only contained the enhancement of taglibs, but this principle
    can be adopted to any other domain.
