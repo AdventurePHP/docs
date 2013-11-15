@@ -1,90 +1,109 @@
-<doku:title parent="119" tags="object,relational,mapping,or,mapper,generic,relations,objects,object tree,object structures,configuration,usage" title="Generic OR mapper" urlname="Generic-OR-mapper">
-  The genericormapper module provides a generic data mapper, that is fully integrated into the APF.
-  It enables the developer to dynamically handle objects and their relations, that are defined within
-  configuration files.
+<doku:title parent="119" tags="object,relational,mapping,or,mapper,generic,relations,objects,object tree,object structures,configuration,usage" title="Generic o/r mapper" urlname="Generic-OR-mapper">
+   The genericormapper module provides a generic data mapper, that is fully integrated into the APF.
+   It enables the developer to dynamically handle objects and their relations, that are defined within
+   configuration files.
 </doku:title>
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
-Designing object oriented applications, you typically claim, that the complete design can be created
-on OO style - without break of media. In order to achieve this goal, each developer was yet faced
-with the problem of data storage in relation databases. If there is no tool, a <em>DataMapper</em>
-has to be implemented newly for each application. This does not only result in higher costs and lack
-of time, but is also not compatible with the <em>DRY</em> (<em>don't repeat yourself</em>)
-paradigma. You still are forced to produce redundant code.
-<br />
-<br />
-The APF module <em>genericormapper</em> now provides an abstraction layer, that is intended
-to do most of the work a data mapper has to do. The functionality thereby can
+<p>
+   Designing object oriented applications, you typically claim, that the complete design can be created
+   on OO style - without break of media. In order to achieve this goal, each developer was yet faced
+   with the problem of data storage in relation databases. If there is no tool, a <em>DataMapper</em>
+   has to be implemented newly for each application. This does not only result in higher costs and lack
+   of time, but is also not compatible with the <em>DRY</em> (<em>don't repeat yourself</em>)
+   paradigm. You still are forced to produce redundant code.
+</p>
+<p>
+   The APF module <em>genericormapper</em> now provides an abstraction layer, that is intended
+   to do most of the work a data mapper has to do. The functionality thereby can
+</p>
 <ul>
   <li>manage objects,</li>
   <li>manage relations between objects (compositions and associations) and</li>
   <li>features CRUD functionality for objects and object structures (aka. trees).</li>
 </ul>
-For this tasks, the API features a couple of methods, that support loading, manipulation and deletion
-of objects within the database. The generic domain object (<em>GenericDomainObject</em>)
-returned by the API functions can on the one hand be used directly within your applications or your
-application features a simple data layer, that mapps the data mapper domain objects into your
-application's domain objects and vice versa.
-<br />
-<br />
-The following chapters show how the OR mapper has to be configured and how you can use it. The
-module <em>usermanagement</em> shipped with the APF release is completely based on the
-GenericORMapper and thus can be used as an extended implementation example. Details on the module
-can be seen on the <int:link pageid="095" /> page.
-<br />
-<br />
-<br />
-<h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration of the OR mapper</a></h3>
-<br />
+<p>
+   For this tasks, the API features a couple of methods, that support loading, manipulation and deletion
+   of objects within the database. The generic domain object (<em>GenericDomainObject</em>)
+   returned by the API functions can on the one hand be used directly within your applications or your
+   application features a simple data layer, that mapps the data mapper domain objects into your
+   application's domain objects and vice versa.
+</p>
+<p>
+   The following chapters show how the o/r mapper has to be configured and how you can use it. The
+   module <em>usermanagement</em> shipped with the APF release is completely based on the
+   GenericORMapper and thus can be used as an extended implementation example. Details on the module
+   can be seen on the <int:link pageid="095" /> page.
+</p>
+
+<h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration of the o/r mapper</a></h3>
+
 <h4 id="Chapter-2-1-Basics"><a href="#Chapter-2-1-Basics">2.1. Basics</a></h4>
-To be able to user the OR mapper, two configuration files must be present:
+<p>
+   To be able to user the o/r mapper, two configuration files must be present:
+</p>
 <ul>
   <li>{ENVIRONMENT}_{NAMEAFFIX}_objects.ini</li>
   <li>{ENVIRONMENT}_{NAMEAFFIX}_relations.ini</li>
 </ul>
-The first file defines the objects and attributes, the second one is intended to define the relations
-between the objects from the first file. Due to the fact, that the <em>GenericORRelationMapper</em>
-uses the <int:link pageid="031"/> for database access, a database connection configuration must
-be created if not done yet.
-<br />
-<br />
-The <em>{ENVIRONMENT}</em> part of the configuration file names is taken from the registry
-directive <em>Environment</em> from the <em>apf::core</em> namespace. The
-<em>{NAMEAFFIX}</em> can be defined freely by the developer. This part of the name is inteded
-to provide the possibility of different mapper configurations for one context and one environment.
-This enables you to create applications, that are able to use multiple data sources.
-<br />
-<br />
-<br />
+<p>
+   The first file defines the objects and attributes, the second one is intended to define the relations
+   between the objects from the first file. Due to the fact, that the <em>GenericORRelationMapper</em>
+   uses the <int:link pageid="031"/> for database access, a database connection configuration must
+   be created if not done yet.
+</p>
+<p>
+   The <em>{ENVIRONMENT}</em> part of the configuration file names is taken from the registry
+   directive <em>Environment</em> from the <em>APF\core</em> namespace. The
+   <em>{NAMEAFFIX}</em> can be defined freely by the developer. This part of the name is inteded
+   to provide the possibility of different mapper configurations for one context and one environment.
+   This enables you to create applications, that are able to use multiple data sources.
+</p>
+
 <h4 id="Chapter-2-2-Configuration-examples"><a href="#Chapter-2-2-Configuration-examples">2.2. Configuration examples</a></h4>
-Imagine, that a developer wants to create a guestbook. The source code files are located in the
-<em>modules::myguestbook</em> namespace and the guestbook's data layer should us the OR mapper.
-Further, the registry value <em>Environment</em> is not touched (so it is still the default
-value) and the current application context is <em>sites::mysite</em>. Moreover, he decides,
-that the name affix should be identical to <em>guestbook</em>. In this case, the object
-configuration file must be named
-<gen:highlight type="code">DEFAULT_guestbook_objects.ini</gen:highlight>
-and the relation configuration file
-<gen:highlight type="code">DEFAULT_guestbook_relations.ini</gen:highlight>
-These must reside within the folder
-<gen:highlight type="code">/APF/config/modules/myguestbook/sites/mysite</gen:highlight>
-Further details on configuration, namespaces and contexts can be taken from the
-<int:link pageid="134" anchor="Chapter-2-1-Configuration-scheme">configuration scheme definition</int:link>.
-<br />
-<br />
-<br />
+<p>
+   Imagine, that a developer wants to create a guestbook. The source code files are located in the
+   <em>VENDOR\modules\myguestbook</em> namespace and the guestbook's data layer should us the o/r mapper.
+   Further, the registry value <em>Environment</em> is not touched (so it is still the default
+   value) and the current application context is <em>sites\mysite</em>. Moreover, he decides,
+   that the name affix should be identical to <em>guestbook</em>. In this case, the object
+   configuration file must be named
+</p>
+<gen:highlight type="code">
+DEFAULT_guestbook_objects.ini
+</gen:highlight>
+<p>
+   and the relation configuration file
+</p>
+<gen:highlight type="code">
+DEFAULT_guestbook_relations.ini
+</gen:highlight>
+<p>
+   These must reside within the folder
+</p>
+<gen:highlight type="code">
+/APF/config/modules/myguestbook/sites/mysite
+</gen:highlight>
+<p>
+   Further details on configuration, namespaces and contexts can be taken from the
+   <int:link pageid="134" anchor="Chapter-2-1-Configuration-scheme">configuration scheme definition</int:link>.
+</p>
+
 <h4 id="Chapter-2-3-Object-and-relation-definition"><a href="#Chapter-2-3-Object-and-relation-definition">2.3. Object and relation definition</a></h4>
-The way of object and relation definition is described in the next two chapters:
-<br />
-<br />
+<p>
+   The way of object and relation definition is described in the next two chapters:
+</p>
+
 <h5 id="Chapter-2-3-1-Object-definition"><a href="#Chapter-2-3-1-Object-definition">2.3.1. Object definition</a></h5>
-The <em>GenericORRelationMapper</em> provides a generic domain object (<em>GenericDomainObject</em>)
-that represents a persistence object. The type of the concrete object is classified by the domain
-object's <em>ObjectName</em> property.
-<br />
-<br />
-The object definition thus contains the name of the object (=name of the section) and the attributes
-(=properties of the <em>GenericDomainObject</em> class). The following codebox shows a
-typical object configuration:
+<p>
+   The <em>GenericORRelationMapper</em> provides a generic domain object (<em>GenericDomainObject</em>)
+   that represents a persistence object. The type of the concrete object is classified by the domain
+   object's <em>ObjectName</em> property.
+</p>
+<p>
+   The object definition thus contains the name of the object (=name of the section) and the attributes
+   (=properties of the <em>GenericDomainObject</em> class). The following codebox shows a
+   typical object configuration:
+</p>
 <gen:highlight type="ini">
 [Application]
 DisplayName = "VARCHAR(100)"
@@ -103,19 +122,23 @@ DisplayName = "VARCHAR(100)"
 [Role]
 DisplayName = "VARCHAR(100)"
 </gen:highlight>
-The values of the attributes represent the database data types of the object's properties. The
-mapper knows the following values and translates them into the right create table statements:
+<p>
+   The values of the attributes represent the database data types of the object's properties. The
+   mapper knows the following values and translates them into the right create table statements:
+</p>
 <ul>
   <li>VARCHAR(<em>{LENGTH}</em>)</li>
   <li>TEXT</li>
   <li>DATE</li>
 </ul>
-The <em>{LENGTH}</em> place holder must be replaced by any number. All other values are
-directly used for the data type of a property. These must be valid data type definitions. Otherwise,
-the <em>CREATE TABLE</em> statements will fail. The values presented above should be suitable for
-most application cases.
+<p>
+   The <em>{LENGTH}</em> place holder must be replaced by any number. All other values are
+   directly used for the data type of a property. These must be valid data type definitions. Otherwise,
+   the <em>CREATE TABLE</em> statements will fail. The values presented above should be suitable for
+   most application cases.
+</p>
 <div class="hint">
-   Since release 1.11, the generic or mapper supports bit masking. For this reason, the value of the
+  The generic or mapper also supports bit masking. For this reason, the value of the
    property definition must contain a valid BIT field definition like
    <gen:highlight type="sql">bit(7) NOT NULL default b'0'</gen:highlight>
    Thereby, it is not relevant, if the property is defined with a default value. But it is important
@@ -124,37 +147,41 @@ most application cases.
    <a class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=8&amp;t=234" title="Fehler mit BIT-Feldern" linkrewrite="false">Fehler mit BIT-Feldern</a>
    (German).
 </div>
-The attributes of a domain object can then be addressed as follows:
+<p>
+   The attributes of a domain object can then be addressed as follows:
+</p>
 <gen:highlight type="php">
 ...
-$User = new GenericDomainObject('User');
-$User->setProperty('FirstName','Christian');
-$User->setProperty('LastName','Achatz');
+$user = new GenericDomainObject('User');
+$user->setProperty('FirstName', 'Christian');
+$user->setProperty('LastName', 'Achatz');
 ...
-echo 'Surname: '.$User->getProperty('FirstName');
-echo 'Name: '.$User->getProperty('LastName');
+echo 'Vorname: ' . $user->getProperty('FirstName');
+echo 'Name: ' . $user->getProperty('LastName');
 ...
 </gen:highlight>
-<br />
+
 <h5 id="Chapter-2-3-2-Relation-definition"><a href="#Chapter-2-3-2-Relation-definition">2.3.2. Relation definition</a></h5>
-The file <em>*_relations.ini</em> defines the relations between the objects defined in the
-previous chapter. The mapper knows two types of relations: compositions and associations. Due to the
-fact, that compositions are strong relations, objects, that compose other objects, cannot be deleted
-due to data consistency. This case is checked by the mapper and it throws an error, if a object
-is tried to be deleted, that must not.
-<br />
-<br />
-<em>Note:</em>
-The persistancy theory contains the rule, that each object should be composed exactly one time. This
-is because an object cannot have more than one strong binding to another object in real life, too.
-Futhermore, a composition relation defines the object's right to exist. Hence, be aware that your
-objects are composed concerning this rule. For example, a guestbook entry cannot exist without the
-guestbook object. Instead, a user can exist without the guestbook. This means, that the relation
-between a guestbook and an entry must be a composition, the relation of the entry to the user must
-be an association.
-<br />
-<br />
-The following codebox shows a typical relation configuration:
+<p>
+   The file <em>*_relations.ini</em> defines the relations between the objects defined in the
+   previous chapter. The mapper knows two types of relations: compositions and associations. Due to the
+   fact, that compositions are strong relations, objects, that compose other objects, cannot be deleted
+   due to data consistency. This case is checked by the mapper and it throws an error, if a object
+   is tried to be deleted, that must not.
+</p>
+<p>
+   <em>Note:</em>
+   The persistancy theory contains the rule, that each object should be composed exactly one time. This
+   is because an object cannot have more than one strong binding to another object in real life, too.
+   Futhermore, a composition relation defines the object's right to exist. Hence, be aware that your
+   objects are composed concerning this rule. For example, a guestbook entry cannot exist without the
+   guestbook object. Instead, a user can exist without the guestbook. This means, that the relation
+   between a guestbook and an entry must be a composition, the relation of the entry to the user must
+   be an association.
+</p>
+<p>
+   The following codebox shows a typical relation configuration:
+</p>
 <gen:highlight type="ini">
 [Application2Group]
 Type = "COMPOSITION"
@@ -181,17 +208,16 @@ Type = "COMPOSITION"
 SourceObject = "Application"
 TargetObject = "Role"
 </gen:highlight>
-The section name (e.g. <em>Group2User</em>) should be named self-explanatory, because this
-relation key can be used to load objects, that are related to others and to create a relation between
-two or more objects. The type attribute contains the quality of relation, the
-<em>SourceObject</em> and <em>TargetObject</em> params reference the relevant object
-definition sections of the object definition file.
-<br />
-<br />
 <p>
-   Since version 1.14 you also can use self-references, which means that an object can reference another object
-   of the same object type. There is no difference to normal references, you just configure the same name in
-   source- and target object:
+   The section name (e.g. <em>Group2User</em>) should be named self-explanatory, because this
+   relation key can be used to load objects, that are related to others and to create a relation between
+   two or more objects. The type attribute contains the quality of relation, the
+   <em>SourceObject</em> and <em>TargetObject</em> params reference the relevant object
+   definition sections of the object definition file.
+</p>
+<p>
+   You can also use self-references, which means that an object can reference another object of the same object type.
+   There is no difference to normal references, you just configure the same name in source- and target object:
 </p>
 <gen:highlight type="ini">
 [User2BlockedUser]
@@ -201,9 +227,11 @@ TargetObject = "User"
 </gen:highlight>
 <p>
    Also, when using this feature, you do not take care of anything, as long as the SQL-statements get 
-   generated from the methods of the OR mapper, and do not get written on your own.
+   generated from the methods of the o/r mapper, and do not get written on your own.
 </p>
-<em>Note:</em>
+<p>
+   Note:
+</p>
 <ul>
   <li>
     The count of the relation definitions is not limited, each definition should be created to fit
@@ -221,7 +249,7 @@ TargetObject = "User"
 
 <h4 id="Chapter-2-4-Additional-indices"><a href="#Chapter-2-4-Additional-indices">2.4. Additional indices</a></h4>
 <p>
-   Since version 1.12 it is possible to define additional indices along with the object definition.
+   It is possible to define additional indices along with the object definition.
    This may be necessary due to performance reasons and it is strongly recommended to use this
    feature, if you are heavily requesting data using index restriction.
 </p>
@@ -273,7 +301,7 @@ AddIndices = "FirstName,LastName(INDEX)|Username(UNIQUE)|Password(INDEX)"
 
 <h4 id="Chapter-2-5-Creation-date-of-relations"><a href="#Chapter-2-5-Creation-date-of-relations">2.5. Creation date of relations</a></h4>
 <p>
-   With release 1.16 creation dates of relations can be stored within the data model. In order to activate the feature
+   Creation dates of relations can be stored within the data model. In order to activate the feature
    the relation configuration must include the <em>Timestamps</em> attribute set to <em>TRUE</em>.
 </p>
 <gen:highlight type="ini">
@@ -314,16 +342,15 @@ Timestamps = "TRUE"
    follows:
 </p>
 <gen:highlight type="php">
-// include page controller
-require('../../apps/core/pagecontroller/pagecontroller.php');
+// include APF bootstrap file
+require('./APF/core/bootstrap.php');
 
 // configure the registry if desired
+use APF\core\registry\Registry;
 Registry::register('APF\core', 'Environment', '{ENVIRONMENT}');
 
-// include SetupMapper
-import('modules::genericormapper::data::tools', 'GenericORMapperManagementTool');
+use APF\modules\genericormapper\data\tools\GenericORMapperManagementTool;
 
-// create setup tool
 $setup = new GenericORMapperManagementTool();
 
 // set Context (important for the configuration files!)
@@ -426,7 +453,6 @@ CREATE TABLE IF NOT EXISTS `cmp_application2role` (
   KEY `JOININDEX` (`ApplicationID`,`RoleID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 </gen:highlight>
-
 <div class="hint">
    Invoking <em>setIndexColumnDataType()</em> the data type of the columns that store the object and
    relation ids can be adapted. Concerning the sample statements above, the type was changed to
@@ -449,8 +475,8 @@ $setup->setIndexColumnDataType('TINYINT(3)');
 
 <h4 id="Chapter-3-2-Database-update"><a href="#Chapter-3-2-Database-update">3.2. Database update</a></h4>
 <p>
-   As of release 1.11, an update tool for the O/R mapper is available. The tool can apply changes to the configuration
-   files to an existing database.
+   The <em>GenericORMapperManagementTool</em> can also be used to apply changes on configuration files to existing
+   database schemes.
 </p>
 <p>
    In case no automated update is desired the <em>GenericORMapperManagementTool</em> provides a mode that displays
@@ -474,16 +500,15 @@ $setup->setIndexColumnDataType('TINYINT(3)');
    follows:
 </p>
 <gen:highlight type="php">
-// include page controller
-require('../../apps/core/pagecontroller/pagecontroller.php');
+// include APF boostrap file
+require('./APF/core/bootstrap.php');
 
 // configure the registry if desired
+use APF\core\registry\Registry;
 Registry::register('APF\core', 'Environment', '{ENVIRONMENT}');
 
-// include UpdateMapper
-import('modules::genericormapper::data::tools', 'GenericORMapperManagementTool');
+use APF\modules\genericormapper\data\tools\GenericORMapperManagementTool;
 
-// create update tool
 $update = new GenericORMapperManagementTool();
 
 // set Context (important for the configuration files!)
@@ -552,10 +577,12 @@ $update->run(false);
    </ul>
 </div>
 
-<h3 id="Chapter-4-Usage"><a href="#Chapter-4-Usage">4. Usage of the OR mapper</a></h3>
-The OR mapper, more precisely the <em>GenericORRelationMapper</em>, offers a list of API
-methods, that can be used for data and relation usage and manipulation. The following list gives you
-an overview of the existing functions and their meaning:
+<h3 id="Chapter-4-Usage"><a href="#Chapter-4-Usage">4. Usage of the o/r mapper</a></h3>
+<p>
+   The o/r mapper, more precisely the <em>GenericORRelationMapper</em>, offers a list of API
+   methods, that can be used for data and relation usage and manipulation. The following list gives you
+   an overview of the existing functions and their meaning:
+</p>
 <ul>
   <li>
     <em>loadObjectListByCriterion()</em>:
@@ -654,17 +681,18 @@ an overview of the existing functions and their meaning:
 <h4 id="Chapter-4-1-Create-an-instance"><a href="#Chapter-4-1-Create-an-instance">4.1. Creating an instance of the mapper</a></h4>
 <h5 id="Chapter-4-1-1-Classic-approach"><a href="#Chapter-4-1-1-Classic-approach">4.1.1. Classic approach</a></h5>
 <p>
-   The instance of the OR mapper must be created using the <em>GenericORMapperFactory</em>. This
+   The instance of the o/r mapper must be created using the <em>GenericORMapperFactory</em>. This
    is necessary, because the concrete mapper must be initialized prior to use and to have the possibility
    to use more than one instance per module. The latter one is probably not necessary within easy
    applications, but in complex environments this may be a knock-out criterion.
 <p>
-<p>The next code box shows a typical call of the mapper:</p>
+<p>
+   The next code box shows a typical call of the mapper:
+</p>
 <gen:highlight type="php">
 // create the factory using the desired service mode
 $ormFact = &$this->getServiceObject(
-                  'modules::genericormapper::data',
-                  'GenericORMapperFactory'[,
+                  'APF\modules\genericormapper\data\GenericORMapperFactory'[,
                   {SERVICE_OBJECT_TYPE}]
                   );
 
@@ -676,7 +704,9 @@ $orm = &$ormFact->getGenericORMapper(
                   $logStatements = false]
                   );
 </gen:highlight>
-<p>The place holders have the following meaning:</p>
+<p>
+   The place holders have the following meaning:
+</p>
 <ul>
   <li>
      <em>{SERVICE_OBJECT_TYPE}</em>: The type of service object of the factory. This param
@@ -698,8 +728,8 @@ $orm = &$ormFact->getGenericORMapper(
 </ul>
 <div class="warn">
    <p>
-      As of release 1.12 the factory service type also defines the service type of the mapper
-      (=scope of the object concerning the service manager's instanciation model). In case, the GORM
+      Please note, that the factory service type also defines the service type of the mapper
+      (=scope of the object concerning the service manager's instantiation model). In case, the GORM
       should be created only once per session due to performance reasons (mapping and relation tables
       are then only created once per visit) the factory creation statement must have the third param
       (<em>service type</em>) filled with the value <em>SESSIONSINGLETON</em>.
@@ -725,10 +755,10 @@ $orm = &$ormFact->getGenericORMapper(
    can be taken from the
    <int:link pageid="002" />.
 </div>
+
 <h5 id="Chapter-4-1-2-Creation-via-DI"><a href="#Chapter-4-1-2-Creation-via-DI">4.1.2. Creation via DI</a></h5>
 <p>
-   As of release 1.12 the GORM can also be created using the
-   <int:link pageid="107" anchor="Chapter-4-DIServiceManager">DIServiceManager</int:link>.
+   The GORM can also be created using the <int:link pageid="107" anchor="Chapter-4-DIServiceManager">DIServiceManager</int:link>.
    This approach implies advantages to testability and decoupling of business layer and presentation
    layer.
 </p>
@@ -743,11 +773,76 @@ $orm = &$ormFact->getGenericORMapper(
    <li><em>GenericORMapperDIMappingConfiguration</em>: injection of additional mapping configurations</li>
    <li><em>GenericORMapperDIRelationConfiguration</em>: injection of additional relation configurations</li>
 </ul>
-<p>
-   Details in the configuration beside an application sample can be found on the wiki page
+<div class="hint">
+   Details on the configuration and an application sample can be found on the wiki page
    <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Erzeugen_des_GORM_mit_dem_DIServiceManager" title="Erzeugen des GORM mit dem DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>
    (German).
+</div>
+<p>
+   The samples within the following chapters assume that there is a service configured for the instance of the o/r mapper
+   named <em>OR-Mapper</em> and located under service namespace <em>VENDOR\data\mapper</em>:
 </p>
+<gen:highlight type="ini">
+[OR-Mapper]
+servicetype = "SINGLETON"
+class = "APF\modules\genericormapper\data\GenericORRelationMapper"
+setupmethod = "setup"
+conf.namespace.method = "setConfigNamespace"
+conf.namespace.value = "VENDOR\data\mapper"
+conf.debug.method = "setDebugMode"
+conf.debug.value = "true|false"
+
+init.db.method = "setDbDriver"
+init.db.namespace = "VENDOR\data\mapper"
+init.db.name = "DATABASE"
+
+init.rel.method = "addDIRelationConfiguration"
+init.rel.namespace = "VENDOR\data\mapper"
+init.rel.name =  "CONFIG-RELATION"
+
+init.map.method = "addDIMappingConfiguration"
+init.map.namespace = "VENDOR\data\mapper"
+init.map.name =  "CONFIG-MAPPING"
+
+[CONFIG-MAPPING]
+servicetype = "NORMAL"
+class = "APF\modules\genericormapper\data\GenericORMapperDIMappingConfiguration"
+conf.namespace.method = "setConfigNamespace"
+conf.namespace.value = "VENDOR\data\mapper"
+conf.affix.method = "setConfigAffix"
+conf.affix.value = "..."
+
+[CONFIG-RELATION]
+servicetype = "NORMAL"
+class = "APF\modules\genericormapper\data\GenericORMapperDIRelationConfiguration"
+conf.namespace.method = "setConfigNamespace"
+conf.namespace.value = "VENDOR\data\mapper"
+conf.affix.method = "setConfigAffix"
+conf.affix.value = "..."
+
+[DATABASE]
+servicetype = "SINGLETON"
+class = "APF\core\database\MySQLiHandler"
+setupmethod = "setup"
+
+conf.host.method = "setHost"
+conf.host.value = "..."
+conf.name.method = "setDatabaseName"
+conf.name.value = "..."
+conf.user.method = "setUser"
+conf.user.value = "..."
+conf.pass.method = "setPass"
+conf.pass.value = "..."
+</gen:highlight>
+<p>
+   This configuration can be used to obtain an instance of the o/r mapper via
+</p>
+<gen:highlight type="php">
+use APF\modules\genericormapper\data\GenericORRelationMapper;
+
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+</gen:highlight>
 
 <h4 id="Chapter-4-2-Loading-data"><a href="#Chapter-4-2-Loading-data">4.2. Loading data</a></h4>
 <p>
@@ -785,11 +880,10 @@ $orm = &$ormFact->getGenericORMapper(
    to achieve this:
 </p>
 <gen:highlight type="php">
-// create fabric
-$ORMF = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-// create mapper
-$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // load user (1)
 $Crit = new GenericCriterionObject();
@@ -801,7 +895,7 @@ $select = 'SELECT * FROM ent_user WHERE UserID = \'1\';';
 $User = $ORM->loadObjectByTextStatement('User',$select);
 
 // load user (3)
-$User = $ORM->loadObjectByStatement('User','modules::usermanagement','load_user_by_id');
+$User = $ORM->loadObjectByStatement('User', 'APF\modules\usermanagement', 'load_user_by_id');
 
 // load user (4)
 $User = $ORM->loadObjectByID('User',1);
@@ -814,29 +908,28 @@ $User = $ORM->loadObjectByID('User',1);
    documentation.
 </p>
 <div class="hint">
-   As of release 1.12 <em>GenericDomainObject</em> was added seom convenience methods to
-   ease implementation. By typing
+   <em>GenericDomainObject</em> brings some convenience methods to ease implementation. By typing
 <gen:highlight type="php">
-$user = $orm->loadObjectByID('User',1);
+$user = $orm->loadObjectByID('User', 1);
 echo $user->getObjectId();
 </gen:highlight>
    you can easily retrieve the object's id without thinking about the id's property name. Using
    <em>setObjectId()</em> the object id can be set to the applied value. In cse you are interested
    in the object's name, just do the following:
 <gen:highlight type="php">
-$user = $orm->loadObjectByID('User',1);
+$user = $orm->loadObjectByID('User', 1);
 echo $user->getObjectName();
 </gen:highlight>
    Further, the <em>GenericDomainObject</em> now supports PHP's automatic string conversion.
    Thus a user object can be printed like this for debug reasons:
 <gen:highlight type="php">
-$user = $orm->loadObjectByID('User',1);
+$user = $orm->loadObjectByID('User', 1);
 echo $user;
 </gen:highlight>
 </div>
 
 <h5 id="Chapter-4-2-2-Loading-lists"><a href="#Chapter-4-2-2-Loading-lists">4.2.2. Loading lists</a></h5>
-For loading lists, the OR mapper features the following methods:
+For loading lists, the o/r mapper features the following methods:
 <ul>
   <li><em>loadObjectList()</em></li>
   <li><em>loadObjectListByCriterion()</em></li>
@@ -846,12 +939,10 @@ For loading lists, the OR mapper features the following methods:
 </ul>
 If you like to display a list of users (see UML) you can use these methods as presented below:
 <gen:highlight type="php">
-// create fabric
-$ORMF = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-// create mapper
-$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
-
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 // load user list (1)
 $UserList = $ORM->loadObjectList('User');
 
@@ -865,27 +956,30 @@ $select = 'SELECT * FROM ent_user WHERE DisplayName LIKE \'a%\';';
 $UserList = $ORM->loadObjectListByTextStatement('User',$select);
 
 // load user list (4)
-$UserList = $ORM->loadObjectListByStatement('User','modules::usermanagement','load_user_list');
+$UserList = $ORM->loadObjectListByStatement('User', 'APF\modules\usermanagement', 'load_user_list');
 
 // load user list (5)
 $UserList = $ORM->loadObjectListByIDs('User',array(1,2,3,4,5,6));
 </gen:highlight>
 The content of the statement file <em>load_user_list</em> looks like this:
 <gen:highlight type="sql">SELECT * FROM ent_user WHERE DisplayName LIKE 'a%';</gen:highlight>
-<br />
+
 <h5 id="Chapter-4-2-3-Loading-related-objects"><a href="#Chapter-4-2-3-Loading-related-objects">4.2.3. Loading related objects</a></h5>
-If you have to display the corresponding groups while listing the user details, you can use the
+<p>
+   If you have to display the corresponding groups while listing the user details, you can use the
+</p>
 <ul>
   <li><em>loadRelatedObjects()</em></li>
 </ul>
-function. This method returns the objects related to a dedicated object by the desired relation key.
-The next example shows, how to load the groups associated to a user:
+<p>
+   function. This method returns the objects related to a dedicated object by the desired relation key.
+   The next example shows, how to load the groups associated to a user:
+</p>
 <gen:highlight type="php">
-// create fabric
-$ORMF = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-// create mapper
-$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // load user list
 $Crit = new GenericCriterionObject();
@@ -909,16 +1003,20 @@ for($i = 0; $ < count($UserList); $i++){
 
 }
 </gen:highlight>
-To ease the handling of loading related objects, the <em>GenericDomainObject</em> posesses
-the <em>loadRelatedObjects()</em> function. This enables you to load the related objects using
-a relation key, where no instance of the mapper is available. To apply this to the example above,
-the user's groups could be loaded using
+<p>
+   To ease the handling of loading related objects, the <em>GenericDomainObject</em> posesses
+   the <em>loadRelatedObjects()</em> function. This enables you to load the related objects using
+   a relation key, where no instance of the mapper is available. To apply this to the example above,
+   the user's groups could be loaded using
+</p>
 <gen:highlight type="php">
 $GroupList = $UserList[$i]->loadRelatedObjects('Group2User');
 </gen:highlight>
-<em>Note:</em> The amount of objects loaded, can be limited using the
-<em>GenericCriterionObject</em>. So if you like to load the first 10 groups only, include the
-following code in your application:
+<p>
+   <em>Note:</em> The amount of objects loaded, can be limited using the
+   <em>GenericCriterionObject</em>. So if you like to load the first 10 groups only, include the
+   following code in your application:
+</p>
 <gen:highlight type="php">
 // define the limit
 $Crit = new GenericCriterionObject();
@@ -932,22 +1030,25 @@ $GroupList = $UserList[$i]->loadRelatedObjects('Group2User',$Crit);
 // load the group list using the mapper
 $GroupList = $ORM->loadRelatedObjects($UserList[$i],'Group2User',$Crit);
 </gen:highlight>
-<br />
+
 <h5 id="Chapter-4-2-4-Loading-not-related-objects"><a href="#Chapter-4-2-4-Loading-not-related-objects">4.2.4. Loading not related objects</a></h5>
-Often you have to select objects, that are not (yet) related with a given object, but a relation is
-defined. A good example, concerning the UML diagram above, is the listing of groups, that a certain
-user has not been added yet. For this purpose, the
+<p>
+   Often you have to select objects, that are not (yet) related with a given object, but a relation is
+   defined. A good example, concerning the UML diagram above, is the listing of groups, that a certain
+   user has not been added yet. For this purpose, the
+</p>
 <ul>
   <li><em>loadNotRelatedObjects()</em></li>
 </ul>
-function could be used. The next example shows, how groups not associated with desired user can be
-selected:
+<p>
+   function could be used. The next example shows, how groups not associated with desired user can be
+   selected:
+</p>
 <gen:highlight type="php">
-// create fabric
-$ORMF = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-// create mapper
-$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // select user
 $Crit = new GenericCriterionObject();
@@ -959,19 +1060,20 @@ $GroupList = $ORM->loadNotRelatedObjects($User,'Group2User');
 
 // present list
 for($i = 0; $ < count($GroupList); $i++){
-   echo '<br />'.$GroupList[$i]->getProperty('DisplayName');
+   echo '' . $GroupList[$i]->getProperty('DisplayName');
 }
 </gen:highlight>
-<em>Note:</em> The amount of objects loaded, can be limited using the
-<em>GenericCriterionObject</em>. A typical application case is to limit the list by relations
-to other objects. The following example explains, how to load all groups, that are not associated to
-the desired user but are composed under a <em>Application</em> object:
+<p>
+   <em>Note:</em> The amount of objects loaded, can be limited using the
+   <em>GenericCriterionObject</em>. A typical application case is to limit the list by relations
+   to other objects. The following example explains, how to load all groups, that are not associated to
+   the desired user but are composed under a <em>Application</em> object:
+</p>
 <gen:highlight type="php">
-// create fabric
-$ORMF = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-// create mapper
-$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // select user
 $Crit = new GenericCriterionObject();
@@ -989,23 +1091,26 @@ $GroupList = $ORM->loadNotRelatedObjects($User,'Group2User',$Crit);
 
 // present list
 for($i = 0; $ < count($GroupList); $i++){
-   echo '<br />'.$GroupList[$i]->getProperty('DisplayName');
+   echo '' . $GroupList[$i]->getProperty('DisplayName');
 }
 </gen:highlight>
-<br />
+
 <h4 id="Chapter-4-2-5-Loading-the-relation-multiplicity"><a href="#Chapter-4-2-5-Loading-the-relation-multiplicity">4.2.5. Loading the relation multiplicity</a></h4>
-To be able to find out, how much objects are related to a certain one, the
+<p>
+   To be able to find out, how much objects are related to a certain one, the
+</p>
 <ul>
   <li><em>loadRelationMultiplicity()</em></li>
 </ul>
-method can be used. It returns the multiplicity by a given object and a relation key. In order to
-count the users within a group, add the following code to your business layer:
+<p>
+   method can be used. It returns the multiplicity by a given object and a relation key. In order to
+   count the users within a group, add the following code to your business layer:
+</p>
 <gen:highlight type="php">
-// create fabric
-$ORMF = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-// create mapper
-$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // select group
 $Group = $ORM->loadObjectByID('Group',1);
@@ -1032,14 +1137,16 @@ echo $ORM->loadRelationMultiplicity($Group,'Group2User');
    character <em>A</em> can be requested as follows:
 </p>
 <gen:highlight type="php">
-$ormf = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
-$orm = &$ormf->getGenericORMapper('modules::usermanagement','umgt_1','umgt');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-$totalUsers = $orm->loadObjectCount('User');
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+
+$totalUsers = $ORM->loadObjectCount('User');
 
 $crit = new GenericCriterionObject();
 $crit->addPropertyIndicator('LastName','A%');
-$usersWithA = $orm->loadObjectCount('User',$crit);
+$usersWithA = $ORM->loadObjectCount('User',$crit);
 </gen:highlight>
 <div class="warn">
    Due to the fact, that this query is not cached, it should not be integrated in performance
@@ -1047,17 +1154,20 @@ $usersWithA = $orm->loadObjectCount('User',$crit);
 </div>
 
 <h4 id="Chapter-4-3-Saving-objects"><a href="#Chapter-4-3-Saving-objects">4.3. Saving objects</a></h4>
-Saving objects is quite easy. Regardless you save objects or object trees, the
+<p>
+   Saving objects is quite easy. Regardless you save objects or object trees, the
+</p>
 <ul>
   <li><em>saveObject()</em></li>
 </ul>
-function can be used. The next code box shows how to save a user:
+<p>
+   function can be used. The next code box shows how to save a user:
+</p>
 <gen:highlight type="php">
-// create fabric
-$ormf = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-// create mapper
-$orm = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // set some attributes
 $user = new GenericDomainObject('User');
@@ -1065,39 +1175,39 @@ $user->setProperty('FirstName','Christian');
 $user->setProperty('LastName','Achatz');
 
 // save user
-$orm->saveObject($user);
+$ORM->saveObject($user);
 </gen:highlight>
 <div class="hint">
-   As of release 1.11, the saved object (in this case <em>$user</em>) can directly be reused after
-   calling <em>saveObject()</em>. The mapper therefor injects the current mapper instance and the
-   id of the object within the database. Details on the feature request can be taken from the forum
-   post
+   The saved object (in this case <em>$user</em>) can directly be reused after calling <em>saveObject()</em>. The mapper
+   therefor injects the current mapper instance and the id of the object within the database. Details on the feature
+   request can be taken from the forum post
    <a class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=10&amp;t=154" title="Erweiterung GORM (Release 1.11)" linkrewrite="false">Erweiterung GORM (Release 1.11)</a>
    (German).
 </div>
 
 <h4 id="Chapter-4-4-Saving-object-trees"><a href="#Chapter-4-4-Saving-object-trees">4.4. Saving object trees</a></h4>
-As already mentioned above, the OR mapper is not only able to save flat object structures but also
-object trees. This feature can especially be used within your application's data layer to create the
-necessary relations.
-<br />
-<br />
-<em>Problem:</em> When you create a User, it should be composed under the Application object.
-The latter one is used to ensure multi-client capability for the user management module.
-<br />
-<br />
-<em>Solution:</em> To create the relation between these two objects (<em>Application</em>
-and <em>User</em>), the <em>addRelatedObject()</em> method of the <em>GenericDomainObject</em>
-can be used. The following code box shows, how the implementation is like:
+<p>
+   As already mentioned above, the o/r mapper is not only able to save flat object structures but also
+   object trees. This feature can especially be used within your application's data layer to create the
+   necessary relations.
+</p>
+<p>
+   <em>Problem:</em> When you create a User, it should be composed under the Application object.
+   The latter one is used to ensure multi-client capability for the user management module.
+</p>
+<p>
+   <em>Solution:</em> To create the relation between these two objects (<em>Application</em>
+   and <em>User</em>), the <em>addRelatedObject()</em> method of the <em>GenericDomainObject</em>
+   can be used. The following code box shows, how the implementation is like:
+</p>
 <gen:highlight type="php">
-// create fabric
-$ormf = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-// create mapper
-$orm = &$ormf->getGenericORMapper('modules::usermanagement','umgt','umgt');
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // load application object
-$app = $orm->loadObjectByID('Application',1);
+$app = $ORM->loadObjectByID('Application',1);
 
 // fill user
 $user = new GenericDomainObject('User');
@@ -1108,7 +1218,7 @@ $user->setProperty('LastName','Achatz');
 $app->addRelatedObject('Application2User',$user);
 
 // save object tree
-$orm->saveObject($app);
+$ORM->saveObject($app);
 </gen:highlight>
 <div class="hint">
    <p>
@@ -1123,8 +1233,9 @@ $orm->saveObject($app);
       the <em>User</em>, and the relation between the two objects composing the user under the app).
    </p>
 </div>
-If you intend to add a group and a role at the same time, the php code above must be added the
-following lines:
+<p>
+   If you intend to add a group and a role at the same time, the php code above must be added the following lines:
+</p>
 <gen:highlight type="php">
 // load application
 $app = $orm->loadObjectByID('Application',1);
@@ -1168,7 +1279,7 @@ $orm->saveObject($app);
 
 <h4 id="Chapter-4-5-Creation-date-of-relations"><a href="#Chapter-4-5-Creation-date-of-relations">4.5. Creation date of relations</a></h4>
 <p>
-   Since release 1.16 you are able to query the creation date of a relation between two objects. For this reason, the
+   It is possible to query the creation date of a relation between two objects. For this reason, the
    feature must be activated prior to use as described in <a href="#Chapter-2-5-Creation-date-of-relations">chapter 2.5</a>
    for each relation.
 </p>
@@ -1208,15 +1319,14 @@ foreach ($wheels AS $wheel) {
    composed under a certain application object:
 </p>
 <gen:highlight type="php">
+use APF\modules\genericormapper\data\GenericORRelationMapper;
+
 class UsermanagementManager extends APFObject {
 
-   public function getUserList(){
+   public function getUserList() {
 
-      // create fabric
-      $ORMF = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
-
-      // create mapper
-      $ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
+      /* @var $ORM GenericORRelationMapper */
+      $ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
       // create the criterion object
       $Crit = new GenericCriterionObject();
@@ -1255,32 +1365,33 @@ class UsermanagementManager extends APFObject {
 
 }
 </gen:highlight>
-<em>Notes on the source code:</em>
+<p>
+   Notes on the source code:
+</p>
 <ul>
   <li>
     <em>Relations</em>:
-    <br />
+    
     Adding a relation indicator to the criterion object says, that the object or object list to be
     loaded must have a relation to the object within the criterion. If a relation to the
     <em>Application</em> object (composition) and to the <em>Group</em> object (association) is added,
     this means that the resulting object list belongs to a dedicated application and is assigned to
     a special group.
-    <br />
+    
     If a developer is likely to select all users, that belong to a dedicated application and are
     are member of a group and are assigned a role, three relation indicators must be added to the
     criterion object.
   </li>
   <li>
      <em>Sort sequence</em>:
-     <br />
+     
      The order of calls decides the sort sequences. If you like to sort in another direction, the
      sort indicators must be changed. <em>ASC</em> stands for ascending and <em>DESC</em>
      for descending sorting.
   </li>
 </ul>
 <div class="hint">
-   Since version 1.13 of the APF the <em>GenericCriterionObject</em> class offers a
-   <em>fluent interface</em>. This can be used to cascade calls:
+   The <em>GenericCriterionObject</em> class offers a <em>fluent interface</em>. This can be used to cascade calls:
 <gen:highlight type="php">
 $criterion = new GenericCriterionObject();
 $criterion
@@ -1296,7 +1407,7 @@ $criterion
 
 <h4 id="Chapter-5-2-Combination"><a href="#Chapter-5-2-Combination">5.2. Combination</a></h4>
 <p>
-   Since release 1.14 the <em>GenericCriterionObject</em> provides the possibility to use enhanced logical operators
+   The <em>GenericCriterionObject</em> provides the possibility to use enhanced logical operators
    such as <em>AND</em> <em>OR</em>, <em>XOR</em>, and <em>NOT</em>. To support this
    feature, the facility to combine criterion objects has been introduced. You are now enabled to create any mixture of
    operators you need.
@@ -1311,7 +1422,7 @@ $criterion = new GenericCriterionObject();
 $criterion->setLogicalOperator('OR');
 </gen:highlight>
 <div class="hint">
-   The <em>fluent interface</em> added in 1.13 is supported by this method, too.
+   The <em>fluent interface</em> is supported by this method, too.
 </div>
 <p>
    Please note, that the logical operator is not applied to the whole criterion instance but is stored to be used for
@@ -1393,7 +1504,7 @@ $criterion1->addPropertyIndicator('field1','value1')
 
 <h4 id="Chapter-5-3-Comparison-operators"><a href="#Chapter-5-3-Comparison-operators">5.3. Comparison operators</a></h4>
 <p>
-   Since 1.14 the <em>GenericCriterionObject</em> supports configurable comparison operators. In the past, all
+   The <em>GenericCriterionObject</em> supports configurable comparison operators. In the past, all
    comparisons have been done using the &quot;=&quot; sign. To be able to apply custom operators the
    <em>addPropertyIndicator()</em> has been added a third argument that takes the comparison operator.
 </p>
@@ -1423,25 +1534,28 @@ $criterion->addPropertyIndicator('field1',15,'<');
   <li><em>addMappingConfiguration()</em></li>
   <li><em>addRelationConfiguration()</em></li>
 </ul>
-to extend the configuration for the special use cas. With these functions, any object and relation
-configuration files can be added. The following example shows to you, how the functions can be used
-to upgrade the scope of the mapper:
+<p>
+   to extend the configuration for the special use cas. With these functions, any object and relation
+   configuration files can be added. The following example shows to you, how the functions can be used
+   to upgrade the scope of the mapper:
+</p>
 <gen:highlight type="php">
-// create fabric
-$ORMF = &$this->getServiceObject('modules::genericormapper::data','GenericORMapperFactory');
+use APF\modules\genericormapper\data\GenericORRelationMapper;
 
-// create mapper
-$ORM = &$ORMF->getGenericORMapper('modules::usermanagement','umgt','umgt');
+/* @var $ORM GenericORRelationMapper */
+$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // add another object definition
-$oRM->addMappingConfiguration('modules::usermanagement','umgt_2');
+$ORM->addMappingConfiguration('APF\modules\usermanagement', 'umgt_2');
 
 // add another relation definition
-$oRM->addRelationConfiguration('modules::usermanagement','umgt_2');
+$ORM->addRelationConfiguration('APF\modules\usermanagement', 'umgt_2');
 </gen:highlight>
-The syntax of the object and relation configuration is the same as the default configuration described
-in the chapter <a href="#2-3-Object-and-relation-definition" title="2.3. Object and relation definition">2.3. Object and relation definition</a>.
-The additional object configuration file contains the following objects:
+<p>
+   The syntax of the object and relation configuration is the same as the default configuration described
+   in the chapter <a href="#Chapter-2-3-Object-and-relation-definition" title="2.3. Object and relation definition">2.3. Object and relation definition</a>.
+   The additional object configuration file contains the following objects:
+</p>
 <gen:highlight type="ini">
 [Project]
 DisplayName = "VARCHAR(100)"
@@ -1465,9 +1579,335 @@ SourceObject = "Project"
 TargetObject = "News"
 </gen:highlight>
 
-<h3 id="Chapter-7-Notes"><a href="#Chapter-7-Notes">7. Notes</a></h3>
+<h3 id="Chapter-7-Custom-domain-objects"><a href="#Chapter-7-Custom-domain-objects">7. Custom domain objects</a></h3>
+<p>
+   In order to take a further step towards object orientation, the o/r mapper since version 1.14 supports the optional usage of
+   <em>custom domain objects</em>. With an additional configuration file you can define, which object types
+   (or rather database tables) should be represented by custom domain objects (instead of the <em>GenericDomainObject</em>)
+   and where the object definitions are located.
+</p>
+<p>
+   This enables the possibility of adding own, object specific functions to the domain object, which required
+   an extra manager object before. This leads to better readable code and makes the usage in many cases noticeable easier.
+</p>
+<p>
+   With this feature we also deliver a <em>GenericORMapperDomainObjectGenerator</em>, which is able to
+   generate a ready definition for your custom domain objects, using your configuration files, which then can be
+   edited as you need it. The generated definition consists of a base-object, which provides a getter- and setter-method
+   for each property, defined in the database, and which must extend the <em>GenericDomainObject</em> <em>or</em>
+   any object which already extends it. The object used for extending can be defined in the configuration, so that, in the easiest case,
+   no more changes are needed after correct configuration and usage of the <em>GenericORMapperDomainObjectGenerator</em>.
+   Furthermore, the generated definition contains the "real" domain object, which extends the base object, and which is
+   designed to be changed from you.
+   The base object <em>must NOT be edited</em>, because any change on it will be irrevocable removed when starting
+   the generator (which also can be used as updater, because it always will generate the base objects new, which is important
+   for any changes you make in the property configuration) again. For any changes you want to do, use the "real" domain object,
+   because this will not be affected by the generator, since it already exists.
+</p>
+<p>
+   As another feature, the domain object can implement some <em>event methods</em>, which will be called
+   from the o/r mapper when performing specific actions when working with this object, for example before and after saving
+   it. This, <em>for instance</em> could be used to have arrays/objects as an property of the object, converting
+   them to better storable JSON before saving, and reload the arrays/objects after saving. Doing so, the application
+   never needs to take care of converting the data to the correct format, the object can do it on it's own.
+   An overview of available event-methods can be found in the chapter <a href="#Chapter-7-4-Event-methods">Event methods</a>.
+</p>
+<p>
+   The following chapters will show you how to configure, generate and use custom domain objects, and which events they support.
+</p>
+
+<h3 id="Chapter-7-1-Configuration"><a href="#Chapter-7-1-Configuration">7.1. Configuration of custom domain objects</a></h3>
+<p>
+   Whenever the o/r mapper should use custom domain objects, create an additional configuration file next to your
+   mapper configurations:
+</p>
+<ul>
+  <li>{ENVIRONMENT}_{NAMEAFFIX}_domainobjects.ini</li>
+</ul>
+<p>
+   The place holders <strong>{ENVIRONMENT}</strong> and <strong>{NAMEAFFIX}</strong> can be adapted from the existing O/R
+   mapper configurations.
+</p>
+<p>
+   In this file you need to define sections with the name of each object, which should be represented by a custom domain object, which
+   is configured in your <em>*_objects.ini</em>. Objects, which do not need a custom domain object, don't need to be defined here,
+   the <em>GenericDomainObject</em> will be automatically used for them.
+</p>
+<p>
+   Each section must define the following values:
+</p>
+<ul>
+   <li>Class: The fully-qualified class name of the object</li>
+</ul>
+<p>
+   If a base object should extend another object than the <em>GenericDomainObject</em>, and the generator will be used,
+   also the following, otherwise not needed values need to be set:
+</p>
+<ul>
+   <li>Base.Class: The fully-qualified class name of the base-object which should be used</li>
+</ul>
+<p>
+   <strong>Important:</strong> Don't forget the fact, that your own base object must than extend the <em>GenericDomainObject</em>
+   direct or indirect.
+</p>
+<p>
+   The following example is part of the configuration of the <a href="http://wiki.adventure-php-framework.org/de/Postbox_-_Nachrichtensystem" target="_blank">Postbox Extension</a>
+   (German), in which the custom domain objects were used first, and which can be used as secondary example for the usage of custom domain objects.
+</p>
+<gen:highlight type="ini">
+[Message]
+Class = "APF\extensions\postbox\biz\Message"
+Base.Class = "APF\extensions\postbox\bizAbstractMessage"
+
+[MessageChannel]
+Class = "APF\extensions\postbox\bizMessageChannel"
+Base.Class = "APF\extensions\postbox\bizAbstractMessageChannel"
+</gen:highlight>
+<p>
+   Here, 2 objects got defined, which both should extend a special base-object.
+</p>
+
+<h3 id="Chapter-7-2-Generating-objects"><a href="#Chapter-7-2-Generating-objects">7.2. Generating custom domain objects</a></h3>
+<p>
+   Due to the delivered <strong>GenericORMapperDomainObjectGenerator</strong> the creating of custom domain objects is really easy.
+   After creating the configuration files, you just need to create and start a little script, which generates the objects:
+</p>
+<gen:highlight type="php">
+// include APF bootstrap file
+require('./APF/core/bootstrap.php');
+
+// configure environment if desired
+use APF\core\registry\Registry;
+Registry::register('APF\core', 'Environment', '{ENVIRONMENT}');
+
+use APF\modules\genericormapper\data\tools\GenericORMapperDomainObjectGenerator;
+
+$generator = new GenericORMapperDomainObjectGenerator();
+
+// set Context (important for the configuration files!)
+$generator->setContext('{CONTEXT}');
+
+// initialize mapping configuration
+$generator->addMappingConfiguration('{CONFIG_NAMESPACE}', '{CONFIG_NAME_AFFIX}');
+
+// initialize relation configuration
+$generator->addDomainObjectsConfiguration('{CONFIG_NAMESPACE}', '{CONFIG_NAME_AFFIX}');
+
+$generator->generateServiceObjects();
+</gen:highlight>
+<p>
+   The place holder <strong>{CONTEXT}</strong> needs to be replaced with your context, <strong>{NAMESPACE}</strong> with the
+   namespace where your configurations are stored (without context) and <strong>{NAMEAFFIX}</strong> with the affix you
+   defined in the filename (see above).
+</p>
+<p>
+   The <strong>GenericORMapperDomainObjectGenerator</strong> will create the definition of each configured custom domain object, at the
+   location defined in the configuration. If the file is already existing, the generator will try to regenerate the base object within
+   this file, in order to let API-changes, made in your <em>*_objects.ini</em>, take effect. For that reason the file contains
+   specific, corresponding named comments, which <strong>must not</strong> be edited or deleted, just as little as the code between
+   them, otherwise the loss of data could be the consequence! When updating, the "real" domain object itself will not be changed,
+   any changes you made on it <strong>should</strong> not get deleted. All changes on the base object will irrevocable be lost.
+</p>
+<div class="warn">
+   The APF team generally does not take liability for any problem/data loss which was caused from the generation,
+   although we do test it, we never can exclude problems with it. You should always copy the existing files before
+   using the generator, in order to be able to restore them if any problem occurs!
+</div>
+<p>
+   An example for the generated file (this one is taken from the message object defined above) could look like this:
+</p>
+<gen:highlight type="php">
+namespace APF\extensions\postbox\biz;
+
+//<*MessageBase:start*> DO NOT CHANGE THIS COMMENT!
+/**
+ * Automatically generated BaseObject for Message. !!DO NOT CHANGE THIS BASE-CLASS!!
+ * CHANGES WILL BE OVERWRITTEN WHEN UPDATING!!
+ * You can change class "Message" which will extend this base-class.
+ */
+use APF\extensions\postbox\biz\AbstractMessage;
+class MessageBase extends AbstractMessage {
+
+   public function __construct($objectName = null) {
+      parent::__construct('Message');
+   }
+
+   public function getText() {
+      return $this->getProperty('Text');
+   }
+
+   public function setText($value) {
+      $this->setProperty('Text', $value);
+      return $this;
+   }
+
+   public function getAuthorNameFallback() {
+      return $this->getProperty('AuthorNameFallback');
+   }
+
+   public function setAuthorNameFallback($value) {
+      $this->setProperty('AuthorNameFallback', $value);
+      return $this;
+   }
+
+}
+
+// DO NOT CHANGE THIS COMMENT! <*MessageBase:end*>
+
+/**
+ * @package APF\extensions\postbox\biz
+ * @class Message
+ *
+ * Domain object for "Message"
+ * Use this class to add your own functions.
+ */
+class Message extends MessageBase {
+   /**
+    * Call parent's function because the objectName needs to be set.
+    */
+   public function __construct($objectName = null) {
+      parent::__construct();
+   }
+
+}
+</gen:highlight>
+<p>
+   The base object <em>MessageBase</em> extends <em>AbstractMessage</em> which was especially defined in the configuration.
+   Even the import of the needed file was done from the generator.
+   In <em>*_objects.ini</em> configuration of the o/r mapper, the message object has got the properties <em>"Text"</em> and
+   <em>"AuthorNameFallback"</em>, corresponding to this, getter- and setter-methods were created for them.
+   The setters always get a fluent-interface.
+</p>
+<p>
+   Finally you see the definition of the <em>Message</em> object, which extends the base object. This is the class, you now
+   are allowed to edit for your own needs, for example you could add a "delete()" method for deleting this message.
+</p>
+<div class="hint">
+   If you had a closer look at the Postbox-extension, you maybe will have seen, that there the delete-method was already defined in
+   <em>AbstractMessage</em>. As you see this is also possible, but normally you won't need it.
+</div>
+
+<h3 id="Chapter-7-3-Usage"><a href="#Chapter-7-3-Usage">7.3. Usage of custom domain objects</a></h3>
+<p>
+   If the objects were created following the instructions above, we can come to the usage now. In fact, you don't need to take
+   care of anything special here. Due to the fact that the objects always need to extend the <strong>GenericDomainObject</strong>
+   they can be used like every other <em>GenericDomainObject</em> and are therefore downward compatible. This is particularly
+   practical, because the decision to use the custom domain objects does not need any change on existing code.
+</p>
+<p>
+   The o/r mapper recognizes itself, due to the configuration, that it needs to create a custom domain object when loading data.
+   That means, if you are loading any message (following the example above) from the database, you will now get a "Message"-object
+   instead of a <em>GenericDomainObject</em>, which will have all your custom methods.
+   Whenever you want to generate a new object, you just import the corresponding file with an import(), and create an instance of
+   the object and work with it as before:
+</p>
+<gen:highlight type="php">
+use APF\extensions\postbox\biz\Message;
+$message = new Message();
+$message->setText('ExampleText');
+$orm->saveObject($message);
+</gen:highlight>
+
+<h3 id="Chapter-7-4-Event-methods"><a href="#Chapter-7-4-Event-methods">7.4. Event methods</a></h3>
+<p>
+   As mentioned earlier, the o/r mapper offers some "events". The domain objects can define an event-method for each event, which will
+   be called on specific actions. At the moment we offer the following event methods, which get called from the o/r mapper:
+</p>
+<ul>
+    <li>afterLoad(): Gets called after the object was created and filled with data from the database.</li>
+    <li>beforeSave(): Gets called before the object is being saved.</li>
+    <li>afterSave(): Gets called after the object has been saved to the database.</li>
+</ul>
+<p>
+   One possible example of using this events is the encoding end decoding of arrays or objects before/after saving or loading, which
+   was mention in the <a href="#Chapter-7-Custom-domain-objects">Introduction</a>.
+</p>
+
+<h4 id="Chapter-7-5-Object-trees"><a href="#Chapter-7-5-Object-trees">7.5. Object trees</a></h4>
+<p>
+   The generic o/r mapper offers a mechanism to create hierarchical object lists a.k.a. object trees. This feature is
+   similar to nested set or parent id implementations.
+</p>
+<p>
+   In order to use this feature please define a domain object within <em>{ENVIRONMENT}_{NAMEAFFIX}_domainobjects.ini</em>
+   that uses <em>TreeItem</em> as it's base class or directly uses <em>TreeItem</em>:
+</p>
+<gen:highlight type="ini">
+; Option 1
+[NavigationNode]
+Class = "VENDOR\..\NavigationNode"
+Base.Class = "APF\modules\genericormapper\data\TreeItem"
+
+; Option 2
+[NavigationNode]
+Class = "APF\modules\genericormapper\data\TreeItem"
+</gen:highlight>
+<p>
+   The hierarchy of objects can be done by defining a composition:
+</p>
+<gen:highlight type="ini">
+[NavigationNode2NavigationNode]
+Type = "COMPOSITION"
+SourceObject = "NavigationNode"
+TargetObject = "NavigationNode"
+</gen:highlight>
+<p>
+   You can obtain the tree by using the <em>loadObjectTree()</em> method of the <em>GenericORRelationMapper</em>:
+</p>
+<gen:highlight type="php">
+$tree = $ORM->loadObjectTree('NavigationNode', 'NavigationNode2NavigationNode');
+</gen:highlight>
+<p>
+    The method used within the above code box offers three further optional parameters:
+</p>
+<ul>
+    <li>
+       <strong>criterion</strong>:
+       To apply a <em>GenericCriterionObject</em> to specify the query with additional attributes.
+    </li>
+    <li>
+       <strong>rootObjectId</strong>:
+       To specify the id if the object that is to be considered the root object of the tree.
+    </li>
+    <li>
+       <strong>maxDepth</strong>:
+       Limits the depth of the tree to be loaded.
+    </li>
+</ul>
+<p>
+   After loading the tree you can use two methods defined within <em>TreeItem</em> to traverse the structure. Using a
+   recursive function you can display the object tree by a nested unordered list:
+</p>
+<gen:highlight type="php">
+function printChildObjects($objects) {
+    echo '&lt;ul&gt;';
+    foreach ($objects as $object) {
+        echo '&lt;li&gt;';
+        echo $object->getProperty('DisplayName');
+
+        $children = $object->getChildren();
+        if (count($children) > 0) {
+            printChildObjects($children);
+        }
+
+        echo '&lt;/li&gt;';
+    }
+    echo '&lt;/ul&gt;';
+}
+
+$objectTree = $ORM->loadObjectTree('NavigationNode', 'NavigationNode2NavigationNode');
+printChildObjects($objectTree);
+</gen:highlight>
+
+<h3 id="Chapter-8-Notes"><a href="#Chapter-8-Notes">8. Notes</a></h3>
 <p>
    Hints on performance relevant issues can be found in the <int:link pageid="065">performance hacks</int:link>
    chapter. The source files of the <int:link pageid="095" /> module can be used as an extended example.
 </p>
+<p>
+   A further tutorial to get started with the mapper can be found in the
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/de/Einstieg_in_den_GenericORMapper_%28GORM%29">Wiki</a>
+   (German).
+</p>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_063" />
