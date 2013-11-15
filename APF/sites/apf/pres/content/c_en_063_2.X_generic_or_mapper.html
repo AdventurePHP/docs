@@ -673,9 +673,8 @@ $update->run(false);
   </li>
 </ul>
 <p>
-   The <em>*Statement*</em> methods are provided due to performance optimization reasons. For
-   details, please have a look at the <int:link pageid="065">performance hacks</int:link> chapter. Details on the
-   arguments can be taken from the <int:link pageid="002" /> for the modules.
+   The <em>*Statement*</em> methods are provided due to performance optimization reasons. Details on the arguments can
+   be taken from the <int:link pageid="002" /> for the modules.
 </p>
 
 <h4 id="Chapter-4-1-Create-an-instance"><a href="#Chapter-4-1-Create-an-instance">4.1. Creating an instance of the mapper</a></h4>
@@ -1899,10 +1898,87 @@ $objectTree = $ORM->loadObjectTree('NavigationNode', 'NavigationNode2NavigationN
 printChildObjects($objectTree);
 </gen:highlight>
 
-<h3 id="Chapter-8-Notes"><a href="#Chapter-8-Notes">8. Notes</a></h3>
+<h3 id="Chapter-8-Performance-tricks"><a href="#Chapter-8-Performance-tricks">8. Performance tricks</a></h3>
 <p>
-   Hints on performance relevant issues can be found in the <int:link pageid="065">performance hacks</int:link>
-   chapter. The source files of the <int:link pageid="095" /> module can be used as an extended example.
+   The o/r mapper is generally built for a maximum of performance but it may come to issues with sub-optimal implementation
+   of higher software tiers or bad database or table setup.
+</p>
+<p>
+   This chapter lists some of the most common optimization patterns where manual interaction or manual adaption has
+   positive impact on performance.
+</p>
+
+<h4 id="Chapter-8-1-Queries-via-attributes"><a href="#Chapter-8-1-Queries-via-attributes">8.1. Frequent queries via attributes</a></h4>
+<p>
+   In case queries make heavy use of attributes of objects to limit queries it is recommended to add an index to the
+   respective row or rows.
+</p>
+<p>
+   Additional indices can be added along with the object definition that resides within the
+   <em>{ENVIRONMENT}_{NAMEAFFIX}_objects.ini</em> files. Please note hints given in
+   <a href="#Chapter-2-4-Additional-indices">chapter 2.4</a>. You may also manually add additional indices.
+</p>
+<div class="hint">
+   It is recommended to add necessary indices via object definition as these are automatically added/changed
+   setting up the database (see <a href="#Chapter-3-1-Database-setup">chapter 3.1</a>) or updating it (see
+   <a href="#Chapter-3-2-Database-update">chapter 3.2</a>).
+</div>
+
+<h4 id="Chapter-8-2-Creation-of-the-mapper"><a href="#Chapter-8-2-Creation-of-the-mapper">8.2. Creation of the mapper</a></h4>
+<p>
+   Creating the internal mapping and relation table together with creating the database connection is one of the most
+   expensive operations. Thus, it is recommended to create the <em>GenericORRelationMapper</em> in
+   <em>SESSIONSINGLETON</em> or <em>APPLICATIONSINGLETON</em> mode (details see <int:link pageid="030" />). This gains
+   performance and saves you around 20% per request.
+</p>
+<p>
+   To create the mapper please use the second option of the <em>APFObject::getServiceObject()</em> method:
+</p>
+<gen:highlight type="php">
+$ormFact = &$this->getServiceObject(
+                  'APF\modules\genericormapper\data\GenericORMapperFactory',
+                  APFService::SERVICE_TYPE_SESSION_SINGLETON
+           );
+$orm = &$ormFact->getGenericORMapper(..., ...);
+</gen:highlight>
+<p>
+   Using the <em>DIServiceManager</em> to create the mapper pleaae set <em>servicetype</em> to the desired value.
+   Example:
+</p>
+<gen:highlight type="ini">
+[OR-Mapper]
+servicetype = "SESSIONSINGLETON"
+class = "APF\modules\genericormapper\data\GenericORRelationMapper"
+...
+</gen:highlight>
+
+<h4 id="Chapter-8-3-JOIN-optimization"><a href="#Chapter-8-3-JOIN-optimization">8.3. JOIN optimization</a></h4>
+<p>
+   Executing a large number of JOIN operations per statement can cause statements to be slow in case indices are not
+   defined or are not optimally defined. Facing a large number of records or having complicated queries it might be
+   worth writing statements manually and execute them via <em>load*ByStatement()</em>.
+</p>
+<p>
+   Please remember to place the most restrictive JOIN clause at the beginning to limit the amount of data processed
+   ideally.
+</p>
+<div class="hint">
+   Please note, that the o/r mapper already defines JOIN indices for each relation. Example:
+<gen:highlight type="sql">
+CREATE TABLE `cmp_application2role` (
+    `Source_ApplicationID` int(5) unsigned NOT NULL DEFAULT '0',
+    `Target_RoleID` int(5) unsigned NOT NULL DEFAULT '0',
+    KEY `JOIN` (`Source_ApplicationID` , `Target_RoleID`),
+    KEY `REVERSEJOIN` (`Target_RoleID` , `Source_ApplicationID`)
+);
+</gen:highlight>
+   Hence, it is only recommended to add further indices to optimize statement execution time in critical and well-known
+   cases!
+</div>
+
+<h3 id="Chapter-9-Notes"><a href="#Chapter-9-Notes">9. Notes</a></h3>
+<p>
+   The source files of the <int:link pageid="095" /> module can be used as an extended example.
 </p>
 <p>
    A further tutorial to get started with the mapper can be found in the

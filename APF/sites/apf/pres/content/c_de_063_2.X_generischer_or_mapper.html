@@ -678,9 +678,8 @@ $update->run(false);
   </li>
 </ul>
 <p>
-   Die <em>*Statement*</em>-Methoden werden aus Performance-Gründen angeboten (siehe
-   Kapitel <int:link pageid="065">Performance-Hacks</int:link>. Datails zu Argumenten und Rückgabewerten können der
-   <int:link pageid="002" /> entnommen werden. Im Folgenden finden die wichtigsten Methoden jedoch Verwendung.
+   Die <em>*Statement*</em>-Methoden werden aus Performance-Gründen angeboten. Datails zu Argumenten und Rückgabewerten
+   können der <int:link pageid="002" /> entnommen werden. Im Folgenden finden die wichtigsten Methoden jedoch Verwendung.
 </p>
 
 <h4 id="Chapter-4-1-Erzeugen-einer-Instanz"><a href="#Chapter-4-1-Erzeugen-einer-Instanz">4.1. Erzeugen einer Instanz</a></h4>
@@ -1960,10 +1959,89 @@ $objectTree = $ORM->loadObjectTree('NavigationNode', 'NavigationNode2NavigationN
 printChildObjects($objectTree);
 </gen:highlight>
 
-<h3 id="Chapter-8-Anmerkungen"><a href="#Chapter-8-Anmerkungen">8. Anmerkungen</a></h3>
+<h3 id="Chapter-8-Performance-Tricks"><a href="#Chapter-8-Performance-Tricks">8. Performance-Tricks</a></h3>
 <p>
-   Hinweise zur Performance können unter <int:link pageid="065">Performance-Hacks</int:link> nachgelesen werden. Die
-   Quellcode-Dateien des <int:link pageid="095" />-Moduls können als weiterführende Beispiele herangezogen werden.
+   Der O/R-Mapper ist grundsätzlich auf maximale Performance ausgelegt, jedoch kann dieser durch
+   ungünstige Implementierung der darüberliegenden Schichten oder durch nicht optimale
+   Definition der Tabellen negativ beeinflusst werden.
+</p>
+<p>
+   Das vorliegende Kapitel zeigt Themen auf, bei denen ein manueller Eingriff in die Mapperschicht oder die Verwendung
+   der Mapper-Schicht positive Performance-Effekte hat.
+</p>
+
+<h4 id="Chapter-8-1-Abfrage-ueber-Attribute"><a href="#Chapter-8-1-Abfrage-ueber-Attribute">8.1. Häufige Abfrage über Attribute</a></h4>
+<p>
+   Werden Abfragen häufig über Attribute eines Objekts definiert bzw. eingeschränkt, so ist es ratsam, einen Index auf
+   die verwendete Spalte oder die verwendeten Spalten zu legen.
+</p>
+<p>
+   Zusätzliche Indides lassen sich sehr einfach in den <em>{ENVIRONMENT}_{NAMEAFFIX}_objects.ini</em> anlegen. Beachten
+   Sie hierzu bitte die Hinweise in <a href="#Chapter-2-4-Zustaetzliche-Indizes">Kapitel 2.4</a>. Es ist natürlich
+   ebenso möglich, Indizes manuell anzulegen.
+</p>
+<div class="hint">
+   Es wird empfohlen, die zusätzlich notwendigen Indizes über die Objekt-Definition zu realisieren, da diese beim
+   automatisierten Anlegen (siehe <a href="#Chapter-3-1-Erzeugung-der-Datenbank">Kapitel 3.1</a>) und Aktualisieren (siehe
+   <a href="#Chapter-3-2-Aktualisierung-der-Datenbank">Kapitel 3.2</a>) der Datenbank automatisch erzeugt oder
+   aktualisiert werden.
+</div>
+
+<h4 id="Chapter-8-2-Erzeugen-der-Mapperschicht"><a href="#Chapter-8-2-Erzeugen-der-Mapperschicht">8.2. Erzeugen der Mapperschicht</a></h4>
+<p>
+   Den Aufbau der internen Mapping- und Beziehungs-Tabelle gehört neben dem Aufbau der Datenbank-Verbindung zu den
+   teuersten Operationen. Setzen Sie daher bei der Erzeugung des <em>GenericORRelationMapper</em> auf den Erzeugungsmodus
+   <em>SESSIONSINGLETON</em> oder <em>APPLICATIONSINGLETON</em> (Details siehe <int:link pageid="030" />). Dies steigert
+   die Performance und spart rund 20% pro Aufruf.
+</p>
+<p>
+   Um den Mapper zu erzeugen nutzen Sie bitte die zweite Option der <em>APFObject::getServiceObject()</em>-Methode:
+</p>
+<gen:highlight type="php">
+$ormFact = &$this->getServiceObject(
+                  'APF\modules\genericormapper\data\GenericORMapperFactory',
+                  APFService::SERVICE_TYPE_SESSION_SINGLETON
+           );
+$orm = &$ormFact->getGenericORMapper(..., ...);
+</gen:highlight>
+<p>
+   Bei der Erzeugung über den <em>DIServiceManager</em> setzen sie das Attribut <em>servicetype</em> bitte auf den
+   gewünschten Wert. Beispiel:
+</p>
+<gen:highlight type="ini">
+[OR-Mapper]
+servicetype = "SESSIONSINGLETON"
+class = "APF\modules\genericormapper\data\GenericORRelationMapper"
+...
+</gen:highlight>
+
+<h4 id="Chapter-8-3-JOIN-Optimierung"><a href="#Chapter-8-3-JOIN-Optimierung">8.3. JOIN-Optimierung</a></h4>
+<p>
+   Das Ausführen von vielen JOIN-Operationen pro Statement kann bei ungünstiger Definition von Indizes zu einer deutlichen
+   Verlängerung der Ausführungszeiten führen. Bei großen Datenmengen oder komplizierten Abfragen lohnt es sich daher,
+   JOIN-Abfragen selbst zu schreiben und mit Hilfe der Methode <em>load*ByStatement()</em> auszuführen.
+</p>
+<p>
+   Bitte beachten Sie hier jedoch, die am stärksten einschränkenden JOIN-Statements zuerst zu platzieren um die
+   anschließend verarbeitete Datenmenge bestmöglich zu optimieren.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass der O/R-Mapper bereits für jede Beziehung JOIN-Indizes anlegt. Beispiel:
+<gen:highlight type="sql">
+CREATE TABLE `cmp_application2role` (
+    `Source_ApplicationID` int(5) unsigned NOT NULL DEFAULT '0',
+    `Target_RoleID` int(5) unsigned NOT NULL DEFAULT '0',
+    KEY `JOIN` (`Source_ApplicationID` , `Target_RoleID`),
+    KEY `REVERSEJOIN` (`Target_RoleID` , `Source_ApplicationID`)
+);
+</gen:highlight>
+   Es ist daher nur in Ausnahmefällen ratsam, eigene bzw. weitere Indizes zur Optimierung der Laufzeit von Statements
+   anzulegen!
+</div>
+
+<h3 id="Chapter-9-Anmerkungen"><a href="#Chapter-9-Anmerkungen">9. Anmerkungen</a></h3>
+<p>
+   Die Quellcode-Dateien des <int:link pageid="095" />-Moduls können als weiterführende Beispiele herangezogen werden.
 </p>
 <p>
    Ein weiterführendes Tutorial für den Einstieg finden Sie zudem im
