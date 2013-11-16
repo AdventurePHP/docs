@@ -48,7 +48,7 @@ class GenericHighlightTag extends Document {
       switch ($type) {
 
          case self::$HTML:
-            $title = 'Html-Code';
+            $title = $this->getLanguage() == 'de' ? 'Html-Code' : 'HTML code';
             $cssClass = self::$HTML;
             $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->content)));
             break;
@@ -59,35 +59,35 @@ class GenericHighlightTag extends Document {
             break;
 
          case self::$APF_XML:
-            $title = 'APF-Template';
+            $title = $this->getLanguage() == 'de' ? 'APF-Template' : 'APF template';
             $cssClass = self::$APF_XML;
             $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->content)));
             break;
 
          case self::$PHP:
-            $title = 'PHP-Code';
+            $title = $this->getLanguage() == 'de' ? 'PHP-Code' : 'PHP code';
             $cssClass = self::$PHP;
             $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->content)));
             break;
 
          case self::$XML:
-            $title = 'XML-Code';
+            $title = $this->getLanguage() == 'de' ? 'XML-Code' : 'XML code';
             $cssClass = self::$XML;
             $content = str_replace('<', '&lt;', str_replace('>', '&gt;', trim($this->content)));
             break;
 
          case self::$INI:
-            $title = 'APF-Konfiguration';
+            $title = $this->getLanguage() == 'de' ? 'APF-Konfiguration' : 'APF configuration';
             $cssClass = self::$INI;
             break;
 
          case self::$CSS:
-            $title = 'CSS-Code';
+            $title = $this->getLanguage() == 'de' ? 'CSS-Code' : 'CSS code';
             $cssClass = self::$CSS;
             break;
 
          case self::$SQL:
-            $title = 'SQL-Statement';
+            $title = $this->getLanguage() == 'de' ? 'SQL-Statement' : 'SQL statement';
             $cssClass = self::$SQL;
             break;
 
