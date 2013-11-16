@@ -1,6 +1,6 @@
-<doku:title parent="119" tags="documentation,module,captcha,guestbook,pager,comment,social bookmarking,usermanagement" title="Comment function" urlname="Comment-function">
-  The comment function module is a module that can be configured and included in each web page by
-  adding an XML tag to an existing template.
+<doku:title parent="119" tags="comment,comments,comments module,pager" title="Comment function" urlname="Comment-function">
+   The comment function module is a module that can be configured and included in each web page by adding an XML tag
+   to an existing template.
 </doku:title>
 <h3 id="Chapter-1-Inclusion"><a href="#Chapter-1-Inclusion">1. Inclusion</a></h3>
 <p>
@@ -14,7 +14,7 @@
 /&gt;
 </gen:highlight>
 <p>
-   The value &quot;<em>{CAT_KEY}</em>&quot; must be changed to something useful.
+   The value &quot;<em>{CAT_KEY}</em>&quot; must be changed to something meaningful.
 </p>
 
 <h3 id="Chapter-2-Configuration"><a href="#Chapter-2-Configuration">2. Configuration</a></h3>
@@ -37,14 +37,72 @@ Database.ConnectionKey = "..."
    Details on the configuration can be taken from the <int:link pageid="134" /> chapter.
 </p>
 
-<h4 id="Chapter-2-3-CAPTCHA-module"><a href="#Chapter-2-3-CAPTCHA-module">2.3. CAPTCHA module</a></h4>
+<h4 id="Chapter-2-2-Pager-configuration"><a href="#Chapter-2-2-Pager-configuration">2.2. Pager configuration</a></h4>
 <p>
-   To protect the comment form from spam posts, the form was added the <int:link pageid="094" />. This APF module
-   needs further configuration in order to dynamically display the captcha module. So please take the
-   steps necessary from the linked module desciption page.
+   Displaying a scrollable list of comments the comment module uses the <int:link pageid="092" /> which requires a
+   configuration as the module it self does.
+</p>
+<p>
+   To configure the <em>Pager</em> two options are provided: using the <em>PagerManagerFabric</em> (deprecated since 2.0 )
+   or the <int:link pageid="107" anchor="Chapter-4-DIServiceManager">DIServiceManager</int:link>. Here, the latter one
+   is used.
+</p>
+<p>
+   Please create a configuration file named
+</p>
+<gen:highlight type="code">
+/APF/config/modules/comments/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
+</gen:highlight>
+<p>
+   and add the following content:
+</p>
+<gen:highlight type="ini">
+[CommentsPager]
+servicetype = "SINGLETON"
+class = "APF\modules\pager\biz\PagerManager"
+
+conf.entries-per-page.method = "setEntriesPerPage"
+conf.entries-per-page.value = "..."
+
+conf.url-param-page.method = "setPageUrlParameterName"
+conf.url-param-page.value = "..."
+
+conf.url-param-count.method = "setCountUrlParameterName"
+conf.url-param-count.value = "..."
+
+conf.statement-namespace.method = "setStatementNamespace"
+conf.statement-namespace.value = "APF\modules\comments"
+
+conf.count-statement.method = "setCountStatementFile"
+conf.count-statement.value = "load_entries_count.sql"
+
+conf.entries-statement.method = "setEntriesStatementFile"
+conf.entries-statement.value = "load_entry_ids.sql"
+
+conf.statement-params.method = "setStatementParameters"
+conf.statement-params.value = "CategoryKey:standard"
+
+conf.ui-namespace.method = "setPagerUiNamespace"
+conf.ui-namespace.value = "APF\modules\pager\pres\templates"
+
+conf.ui-template.method = "setPagerUiTemplate"
+conf.ui-template.value = "pager_2"
+
+conf.database-connection.method = "setDatabaseConnectionName"
+conf.database-connection.value = "MySQLx"
+
+conf.dynamic-page-size.method = "setAllowDynamicEntriesPerPage"
+conf.dynamic-page-size.value = "true"
+</gen:highlight>
+<p>
+   Now, please fill <em>conf.entries-per-page.value</em>, <em>conf.url-param-page.value</em>, and
+   <em>conf.url-param-count.value</em> with appropriate values according to your application.
+</p>
+<p>
+   Details on the options above can be taken from chapter <int:link pageid="092" />.
 </p>
 
-<h4 id="Chapter-2-2-CSS-adaption"><a href="#Chapter-2-2-CSS-adaption">2.2. CSS adaption</a></h4>
+<h4 id="Chapter-2-3-CSS-adaption"><a href="#Chapter-2-3-CSS-adaption">2.3. CSS adaption</a></h4>
 <p>
    In order to adapt the design of the module fitting your page layout, several classes are included
    in the HTML markup. For a start, you can use the stylesheet, that is delivered together with the
@@ -57,6 +115,13 @@ Database.ConnectionKey = "..."
    Including the module into your page, your stylesheet should contain the content of the example file.
    This can be achieved by adding the whole stylesheet to your page header or by defining the relevant
    classes within your existing stylesheets.
+</p>
+
+<h4 id="Chapter-2-4-CAPTCHA-module"><a href="#Chapter-2-4-CAPTCHA-module">2.4. CAPTCHA module</a></h4>
+<p>
+   To protect the comment form from spam posts, the form was added the <int:link pageid="094" />. This APF module
+   needs further configuration in order to dynamically display the captcha module. So please take the
+   steps necessary from the linked module desciption page.
 </p>
 
 <h3 id="Chapter-3-Note"><a href="#Chapter-3-Note">3. Note</a></h3>

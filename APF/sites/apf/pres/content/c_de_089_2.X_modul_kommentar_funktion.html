@@ -1,11 +1,11 @@
-<doku:title parent="119" tags="dokumentation,module,captcha,gaestebuch,pager,kommentar,social bookmarking,usermanagement" title="Kommentar-Funktion" urlname="Kommentar-Funktion">
-  Das Modul comments bietet ein voll funktionsfähiges Kommentar-Modul für Webseiten, das
-  lediglich über einen XML-Tag in die Seite eingebunden werden muss.
+<doku:title parent="119" tags="kommentar,kommentare,kommentar-funktion,pager" title="Kommentar-Funktion" urlname="Kommentar-Funktion">
+   Das Modul comments bietet ein voll funktionsfähiges Kommentar-Modul für Webseiten, das lediglich über einen XML-Tag
+   in die Seite eingebunden werden muss.
 </doku:title>
 <h3 id="Chapter-1-Einbindung"><a href="#Chapter-1-Einbindung">1. Einbindung</a></h3>
 <p>
-   Das Modul "comments" bietet ein voll funktionsfähiges Kommentar-Modul für Webseiten, das lediglich über einen XML-Tag
-   in die Seite eingebunden werden muss. Die Einbindung kann dabei über den
+   Das Modul <em>comments</em> bietet ein voll funktionsfähiges Kommentar-Modul für Webseiten, das lediglich über
+   einen XML-Tag in die Seite eingebunden werden muss. Die Einbindung kann dabei über den
    <int:link pageid="046">importdesign</int:link>-Tag wie folgt erledigt werden:
 </p>
 <gen:highlight type="apf-xml">
@@ -41,7 +41,72 @@ Database.ConnectionKey = "..."
    entnommen werden, das Kapitel <int:link pageid="031"/> beschreibt die Konfiguration der Datenbank-Verbindung.
 </p>
 
-<h4 id="Chapter-2-2-CSS-Anpassung"><a href="#Chapter-2-2-CSS-Anpassung">2.2. CSS-Anpassung</a></h4>
+<h4 id="Chapter-2-2-Pager-Konfiguration"><a href="#Chapter-2-2-Pager-Konfiguration">2.2. Pager-Konfiguration</a></h4>
+<p>
+   Zur Ausgabe der Kommentare in einer blätterbaren Liste kommt der <int:link pageid="092" /> zum Einsatz. Dieser
+   benötigt wie auch das Modul selbst eine Konfiguration.
+</p>
+<p>
+   Zur Konfiguration bietet der <em>Pager</em> zwei Möglichkeiten an: über die <em>PagerManagerFabric</em> (seit 2.0 veraltet)
+   oder über den <int:link pageid="107" anchor="Chapter-4-DIServiceManager">DIServiceManager</int:link>. In diesem Fall
+   kommt letztere zum Einsatz.
+</p>
+<p>
+   Legen Sie zur Konfiguration bitte eine Datei mit dem Namen
+</p>
+<gen:highlight type="code">
+/APF/config/modules/comments/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
+</gen:highlight>
+<p>
+   an und versehen diese mit folgendem Inhalt:
+</p>
+<gen:highlight type="ini">
+[CommentsPager]
+servicetype = "SINGLETON"
+class = "APF\modules\pager\biz\PagerManager"
+
+conf.entries-per-page.method = "setEntriesPerPage"
+conf.entries-per-page.value = "..."
+
+conf.url-param-page.method = "setPageUrlParameterName"
+conf.url-param-page.value = "..."
+
+conf.url-param-count.method = "setCountUrlParameterName"
+conf.url-param-count.value = "..."
+
+conf.statement-namespace.method = "setStatementNamespace"
+conf.statement-namespace.value = "APF\modules\comments"
+
+conf.count-statement.method = "setCountStatementFile"
+conf.count-statement.value = "load_entries_count.sql"
+
+conf.entries-statement.method = "setEntriesStatementFile"
+conf.entries-statement.value = "load_entry_ids.sql"
+
+conf.statement-params.method = "setStatementParameters"
+conf.statement-params.value = "CategoryKey:standard"
+
+conf.ui-namespace.method = "setPagerUiNamespace"
+conf.ui-namespace.value = "APF\modules\pager\pres\templates"
+
+conf.ui-template.method = "setPagerUiTemplate"
+conf.ui-template.value = "pager_2"
+
+conf.database-connection.method = "setDatabaseConnectionName"
+conf.database-connection.value = "MySQLx"
+
+conf.dynamic-page-size.method = "setAllowDynamicEntriesPerPage"
+conf.dynamic-page-size.value = "true"
+</gen:highlight>
+<p>
+   Füllen Sie nun die Direktiven <em>conf.entries-per-page.value</em>, <em>conf.url-param-page.value</em> und
+   <em>conf.url-param-count.value</em> mit den für Ihre Applikation zutreffenden Werten.
+</p>
+<p>
+   Details zu den einzelnen Optionen erfahren Sie in der <int:link pageid="092" />-Dokumentation.
+</p>
+
+<h4 id="Chapter-2-3-CSS-Anpassung"><a href="#Chapter-2-3-CSS-Anpassung">2.3. CSS-Anpassung</a></h4>
 <p>
    Zur Anpassung der Styles des Moduls an das jeweilige Einsatzgebiet sehen die Templates entsprechende
    Klassen vor. Die vorhandenen Klassen sowie eine Beispiel-Gestaltung findet sich unter
@@ -56,7 +121,7 @@ Database.ConnectionKey = "..."
    bewerkstelligt werden.
 </p>
 
-<h4 id="Chapter-2-3-CAPTCHA-Modul"><a href="#Chapter-2-3-CAPTCHA-Modul">2.3. CAPTCHA-Modul</a></h4>
+<h4 id="Chapter-2-4-CAPTCHA-Modul"><a href="#Chapter-2-4-CAPTCHA-Modul">2.4. CAPTCHA-Modul</a></h4>
 <p>
    Um das Erstellen von Einträgen zu limitieren, wurde das <int:link pageid="094" />
    in das Formular integriert. Dieses benötigt zur dynamischen Anzeige des CAPTCHA-Bildes noch eine
