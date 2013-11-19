@@ -104,7 +104,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
 
       // send real 404 in case the file is not found
       if (strpos($model->getPageContentFileName(), '404') !== false) {
-         HeaderManager::send('404 Not Found', true, 404);
+         HeaderManager::send($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found', true, 404);
       }
 
    }
