@@ -25,6 +25,7 @@
 [my_cache_instance]
 Cache.Provider = ""
 Cache.Active = ""
+[Cache.ExpireTime = ]
 </gen:highlight>
 <p>
    notwendig. Der <em>Cache.Provider</em> definiert den voll-qualifizierten Klassen-Namen des zu verwendenden
@@ -32,8 +33,11 @@ Cache.Active = ""
    Wenn die Direktive <em>true</em> beinhaltet befindet sich der <em>CacheManager</em> im Status <em>aktiv</em>.
 </p>
 <p>
-   Je nach Provider müssen weitere Parameter definiert werden. Diese können in den 
-   folgenden Kapiteln nachgelesen werden.   
+   Mit Hilfe der Direktive <em>Cache.ExpireTime</em> lässt sich die Gültigkeit von Cache-Elementen für die gewünschte
+   Instanz definieren. Der Wert definiert die Lebensdauer in <em>Sekunden</em>.
+</p>
+<p>
+   Je nach Provider müssen weitere Parameter definiert werden. Diese können in den folgenden Kapiteln nachgelesen werden.
 </p>
 
 <h3 id="Chapter-2-Anwendung"><a href="#Chapter-2-Anwendung">2. Anwendung</a></h3>
@@ -135,6 +139,10 @@ Cache.Namespace = ""
    Permission-Maske für angelegte Cache-Ordner zu definieren.
 </p>
 <div class="hint">
+   Ist der Parameter <em>Cache.ExpireTime</em> nicht gesetzt, wir dieser mit dem Wert <em>0</em> vorbelegt und die
+   Einträge bis manuellen Löschen vorgehalten.
+</div>
+<div class="hint">
    Der Text-Cache-Provider verwendet den <int:link pageid="085" /> für die Verwaltung des
    Cache-Ordners. Aus diesem Grund muss der Benutzer, unter dem der Webserver läuft
    Schreibrechte für diesen Ordner besitzen.
@@ -164,8 +172,13 @@ Cache.Namespace = ""
    Der Schlüssel <em>Cache.FolderPermission</em> ist optional und kann dazu genutzt werden, die
    Permission-Maske für angelegte Cache-Ordner zu definieren.
 </p>
+<div class="hint">
+   Ist der Parameter <em>Cache.ExpireTime</em> nicht gesetzt, wir dieser mit dem Wert <em>0</em> vorbelegt und die
+   Einträge bis manuellen Löschen vorgehalten.
+</div>
 <p>
-   Dieser Provider unterstützt die Verwendung der Klasse <em>SimpleCacheKey</em> zur Identifizierung eines Cache-Eintrags.
+   Dieser Provider unterstützt Verwendung der Klasse <em>SimpleCacheKey</em> und <em>AdvancedCacheKey</em> zur
+   Identifizierung eines Cache-Eintrags.
 </p>
 
 <h4 id="Chapter-3-3-Mem-Cache-Provider"><a href="#Chapter-3-3-Mem-Cache-Provider">3.3. Mem-Cache Provider</a></h4>
@@ -194,8 +207,11 @@ Cache.Namespace = ""
    Provider-Implementierungen möglich, komplette Namespaces zu löschen.
 </p>
 <div class="warn">
-   Für den Einsatz des <em>MemCacheProvider</em>s ist die PHP-Erweiterung
-   <em>memcache</em> erforderlich!
+   Für den Einsatz des <em>MemCacheProvider</em>s ist die PHP-Erweiterung <em>memcache</em> erforderlich!
+</div>
+<div class="hint">
+   Ist der Parameter <em>Cache.ExpireTime</em> nicht gesetzt, wir dieser mit dem Wert <em>0</em> vorbelegt und die
+   Einträge bis zum Neustart des Memcacher-Servers vorgehalten.
 </div>
 <p>
    Dieser Provider unterstützt die Verwendung der Klasse <em>SimpleCacheKey</em> zur Identifizierung eines Cache-Eintrags.
@@ -261,6 +277,10 @@ Cache.Namespace = ""
    Der Schlüssel <em>Cache.FolderPermission</em> ist optional und kann dazu genutzt werden, die
    Permission-Maske für angelegte Cache-Ordner zu definieren.
 </p>
+<div class="hint">
+   Ist der Parameter <em>Cache.ExpireTime</em> nicht gesetzt, wir dieser mit dem Wert <em>0</em> vorbelegt und die
+   Einträge bis manuellen Löschen vorgehalten.
+</div>
 <p>
    Um einen Cache-Eintrag zu lesen bzw. zu speichern, ist folgender PHP-Code notwendig:
 </p>
@@ -292,6 +312,10 @@ if(/* ... */){
    }
 }
 </gen:highlight>
+<p>
+   Dieser Provider unterstützt Verwendung der Klasse <em>SimpleCacheKey</em> und <em>AdvancedCacheKey</em> zur
+   Identifizierung eines Cache-Eintrags.
+</p>
 
 <h4 id="Chapter-3-6-Erweiterter-Objekt-Cache-Provider"><a href="#Chapter-3-6-Erweiterter-Objekt-Cache-Provider">3.6. Erweiterter Objekt-Cache Provider</a></h4>
 <p>
@@ -312,8 +336,16 @@ Cache.Namespace = ""
 [Cache.FolderPermission = "0770"]
 </gen:highlight>
 <p>
-   Der Schlüssel <em>Cache.FolderPermission</em> ist optional und kann dazu genutzt werden, die
-   Permission-Maske für angelegte Cache-Ordner zu definieren.
+   Der Schlüssel <em>Cache.FolderPermission</em> ist optional und kann dazu genutzt werden, die Permission-Maske für
+   angelegte Cache-Ordner zu definieren.
+</p>
+<div class="hint">
+   Ist der Parameter <em>Cache.ExpireTime</em> nicht gesetzt, wir dieser mit dem Wert <em>0</em> vorbelegt und die
+   Einträge bis manuellen Löschen vorgehalten.
+</div>
+<p>
+   Dieser Provider unterstützt Verwendung der Klasse <em>SimpleCacheKey</em> und <em>AdvancedCacheKey</em> zur
+   Identifizierung eines Cache-Eintrags.
 </p>
 
 <h4 id="Chapter-3-7-APC-Cache-Provider"><a href="#Chapter-3-7-APC-Cache-Provider">3.7. APC Cache-Provider</a></h4>
@@ -333,25 +365,60 @@ Cache.Namespace = ""
 Cache.Provider = "APF\tools\cache\provider\ApcCacheProvider"
 Cache.Active = ""
 Cache.Namespace = ""
-[Cache.ExpireTime = ]
 </gen:highlight>
 <p>
    Da der Cache im RAM des Webservers abgelegt ist, wird lediglich ein <em>Cache.Namespace</em> benötigt.
 </p>
-<p>
-   Mit dem Parameter <em>Cache.ExpireTime</em> können Sie die Gültigkeit von Cache-Einträgen steuern. Sofern die Gültigkeit
-   gegrenzt werden soll, füllen Sie den Paremeter bitte mit der gewünschten Zeitdauer ab Erstellungsdatum in Sekunden.
-   Ist der Parameter nicht gesetzt, werden die Einträge bis zum Neustart des Webservers vorgehalten.
-</p>
+<div class="hint">
+   Ist der Parameter <em>Cache.ExpireTime</em> nicht gesetzt, wir dieser mit dem Wert <em>0</em> vorbelegt und die
+   Einträge bis zum Neustart des Webservers vorgehalten.
+</div>
 <p>
    Lesen, Speichern und Löschen eines Cache-Eintrags funktioniert identisch zu den bisher beschriebenen Providern.
 </p>
-<div class="hint">
-   Der <em>ApcCacheProvider</em> unterstützt sowohl die Verwendung des <em>SimpleCacheKey</em> als auch den
-   <em>AdvancedCacheKey</em>. Sie können daher beliebige Cache-Strukturen erzeugen und verwalten.
-</div>
+<p>
+   Dieser Provider unterstützt Verwendung der Klasse <em>SimpleCacheKey</em> und <em>AdvancedCacheKey</em> zur
+   Identifizierung eines Cache-Eintrags.
+</p>
 
-<h3 id="Chapter-4-Erweiterung"><a href="#Chapter-4-Erweiterung">4. Erweiterung</a></h3>
+<h3 id="Chapter-4-Gültigkeit-von-Cache-Eintraegen"><a href="#Chapter-4-Gültigkeit-von-Cache-Eintraegen">4. Gültigkeit von Cache-Einträgen</a></h3>
+<p>
+   Mit Hilfe der Konfigurationsoption <em>Cache.ExpireTime</em> lässt sich die Gültigkeit von Cache-Einträgen begrenzen.
+   Zusätzlich zur globalen Konfiguration der Gültigkeit kann diese auch pro Instanz des Cache-Keys festgelegt werden.
+</p>
+<p>
+   Hierzu stehen Ihnen optionale Argumente in den Konstruktoren von <em>SimpleCacheKey</em> und
+   <em>AdvancedCacheKey</em> als auch die Methode <em>setTtl()</em> in beiden Klassen zur Verfügung.
+</p>
+<p>
+   Beabsichtigen Sie einen Cache-Eintrag mit einer bestimmten Lebensdauer als gültig zu akzeptieren, lässt sich dies
+   wie folgt realisieren:
+</p>
+<gen:highlight type="php">
+use APF\tools\cache\CacheManagerFabric;
+use APF\tools\cache\key\SimpleCacheKey;
+
+$cMF = &$this->getServiceObject('APF\tools\cache\CacheManagerFabric');
+$cM = &$cMF->getCacheManager('{config_section}');
+
+$cacheKey = new SimpleCacheKey('my_cache_key', 3600);
+$cacheContent = $cM->getFromCache($cacheKey);
+</gen:highlight>
+<p>
+   Sie erhalten nun nur dann ein Ergebnis von <em>CacheManager::getFromCache()</em>, sofern der Cache-Eintrag nicht
+   älter als eine Stunde ist.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass eine explizite Gültigkeit im <em>CacheKey</em> die globale Konfiguration der gewünschten
+   <em>CacheManager</em>-Instanz überschreibt. Sofern weder im <em>CacheKey</em> noch in der Konfiguration ein Wert
+   definiert wurde, wird der Wert auf <em>0</em> (Null) gesetzt und der Cache-Eintrag für immer als gültig markiert.
+</div>
+<p>
+   Da die Definition der Gültigkeit im Interface <em>CacheKey</em> verankert ist, unterstützt sowohl der
+   <em>SimpleCacheKey</em> als auch der <em>AdvancedCacheKey</em> die beschriebene Option.
+</p>
+
+<h3 id="Chapter-5-Erweiterung"><a href="#Chapter-5-Erweiterung">5. Erweiterung</a></h3>
 <p>
    Die Implementierung des CacheManagers sieht mehrere Komponenten vor. Zur Erzeugung wird die 
    <em>CacheManagerFabric</em> eingesetzt, die die konkreten <em>CacheManager</em>-Instanzen erzeugt,

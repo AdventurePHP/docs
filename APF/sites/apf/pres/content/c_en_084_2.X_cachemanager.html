@@ -25,6 +25,7 @@
 [my_cache_instance]
 Cache.Provider = ""
 Cache.Active = ""
+[Cache.ExpireTime = ]
 </gen:highlight>
 <p>
    <em>Cache.Provider</em> contains the fully-qualified class name of the cache provider and
@@ -32,8 +33,11 @@ Cache.Active = ""
    configuration directive contains "true", the cache manager is considered active, otherwise not.
 </p>
 <p>
-   Please note, that each provider expects some more configuration attributes, described in the
-   following chapters.
+   Using the <em>Cache.ExpireTime</em> directive the validity of cache elements can be configured for the desired
+   instance. The value defines the life time in <em>seconds</em>.
+</p>
+<p>
+   Je nach Provider müssen weitere Parameter definiert werden. Diese können in den folgenden Kapiteln nachgelesen werden.
 </p>
 
 <h3 id="Chapter-2-Usage"><a href="#Chapter-2-Usage">2. Usage</a></h3>
@@ -132,6 +136,10 @@ Cache.Namespace = ""
    file permission mask for cache folders that are created by the provider.
 </p>
 <div class="hint">
+   In case parameter <em>Cache.ExpireTime</em> is not defined default value <em>0</em> is used and all cache entries
+   remain valid until manual deletion.
+</div>
+<div class="hint">
    The text cache provider uses the <int:link pageid="085" /> for cache folder management. For this 
    reason, the user that is assigned to the web server, must have write permissions to the base folder.
 </div>
@@ -160,8 +168,13 @@ Cache.Namespace = ""
    The optional <em>Cache.FolderPermission</em> configuration directive can be used to define the
    file permission mask for cache folders that are created by the provider.
 </p>
+<div class="hint">
+   In case parameter <em>Cache.ExpireTime</em> is not defined default value <em>0</em> is used and all cache entries
+   remain valid until manual deletion.
+</div>
 <p>
-   This provider supports the <em>SimpleCacheKey</em> class to identify a dedicated cache item.
+   This provider supports the <em>SimpleCacheKey</em> and <em>AdvancedCacheKey</em> class to identify a dedicated
+   cache item.
 </p>
 
 <h4 id="Chapter-3-3-Mem-cache-provider"><a href="#Chapter-3-3-Mem-cache-provider">3.3. Mem cache provider</a></h4>
@@ -191,6 +204,10 @@ Cache.Namespace = ""
 </p>
 <div class="warn">
    To use the <em>MemCacheProvider</em>, the PHP extension <em>memcache</em> must be loaded!
+</div>
+<div class="hint">
+   In case parameter <em>Cache.ExpireTime</em> is not defined default value <em>0</em> is used and all cache entries
+   remain valid until restart of te memcache server.
 </div>
 <p>
    This provider supports the <em>SimpleCacheKey</em> class to identify a dedicated cache item.
@@ -256,6 +273,10 @@ Cache.Namespace = ""
    The optional <em>Cache.FolderPermission</em> configuration directive can be used to define the
    file permission mask for cache folders that are created by the provider.
 </p>
+<div class="hint">
+   In case parameter <em>Cache.ExpireTime</em> is not defined default value <em>0</em> is used and all cache entries
+   remain valid until manual deletion.
+</div>
 <p>
    Please note the next code box to see how to read and write complex cache items:
 </p>
@@ -287,6 +308,10 @@ if(/* ... */){
    }
 }
 </gen:highlight>
+<p>
+   This provider supports the <em>SimpleCacheKey</em> and <em>AdvancedCacheKey</em> class to identify a dedicated
+   cache item.
+</p>
 
 <h4 id="Chapter-3-6-Enhanced-object-cache-provider"><a href="#Chapter-3-6-Enhanced-object-cache-provider">3.6. Enhanced object cache provider</a></h4>
 <p>
@@ -309,6 +334,14 @@ Cache.Namespace = ""
    The optional <em>Cache.FolderPermission</em> configuration directive can be used to define the
    file permission mask for cache folders that are created by the provider.
 </p>
+<div class="hint">
+   In case parameter <em>Cache.ExpireTime</em> is not defined default value <em>0</em> is used and all cache entries
+   remain valid until manual deletion.
+</div>
+<p>
+   This provider supports the <em>SimpleCacheKey</em> and <em>AdvancedCacheKey</em> class to identify a dedicated
+   cache item.
+</p>
 
 <h4 id="Chapter-3-7-APC-cache-provider"><a href="#Chapter-3-7-APC-cache-provider">3.7. APC cache provider</a></h4>
 <p>
@@ -325,11 +358,14 @@ Cache.Namespace = ""
 Cache.Provider = "APF\tools\cache\provider\ApcCacheProvider"
 Cache.Active = ""
 Cache.Namespace = ""
-[Cache.ExpireTime = ]
 </gen:highlight>
 <p>
    Since the cache resides within the RAM of the web server only the <em>Cache.Namespace</em> must be specified.
 </p>
+<div class="hint">
+   In case parameter <em>Cache.ExpireTime</em> is not defined default value <em>0</em> is used and all cache entries
+   remain valid until web server restart.
+</div>
 <p>
    Using the <em>Cache.ExpireTime</em> parameter tha validity of cache entries can be controlled. In case any limitation
    is needed, please fill this parameter with the desired validity time - beginning at creation or updating date of the
@@ -339,11 +375,47 @@ Cache.Namespace = ""
    Reading, saving, and deletion just works as with all the other providers described above.
 </p>
 <p>
-   The <em>ApcCacheProvider</em> both supports the usage of the <em>SimpleCacheKey</em> as well as the
-   <em>AdvancedCacheKey</em>. Hence, you can create complex cache structures as desired.
+   This provider supports the <em>SimpleCacheKey</em> and <em>AdvancedCacheKey</em> class to identify a dedicated
+   cache item.
 </p>
 
-<h3 id="Chapter-4-Enhancement"><a href="#Chapter-4-Enhancement">4. Enhancement</a></h3>
+<h3 id="Chapter-4-Validity-of-cache-entries"><a href="#Chapter-4-Validity-of-cache-entries">4. Validity of cache entries</a></h3>
+<p>
+   Using the <em>Cache.ExpireTime</em> configuration option the validity of cache entries can be limited. In addition to
+   the global configuration option validity can also be defined on a cache key basis.
+</p>
+<p>
+   For this reason there are optional arguments defined for the constructors of <em>SimpleCacheKey</em> and
+   <em>AdvancedCacheKey</em> as well as method <em>setTtl()</em> in both classes for explicit manipulation.
+</p>
+<p>
+   In case you intend to only consider a cache entry valid that has been created within a certain validity period you
+   may want to use the following code snippet:
+</p>
+<gen:highlight type="php">
+use APF\tools\cache\CacheManagerFabric;
+use APF\tools\cache\key\SimpleCacheKey;
+
+$cMF = &$this->getServiceObject('APF\tools\cache\CacheManagerFabric');
+$cM = &$cMF->getCacheManager('{config_section}');
+
+$cacheKey = new SimpleCacheKey('my_cache_key', 3600);
+$cacheContent = $cM->getFromCache($cacheKey);
+</gen:highlight>
+<p>
+   Now, <em>CacheManager::getFromCache()</em> only returns a cache hit in case the cache entry is not older than one hour.
+</p>
+<div class="hint">
+   Please note that the explicit definition of validity within a <em>CacheKey</em> overwrites the global configuration
+   defined for the used <em>CacheManager</em> instance. In case there is no value defined both within the <em>CacheKey</em>
+   and the global configuration the value is set to <em>0</em> (zero) what means that the cache entries are valid forever.
+</div>
+<p>
+   Since the validity definition is contained in the <em>CacheKey</em> interface both <em>SimpleCacheKey</em> and
+   <em>AdvancedCacheKey</em> support this option.
+</p>
+
+<h3 id="Chapter-5-Enhancement"><a href="#Chapter-5-Enhancement">5. Enhancement</a></h3>
 <p>
    The design of the cache manager includes several components. The creation of the desired cache
    manager instance is done by the <em>CacheManagerFabric</em>. This component creates, initializes
