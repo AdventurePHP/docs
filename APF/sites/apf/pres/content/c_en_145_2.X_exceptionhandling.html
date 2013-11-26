@@ -132,7 +132,9 @@ throw new Exception();
    The APF brings the <em>ProductionExceptionHandler</em> as a further implementation to be used within production
    environments. It is very important to hide information about your production environment from potential hackers. For
    this reason, the <em>ProductionExceptionHandler</em> are built to hide the error data from attackers.
+   Another implementation is the <em>CLIExceptionHandler</em>, it is mainly used for the command line interface.
 </p>
+<h4 id="Chapter-5-1-ProductionExceptionHandler"><a href="#Chapter-5-1-ProductionExceptionHandler">5.1. ProductionExceptionHandler</a></h4>
 <p>
    In case an exception occurs the <em>ProductionExceptionHandler</em> appends an entry to the global log file and
    redirects the user to the previously defined page. This prevents error detail data from being viewed from the
@@ -154,5 +156,31 @@ GlobalExceptionHandler::registerExceptionHandler(new ProductionExceptionHandler(
    Please ensure, that the exception page does not trigger further errors. Otherwise, you may create a redirect loop that
    has not exit condition!
 </div>
+
+<h4 id="Chapter-5-2-CLIExceptionHandler"><a href="#Chapter-5-2-CLIExceptionHandler">5.2. CLIExceptionHandler</a></h4>
+<p>
+	The <em>CLIExceptionHandler</em> enables an exception reporting in the command line interface, there are no HTML-elements to
+	format the output.
+</p>
+<p>
+	The configuration of the <em>CLIExceptionHandler</em>:
+</p>
+<gen:highlight>
+use APF\core\exceptionhandler\GlobalExceptionHandler;
+use APF\core\exceptionhandler\CLIExceptionHandler;
+GlobalExceptionHandler::registerExceptionHandler(
+	new CLIExceptionHandler()
+);
+</gen:highlight>
+<p>
+	All exceptions will be outputted without HTML-elements. An Example of an exception:
+</p>
+<gen:highlight>
+[90a92a2482930a4025a4c6409461b241][8] Undefined index: Value
+	/var/www/index.php:25
+Stacktrace:
+	Foo->doSomething()
+		/var/www/index.php:19
+</gen:highlight>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_145" />

@@ -136,7 +136,9 @@ throw new Exception();
    ist für den Einsatz in Live-Umgebungen gedacht. Live-Systeme gilt es im besonderen vor Kompromittierung zu schützen.
    Daher ist der <em>ProductionExceptionHandler</em> dafür ausgelegt, möglichst die bei einem Fehler gesammelten Daten
    vor dem potentiellen Angreifer zu verstecken.
+   Eine weitere Implementierung ist der <em>CLIExceptionHandler</em> für die Fehlerausgabe in der Konsole.
 </p>
+<h4 id="Chapter-5-1-ProductionExceptionHandler"><a href="#Chapter-5-1-ProductionExceptionHandler">5.1. ProductionExceptionHandler</a></h4>
 <p>
    Tritt eine Exception auf, fügt der <em>ProductionExceptionHandler</em> diesen an die globale Log-Datei an
    und leitet auf eine zuvor konfigurierte Seite weiter. Damit schützt er vor der Veröffentlichung
@@ -159,5 +161,31 @@ GlobalExceptionHandler::registerExceptionHandler(new ProductionExceptionHandler(
    Bitte stellen Sie sicher, dass die Fehlerseite keine weiteren Exceptions produziert. Andernfalls erzeugen Sie dadurch
    eine Umleitungsschleife, die keine Abbruchbedingung besitzt!
 </div>
+
+<h4 id="Chapter-5-2-CLIExceptionHandler"><a href="#Chapter-5-2-CLIExceptionHandler">5.2. CLIExceptionHandler</a></h4>
+<p>
+	Der <em>CLIExceptionHandler</em> ermöglicht eine Fehlerausgabe in der Konsole, da keine HTML-Elemente zur
+	Formatierung der Ausgabe eingesetzt werden.
+</p>
+<p>
+	Die Einbindung des <em>CLIExceptionHandler</em> gestaltet sich wie folgt:
+</p>
+<gen:highlight>
+use APF\core\exceptionhandler\GlobalExceptionHandler;
+use APF\core\exceptionhandler\CLIExceptionHandler;
+GlobalExceptionHandler::registerExceptionHandler(
+	new CLIExceptionHandler()
+);
+</gen:highlight>
+<p>
+	Dadurch werden alle Fehler ohne HTML-Elemente ausgegeben. Die Fehlerausgabe sind dann beispielsweise wie folgt aus:
+</p>
+<gen:highlight>
+[90a92a2482930a4025a4c6409461b241][8] Undefined index: Value
+	/var/www/index.php:25
+Stacktrace:
+	Foo->doSomething()
+		/var/www/index.php:19
+</gen:highlight>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_145" />

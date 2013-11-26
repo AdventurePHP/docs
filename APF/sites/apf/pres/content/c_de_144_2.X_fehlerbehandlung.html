@@ -134,6 +134,7 @@ trigger_error();
    werden. Live-Systeme gilt es im besonderen vor Kompromittierung zu schützen. Daher sind der
    <em>ProductionErrorHandler</em> und <em>ConfigurableErrorHandler</em> dafür ausgelegt, möglichst die bei einem Fehler
    gesammelten Daten vor dem potentiellen Angreifer zu verstecken.
+   Eine weitere Implementierung ist der <em>CLIErrorHandler</em> für die Fehlerausgabe in der Konsole.
 </p>
 
 <h4 id="Chapter-5-1-ProductionErrorHandler"><a href="#Chapter-5-1-ProductionErrorHandler">5.1. ProductionErrorHandler</a></h4>
@@ -184,5 +185,31 @@ GlobalErrorHandler::registerErrorHandler(
    <a class="external" href="http://de.php.net/manual/en/errorfunc.constants.php">PHP-Dokumentation</a>
    entnommen werden.
 </p>
+
+<h4 id="Chapter-5-3-CLIErrorHandler"><a href="#Chapter-5-3-CLIErrorHandler">5.3. CLIErrorHandler</a></h4>
+<p>
+	Der <em>CLIErrorHandler</em> ermöglicht eine Fehlerausgabe in der Konsole, da keine HTML-Elemente zur
+	Formatierung der Ausgabe eingesetzt werden.
+</p>
+<p>
+	Die Einbindung des <em>CLIErrorHandler</em> gestaltet sich wie folgt:
+</p>
+<gen:highlight>
+use APF\core\errorhandler\GlobalErrorHandler;
+use APF\core\errorhandler\CLIErrorHandler;
+GlobalErrorHandler::registerErrorHandler(
+	new CLIErrorHandler()
+);
+</gen:highlight>
+<p>
+	Dadurch werden alle Fehler ohne HTML-Elemente ausgegeben. Die Fehlerausgabe sind dann beispielsweise wie folgt aus:
+</p>
+<gen:highlight>
+[90a92a2482930a4025a4c6409461b241][8] Undefined index: Value
+	/var/www/index.php:25
+Stacktrace:
+	Foo->doSomething()
+		/var/www/index.php:19
+</gen:highlight>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_144" />
