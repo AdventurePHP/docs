@@ -23,6 +23,7 @@ class GenericHighlightTag extends Document {
    private static $SQL = 'sql';
    private static $XML = 'xml';
    private static $APF_XML = 'apf-xml';
+   private static $JAVA_SCRIPT = 'javascript';
    private static $GENERIC = 'generic';
 
    /**
@@ -89,6 +90,11 @@ class GenericHighlightTag extends Document {
          case self::$SQL:
             $title = $this->getLanguage() == 'de' ? 'SQL-Statement' : 'SQL statement';
             $cssClass = self::$SQL;
+            break;
+
+         case self::$JAVA_SCRIPT:
+            $title = $this->getLanguage() == 'de' ? 'Java-Script-Code' : 'Java script code';
+            $cssClass = self::$JAVA_SCRIPT;
             break;
 
          default:
