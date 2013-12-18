@@ -226,6 +226,51 @@ $fC->registerAction('APF\site\actions', 'check-permissions');
    <a class="wiki" href="http://wiki.adventure-php-framework.org/Implementierung_von_eigenen_URL-Layouts">Wiki</a>.
 </div>
 
+<h4 id="Chapter-3-3-Erzeugen-einer-Action-ueber-den-DI-Container"><a href="#Chapter-3-3-Erzeugen-einer-Action-ueber-den-DI-Container">3.3 Erzeugen einer Action über den DI-Container</a></h4>
+<p>
+   Neben der der Möglichkeit, Actions vom Frontcontroller erzeugen zu lassen und dazu den Klassen-Namen der Action anzugeben,
+   besteht auch die Möglichkeit die Action durch den DI-Service-Manager erzeugen zu lassen. Dies bietet sich vor allem bei
+   komplexen Aufgabenstellungen an, in denen die Action von anderen Anwendungskomponenten abhängig ist. Die abhängigen Objekte
+   können hier einfach vom <em>DIServiceManager</em> in die Action injiziert werden. Details zur Konfiguration und
+   Anwendung finden Sie unter <int:link pageid="107" anchor="Chapter-4-DIServiceManager" />.
+</p>
+<p>
+   Die Action-Konfiguration unterscheidet sich im Wesentlichen nicht von der oben aufgeführten Variante (siehe
+   <a href="#Chapter-3-2-Konfiguration">Kapitel 3.2</a>). In diesem Fall wird statt
+   des Parameters <em>FC.ActionClass</em> jedoch der Namespace und Name des Services angegeben:
+</p>
+<gen:highlight type="ini">
+[{Action-Name}]
+FC.ActionServiceNamespace = ""
+FC.ActionServiceName = ""
+[FC.InputClass = ""]
+[FC.InputParams = ""]
+</gen:highlight>
+<ul>
+    <li>
+        <strong>FC.ActionServiceNamespace</strong>:
+        Gibt den Namespace an, in dem die Service-Konfiguration für die Action abgelegt wird. (Beispiel: <em>APF\project\biz\actions</em>)
+    </li>
+    <li>
+        <strong>FC.ActionServiceName</strong>:
+        Der Name des Services für die Action. (Beispiel: <em>initialize-model</em>)
+    </li>
+</ul>
+<p>
+   Für das obige Beispiel erwartet der Front-Controller die Konfigurations-Datei
+   <em>config/project/biz/action/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini</em>, die eine Service-Definition
+   <em>initialize-model</em> beinhaltet. Der Inhalt der Datei kann wie folgt aussehen:
+</p>
+<gen:highlight type="ini">
+[initialize-model]
+class = "APF\project\biz\actions\LoadModelAction"
+servicetype = "NORMAL"
+
+init.model.method = "setModel"
+init.model.namespace = "APF\project\biz\model"
+init.model.name = "ApplicationModel"
+</gen:highlight>
+
 <h3 id="Chapter-4-Bootstrap-Datei"><a href="#Chapter-4-Bootstrap-Datei">4. Bootstrap-Datei</a></h3>
 <p>
    Wie bereits in der <a href="#Chapter-1-Einleitung">Einleitung</a> beschrieben setzt das APF auf das
@@ -364,51 +409,6 @@ FC.ActionClass = ""
    Anwendungsfall mit einem anderen Verhalten zu starten. Die hierzu notwendige Logik ist bereits in der Methode
    <em>Frontcontroller::addAction()</em> vorhanden.
 </div>
-
-<h4 id="Chapter-5-1-1-Erzeugen-einer-Action-ueber-den-DI-Container"><a href="#Chapter-5-1-1-Erzeugen-einer-Action-ueber-den-DI-Container">5.1.1 Erzeugen einer Action über den DI-Container</a></h4>
-<p>
-    Neben der der Möglichkeit, Actions vom Frontcontroller erzeugen zu lassen und dazu den Klassen-Namen der Action anzugeben,
-    besteht auch die Möglichkeit die Action durch den DI-Service-Manager erzeugen zu lassen. Dies bietet sich vor allem bei
-    komplexen Aufgabenstellungen an, in denen die Action von anderen Anwendungskomponenten abhängig ist. Die abhängigen Objekte
-    können hier einfach vom DI-Service-Manager in die Action injiziert werden. Mehr zum DI-Service-Manager finden Sie im Kapitel
-    <int:link pageid="107" anchor="Chapter-4-DIServiceManager">Services: DI-Service-Manager</int:link>
-</p>
-<p>
-    Die Action-Konfiguration unterscheidet sich im Wesentlichen nicht von der oben aufgeführten Variante. In diesem Fall wird statt
-    des Parameters <em>FC.ActionClass</em> jedoch der Namespace und Name des Services angegeben:
-</p>
-<gen:highlight type="ini">
-[{Action-Name}]
-FC.ActionServiceNamespace = ""
-FC.ActionServiceName = ""
-[FC.InputClass = ""]
-[FC.InputParams = ""]
-</gen:highlight>
-<ul>
-    <li>
-        <strong>FC.ActionServiceNamespace</strong>:
-        Gibt den Namespace an, in dem die Service-Konfiguration für die Action abgelegt wird. (Beispiel: <em>APF\project\biz\actions</em>)
-    </li>
-    <li>
-        <strong>FC.ActionServiceName</strong>:
-        Der Name des Services für die Action. (Beispiel: <em>LoadModelActionService</em>)
-    </li>
-</ul>
-<p>
-    Für das Beispiel mit dem Service-Namespace <em>APF\project\biz\actions</em> befindet sich die Service-Konfiguration in
-    <em>config/project/biz/action/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini</em>. Diese Datei könnte wie folgt aussehen -
-    genaue Informationen finden sich in der <int:link pageid="107" anchor="Chapter-4-DIServiceManager">Dokumentation des
-    DI-Service-Managers</int:link>.
-</p>
-<gen:highlight type="ini">
-[LoadModelActionService]
-class = "APF\project\biz\actions\LoadModelAction"
-servicetype = "NORMAL"
-    
-init.model.method = "setModel"
-init.model.namespace = "APF\project\biz\model"
-init.model.name = "ApplicationModel"
-</gen:highlight>
 
 <h4 id="Chapter-5-2-Action-Implementierung"><a href="#Chapter-5-2-Action-Implementierung">5.2. Action-Implementierung</a></h4>
 <p>

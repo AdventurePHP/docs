@@ -220,8 +220,46 @@ $fC->registerAction('APF\site\actions', 'check-permissions');
 
 <h4 id="Chapter-3-3-Action-creation-via-DI-container"><a href="#Chapter-3-3-Action-creation-via-DI-container">3.3. Action creation via DI container</a></h4>
 <p>
-   ... to be written ...
+   Besides creating actions by the front controller by providing the name of the action class you can also create actions
+   using the DI container. This approach is recommended with complex scenarios where actions make use of other application
+   components. Dependent objects can easily be injected by the <em>DIServiceManager</em>. Details on configuration and
+   usage can be found under <int:link pageid="107" anchor="Chapter-4-DIServiceManager" />.
 </p>
+<p>
+   Configuration of actions does not differ too much from normal action configuration (see <a href="#Chapter-3-2-Configuration">chapter 3.2.</a>).
+   In this case <em>FC.ActionClass</em> is replaced by namespace and name of the service:
+</p>
+<gen:highlight type="ini">
+[{Action-Name}]
+FC.ActionServiceNamespace = ""
+FC.ActionServiceName = ""
+[FC.InputClass = ""]
+[FC.InputParams = ""]
+</gen:highlight>
+<ul>
+   <li>
+      <strong>FC.ActionServiceNamespace</strong>:
+      Defines the namespace of the service configuration (example: <em>APF\project\biz\actions</em>)
+   </li>
+   <li>
+      <strong>FC.ActionServiceName</strong>:
+      Defines the name of the service that describes the action (example: <em>initialize-model</em>)
+   </li>
+</ul>
+<p>
+   For the above example the front controller requires a configuration file
+   <em>config/project/biz/action/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini</em> that defines service
+   <em>initialize-model</em>. The content of the file may be as follows:
+</p>
+<gen:highlight type="ini">
+[initialize-model]
+class = "APF\project\biz\actions\LoadModelAction"
+servicetype = "NORMAL"
+
+init.model.method = "setModel"
+init.model.namespace = "APF\project\biz\model"
+init.model.name = "ApplicationModel"
+</gen:highlight>
 
 <h3 id="Chapter-4-Bootstrap-file"><a href="#Chapter-4-Bootstrap-file">4. Bootstrap file</a></h3>
 <p>
