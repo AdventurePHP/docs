@@ -1,0 +1,619 @@
+<doku:title parent="100" tags="migration,1.17,2.0,namespace" title="Migration von 1.17 auf 2.0" urlname="Migration-von-1-17-auf-2-0">
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 1.17), die notwendig sind
+   um Ihre Applikation auf die Version 2.0 zu portieren.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Die Version 2.0 des Adventure PHP Framework bringt in einigen Bereichen umfassende Neuerungen mit. Die größte
+   Änderung ist ein vollkommen überarbeitetes Modell zum Laden von Klassen gemäß PHP-Standard PSR-0. Damit wurde die
+   Kompatibiliät und Interoperabilität mit anderen Produkten deutlich verbessert und das APF unterstützt nun die
+   native Verwendung von PHP-Namespaces.
+</p>
+<p>
+   Um Ihre Applikation auf Basis der neuen Version betreiben zu können, sind weitreichende Anpassungen am Quellcode
+   notwendig. Damit der Umsteig leichter fällt, liefert die neue Version eine automatisierte Migration aus und ein
+   Werkzeug zur Trennung von Applikations- und Framework-Code.
+</p>
+<p>
+   Die folgenden Kapitel zeigen Ihnen, wie der Umsteig auf das APF 2.0 funktioniert und welche Änderungen vorgenommen
+   werden müssen um Ihre bestehende(n) Applikation(en) auf dieser zu betreiben.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass nicht alle Teile der Anwendung <a href="#Chapter-2-Automatisierte-Migration">automatisiert migriert</a>
+   werden können. Lesen Sie daher unbedingt <a href="#Chapter-2-3-Nacharbeiten">Kapitel 2.3</a> und
+   <a href="#Chapter-3-Manuelle-Migration">Kapitel 3</a>!
+</div>
+
+<h3 id="Chapter-2-Automatisierte-Migration"><a href="#Chapter-2-Automatisierte-Migration">2. Automatisierte Migration</a></h3>
+<p>
+   Um die umfangreichen Änderungen an Ihre bestehenden Applikationen einfach und schnell vornehmen zu können, stellt
+   das Release 2.0 eine automatisierte Migration von Version 1.17 auf das aktuelle Release bereit.
+</p>
+<div class="warn">
+   Bitte stellen Sie sicher, dass Sie vor der Migration alle unter <int:link pageid="153" /> beschriebenen Schritte
+   durchgeführt haben. Setzen Sie eine noch ältere Version ein, migrieren Sie bitte zuerst <em>vollständig</em> auf die
+   Version 1.17. Hinweise zur jeweiligen Migration finden Sie auf der Seite <int:link pageid="100" />.
+</div>
+<p>
+   Zur Anpassung Ihrer Quell-Dateien finden Sie das Shell-Script <strong>migrate.sh</strong> im Ordner <strong>migration</strong>.
+   Dieses führt mehrere PHP-Skripten aus und bringt ihre Applikation auf den neuesten Stand.
+</p>
+<p>
+   Sofern Sie auf Windows entwickeln, installieren Sie bitte eine aktuelle Version von <em>cygwin</em> (Download unter
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Eine Migration auf Basis eines
+   Windows-Batch-Script wird nicht angeboten.
+</p>
+<p>
+   Die folgenden Kapitel führen Sie Schritt für Schritt durch die Migration.
+</p>
+
+<h4 id="Chapter-2-1-Vorbereitung"><a href="#Chapter-2-1-Vorbereitung">2.1. Vorbereitung</a></h4>
+<p>
+   Die Migration läuft weitestgehend automatisiert ab, es wird jedoch trotzdem empfohlen, die im folgenden beschriebenen
+   Schritte vorzunehmen um ein besseres Ergebnis zur erhalten. Das Migrations-Skript deckt in der Regel etwa 90-95% der
+   Anpassungen ab, kann jedoch nicht alle Besonderheiten Ihres Projekt-Setups kennen.
+</p>
+<div class="warn">
+   <p>
+      Bitte beachten Sie, dass das APF-Team keine Verantwortung für Schäden am Quellcode übernehmen kann. Sichern Sie daher
+      bitte zunächst Ihr Projekt vollständig und an einem unabhängigen Speicher-Ort um gegebenfalls entstandene
+      Schäden durch das Einspielen einer Sicherung rückgängig machen zu können.
+   </p>
+   <p>
+      Die Migrations-Skripten wurden ausgiebig an Hand von unterschiedlichen Projekten getestet, es kann jedoch nicht
+      ausgeschlossen werden, dass spezielle Konstrukte nicht erkannt und damit ggf. unbrauchbar gemacht werden.
+   </p>
+</div>
+<p>
+   Um ein besseres Ergebnis zu erziehlen werden folgende Vorarbeiten empfohlen:
+</p>
+<ul>
+   <li>
+      Ersetzen Sie vorhandene <em>@namespace</em>-Annotationen in Dokumentations-Blöcken durch <em>@package</em>.
+   </li>
+   <li>
+      Pfüfen Sie Ihr Projekt auf Ordner-Namen, die nicht kompatibel mit PHP-Namespaces sind und benennen diese
+      gegebenenfalls um (Hilfe unter <a class="external" href="http://php.net/language.namespaces.definition.php">php.net</a>).
+      Beispiel: befindet sich in Ihrem Projekt ein Ordner mit dem Namen <em>foo-bar</em> so benennen Sie diesen und alle
+      Stellen, an denen er verwendet wird in beispielsweise <em>foobar</em> um.
+   </li>
+   <li>
+      Entfernen Sie dynamische <em>import()</em>-Aufrufen innerhalb von Funktionen oder Klassen-Methoden. Diese führen
+      nach der Migration sonst zu Komilierungsfehlern.
+   </li>
+   <li>
+      Nutzt Ihr Projekt bereits teilweise PHP-Namespaces, so werden folgende Anpassungen empfohlen:
+      <ul>
+         <li>
+            Entfernen von bisher verwendeten <em>use</em> -Statements. Dies vermeidet doppelte <em>use</em>-Statements
+            nach der Migration.
+         </li>
+         <li>
+            Entfernen von bisher vorhandenen <em>namespace</em>-Deklarationen, dies hilft falsche Zuordnung von
+            Namespaces zu vermeiden. Die Migration geht davon aus, dass alle Projekt-Namespaces ebenfalls mit <em>APF</em>
+            als Hersteller beginnen. Eine Trennung des Applikations-Codes kann anschließend wie in
+            <a href="#Chapter-6-Trennung-des-Applikations-Codes">Kapitel 6</a> beschrieben durchgeführt werden.
+         </li>
+      </ul>
+   </li>
+   <li>
+      Reformattieren Sie bitte Ihren PHP-Quellcode. Dies verbessert die Erkennung von Code- und Annotations-Elementen.
+      Beispiel: entfernen Sie im Statement
+      <gen:highlight type="php">/* @var&nbsp;&nbsp;\FooClass */</gen:highlight> das unnötige Leerzeichen.
+   </li>
+</ul>
+
+<h4 id="Chapter-2-2-Ausfuehren-der-Migration"><a href="#Chapter-2-2-Ausfuehren-der-Migration">2.2. Ausführen der Migration</a></h4>
+<p>
+   Die Migration umfasst drei Schritt: Ersetzen bzw. aktualisieren der bisherigen APF-Version, Ausführen des
+   Migrations-Skripts und erledigen der Nacharbeiten.
+</p>
+
+<h5 id="Chapter-2-2-1-Aktualisierung-der-APF-Dateien"><a href="#Chapter-2-2-1-Aktualisierung-der-APF-Dateien">2.2.1. Aktualisierung der APF-Dateien</a></h5>
+<p>
+   Wechseln Sie bitte in den Projekt-Ordner und dort wiederum in den <em>apps</em>-Ordner, in dem Ihre Applikations-Dateien
+   befinden. Dort finden Sie nun die APF-Ordner <em>core</em>, <em>extensions</em>, <em>modules</em> und <em>tools</em>
+   sowie die von Ihnen erstellten Dateien.
+</p>
+<p>
+   Löschen Sie nun die APF-Ordner <em>core</em>, <em>extensions</em>, <em>modules</em> und <em>tools</em> und laden ein
+   <em>apf-codepack-apf-codepack-2.0-php5-*</em>-Paket unter <int:link pageid="008" /> herunter. Entpacken Sie das
+   Release anschließend im <em>apps</em>-Ordner.
+</p>
+<p>
+   Zusätzlich zu den bisher bekannten APF-Ordnern finden Sie nun auch einen <em>migration</em>-Ordner. Beispiel:
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ ll
+insgesamt 28K
+drwx------+ 1 Christian None 0  4. Jul 2013  config/
+drwx------+ 1 Christian None 0  3. Jul 2013  core/
+drwx------+ 1 Christian None 0  3. Jul 2013  extensions/
+drwx------+ 1 Christian None 0 16. Jan 13:01 migration/
+drwx------+ 1 Christian None 0  3. Jul 2013  modules/
+drwx------+ 1 Christian None 0  4. Jul 2013  sites/
+drwx------+ 1 Christian None 0  4. Jul 2013  thirdparty/
+drwx------+ 1 Christian None 0  3. Jul 2013  tools/
+</gen:highlight>
+
+<h5 id="Chapter-2-2-2-Ausfuehren-des-Skripts"><a href="#Chapter-2-2-2-Ausfuehren-des-Skripts">2.2.2. Ausführen des Skripts</a></h5>
+<p>
+   Im Verzeichnis <em>migration</em> befinden sich mehrere PHP-Dateien und das Skript <em>migrate.sh</em>, das die Migration
+   durchführt. Dieses erwartet ein PHP-Executable als erstes und einziges Argument. Ist dieses nicht vorhanden, erhalten
+   Sie folgende Fehlermeldung:
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ migration/migrate.sh
+######################################
+# APF 2.0 automatic migration        #
+######################################
+
+Checking directory ... [OK]
+Checking PHP executable available ... [ERROR]
+
+PHP not found in your PATH-scope. Provide path to php as second parameter. Aborting!
+</gen:highlight>
+<p>
+   Zum Start der Migration nutzen Sie bitte folgenden Shell-Aufruf im <em>apps</em>-Ordner:
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ ./migration/migrate.sh /cygdrive/c/xampp/php/php
+</gen:highlight>
+<p>
+   Die Migration wir nun gestartet und Sie sehen folgende Ausgabe:
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ migration/migrate.sh /cygdrive/c/xampp/php/php
+######################################
+# APF 2.0 automatic migration        #
+######################################
+
+Checking directory ... [OK]
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.4.16.
+
+######################################
+
+Starting migration ...
+* Prepare addtaglib declarations for migration ...
+* Introduced namespace declarations ...
+* Switched from import() to use ...
+* Migrated PHPDoc comments ...
+* Migrated declaration and usage of tags ...
+* Migrated service calls and di-service configuration ...
+* Migrated registry calls ...
+* Migrated session(manager) calls ...
+* Add missing use statements ...
+* Clean up unnecessary use statements ...
+* Migrated Singleton/SessionSingleton calls ...
+* Migrated CookieManager to Cookie class ...
+* Migrated PostHandler to RequestHandler class ...
+* Migrate LinkGenerator calls for action urls ...
+* Migrated configuration files:
+  * Config calls
+  * Database configuration
+  * Cache configuration
+  * Front controller configuration
+  * GORM configuration
+  * Pager configuration
+  * UMGT module configuration
+  * Contact module configuration
+
+######################################
+
+Migration done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+<p>
+   Im Anschluss an die Migration sind noch einige Nacharbeiten notwendig. Diese entnehmen Sie bitte
+   <a href="#Chapter-2-3-Nacharbeiten">Kapitel 2.3</a>.
+</p>
+<div class="hint">
+   Mehrfaches Ausführen ohne Wiederherstellen des ursprünglichen Standes kann zu unerwünschten bzw. unvorhersehbaren
+   Ergebnissen führen (z.B. doppelte Angabe von use-Statements). Setzen Sie die Quell-Dateien zunächst
+   auf den ursprünglichen Stand zurück und führen die Migration erneut aus.
+</div>
+<div class="hint">
+   Weitere Hinweise zur Automatisierten Migration sind unter
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=1407#p14031">Migration und Änderungen in 2.0</a>
+   beschrieben.
+</div>
+
+<h4 id="Chapter-2-3-Nacharbeiten"><a href="#Chapter-2-3-Nacharbeiten">2.3. Nacharbeiten</a></h4>
+<p>
+   Nach der Migration des Applikations-Codes sind noch einige Nacharbeiten zu erledigen. Diese betreffen vor Allem die
+   Bootstrap-Datei Ihrer Anwendung (<em>index.php</em>) und gegebenenfalls das Auflösen von nicht von der Migration
+   erfassten Teile des Codes.
+</p>
+
+<h5 id="Chapter-2-3-1-Aktualisieren-der-Bootstrap-Datei"><a href="#Chapter-2-3-1-Aktualisieren-der-Bootstrap-Datei">2.3.1. Aktualisieren der Bootstrap-Datei</a></h5>
+<p>
+   Die <em>index.php</em> ihrer Anwendung kann nicht automatisiert migriert werden, da sich diese für unterschiedliche
+   Anwendungen zu sehr unterscheidet. Die folgenden Schritte zeigen Ihnen, wie Sie eine bestehende Bootstrap-Datei anpassen:
+</p>
+<ol>
+   <li>
+      Das APF besitzt seit der Version 2.0 eine eigene, interne Bootstrap-Datei, die den internen Zustand des Frameworks
+      konfiguriert. Tauschen Sie daher
+      <gen:highlight type="php">include('***/core/pagecontroller/pagecontroller.php')</gen:highlight>
+      gegen
+      <gen:highlight type="php">include('***/core/bootstrap.php');</gen:highlight>
+      aus. Bitte passen Sie den Pfad jeweils auf die Gegebenheiten Ihrer Applikation an.
+   </li>
+   <li>
+      Führen Sie jeweils ein <em>use</em>-Statement für die in der <em>index.php</em> verwendeten Klassen ein. Für die
+      Verwendung der Klasse <em>Singleton</em> lautet dieses
+      <gen:highlight type="php">use APF\core\singleton\Singleton;</gen:highlight>
+   </li>
+   <li>
+      Entfernen Sie alle Aufrufe der Funktion <em>import()</em>. Diese wurde im APF 2.0 durch das native Schlüsselwort
+      <em>use</em> ersetzt.
+   </li>
+   <li>
+      Durch die Einführung von PHP-Namespaces für Klassen, Templates und Konfigurations-Dateien ist es erforderlich
+      alle Klassen-Referenzen auf absolute Adressierung umzustellen. Dies betrifft in der <em>index.php</em> vor allem
+      die Nutzung der Klasse <em>Singleton</em>. Ersetzen Sie daher bitte alle Aufrufe der Form
+      <gen:highlight type="php">Singleton::getInstance('Frontcontroller')</gen:highlight> gegen
+      <gen:highlight type="php">Singleton::getInstance('APF\core\frontcontroller\Frontcontroller')</gen:highlight>
+   </li>
+   <li>
+      Die Umstellung auf die PHP-Namespace-Notation betrifft auch die zur Adressierung von <em>Registry</em>-Einträgen
+      genutzten Namespaces. Entfernen Sie daher alle &quot;<em>::</em>&quot;-Vorkommen durch &quot;<em>\</em>&quot;.
+      <em>Registry</em>-Einträge der Form
+      <gen:highlight type="php">Registry::retrieve('apf::core', 'InternalLogTarget')</gen:highlight>
+      werden in der Version 2.0 wie folgt ausgelesen:
+      <gen:highlight type="php">Registry::retrieve('APF\core', 'InternalLogTarget'</gen:highlight>
+   </li>
+   <li>
+      Die Umstellung auf die PHP-Namespace-Notation findet ebenfalls bei der Definition von Konfigurations-Einträgen
+      Anwendung. Überführen Sie daher <int:link pageid="012" />-Action-Deklarationen der Form
+      <gen:highlight type="php">$fC->registerAction('cms::core::biz::setmodel', 'setModel')</gen:highlight> in
+      <gen:highlight type="php">$fC->registerAction('APF\cms\core\biz\setmodel', 'setModel')</gen:highlight>
+   </li>
+   <li>
+      Wie in der Einleitung erwähnt werden neben PHP-Klassen auch Templates über Namespaces referenziert. Stellen Sie
+      aus diesem Grund die Referenz auf das initiale Template von beispielsweise
+      <gen:highlight type="php">$fC->start('***::pres::templates', 'site')</gen:highlight>
+      auf <gen:highlight type="php">echo $fC->start('APF\***\pres\templates', 'site');</gen:highlight>
+      um.
+   </li>
+</ol>
+
+<h5 id="Chapter-2-3-2-Korrektur-der-Code-Dateien"><a href="#Chapter-2-3-2-Korrektur-der-Code-Dateien">2.3.2. Korrektur der Code-Dateien</a></h5>
+<p>
+   Wie in der Einleitung angesprochen werden etwa 90-95% der Tätigkeiten durch die automatisierte Migration erfasst.
+   Leider können nicht alle Projekt-spezifischen Anwendungsfälle berücksichtigt werden. Aus diesem Grund werden Sie
+   vermutlich einige Anpassungen am Quellcode vornehmen müssen um die fehlerfreie Funktion Ihrer Applikation zu garantieren.
+</p>
+<p>
+   Die folgende Liste zeigt in den Tests notwendige Anpassungen. Bitte beachten Sie, dass für Ihr Projekt gegebenfalls
+   weitere oder andere Schritte notwendig sind.
+</p>
+<ul>
+   <li>
+      5) import()
+      a) unused classes
+      b) unused functions
+   </li>
+   <li>
+      6) Run Code Inspector and fix issues (important sections: "Undefined" and "Unused")
+   </li>
+   <li>
+      7) Fix namespace issues that are not caught by the migration script:
+      a) "APF\net\payback\portal" in "PAYBACK\portal\api"
+      b) ...
+   </li>
+   <li>
+      8) Check for occurrences of "::" and fix. E.g.
+      a) "CommonJSONClient::SESSION_NAMESPACE"
+      b) "$fC->start('net::payback::portal::frontend::page::templates', 'error');"
+      c) $doc->loadDesign('net::payback::portal::frontend::section::emaillayer::templates', 'default');
+   </li>
+   <li>
+      9) Update to new ClassLoader configuration
+   </li>
+</ul>
+
+<h4 id="Chapter-3-Manuelle-Migration"><a href="#Chapter-3-Manuelle-Migration">3. Manuelle Migration</a></h4>
+<p>
+   Leider lassen sich nicht alle Bestandteile der Applikation automatisiert migrieren. In diesem Kapitel sind daher
+   Komponenten oder Module aufgeführt, die manuell auf die Version 2.0 umgestellt werden müssen.
+</p>
+<ol>
+   <li>
+      Die Signatur des <em>&lt;fcon:importdesign /&gt;</em>-Tags wurde in Version 2.0 grundlegend geändert. Grund
+      dafür ist die Zusammenfassung von <em>modelnamespace</em>, <em>modelfile</em> und <em>modelclass</em> zu einem
+      Attribut, das den voll-qualifizierten Klassen-Namen des Models enthält. Stellen Sie daher die Signatur des Tags
+      von
+<gen:highlight type="apf-xml">
+&lt;fcon:importdesign
+   templatenamespace=""
+   modelnamespace=""
+   modelfile=""
+   modelclass=""
+   modelparam=""
+   [sessionsingleton=""]
+/&gt;
+</gen:highlight>
+      auf
+<gen:highlight type="apf-xml">
+&lt;fcon:importdesign
+   template-namespace=""
+   template-param=""
+   model=""
+   [sessionsingleton=""]
+/&gt;
+</gen:highlight>
+      um.
+   </li>
+</ol>
+
+<h3 id="Chapter-4-FAQ"><a href="#Chapter-4-FAQ">4. FAQs</a></h3>
+<p>
+   Während der Test-Phase der Migrations-Skripten sind auch uns verschiedene Fehler begegnet. Diese - zusammen mit den
+   entstrechenden Lösungen - sind in diesem Kapitel zusammengefasst.
+</p>
+
+<h4 id="Chapter-4-1-preg_replace_callback"><a href="#Chapter-4-1-preg_replace_callback">4.1. preg_replace_callback()</a></h4>
+
+<h5>Fehler</h5>
+<gen:highlight type="code">
+preg_replace_callback(): Requires argument 2, 'ChainedGenericOutputFilter::replaceLink', to be a valid callback
+</gen:highlight>
+
+<h5>Lösung</h5>
+<p>
+   Die Klasse <em>ChainedGenericOutputFilter</em> wurde ohne Namespace verwendet. Um den Fehler zu beheben, muss diese
+   innerhalb der Funktion <em>preg_replace_callback</em> inklusive Namespace angegeben werden. Beispiel:
+</p>
+<gen:highlight type="php">
+preg_replace_callback(
+   '/&lt;a (.*?)href="(.*?)"(.*?)>(.*?)<\/a>/ims',
+   array('APF\core\filter\ChainedGenericOutputFilter', 'replaceLink'),
+   $input
+);
+</gen:highlight>
+
+<h4 id="Chapter-4-2-ConfigurationException"><a href="#Chapter-4-2-ConfigurationException">4.2. ConfigurationException</a></h4>
+
+<h5>Fehler</h5>
+<gen:highlight type="code">
+Class loader root path for namespace "sites\apf\biz" cannot be determined. Please double-check your configuration!
+</gen:highlight>
+
+<h5>Lösung</h5>
+<p>
+   Der angegebene Namespace besitzt keinen Hersteller (erster Abschnitt des Namespaces). Ändern Sie den Namespace daher
+   z.B. in <em>APF\sites\apf\biz</em> . <em>APF</em> ist der Standard-Hersteller, der in der <em>bootstrap.php</em>
+   registriert wird. Details dazu finden Sie unter <int:link pageid="154" />.
+</p>
+
+<h4 id="Chapter-4-3-Class-not-found"><a href="#Chapter-4-3-Class-not-found">4.3. Class not found</a></h4>
+
+<h5>Fehler</h5>
+<gen:highlight type="code">
+Class 'APF\xyz\pres\documentcontroller\Controller' not found...
+</gen:highlight>
+
+<h5>Lösung</h5>
+<p>
+   Möglicherweise fehlt die Angabe eines Namespace in der Datei <em>APF/xyz/pres/documentcontroller/Controller.php</em>.
+   Fügen Sie dazu bitte direkt in der zweiten Zeile nach <em>&lt;?php</em> ein
+</p>
+<gen:highlight type="php">
+namespace APF\xyz\pres\documentcontroller;
+</gen:highlight>
+<p>
+   ein.
+</p>
+
+<h5>Fehler</h5>
+<gen:highlight type="code">
+Fatal error: Class 'Logger' not found in ***\APF\core\singleton\Singleton.php on line 88
+</gen:highlight>
+
+<h5>Lösung</h5>
+<p>
+   Nutzen Sie bitte bei allen Aufrufen von <em>Singleton::getInstance()</em>  oder <em>SessionSingleton::getInstance()</em>
+   sowie <em>$this->getServiceObject()</em> den voll-qualifizierten Klassen-Namen - hier: <em>APF\core\logging\Logger</em>.
+</p>
+
+<h4 id="Chapter-4-4-Fatal-Error"><a href="#Chapter-4-4-Fatal-Error">4.4. Fatal Error</a></h4>
+<h5>Fehler</h5>
+<gen:highlight type="code">
+Fatal error: Interface 'APF\core\service\APFDIService' not found in ***\APF\core\pagecontroller\pagecontroller.php on line 320
+</gen:highlight>
+
+<h5>Lösung</h5>
+<p>
+   In der Bootstrap-Datei wurde noch nicht von
+</p>
+<gen:highlight type="php">
+include('./APF/core/pagecontroller/pagecontroller.php');
+</gen:highlight>
+<p>
+   auf
+</p>
+<gen:highlight type="php">
+include('./APF/core/bootstrap.php');
+</gen:highlight>
+<p>
+   umgestellt. Holen Sie dies wie in <a href="#Chapter-2-3-1-Aktualisieren-der-Bootstrap-Datei">Kapitel 2.3.1</a>
+   beschrieben nach.
+</p>
+
+<h5>Fehler</h5>
+<gen:highlight type="code">
+Fatal error: Call to undefined function import() in ***\index.php on line 21
+</gen:highlight>
+
+<h5>Lösung</h5>
+<p>
+   Bitte entfernen Sie alle Stellen, an denen im Code die Funktion <em>import()</em> aufgerufen wird. Diese wird in der
+   neuen Version des APF nicht mehr benötigt.
+</p>
+
+<h4 id="Chapter-4-5-ClassLoader-Exception"><a href="#Chapter-4-5-ClassLoader-Exception">4.5. ClassLoader Exception</a></h4>
+
+<h5>Fehler</h5>
+<gen:highlight type="code">
+Class loader root path for namespace "foo::bar::blah" cannot be determined. Please double-check your configuration!
+</gen:highlight>
+
+<h5>Lösung</h5>
+<p>
+   Bitte verwenden Sie bei allen Namespace-Angaben zukünftig die voll-qualifizierte Schreibweise - hier:
+   <em>APF\foo\bar\blah</em>. Dieser Fehler tritt häufig nach der Migration bei der Registrierung von
+   <int:link pageid="012" />-Actions oder dem Laden von initialen Templates in der Bootstrap-Datei auf.
+</p>
+
+<h3 id="Chapter-5-Umbenannte-Klassen-und-Methoden"><a href="#Chapter-5-Umbenannte-Klassen-und-Methoden">5. Umbenannte Klassen und Methoden</a></h3>
+<p>
+   Wie bereits in bisherigen Releases erfolgt wurden auch in diesem Release einige Klassen- und Methoden-Namen verändert
+   um Konsistenz und intuitive Benutzung sicher zu stellen. Die folgenden Tabellen zeigen Ihnen die Änderungen im Überblick.
+</p>
+<p>
+   Die folgenden <em>Klassen</em> wurden gegenüber Version 1.17 umbenannt:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Bisheriger Klassen-Name</td>
+         <td>Neuer Klassen-Name</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>ChainedGenericInputFilter</td>
+         <td>ChainedStandardInputFilter</td>
+      </tr>
+      <tr>
+         <td>ChainedGenericOutputFilter</td>
+         <td>ChainedUrlRewritingOutputFilter</td>
+      </tr>
+      <tr>
+         <td>SessionManager</td>
+         <td>Session</td>
+      </tr>
+      <tr>
+         <td>CookieManager</td>
+         <td>Cookie</td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   Die nachfolgende dargestellte Tabelle zeigt Ihnen die <em>Methoden</em>, die gegenüber Version 1.17 umbenannt wurden:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Bisheriger Methoden-Name</td>
+         <td>Neuer Methoden-Name</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>Session::destroySession()</td>
+         <td>Session::destroy()</td>
+      </tr>
+      <tr>
+         <td>Session::loadSessionData()</td>
+         <td>Session::load()</td>
+      </tr>
+      <tr>
+         <td>Session::loadAllSessionData()</td>
+         <td>Session::loadAll()</td>
+      </tr>
+      <tr>
+         <td>Session::getEntryDataKeys()</td>
+         <td>Session::getEntryKeys()</td>
+      </tr>
+      <tr>
+         <td>Session::saveSessionData()</td>
+         <td>Session::save()</td>
+      </tr>
+      <tr>
+         <td>Session::deleteSessionData()</td>
+         <td>Session::delete()</td>
+      </tr>
+      <tr>
+         <td>CookieManager::createCookie()</td>
+         <td>Cookie::setValue()</td>
+      </tr>
+      <tr>
+         <td>CookieManager::updateCookie()</td>
+         <td>Cookie::setValue()</td>
+      </tr>
+      <tr>
+         <td>CookieManager::readCookie()</td>
+         <td>Cookie::getValue()</td>
+      </tr>
+      <tr>
+         <td>CookieManager::deleteCookie()</td>
+         <td>Cookie::delete()</td>
+      </tr>
+   </tbody>
+</table>
+<div class="hint">
+   Die hier aufgeführten Klassen und Methoden sind lediglich zu Dokumentations-Zwecken dokumentiert. Die Umstellung
+   auf die neuen Schreibweisen wird durch die in <a href="#Chapter-2-Automatisierte-Migration">Kapitel 2</a> automatisierte
+   Migration bereits für Sie erledigt.
+</div>
+
+<h3 id="Chapter-6-Trennung-des-Applikations-Codes"><a href="#Chapter-6-Trennung-des-Applikations-Codes">6. Trennung des Applikations-Codes</a></h3>
+<p>
+
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ migration/relocate.sh /cygdrive/c/xampp/php/php "APF\sites\apf" "DOCS\"
+######################################
+# APF 2.0 automatic migration        #
+######################################
+
+Checking directory ... [OK]
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.4.16.
+
+Checking necessary parameters available ... [OK]
+
+Source namespace: APF\net\payback\generator
+Target namespace: PAYBACK\portal\generator
+
+######################################
+
+Starting relocation ...
+
+Warning: fileperms(): stat failed for net/payback/generator in C:\Users\Christian\Entwicklung\Projekte\payback-portal\src\migration\relocate.php on line 32
+
+Call Stack:
+    1.0160     135144   1. {main}() C:\Users\Christian\Entwicklung\Projekte\payback-portal\src\migration\relocate.php:0
+    1.0160     160120   2. fileperms() C:\Users\Christian\Entwicklung\Projekte\payback-portal\src\migration\relocate.php:32
+
+--> WARNING: Target path already exists! Files may be overwritten ...
+* Copy files to target structure ...
+* Re-mapping namespace on target ...
+
+######################################
+
+NOTE: Please note, that relocate.sh does not handle relocation of configuration files. Thus, please revise folder "C:\Users\Christian\Entwicklung\Projekte\payback-portal\src\config" and extract configuration files for vendor "APF" to new vendor "PAYBACK" as desired!
+
+######################################
+
+NOTE: Please be sure to add a new class loader configuration for new vendor "PAYBACK" within your bootstrap file (index.php). You may want to use the following as a start:
+
+use APF\core\loader\RootClassLoader;
+use APF\core\loader\StandardClassLoader;
+RootClassLoader::addLoader(new StandardClassLoader('PAYBACK', 'C:\Users\Christian\Entwicklung\Projekte\payback-portal\PAYBACK'));
+
+######################################
+
+Relocation done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_156" />
