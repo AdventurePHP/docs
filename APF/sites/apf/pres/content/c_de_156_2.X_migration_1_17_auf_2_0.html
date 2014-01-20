@@ -85,7 +85,7 @@
       Nutzt Ihr Projekt bereits teilweise PHP-Namespaces, so werden folgende Anpassungen empfohlen:
       <ul>
          <li>
-            Entfernen von bisher verwendeten <em>use</em> -Statements. Dies vermeidet doppelte <em>use</em>-Statements
+            Entfernen von bisher verwendeten <em>use</em>-Statements. Dies vermeidet doppelte <em>use</em>-Statements
             nach der Migration.
          </li>
          <li>
@@ -218,7 +218,7 @@ Migration done! Please check your code and follow instructions within migration 
    auf den ursprünglichen Stand zurück und führen die Migration erneut aus.
 </div>
 <div class="hint">
-   Weitere Hinweise zur Automatisierten Migration sind unter
+   Weitere Hinweise zur automatisierten Migration sind unter
    <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=1407#p14031">Migration und Änderungen in 2.0</a>
    beschrieben.
 </div>
@@ -295,26 +295,23 @@ Migration done! Please check your code and follow instructions within migration 
 </p>
 <ul>
    <li>
-      5) import()
-      a) unused classes
-      b) unused functions
+      Um Fehler in der Applikation zu vermeiden, bietet es sich an, einen Code-Inspektor zu nutzen um potentielle
+      Probleme automatisiert zu suchen. Hierzu empfiehlt das APF-Team den <em>Code Inspector</em> von
+      <a class="external" href="http://www.jetbrains.com/phpstorm">PHPStorm</a>. Dieser zeigt Ihnen Fehler im Code in
+      den Bereichen <em>Unused -&gt; Classes</em>, <em>Unused -&gt; Functions</em> und <em>Undefined</em> an. Diese
+      können Sie mit PHPStorm auch automatisert beheben.
    </li>
    <li>
-      6) Run Code Inspector and fix issues (important sections: "Undefined" and "Unused")
-   </li>
-   <li>
-      7) Fix namespace issues that are not caught by the migration script:
-      a) "APF\net\payback\portal" in "PAYBACK\portal\api"
-      b) ...
-   </li>
-   <li>
-      8) Check for occurrences of "::" and fix. E.g.
-      a) "CommonJSONClient::SESSION_NAMESPACE"
-      b) "$fC->start('net::payback::portal::frontend::page::templates', 'error');"
-      c) $doc->loadDesign('net::payback::portal::frontend::section::emaillayer::templates', 'default');
-   </li>
-   <li>
-      9) Update to new ClassLoader configuration
+      Die automatisierte Migration erfasst nicht alle Namespace-Konstrukte Ihrer Applikation. Dazu zählen beispielsweise
+      Session-Namespace oder solche in eigenen Tags. Durchsuchen Sie daher Ihr Projekt nach dem Vorkommen von &quot;::&quot;
+      in Zeichenketten und schreiben die Vorkommen um. Beispiel:
+<gen:highlight type="php">
+// Alte Schreibweise
+$session = new Session('foo::bar');
+
+// Neue Schreibweise
+$session = new Session('VENDOR\foo\bar');
+</gen:highlight>
    </li>
 </ul>
 
@@ -388,7 +385,7 @@ Class loader root path for namespace "sites\apf\biz" cannot be determined. Pleas
 <h5>Lösung</h5>
 <p>
    Der angegebene Namespace besitzt keinen Hersteller (erster Abschnitt des Namespaces). Ändern Sie den Namespace daher
-   z.B. in <em>APF\sites\apf\biz</em> . <em>APF</em> ist der Standard-Hersteller, der in der <em>bootstrap.php</em>
+   z.B. in <em>APF\sites\apf\biz</em>. <em>APF</em> ist der Standard-Hersteller, der in der <em>bootstrap.php</em>
    registriert wird. Details dazu finden Sie unter <int:link pageid="154" />.
 </p>
 
@@ -418,11 +415,12 @@ Fatal error: Class 'Logger' not found in ***\APF\core\singleton\Singleton.php on
 
 <h5>Lösung</h5>
 <p>
-   Nutzen Sie bitte bei allen Aufrufen von <em>Singleton::getInstance()</em>  oder <em>SessionSingleton::getInstance()</em>
+   Nutzen Sie bitte bei allen Aufrufen von <em>Singleton::getInstance()</em> oder <em>SessionSingleton::getInstance()</em>
    sowie <em>$this->getServiceObject()</em> den voll-qualifizierten Klassen-Namen - hier: <em>APF\core\logging\Logger</em>.
 </p>
 
 <h4 id="Chapter-4-4-Fatal-Error"><a href="#Chapter-4-4-Fatal-Error">4.4. Fatal Error</a></h4>
+
 <h5>Fehler</h5>
 <gen:highlight type="code">
 Fatal error: Interface 'APF\core\service\APFDIService' not found in ***\APF\core\pagecontroller\pagecontroller.php on line 320
@@ -566,7 +564,38 @@ Class loader root path for namespace "foo::bar::blah" cannot be determined. Plea
 
 <h3 id="Chapter-6-Trennung-des-Applikations-Codes"><a href="#Chapter-6-Trennung-des-Applikations-Codes">6. Trennung des Applikations-Codes</a></h3>
 <p>
-
+   Ab Version 2.0 des Adventure PHP Framework ist es möglich, Applikations-Code und -Konfiguration von der Code-Basis
+   und der Konfiguration des Frameworks bzw. der Framework-Komponenten zu trennen. Unter
+   <int:link pageid="154" anchor="Chapter-3-StandardClassLoader" /> und im Tutorial <int:link pageid="048" /> sind die
+   Grundlagen dazu beschrieben.
+</p>
+<p>
+   Beabsichtigen Sie Ihren Applikations-Code und die zugehörige Konfiguration auszulagern, können Sie das im
+   <em>migration</em>-Ordner mitgelieferte Skript <em>relocate.sh</em> nutzen. Dieses nimmt eine Quell- und einen
+   Ziel-Namespace entgegen. Es kopiert die unterhalb des Namespace befindlichen Dateien an den neuen Bestimmungsort und
+   schreibt alle Namespace-Nutzungen um.
+</p>
+<p>
+   Das Skript unterstützt dabei mehrere Arten der Namespace-Umschreibung:
+</p>
+<ul>
+   <li>
+      <strong>Namespace</strong>: Wurde Ihre Applikation beispielsweise unter <em>APF\sites\foo</em> abgelegt, so können
+      Sie diese in einen anderen Namespace desselben Herstellers (in diesem Fall <em>APF</em>) verschieben (z.B.
+      <em>APF\pages\foo</em>).
+   </li>
+   <li>
+      <strong>Hersteller</strong>:
+      Der Haupt-Anwendungsfall im Rahmen der Migration auf die Version 2.0 ist die Auslagerung von bestehenden Namespaces
+      des Herstellers <em>APF</em> in einen eigen, neuen Hersteller-Bereich (z.B. <em>DOCS</em>). Das Skript beherrscht
+      dabei das Verschieben eines Namespaces eines Herstellers in einen Teil-Bereich eines anderen (z.B. <em>APF\sites\foo</em>
+      --&gt; <em>APPLICATION\foo</em>), sowie die Auslagerung eines Teil-Bereichs in den Haupt-Bereich eines neuen
+      Herstellers (z.B. <em>APF\sites\foo</em> --&gt; <em>FOO</em>).
+   </li>
+</ul>
+<p>
+   Das folgende Beispiel zeigt die Extraktion des Hersteller-Bereichs <em>APF\sites\apf</em> in einen neu definierten
+   Hersteller-Bereich <em>DOCS</em>:
 </p>
 <gen:highlight type="code">
 Christian@chrislap /cygdrive/c/***/apps
@@ -610,5 +639,21 @@ RootClassLoader::addLoader(new StandardClassLoader('DOCS', '/cygdrive/c/***/DOCS
 
 Relocation done! Please check your code and follow instructions within migration documentation!
 </gen:highlight>
+<div class="hint">
+   Bitte beachten Sie, dass <em>relocate.sh</em> die relevanten Dateien des Quell-Namespaces in den neuen Bereich kopiert.
+   Die ursprünglichen Dateien bleiben zur Sicherheit weiterhin erhalten.
+</div>
+<p>
+   Zur Verwendung der verschobenen Dateien ist eine Anpassung der Bootstrap-Datei Ihrer Applikation notwendig. Als Basis
+   lässt sich hierzu die vom Skript erzeugte Ausgabe nutzen (siehe <em>RootClassLoader::addLoader()</em>).
+</p>
+<p>
+   Da die Struktur der Konfigurations-Dateien Ihres Projekts sehr spezifisch sind - z.B. nicht konsequenterweise unter
+   dem Namespace der Applikation abgelegt ist - können diese nicht automatisiert verschoben werden. Hierzu ist Ihr
+   Eingriff notwendig (z.B. Umbenennen und/oder Umschreiben von Namespaces, Verschieben von Dateien).
+</p>
+<p>
+   Zur endgültigen Migration entfernen Sie bitte die ursprünglich vorhandenen Dateien.
+</p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_156" />
