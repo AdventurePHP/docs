@@ -293,29 +293,97 @@ Inhalt, der im Template definiert wurde.
   </li>
 </ul>
 <p>
-   Mit dem Release 1.12 des APF wurde eine Erweiterung des Dateiupload-Feldes eingeführt, mit
-   dem es auf sehr einfache Art uns Weise möglich ist, einen Datei-Upload zu realisieren. Dazu
-   besitzt die Taglib folgende Methoden, die in einem Document-Controller genutzt werden können:
+   Um hochgeladene Dateien einfach verarbeiten zu können, besitzt der Tag folgende Methoden, die in einem
+   Document-Controller genutzt werden können:
 </p>
 <ul>
    <li>
-      <em>hasUploadedFile():boolean</em>: gibt <em>true</em> zurück, sofern eine Datei 
-      hochgeladen wurden; ansonsten <em>false</em>.
+      <em>hasUploadedFile()</em>: gibt <em>true</em> zurück, sofern eine Datei
+      hochgeladen wurden, andernfalls <em>false</em>.
    </li>
    <li>
-      <em>getFile():FileModel</em>: gibt eine Instanz der Klasse <em>FileModel</em> zurück,
+      <em>getFile()</em>: gibt eine Instanz der Klasse <em>FileModel</em> zurück,
       die eine hochgeladene Datei repräsentiert. Wenn keine Datei hochleladen wurden, wird
       <em>null</em> zurückgegeben.
    </li>
 </ul>
 <p>
-   Der Wiki-Eintrag 
-   <a class="wiki" href="http://wiki.adventure-php-framework.org/File-Upload_mit_Form-Taglibs" title="File-Upload mit Form-Taglibs">File-Upload mit Form-Taglibs</a>
-   beschreibt, wie ein Datei-Upload auf einfache Weise realisiert werden kann. Bitte beachten Sie
-   auch die in 1.12 neu hinzugekommenen 
-   <a href="#Chapter-4-1-12-MimeTypeValidator">MimeTypeValidator</a> und
-   <a href="#Chapter-4-1-13-FileSizeValidator">FileSizeValidator</a>, die zur
-   Validierung der hochgeladenen Dateien genutzt werden können.
+   Das folgende Formular zeigt Ihnen ein Anwendungsbeispiel des Tags:
+</p>
+<gen:highlight type="apf-xml">
+&lt;@controller
+   namespace="VENDOR\..\controller\FileUploadController"
+@&gt;
+&lt;core:addtaglib
+      class="APF\tools\form\taglib\HtmlFormTag"
+      prefix="html"
+      name="form"
+/&gt;
+&lt;html:form name="upload" method="post"&gt;
+   &lt;p&gt;
+      &lt;label for="name"&gt;Name:&lt;/label&gt;
+      &lt;form:text name="name" id="name"/&gt;
+   &lt;/p&gt;
+   &lt;p&gt;
+      &lt;label for="image"&gt;Image:&lt;/label&gt;
+      &lt;form:file name="image" id="image" accepts="jpg|image/png" maxsize="269205"/&gt;
+      &lt;form:addvalidator
+            class="MimeTypeValidator"
+            control="image"
+            button="send"
+      /&gt;
+      &lt;form:addvalidator
+            class="FileSizeValidator"
+            control="image"
+            button="send"
+      /&gt;
+   &lt;/p&gt;
+   &lt;p&gt;
+      &lt;form:button name="send" value="GO" /&gt;
+   &lt;/p&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Für die Verarbeitung des Formulars ist ein Document-Controller erforderlich. Dieser definiert, wie die hochgeladene
+   Datei behandelt werden soll. Der nachfolgend abgebildete Quellcode gibt Ihnen eine Anregung für die Implementierung
+   in Ihrer Applikation:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+use APF\tools\filesystem\FilesystemManager;
+use APF\tools\form\taglib\FileUploadTag;
+
+class FileUploadController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = & $this->getForm('upload');
+
+      if ($form->isSent() && $form->isValid()) {
+
+         $name = & $form->getFormElementByName('name');
+
+         /* @var $image FileUploadTag */
+         $image = & $form->getFormElementByName('image');
+
+         $file = $image->getFile();
+         $fileName = $file->getName();
+         $tmpFile = $file->getTemporaryName();
+         FilesystemManager::copyFile($tmpFile, './upload/' . $fileName, true);
+
+      } else {
+         $form->transformOnPlace();
+      }
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Zur Prüfung der hochgeladenen Datei lassen sich der <a href="#Chapter-4-1-12-MimeTypeValidator">MimeTypeValidator</a> und
+   der <a href="#Chapter-4-1-13-FileSizeValidator">FileSizeValidator</a> einsetzen.
 </p>
 <div class="hint">
    Seit Release 1.16 wird seitens des APF auch ein weiteres Tool zum Erzeugen von Datei-Uploads
