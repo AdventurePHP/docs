@@ -33,11 +33,6 @@ class SidebarDisplayTag extends ImportTemplateTag {
     */
    public function onParseTime() {
 
-      /* @var $t BenchmarkTimer */
-      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
-      $id = '(' . get_class($this) . ') ' . $this->getObjectId() . '::onParseTime()';
-      $t->start($id);
-
       /* @var $model APFModel */
       $model = & Singleton::getInstance('APF\sites\apf\biz\APFModel');
       if ($model->getDisplaySidebar() == true) {
@@ -51,8 +46,6 @@ class SidebarDisplayTag extends ImportTemplateTag {
          // extract further xml tags
          $this->extractTagLibTags();
       }
-
-      $t->stop($id);
 
    }
 
