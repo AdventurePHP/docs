@@ -29,6 +29,7 @@ class NewsItemTag extends Document {
 
    public function __construct() {
       $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\InternalLinkTag', 'int', 'link');
+      $this->tagLibs[] = new TagLib('APF\sites\apf\pres\taglib\DocumentationLinkTag', 'doku', 'link');
       $this->mode = self::$MODE_NEWS;
    }
 
