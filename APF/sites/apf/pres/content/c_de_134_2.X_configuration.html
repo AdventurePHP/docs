@@ -765,6 +765,54 @@ $prov->activateEnvironmentFallback(true);
 ConfigurationManager::registerProvider('lang', $prov);
 </gen:highlight>
 
+<h5 id="Chapter-5-1-4-omitConfigSubFolder"><a href="#Chapter-5-1-4-omitConfigSubFolder">5.1.4. Schalter omitConfigSubFolder</a></h5>
+<div class="hint">
+   Bitte beachten Sie, dass diese Funktion erst ab dem Release 2.1 verfügbar ist.
+</div>
+<p>
+   Im Auslieferungs-Zustand des APF werden alle Konfigurationen unter dem Basis-Ordner <em>/config</em> abgelegt (siehe
+   <a href="#Chapter-2-1-Konfigurations-Schema">Kapitel 2.1</a>). Nutzen Sie für Ihre Konfigurations-Dateien bereits einen
+   eigenen Ordner - dies lässt sich sehr einfach über eine angepasste
+   <int:link pageid="154" anchor="Chapter-4-2-Anpassung-des-Basis-Pfads-fuer-Konfigurationen">ClassLoader-Konfiguration</int:link>
+   erreichen - ist der Basis-Ordner gegebenenfalls redundant. Beispiel:
+</p>
+<gen:highlight type="code">
+/path/to/project/src/...
+/path/to/project/conf/config/...
+</gen:highlight>
+<p>
+   In diesem Fall lässt sich der Schalter <em>omitConfigSubFolder</em> nutzen um die Konfiguration direkt unter
+   <em>/path/to/project/conf</em> ablegen zu können.
+</p>
+<p>
+   Das Pfad-Format wird durch das Aktivieren des Features nicht geändert und ist daher identisch zum
+   <a href="#Chapter-2-1-Konfigurations-Schema">Standard-Schema</a>.
+</p>
+<p>
+   Soll das Feature für einen INI- bzw. XML-Provider aktiviert werden, so kann das wie folgt
+   erledigt werden:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\provider\ini\IniConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+// Neu-Konfiguration eines bestehenden Providers
+try {
+   $prov = ConfigurationManager::retrieveProvider('lang');
+} catch (ConfigurationException $e) {
+   // Sofern der Provider noch nicht registriert wurde,
+   // erstellen wir ihn "lazy" neu.
+   $prov = new IniConfigurationProvider();
+}
+$prov->setOmitConfigSubFolder(true);
+ConfigurationManager::registerProvider('lang', $prov);
+
+// Konfiguration eines neuen Providers
+$prov = new IniConfigurationProvider();
+$prov->setOmitConfigSubFolder(true);
+ConfigurationManager::registerProvider('lang', $prov);
+</gen:highlight>
+
 <h4 id="Chapter-5-2-Db-Provider"><a href="#Chapter-5-2-Db-Provider">5.2. Db-Provider</a></h4>
 <p>
    Um den <em>DbConfigurationProvider</em> zu registrieren, ist folgender Quellcode nach dem

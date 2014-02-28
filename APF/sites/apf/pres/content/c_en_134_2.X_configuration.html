@@ -747,6 +747,54 @@ $prov->activateEnvironmentFallback(true);
 ConfigurationManager::registerProvider('lang', $prov);
 </gen:highlight>
 
+<h5 id="Chapter-5-1-4-omitConfigSubFolder"><a href="#Chapter-5-1-4-omitConfigSubFolder">5.1.4. omitConfigSubFolder directive</a></h5>
+<div class="hint">
+   Please note, that this feature is available as of release 2.1!
+</div>
+<p>
+   Using delivery status, the APF expects all configuration files to be located in base folder <em>/config</em> (see
+   <a href="#Chapter-2-1-Configuration-scheme">chapter 2.1</a>). In case you are using a separate folder for configuration
+   files - you can easily setup this via an adapted
+   <int:link pageid="154" anchor="Chapter-4-2-Adaption-of-the-configuration-base-path">ClassLoader configuration</int:link>
+   - the basic folder is potentially redundant. Example:
+</p>
+<gen:highlight type="code">
+/path/to/project/src/...
+/path/to/project/conf/config/...
+</gen:highlight>
+<p>
+   In this case you can use the <em>omitConfigSubFolder</em> directive to directly store the configuration under
+   <em>/path/to/project/conf</em>.
+</p>
+<p>
+   The configuration file path is not influenced by this directive and is thus identical to the
+   <a href="#Chapter-2-1-Configuration-scheme">default scheme</a>.
+</p>
+<p>
+   If you plan to activate this feature for the INI and XML provider add the following code to
+   your application:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\provider\ini\IniConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+// re-configure an existing provider
+try {
+   $prov = ConfigurationManager::retrieveProvider('lang');
+} catch (ConfigurationException $e) {
+   // in case the provider has not been registered, yet,
+   // we "lazily" create it.
+   $prov = new IniConfigurationProvider();
+}
+$prov->setOmitConfigSubFolder(true);
+ConfigurationManager::registerProvider('lang', $prov);
+
+// add a "new" provider
+$prov = new IniConfigurationProvider();
+$prov->setOmitConfigSubFolder(true);
+ConfigurationManager::registerProvider('lang', $prov);
+</gen:highlight>
+
 <h4 id="Chapter-5-2-Db-provider"><a href="#Chapter-5-2-Db-provider">5.2. Db provider</a></h4>
 <p>
    In order to register the <em>DbConfigurationProvider</em> you need to add the following code to
