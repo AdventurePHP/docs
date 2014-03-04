@@ -9,14 +9,14 @@ use APF\core\pagecontroller\APFObject;
  * @package APF\thirdparty\statistics\data
  * @class StatMapper
  *
- *  Implements the data layer for the web statistics.
+ * Implements the data layer for the web statistics.
  *
  * @author Christian Achatz
  * @version
- *  Version 0.1, 21.12.2005<br />
- *  Version 0.2, 22.12.2005<br />
- *  Version 0.3, 08.03.2006<br />
- *  Version 0.4, 14.10.2008 (Adapted to the apfdocupage and the new technologies)<br />
+ * Version 0.1, 21.12.2005<br />
+ * Version 0.2, 22.12.2005<br />
+ * Version 0.3, 08.03.2006<br />
+ * Version 0.4, 14.10.2008 (Adapted to the apfdocupage and the new technologies)<br />
  */
 class StatMapper extends APFObject {
 
@@ -29,13 +29,13 @@ class StatMapper extends APFObject {
    /**
     * @public
     *
-    *  Initializes the mapper.
+    * Initializes the mapper.
     *
     * @param string $initParam the desired database connection key
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 14.10.2008<br />
+    * Version 0.1, 14.10.2008<br />
     */
    public function init($initParam) {
       $this->connectionKey = $initParam;
@@ -44,7 +44,7 @@ class StatMapper extends APFObject {
    /**
     * @public
     *
-    *  Creates a statistic entry.
+    * Creates a statistic entry.
     *
     * @param string $PageName name of the requested page
     * @param string $PageLang language of the page
@@ -67,14 +67,14 @@ class StatMapper extends APFObject {
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 10.04.2004<br />
-    *  Version 0.2, 23.10.2004<br />
-    *  Version 0.3, 19.01.2005<br />
-    *  Version 0.4, 05.04.2005<br />
-    *  Version 0.5, 22.12.2005<br />
-    *  Version 0.6, 23.02.2006 (Doesn't create table, if it does not exist)<br />
-    *  Version 0.7, 05.06.2006 (Database layer is created singleton now)<br />
-    *  Version 0.8, 14.10.2008 (Adapted to the apfdocupage and the new technologies)<br />
+    * Version 0.1, 10.04.2004<br />
+    * Version 0.2, 23.10.2004<br />
+    * Version 0.3, 19.01.2005<br />
+    * Version 0.4, 05.04.2005<br />
+    * Version 0.5, 22.12.2005<br />
+    * Version 0.6, 23.02.2006 (Doesn't create table, if it does not exist)<br />
+    * Version 0.7, 05.06.2006 (Database layer is created singleton now)<br />
+    * Version 0.8, 14.10.2008 (Adapted to the apfdocupage and the new technologies)<br />
     */
    public function createStatEntry($PageName, $PageLang, $RequestURI, $Day, $Month, $Year, $Hour, $Minute, $Second, $UserName, $SessionID, $Browser, $ClientLanguage, $OS, $IPAddress, $DNSAddress, $Referer, $UserAgent) {
 
