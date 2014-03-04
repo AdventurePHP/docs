@@ -1,10 +1,4 @@
 <?php
-// redirect madmind.net to avoid duplicate content with google!
-if ($_SERVER['SERVER_NAME'] == 'madmind.net') {
-   header('Location: http://adventure-php-framework.org', true, 301);
-   exit(0);
-}
-
 date_default_timezone_set('Europe/Berlin');
 ob_start();
 
