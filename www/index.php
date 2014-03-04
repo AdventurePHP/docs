@@ -65,9 +65,6 @@ GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());
 // special output filter
 OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 
-// register downloads environment
-Registry::register('APF\sites\apf', 'sitemap.env', 'prod');
-
 // send HTTP caching headers
 HttpCacheManager::sendHtmlCacheHeaders();
 
