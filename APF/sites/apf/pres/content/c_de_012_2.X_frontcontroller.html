@@ -237,8 +237,29 @@ $fC->registerAction('APF\site\actions', 'check-permissions');
 <p>
    Die Action-Konfiguration unterscheidet sich im Wesentlichen nicht von der oben aufgeführten Variante (siehe
    <a href="#Chapter-3-2-Konfiguration">Kapitel 3.2</a>). In diesem Fall wird statt
-   des Parameters <em>FC.ActionClass</em> jedoch der Namespace und Name des Services angegeben:
+   des Parameters <em>ActionClass</em> jedoch der Namespace und Name des Services angegeben:
 </p>
+<gen:highlight type="ini">
+[{Action-Name}]
+ActionServiceNamespace = ""
+ActionServiceName = ""
+[InputClass = ""]
+[InputParams = ""]
+</gen:highlight>
+<ul>
+    <li>
+        <strong>ActionServiceNamespace</strong>:
+        Gibt den Namespace an, in dem die Service-Konfiguration für die Action abgelegt wird. (Beispiel: <em>APF\project\biz\actions</em>)
+    </li>
+    <li>
+        <strong>ActionServiceName</strong>:
+        Der Name des Services für die Action. (Beispiel: <em>initialize-model</em>)
+    </li>
+</ul>
+<div class="warn">
+   Bitte beachten Sie, dass die Konfigurations-Direktiven in der Version 2.0 mit dem Präfix <em>FC.</em> definiert werden
+   müssen. Für die Erzeugung einer Action mit dem <em>DIServiceManager</em> lautet das Schema einer Action-Definition
+   wie folgt:
 <gen:highlight type="ini">
 [{Action-Name}]
 FC.ActionServiceNamespace = ""
@@ -246,16 +267,7 @@ FC.ActionServiceName = ""
 [FC.InputClass = ""]
 [FC.InputParams = ""]
 </gen:highlight>
-<ul>
-    <li>
-        <strong>FC.ActionServiceNamespace</strong>:
-        Gibt den Namespace an, in dem die Service-Konfiguration für die Action abgelegt wird. (Beispiel: <em>APF\project\biz\actions</em>)
-    </li>
-    <li>
-        <strong>FC.ActionServiceName</strong>:
-        Der Name des Services für die Action. (Beispiel: <em>initialize-model</em>)
-    </li>
-</ul>
+</div>
 <p>
    Für das obige Beispiel erwartet der Front-Controller die Konfigurations-Datei
    <em>config/project/biz/action/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini</em>, die eine Service-Definition
@@ -358,7 +370,7 @@ echo $fC->start('...', '...');
 </p>
 <gen:highlight type="ini">
 [showCaptcha]
-FC.ActionClass = "APF\modules\captcha\biz\ShowCaptchaImageAction"
+ActionClass = "APF\modules\captcha\biz\ShowCaptchaImageAction"
 </gen:highlight>
 <p>
    Der Front-Controller nutzt diese Information nun um die Instanz der Klasse <em>ShowCaptchaImageAction</em> zu
@@ -369,9 +381,9 @@ FC.ActionClass = "APF\modules\captcha\biz\ShowCaptchaImageAction"
 </p>
 <gen:highlight type="ini">
 [{Action-Name}]
-FC.ActionClass = ""
-[FC.InputClass = ""]
-[FC.InputParams = ""]
+ActionClass = ""
+[InputClass = ""]
+[InputParams = ""]
 </gen:highlight>
 <p>
    Die aufgeführten Parameter haben folgende Bedeutungen:
@@ -383,28 +395,39 @@ FC.ActionClass = ""
       über die Methode <em>registerAction()</em> genutzt (Beispiel: <em>setModel</em>).
    </li>
    <li>
-      <strong>FC.ActionClass</strong>:
+      <strong>ActionClass</strong>:
       Voll-qualifizierter Klassen-Name der Action-Implementierung (Beispiel: <em>APF\project\biz\actions\LoadModelAction</em>).
    </li>
    <li>
-      <strong>FC.InputClass</strong>:
+      <strong>InputClass</strong>:
       Voll-qualifizierter Klassen-Name der Input-Implementierung (Beispiel: <em>APF\project\biz\actions\DemositeModel</em>).
       Standard-Wert bei nicht definierter Konfigurations-Direktive ist <em>APF\core\frontcontroller\FrontcontrollerInput</em>.
    </li>
    <li>
-      <strong>FC.InputParams</strong>:
+      <strong>InputParams</strong>:
       Enthält Parameter, die bei der Erzeugung der Action in die Instanz der Input-Implementierung injiziert werden.
       Schlüssel und Wert werden durch &quot;:&quot; getrennt, mehrere Werte-Paare durch &quot;|&quot; (Beispiel:
       <em>login:true|headview:menu</em>). Ist die Konfigurations-Direktive nicht vorhanden, wird das Input-Objekt
       nicht initialisiert.
    </li>
 </ul>
+<div class="warn">
+   Bitte beachten Sie, dass die Konfigurations-Direktiven in der Version 2.0 mit dem Präfix <em>FC.</em> definiert werden
+   müssen. Für die Erzeugung einer Action mit dem <em>Front-Controller</em> lautet das Schema einer Action-Definition
+   wie folgt:
+<gen:highlight type="ini">
+[{Action-Name}]
+FC.ActionClass = ""
+[FC.InputClass = ""]
+[FC.InputParams = ""]
+</gen:highlight>
+</div>
 <div class="hint">
    Die Nutzung einer eigenen Input-Implementierung ist empfehlenswert, wenn Sie die Verarbeitung von URL- oder
    Input-Parametern kapseln möchten.
 </div>
 <div class="hint">
-   Die in der Direktive <em>FC.InputParams</em> definierten Eingabe-Parameter können über die URL überschrieben werden.
+   Die in der Direktive <em>InputParams</em> definierten Eingabe-Parameter können über die URL überschrieben werden.
    Dies ist insbesondere dann sinnvoll, wenn Sie beabsichtigen eine Action mit Basis-Werten konfigurieren und in einem konkreten
    Anwendungsfall mit einem anderen Verhalten zu starten. Die hierzu notwendige Logik ist bereits in der Methode
    <em>Frontcontroller::addAction()</em> vorhanden.
