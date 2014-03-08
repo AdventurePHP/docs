@@ -4,15 +4,14 @@ namespace APF\sites\apf\data\indexer;
 use APF\core\configuration\Configuration;
 use APF\core\database\ConnectionManager;
 use APF\core\database\DatabaseHandlerException;
-use APF\core\loader\RootClassLoader;
 use APF\core\logging\LogEntry;
 use APF\core\logging\Logger;
 use APF\core\pagecontroller\APFObject;
 use APF\core\pagecontroller\Page;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
-use APF\tools\filesystem\FilesystemManager;
 use APF\sites\apf\biz\APFModel;
+use APF\tools\filesystem\FilesystemManager;
 
 /**
  * @package APF\sites\apf\data\indexer
@@ -42,8 +41,14 @@ class FulltextsearchIndexer extends APFObject {
 
    private $charset;
 
+   /**
+    * @var array List of stop words according to language (e.g. $stopWords['en'][1] => 'but')
+    */
+   private $stopWords = array();
+
    public function __construct() {
       $this->charset = Registry::retrieve('APF\core', 'Charset');
+      $this->stopWords = include(dirname(__FILE__) . '/stopwords.php');
    }
 
    public function setLogFileName($logFileName) {
@@ -189,8 +194,7 @@ class FulltextsearchIndexer extends APFObject {
          // normalize content
          $content = $this->normalizeContent($content, $data_articles['Language']);
 
-         // Noch vorhandene Wörter in ein Array verpacken, so dass es duchlaufen werden kann
-         // Trennung an Hand von Leer-, Satz- oder Sonderzeichen
+         // split up words to build up the search index
          $contentArray = preg_split('[\s|-|,|;|:|/|!|\?|\.|\n|\r|\t]', $content);
 
          // free memory
@@ -267,11 +271,12 @@ class FulltextsearchIndexer extends APFObject {
     * Returns the id of the given word while lazily creating the database entry.
     *
     * @param string $word Word for the search index.
+    *
     * @return int Id of the given word within the index.
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 06.03.2008<br />
+    * Version 0.1, 06.03.2008<br />
     */
    private function getWordId($word) {
 
@@ -305,6 +310,7 @@ class FulltextsearchIndexer extends APFObject {
     * @param string $fileName URL name of the content page's file.
     * @param string $lang language of the page.
     * @param string $version The current page version requested.
+    *
     * @return string HTML code of the content page.
     *
     * @author Christian Achatz
@@ -344,38 +350,43 @@ class FulltextsearchIndexer extends APFObject {
     *
     * @param string $content HTML code of the page.
     * @param string $language Language of the page.
+    *
     * @return string Normalized content.
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 09.03.2008<br />
+    * Version 0.1, 09.03.2008<br />
     */
    private function normalizeContent($content, $language) {
 
-      // Sonderzeichen ersetzen und normalisieren
-      $locSearch[] = '/ß/';
-      $locSearch[] = '/ä/';
-      $locSearch[] = '/ö/';
-      $locSearch[] = '/ü/';
-      $locSearch[] = '/Ä/';
-      $locSearch[] = '/Ö/';
-      $locSearch[] = '/Ü/';
-      $locSearch[] = '/\|/i';
-      $locSearch[] = '/<|>|\{|\}|\[|\]|\(|\)/i';
-      $locSearch[] = '/\'|\"/';
-      $locSearch[] = '/=/';
+      // replace special characters and normalize
+      $locSearch = array(
+         '/ß/',
+         '/ä/',
+         '/ö/',
+         '/ü/',
+         '/Ä/',
+         '/Ö/',
+         '/Ü/',
+         '/\|/i',
+         '/<|>|\{|\}|\[|\]|\(|\)/i',
+         '/\'|\"/',
+         '/=/'
+      );
 
-      $locReplace[] = 'ss';
-      $locReplace[] = 'ae';
-      $locReplace[] = 'oe';
-      $locReplace[] = 'ue';
-      $locReplace[] = 'ae';
-      $locReplace[] = 'oe';
-      $locReplace[] = 'ue';
-      $locReplace[] = '';
-      $locReplace[] = '';
-      $locReplace[] = '';
-      $locReplace[] = '';
+      $locReplace = array(
+         'ss',
+         'ae',
+         'oe',
+         'ue',
+         'ae',
+         'oe',
+         'ue',
+         '',
+         '',
+         '',
+         ''
+      );
 
       $content = strip_tags($content);
       $content = stripslashes($content);
@@ -384,11 +395,8 @@ class FulltextsearchIndexer extends APFObject {
       $content = trim($content);
       $content = preg_replace($locSearch, $locReplace, $content);
 
-      $loader = RootClassLoader::getLoaderByVendor('APF');
-      $rootPath = $loader->getRootPath();
-      include($rootPath . '/sites/apf/data/indexer/stopwords.php');
-      foreach ($Stopwords[$language] as $Stopword) {
-         $content = preg_replace('/ ' . $Stopword . ' /', ' ', $content);
+      foreach ($this->stopWords[$language] as $stopWord) {
+         $content = preg_replace('/ ' . $stopWord . ' /', ' ', $content);
       }
 
       // remove words with less or equal that two characters to limit search index size

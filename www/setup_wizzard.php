@@ -13,10 +13,3 @@ $fC->setContext('sites\apf');
 $fC->setLanguage('de');
 
 echo $fC->start('DEV\wizard\templates', 'main');
-
-/*
-// run indexer to create search and URL generation database
-1) setup database
-2) run create articles
-3) run create index
-*/

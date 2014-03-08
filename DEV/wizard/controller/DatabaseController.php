@@ -23,8 +23,13 @@ class DatabaseController extends BaseDocumentController {
 
          foreach ($config->getSectionNames() as $section) {
             $section = $config->getSection($section);
+
             $section->setValue('Host', $host);
-            $section->setValue('Port', $port);
+
+            if (!empty($port)) {
+               $section->setValue('Port', $port);
+            }
+
             $section->setValue('User', $user);
             $section->setValue('Pass', $pass);
          }
@@ -47,6 +52,10 @@ class DatabaseController extends BaseDocumentController {
 
    private function getFormValue(HtmlFormTag $form, $controlName) {
       return $form->getFormElementByName($controlName)->getValue();
+   }
+
+   private function setFormValue(HtmlFormTag $form, $controlName, $value) {
+      $form->getFormElementByName($controlName)->setValue($value);
    }
 
 }
