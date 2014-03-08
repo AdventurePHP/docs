@@ -63,7 +63,7 @@ class RevisionHistoryTag extends Document {
 
    private function getReleaseHeader($releaseNumber) {
       $title = (string)'<h2>';
-      $config = $this->getConfiguration('APF\sites\apf\pres', 'labels');
+      $config = $this->getConfiguration('APF\sites\apf\pres', 'labels.ini');
       $title .= $config->getSection($this->getLanguage())->getValue('downloads.changeset.text.heading');
       return $title . $releaseNumber . '</h2>';
    }
