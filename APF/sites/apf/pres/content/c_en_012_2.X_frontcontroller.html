@@ -737,6 +737,8 @@ class GreetMeAction extends AbstractFrontcontrollerAction {
 </gen:highlight>
 
 <h3 id="Chapter-6-Action-management"><a href="#Chapter-6-Action-management">6. Action management</a></h3>
+
+<h4 id="Chapter-6-1-Activation-deactivation"><a href="#Chapter-6-1-Activation-deactivation">6.1. Activation/deactivation</a></h4>
 <p>
    Besides the definition of the execution time (for details, please see <a href="#Chapter-3-1-Definition">chapter 3.1</a>)
    the front controller provides another possibility to influence action execution. In case you intend to cancel
@@ -756,6 +758,88 @@ class GreetMeAction extends AbstractFrontcontrollerAction {
 public function isActive() {
    $captcha = $this->getFrontController()->getActionByName('showCaptcha');
    return $captcha === null;
+}
+</gen:highlight>
+
+<h4 id="Chapter-6-2-Prioritization"><a href="#Chapter-6-2-Prioritization">6.2. Prioritization</a></h4>
+<div class="hint">
+   Please note, that this feature is available starting with release 2.1.
+</div>
+<p>
+   In certain situations it may become necessary to tweak the order of action execution. This holds true in case you
+   maintain two actions within your application: one to initialize it and one for execution of any application logic
+   (e.g. search). In case the search logic depends on an initialized application you should have the possibility to
+   ensure initialization takes place first.
+</p>
+<p>
+   For such cases the APF offers a feature to define the order of actions on the stack. At delivery status each action
+   takes priority <em>10</em>. In case an action is assigned a higher priority - <em>20</em> for instance - it is
+   executed first. In case an action takes a lower priority - e.g. <em>1</em> it is executed afterwards.
+</p>
+<p>
+   The front controller uses <em>AbstractFrontcontrollerAction::getPriority()</em> to determine the priority and to
+   sort them accordingly on the action stack. To change or influence your action's priority, please overwrite the
+   mentioned method. Example:
+</p>
+<gen:highlight type="php">
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class SearchAction extends AbstractFrontcontrollerAction {
+
+   ...
+
+   public function getPriority() {
+      return 9;
+   }
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   In case <em>SearchAction</em> is executed together with an action to initialize the application, it comes second.
+</p>
+<div class="warn">
+   <p>
+      Please note, that the order of action is primary depending on it's type (<em>prepagecreate</em>,
+      <em>pretransform</em>, and <em>posttransform</em>) determining the execution slot as described in the
+      front controller <a href="#Chapter-2-Timing-model">timing model</a>.
+   </p>
+   <p>
+      Actions of the same type are sorted by the number returned by <em>getPriority()</em>. In case of equal priority
+      figures the point of time of the registration counts. For staticylly registered actions the order of registration
+      within the bootstrap file (<em>index.php</em>) is essential. For dynamic actions, the position within the URL
+      is key.
+   </p>
+</div>
+<p>
+   Due to the fact that the priority is returned by method <em>getPriority()</em> you are able to dynamically calculate
+   it based on various factors. In case your action should be executed earlier compared to another action in case the
+   related action is on the stack or not you may want to use the following code:
+</p>
+<gen:highlight type="php">
+public function getPriority() {
+   $relatedAction = $this->getFrontController()->getActionByName('relatedAction');
+   if ($relatedAction === null) {
+      return 12;
+   }
+
+   return $relatedAction->getPriority() - 1;
+}
+</gen:highlight>
+<p>
+   Using <em>getActions()</em> you can also determine the highest priority to calculate your actions priority:
+</p>
+<gen:highlight type="php">
+public function getPriority() {
+
+   $max = 0;
+
+   foreach ($this->getFrontController()->getActions() as $action) {
+      $max = max($max, $action->getPriority());
+   }
+
+   return $max + 1;
 }
 </gen:highlight>
 

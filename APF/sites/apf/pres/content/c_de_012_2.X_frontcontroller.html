@@ -765,6 +765,8 @@ class GreetMeAction extends AbstractFrontcontrollerAction {
 </gen:highlight>
 
 <h3 id="Chapter-6-Action-Steuerung"><a href="#Chapter-6-Action-Steuerung">6. Action-Steuerung</a></h3>
+
+<h4 id="Chapter-6-1-Aktivierung-Deaktivierung"><a href="#Chapter-6-1-Aktivierung-Deaktivierung">6.1. Aktivierung/Deaktivierung</a></h4>
 <p>
    Neben der Definition der Ausführungszeit (Details siehe <a href="#Chapter-3-1-Definition">Kapitel 3.1</a>) stellt
    der Front-Controller noch eine weitere Möglichkeit bereit die Ausführung von Actions zu beeinflussen. Möchten Sie
@@ -784,6 +786,90 @@ class GreetMeAction extends AbstractFrontcontrollerAction {
 public function isActive() {
    $captcha = $this->getFrontController()->getActionByName('showCaptcha');
    return $captcha === null;
+}
+</gen:highlight>
+
+<h4 id="Chapter-6-2-Priorisierung"><a href="#Chapter-6-2-Priorisierung">6.2. Priorisierung</a></h4>
+<div class="hint">
+   Bitte beachten Sie, dass dieses Feature erst ab Version 2.1 zur Verfügung steht.
+</div>
+<p>
+   In manchen Situationen ist es notwendig, die Reihenfolge der Action-Ausführung festlegen zu können. Dies ist beispielsweise
+   dann der Fall, wenn Sie eine Action zur Initialisierung ihrer Applikation nutzen und zusätzlich Teile der
+   Applikations-Logik als Actions abbilden (z.B. Suche). Vertraut die Logik der Suche auf einer initialisierten
+   Appikation, so muss sichergestellt sein, dass die Suche erst nach der Initialisierung stattfindet.
+</p>
+<p>
+   Für diesen Fall bietet das APF die Möglichkeit an, Actions nach einer bestimmten Reihenfolge zu sortieren. In
+   Auslieferungs-Zustand erhält jede Action die Priorität <em>10</em>. Besitzt eine Action die Priorität <em>20</em>, so
+   wird diese vorher ausgeführt, sofern sie eine Zahl kleiner <em>10</em> - z.B. <em>1</em> - besitzt, danach.
+</p>
+<p>
+   Der Front-Controller nutzt die Methode <em>AbstractFrontcontrollerAction::getPriority()</em> zur Bestimmung der Priorität
+   und zur entsprechenden Sortierung auf dem Action-Stack. Möchten Sie die Priorität Ihrer Action beeinflussen, so
+   überschreiben Sie bitte die genannte Methode. Beispiel:
+</p>
+<gen:highlight type="php">
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class SearchAction extends AbstractFrontcontrollerAction {
+
+   ...
+
+   public function getPriority() {
+      return 9;
+   }
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   Wird die <em>SearchAction</em> zusammen mit einer Action zur Initialisierung Ihrer Applikation ausgeführt, so
+   kommt diese erst als zweite an die Reihe.
+</p>
+<div class="warn">
+   <p>
+      Die Reihenfolge der Ausführung Ihrer Aktions ist zunächst abhängig von ihrem Typ (<em>prepagecreate</em>,
+      <em>pretransform</em> und <em>posttransform</em>), die gemäß <a href="#Chapter-2-Timing-Modell">Timing-Modell</a>
+      zu unterschiedlichen Zeitpunkten ausgeführt werden.
+   </p>
+   <p>
+      Bei Actions gleichen Typs entscheidet dann die von der Methode <em>getPriority()</em> zurückgegebene Zahl.
+      Bei wiederum gleichen Werten entscheidet der Registrierungszeitpunkt. Dieser wird entweder durch die statische
+      Registrierung in der Bootstrap-Datei (<em>index.php</em>) oder für dynamische Actions über die Position in der URL
+      bestimmt.
+   </p>
+</div>
+<p>
+   Da die Priorität von der Methode <em>getPriority()</em> zurück gegeben wird, lässt sich diese auch auf Basis von
+   weiteren Faktoren berechnen. Soll eine Action beispielsweise abhängig von einer anderen Action auf dem Stack früher
+   oder - falls diese vorhanden ist - später ausgeführt werden, so lässt sich dies wie folgt realisieren:
+</p>
+<gen:highlight type="php">
+public function getPriority() {
+   $relatedAction = $this->getFrontController()->getActionByName('relatedAction');
+   if ($relatedAction === null) {
+      return 12;
+   }
+
+   return $relatedAction->getPriority() - 1;
+}
+</gen:highlight>
+<p>
+   Mit Hilfe der Methode <em>getActions()</em> lässt sich beispielsweise an Hand der Liste die höchste Priorität
+   feststellen und als Grundlage für eine Berechung nutzen:
+</p>
+<gen:highlight type="php">
+public function getPriority() {
+
+   $max = 0;
+
+   foreach ($this->getFrontController()->getActions() as $action) {
+      $max = max($max, $action->getPriority());
+   }
+
+   return $max + 1;
 }
 </gen:highlight>
 
