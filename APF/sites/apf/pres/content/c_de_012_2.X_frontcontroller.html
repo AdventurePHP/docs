@@ -173,6 +173,32 @@ $fC->registerAction('APF\site\actions', 'check-permissions');
    Die Actions <em>init-model</em> und <em>check-permissions</em> werden nun bei jeder Anfrage in der genannten
    Reihenfolge ausgeführt.
 </p>
+<p>
+   Soll eine Action für einen speziellen Anwendungsfall konfiguriert werden oder möchten Sie aus einem anderen Grund der
+   registrierten Action dynamische oder statische Parameter mitgeben, so können Sie hierzu das dritte Argument der
+   Methode <em>registerAction()</em> nutzen:
+</p>
+<gen:highlight type="php">
+include('../apps/core/bootstrap.php');
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+
+...
+
+$fC->registerAction(
+   'APF\site\actions',
+   'init-model',
+   array(
+      'foo' => 'bar',
+      'baz' => $_REQUEST['baz']
+   )
+);
+
+...
+</gen:highlight>
 
 <h5 id="Chapter-3-2-2-Dynamische-Actions"><a href="#Chapter-3-2-2-Dynamische-Actions">3.2.2. Dynamische Actions</a></h5>
 <p>
@@ -224,6 +250,173 @@ $fC->registerAction('APF\site\actions', 'check-permissions');
    Hilfe von <em>RewriteRule</em>s als auch durch Anpassung der Filter generiert werden, die die Informationen aus der
    URL decodieren. Hinweise zur Implementierung von eigenen Filtern finden Sie im
    <a class="wiki" href="http://wiki.adventure-php-framework.org/Implementierung_von_eigenen_URL-Layouts">Wiki</a>.
+</div>
+
+<h5 id="Chapter-3-2-3-Action-URL-Mapping"><a href="#Chapter-3-2-3-Action-URL-Mapping">3.2.3. Action-URL-Mapping</a></h5>
+<div class="hint">
+   Bitte beachten Sie, dass das in diesem Kapitel beschriebene Feature erst ab Version 2.1 verfügbar ist.
+</div>
+<p>
+   Das in <a href="#Chapter-3-2-2-Dynamische-Actions">Kapitel 3.2.2.</a> beschriebene URL-Schema ist auf Allgemeingültigkeit
+   ausgelegt. Gleichzeitig kann es aus SEO-Gesichtspunkten für Ihr Projekt suboptimal sein, da die URLs durch darin
+   enthaltene Actions lang oder unschön werden.
+</p>
+<p>
+   Um URLs mit Action-Anweisungen kürzer und attraktiver zu gestalten, lassen sich für statische und dynamische Actions
+   URL-Mappings definieren. Diese Trivial-Namen werden von den mit dem APF mitgelieferten Eingabe-Filtern
+   <em>ChainedStandardInputFilter</em> und <em>ChainedUrlRewritingInputFilter</em> erkannt und in das interne Format
+   umgewandelt. Bei der Link-Generierung durch den <em>LinkGenerator</em> nutzen die ebenfalls mitgelieferten
+   <em>LinkScheme</em>-Implementierungen <em>DefaultLinkScheme</em> und <em>RewriteLinkScheme</em> die beim
+   <em>Frontcontroller</em> registrieren Mappings um die relevanten Action-Anweisungen in ein externes Format zu
+   konvertieren.
+</p>
+<div class="hint">
+   Die Anzahl der <em>Action-Mappings</em> ist technisch nicht begrenzt. Sie können daher für mehrere oder alle Actions
+   pro URL ein Mapping definieren.
+</div>
+<p>
+   Nutzen Sie zur Ausführung einer Suche eine Front-Controller-Action, so lautet die dafür generierte URL in der
+   Standard-Konfiguration wie folgt:
+</p>
+<gen:highlight type="code">
+?VENDOR_components_search-action:executeSearch=type:faq
+</gen:highlight>
+<p>
+   Nutzen Sie umgeschriebene URLs (Details siehe <int:link pageid="069" />), so generiert der <em>LinkGenerator</em>
+   daraus
+</p>
+<gen:highlight type="code">
+/~/VENDOR_components_search-action/executeSearch/type/faq
+</gen:highlight>
+<p>
+   Möchten Sie sie generierten Links kürzer und damit attraktiver gestalten, so haben Sie die Möglichkeit ein
+   <em>ActionUrlMapping</em> zu registrieren. Erweitern Sie Ihre Bootstrap-Datei (<em>index.php</em>) dazu wie folgt:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\ActionUrlMapping;
+
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+
+...
+
+$fC->registerAction('VENDOR\components\search', 'executeSearch');
+$fC->registerActionUrlMapping(
+   new ActionUrlMapping('search', 'VENDOR\components\search', 'executeSearch')
+);
+
+...
+</gen:highlight>
+<p>
+   Nutzen Sie zur Generierung der URL den folgenden Code, so nutzt das registrierte <em>LinkScheme</em> die beim
+   Front-Controller gemeldeten Mappings um eine verkürzte URL zu erzeugen:
+</p>
+<gen:highlight type="php">
+use APF\tools\link\LinkGenerator;
+use APF\tools\link\Url;
+
+$link = LinkGenerator::generateActionUrl(
+      Url::fromCurrent(),
+      'VENDOR\components\search',
+      'executeSearch',
+      array('type' => 'faq')
+);
+</gen:highlight>
+<p>
+   Die Suche kann nun per
+</p>
+<gen:highlight type="code">
+?search=type:faq
+</gen:highlight>
+<p>
+   bzw.
+</p>
+<gen:highlight type="code">
+/search/type/faq
+</gen:highlight>
+<p>
+   bei Nutzung von umgeschriebenen URLs ausgelöst werden.
+</p>
+<div class="warn">
+   Bitte achten Sie bei der Definition der Trivial-Namen auf mögliche Überschneidungen mit normalen URL-Parametern.
+   Im Fall von Überschneidungen kann die korrekte Analyse und Generierung der URL vom Framework nicht garantiert werden!
+</div>
+<p>
+   Zusätzlich zur klassischen Registrierung von <em>Action-Mappings</em> stehen Ihnen noch zei weitere Möglichkeiten zur
+   Verfügung: Übergabe eines URL-Parameters bei der Registrierung der Action (<em>Frontcontroller::registerAction()</em>)
+   oder Definition einer oder mehrerer Konfigurations-Dateien.
+</p>
+<p>
+   Registrieren Sie Ihre Action statisch in der Bootstrap-Datei, so bietet sich die Nutzung des vierten Arguments der
+   Methode <em>registerAction()</em> an. Die Registrierung der Action und des zugehörigen Mappings verkürzt sich dann
+   auf
+</p>
+<gen:highlight type="php">
+$fC->registerAction('VENDOR\components\search', 'executeSearch', array(), 'search');
+</gen:highlight>
+<div class="hint">
+   Bitte beachten Sie, dass das dritte Argument optional ist. Möchten Sie Ihre Action bei der Registrierung
+   vorkonfigurieren, so können Sie bereits an dieser Stelle beliebige Parameter übergeben. Diese können Sie dann
+   innerhalb der Action über das <em>Input</em>-Objekt abrufen.
+</div>
+<div class="warn">
+   Bitte beachten Sie, dass die Registrierung von Actions und Mappings <strong>vor</strong> dem Start des Front-Controller
+   über die Methode <em>Frontcontroller::start()</em> erfolgen muss!
+</div>
+<p>
+   Möchten Sie die Konfiguration von <em>Action-Mappings</em> auslagern, so können Sie dem Front-Controller eine
+   Konfigurations-Datei mitgeben aus der das Mapping gelesen wird.
+</p>
+<p>
+   Hierzu bietet der Front-Controller die Methode <em>registerActionUrlMappings()</em> an. Diese nimmt den Namespace und
+   den Namen der Konfiguration entgegen. Das Schema der Konfiguration ist wie folgt definiert:
+</p>
+<gen:highlight type="ini">
+[{Url-Token}]
+ActionNamespace = ""
+ActionName = ""
+</gen:highlight>
+<p>
+   Die folgende Code-Box zeigt Ihnen die erforderliche Konfigurations-Sektion für das in diesem Kapitel besprochene
+   Anwendungsbeispiel:
+</p>
+<gen:highlight type="ini">
+; search <-> VENDOR_components_search-action:search
+[search]
+ActionNamespace = "VENDOR\components\search"
+ActionName = "executeSearch"
+</gen:highlight>
+<div class="hint">
+   Innerhalb einer Konfigurations-Datei lassen sich eine beliebige Anzahl an <em>Action-Mappings</em> definieren. Der
+   Front-Controller nimmt eine beliebige Anzahl von Dateien zur Konfiguration von <em>Action-Mappings</em> entgegen. Es
+   steht Ihnen daher frei die Struktur der Konfigurations-Dateien nach den Vorgaben Ihres Projekts zu strukturieren.
+</div>
+<p>
+   Die Registrierung des oben beschriebenen <em>Action-Mappings</em> lässt sich wie folgt in der Bootstrap-Datei
+   erledigen:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\ActionUrlMapping;
+
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+
+...
+
+$fC->registerActionUrlMappings('VENDOR\components\search', 'url-mappings.ini');
+
+...
+</gen:highlight>
+<div class="hint">
+   Bitte beachten Sie, dass die Registierung der <em>Action-Mappings</em> in einer eigenständigen Konfiguration definiert
+   werden muss. Dies ist notwendig, da die Analyse der URL gemäß des <a href="#Chapter-2-Timing-Modell">Timing-Modell</a>
+   zu einem früheren Zeitpunkt stattfinden als die Ausführung einer Action.
+</div>
+<div class="warn">
+   Beachten Sie ferner, dass aus dem zuvor genannten Grund die Registrierung von <em>Action-Mappings</em> vor dem
+   Starten des Front-Controller vorgenommen werden muss.
 </div>
 
 <h4 id="Chapter-3-3-Erzeugen-einer-Action-ueber-den-DI-Container"><a href="#Chapter-3-3-Erzeugen-einer-Action-ueber-den-DI-Container">3.3 Erzeugen einer Action über den DI-Container</a></h4>
