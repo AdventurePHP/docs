@@ -1,0 +1,643 @@
+<doku:title parent="100" tags="migration,1.17,2.0,namespace" title="Migration from 1.17 to 2.0" urlname="Migration-from-1-17-to-2-0">
+   This page describes the adaptions of your current software (up to and including release 1.17) necessary to upgrade it
+   to release 2.0.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   Version 2.0 of the Adventure PHP Framework includes extensive improvements and changes. The biggest change has been
+   the completely revised class loading model according to PHP standard PSR-0. This increases compatibility and
+   interoperability with other products and allows the APF to natively support PHP namespaces.
+</p>
+<p>
+   To run your application based on the new version various adaptions are necessary to your source code. To ease
+   change the new version ships an automated migration and a tool to separate application from framework code.
+</p>
+<p>
+   The below chapters contain an in-depth description on how to switch to APF 2.0 and which kind of changes have to be
+   applied to your existing application(s) to run them based on this version.
+</p>
+<div class="hint">
+   Please note, that the <a href="#Chapter-2-Automated-migration">automated migration</a> does not cover each and every
+   bit of your application. Hence, please read <a href="#Chapter-2-3-Refinishing">chapter 2.3</a> and
+   <a href="#Chapter-3-Manual-migration">chapter 3</a> carefully!
+</div>
+
+<h3 id="Chapter-2-Automated-migration"><a href="#Chapter-2-Automated-migration">2. Automated migration</a></h3>
+<p>
+   To apply te necessary changes to your existing application easily release 2.0 provides an automated migration based
+   on release 1.17.
+</p>
+<div class="warn">
+   Please ensure you have executed all steps listed under <int:link pageid="153" />. In case you are using an even older
+   version please <em>fully</em> migrate to version 1.17 before. Hints on migration from one version to another can be
+   found under <int:link pageid="100" />.
+</div>
+<p>
+   To apply all required changes to your source code files please find <strong>migrate.sh</strong> within
+   <strong>migration</strong>. This shell script executes a couple of PHP scripts that in turn adapt your application to
+   this new version.
+</p>
+<p>
+   In case your development environment is windows, please install the latest <em>cygwin</em> version (download under
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Migration for Windows Batch Scripts is
+   not supported.
+</p>
+<p>
+   The below chapters now guide you through the migration process in a step-by-step fashion.
+</p>
+
+<h4 id="Chapter-2-1-Preparation"><a href="#Chapter-2-1-Preparation">2.1. Preparation</a></h4>
+<p>
+   Migration itself is nearly fully automated. Nevertheless, it is strongly recommended to work through the following
+   steps to get better results. The migration script covers around 90-95% of the necessary adaptions but is not able to
+   cover all project specifics.
+</p>
+<div class="warn">
+   <p>
+      Please understand that the APF team cannot take responsibility for any damage to your sources. Be sure to completely
+      backup your project and to store your backup at an independent storage location to recover sources in case of any
+      issue.
+   </p>
+   <p>
+      All migration scripts have been tested carefully based on existing projects of the APF team but we cannot guarantee
+      that all special project implementations are covered and migrated successfully.
+   </p>
+</div>
+<p>
+   In order to get better results, it is recommended to conduct the following preparation steps:
+</p>
+<ul>
+   <li>
+      Replace all existing <em>@namespace</em> annotations by <em>@package</em> within any doc blocks.
+   </li>
+   <li>
+      Check your project on folder names that are not compatible with PHP namespaces and rename folders if any (please
+      find details on <a class="external" href="http://php.net/language.namespaces.definition.php">php.net</a>). Example:
+      in case your project includes folders with name <em>foo-bar</em> please rename the folder as well as all occurrences
+      to e.g. <em>foobar</em>.
+   </li>
+   <li>
+      Remove all dynamic <em>import()</em> calls within functions or class methods. The will lead to compile errors
+      after migration anyway.
+   </li>
+   <li>
+      In case you already use namespaces (partially) within your project, the following steps are highly recommended:
+      <ul>
+         <li>
+            Remove all existing <em>use</em> statements. This avoids duplicate<em>use</em> statements after migration.
+         </li>
+         <li>
+            Remove all existing <em>namespace</em> declarations as this helps to avoid wrong namespace assignments. The
+            automated migration assumes that all project namespaces start with <em>APF</em> as their vendor. Separation
+            of application code can be done after migration as described in
+            <a href="#Chapter-6-Separation-of-application-code">chapter 6</a> afterwards anyway.
+         </li>
+      </ul>
+   </li>
+   <li>
+      Reformat all PHP source files. This improves detection of code blocks and annotations. Example: remove unnecessary
+      blanks within
+      <gen:highlight type="php">/* @var&nbsp;&nbsp;\FooClass */</gen:highlight>
+   </li>
+</ul>
+
+<h4 id="Chapter-2-2-Migration-execution"><a href="#Chapter-2-2-Migration-execution">2.2. Migration execution</a></h4>
+<p>
+   The migration itself includes three steps: replacing or updating the previously used APF version execution of the
+   migration scripts ans some refinishing work.
+</p>
+
+<h5 id="Chapter-2-2-1-Updating-APF-files"><a href="#Chapter-2-2-1-Updating-APF-files">2.2.1. Updating APF files</a></h5>
+<p>
+   Please change to the project folder and there change to the <em>apps</em> folder where your application files are
+   located. There you'll find APF folders <em>core</em>, <em>extensions</em>, <em>modules</em>, and <em>tools</em> as well
+   as your folders and files.
+</p>
+<p>
+   Now, delete APF folders <em>core</em>, <em>extensions</em>, <em>modules</em>, and <em>tools</em> and download the
+   latest <em>apf-codepack-apf-codepack-2.0-php5-*</em> package under <int:link pageid="008" />. Afterwards, please
+   extract within your <em>apps</em> folder.
+</p>
+<p>
+   In addition to the APF folders you know from previous releases a <em>migration</em> folder will show up. Example:
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ ll
+insgesamt 28K
+drwx------+ 1 Christian None 0  4. Jul 2013  config/
+drwx------+ 1 Christian None 0  3. Jul 2013  core/
+drwx------+ 1 Christian None 0  3. Jul 2013  extensions/
+drwx------+ 1 Christian None 0 16. Jan 13:01 migration/
+drwx------+ 1 Christian None 0  3. Jul 2013  modules/
+drwx------+ 1 Christian None 0  4. Jul 2013  sites/
+drwx------+ 1 Christian None 0  4. Jul 2013  thirdparty/
+drwx------+ 1 Christian None 0  3. Jul 2013  tools/
+</gen:highlight>
+
+<h5 id="Chapter-2-2-2-Script-execution"><a href="#Chapter-2-2-2-Script-execution">2.2.2. Script execution</a></h5>
+<p>
+   <em>migration</em> contains a couple of PHP files and <em>migrate.sh</em> that executes migration. This script expects
+   the PHP executable as first and only argument. In case you have called it without this required parameter you will be
+   presented an error message:
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ migration/migrate.sh
+######################################
+# APF 2.0 automatic migration        #
+######################################
+
+Checking directory ... [OK]
+Checking PHP executable available ... [ERROR]
+
+PHP not found in your PATH-scope. Provide path to php as second parameter. Aborting!
+</gen:highlight>
+<p>
+   To start the migration right within your <em>apps</em> folder please use the following shell command:
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ ./migration/migrate.sh /cygdrive/c/xampp/php/php
+</gen:highlight>
+<p>
+   Migration is started and produces the following output:
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ migration/migrate.sh /cygdrive/c/xampp/php/php
+######################################
+# APF 2.0 automatic migration        #
+######################################
+
+Checking directory ... [OK]
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.4.16.
+
+######################################
+
+Starting migration ...
+* Prepare addtaglib declarations for migration ...
+* Introduced namespace declarations ...
+* Switched from import() to use ...
+* Migrated PHPDoc comments ...
+* Migrated declaration and usage of tags ...
+* Migrated service calls and di-service configuration ...
+* Migrated registry calls ...
+* Migrated session(manager) calls ...
+* Add missing use statements ...
+* Clean up unnecessary use statements ...
+* Migrated Singleton/SessionSingleton calls ...
+* Migrated CookieManager to Cookie class ...
+* Migrated PostHandler to RequestHandler class ...
+* Migrate LinkGenerator calls for action urls ...
+* Migrated configuration files:
+  * Config calls
+  * Database configuration
+  * Cache configuration
+  * Front controller configuration
+  * GORM configuration
+  * Pager configuration
+  * UMGT module configuration
+  * Contact module configuration
+
+######################################
+
+Migration done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+<p>
+   Now, a couple of refinishing tasks are required. Please find details in <a href="#Chapter-2-3-Refinishing">chapter 2.3</a>.
+</p>
+<div class="hint">
+   Execution of the migration multiple times without restoring the original state leads to unwanted and unpredictable
+   results (e.g. duplicate use statements). Thus, please reset all files to the original state and execute migration
+   afterwards.
+</div>
+<div class="hint">
+   Further hints on the automated migration can be found under
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=1407#p14031">Migration und Änderungen in 2.0</a>
+   (German).
+</div>
+
+<h4 id="Chapter-2-3-Refinishing"><a href="#Chapter-2-3-Refinishing">2.3. Refinishing</a></h4>
+<p>
+   After migration of your application code some refinishing tasks have to be done. The majority of the below-described
+   tasks are dedicated to migrate the bootstrap file of your application (<em>index.php</em>) and resolve pieces that
+   haven't been migrated properly.
+</p>
+
+<h5 id="Chapter-2-3-1-Update-bootstrap-file"><a href="#Chapter-2-3-1-Update-bootstrap-file">2.3.1. Update bootstrap file</a></h5>
+<p>
+   The <em>index.php</em> of your application is not covered by the automated migration since every project's bootstrap
+   file is unique. Please apply the following changes to your bootstrap file:
+</p>
+<ol>
+   <li>
+      APF 2.0 brings an internal bootstrap file that sets up the internal state of the framework. Thus, please replace
+      <gen:highlight type="php">include('***/core/pagecontroller/pagecontroller.php')</gen:highlight>
+      by
+      <gen:highlight type="php">include('***/core/bootstrap.php');</gen:highlight>
+      Please adapt the path as desired for your application.
+   </li>
+   <li>
+      Introduce a <em>use</em> statement for each class used within your <em>index.php</em>. Using <em>Singleton</em>
+      the appropriate statement is
+      <gen:highlight type="php">use APF\core\singleton\Singleton;</gen:highlight>
+   </li>
+   <li>
+      Remove all <em>import()</em> calls. They have been replaced by <em>use</em> statements in APF 2.0.
+   </li>
+   <li>
+      Using PHP namespaces for classes, templates, and configuration files it is necessary to switch to absolute class
+      references. This also affects the <em>index.php</em> and using <em>Singleton</em> in particular. Please replace
+      all calls on e.g.
+      <gen:highlight type="php">Singleton::getInstance('Frontcontroller')</gen:highlight> by
+      <gen:highlight type="php">Singleton::getInstance('APF\core\frontcontroller\Frontcontroller')</gen:highlight>
+   </li>
+   <li>
+      Switching to PHP namespaces also affects using <em>Registry</em> entries. Please remove all occurrences of
+      &quot;<em>::</em>&quot; by &quot;<em>\</em>&quot;. <em>Registry</em> entries like
+      <gen:highlight type="php">Registry::retrieve('apf::core', 'InternalLogTarget')</gen:highlight>
+      are retrieved in version 2.0 as follows:
+      <gen:highlight type="php">Registry::retrieve('APF\core', 'InternalLogTarget'</gen:highlight>
+   </li>
+   <li>
+      Switching to PHP namespaces also affects definition or reference to configuration entries. Please revise your
+      application for registration of <int:link pageid="012" /> actions such as
+      <gen:highlight type="php">$fC->registerAction('cms::core::biz::setmodel', 'setModel')</gen:highlight> and switch to
+      <gen:highlight type="php">$fC->registerAction('APF\cms\core\biz\setmodel', 'setModel')</gen:highlight>
+   </li>
+   <li>
+      As noted within introduction templates are also referred to by a PHP-style namespace. Thus, please rewrite all
+      appearances of
+      <gen:highlight type="php">$fC->start('***::pres::templates', 'site')</gen:highlight>
+      loading an initial template to
+      <gen:highlight type="php">echo $fC->start('APF\***\pres\templates', 'site');</gen:highlight>
+   </li>
+</ol>
+
+<h5 id="Chapter-2-3-2-Correction-of-code-files"><a href="#Chapter-2-3-2-Correction-of-code-files">2.3.2. Correction of code files</a></h5>
+<p>
+   As mentioned above the automated migration covers around 90-95% of the necessary changes that have to be applied.
+   Unfortunately, project-specific use cases cannot be migrated in total. Fir this reason, you will have to correct
+   some things within your project codebase to guarantee it is working again perfectly.
+</p>
+<p>
+   The following list contains a number of steps that have come up during our tests. Please note, that your project is
+   facing further or totally different issues.
+</p>
+<ul>
+   <li>
+      In order to avoid issues within your application code you may want to use a code inspector to discover potential
+      issues automatically. The APF team recommends using <a class="external" href="http://www.jetbrains.com/phpstorm">PHPStorm</a>'s
+      <em>Code Inspector</em>. After analysis, it comes up with <em>Unused -&gt; Classes</em>, <em>Unused -&gt; Functions</em>
+      as well as <em>Undefined</em> items. You may want to use the automated fix apply feature of PHPStorm to solve a
+      bunch of issues at once.
+   </li>
+   <li>
+      Automated migration does not cover all namespace declarations within your application. This includes session
+      namespaces or namespaces used within custom tags. Please revise your project and replace all occurrences of
+      &quot;::&quot; in strings. Example:
+<gen:highlight type="php">
+// Old style
+$session = new Session('foo::bar');
+
+// New style
+$session = new Session('VENDOR\foo\bar');
+</gen:highlight>
+   </li>
+</ul>
+
+<h4 id="Chapter-3-Manual-migration"><a href="#Chapter-3-Manual-migration">3. Manual migration</a></h4>
+<p>
+   Unfortunately, not all components of your application can be migrated by the delivered scripts. This chapter lists
+   components or modules that have to be updated to version 2.0 by hand.
+</p>
+<ol>
+   <li>
+      Signatur of the <em>&lt;fcon:importdesign /&gt;</em> tags has been changed fundamentally in version 2.0. This is
+      because <em>modelnamespace</em>, <em>modelfile</em>, and <em>modelclass</em> have been combined into one attribute
+      taking the fully-quallified class name of the model. Please change signature of the tag from
+<gen:highlight type="apf-xml">
+&lt;fcon:importdesign
+   templatenamespace=""
+   modelnamespace=""
+   modelfile=""
+   modelclass=""
+   modelparam=""
+   [sessionsingleton=""]
+/&gt;
+</gen:highlight>
+      to
+<gen:highlight type="apf-xml">
+&lt;fcon:importdesign
+   template-namespace=""
+   template-param=""
+   model=""
+   [sessionsingleton=""]
+/&gt;
+</gen:highlight>
+   </li>
+</ol>
+
+<h3 id="Chapter-4-FAQ"><a href="#Chapter-4-FAQ">4. FAQs</a></h3>
+<p>
+   During our tests of the migration scripts we discovered different types of errors. Within this chapter you'll
+   find all of them together with an appropriate solution.
+</p>
+
+<h4 id="Chapter-4-1-preg_replace_callback"><a href="#Chapter-4-1-preg_replace_callback">4.1. preg_replace_callback()</a></h4>
+
+<h5>Issue</h5>
+<gen:highlight type="code">
+preg_replace_callback(): Requires argument 2, 'ChainedGenericOutputFilter::replaceLink', to be a valid callback
+</gen:highlight>
+
+<h5>Solution</h5>
+<p>
+   Class <em>ChainedGenericOutputFilter</em> is being used without namespace. To fix this the class must be referred to
+   within <em>preg_replace_callback</em> including namespace. Example:
+</p>
+<gen:highlight type="php">
+preg_replace_callback(
+   '/&lt;a (.*?)href="(.*?)"(.*?)>(.*?)<\/a>/ims',
+   array('APF\core\filter\ChainedGenericOutputFilter', 'replaceLink'),
+   $input
+);
+</gen:highlight>
+
+<h4 id="Chapter-4-2-ConfigurationException"><a href="#Chapter-4-2-ConfigurationException">4.2. ConfigurationException</a></h4>
+
+<h5>Issue</h5>
+<gen:highlight type="code">
+Class loader root path for namespace "sites\apf\biz" cannot be determined. Please double-check your configuration!
+</gen:highlight>
+
+<h5>Solution</h5>
+<p>
+   The namespace does not include a vendor (first segment of the namespace). Please change the namespace to
+   <em>DOCS\biz</em> for instance. <em>APF</em> ist the default vendor that is registered within
+   <em>bootstrap.php</em>. Details can be read about under <int:link pageid="154" />.
+</p>
+
+<h4 id="Chapter-4-3-Class-not-found"><a href="#Chapter-4-3-Class-not-found">4.3. Class not found</a></h4>
+
+<h5>Issue</h5>
+<gen:highlight type="code">
+Class 'APF\xyz\pres\documentcontroller\Controller' not found...
+</gen:highlight>
+
+<h5>Solution</h5>
+<p>
+   Potentially, a namespace declaration is missing in file <em>APF/xyz/pres/documentcontroller/Controller.php</em>.
+   Please add one on the second line right after <em>&lt;?php</em>:
+</p>
+<gen:highlight type="php">
+namespace APF\xyz\pres\documentcontroller;
+</gen:highlight>
+
+<h5>Issue</h5>
+<gen:highlight type="code">
+Fatal error: Class 'Logger' not found in ***\APF\core\singleton\Singleton.php on line 88
+</gen:highlight>
+
+<h5>Solution</h5>
+<p>
+   Please do use a fully-qualified namespace for all calls to <em>Singleton::getInstance()</em> or <em>SessionSingleton::getInstance()</em>
+   as well as <em>$this->getServiceObject()</em> - here: <em>APF\core\logging\Logger</em>.
+</p>
+
+<h4 id="Chapter-4-4-Fatal-Error"><a href="#Chapter-4-4-Fatal-Error">4.4. Fatal Error</a></h4>
+
+<h5>Issue</h5>
+<gen:highlight type="code">
+Fatal error: Interface 'APF\core\service\APFDIService' not found in ***\APF\core\pagecontroller\pagecontroller.php on line 320
+</gen:highlight>
+
+<h5>Solution</h5>
+<p>
+   Your bootstrap files has not been migrated yet. Please switch from
+</p>
+<gen:highlight type="php">
+include('./APF/core/pagecontroller/pagecontroller.php');
+</gen:highlight>
+<p>
+   to
+</p>
+<gen:highlight type="php">
+include('./APF/core/bootstrap.php');
+</gen:highlight>
+<p>
+   Further, please apply all changes described in <a href="#Chapter-2-3-1-Update-bootstrap-file">chapter 2.3.1</a>.
+</p>
+
+<h5>Issue</h5>
+<gen:highlight type="code">
+Fatal error: Call to undefined function import() in ***\index.php on line 21
+</gen:highlight>
+
+<h5>Solution</h5>
+<p>
+   Please remove all usages of the <em>import()</em> function. This function is no longer necessary with APF 2.0.
+</p>
+
+<h4 id="Chapter-4-5-ClassLoader-Exception"><a href="#Chapter-4-5-ClassLoader-Exception">4.5. ClassLoader Exception</a></h4>
+
+<h5>Issue</h5>
+<gen:highlight type="code">
+Class loader root path for namespace "foo::bar::blah" cannot be determined. Please double-check your configuration!
+</gen:highlight>
+
+<h5>Solution</h5>
+<p>
+   Please make sure to only use fully-qualified class names - here: <em>APF\foo\bar\blah</em>. This kind of error comes
+   up after migration with registration of <int:link pageid="012" /> actions or loading the initial template within an
+   application's bootstrap file.
+</p>
+
+<h3 id="Chapter-5-Renamed-classes-and-methods"><a href="#Chapter-5-Renamed-classes-and-methods">5. Renamed classes and methods</a></h3>
+<p>
+   As you may be used to from former releases some classes and methods have been renamed. This is because we want to
+   ensure consistency and intuitive usage of the API. The following table outlines the changes.
+</p>
+<p>
+   The following <em>classes</em> have been renamed compared to version 1.17:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Old class name</td>
+         <td>New class name</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>ChainedGenericInputFilter</td>
+         <td>ChainedStandardInputFilter</td>
+      </tr>
+      <tr>
+         <td>ChainedGenericOutputFilter</td>
+         <td>ChainedUrlRewritingOutputFilter</td>
+      </tr>
+      <tr>
+         <td>SessionManager</td>
+         <td>Session</td>
+      </tr>
+      <tr>
+         <td>CookieManager</td>
+         <td>Cookie</td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   The below table shows renamed <em>methods</em> compared to version 1.17:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Old method name</td>
+         <td>New method name</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>Session::destroySession()</td>
+         <td>Session::destroy()</td>
+      </tr>
+      <tr>
+         <td>Session::loadSessionData()</td>
+         <td>Session::load()</td>
+      </tr>
+      <tr>
+         <td>Session::loadAllSessionData()</td>
+         <td>Session::loadAll()</td>
+      </tr>
+      <tr>
+         <td>Session::getEntryDataKeys()</td>
+         <td>Session::getEntryKeys()</td>
+      </tr>
+      <tr>
+         <td>Session::saveSessionData()</td>
+         <td>Session::save()</td>
+      </tr>
+      <tr>
+         <td>Session::deleteSessionData()</td>
+         <td>Session::delete()</td>
+      </tr>
+      <tr>
+         <td>CookieManager::createCookie()</td>
+         <td>Cookie::setValue()</td>
+      </tr>
+      <tr>
+         <td>CookieManager::updateCookie()</td>
+         <td>Cookie::setValue()</td>
+      </tr>
+      <tr>
+         <td>CookieManager::readCookie()</td>
+         <td>Cookie::getValue()</td>
+      </tr>
+      <tr>
+         <td>CookieManager::deleteCookie()</td>
+         <td>Cookie::delete()</td>
+      </tr>
+   </tbody>
+</table>
+<div class="hint">
+   The classes and methods shown here are only listed for the sake of completeness. Migrating to the new notation
+   is included within the automated migration script described in <a href="#Chapter-2-Automated-migration">chapter 2</a>.
+</div>
+
+<h3 id="Chapter-6-Separation-of-application-code"><a href="#Chapter-6-Separation-of-application-code">6. Separation of application code</a></h3>
+<p>
+   Since version 2.0 of the Adventure PHP Framework it is possible to separate application code and configuration from
+   the framework's code base or framework components in general. Chapter
+   <int:link pageid="154" anchor="Chapter-3-StandardClassLoader" /> and tutorial <int:link pageid="048" /> describe the
+   details behind it.
+</p>
+<p>
+   In case you intend to extract application code and all appropriate configuration you may want to use <em>relocate.sh</em>
+   shipped within the <em>migration</em> folder. This script takes a source and a target namespace as arguments and
+   copies all files below the source namespace to the target including adaption of the namespace usage.
+</p>
+<p>
+   The script supports several use cases relocating namespaces:
+</p>
+<ul>
+   <li>
+      <strong>Namespace</strong>: In case your application resides under <em>APF\sites\foo</em> you can move things to
+      another namespace within the same vendor (in this case <em>APF</em>) (e.g. <em>APF\pages\foo</em>).
+   </li>
+   <li>
+      <strong>Vendor</strong>:
+      The main use case in conjunction with the migration to APF 2.0 is extracting existing namespaces from vendor
+      <em>APF</em> into a new, custom vendor area (e.g. <em>DOCS</em>). The script is able to handle both relocation of
+      a namespace within a certain vendor into a sub-area of another vendor (e.g. <em>APF\sites\foo</em>
+      --&gt; <em>APPLICATION\foo</em>) as well as extract a namespace sub-area into the main area of a new vendor
+      (e.g. <em>APF\sites\foo</em> --&gt; <em>FOO</em>).
+   </li>
+</ul>
+<p>
+   The following example shows extraction of the vendor area <em>DOCS</em> into a newly defined vendor
+   area <em>DOCS</em>:
+</p>
+<gen:highlight type="code">
+Christian@chrislap /cygdrive/c/***/apps
+$ migration/relocate.sh /cygdrive/c/xampp/php/php "DOCS" "DOCS"
+######################################
+# APF 2.0 automatic migration        #
+######################################
+
+Checking directory ... [OK]
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.4.16.
+
+Checking necessary parameters available ... [OK]
+
+######################################
+
+Starting relocation ...
+
+Source namespace: DOCS
+Target namespace: DOCS
+
+* Copy files to target structure ...
+* Re-mapping namespace on target ...
+
+######################################
+
+NOTE: Please note, that relocate.sh does not handle relocation of configuration files. Thus, please revise
+folder "/cygdrive/c/***/apps/config" and extract configuration files for vendor "APF" to new vendor "DOCS" as desired!
+
+######################################
+
+NOTE: Please be sure to add a new class loader configuration for new vendor "DOCS" within your bootstrap file (index.php).
+You may want to use the following as a start:
+
+use APF\core\loader\RootClassLoader;
+use APF\core\loader\StandardClassLoader;
+RootClassLoader::addLoader(new StandardClassLoader('DOCS', '/cygdrive/c/***/DOCS'));
+
+######################################
+
+Relocation done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+<div class="hint">
+   Please note, that <em>relocate.sh</em> only copies all relevant files from the source namespace to the desired
+   destination. All original files remain as is.
+</div>
+<p>
+   Using the moved files you need to adapt the bootstrap file of your application. As a basis you may want to use the
+   output that has been generated by the script (see <em>RootClassLoader::addLoader()</em>).
+</p>
+<p>
+   Since the structure of configuration files of your project is something very specific - e.g. configuration namespaces
+   do not consequently follow the application namespaces - we cannot provide automated configuration migration. Thus,
+   you are kindly asked to manually change, rearrange, or adapt configuration files or namespaces as necessary.
+</p>
+<p>
+   After final migration, please remove the original files manually.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_156" />

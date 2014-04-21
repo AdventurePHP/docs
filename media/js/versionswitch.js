@@ -12,7 +12,7 @@ $(document).ready(function () {
     var buttonLabel = $('#Versionswitch').data('button-label');
 
     $('#VersionBox').append('<div id="Versionswitch-PE">'
-        + '<form method="post" action="/~/APF_sites_apf_biz-action/changeLang/"><div>'
+        + '<form method="post" action="/~/DOCS_biz-action/changeLang/"><div>'
         + '<label for="Versionswitch-Selection">' + label + '</label>'
         + '<select id="Versionswitch-Selection" name="version-id"></select>'
         + '<input type="hidden" value="' + lang + '" name="lang"/>'

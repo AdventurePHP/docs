@@ -49,10 +49,10 @@ class IndexController extends BaseDocumentController {
             mkdir($downloadsFolder, 0777, true);
          }
 
-         // 5) Adapt Registry::register('APF\sites\apf', 'Releases.LocalDir', 'C:/Users/Christian/Entwicklung/Build/RELEASES');
+         // 5) Adapt Registry::register('DOCS', 'Releases.LocalDir', '../Build/RELEASES');
          $content = preg_replace(
-            '/^Registry::register\(\'APF\\\\sites\\\\apf\', \'Releases\.LocalDir\', \'(.+)\'\);$/m',
-               'Registry::register(\'APF\sites\apf\', \'Releases.LocalDir\', \'' . $folder . '\');',
+            '/^Registry::register\(\'DOCS\', \'Releases\.LocalDir\', \'(.+)\'\);$/m',
+               'Registry::register(\'DOCS\', \'Releases.LocalDir\', \'' . $folder . '\');',
             $content
          );
 

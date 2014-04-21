@@ -6,8 +6,8 @@ use APF\core\logging\Logger;
 use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
-use APF\sites\apf\data\indexer\FulltextsearchIndexer;
-use APF\sites\apf\pres\filter\output\ScriptletOutputFilter;
+use DOCS\data\indexer\FulltextsearchIndexer;
+use DOCS\pres\filter\output\ScriptletOutputFilter;
 use APF\tools\form\taglib\SelectBoxTag;
 use Exception;
 
@@ -73,11 +73,11 @@ class SearchController extends BaseDocumentController {
       $l->addLogWriter('searchlog', clone $stdWriter);
 
       // set page configuration to production values
-      Registry::register('APF\sites\apf', 'Releases.LocalDir', $this->getLocalReleaseFolder());
-      Registry::register('APF\sites\apf', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
-      Registry::register('APF\sites\apf', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
-      Registry::register('APF\sites\apf', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
-      Registry::register('APF\sites\apf', 'TrackerBaseURL', 'http://tracker.adventure-php-framework.org');
+      Registry::register('DOCS', 'Releases.LocalDir', $this->getLocalReleaseFolder());
+      Registry::register('DOCS', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
+      Registry::register('DOCS', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
+      Registry::register('DOCS', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
+      Registry::register('DOCS', 'TrackerBaseURL', 'http://tracker.adventure-php-framework.org');
 
       // special output filter (to filter scriptlet tags out of the index!)
       OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
@@ -91,7 +91,7 @@ class SearchController extends BaseDocumentController {
 
       $indexer = new FulltextsearchIndexer();
       $indexer->setContext($this->getContext());
-      $indexer->setContentFolder('../APF/sites/apf/pres/content');
+      $indexer->setContentFolder('../DOCS/pres/content');
 
       // execute desired job
       if ($job == self::CREATE_INDEX) {
@@ -104,7 +104,7 @@ class SearchController extends BaseDocumentController {
 
    private function getLocalReleaseFolder() {
 
-      // read index.php and gather "'APF\sites\apf', 'Releases.LocalDir'"
+      // read index.php and gather "'DOCS', 'Releases.LocalDir'"
       $folder = null;
       foreach (file('index.php') as $line) {
          if (strpos($line, '\'Releases.LocalDir\'') !== false) {
