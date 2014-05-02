@@ -2,6 +2,8 @@
 use APF\core\benchmark\BenchmarkTimer;
 use APF\core\configuration\ConfigurationManager;
 use APF\core\configuration\provider\ini\IniConfigurationProvider;
+use APF\core\errorhandler\GlobalErrorHandler;
+use APF\core\exceptionhandler\GlobalExceptionHandler;
 use APF\core\filter\ChainedUrlRewritingInputFilter;
 use APF\core\filter\ChainedUrlRewritingOutputFilter;
 use APF\core\filter\InputFilterChain;
@@ -14,7 +16,10 @@ use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
 use APF\tools\link\LinkGenerator;
 use APF\tools\link\RewriteLinkScheme;
+use DOCS\biz\errorhandler\LiveErrorHandler;
+use DOCS\biz\exceptionhandler\LiveExceptionHandler;
 use DOCS\pres\filter\output\ScriptletOutputFilter;
+use DOCS\pres\http\HttpCacheManager;
 
 date_default_timezone_set('Europe/Berlin');
 ob_start();
@@ -64,16 +69,14 @@ Registry::register('DOCS', 'WikiBaseURL', 'http://wiki.adventure-php-framework.o
 Registry::register('DOCS', 'TrackerBaseURL', 'http://tracker.adventure-php-framework.org');
 
 // special script kiddie error handler ;)
-
-//GlobalErrorHandler::registerErrorHandler(new LiveErrorHandler());
-
-//GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());
+GlobalErrorHandler::registerErrorHandler(new LiveErrorHandler());
+GlobalExceptionHandler::registerExceptionHandler(new LiveExceptionHandler());
 
 // special output filter
 OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 
 // send HTTP caching headers
-//HttpCacheManager::sendHtmlCacheHeaders();
+HttpCacheManager::sendHtmlCacheHeaders();
 
 $fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
 /* @var $fC Frontcontroller */
