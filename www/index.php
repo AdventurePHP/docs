@@ -2,6 +2,7 @@
 use APF\core\benchmark\BenchmarkTimer;
 use APF\core\configuration\ConfigurationManager;
 use APF\core\configuration\provider\ini\IniConfigurationProvider;
+use APF\core\database\config\StatementConfigurationProvider;
 use APF\core\errorhandler\GlobalErrorHandler;
 use APF\core\exceptionhandler\GlobalExceptionHandler;
 use APF\core\filter\ChainedUrlRewritingInputFilter;
@@ -37,6 +38,12 @@ RootClassLoader::addLoader(new StandardClassLoader('DOCS', $dir . '/DOCS', $dir 
 $iniProvider = ConfigurationManager::retrieveProvider('ini');
 $iniProvider->setOmitConfigSubFolder(true);
 $iniProvider->setOmitContext(true);
+
+// Configure statement configuration provider (required for pager etc.)
+$sqlProvider = new StatementConfigurationProvider();
+$sqlProvider->setOmitConfigSubFolder(true);
+$sqlProvider->setOmitContext(true);
+ConfigurationManager::registerProvider('sql', $sqlProvider);
 
 /* @var $l Logger */
 $l = & Singleton::getInstance('APF\core\logging\Logger');
