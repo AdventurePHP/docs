@@ -121,7 +121,7 @@ class SetupController extends BaseDocumentController {
    }
 
    private function setupMySQLx() {
-      $conn = $this->getConnection('MySQLx');
+      $conn = $this->getConnection('Comments');
 
       $loader = RootClassLoader::getLoaderByVendor('APF');
       $statement = file_get_contents($loader->getRootPath() . '/modules/comments/data/scripts/init_comments.sql');
