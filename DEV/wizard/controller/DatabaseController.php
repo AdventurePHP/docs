@@ -34,7 +34,7 @@ class DatabaseController extends BaseDocumentController {
             $section->setValue('Pass', $pass);
          }
 
-         $config->getSection('MySQLx')->setValue('Name', $this->getFormValue($form, 'database-name-general'));
+         $config->getSection('Comments')->setValue('Name', $this->getFormValue($form, 'database-name-general'));
          $config->getSection('FulltextSearch')->setValue('Name', $this->getFormValue($form, 'database-name-search'));
          $config->getSection('Forum')->setValue('Name', $this->getFormValue($form, 'database-name-forum'));
          $config->getSection('Wiki')->setValue('Name', $this->getFormValue($form, 'database-name-wiki'));
