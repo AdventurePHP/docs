@@ -13,40 +13,77 @@
 
 <h3 id="Chapter-1-Iterator"><a href="#Chapter-1-Iterator">1. Iterator</a></h3>
 <p>
-   Das Iterator-Tag wurde in Version 1.6 (final) eingeführt um die Ausgabe von Listen von Objekten
-   oder assoziativen Arrays zu erleichtern. Dazu muss in einer Template-Datei ein Iterator definiert und
-   in einem Controller mit den gewünschten Daten bestückt werden. Die Definition des Tags
-   gestaltet sich wie folgt:
+   Das Iterator-Tag hilft Ihnen die Ausgabe von Listen von Objekten oder assoziativen Arrays zu bewerkstelligen.
+   Die Tag-Definition in einer Template-Datei definiert dabei die Formatierung der Ausgabe, die Daten erhält der Iterator
+   im Controller.
+</p>
+
+<h4 id="Chapter-1-1-Aufbau"><a href="#Chapter-1-1-Aufbau">1.1. Aufbau</a></h4>
+<p>
+   Der Itarator-Tag ist wie folgt aufgebaut:
+</p>
+<ul>
+   <li>
+      Der umschließende <em>&lt;html:iterator /&gt;</em>-Tag definiert ein wiederverwendbares Fragment
+      innerhalb eines APF-Templates. Der Iterator verhält sich dabei ähnlich wie der
+      <int:link pageid="046" anchor="Chapter-2-3-Template">&lt;html:template /&gt;-Tag</int:link>. Dieser ist ebenfalls
+      ein wiederverwendbares Element, das durch den Controller gesteuert bzw. zur Erzeugung der Ausgabe genutzt wird.
+      Wird der Iterator im Controller nicht durch <em>HtmlIteratorTag::transformOnPlace()</em> zur Darstellung freigegeben
+      oder die Ausgabe mit Hilfe der Methode <em>HtmlIteratorTag::transformIterator()</em> in einen Platzhalter eingesetzt,
+      generiert er selbst keine Ausgabe.
+   </li>
+   <li>
+      Der <em>&lt;iterator:item /&gt;</em>-Tag beschreibt das sich wiederholende Element innerhalb des Iterators.
+      Innerhalb des Tags können beliebiger HTML-Code, Platzhalter und weitere Tags zur Ausgabe definiert werden.
+   </li>
+   <li>
+      Sofern gewünscht, können Sie den <em>&lt;iterator:fallback /&gt;</em>-Tag nutzen, um eine elternative Ausgabe zu
+      erzeugen, falls der Iterator keine Elemente zur Ausgabe vorfindet. Der Tag basiert auf dem
+      <int:link pageid="046" anchor="Chapter-2-3-Template">&lt;html:template /&gt;-Tag</int:link> und besitzt daher
+      alle Funktionalitäten, die Sie bereits kennen.
+   </li>
+   <li>
+      Der Bereich innerhalb des <em>&lt;html:iterator /&gt;</em>- und ausserhalb des <em>&lt;iterator:item /&gt;</em>-Tags
+      kann für beliebigen HTML-Code sowie weitere Platzhalter und eigene Tags genutzt werden, die für die Ausgabe eingesetzt
+      werden.
+   </li>
+</ul>
+<p>
+   Die Definition des Tags gestaltet sich wie folgt:
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:iterator name=""&gt;
- ...
- [&lt;iterator:addtaglib class="" prefix="" name="" /&gt;]
- [&lt;iterator:getstring namespace="" config="" entry="" /&gt;]
- [&lt;iterator:placeholder name="" /&gt;]
- ...
- &lt;iterator:item [getter=""]&gt;
-   &lt;item:placeholder [name=""][getter=""] /&gt;
-  [&lt;item:getstring namespace="" config="" entry="" /&gt;]
-  [&lt;item:addtaglib class="" prefix="" name="" /&gt;]
- &lt;/iterator:item&gt;
- ...
+   ...
+   [&lt;iterator:addtaglib class="" prefix="" name="" /&gt;]
+   [&lt;iterator:getstring namespace="" config="" entry="" /&gt;]
+   [&lt;iterator:placeholder name="" /&gt;]
+   ...
+   &lt;iterator:item [getter=""]&gt;
+     ...
+     &lt;item:placeholder[ name=""][ getter=""] /&gt;
+     [&lt;item:getstring namespace="" config="" entry="" /&gt;]
+     [&lt;item:addtaglib class="" prefix="" name="" /&gt;]
+     ...
+   &lt;/iterator:item&gt;
+   ...
+   [&lt;iterator:fallback&gt;
+      ...
+      [&lt;fallback:placeholder name="" /&gt;]
+      [&lt;fallback:getstring namespace="" config="" entry="" /&gt;]
+      [&lt;fallback:addtaglib class="" prefix="" name="" /&gt;]
+      ...
+   &lt;/iterator:fallback&gt;]
+   ...
 &lt;/html:iterator&gt;
 </gen:highlight>
 <p>
-   Dabei ist der Tag <em>&lt;html:iterator /&gt;</em> die Definition des Iterators und
-   <em>&lt;iterator:item /&gt;</em> enthält die optische Beschreibung eines Daten-Elementes.
-   Innerhalb eines Daten-Elementes können beliebig viele Platzhalter (<em>&lt;item:placeholder /&gt;</em>)
-   und HTML-Tags definiert werden. Der Name des Platzhalters repräsentiert dabei ebenso den Namen
-   des auszugebenden Attributes einer Klasse, bzw. den Namen des Offset eines assoziativen Arrays. Das
-   optionale Attribut <em>getter</em> des <em>&lt;iterator:item /&gt;</em>-Tags definiert
-   den Namen derjenigen Methode, mit deren Hilfe das Attribut aus einem Daten-Objekt ausgelesen werden
-   kann. Im Standard-Fall wird die Methode <em>get()</em> als Get-Methode verwendet.
+   Innerhalb eines <em>&lt;iterator:item /&gt;</em>-Tags können beliebig viele Platzhalter
+   (<em>&lt;item:placeholder /&gt;</em>) und HTML-Elemente definiert werden.
 </p>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
   <li>
-    <strong>name</strong> (1): Name des Iterators.
+    <strong>name</strong> (1): Name des Iterators. Wird zur Referenzierung innerhalb des Controllers benötigt.
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9]</code>)
   </li>
   <li>
@@ -58,13 +95,224 @@
     (<strong>Zeichen</strong>: <code>[A-Za-z0-9]</code>)
   </li>
 </ul>
+<p>
+   Details zur Verwendung des <em>&lt;iterator:item /&gt;</em>- und <em>&lt;iterator:fallback /&gt;</em>-Tags entnehmen
+   Sie bitten den folgenden Kapiteln.
+</p>
+
+<h4 id="Chapter-1-2-Definition-der-Datenstruktur"><a href="#Chapter-1-2-Definition-der-Datenstruktur">1.2. Definition der Datenstruktur</a></h4>
+<p>
+   Der Iterator kann mit zwei Arten von Inhalten umgehen: assoziativen Arrays und Objekt-Listen. Aus Gründen der
+   Flexibilität bei der Erstellung des Templates innerhalb des <em>&lt;iterator:item /&gt;</em>-Tags empfiehlt sich
+   die Nutzung von Objekt-Listen (siehe <a href="#Chapter-1-2-2-Objekt-Listen">Kapitel 1.2.2</a>).
+</p>
+
+<h5 id="Chapter-1-2-1-Assoziative-Arrays"><a href="#Chapter-1-2-1-Assoziative-Arrays">1.2.1. Assoziative Arrays</a></h5>
+<p>
+   Zur Ausgabe von Listen beherrscht der Iterator die Verarbeitung von assoziativen Arrays als Daten-Strukturen für ein
+   <em>&lt;iterator:item /&gt;</em>. Zur Ausgabe einer Produkt-Liste der Form
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="products-list-simple"&gt;
+   &lt;h2&gt;Produkte&lt;/h2&gt;
+   &lt;p&gt;
+      Die folgende Liste stellt unsere Produkte dar:
+   &lt;/p&gt;
+   &lt;ul&gt;
+   &lt;iterator:item&gt;
+      &lt;li&gt;
+         &lt;h3&gt;&lt;item:placeholder name="name" /&gt;&lt;/h3&gt;
+         &lt;img src="&lt;item:placeholder name="img" /&gt;" /&gt;
+         &lt;span&gt;&lt;item:placeholder name="price" /&gt;&lt;/span&gt;
+      &lt;/li&gt;
+   &lt;/iterator:item&gt;
+   &lt;/ul&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+<p>
+   erwartet der Iterator folgende Datenstruktur:
+</p>
+<gen:highlight type="php">
+class IteratorTestController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $data = [
+            [
+                  'name'  => 'Günstiges Mobiltelefon',
+                  'price' => '150€',
+                  'img'   => 'cheapo.png'
+            ],
+            [
+                  'name'  => 'Mittelklasse Mobiltelefon',
+                  'price' => '350€',
+                  'img'   => 'mid-range.png'
+            ],
+            [
+                  'name'  => 'Premium Mobiltelefon',
+                  'price' => '550€',
+                  'img'   => 'premium.png'
+            ]
+      ];
+
+      $iterator = &$this->getIterator('products-list-simple');
+      $iterator->fillDataContainer($data);
+      $iterator->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
 <div class="hint">
-   Das Auslesen eines Attributes eines Objektes kann seit dem Release 1.14 auf zwei Arten stattfinden:
-   <ul>
-      <li>
-         Auf Ebene des <em>&lt;iterator:item/&gt;</em>-Tag wird eine für alle Platzhalter gültige Methode definiert.
-         Ist das der Fall, kann innerhalb des <em>&lt;item:placeholder/&gt;</em>-Tags über das Attribut <em>name</em>
-         der Name des Attributes angegeben werden, über den die Eigenschaft des Objekts referenziert wird. Beispiel:
+   Bitte beachten Sie, dass der Iterator eine <em>nummerische</em> Liste von Inhalten erwartet, die dann als assoziatives
+   Array ausgeprägt sind. Assoziative Listen mit wiederum assoziativen Inhalten können nicht verarbeitet werden.
+</div>
+<p>
+   Die Methode <em>fillDataContainer()</em> liefert die Instanz des gewünschten Iterators zurück, der im Dokument definiert
+   wurde, mit Hilfe von <em>transformOnPlace()</em> wird der Iterator dargestellt.
+</p>
+<p>
+   Die innerhalb des <em>&lt;iterator:item /&gt;</em>-Tag definierten Platzhalter
+   (z.B. <em>&lt;item:placeholder name="name" /&gt;</em>) referenzieren auf die in der Datenstruktur enthaltenen Werte.
+   Der Name des Schlüssels muss dabei mit den Wert des Attributs <em>name</em> übereinstimmen. Nicht gefundene Werte
+   werden mit <em>null</em> ersetzt.
+</p>
+<p>
+   Neben der klassichen Definition von Platzhaltern lässt sich im <em>&lt;iterator:item /&gt;</em>-Tag auch die erweiterte
+   Template-Sytax zur Definition von Platzhaltern einsetzen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="products-list-simple"&gt;
+   &lt;h2&gt;Produkte&lt;/h2&gt;
+   &lt;p&gt;
+      Die folgende Liste stellt unsere Produkte dar:
+   &lt;/p&gt;
+   &lt;ul&gt;
+   &lt;iterator:item&gt;
+      &lt;li&gt;
+         &lt;h3&gt;${name}&lt;/h3&gt;
+         &lt;img src="${img}" /&gt;
+         &lt;span&gt;${price}&lt;/span&gt;
+      &lt;/li&gt;
+   &lt;/iterator:item&gt;
+   &lt;/ul&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+<p>
+   Details entnehmen Sie bitte dem Kapitel <int:link pageid="047" />.
+</p>
+<div class="hint">
+   Im Rahmen der erweiterten Template-Syntax können Sie auf die Inhalten eines Arrays innerhalb eines Schleifen-Durchlaufs
+   auch wie folgt zugreifen:
+<gen:highlight type="apf-xml">
+&lt;iterator:item&gt;
+   &lt;li&gt;
+      &lt;h3&gt;${item['name']}&lt;/h3&gt;
+      &lt;img src="${item['img']}" /&gt;
+      &lt;span&gt;${item['price']}&lt;/span&gt;
+   &lt;/li&gt;
+&lt;/iterator:item&gt;
+</gen:highlight>
+   Der Iterator stellt dazu das aktuell Objekt im Data-Attribut <em>item</em> zur Verfügung. Mischformen aller drei
+   Varianten (klassiche Platzhalter, Platzhalter nach der erweiterten Template-Syntax und Array-Zugriffe) sind
+   ebenfalls zulässig.
+</div>
+
+<h5 id="Chapter-1-2-2-Objekt-Listen"><a href="#Chapter-1-2-2-Objekt-Listen">1.2.2. Objekt-Listen</a></h5>
+<p>
+   Der Zugriff auf Objekt-Listen verhält sich sehr ähnlich wie der im <a href="#Chapter-1-2-1-Assoziative-Arrays">Kapitel 1.2.1</a>
+   beschrieben Modell. Unterschied ist dabei, dass es sich beim Inhalt der Listen um Instanzen von beliebigen Objekten
+   handelt.
+</p>
+<p>
+   Zur Ausgabe einer Produkt-Liste der Form
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="products-list-objects"&gt;
+   &lt;h2&gt;Produkte&lt;/h2&gt;
+   &lt;p&gt;
+      Die folgende Liste stellt unsere Produkte dar:
+   &lt;/p&gt;
+   &lt;ul&gt;
+   &lt;iterator:item&gt;
+      &lt;li&gt;
+         &lt;h3&gt;&lt;item:placeholder getter="getName" /&gt;&lt;/h3&gt;
+         &lt;img src="&lt;item:placeholder getter="getImg" /&gt;" /&gt;
+         &lt;span&gt;&lt;item:placeholder getter="getPrice" /&gt;&lt;/span&gt;
+      &lt;/li&gt;
+   &lt;/iterator:item&gt;
+   &lt;/ul&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+<p>
+   erwartet der Iterator folgende Datenstruktur:
+</p>
+<gen:highlight type="php">
+class Article {
+
+   private $name;
+   private $price;
+   private $img;
+
+   public function __construct($name, $price, $img) {
+      $this->name = $name;
+      $this->price = $price;
+      $this->img = $img;
+   }
+
+   public function getImg() {
+      return $this->img;
+   }
+
+   public function getName() {
+      return $this->name;
+   }
+
+   public function getPrice() {
+      return $this->price;
+   }
+
+}
+
+class IteratorTestController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $data = [
+            new Article('Günstiges Mobiltelefon', '150€', 'cheapo.png'),
+            new Article('Mittelklasse Mobiltelefon', '350€', 'mid-range.png'),
+            new Article('Premium Mobiltelefon', '550€', 'premium.png')
+      ];
+
+      $iterator = &$this->getIterator('products-list-objects');
+      $iterator->fillDataContainer($data);
+      $iterator->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+<div class="hint">
+   Bitte beachten Sie, dass der Iterator eine <em>nummerische</em> Liste von Objekten erwartet. Assoziative Listen mit
+   Objekt-Inhalten können nicht verarbeitet werden.
+</div>
+<p>
+   Die Methode <em>fillDataContainer()</em> liefert die Instanz des gewünschten Iterators zurück, der im Dokument definiert
+   wurde, mit Hilfe von <em>transformOnPlace()</em> wird der Iterator dargestellt.
+</p>
+<p>
+   Die innerhalb des <em>&lt;iterator:item /&gt;</em>-Tag definierten Platzhalter
+   (z.B. <em>&lt;item:placeholder getter="name" /&gt;</em>) referenzieren auf die in den Objekten enthaltenen Werte.
+   Der Name der Methode wird im Attribut <em>getter</em> definiert. Nicht gefundene Methoden führen zu einer <em>Exception</em>.
+</p>
+<p>
+   Das Auslesen eines Attributes eines Objektes kann auf zwei Arten stattfinden:
+</p>
+<ul>
+   <li>
+      Auf Ebene des <em>&lt;iterator:item/&gt;</em>-Tag wird eine für alle Platzhalter gültige Methode definiert.
+      Ist das der Fall, kann innerhalb des <em>&lt;item:placeholder/&gt;</em>-Tags über das Attribut <em>name</em>
+      der Name des Attributes angegeben werden, über den die Eigenschaft des Objekts referenziert wird. Beispiel:
 <gen:highlight type="apf-xml">
 &lt;html:iterator name="..."&gt;
  &lt;iterator:item getter="getProperty"&gt;
@@ -72,14 +320,14 @@
  &lt;/iterator:item&gt;
 &lt;/html:iterator&gt;
 </gen:highlight>
-         In dieser Konstellation erwartet das Tag, dass das auszugebende Objekt eine Methode
-         <gen:highlight type="php">public function getProperty($name)</gen:highlight>
-         implementiert, die den Wert des Attributes (hier <em>DisplayName</em>) zurück liefert. Dies ist das
-         Standard-Verhalten in allen Releases vor 1.14.
-      </li>
-      <li>
-         Ist keine generische Methode für das Abrufen von Objekt-Eigenschaften vorhanden, kann diese auf der Ebene des
-         <em>&lt;item:placeholder/&gt;</em>-Tag granular für jeden Platzhalter definiert werden. Beispiel:
+      In dieser Konstellation erwartet das Tag, dass das auszugebende Objekt eine Methode
+      <gen:highlight type="php">public function getProperty($name)</gen:highlight>
+      implementiert, die den Wert des Attributes (hier <em>DisplayName</em>) zurück liefert. Dies ist das
+      Standard-Verhalten in allen Releases vor 1.14.
+   </li>
+   <li>
+      Ist keine generische Methode für das Abrufen von Objekt-Eigenschaften vorhanden, kann diese auf der Ebene des
+      <em>&lt;item:placeholder/&gt;</em>-Tag granular für jeden Platzhalter definiert werden. Beispiel:
 <gen:highlight type="apf-xml">
 &lt;html:iterator name="..."&gt;
  &lt;iterator:item&gt;
@@ -87,14 +335,37 @@
  &lt;/iterator:item&gt;
 &lt;/html:iterator&gt;
 </gen:highlight>
-         In dieser Konstellation erwartet das Tag, dass das auszugebende Objekt eine Methode
-         <gen:highlight type="php">public function getDisplayName()</gen:highlight>
-         implementiert, die den Wert des Attributes zurück liefert. Diese Möglichkeit wurde in Release 1.14 eingeführt.
-      </li>
-   </ul>
+      In dieser Konstellation erwartet das Tag, dass das auszugebende Objekt eine Methode
+      <gen:highlight type="php">public function getDisplayName()</gen:highlight>
+      implementiert, die den Wert des Attributes zurück liefert. Diese Möglichkeit wurde in Release 1.14 eingeführt.
+   </li>
+</ul>
+<p>
    Eine Mischung der der beiden Varianten ist ebenso möglich. Sollte sowohl eine generische als auch eine dedizierte
    Getter-Methode definiert sein, so wird die lokale bevorzugt.
+</p>
+<div class="hint">
+   Im Rahmen der erweiterten Template-Syntax können Sie auf die Inhalten der Objekte innerhalb eines Schleifen-Durchlaufs
+   auch wie folgt zugreifen:
+<gen:highlight type="apf-xml">
+&lt;iterator:item&gt;
+   &lt;li&gt;
+      &lt;h3&gt;${item-&gt;getName()}&lt;/h3&gt;
+      &lt;img src="${item-&gt;getImg()}" /&gt;
+      &lt;span&gt;${item-&gt;getPrice()}&lt;/span&gt;
+   &lt;/li&gt;
+&lt;/iterator:item&gt;
+</gen:highlight>
+   Der Iterator stellt dazu das aktuell Objekt im Data-Attribut <em>item</em> zur Verfügung. Mischformen der drei
+   Varianten (generische Getter, konkrete Getter und Objekt-Zugriff nach der erweiterten Template-Syntax) sind
+   ebenfalls zulässig.
 </div>
+
+<h4 id="Chapter-1-3-Anwendung"><a href="#Chapter-1-3-Anwendung">1.3. Anwendung</a></h4>
+<!--
+   !!!! hier weiter !!!
+-->
+<h5 id="Chapter-1-3-1"><a href="#Chapter-1-3-1">1.3.1. Einbindung in ein Template</a></h5>
 <p>
    Um den Iterator verwenden zu können muss das Tag zuerst per
 </p>
@@ -135,15 +406,23 @@ class ListController extends BaseDocumentController {
 }
 </gen:highlight>
 <div class="hint">
-   Für die Ausgabe von sprachabhängigen Werten können die Tags
-   <em>&lt;iterator:getstring /&gt;</em> sowie <em>&lt;item:getstring /&gt;</em> verwendet werden.
-   Diese funktionieren analog zum Tag
-   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>.
-   Reicht die Funktionalität nicht aus, können per <em>&lt;iterator:addtaglib /&gt;</em> 
-   und <em>&lt;item:addtaglib /&gt;</em> eigene Taglibs analog zu
-   <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link>
-   eingebunden werden.
+   Für die Ausgabe von sprachabhängigen Werten können die Tags <em>&lt;iterator:getstring /&gt;</em> sowie
+   <em>&lt;item:getstring /&gt;</em> verwendet werden. Diese funktionieren analog zum Tag
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>. Reicht die Funktionalität
+   nicht aus, können per <em>&lt;iterator:addtaglib /&gt;</em> und <em>&lt;item:addtaglib /&gt;</em> eigene Taglibs
+   analog zu <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link> eingebunden werden.
 </div>
+
+<!--
+   Noch zu beschreiben:
+   - Ausgabe am Platz der Definition (transformOnPlace())
+   - Einsetzen in einen Platzhalter (im Controller!)
+
+-->
+
+
+
+<h5 id="Chapter-1-3-1"><a href="#Chapter-1-3-1">1.3.1. Nummerierung von Listen</a></h5>
 <p>
    Sollen die Einträge einer Liste/Tabelle durchnummeriert werden, kann innerhalb eines
    <em>&lt;iterator:item /&gt;</em>-Tags ein <em>&lt;item:placeholder /&gt;</em>-Tag definiert werden, das den Namen
@@ -156,6 +435,8 @@ class ListController extends BaseDocumentController {
   &lt;/iterator:item&gt;
 &lt;/html:iterator&gt;
 </gen:highlight>
+
+<h5 id="Chapter-1-3-1"><a href="#Chapter-1-3-1">1.3.1. Nummerierung von Listen</a></h5>
 <p>
    Nutzt man das Iterator-Tag in Verbindung mit dem <int:link pageid="092" />, sollte die Nummerierung auf einer anderen Seite nicht
    wieder bei 1 beginnen, sondern fortgesetzt werden. Um dies zu erreichen, muss für den
@@ -172,6 +453,84 @@ class ListController extends BaseDocumentController {
     &lt;item:placeholder name="IterationNumber"&gt;
   &lt;/iterator:item&gt;
 &lt;/html:iterator&gt;
+</gen:highlight>
+
+<h5 id="Chapter-1-3-1"><a href="#Chapter-1-3-1">1.3.1. Definieren von Alternativ-Inhalten</a></h5>
+<div class="hint">
+   Bitte beachten Sie, dass dieses Feature erst in der Version 2.1 verfügbar ist.
+</div>
+<p>
+   Bei der Ausgabe von Listen ist häufig auch die Darstellung eines Alternativ-Inhalts gefragt. Diesen Anwendungsfall
+   unterstützt der Iterator über das <em>&lt;iterator:fallback /&gt;</em>-Tag. Dieses wird ausgegeben, sofern dem
+   Iterator keine Inhalte zur Ausgabe zur Verfügung stehen.
+</p>
+<p>
+   Zur Steuerung der Ausgabe stehen zwei Optionen zur Verfügung:
+</p>
+<ul>
+   <li>
+      <strong>normal</strong> (Standard): der Alternativ-Inhalt wird zusätzlich zum übrigen HTML-Markup ausgegeben.
+   </li>
+   <li>
+      <strong>replace</strong>: der Alternativ-Inhalt ersetzt das übrige HTML-Markup vollständig.
+   </li>
+</ul>
+<p>
+   Der Modus kann über da Attribut <em>fallback-mode</em> des <em>&lt;html:iterator /&gt;</em>-Tag gesteuert werden.
+</p>
+<p>
+   Der folgende Code-Block zeigt die Ausgabe einer Produkt-Liste inkl. Alternativ-Inhalt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="products-list-simple" fallback-mode="replace"&gt;
+   &lt;h2&gt;Produkte&lt;/h2&gt;
+   &lt;p&gt;
+      Die folgende Liste stellt unsere Produkte dar:
+   &lt;/p&gt;
+   &lt;ul&gt;
+   &lt;iterator:item&gt;
+      &lt;li&gt;
+         &lt;h3&gt;&lt;item:placeholder name="name" /&gt;&lt;/h3&gt;
+         &lt;img src="&lt;item:placeholder name="img" /&gt;" /&gt;
+         &lt;span&gt;&lt;item:placeholder name="price" /&gt;&lt;/span&gt;
+      &lt;/li&gt;
+   &lt;/iterator:item&gt;
+   &lt;/ul&gt;
+   &lt;iterator:fallback&gt;
+      &lt;h2&gt;Keine Produkte verfügbar&lt;/h2&gt;
+      &lt;p&gt;
+         Leider sind aktuell keine Produkte erhältlich.
+         Bitte besuchen Sie uns in &lt;fallback:placeholder name="count" /&gt; Tagen wieder.
+      &lt;/p&gt;
+   &lt;/iterator:fallback&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+<p>
+   Solange Produkte verfügbar sind, wird eine Liste von Produkten ausgegeben, sofern keine Produkte erhältlich sind,
+   wird dir Liste durch den Alternativ-Inhalt ersetzt.
+</p>
+<p>
+   Die Alternativ-Inhalte lassen sich wie vom <em>&lt;html:template /&gt;</em>-Tag gewohnt anpassen. Der folgende
+   Code-Block zeigt Ihnen, wie Sie den Platzhalter im <em>&lt;iterator:fallback /&gt;</em>-Tag mit der gewünschten
+   Anzahl an Tagen füllen können:
+</p>
+<gen:highlight type="php">
+class ProductsController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $iterator = $this->getIterator('products-list-simple');
+
+      ...
+
+      $fallback = &$iterator->getFallbackContent();
+      $fallback->setPlaceHolder('count', '3');
+
+      $iterator->transformOnPlace();
+
+   }
+
+}
 </gen:highlight>
 
 <h3 id="Chapter-2-Mediastream"><a href="#Chapter-2-Mediastream">2. Mediastream-Tags</a></h3>
