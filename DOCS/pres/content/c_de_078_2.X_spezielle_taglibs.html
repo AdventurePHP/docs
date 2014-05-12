@@ -99,6 +99,13 @@
    Details zur Verwendung des <em>&lt;iterator:item /&gt;</em>- und <em>&lt;iterator:fallback /&gt;</em>-Tags entnehmen
    Sie bitten den folgenden Kapiteln.
 </p>
+<div class="hint">
+   Für die Ausgabe von sprachabhängigen Werten können die Tags <em>&lt;iterator:getstring /&gt;</em> sowie
+   <em>&lt;item:getstring /&gt;</em> verwendet werden. Diese funktionieren analog zum Tag
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>. Reicht die Funktionalität
+   nicht aus, können per <em>&lt;iterator:addtaglib /&gt;</em> und <em>&lt;item:addtaglib /&gt;</em> eigene Taglibs
+   analog zu <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link> eingebunden werden.
+</div>
 
 <h4 id="Chapter-1-2-Definition-der-Datenstruktur"><a href="#Chapter-1-2-Definition-der-Datenstruktur">1.2. Definition der Datenstruktur</a></h4>
 <p>
@@ -219,6 +226,10 @@ class IteratorTestController extends BaseDocumentController {
 </div>
 
 <h5 id="Chapter-1-2-2-Objekt-Listen"><a href="#Chapter-1-2-2-Objekt-Listen">1.2.2. Objekt-Listen</a></h5>
+<div class="hint">
+   Bitte beachten Sie, dass der Objekt-Zugriff mit Hilfe der erweiterten Template-Syntax erst in der Version 2.1
+   verfügbar ist.
+</div>
 <p>
    Der Zugriff auf Objekt-Listen verhält sich sehr ähnlich wie der im <a href="#Chapter-1-2-1-Assoziative-Arrays">Kapitel 1.2.1</a>
    beschrieben Modell. Unterschied ist dabei, dass es sich beim Inhalt der Listen um Instanzen von beliebigen Objekten
@@ -337,13 +348,13 @@ class IteratorTestController extends BaseDocumentController {
 </gen:highlight>
       In dieser Konstellation erwartet das Tag, dass das auszugebende Objekt eine Methode
       <gen:highlight type="php">public function getDisplayName()</gen:highlight>
-      implementiert, die den Wert des Attributes zurück liefert. Diese Möglichkeit wurde in Release 1.14 eingeführt.
+      implementiert, die den Wert des Attributes zurück liefert.
    </li>
 </ul>
-<p>
+<div class="hint">
    Eine Mischung der der beiden Varianten ist ebenso möglich. Sollte sowohl eine generische als auch eine dedizierte
    Getter-Methode definiert sein, so wird die lokale bevorzugt.
-</p>
+</div>
 <div class="hint">
    Im Rahmen der erweiterten Template-Syntax können Sie auf die Inhalten der Objekte innerhalb eines Schleifen-Durchlaufs
    auch wie folgt zugreifen:
@@ -362,12 +373,11 @@ class IteratorTestController extends BaseDocumentController {
 </div>
 
 <h4 id="Chapter-1-3-Anwendung"><a href="#Chapter-1-3-Anwendung">1.3. Anwendung</a></h4>
-<!--
-   !!!! hier weiter !!!
--->
-<h5 id="Chapter-1-3-1"><a href="#Chapter-1-3-1">1.3.1. Einbindung in ein Template</a></h5>
+
+<h5 id="Chapter-1-3-1-Einbindung-im-Template"><a href="#Chapter-1-3-1-Einbindung-im-Template">1.3.1. Einbindung im Template</a></h5>
 <p>
-   Um den Iterator verwenden zu können muss das Tag zuerst per
+   Um den Iterator verwenden zu können muss der Tag zunächst im aktuellen Temlat ebakannt gemacht werden. Dies
+   können Sie wie folgt erledigen:
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
@@ -377,56 +387,38 @@ class IteratorTestController extends BaseDocumentController {
 /&gt;
 </gen:highlight>
 <p>
-   im aktuellen <em>Document</em> bekannt gemacht werden.
-</p>
-<p>
-   Innerhalb des Document-Controllers, kann der Iterator dann wie folgt verwendet werden:
+   In einem Document-Controller stehen Ihnen dann folgende Methoden zur Verfügung, mit der Sie den Iterator nutzen
+   lässt:
 </p>
 <gen:highlight type="php">
 class ListController extends BaseDocumentController {
 
-   public function transformContent(){
-      ...
+   public function transformContent() {
 
-      // Referenz auf den Iterator holen
-      $Iterator = &$this->getIterator('...');
+      // Iterator aus dem aktuellen Dokument beziehen
+      $iterator = &$this->getIterator('...');
 
-      // Datencontainer mit einer Liste von Objekten oder assoziativen Arrays fuellen
-      $Iterator->fillDataContainer(...);
+      // Daten an den Iterator übergeben (Liste mit assoziativen Arrays oder Objekten)
+      $iterator->fillDataContainer(array(
+         ...
+      ));
 
-      // Am Ort der Definition ausgeben ...
-      $Iterator->transformOnPlace();
+      // Ausgeben des Iterators wo er im Template definiert wurde, ...
+      $iterator->transformOnPlace();
+
       // ... oder den Inhalt in einen Platzhalter einsetzen
-      $this->setPlaceHolder('...',$Iterator->transformIterator());
-
-      ...
+      $this->setPlaceHolder('...', $iterator->transformIterator());
 
    }
 
 }
 </gen:highlight>
-<div class="hint">
-   Für die Ausgabe von sprachabhängigen Werten können die Tags <em>&lt;iterator:getstring /&gt;</em> sowie
-   <em>&lt;item:getstring /&gt;</em> verwendet werden. Diese funktionieren analog zum Tag
-   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>. Reicht die Funktionalität
-   nicht aus, können per <em>&lt;iterator:addtaglib /&gt;</em> und <em>&lt;item:addtaglib /&gt;</em> eigene Taglibs
-   analog zu <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link> eingebunden werden.
-</div>
 
-<!--
-   Noch zu beschreiben:
-   - Ausgabe am Platz der Definition (transformOnPlace())
-   - Einsetzen in einen Platzhalter (im Controller!)
-
--->
-
-
-
-<h5 id="Chapter-1-3-1"><a href="#Chapter-1-3-1">1.3.1. Nummerierung von Listen</a></h5>
+<h5 id="Chapter-1-3-2-Nummerierung-von-Listen"><a href="#Chapter-1-3-2-Nummerierung-von-Listen">1.3.2. Nummerierung von Listen</a></h5>
 <p>
-   Sollen die Einträge einer Liste/Tabelle durchnummeriert werden, kann innerhalb eines
-   <em>&lt;iterator:item /&gt;</em>-Tags ein <em>&lt;item:placeholder /&gt;</em>-Tag definiert werden, das den Namen
-   <em>IterationNumber</em> trägt. Beispiel:
+   Sollen die Einträge einer Liste bzw. Tabelle nummeriert werden, können Sie innerhalb eines
+   <em>&lt;iterator:item /&gt;</em>-Tags einen Platzhalter definieren der den Namen <em>IterationNumber</em> trägt.
+   Beispiel:
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:iterator name=""&gt;
@@ -435,8 +427,38 @@ class ListController extends BaseDocumentController {
   &lt;/iterator:item&gt;
 &lt;/html:iterator&gt;
 </gen:highlight>
+<p>
+   Bei Bedarf kann sie Start-Position der Zählvariable kann im Controller manipuliert werden. Hierzu lässt sich die
+   Methode <em>HtmlIteratorTag::setIterationNumber()</em> nutzen:
+</p>
+<gen:highlight type="php">
+class ListController extends BaseDocumentController {
 
-<h5 id="Chapter-1-3-1"><a href="#Chapter-1-3-1">1.3.1. Nummerierung von Listen</a></h5>
+   public function transformContent() {
+
+      $iterator = &$this->getIterator('...');
+
+      $iterator->fillDataContainer(array(
+         ...
+      ));
+
+      $iterator->setIterationNumber(5);
+      $iterator->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Zu weiteren Optionen der Manipulation, ziehen Sie bitte <a href="#Chapter-1-3-3-Nutzung-des-Pagers">Kapitel 1.3.3</a>
+   zu Rate.
+</p>
+<div class="hint">
+   Die Definition des Platzhalters <em>IterationNumber</em> kann sowohl in klassischer Form über einen
+   <em>&lt;item:placeholder /&gt;</em>-Tag als auch mit der erweiterten Templating-Syntax erfolgen.
+</div>
+
+<h5 id="Chapter-1-3-3-Nutzung-des-Pagers"><a href="#Chapter-1-3-3-Nutzung-des-Pagers">1.3.3. Nutzung des Pagers</a></h5>
 <p>
    Nutzt man das Iterator-Tag in Verbindung mit dem <int:link pageid="092" />, sollte die Nummerierung auf einer anderen Seite nicht
    wieder bei 1 beginnen, sondern fortgesetzt werden. Um dies zu erreichen, muss für den
@@ -455,7 +477,7 @@ class ListController extends BaseDocumentController {
 &lt;/html:iterator&gt;
 </gen:highlight>
 
-<h5 id="Chapter-1-3-1"><a href="#Chapter-1-3-1">1.3.1. Definieren von Alternativ-Inhalten</a></h5>
+<h5 id="Chapter-1-3-4-Definition-von-Alternativ-Inhalten"><a href="#Chapter-1-3-4-Definition-von-Alternativ-Inhalten">1.3.4. Definition von Alternativ-Inhalten</a></h5>
 <div class="hint">
    Bitte beachten Sie, dass dieses Feature erst in der Version 2.1 verfügbar ist.
 </div>
@@ -531,6 +553,127 @@ class ProductsController extends BaseDocumentController {
    }
 
 }
+</gen:highlight>
+
+<h5 id="Chapter-1-3-5-Auswertung-von-Status-Variablen"><a href="#Chapter-1-3-5-Auswertung-von-Status-Variablen">1.3.5. Auswertung von Status-Variablen</a></h5>
+<div class="hint">
+   Bitte beachten Sie, dass dieses Feature erst in der Version 2.1 verfügbar ist.
+</div>
+<p>
+   Der Iterator stellt für jeden Schleifen-Durchlauf mehrere Status-Variablen zur Verfügung. Diese können zur direkten
+   Ausgabe genutzt werden oder in eigenen Tags ausgewertet werden. Die Informationen lassen sich über das Data-Attribut
+   <em>status</em> abfragen, das eine Instanz der Klassen <em>APF\tools\html\taglib\IteratorStatus</em> beinhaltet.
+   Dieses verfügt über folgende Methoden:
+</p>
+<gen:highlight type="php">
+class IteratorStatus {
+
+   public function getCssClass() {
+      return $this->cssClass;
+   }
+
+   public function isFirst($asString = false) {
+      return $asString === false ? $this->isFirst : $this->convertToString($this->isFirst);
+   }
+
+   public function isLast($asString = false) {
+      return $asString === false ? $this->isLast : $this->convertToString($this->isLast);
+   }
+
+   public function getItemCount() {
+      return $this->itemCount;
+   }
+
+}
+</gen:highlight>
+<p>
+   Die Methoden lassen sich wie folgt für die Generierung der Ausgabe nutzen:
+</p>
+<ul>
+   <li>
+      <strong>getCssClass()</strong>: liefert eine für den Schleifen-Durchlauf passende CSS-Klasse zur Formatierung
+      zurück. Im Auslieferungszustand des APF erhalten Sie <em>first</em> für den ersten Eintrag, <em>middle</em> für
+      die Folgenden und <em>last</em> für das letzte Element der Liste. Die Namen der CSS-Klassen können über die
+      Attribute <em>first-element-css-class</em>, <em>middle-element-css-class</em> und <em>last-element-css-class</em>
+      des <em>&lt;html:iterator /&gt;</em> an den jeweiligen Anwendungsfall angepasst werden.
+   </li>
+   <li>
+      <strong>isFirst()</strong>: liefert <em>true</em>, falls das aktuelle Element das erste in der Liste ist. Wird
+      das optionale Argument mit dem Wert <em>true</em> belegt, liefert die Methode keinen <em>boolean</em>-Wert,
+      sondern einen <em>string</em>, der sich - insbesondere für den Wert <em>false</em> - einfacher verarbeiten lässt
+      (z.B. als Präfix/Suffix einer CSS-Klasse).
+   </li>
+   <li>
+      <strong>isLast()</strong>: liefert <em>true</em> für das letzte Element der Liste. Wird das optionale Argument
+      mit dem Wert <em>true</em> belegt, liefert die Methode keinen <em>boolean</em>-Wert, sondern einen <em>string</em>,
+      der sich - insbesondere für den Wert <em>false</em> - einfacher verarbeiten lässt (z.B. als Präfix/Suffix einer
+      CSS-Klasse).
+   </li>
+   <li>
+      <strong>getItemCount()</strong>: liefert die Gesamt-Anzahl der Elemente in der Liste.
+   </li>
+</ul>
+<p>
+   Das folgende Beispiel zeigt die Ausgabe einer Produkt-Liste, die das Status-Objekt zur Formatierung der Ausgabe nutzt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:iterator
+      name="products-list-objects-extended"
+      first-element-css-class="prd-first separator"
+      middle-element-css-class="prd-center"
+      last-element-css-class="prd-last"&gt;
+   &lt;h2&gt;Produkte&lt;/h2&gt;
+   &lt;p&gt;
+      Die folgende Liste stellt unsere Produkte dar:
+   &lt;/p&gt;
+   &lt;ul&gt;
+      &lt;iterator:item&gt;
+         &lt;li
+               class="${status-&gt;getCssClass()}"
+               data-item-count="${status-&gt;getItemCount()}"
+               data-is-first="${status-&gt;isFirst(true)}"
+               data-is-last="${status-&gt;isLast(true)}"&gt;
+            &lt;h3&gt;${item-&gt;getName()}&lt;/h3&gt;
+            &lt;img src="${item-&gt;getImg()}" /&gt;
+            &lt;span&gt;${item-&gt;getPrice()}&lt;/span&gt;
+         &lt;/li&gt;
+      &lt;/iterator:item&gt;
+   &lt;/ul&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+<p>
+   Die entsprechende HTML-Ausgabe gestaltet sich daraus wie folgt (gekürzt):
+</p>
+<gen:highlight type="apf-xml">
+<ul>
+   <li
+         class="prd-first separator"
+         data-item-count="3"
+         data-is-first="1"
+         data-is-last="0">
+      <h3>Cheap mobile phone</h3>
+      <img src="cheapo.png"/>
+      <span>150€</span>
+   </li>
+   <li
+         class="prd-center"
+         data-item-count="3"
+         data-is-first="0"
+         data-is-last="0">
+      <h3>Mid-range mobile phone</h3>
+      <img src="mid-range.png"/>
+      <span>350€</span>
+   </li>
+   <li
+         class="prd-last"
+         data-item-count="3"
+         data-is-first="0"
+         data-is-last="1">
+      <h3>Premium mobile phone</h3>
+      <img src="premium.png"/>
+      <span>550€</span>
+   </li>
+</ul>
 </gen:highlight>
 
 <h3 id="Chapter-2-Mediastream"><a href="#Chapter-2-Mediastream">2. Mediastream-Tags</a></h3>
