@@ -1,4 +1,4 @@
-<doku:title parent="119" tags="dokumentation,taglibs,front,controller" title="Spezielle TagLibs" urlname="Spezielle-TagLibs">
+<doku:title parent="119" tags="dokumentation,iterator,media,append,node,front,controller" title="Spezielle Tags" urlname="Spezielle-Tags">
   Auf dieser Dokumentationsseite werden Funktionen des Frameworks besprochen die für spezielle
   Anwendungsfälle oder komplexere Designs verwendet werden können.
 </doku:title>
@@ -20,7 +20,7 @@
 
 <h4 id="Chapter-1-1-Aufbau"><a href="#Chapter-1-1-Aufbau">1.1. Aufbau</a></h4>
 <p>
-   Der Itarator-Tag ist wie folgt aufgebaut:
+   Der Iterator-Tag ist wie folgt aufgebaut:
 </p>
 <ul>
    <li>
@@ -115,6 +115,10 @@
 </p>
 
 <h5 id="Chapter-1-2-1-Assoziative-Arrays"><a href="#Chapter-1-2-1-Assoziative-Arrays">1.2.1. Assoziative Arrays</a></h5>
+<div class="hint">
+   Bitte beachten Sie, dass der Array-Zugriff mit Hilfe der erweiterten Template-Syntax erst in der Version 2.1
+   verfügbar ist.
+</div>
 <p>
    Zur Ausgabe von Listen beherrscht der Iterator die Verarbeitung von assoziativen Arrays als Daten-Strukturen für ein
    <em>&lt;iterator:item /&gt;</em>. Zur Ausgabe einer Produkt-Liste der Form
@@ -186,7 +190,7 @@ class IteratorTestController extends BaseDocumentController {
 </p>
 <p>
    Neben der klassichen Definition von Platzhaltern lässt sich im <em>&lt;iterator:item /&gt;</em>-Tag auch die erweiterte
-   Template-Sytax zur Definition von Platzhaltern einsetzen:
+   Template-Syntax zur Definition von Platzhaltern einsetzen:
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:iterator name="products-list-simple"&gt;
@@ -376,7 +380,7 @@ class IteratorTestController extends BaseDocumentController {
 
 <h5 id="Chapter-1-3-1-Einbindung-im-Template"><a href="#Chapter-1-3-1-Einbindung-im-Template">1.3.1. Einbindung im Template</a></h5>
 <p>
-   Um den Iterator verwenden zu können muss der Tag zunächst im aktuellen Temlat ebakannt gemacht werden. Dies
+   Um den Iterator verwenden zu können muss der Tag zunächst im aktuellen Temlate bakannt gemacht werden. Dies
    können Sie wie folgt erledigen:
 </p>
 <gen:highlight type="apf-xml">
@@ -462,12 +466,12 @@ class ListController extends BaseDocumentController {
 <p>
    Nutzt man das Iterator-Tag in Verbindung mit dem <int:link pageid="092" />, sollte die Nummerierung auf einer anderen Seite nicht
    wieder bei 1 beginnen, sondern fortgesetzt werden. Um dies zu erreichen, muss für den
-   <em>&lt;html:iterator /&gt;</em>-Tag das Attribut <em>pager</em> definiert werden. Als Wert muss das page-Attribut
-   den Namen einer Sektion der Pager-Konfigurationsdatei erhalten.
+   <em>&lt;html:iterator /&gt;</em>-Tag das Attribut <em>pager</em> definiert werden. Als Wert muss das
+   <em>pager</em>-Attribut den Namen einer Sektion der Pager-Konfigurationsdatei erhalten.
 </p>
 <p>
    Im folgenden Beispiel würde die Iterator-TagLib die Konfiguration <em>/APF/config/modules/pager/{ENVIRONMENT}_pager.ini</em>
-   aufrufen und die Konfigurations-Werte der Sektion <em>PagerExample</em> verwenden.
+   aufrufen und die Konfigurations-Werte der Sektion <em>PagerExample</em> verwenden:
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:iterator name="" pager="PagerExample"&gt;
@@ -584,6 +588,10 @@ class IteratorStatus {
       return $this->itemCount;
    }
 
+   public function getCounter() {
+      return $this->counter;
+   }
+
 }
 </gen:highlight>
 <p>
@@ -612,6 +620,9 @@ class IteratorStatus {
    <li>
       <strong>getItemCount()</strong>: liefert die Gesamt-Anzahl der Elemente in der Liste.
    </li>
+   <li>
+      <strong>getCounter()</strong>: liefert eine fortlaufende Nummer zurück, die zur Beschriftung genutzt werden kann.
+   </li>
 </ul>
 <p>
    Das folgende Beispiel zeigt die Ausgabe einer Produkt-Liste, die das Status-Objekt zur Formatierung der Ausgabe nutzt:
@@ -633,7 +644,7 @@ class IteratorStatus {
                data-item-count="${status-&gt;getItemCount()}"
                data-is-first="${status-&gt;isFirst(true)}"
                data-is-last="${status-&gt;isLast(true)}"&gt;
-            &lt;h3&gt;${item-&gt;getName()}&lt;/h3&gt;
+            &lt;h3&gt;(${item-&gt;getCounter()}) ${item-&gt;getName()}&lt;/h3&gt;
             &lt;img src="${item-&gt;getImg()}" /&gt;
             &lt;span&gt;${item-&gt;getPrice()}&lt;/span&gt;
          &lt;/li&gt;
