@@ -6,7 +6,7 @@ use ErrorException;
 
 class LiveErrorHandler extends DefaultErrorHandler {
 
-   public function handleError($errorNumber, $errorMessage, $errorFile, $errorLine, array $errorContext) {
+   public function handleError($errorNumber, $errorMessage, $errorFile, $errorLine) {
       // chain to LiveExceptionHandler for simplicity reasons
       throw new ErrorException($errorMessage, $errorNumber, 1, $errorFile, $errorLine);
    }
