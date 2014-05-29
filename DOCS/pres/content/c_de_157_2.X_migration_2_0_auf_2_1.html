@@ -1,0 +1,111 @@
+<doku:title parent="100" tags="migration,2.0,2.1,erweitertes templating" title="Migration von 2.0 auf 2.1" urlname="Migration-von-2-0-auf-2-1">
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 2.0), die notwendig sind
+   um Ihre Applikation auf die Version 2.1 zu portieren.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Version 2.1. ist das zweite Release der <em>2.X</em>-Serie. Sie bringt neben zahlreichen neuen Funktionalitäten
+   Fehlerkorrekturen und Optimierungen der Version 2.0 mit.
+</p>
+<p>
+   Um Ihre Applikation auf Basis der neuen Version betreiben zu können, sind kleinere Anpassungen an den Konfigurationsdateien
+   notwendig. Damit der Umsteig leichter fällt, liefert die neue Version eine automatisierte Migration aus und ein
+   Werkzeug zur Trennung von Applikations- und Framework-Code.
+</p>
+<p>
+   Die folgenden Kapitel zeigen Ihnen, wie der Umsteig auf das APF 2.1 funktioniert und welche Änderungen vorgenommen
+   werden müssen um Ihre bestehende(n) Applikation(en) auf dieser zu betreiben.
+</p>
+
+<h3 id="Chapter-2-Automatisierte-Migration"><a href="#Chapter-2-Automatisierte-Migration">2. Automatisierte Migration</a></h3>
+<p>
+   Wie von Release 2.0 bereits bekannt, lässt sich die Migration mit Hilfe eines mitgelieferten Migrations-Skripts
+   erledigen. In diesem Release wurden Änderungen an Konfigurationsdateien vorgenommen, die mit Hilfe des
+   Skripts <em>migrate-config.sh</em> auf Ihre bestehende Applikation übertragen werden können.
+</p>
+<div class="warn">
+   Bitte stellen Sie sicher, dass Sie vor der Migration alle unter <int:link pageid="156" /> beschriebenen Schritte
+   durchgeführt haben. Setzen Sie eine noch ältere Version ein, migrieren Sie bitte zuerst <em>vollständig</em> auf die
+   Version 2.0. Hinweise zur jeweiligen Migration finden Sie auf der Seite <int:link pageid="100" />.
+</div>
+<p>
+   Sofern Sie auf Windows entwickeln, installieren Sie bitte eine aktuelle Version von <em>cygwin</em> (Download unter
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Eine Migration auf Basis eines
+   Windows-Batch-Script wird nicht angeboten.
+</p>
+<p>
+   Um Ihre Konfigurationsdateien auf den neuesten Stand zu bringen, führen Sie das Skript bitte wie folgt aus:
+</p>
+<div class="warn">
+   Bitte wechseln Sie vor der Ausführung in das Konfigurationsverzeichnis Ihrer Applikation um unerwartete Ergebnisse
+   zu vermeiden.
+</div>
+<gen:highlight type="code">
+$ cd /path/to/my/config
+$ ../migration/migrate-config.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 2.1 automatic configuration migration #
+#############################################
+
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.4.16.
+
+#############################################
+
+Starting configuration migration ...
+* Front controller configuration files ...
+* Database configuration files ...
+
+#############################################
+
+Migration done! Please check your configuration and follow instructions within migration documentation!
+</gen:highlight>
+
+<h4 id="Chapter-3-Manuelle-Migration"><a href="#Chapter-3-Manuelle-Migration">3. Manuelle Migration</a></h4>
+<p>
+   Leider lassen sich nicht alle Bestandteile der Applikation automatisiert migrieren. In diesem Kapitel ist daher
+   eine Änderung beschrieben, die händisch erfolgen muss, da es dafür Änderungen an der Applikations-Logik bedarf.
+</p>
+<p>
+   Mit der Umsetzung des Feature-Request <a href="http://tracker.adventure-php-framework.org/view.php?id=171" class="external">ID#171</a>
+   wurde die Transformation von DOM-Knoten geändert. Dies hat zur Folge, dass der Inhalt des aktuell transformierten 
+   Knotens nicht mehr im Document-Controller im Feld
+</p>
+<gen:highlight type="php">
+$this->content
+</gen:highlight>
+<p>
+   bzw. über die Methode
+</p>
+<gen:highlight type="php">
+$this->getContent()
+</gen:highlight>
+<p>
+   zur Verfügung steht. Um auf den Inhalt zuzugreifen, benutzen Sie bitte die Referenz auf den aktuellen DOM-Knoten,
+   der mit der Methode
+</p>
+<gen:highlight type="php">
+$this->getDocument()
+</gen:highlight>
+<p>
+   referenziert werden kann. Mit dem zurückgegebenen <em>Document</em>-Instanz können Sie den Inhalt via
+</p>
+<gen:highlight type="php">
+$this->getDocument()->getContent()
+</gen:highlight>
+<p>
+   auslesen, bzw. über
+</p>
+<gen:highlight type="php">
+$this->getDocument()->setContent(...)
+</gen:highlight>
+<p>
+   manipulieren.
+</p>
+<div class="warn">
+   Bitte beachten Sie, dass die Manipulation des Inhalts von DOM-Knoten zu unerwünschten Effekten führen kann.
+   Diese Vorgehensweise wird daher innerhalb von Document-Controllern nicht empfohlen.
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_157" />
