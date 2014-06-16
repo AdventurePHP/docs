@@ -15,6 +15,7 @@ use DOCS\biz\TrackerSearchResult;
 use DOCS\biz\UrlManager;
 use APF\tools\link\Url;
 use APF\tools\request\RequestHandler;
+use DOCS\biz\WikiSearchResult;
 
 /**
  * @package DOCS\pres\controller
