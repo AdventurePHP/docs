@@ -4,7 +4,7 @@ namespace DOCS\pres\taglib;
 use APF\core\pagecontroller\Document;
 use APF\core\pagecontroller\TagLib;
 use APF\core\singleton\Singleton;
-
+use DOCS\biz\APFModel;
 
 /**
  * @package DOCS\pres\taglib
@@ -34,10 +34,10 @@ class ContentDisplayTag extends Document {
       parent::__construct();
 
       // include the additional tag libs
-      $this->tagLibs[] = new TagLib('DOCS\pres\taglib\GenericHighlightTag', 'gen', 'highlight');
-      $this->tagLibs[] = new TagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link');
-      $this->tagLibs[] = new TagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link');
-      $this->tagLibs[] = new TagLib('DOCS\pres\taglib\DocumentationTitleTag', 'doku', 'title');
+      self::addTagLib(new TagLib('DOCS\pres\taglib\GenericHighlightTag', 'gen', 'highlight'));
+      self::addTagLib(new TagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link'));
+      self::addTagLib(new TagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link'));
+      self::addTagLib(new TagLib('DOCS\pres\taglib\DocumentationTitleTag', 'doku', 'title'));
    }
 
    /**

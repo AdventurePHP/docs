@@ -34,9 +34,9 @@ class RevisionHistoryTag extends Document {
     */
    public function __construct() {
       parent::__construct();
-      $this->tagLibs[] = new TagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link');
-      $this->tagLibs[] = new TagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link');
-      $this->tagLibs[] = new TagLib('DOCS\pres\taglib\GenericHighlightTag', 'gen', 'highlight');
+      self::addTagLib(new TagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link'));
+      self::addTagLib(new TagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link'));
+      self::addTagLib(new TagLib('DOCS\pres\taglib\GenericHighlightTag', 'gen', 'highlight'));
    }
 
    public function onParseTime() {

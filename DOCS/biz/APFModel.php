@@ -1,7 +1,7 @@
 <?php
 namespace DOCS\biz;
 
-use APF\core\pagecontroller\APFObject;
+use APF\core\pagecontroller\Document;
 
 /**
  * @package DOCS\biz
@@ -13,7 +13,8 @@ use APF\core\pagecontroller\APFObject;
  * @version
  * Version 0.1, 22.08.2008<br />
  */
-class APFModel extends APFObject {
+// TODO Remove dependency from class Document (attributes!).
+class APFModel extends Document {
 
    private static $PAGEID = 'page.id';
    private static $VERSION_ID = 'version.id';
@@ -79,8 +80,8 @@ class APFModel extends APFObject {
 
       // defines the page indicator per language
       $this->attributes['page.indicator'] = array(
-         'de' => 'Seite',
-         'en' => 'Page'
+            'de' => 'Seite',
+            'en' => 'Page'
       );
 
       // display sidebar (true) or not (false)
@@ -90,6 +91,7 @@ class APFModel extends APFObject {
 
    public function getLangUrlIdentifier() {
       $lang = $this->getAttribute(self::$LANG);
+
       return $this->getUrlIdentifier($lang);
    }
 
@@ -99,6 +101,7 @@ class APFModel extends APFObject {
     * Returns the language identifier used to decide the language displayed.
     *
     * @param string $lang The desired language.
+    *
     * @return string The url lang identifier.
     */
    public function getUrlIdentifier($lang) {

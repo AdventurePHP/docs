@@ -28,8 +28,8 @@ class NewsItemTag extends Document {
    private $mode;
 
    public function __construct() {
-      $this->tagLibs[] = new TagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link');
-      $this->tagLibs[] = new TagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link');
+      self::addTagLib(new TagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link'));
+      self::addTagLib(new TagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link'));
       $this->mode = self::$MODE_NEWS;
    }
 

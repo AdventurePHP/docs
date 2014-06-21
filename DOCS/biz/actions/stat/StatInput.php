@@ -6,15 +6,15 @@ use APF\core\frontcontroller\FrontcontrollerInput;
 class StatInput extends FrontcontrollerInput {
 
    public function getLanguage() {
-      return $this->getAttribute('lang');
+      return $this->getParameter('lang');
    }
 
    public function getPageId() {
-      return $this->getAttribute('id');
+      return $this->getParameter('id');
    }
 
    public function getTitle() {
-      return urldecode($this->getAttribute('title'));
+      return urldecode($this->getParameter('title'));
    }
 
 }
