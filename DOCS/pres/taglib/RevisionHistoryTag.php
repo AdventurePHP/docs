@@ -2,12 +2,11 @@
 namespace DOCS\pres\taglib;
 
 use APF\core\pagecontroller\Document;
-use APF\core\pagecontroller\TagLib;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
-use DOCS\pres\controller\release\ReleaseBaseController;
-use DOCS\biz\APFModel;
 use APF\tools\request\RequestHandler;
+use DOCS\biz\APFModel;
+use DOCS\pres\controller\release\ReleaseBaseController;
 
 /**
  * @package DOCS\pres\taglib
@@ -23,20 +22,8 @@ class RevisionHistoryTag extends Document {
 
    private static $FALLBACK_RELEASE_PARAM = 'fallback';
 
-   /**
-    * @public
-    *
-    * Initializes the known taglibs.
-    *
-    * @author Christian Achatz
-    * @version
-    * Version 0.1, 30.12.2009<br />
-    */
    public function __construct() {
-      parent::__construct();
-      self::addTagLib(new TagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link'));
-      self::addTagLib(new TagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link'));
-      self::addTagLib(new TagLib('DOCS\pres\taglib\GenericHighlightTag', 'gen', 'highlight'));
+      // nothing to do, especially not initialize object id as this is done by the APF parser
    }
 
    public function onParseTime() {
@@ -62,9 +49,10 @@ class RevisionHistoryTag extends Document {
    }
 
    private function getReleaseHeader($releaseNumber) {
-      $title = (string)'<h2>';
+      $title = (string) '<h2>';
       $config = $this->getConfiguration('DOCS\pres', 'labels.ini');
       $title .= $config->getSection($this->getLanguage())->getValue('downloads.changeset.text.heading');
+
       return $title . $releaseNumber . '</h2>';
    }
 
@@ -74,6 +62,7 @@ class RevisionHistoryTag extends Document {
     * Returns the formatted text of the release description file. Resolves unencoded ampersands.
     *
     * @param string $releaseNumber The desired release to display the history of.
+    *
     * @return string The revision history text from the release file.
     *
     * @author Christian Achatz
@@ -86,6 +75,7 @@ class RevisionHistoryTag extends Document {
       if (file_exists($historyFile)) {
          return preg_replace('/&([A-Za-z0-9\-_]+)=([A-Za-z0-9\-_]+)/', '&amp;$1=$2', file_get_contents($historyFile));
       }
+
       return '';
    }
 
@@ -97,6 +87,7 @@ class RevisionHistoryTag extends Document {
       if ($release === null) {
          $release = $this->getAttribute(self::$FALLBACK_RELEASE_PARAM);
       }
+
       return $release;
    }
 

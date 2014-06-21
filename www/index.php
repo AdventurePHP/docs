@@ -13,6 +13,8 @@ use APF\core\frontcontroller\Frontcontroller;
 use APF\core\loader\RootClassLoader;
 use APF\core\loader\StandardClassLoader;
 use APF\core\logging\Logger;
+use APF\core\pagecontroller\Document;
+use APF\core\pagecontroller\TagLib;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
 use APF\tools\link\LinkGenerator;
@@ -85,8 +87,14 @@ OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 // send HTTP caching headers
 HttpCacheManager::sendHtmlCacheHeaders();
 
-$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+// Register tags to avoid performance overhead
+Document::addTagLib(new TagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link'));
+Document::addTagLib(new TagLib('DOCS\pres\taglib\DocumentationTitleTag', 'doku', 'title'));
+Document::addTagLib(new TagLib('DOCS\pres\taglib\GenericHighlightTag', 'gen', 'highlight'));
+Document::addTagLib(new TagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link'));
+
 /* @var $fC Frontcontroller */
+$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
 $fC->setContext(null);
 $fC->setLanguage('de');
 

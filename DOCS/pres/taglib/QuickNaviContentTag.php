@@ -2,7 +2,6 @@
 namespace DOCS\pres\taglib;
 
 use APF\core\pagecontroller\Document;
-use APF\core\pagecontroller\TagLib;
 use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
 
@@ -19,11 +18,7 @@ use DOCS\biz\APFModel;
 class QuickNaviContentTag extends Document {
 
    public function __construct() {
-
-      parent::__construct();
-
-      // include the additional tag libs
-      self::addTagLib(new TagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link'));
+      // nothing to do, especially not initialize object id as this is done by the APF parser
    }
 
    /**
@@ -44,9 +39,9 @@ class QuickNaviContentTag extends Document {
 
       // include the content of the model's content file in the current object
       $this->content .= file_get_contents(
-         $model->getAttribute('content.filepath')
-               . '/quicknavi/'
-               . $model->getPageNaviFileName()
+            $model->getAttribute('content.filepath')
+            . '/quicknavi/'
+            . $model->getPageNaviFileName()
       );
 
       // extract tag libs included in the content
