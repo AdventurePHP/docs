@@ -19,7 +19,7 @@ class SetupController extends BaseDocumentController {
          $value = $database->getValue()->getValue();
 
          if ($value == 'all' || $value == 'comments') {
-            $this->setupMySQLx();
+            $this->setupComments();
          }
 
          if ($value == 'all' || $value == 'fulltext') {
@@ -120,7 +120,7 @@ class SetupController extends BaseDocumentController {
 
    }
 
-   private function setupMySQLx() {
+   private function setupComments() {
       $conn = $this->getConnection('Comments');
 
       $loader = RootClassLoader::getLoaderByVendor('APF');

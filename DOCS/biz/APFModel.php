@@ -145,7 +145,7 @@ class APFModel extends Document {
    }
 
    public function getDefaultVersionId() {
-      return '2.X';
+      return '3.X';
    }
 
    /**

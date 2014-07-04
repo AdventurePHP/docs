@@ -54,8 +54,4 @@ class DatabaseController extends BaseDocumentController {
       return $form->getFormElementByName($controlName)->getValue();
    }
 
-   private function setFormValue(HtmlFormTag $form, $controlName, $value) {
-      $form->getFormElementByName($controlName)->setValue($value);
-   }
-
 }
