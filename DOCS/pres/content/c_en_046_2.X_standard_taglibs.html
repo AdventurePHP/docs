@@ -1,5 +1,5 @@
 <doku:title parent="119" tags="tag,tags,taglibs,standard taglibs,addtaglib,importdesign,forms,form tags,form,getstring,createobject,document controller,page controller,front controller,documentcontroller,pagecontroller,frontcontroller,iterator,model based view concept,validator" title="Standard taglibs" urlname="Standard-taglibs">
-  The standard tags page contains the documentation of the tags that are shipped with each
+  The standard taglibs page contains the documentation of the taglibs that are shipped with each
   release. Among these are tags to integrate further templates, form tags, the document controller
   definition tag and front controller tag, that can dynamically include view templates by front
   controller model parameters. At least the iterator tag is introduced.
@@ -52,8 +52,9 @@
 <p>
    The methods that have to be implemented within a tag class can be found in the <int:link pageid="002" /> or
    the <int:link pageid="147" /> tutorial. The naming if the tag class can be freely defined by the developer using the
-   <em>class</em> attribute. At the same time, it is possible to register one tag implementation
-   with different prefixes.
+   <em>class</em> attribute as of release 1.16. At the same time, it is possible to register one tag implementation
+   with different prefixes. This is used to register the implementation of the <em>&lt;html:placeholder /&gt;</em>
+   tag to be used within the <em>&lt;html:template /&gt;</em> tag for instance.
 </p>
 <p>
    Creating custom tags is recommended in case functionality should be used throughout multiple projects or in case the
@@ -65,16 +66,8 @@
    To include another template into a certain place in the space of a present template the tag
 </p>
 <gen:highlight type="apf-xml">
-&lt;core:importdesign
-   namespace=""
-   template=""
-   [incparam=""]
-   [context=""]
-/&gt;
+&lt;core:importdesign namespace="" template="" [incparam=""] [context=""]/&gt;
 </gen:highlight>
-<p>
-   can be used.
-</p>
 <strong>Description of the attributes:</strong>
 <ul>
   <li>
@@ -93,10 +86,10 @@
   </li>
 </ul>
 <p>
-   If a so-called <em>pagepart</em> template is defined with the definition of this tag, a template
-   can be integrated depending by the specified URL parameter. Standard parameter is <em>pagepart</em>,
-   nevertheless, this can be adapted with the optional attribute <em>incparam</em>. Example of the integration
-   with the <em>pagepart</em> parameter is:
+   can be used. If a so-called pagepart template is defined with the definition of this tag, a template
+   can be integrated depending by the specified URL parameter. Standard parameter is "pagepart",
+   nevertheless, this can be adapted with the optional attribute "incparam". Example of the integration
+   with the pagepart parameter is:
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:importdesign
@@ -129,6 +122,7 @@
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:placeholder name="" /&gt;
+&lt;html:placeholder name=""&gt;...&lt;/html:placeholder&gt;
 </gen:highlight>
 <strong>Description of the attributes:</strong>
 <ul>
@@ -145,9 +139,23 @@
 $this->setPlaceHolder('NameOfThePlaceHolder', 'ContentOfThePlaceHolder');
 </gen:highlight>
 <p>
-   In addition, any number of string replacements can be registered with a place holder. This enables you to inject
+   Since release 1.17 any number of string replacements can be registered with a place holder. This enables you to inject
    dynamic content into the place holder using a tag implementation or a document controller.
 </p>
+<p>
+   For this reason, <em>BaseDocumentController</em> features the <em>setStringPlaceHolder()</em> method. Using this
+   method, you can inject any numbers of string placements into a place holder (class: <em>PlaceHolderTag</em>). In
+   case you intend to fill the <em>{NAME}</em> key within the place holder definition
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="name"&gt;My name is {NAME}.&lt;/html:placeholder&gt;
+</gen:highlight>
+<p>
+   with <em>John Doe</em> please us the following code:
+</p>
+<gen:highlight type="php">
+$this->setStringPlaceHolder('name', 'NAME', 'John Doe');
+</gen:highlight>
 
 <h5 id="Chapter-2-2-Getstring"><a href="#Chapter-2-2-Getstring">2.2. Getstring</a></h5>
 <p>
@@ -210,8 +218,10 @@ title = "Mein Modul"
 [en]
 title = "My module"
 </gen:highlight>
+
+
 <p>
-   Moreover, language-dependent texts can be added place holders that can be filled dynamically within a
+   Since release 1.15 language-dependent texts can be added place holders that can be filled dynamically within a
    <int:link pageid="006"/> at runtime. The place holder is defined by it's name enclosed by brackets:
 </p>
 <gen:highlight type="code">
@@ -239,7 +249,7 @@ message = "This is a message from {user-name} sent at {date}."
        entry="headline"/&gt;&lt;/h3&gt;
 &lt;html:form name="Form"&gt;
    &lt;p&gt;
-      &lt;html:getstring
+      &lt;form:getstring
              name="intro-text"
              namespace="..."
              config="..."
@@ -250,7 +260,7 @@ message = "This is a message from {user-name} sent at {date}."
 &lt;html:template name="Message"&gt;
    ...
    &lt;p&gt;
-      &lt;html:getstring
+      &lt;template:getstring
             name="message"
             namespace="..."
             config="..."
@@ -291,19 +301,22 @@ class SampleController extends BaseDocumentController {
    The number of place holders per language key is not restricted. Place holders that are not filled are displayed
    literally within the output.
 </div>
+<p>
+   This description of this tag can also be applied to the tags <em>&lt;form:getstring /&gt;</em>
+   (<int:link pageid="113" anchor="Chapter-3-17-Getstring"/>) and <em>&lt;template:getstring /&gt;</em>
+   (<a href="#Chapter-2-3-4-Getstring">chapter 2.3.3.</a>).
+</p>
 
 <h4 id="Chapter-2-3-Template"><a href="#Chapter-2-3-Template">2.3. Template</a></h4>
 <h5 id="Chapter-2-3-1-Basic-functions"><a href="#Chapter-2-3-1-Basic-functions">2.3.1. Basic functions</a></h5>
-<p>
-   To be able to define further reusable elements the so-called templates are introduces. These can be
-   manipulated and be processed within a document controllers. Each template again has place holders
-   than can be filled dynamically.
-</p>
+To be able to define further reusable elements the so-called templates are introduces. These can be
+manipulated and be processed within a document controllers. Each template again has place holders
+than can be filled dynamically.
 <gen:highlight type="apf-xml">
 &lt;html:template name=""&gt;
-   [&lt;html:placeholder name="" /&gt;]
-   [&lt;core:addtaglib class="" prefix="" name="" /&gt;]
-   [&lt;html:getstring namespace="" config="" entry="" /&gt;]
+   [&lt;template:placeholder name="" /&gt;]
+   [&lt;template:addtaglib class="" prefix="" name="" /&gt;]
+   [&lt;template:getstring namespace="" config="" entry="" /&gt;]
 &lt;/html:template&gt;
 </gen:highlight>
 <strong>Description of the attributes:</strong>
@@ -315,8 +328,9 @@ class SampleController extends BaseDocumentController {
   </li>
 </ul>
 <div class="hint">
-   In case you want to add further tags within <em>&lt;html:template /&gt;</em> you can add them using the
-   <em>&lt;core:addtaglib /&gt;</em> tag eprior usage.
+   Please note, that due to <int:link pageid="147" anchor="Chapter-6-Tag-hierarchies">restrictions of the APF parsers</int:link>
+   adding known tags within a <em>&lt;html:template /&gt;</em> tags must be done using a <em>&lt;template:addtaglib /&gt;</em>
+   tag.
 </div>
 <p>
    Access to a template grants the protected method <em>getTemplate()</em> of a document controller.
@@ -331,7 +345,7 @@ class SampleController extends BaseDocumentController {
 &lt;html:placeholder name="Content" /&gt;
 
 &lt;html:template name="MyTemplate"&gt;
-  &lt;html:placeholder name="MyPlaceHolder"&gt;
+  &lt;template:placeholder name="MyPlaceHolder"&gt;
 &lt;/html:template&gt;
 </gen:highlight>
 <strong>Controller:</strong>
@@ -453,7 +467,107 @@ class SampleController extends BaseDocumentController {
 }
 </gen:highlight>
 
-<h3 id="Chapter-3-Document-controller"><a href="#Chapter-3-Document-controller">3. Document controller</a></h3>
+<h5 id="Chapter-2-3-3-Template-enhancement"><a href="#Chapter-2-3-3-Template-enhancement">2.3.3. Template enhancement</a></h5>
+<p>
+   If the standard functionality of HTML templates must be extended, the tag <em>&lt;template:addtaglib /&gt;</em>
+   can be used to achieve this goal. The behaviour of the is similar to <em>&lt;core:addtaglib /&gt;</em> that
+   can be used in context of template files to add tag libs there.
+</p>
+<gen:highlight type="apf-xml">
+&lt;template:addtaglib class="" prefix="" name="" /&gt;
+</gen:highlight>
+<strong>Description of the attributes:</strong>
+<ul>
+   <li>
+      <strong>class</strong>: The fully-qualified class name of the tag implementation.
+      (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_\]</code>)
+   </li>
+   <li>
+      <strong>prefix</strong>: The XML prefix.
+      (<strong>Allowed characters</strong>: <code>[a-z]</code>)
+   </li>
+   <li>
+      <strong>name</strong>: The XML tag name.
+      (<strong>Allowed characters</strong>: <code>[a-z]</code>)
+   </li>
+</ul>
+<p>
+   An example of the use of the XML tag is the taglib tag &lt;[html|template]:getstring / &gt;
+   to read a string from a configuration file and display it. See <a href="#Chapter-2-3-4-Getstring">chapter 2.2.3</a>
+   for more details.
+</p>
+
+<h5 id="Chapter-2-3-4-Getstring"><a href="#Chapter-2-3-4-Getstring">2.3.4. Getstring</a></h5>
+<p>
+   The tag <em>&lt;template:getstring /&gt;</em> gives the opportunity to read a configuration string from a
+   language-dependent configuration file and so create multi-language GUIs.
+</p>
+<gen:highlight type="apf-xml">
+&lt;template:getstring namespace="" config="" entry="" /&gt;
+</gen:highlight>
+<strong>Description of the attributes:</strong>
+<ul>
+  <li>
+    <strong>namespace</strong>: Namespace of the configuration file.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9_-\]</code>)
+  </li>
+  <li>
+    <strong>config</strong>: Name of the configuration file.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>entry</strong>: Name of the configuration key.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9-_.]</code>)
+  </li>
+</ul>
+
+<h3 id="Chapter-3-Document"><a href="#Chapter-3-Document">3. Document</a></h3>
+<h4 id="Chapter-3-1-Createobject"><a href="#Chapter-3-1-Createobject">3.1. createobject</a></h4>
+<p>
+   This tag creates a sub-tree from content files that are located under <em>./frontend/content/</em>. Content files
+   must be named
+</p>
+<gen:highlight type="code">
+c_{LANGCODE}_{NAME}.html
+</gen:highlight>
+<p>
+   The described parts of the file name are:
+</p>
+<ul>
+  <li><strong>LANGCODE</strong>: a 2 letter ISO language code (de, en, it, es, ...) and</li>
+  <li><strong>NAME</strong>: the URL name of the current page.</li>
+</ul>
+<gen:highlight type="apf-xml">
+&lt;doc:createobject requestparam="" defaultvalue="" /&gt;
+</gen:highlight>
+<strong>Description of the attributes:</strong>
+<ul>
+  <li>
+    <strong>requestparam</strong>: URL parameter, that describes, which content fil has to be loaded.
+    (<strong>Allowed characters</strong>: <code>[A-Za-z0-9]</code>)
+  </li>
+  <li>
+    <strong>defaultvalue</strong>: Default value of the parameter defined through <em>requestparam</em>.
+  </li>
+</ul>
+<p>
+   To use the tag it must be announced using
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="APF\tools\html\taglib\CreateDocumentFromFileTag"
+   prefix="doc"
+   name="createobject"
+/&gt;
+</gen:highlight>
+<div class="hint">
+   If the tag could not find an appropriate file according to the <strong>requestparam</strong>, it
+   expects a file with the name <gen:highlight type="code">c_{LANGCODE}_404.html</gen:highlight>
+   to indicate, that the desired page cannot be displayed. In case the error file is not present a 
+   php error will be displayed.
+</div>
+
+<h3 id="Chapter-4-Document-controller"><a href="#Chapter-4-Document-controller">4. Document controller</a></h3>
 <p>
    As already described under <int:link pageid="006"/> a document controller must be declared via
 </p>
@@ -473,7 +587,7 @@ class SampleController extends BaseDocumentController {
    Details can be found under <int:link pageid="006" />.
 </p>
 
-<h3 id="Chapter-4-Front-controller"><a href="#Chapter-4-Front-controller">4. Front controller</a></h3>
+<h3 id="Chapter-5-Front-controller"><a href="#Chapter-5-Front-controller">5. Front controller</a></h3>
 <p>
    The <em>&lt;fcon:importdesign /&gt;</em> tag aids the implementation of front controller based applications and
    makes it possible to include views by the use of application model information according to the MVC pattern.

@@ -53,9 +53,11 @@
 </ul>
 <p>
    Die innerhalb der Klasse zu implementierenden Methoden können der <int:link pageid="002" /> oder dem Tutorial
-   <int:link pageid="147" /> entnommen werden. Die Bennenung der Tag-Implementierung kann frei durch das
+   <int:link pageid="147" /> entnommen werden. Die Bennenung der Tag-Implementierung kann ab Release 1.16 frei durch das
    Attribut <em>class</em> definiert werden. Dabei ist es möglich, eine Implementierung mit unterschiedlichen Präfixen
-   und unterschiedlichen Tag-Namen zu registrieren.
+   und unterschiedlichen Tag-Namen zu registrieren. Diese Funktionalität wird beispielswiese genutzt um die
+   Implementierung des <em>&lt;html:placeholder /&gt;</em>-Tags auch innerhalb eines <em>&lt;html:template /&gt;</em>
+   wiederverwenden zu können.
 </p>
 <p>
    Die Implementierung von eigenen Tags wird empfohlen, wenn Funktionalitäten in mehreren Projekten wiederverwendet
@@ -64,19 +66,11 @@
 
 <h4 id="Chapter-1-2-Importdesign"><a href="#Chapter-1-2-Importdesign">1.2. Importdesign</a></h4>
 <p>
-   Möchte der Template-Entwickler an einer definierten Stelle ein weiteres <em>Document</em> einfügen, so kann der Tag
+   Möchte der Template-Bauer an einer definierten Stelle ein weiteres Document einfügen, so kann der Tag
 </p>
 <gen:highlight type="apf-xml">
-&lt;core:importdesign
-   namespace=""
-   template=""
-   [incparam=""]
-   [context=""]
-/&gt;
+&lt;core:importdesign namespace="" template="" [incparam=""] [context=""]/&gt;
 </gen:highlight>
-<p>
-   genutzt werden.
-</p>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
   <li>
@@ -96,9 +90,9 @@
   </li>
 </ul>
 <p>
-   Wird bei der Definition des Tags ein sog. <em>pagepart</em>-Template definiert, kann ein
-   Template abhängig vom URL-Parameter eingebunden werden. Standard-Parameter ist <em>pagepart</em>,
-   dieser kann jedoch mit dem optionalen Attribut <em>incparam</em> angepasst werden. Beispiel für die
+   verwendet werden. Wird bei der Definition des Tags ein sog. pagepart-Template definiert, kann ein
+   Template abhängig vom URL-Parameter eingebunden werden. Standard-Parameter ist "pagepart",
+   dieser kann jedoch mit dem optionalen Attribut "incparam" angepasst werden. Beispiel für die
    Einbindung mit pagepart-Parameter:
 </p>
 <gen:highlight type="apf-xml">
@@ -132,6 +126,7 @@
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:placeholder name="" /&gt;
+&lt;html:placeholder name=""&gt;...&lt;/html:placeholder&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
@@ -146,12 +141,25 @@
 <gen:highlight type="php">
 $this->setPlaceHolder('NameDesPlatzhalters', 'InhaltDesPlatzHalters');
 </gen:highlight>
-<div class="hint">
-   Neben der klassischen Definition von Platzhaltern können Sie auch die erweiterte Templating-Syntax einsetzen. Ein
-   Platzhalter mit dem Namen <em>NameDesPlatzhalters</em> lässt sich damit auch per
-   <gen:highlight type="apf-xml">&#36;{NameDesPlatzhalters}</gen:highlight> definieren. Details finden Sie unter
-   <int:link pageid="047" anchor="Chapter-3-1-Platzhalter" />.
-</div>
+<p>
+   Ab Release 1.17 können für einen Platzhalter zusätzlich eine beliebige Anzahl an Zeichen-Ersetzungen registriert
+   werden. Damit ist es möglich, dynamische Inhalte innerhalb eines Platzhalters über einen Tag oder einen
+   Document-Controller zu ersetzten.
+</p>
+<p>
+   Hierzu stehen Ihnen in der Klasse <em>BaseDocumentController</em> die Methode <em>setStringPlaceHolder()</em> zur
+   Verfügung. Mit dieser lassen sich in einem Platzhalter (Klasse: <em>PlaceHolderTag</em>) beliebige Zeichen-Ersetzungen
+   registrieren. Soll innerhalb eines Platzhalters der Form
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="name"&gt;Mein Name ist {NAME}.&lt;/html:placeholder&gt;
+</gen:highlight>
+<p>
+   der Schlüssel <em>[NAME]</em> mit dem Wert <em>John Doe</em> ersetzt werden, so können Sie folgenden Code verwenden:
+</p>
+<gen:highlight type="php">
+$this->setStringPlaceHolder('name', 'NAME', 'John Doe');
+</gen:highlight>
 
 <h4 id="Chapter-2-2-Getstring"><a href="#Chapter-2-2-Getstring">2.2. Getstring</a></h4>
 <p>
@@ -213,9 +221,9 @@ title = "My module"
    gefüllt werden.
 </p>
 <p>
-   Sprachabhängige Werte lassen sich zusätzlich mit Platzhaltern versehen, die mittels <int:link pageid="006"/> zur
-   Ausführungszeit dynamisch gefüllt werden können. Ein Platzhalter definiert sich durch seinen Namen, der durch
-   Klammern eingefasst ist:
+   Seit dem Release 1.15 lassen sich sprachabhängige Werte zusätzlich mit Platzhaltern versehen, die mittels
+   <int:link pageid="006"/> zur Ausführungszeit dynamisch gefüllt werden können. Ein Platzhalter definiert sich durch
+   seinen Namen, der durch Klammern eingefasst ist:
 </p>
 <gen:highlight type="code">
 {user-name}
@@ -242,7 +250,7 @@ message = "Dies ist eine Nachricht von {user-name}, die am {date} gesendet wurde
        entry="headline"/&gt;&lt;/h3&gt;
 &lt;html:form name="Form"&gt;
    &lt;p&gt;
-      &lt;html:getstring
+      &lt;form:getstring
              name="intro-text"
              namespace="..."
              config="..."
@@ -253,7 +261,7 @@ message = "Dies ist eine Nachricht von {user-name}, die am {date} gesendet wurde
 &lt;html:template name="Message"&gt;
    ...
    &lt;p&gt;
-      &lt;html:getstring
+      &lt;template:getstring
             name="message"
             namespace="..."
             config="..."
@@ -294,19 +302,22 @@ class SampleController extends BaseDocumentController {
    Die Anzahl der Platzhalter pro Schlüssel ist nicht begrenzt. Nicht gesetzte Platzhalter werden bei der Ausgabe nicht
    ersetzt und erscheinen im Klartext in der Ausgabe.
 </div>
+<p>
+   Diese Beschreibung gilt ebenso für die Tags <em>&lt;form:getstring /&gt;</em>
+   (<int:link pageid="113" anchor="Chapter-3-17-Getstring"/>) und
+   <em>&lt;template:getstring /&gt;</em> (<a href="#Chapter-2-3-4-Getstring">Kapitel 2.3.3.</a>).
+</p>
 
 <h4 id="Chapter-2-3-Template"><a href="#Chapter-2-3-Template">2.3. Template</a></h4>
 <h5 id="Chapter-2-3-1-Basis-Funktionen"><a href="#Chapter-2-3-1-Basis-Funktionen">2.3.1. Basis-Funktionen</a></h5>
-<p>
-   Um weitere Elemente für die Ausgabe-Steuerung definieren zu können gibt es so genannte
-   Templates. Diese können innerhalb eines Document-Controllers manipuliert und verarbeitet werden.
-   In einem Template gibt es wiederum Platzhalter, die dynamisch gesetzt werden können.
-</p>
+Um weitere Elemente für die Ausgabe-Steuerung definieren zu können gibt es so genannte
+Templates. Diese können innerhalb eines Document-Controllers manipuliert und verarbeitet werden.
+In einem Template gibt es wiederum Platzhalter, die dynamisch gesetzt werden können.
 <gen:highlight type="apf-xml">
 &lt;html:template name=""&gt;
-   [&lt;html:placeholder name="" /&gt;]
-   [&lt;core:addtaglib class="" prefix="" name="" /&gt;]
-   [&lt;html:getstring namespace="" config="" entry="" /&gt;]
+   [&lt;template:placeholder name="" /&gt;]
+   [&lt;template:addtaglib class="" prefix="" name="" /&gt;]
+   [&lt;template:getstring namespace="" config="" entry="" /&gt;]
 &lt;/html:template&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
@@ -318,8 +329,9 @@ class SampleController extends BaseDocumentController {
   </li>
 </ul>
 <div class="hint">
-   Möchten Sie weitere Tags innerhalb von <em>&lt;html:template /&gt;</em> verwenden, können Sie diese mit
-   <em>&lt;core:addtaglib /&gt;</em> vor der Verwendung hinzufügen.
+   Bitte beachten Sie, dass auf Grund der <int:link pageid="147" anchor="Chapter-6-Tag-Hierarchie">Restriktionen des APF-Parsers</int:link>
+   das Hinzufügen von bekannten Tags innerhalb des <em>&lt;html:template /&gt;</em>-Tags via <em>&lt;template:addtaglib /&gt;</em>
+   erfolgen muss.
 </div>
 <p>
    Zugriff auf ein Template gewährt die geschützte Methode <em>getTemplate()</em> eines Document-Controllers.
@@ -334,7 +346,7 @@ class SampleController extends BaseDocumentController {
 &lt;html:placeholder name="Content" /&gt;
 
 &lt;html:template name="MyTemplate"&gt;
-  &lt;html:placeholder name="MyPlaceHolder"&gt;
+  &lt;template:placeholder name="MyPlaceHolder"&gt;
 &lt;/html:template&gt;
 </gen:highlight>
 <strong>Controller:</strong>
@@ -350,7 +362,7 @@ class SampleController extends BaseDocumentController {
 }
 </gen:highlight>
 <p>
-   Hier wird in der Template-Datei ein Document-Controller, ein HTML-Platzhalter und ein Template mit zugehörigem
+   Hier wird in der XML-Datei ein Document-Controller, ein HTML-Platzhalter und ein Template mit zugehörigem
    Platzhalter definiert. Im Controller kann man nun mittels der Methoden <em>getTemplate()</em> eine Referenz
    auf das Template holen und mit <em>setPlaceHolder()</em> den Platzhalter im Template füllen.
    Anschließend wird das Template transformiert und die Ausgabe in den HTML-Platzhalter mittels
@@ -460,7 +472,110 @@ class SampleController extends BaseDocumentController {
 }
 </gen:highlight>
 
-<h3 id="Chapter-3-Document-Controller"><a href="#Chapter-3-Document-Controller">3. Document-Controller</a></h3>
+<h5 id="Chapter-2-3-3-Template-Erweiterungen"><a href="#Chapter-2-3-3-Template-Erweiterungen">2.3.3. Template-Erweiterungen</a></h5>
+<p>
+   Um die Funktionalitäten innerhalb eines Templates mit weiteren TagLibs erweitern zu können
+   steht der Tag <em>&lt;template:addtaglib /&gt;</em> zur Verfügung. Ähnlich dem <em>&lt;core:addtaglib /&gt;</em>-
+   Tag können hier innerhalb eines Templates weitere TagLibs hinzugefügt werden.
+</p>
+<gen:highlight type="apf-xml">
+&lt;template:addtaglib class="" prefix="" name="" /&gt;
+</gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+   <li>
+      <strong>class</strong>: Der voll-qualifizierte Klassen-Name der Tag-Implementierung.
+      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_\]</code>)
+   </li>
+   <li>
+      <strong>prefix</strong>: XML-Prefix.
+      (<strong>Zeichen</strong>: <code>[a-z]</code>)
+   </li>
+   <li>
+      <strong>name</strong>: XML-Tag-Name.
+      (<strong>Zeichen</strong>: <code>[a-z]</code>)
+   </li>
+</ul>
+<p>
+   Ein Beispiel für die Verwendung des XML-Tags ist der TagLib-Tag &lt;[html|template]:getstring /&gt;
+   zum Auslesen und Darstellen eines Strings aus einer Konfigurations-Datei.
+   Siehe hierzu <a href="#Chapter-2-3-4-Getstring">Kapitel 2.3.3</a>.
+</p>
+
+<h5 id="Chapter-2-3-4-Getstring"><a href="#Chapter-2-3-4-Getstring">2.3.4. Getstring</a></h5>
+<p>
+   Der Tag <em>&lt;template:getstring /&gt;</em> dient dazu einen Konfigurations-String aus einer sprachabhängigen
+   Konfigurations-Datei auszulesen und anzuzeigen. So können auf einfache Weise mehrsprachige
+   Anwendungen aufgebaut werden.
+</p>
+<gen:highlight type="apf-xml">
+&lt;template:getstring namespace="" config="" entry="" /&gt;
+</gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>namespace</strong>: Namespace der Konfigurationsdatei.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-\]</code>)
+  </li>
+  <li>
+    <strong>config</strong>: Name der Konfigurationsdatei.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>entry</strong>: Name des Konfigurations-Offsets.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_.]</code>)
+  </li>
+</ul>
+
+<h3 id="Chapter-3-Document"><a href="#Chapter-3-Document">3. Document</a></h3>
+<h4 id="Chapter-3-1-createobject"><a href="#Chapter-3-1-createobject">3.1. createobject</a></h4>
+<p>
+   Der Tag erzeugt aus einer Inhalts-Datei unter dem Ordner <em>./frontend/content/</em> einen
+   weiteren Unter-Objektbaum. Die Inhalts-Dateien werden in der Form
+</p>
+<gen:highlight type="code">
+c_{LANGCODE}_{NAME}.html
+</gen:highlight>
+<p>
+   erwartet, wobei
+</p>
+<ul>
+  <li><strong>LANGCODE</strong> für ein zweizeichen Länderkürzel (de, en, it, es, ...) steht und</li>
+  <li><strong>NAME</strong> der URL-Name ist.</li>
+</ul>
+<gen:highlight type="apf-xml">
+&lt;doc:createobject requestparam="" defaultvalue="" /&gt;
+</gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>requestparam</strong>: URL-Parameter, der angibt, welche Content-Datei gezogen wird. (<strong>Zeichen</strong>: <code>[A-Za-z0-9]</code>)
+  </li>
+  <li>
+    <strong>defaultvalue</strong>: Default-Wert für den Parameter <em>requestparam</em>.
+  </li>
+</ul>
+<p>
+   Um den Tag verwenden zu können muss diese mit einem
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="APF\tools\html\taglib\CreateDocumentFromFileTag"
+   prefix="doc"
+   name="createobject"
+/&gt;
+</gen:highlight>
+<p>
+   in der Template-Datei eingebunden werden.
+</p>
+<div class="hint">
+   Wird keine zum zu <strong>requestparam</strong> passende Datei im Ordner gefunden, erwartet der 
+   Tag eine Datei mit dem Namen <gen:highlight type="code">c_{LANGCODE}_404.html</gen:highlight>
+   um anzeigen zu können, dass die gewünschte Seite nicht verfügbar ist. Ist auch 
+   diese Datei nicht verfügbar kommt es zu einem PHP-Fehler.
+</div>
+
+<h3 id="Chapter-4-Document-Controller"><a href="#Chapter-4-Document-Controller">4. Document-Controller</a></h3>
 <p>
    Um einen Controller zu deklarieren muss folgender Tag am Anfang des Templates platziert werden:
 </p>
@@ -479,7 +594,7 @@ class SampleController extends BaseDocumentController {
    Details finden Sie unter <int:link pageid="006" />.
 </p>
 
-<h3 id="Chapter-4-Front-Controller"><a href="#Chapter-4-Front-Controller">4. FrontController</a></h3>
+<h3 id="Chapter-5-Front-Controller"><a href="#Chapter-5-Front-Controller">5. FrontController</a></h3>
 <p>
    Der Tag <em>&lt;fcon:importdesign /&gt;</em>-Tag unterstützt bei der Implementierung von FrontController-basierten
    Applikationen und bindet Views auf Grund von Model-Informationen im Sinne des MVC-Pattern ein. Hierzu muss eine
