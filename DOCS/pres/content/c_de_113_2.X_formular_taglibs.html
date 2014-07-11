@@ -21,7 +21,7 @@
    Die folgenden Kapitel beschreiben den grundsätzlichen Aufbau und die Verarbeitung von Formularen,
    sowie die vorhandenen Tags und deren Bedeutung und Funktion. Parallel dazu ist es ratsam, die
    <int:link pageid="002" /> bei der Implementierung zu Hilfe nehmen. Diese zeigt - insbesondere bei der Klasse
-   <em>HtmlFormTag</em> - auf, welche Möglichkeiten die APF-Formulare bieten.
+   <strong>HtmlFormTag</strong> - auf, welche Möglichkeiten die APF-Formulare bieten.
 </p>
 <div class="hint">
    Das Kapitel <int:link pageid="114" /> beinhaltet ausführliche Beispiele für die
@@ -31,7 +31,7 @@
 <h3 id="Chapter-2-Aufbau"><a href="#Chapter-2-Aufbau">2. Aufbau von Formularen</a></h3>
 <p>
    Wie in der Einleitung kurz beschrieben, werden Formulare im APF durch Taglibs abgebildet. Die
-   Basis-Taglib bildet dabei <em>&lt;html:form /&gt;</em>, die alle weiteren Tags kapselt
+   Basis-Taglib bildet dabei <strong>&lt;html:form /&gt;</strong>, die alle weiteren Tags kapselt
    und so ein Formular in einem Document-Controller als <em>ein</em> Objekt zur Verfügung stellt.
    Dieses kann weitere Tags beinhalten, die entweder konkrete Elemente wie ein Text-Feld oder einen
    Button repräsentieren, oder funktionale Tags wie Platzhalter, Listener oder Tags, die eigene
@@ -42,6 +42,11 @@
    Formular für eine Suche mit einem Eingabe-Feld und einem Button hat folgende Gestalt:
 </p>
 <gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="APF\tools\form\taglib\HtmlFormTag"
+   prefix="html"
+   name="form"
+/&gt;
 &lt;html:form name="Search"&gt;
    &lt;form:text name="searchterm" /&gt; &lt;form:button name="search" value="GO" /&gt;
 &lt;/html:form&gt;
@@ -101,11 +106,7 @@ class SearchController extends BaseDocumentController {
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:form name="" [method=""] [action=""] [autocomplete="true|false"]&gt;
-   ...
-   [&lt;html:placeholder name="" /&gt;]
-   [&lt;html:getstring namespace="" config="" entry="" /&gt;]
-   [&lt;core:addtaglib class="" prefix="" name="" /&gt;]
-   ...
+  ...
 &lt;/html:form&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
@@ -130,7 +131,7 @@ class SearchController extends BaseDocumentController {
    </li>
 </ul>
 <div class="hint">
-   Es ist möglich, einen globalen Standard-Wert für das Attribut <em>action</em>
+   Seit dem Release 1.13 ist es möglich, einen globalen Standard-Wert für das Attribut <em>action</em>
    über die Registry zu definieren. Dies ist in der Bootstrap-Datei durch den Aufruf von
    <gen:highlight type="php">Registry::register('APF\tools', 'FormDefaultMethod','...')</gen:highlight>
    möglich. Damit erhalten alle Formulare - sofern das Attribut in der Tag-Definition nicht gesetzt ist -
@@ -200,7 +201,7 @@ class SearchController extends BaseDocumentController {
 
 <h4 id="Chapter-3-3-Reset"><a href="#Chapter-3-3-Reset">3.3. Reset-Button</a></h4>
 <p>
-   Neben einem einfachen Button beinhalten die Formular-TagLibs einen Tag für Reset-Buttons. Diese
+   Seit dem Release 1.10 beinhalten die Formular-TagLibs einen Tag für Reset-Buttons. Diese
    repräsentieren einen HTML-Reset-Button und können wie "normale" Buttons im
    Document-Controller adressiert und konfiguriert werden.
 </p>
@@ -316,6 +317,11 @@ class SearchController extends BaseDocumentController {
 &lt;@controller
    namespace="VENDOR\..\controller\FileUploadController"
 @&gt;
+&lt;core:addtaglib
+      class="APF\tools\form\taglib\HtmlFormTag"
+      prefix="html"
+      name="form"
+/&gt;
 &lt;html:form name="upload" method="post"&gt;
    &lt;p&gt;
       &lt;label for="name"&gt;Name:&lt;/label&gt;
@@ -383,7 +389,7 @@ class FileUploadController extends BaseDocumentController {
    der <a href="#Chapter-4-1-12-FileSizeValidator">FileSizeValidator</a> einsetzen.
 </p>
 <div class="hint">
-   Seitens des APF wird auch ein weiteres Tool zum Erzeugen von Datei-Uploads
+   Seit Release 1.16 wird seitens des APF auch ein weiteres Tool zum Erzeugen von Datei-Uploads
    mit Vorschau-Funktion sowie prozentualer Fortschrittanzeige angeboten: der MultiFileUpload.
    Ausführliche Informationen dazu entnehmen Sie bitte der Dokumentation im Wiki:
    <a class="wiki" href="http://wiki.adventure-php-framework.org/MultiFileUpload" title="MultiFileUpload im Wiki">MultiFileUpload im Wiki</a>
@@ -446,7 +452,7 @@ class FileUploadController extends BaseDocumentController {
    und verarbeitet werden.
 </p>
 <p>
-   Darüber hinaus können auch Options-Gruppen genutzt werden.
+   Seit dem Release 1.12 sind auch Options-Gruppen verfügbar.
 </p>
 <gen:highlight type="apf-xml">
 &lt;form:select name="" /&gt;
@@ -517,7 +523,30 @@ class FileUploadController extends BaseDocumentController {
    Übertragung der Optionen kommt.
 </div>
 
-<h4 id="Chapter-3-13-Datum-Control"><a href="#Chapter-3-13-Datum-Control">3.13. Datums-Control</a></h4>
+<h4 id="Chapter-3-13-Platzhalter"><a href="#Chapter-3-13-Platzhalter">3.13. Platzhalter</a></h4>
+<p>
+   Der Platzhalter dieht dazu, dynamische Inhalte in das Formular einzubringen.
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:placeholder name="" /&gt;
+</gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+  <li>
+    <strong>name</strong>: Name des Platzhalters. Über den Namen kann auf das Element
+    zugegriffen werden. (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+</ul>
+<p>
+   Um einen Platzhalter eines Formulars zu füllen, besitzt die Klasse <strong>HtmlFormTag</strong>
+   die Methode <strong>setPlaceHolder()</strong>:
+</p>
+<gen:highlight type="php">
+$form = &$this->getForm('MyForm');
+$form->setPlaceHolder('NameOfThePlaceHolder','...Value...');
+</gen:highlight>
+
+<h4 id="Chapter-3-14-Datum-Control"><a href="#Chapter-3-14-Datum-Control">3.14. Datums-Control</a></h4>
 <p>
    Um die Erstellung von Datum-Auswahl-Menüs zu erleichtern, enthält das APF ein Date-Control. Dieses
    kann entsprechend den Anforderungen konfiguriert werden.
@@ -560,7 +589,7 @@ class FileUploadController extends BaseDocumentController {
    </li>
 </ul>
 
-<h4 id="Chapter-3-14-Marker"><a href="#Chapter-3-14-Marker">3.14. Marker</a></h4>
+<h4 id="Chapter-3-15-Marker"><a href="#Chapter-3-15-Marker">3.15. Marker</a></h4>
 <p>
    Wie im Kapitel <int:link pageid="114" anchor="Chapter-6-Dynamische-Formulare">Dynamische Formulare</int:link>
    beschrieben, kann der Tag <em>&lt;form:marker /&gt;</em>-Tag zur Positionierung von
@@ -577,7 +606,68 @@ class FileUploadController extends BaseDocumentController {
   </li>
 </ul>
 
-<h4 id="Chapter-3-15-Listener"><a href="#Chapter-3-15-Listener">3.15. Listener</a></h4>
+<h4 id="Chapter-3-16-Addtaglib"><a href="#Chapter-3-16-Addtaglib">3.16. Addtaglib</a></h4>
+<p>
+   Die Taglib <em>&lt;form:addtaglib /&gt;</em> bildet das Pendant zur Taglib
+   <em>&lt;core:addtaglib /&gt;</em> und bietet die Möglichkeit, die bestehende
+   Funktionalität der Formular-Tags zu erweitern. Die Implementierung des Tags erlaubt es
+   beliebige weitere Formular-Tags einzubinden und zu verwenden.
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:addtaglib
+   class=""
+   prefix=""
+   name=""
+/&gt;
+</gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+   <li>
+      <strong>class</strong>: Der voll-qualifizierte Klassen-Name der Tag-Implementierung.
+      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_\]</code>)
+   </li>
+   <li>
+      <strong>prefix</strong>: XML-Prefix.
+      (<strong>Zeichen</strong>: <code>[a-z]</code>)
+   </li>
+   <li>
+      <strong>name</strong>: XML-Tag-Name.
+      (<strong>Zeichen</strong>: <code>[a-z]</code>)
+   </li>
+</ul>
+
+<h4 id="Chapter-3-17-Getstring"><a href="#Chapter-3-17-Getstring">3.17. Getstring</a></h4>
+<p>
+   Der Tag <em>&lt;form:getstring/gt;</em> dient dazu einen Konfigurations-String aus einer sprachabhängigen
+   Konfigurations-Datei auszulesen und anzuzeigen. So können auf einfache Weise mehrsprachige
+   Formulare aufgebaut werden. Details zur Definition der Konfigurations-Dateien können der Definition
+   des Tags <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>
+   entnommen werden.
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:getstring [name=""] namespace="" config="" entry="" /&gt;
+</gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+   <li>
+      <strong>name</strong>: Name des Platzhalters zur Referenz in der <em>getLabel()</em>-Methode
+      (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-]</code>)
+   </li>
+  <li>
+    <strong>namespace</strong>: Namespace der Konfiguration des Attributes.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9_-\]</code>)
+  </li>
+  <li>
+    <strong>config</strong>: Name der Konfiguration.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_]</code>)
+  </li>
+  <li>
+    <strong>entry</strong>: Name des Konfigurations-Offsets.
+    (<strong>Zeichen</strong>: <code>[A-Za-z0-9-_.]</code>)
+  </li>
+</ul>
+
+<h4 id="Chapter-3-18-Listener"><a href="#Chapter-3-18-Listener">3.18. Listener</a></h4>
 <p>
    Der Listener-Tag ist Teil des Validierungs-Konzeptes. Er hört auf das Event eines Validators und
    zeigt seinen Inhalt an, sofern das referenzierte Formular-Element nicht erfolgreich validiert werden
@@ -588,9 +678,9 @@ class FileUploadController extends BaseDocumentController {
 <gen:highlight type="apf-xml">
 &lt;form:listener [name=""] control="..." [validator="..." ]&gt;
   ...
-  [&lt;html:getstring namespace="" config="" entry="" /&gt;]
-  [&lt;html:placeholder name="" /&gt;]
-  [&lt;core:addtaglib class="" prefix="" name=""/&gt;]
+  [&lt;listener:getstring namespace="" config="" entry="" /&gt;]
+  [&lt;listener:placeholder name="" /&gt;]
+  [&lt;listener:addtaglib class="" prefix="" name=""/&gt;]
   ...
 &lt;/form:listener&gt;
 </gen:highlight>
@@ -612,14 +702,12 @@ class FileUploadController extends BaseDocumentController {
   </li>
 </ul>
 <p>
-   Details zum Platzhalter-Tag können Sie unter
-   <int:link pageid="046" anchor="Chapter-2-1-Placeholder">&lt;html:placeholder /&gt;</int:link> nachlesen, die
-   Ausgabe von Sprachabhängigen Werten lässt sich über den
-   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>-Tag realisieren.
-</p>
-<p>
-   Sollte die vorhandene Funktionalität nicht ausreichen, lassen sich eigene Tags sehr einfach per
-   <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link> hinzufügen.
+   Der Platzhalter-Tag <em>&lt;listener:placeholder /&gt;</em> gleicht in seiner Funktion
+   dem <int:link pageid="046" anchor="Chapter-2-1-Placeholder">&lt;html:placeholder /&gt;</int:link>,
+   der <em>&lt;listener:getstring /&gt;</em>-Tag
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>
+   und der <em>&lt;listener:addtaglib /&gt;</em>-Tag dem
+   <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link>-Tag.
 </p>
 <p>
    Zur Befüllung eines Platzhalters in einem Document-Controller kann folgender Code verwendet werden:
@@ -628,7 +716,7 @@ class FileUploadController extends BaseDocumentController {
 <gen:highlight type="apf-xml">
 &lt;html:form name="name_form" method="post"&gt;
    &lt;form:listener name="name-listener" control="name"&gt;
-      Please fill in the &lt;html:placeholder name="field-name" /&gt; field!
+      Please fill in the &lt;listener:placeholder name="field-name" /&gt; field!
    &lt;/form:listener&gt;
    &lt;form:text name="name" /&gt;
    &lt;form:addvalidator 
@@ -645,7 +733,7 @@ class FormController extends BaseDocumentController {
    public function transformContent(){
       $form = &$this->getForm('name-form');
       $listener = &$form->getFormElementByName('name-listener');
-      $listener->setPlaceHolder('field-name', 'name');
+      $listener->setPlaceHolder('field-name','name');
    }
 }
 </gen:highlight>
@@ -722,7 +810,7 @@ class FormController extends BaseDocumentController {
 </gen:highlight>
 </div>
 
-<h4 id="Chapter-3-16-Error"><a href="#Chapter-3-16-Error">3.16. Anzeige von Formular-Fehlern</a></h4>
+<h4 id="Chapter-3-19-Error"><a href="#Chapter-3-19-Error">3.19. Anzeige von Formular-Fehlern</a></h4>
 <p>
    Der in Kapitel 3.18 beschriebene Tag kann dazu benutzt werden, automatisiert Fehlermeldungen eines
    definierten Formular-Feldes zu erzeugen. Der <nobr><strong>&lt;form:error /&gt;</strong></nobr>-Tag
@@ -733,24 +821,24 @@ class FormController extends BaseDocumentController {
 <gen:highlight type="apf-xml">
 &lt;form:error [name=""]&gt;
   ...
-  [&lt;html:getstring namespace="" config="" entry="" /&gt;]
-  [&lt;html:placeholder name="" /&gt;]
-  [&lt;core:addtaglib class="" prefix="" name="" /&gt;]
+  [&lt;error:getstring namespace="" config="" entry="" /&gt;]
+  [&lt;error:placeholder name="" /&gt;]
+  [&lt;error:addtaglib class="" prefix="" name="" /&gt;]
   ...
 &lt;/form:error&gt;
 </gen:highlight>
 <p>
-   Details zum Platzhalter-Tag können Sie unter
-   <int:link pageid="046" anchor="Chapter-2-1-Placeholder">&lt;html:placeholder /&gt;</int:link> nachlesen, die
-   Ausgabe von Sprachabhängigen Werten lässt sich über den
-   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>-Tag realisieren.
-</p>
-<p>
-   Sollte die vorhandene Funktionalität nicht ausreichen, lassen sich eigene Tags sehr einfach per
-   <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link> hinzufügen.
+   Der Platzhalter-Tag <strong>&lt;error:placeholder /&gt;</strong> gleicht in seiner Funktion
+   dem <int:link pageid="046" anchor="Chapter-2-1-Placeholder">&lt;html:placeholder /&gt;</int:link>
+   der <em>&lt;error:getstring /&gt;</em>-Tag
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>
+   und der <em>&lt;error:addtaglib /&gt;</em>-Tag dem
+   <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link>-Tag.
+   Die Befüllung des Platzhalters kann identisch zur Vorgehensweise des vorangegangenen Kapitels
+   erledigt werden.
 </p>
 
-<h4 id="Chapter-3-17-Success"><a href="#Chapter-3-17-Success">3.17. Anzeige von Formular-Erfolgsmeldungen</a></h4>
+<h4 id="Chapter-3-20-Success"><a href="#Chapter-3-20-Success">3.20. Anzeige von Formular-Erfolgsmeldungen</a></h4>
 <p>
    Der in Kapitel 3.19 beschriebene Tag kann dazu benutzt werden, automatisiert Fehlermeldungen
    bezogen auf ein komplettes Formular anzugeigen. Oft ist es jedoch notwendig, auch im Erfolgsfall eine
@@ -761,24 +849,24 @@ class FormController extends BaseDocumentController {
 <gen:highlight type="apf-xml">
 &lt;form:success [name=""]&gt;
   ...
-  [&lt;html:getstring namespace="" config="" entry="" /&gt;]
-  [&lt;html:placeholder name="" /&gt;]
-  [&lt;core:addtaglib class="" prefix="" name="" /&gt;]
+  [&lt;success:getstring namespace="" config="" entry="" /&gt;]
+  [&lt;success:placeholder name="" /&gt;]
+  [&lt;success:addtaglib class="" prefix="" name="" /&gt;]
   ...
 &lt;/form:success&gt;
 </gen:highlight>
 <p>
-   Details zum Platzhalter-Tag können Sie unter
-   <int:link pageid="046" anchor="Chapter-2-1-Placeholder">&lt;html:placeholder /&gt;</int:link> nachlesen, die
-   Ausgabe von Sprachabhängigen Werten lässt sich über den
-   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>-Tag realisieren.
-</p>
-<p>
-   Sollte die vorhandene Funktionalität nicht ausreichen, lassen sich eigene Tags sehr einfach per
-   <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link> hinzufügen.
+   Der Platzhalter-Tag <strong>&lt;success:placeholder /&gt;</strong> gleicht in seiner Funktion
+   dem <int:link pageid="046" anchor="Chapter-2-1-Placeholder">&lt;html:placeholder /&gt;</int:link>,
+   der <em>&lt;success:getstring /&gt;</em>-Tag
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link> und der
+   <em>&lt;success:addtaglib /&gt;</em>-Tag dem
+   <int:link pageid="046" anchor="Chapter-1-1-Addtaglib">&lt;core:addtaglib /&gt;</int:link>-Tag.
+   Die Befüllung des Platzhalters kann identisch zur Vorgehensweise des vorangegangenen Kapitels
+   erledigt werden.
 </p>
       
-<h4 id="Chapter-3-18-TimeCaptcha"><a href="#Chapter-3-18-TimeCaptcha">3.18. TimeCaptcha</a></h4>
+<h4 id="Chapter-3-21-TimeCaptcha"><a href="#Chapter-3-21-TimeCaptcha">3.21. TimeCaptcha</a></h4>
 <p>
    Mit dem <strong>TimeCaptcha</strong> kann ein Formular in Kombination mit dem 
    <a href="#Chapter-4-1-14-TimeCaptchaValidator">TimeCaptchaValidator</a> vor (Spam-)Bots
@@ -792,12 +880,12 @@ class FormController extends BaseDocumentController {
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:form name="..."&gt;
-   &lt;form:timecaptcha name="timecaptcha" [seconds="3"]/&gt;
+   <form:timecaptcha name="timecaptcha" [seconds="3"]/>
    ...
 &lt;/html:form&gt;
 </gen:highlight>
 
-<h4 id="Chapter-3-19-CSRF-Schutz"><a href="#Chapter-3-19-CSRF-Schutz">3.19. CSRF-Schutz</a></h4>
+<h4 id="Chapter-3-22-CSRF-Schutz"><a href="#Chapter-3-22-CSRF-Schutz">3.22. CSRF-Schutz</a></h4>
 <p>
    Diese Taglib erzeugt ein verstecktes Feld, das einen generierten Hash enthält. Das Formular wird
    als ungültig gekennzeichnet, wenn sich der im Request enthaltene Hash von einem neu generiertem
@@ -851,7 +939,7 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
   </li>
 </ul>
 
-<h4 id="Chapter-3-20-Zeit-Control"><a href="#Chapter-3-20-Zeit-Control">3.20. Zeit-Control</a></h4>
+<h4 id="Chapter-3-23-Zeit-Control"><a href="#Chapter-3-23-Zeit-Control">3.23. Zeit-Control</a></h4>
 <p>
    Um die Erstellung von Zeit-Auswahl-Menüs zu erleichtern, enthält das APF ein Time-Control.
    Dieses kann entsprechend den Anforderungen konfiguriert werden:
@@ -892,16 +980,16 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
   </li>
 </ul>
 
-<h4 id="Chapter-3-21-MultiFileUpload"><a href="#Chapter-3-21-MultiFileUpload">3.21. MultiFileUpload</a></h4>
+<h4 id="Chapter-3-24-MultiFileUpload"><a href="#Chapter-3-24-MultiFileUpload">3.24. MultiFileUpload</a></h4>
 <p>
-   Neben dem einfachen Datei-Upload gibt es ein weitere nützliches Tool: den MultiFileUpload. Alle
+   Seit dem Release des APF in der Version 1.16 gibt es ein weitere nützliches Tool: den MultiFileUpload. Alle
    wichtigen Informationen diesbezüglich entnehmen Sie bitte dem Wiki-Beitrag:
    <a class="wiki" href="http://wiki.adventure-php-framework.org/MultiFileUpload" title="MultiFileUpload im Wiki">MultiFileUpload im Wiki</a>
 </p>
 
-<h4 id="Chapter-3-22-Label"><a href="#Chapter-3-22-Label">3.22. Label</a></h4>
+<h4 id="Chapter-3-25-Label"><a href="#Chapter-3-25-Label">3.25. Label</a></h4>
 <p>
-   Beschriftung eines Formular-Elements können ebenso als APF-Tag definiert werden.
+   Seit Version 1.17 ist es möglich, die Beschriftung eines Formular-Elements als APF-Tag zu definieren.
 </p>
 <p>
    Der Label-Tag hat folgende Signatur:
@@ -995,10 +1083,10 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
    des Attributs <em>valmarkerclass</em> beim jeweiligen Formular-Element beeinflusst werden:
 </p>
 <gen:highlight type="apf-xml">
-&lt;form:text
+<form:text
    name="age"
    valmarkerclass="special-val-marker"
-/&gt;
+/>
 </gen:highlight>
 <p>
    Um alle fehlerhaften Formular-Elemente innerhalb eines Web-Projekts mit einem roten Rahmen zu
@@ -1069,10 +1157,11 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
    mindestens 5 aber höchstens 200 Zeichen enthalten sein.
 </p>
 <p>
-   Es ist ebenso möglich, eine strikte Validierung der Textlänge zu aktivieren. Hierzu kann im referenzierten Text-Feld
-   das Attribut <strong>mode</strong> mit dem Wert <em>strict</em> versehen werden. Ab diesem Zeitpunkt wendet der
-   Validator die Funktion <em>trim()</em> auf die Eingabe an und erkennt nur Inhalte an, die nicht lediglich aus
-   Leerzeichen bestehen.
+   Seit dem Release 1.12 ist es möglich, eine strikte Validierung der Textlänge zu
+   aktivieren. Hierzu kann im referenzierten Text-Feld das Attribut <strong>mode</strong> mit dem
+   Wert <em>strict</em> versehen werden. Ab diesem Zeitpunkt wendet der Validator die Funktion
+   <em>trim()</em> auf die Eingabe an und erkennt nur Inhalte an, die nicht lediglich aus Leerzeichen
+   bestehen.
 </p>
 
 <h5 id="Chapter-4-1-2-NumberValidator"><a href="#Chapter-4-1-2-NumberValidator">4.1.2. NumberValidator</a></h5>
@@ -1285,13 +1374,13 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
 &lt;html:form name="upload" method="post"&gt;
    <fieldset>
       <label for="pdf">PDF file:</label>
-      &lt;form:file name="pdf" id="pdf" accepts="pdf|application/pdf" /&gt;
-      &lt;form:addvalidator
+      <form:file name="pdf" id="pdf" accepts="pdf|application/pdf" />
+      <form:addvalidator
          class="APF\tools\form\validator\MimeTypeValidator"
          control="pdf"
          button="send"
-      /&gt;
-      &lt;form:button name="send" value="GO" /&gt;
+      />
+      <form:button name="send" value="GO" />
    </fieldset>
 &lt;/html:form&gt;
 </gen:highlight>
@@ -1321,13 +1410,13 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
 &lt;html:form name="upload" method="post"&gt;
    <fieldset>
       <label for="image">Image:</label>
-      &lt;form:file name="image" id="image" minsize="20480" maxsize="512000" /&gt;
-      &lt;form:addvalidator
+      <form:file name="image" id="image" minsize="20480" maxsize="512000" />
+      <form:addvalidator
          class="APF\tools\form\validator\FileSizeValidator"
          control="image"
          button="send"
-      /&gt;
-      &lt;form:button name="send" value="GO" /&gt;
+      />
+      <form:button name="send" value="GO" />
    </fieldset>
 &lt;/html:form&gt;
 </gen:highlight>
@@ -1341,13 +1430,13 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
 &lt;html:form name="upload" method="post"&gt;
    <fieldset>
       ...
-      &lt;form:checkbox name="agb" value="agb" /&gt; Akzeptiere die AGBs.
-      &lt;form:addvalidator
+      <form:checkbox name="agb" value="agb" /> Akzeptiere die AGBs.
+      <form:addvalidator
          class="APF\tools\form\validator\CheckboxValidator"
          button="send"
          control="agb"
-      /&gt;
-      &lt;form:button name="send" value="GO" /&gt;
+      />
+      <form:button name="send" value="GO" />
    </fieldset>
 &lt;/html:form&gt;
 </gen:highlight>
@@ -1355,7 +1444,7 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
 <h5 id="Chapter-4-1-14-TimeCaptchaValidator"><a href="#Chapter-4-1-14-TimeCaptchaValidator">4.1.14. TimeCaptchaValidator</a></h5>
 <p>
    Mit dem <strong>TimeCaptchaValidator</strong> kann ein Formular in Kombination mit dem
-   <a href="#Chapter-3-18-TimeCaptcha">&lt;form:timecaptcha /&gt;</a> vor (Spam-)Bots geschützt
+   <a href="#Chapter-3-21-TimeCaptcha">&lt;form:timecaptcha /&gt;</a> vor (Spam-)Bots geschützt
    werden. Der Validator prüft die Zeit, welche zum Ausfüllen des Formulars gebraucht wurde.
    Da Bots Formulare meistens binnen Sekundenbruchteilen ausfüllen, genügt es
    standartmäßig alle Formulare, welche in weniger als 2 Sekunden ebgeschickt wurden als
@@ -1364,13 +1453,13 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:form name="..."&gt;
-   &lt;form:timecaptcha name="timecaptcha"/&gt;
-   &lt;form:addvalidator
+   <form:timecaptcha name="timecaptcha"/>
+   <form:addvalidator
       class="APF\tools\form\validator\TimeCaptchaValidator"
       button="send"
       control="timecaptcha"
-   /&gt;
-   &lt;form:button name="send" value="Send"/&lt;
+   />
+   <form:button name="send" value="Send"/>
 &lt;/html:form&gt;
 </gen:highlight>
 
