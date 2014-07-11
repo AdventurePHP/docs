@@ -199,59 +199,48 @@ Es empfiehlt sich, für das Modul eine eigene Datenbank zu nutzen, grundsätzlic
 jedoch nichts gegen eine bereits bestehende Datenbank zu befüllen. Durch den Einsatz des
 <int:link pageid="031"/> entsteht in keinem Fall ein Nachteil, da mit diesem innerhalb einer
 Applikation mehrere Datenbanken adressiert werden können.
-
+<br />
+<br />
+<br />
 <h3 id="Chapter-3-Anwendung"><a href="#Chapter-3-Anwendung">3. Anwendung</a></h3>
 <h4 id="Chapter-3-1-Backend"><a href="#Chapter-3-1-Backend">3.1. Backend</a></h4>
-<p>
-   Um das integrierte Backend nutzen zu können, muss für das Modul eine eigene Bootstrap
-   erstellt oder dieses per Tag in eine bestehende Anwendung eingebaut werden. Durch die generische
-   Implementierung werden bei der Erzeugung der URLs des Moduls externe Parameter (z.B. zur Navigation)
-   mit eingebunden.
-</p>
-<p>
-   Da das Backend auf dem Front-Controller basiert (Anzeige der Icons wird über den
-   <int:link pageid="078" anchor="Chapter-2-Mediastream">&lt;html:mediastream /&gt;</int:link>-Tag
-   realisiert), kann folgende <em>index.php</em> eingesetzt werden:
-</p>
+Um das integrierte Backend nutzen zu können, muss für das Modul eine eigene Bootstrap
+erstellt oder dieses per Tag in eine bestehende Anwendung eingebaut werden. Durch die generische
+Implementierung werden bei der Erzeugung der URLs des Moduls externe Parameter (z.B. zur Navigation)
+mit eingebunden.
+<br />
+<br />
+Da das Backend auf dem Front-Controller basiert (Anzeige der Icons wird über die
+<int:link pageid="078" anchor="Chapter-2-Mediastream">&lt;*:mediastream /&gt;</int:link>-Tags
+realisiert), kann folgende <em>index.php</em> eingesetzt werden:
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
-
-use APF\core\singleton\Singleton;
-use APF\core\frontcontroller\Frontcontroller;
-
-$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller','Frontcontroller');
+$fC = &Singleton::getInstance('Frontcontroller');
 $fC->setContext({CONTEXT});
-
-echo $fC->start('APF\modules\usermanagement\pres\templates', 'main');
+echo $fC->start('modules::usermanagement::pres::templates','main');
 </gen:highlight>
-<p>
-   Soll das Backend als View in einer bestehenden Anwendung integriert werden, kann folgende
-   Tag-Definition verwendet werden:
-</p>
+Soll das Backend als View in einer bestehenden Anwendung integriert werden, kann folgende
+Tag-Definition verwendet werden:
 <gen:highlight type="apf-xml">
-&lt;core:importdesign
-   namespace="APF\modules\usermanagement\pres\templates"
-   template="main"
-/&gt;
+&lt;core:importdesign namespace="modules::usermanagement::pres::templates" template="main" /&gt;
 </gen:highlight>
 Sollte die bestehende Anwendung eine Front-Controller-Action zur Navigation nutzen, so muss das Modul
 mit dem <em>&lt;generic:importdesign /&gt;</em>-Tag eingebaut und die Navigations-Action
 mit <em>$keepInURL = true</em> definiert werden. Andernfalls wird die Action-Information
 nicht in die Links des Moduls eingebunden und die Navigation funktioniert unter Umständen nicht.
 <gen:highlight type="apf-xml">
-&lt;core:addtaglib
-   class="APF\tools\html\taglib\GenericImportTemplateTag"
-   prefix="generic"
-   class="importdesign"
-/&gt;
+&lt;core::addtaglib namespace="tools::html::taglib" prefix="generic" class="importdesign" /&gt;
 &lt;generic:importdesign
-   model-class="VENDOR\..\ModelName"
-   model-mode="SINGLETON"
-   namespace-param="..."
-   template-param="..."
-   dependent-action-namespace="VENDOR\namespace\to\dependent\action"
-   dependent-action-name="DependentActionName"
-   dependent-action-params="param1:value1|param2:value2"
+   modelnamespace="namespace::to::application::model"
+   modelfile="ModelName"
+   modelclass="ModelName"
+   modelmode="SINGLETON"
+   namespaceparam="..."
+   templateparam="..."
+   dependentactionnamespace="namespace::to::dependent::action"
+   dependentactionname="DependentActionName"
+   dependentactionparams="param1:value1|param2:value2"
 /&gt;
 </gen:highlight>
 <p>
@@ -259,8 +248,8 @@ nicht in die Links des Moduls eingebunden und die Navigation funktioniert unter 
    <int:link pageid="078" anchor="Chapter-3-Generischer-importdesign-Tag"/>
    entnommen werden.
 </p>
-Wie weiter oben erwähnt, wird die Auslieferung der Icons und Bilder des Moduls über den
-<em>&lt;html:mediastream /&gt;</em>-Tag realisiert. Diese generieren eine Ziel-URL, die eine
+Wie weiter oben erwähnt, wird die Auslieferung der Icons und Bilder des Moduls über
+<em>&lt;*:mediastream /&gt;</em>-Tags realisiert. Diese generieren eine Ziel-URL, die eine
 Front-Controller-Anweisung enthält. Wie im Kapitel <int:link pageid="012" /> beschrieben ist,
 benötigt jede Action eine Konfiguration. Um die Anzeige der Bilder zu ermöglichen ist es
 notwendig eine Action-Konfigurationsdatei mit dem Namen
@@ -298,10 +287,11 @@ ActionClass = "APF\tools\media\actions\StreamMediaAction"
 Das folgende Beispiel zeigt, wie eine einfache Authentifizierung mit Hilfe von URL-Werten
 durchgeführt werden kann:
 <gen:highlight type="php">
-use APF\modules\usermanagement\biz\UmgtManager;
+// include business component prior to use
+import('modules::usermanagement::biz','UmgtManager');
 
 // get the business object
-$uM = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$uM = &$this->getAndInitServiceObject('modules::usermanagement::biz','UmgtManager','Default');
 
 // retrieve the username and password from the request
 $username = RequestHandler::getValue('user');
@@ -380,7 +370,7 @@ Bezeichnungen der Attribute. Auch diese müssen mit den Attribut-Namen der Objek
 entnommen werden.
 <gen:highlight type="php">
 // get the business object
-$uM = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$uM = &$this->getAndInitServiceObject('modules::usermanagement::biz','UmgtManager','Default');
 
 // create new user
 $user = new GenericDomainObject('User');
@@ -425,13 +415,13 @@ $uM->deleteGroup($group);
 <br />
 <h5 id="Chapter-3-2-6-Manipulation-Beziehungen"><a href="#Chapter-3-2-6-Manipulation-Beziehungen">3.2.6. Manipulieren von Beziehungen</a></h5>
 Für die Erstellung, Manipulation und Löschung von Beziehungen zwischen den Objekten des
-Usermanagements (siehe <a href="#Chapter-1-1-Datenmodell" title="UML-Diagram">UML</a>) stehen dem Entwickler
+Usermanagements (siehe <a href="#1-1-Datenmodell" title="UML-Diagram">UML</a>) stehen dem Entwickler
 zahlreiche Methoden zur Verfügung. Diese sind auf den konkreten Anwendungsfall des Moduls
 zugeschnitten und erwarten jeweils Objekte des Type <em>GenericDomainObject</em>. Die folgende
 Codebox zeigt einige typische Anwendungsfälle für das "Bearbeiten" von Beziehungen:
 <gen:highlight type="php">
 // get the business object
-$uM = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$uM = &$this->getAndInitServiceObject('modules::usermanagement::biz','UmgtManager','Default');
 
 // add user to group
 $user = $uM->loadUserByID(1);
@@ -474,16 +464,20 @@ Sollte die API des <em>UmgtManager</em> nicht ausreichen, so kann der
 an Konfigurationsdateien benutzt werden. Die folgende Codebox zeigt, wie die Businesskomponente des
 Usermanagement-Moduls den O/R-Mapper erzeugt:
 <gen:highlight type="php">
-$oRMFact = &$this->getServiceObject('APF\modules\genericormapper\data\GenericORMapperFactory');
+$oRMFact = &$this->getServiceObject(
+                       'modules::genericormapper::data',
+                       'GenericORMapperFactory'
+                                     );
 $oRM = &$oRMFact->getGenericORMapper(
-                       'APF\modules\usermanagement',
+                       'modules::usermanagement',
                        'umgt',
                        $connectionKey,
-                       $serviceMode);
+                       $serviceMode
+                                    );
 </gen:highlight>
 Die Variablen <em>$connectionKey</em> und <em>$serviceMode</em> müssen jeweils
 mit den Inhalten der
-<a href="#Chapter-2-1-Konfiguration-Modul" title="Konfiguration des Moduls">Konfiguration des Moduls</a>
+<a href="#2-1-Konfiguration-Modul" title="Konfiguration des Moduls">Konfiguration des Moduls</a>
 ersetzt werden. Der <em>ServiceMode</em> ist dabei optional.
 <br />
 <br />
@@ -580,7 +574,7 @@ class MyUmgtManager extends UmgtManager {
       return sha1($password);
    }
 }
-$umgt = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$umgt = &$this->getAndInitServiceObject('my::namespace','MyUmgtManager','Default');
 $user = $umgt->loadUserByID(5);
 </gen:highlight>
 <br />
@@ -605,8 +599,7 @@ werden, die das <em>PasswordHashProvider</em> Interface implemeniert. Dieses def
 die für ein übergebenes Password einen Hash berechnet. Führen wir obiges Beispiel
 weiter, so hat die Klasse folgende Gestalt:
 <gen:highlight type="php">
-use APF\modules\usermanagement\biz\PasswordHashProvider;
-
+import('modules::usermanagement::biz','PasswordHashProvider');
 class Sha1PasswordHashProvider implements PasswordHashProvider {
    public function createPasswordHash($password){
       return sha1($password);
@@ -616,7 +609,7 @@ class Sha1PasswordHashProvider implements PasswordHashProvider {
 Die Konfiguration muss dann um die zwei Direktiven erweitert werden, die den Namespace und den
 (Klassen-)Namen der Komponente definieren:
 <gen:highlight type="apf-xml">
-PasswordHashProvider.Namespace = "VENDOR\..\namespace"
+PasswordHashProvider.Namespace = "my::namespace"
 PasswordHashProvider.Class = "Sha1PasswordHashProvider"
 </gen:highlight>
 Vollständige Beispiel-Konfigurationen für das Usermanagement finden sich in den
@@ -636,9 +629,9 @@ neue Verfahren umgestellt sein, und somit sicherer vor Bruteforce- und Rainbowta
 <br />
 Die Konfiguration muss wie folgt angepasst werden, hier am Beispiel der Migration vom alten APF Format (vor 1.14) auf das neue APF Format (ab 1.14):
 <gen:highlight type="ini">
-PasswordHashProvider.Default.Namespace = "APF\modules\usermanagement\biz\provider\crypt"
+PasswordHashProvider.Default.Namespace = "modules::usermanagement::biz::provider::crypt"
 PasswordHashProvider.Default.Class = "CryptHardcodedSaltPasswordHashProvider"
-PasswordHashProvider.Fallback.Namespace = "APF\modules\usermanagement\biz\provider\md5"
+PasswordHashProvider.Fallback.Namespace = "modules::usermanagement::biz::provider::md5"
 PasswordHashProvider.Fallback.Class = "OldMD5PasswordHashProvider"
 </gen:highlight>
 <p>
@@ -667,5 +660,10 @@ class MyUmgtManager extends UmgtManager {
    }
 }
 </gen:highlight>
+
+<div class="hint">
+   Sofern Sie eine Version <= 1.13 verwenden, muss statt <em>getDisplayName()</em> die Methode
+   <em>__getDisplayName()</em> überschrieben werden.
+</div>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_095" />

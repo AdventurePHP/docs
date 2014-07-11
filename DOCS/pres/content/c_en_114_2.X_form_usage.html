@@ -272,9 +272,7 @@ class FormController extends BaseDocumentController {
 <em>Template:</em>
 <gen:highlight type="apf-xml">
 &lt;html:form name="product-form"&gt;
-   &lt;form:error&gt;
-      Please fill in the mandatory fields!
-   &lt;/form:error&gt;
+   &lt;form:error&gt;Please fill in the mandatory fields!&lt;/form:error&gt;
    &lt;form:text name="code" minlength="5" maxlength="5"/&gt;
    &lt;form:text name="title" minlength="20"/&gt;
    &lt;form:area name="description" minlength="30"/&gt;
@@ -316,17 +314,11 @@ class FormController extends BaseDocumentController {
 <em>Template:</em>
 <gen:highlight type="apf-xml">
 &lt;html:form name="product-form"&gt;
-   &lt;form:listener control="code"&gt;
-      Please fill in a five letter product code!
-   &lt;/form:listener&gt;
+   &lt;form:listener control="code"&gt;Please fill in a five letter product code!&lt;/form:listener&gt;
    &lt;form:text name="code" minlength="5" maxlength="5"/&gt;
-   &lt;form:listener control="title"&gt;
-      Please fill in a title with at least 20 characters!
-   &lt;/form:listener&gt;
+   &lt;form:listener control="title"&gt;Please fill in a title with at least 20 characters!&lt;/form:listener&gt;
    &lt;form:text name="title" minlength="20"/&gt;
-   &lt;form:listener control="description"&gt;
-      Please provide a verbose product description!
-   &lt;/form:listener&gt;
+   &lt;form:listener control="description"&gt;Please provide a verbose product description!&lt;/form:listener&gt;
    &lt;form:area name="description" minlength="30"/&gt;
    &lt;form:addvalidator
       class="APF\tools\form\validator\TextLengthValidator"
@@ -364,11 +356,11 @@ class FormController extends BaseDocumentController {
    validated using a custom rule within a document controller:
 </p>
 <gen:highlight type="apf-xml">
-&lt;html:form name="search"&gt;
-   &lt;label for="searchterm"&gt;Search term:&lt;/label&gt;
-   &lt;form:text id="searchterm" name="searchterm" value="" /&gt;
-   &lt;form:button name="search" value="GO" /&gt;
-&lt;/html:form&gt;
+<html:form name="search">
+   <label for="searchterm">Search term:</label>
+   <form:text id="searchterm" name="searchterm" value="" />
+   <form:button name="search" value="GO" />
+</html:form>
 </gen:highlight>
 <p>
    The corresponding controller contains the following code to invalidate the search term field in
@@ -467,7 +459,7 @@ class FormController extends BaseDocumentController {
 <gen:highlight type="apf-xml">
 &lt;html:form name="product-form"&gt;
    &lt;form:error name="error"&gt;
-      &lt;html:placeholder name="ph1" /&gt;
+      &lt;error:placeholder name="ph1" /&gt;
    &lt;/form:error&gt;
    ...
 &lt;/html:form&gt;
@@ -569,6 +561,11 @@ class EditController extends BaseDocumentController {
 </p>
 <em>Template:</em>
 <gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="APF\tools\form\taglib\HtmlFormTag"
+   prefix="html"
+   name="form"
+/&gt;
 &lt;html:form name="UserEdit" method="post"&gt;
    &lt;strong&gt;FirstName&lt;/strong&gt;:
    &lt;form:text name="FirstName" /&gt;
@@ -602,6 +599,11 @@ $lastName->setAttribute('value','...');
    pre-fill a form, that contains select fields in addition to normal text fields:
 </p>
 <gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="APF\tools\form\taglib\HtmlFormTag"
+   prefix="html"
+   name="form"
+/&gt;
 &lt;html:form name="UserCreate" method="post"&gt;
    &lt;strong&gt;Salutation&lt;/strong&gt;:
    &lt;form:select name="Salutation" /&gt;
@@ -761,6 +763,11 @@ for($i = 0; $i < count($selectedGroups); $i++){
 &lt;@controller
    class="VENDOR\..\SelectController"
 @&gt;
+&lt;core:addtaglib
+   class="APF\tools\form\taglib\HtmlFormTag"
+   prefix="html"
+   name="form"
+/&gt;
 &lt;html:form name="type" method="post"&gt;
   &lt;table&gt;
     &lt;tr&gt;
@@ -942,9 +949,10 @@ array(
 
 <h3 id="Chapter-7-Enhancement-of-form-controls"><a href="#Chapter-7-Enhancement-of-form-controls">7. Enhancement of form controls</a></h3>
 <p>
-   The concept of the APF's page controller allows you to write own tags to create reusable elements.
-   This also continues with forms. Custom form controls can be added using the <strong>&lt;core:addtaglib /&gt;</strong>
-   tag.
+   The concept of the APF's page controller allows you to write own taglibs to create reusable elements.
+   This also continues with forms. Custom form controls can be added using the <strong>&lt;form:addtaglib /&gt;</strong>
+   tag. This tag acts similar to the <strong>&lt;core:addtaglib /&gt;</strong>, but is restricted to
+   forms.
 </p>
 <p>
    The difference between a normal taglib and a form taglib is the fact, that each form taglib extends
@@ -1005,23 +1013,24 @@ class HoneypotFormControlTag extends AbstractFormControl {
    above is all that you need by now.
 </p>
 <p>
-   In order to use the newly created form control, the <strong>&lt;core:addtaglib /&gt;</strong> tag
+   In order to use the newly created form control, the <strong>&lt;form:addtaglib /&gt;</strong> tag
    can be used to announce the tag to the form:
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="VENDOR\..\HoneypotFormControlTag"
-   prefix="form"
-   name="honeypot"
+   class="APF\tools\form\taglib\HtmlFormTag"
+   prefix="html"
+   name="form"
 /&gt;
 &lt;html:form name="CheckedForm"&gt;
    ...
+   &lt;form:addtaglib namespace="..." class="HoneypotFormControlTag" prefix="form" name="honeypot" /&gt;
    &lt;form:honeypot name="check" /&gt;
    ...
 &lt;/html:form&gt;
 </gen:highlight>
 <p>
-   The real functionality is now included in the <strong>honeypot field</strong> validator. See the
+   The real functionality is now included in the <strong>honepot field</strong> validator. See the
    next chapter for details.
 </p>
 
@@ -1092,11 +1101,12 @@ $this->markControl($this->control);
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="VENDOR\.. \HoneypotFormControlTag"
-   prefix="form"
-   name="honeypot"
+   class="APF\tools\form\taglib\HtmlFormTag"
+   prefix="html"
+   name="form"
 /&gt;
 &lt;html:form name="CheckedForm"&gt;
+   &lt;form:addtaglib namespace="..." class="HoneypotFormControlTag" prefix="form" name="honeypot" /&gt;
    &lt;form:honeypot name="check" /&gt;
    &lt;form:addvalidator
       namespace="..."
@@ -1156,6 +1166,11 @@ class GermanUmlautsFilter extends AbstractFormFilter {
    The application of the filter using a text field or a text area can be taken from the below code box:
 </p>
 <gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="APF\tools\form\taglib\HtmlFormTag"
+   prefix="html"
+   name="form"
+/&gt;
 &lt;html:form name="UmlautsForm"&gt;
    &lt;form:text name="name" /&gt;
    &lt;form:area name="comment" /&gt;
