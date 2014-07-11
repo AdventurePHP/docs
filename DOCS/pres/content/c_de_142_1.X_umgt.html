@@ -17,7 +17,7 @@
    auf unterschiedlichen Ebenen.
 </p>
 <div class="hint">
-   Bitte beachten Sie, dass die Kapitel 5 und 6 noch nicht vollständig sind.
+   Bitte beachten Sie, dass die Kapitel 5 und 6 noch nicht vollständig sind. Diese werden für Release 1.16 nachgeliefert.
 </div>
 
 <h3 id="Chapter-1-Konzepte"><a href="#Chapter-1-Konzepte">1. Konzepte</a></h3>
@@ -268,14 +268,14 @@
 </p>
 <gen:highlight type="ini">
 [Sandbox-UMGT]
-Host = "localhost"
-Port = "3306"
-User = "root"
-Pass = "..."
-Name = "umgt_sandbox"
-Collation = "utf8_general_ci"
-Charset = "utf8"
-Type = "MySQLx"
+DB.Host = "localhost"
+DB.Port = "3306"
+DB.User = "root"
+DB.Pass = "..."
+DB.Name = "umgt_sandbox"
+DB.Collation = "utf8_general_ci"
+DB.Charset = "utf8"
+DB.Type = "MySQLx"
 </gen:highlight>
 
 <h5 id="Chapter-3-2-2-Modul-Konfiguration"><a href="#Chapter-3-2-2-Modul-Konfiguration">3.2.2. Modul-Konfiguration</a></h5>
@@ -506,28 +506,32 @@ class SandboxLoginRedirectProvider implements UmgtRedirectUrlProvider, APFDIServ
 <gen:highlight type="ini">
 [LoginRedirectUrlProvider]
 servicetype = "NORMAL"
-class = "SB\pres\provider\SandboxLoginRedirectProvider"
+namespace = "sandbox::pres::provider"
+class = "SandboxLoginRedirectProvider"
 
 [LogoutRedirectUrlProvider]
 servicetype = "NORMAL"
-class = "SB\pres\providerSandboxLogoutRedirectProvider"
+namespace = "sandbox::pres::provider"
+class = "SandboxLogoutRedirectProvider"
 
 [UmgtManager]
 servicetype = "SINGLETON"
-class = "APF\modules\usermanagement\biz\UmgtManager"
+namespace = "modules::usermanagement::biz"
+class = "UmgtManager"
 setupmethod = "setup"
 init.orm.method = "setORMapper"
-init.orm.namespace = "APF\modules\usermanagement\biz"
+init.orm.namespace = "modules::usermanagement::biz"
 init.orm.name = "GORM"
 conf.app-id.method = "setApplicationId"
 conf.app-id.value = "1"
 
 [GORM]
 servicetype = "SINGLETON"
-class = "APF\modules\genericormapper\data\GenericORRelationMapper"
+namespace = "modules::genericormapper::data"
+class = "GenericORRelationMapper"
 setupmethod = "setup"
 conf.namespace.method = "setConfigNamespace"
-conf.namespace.value = "APF\modules\usermanagement\data"
+conf.namespace.value = "modules::usermanagement::data"
 conf.affix.method = "setConfigNameAffix"
 conf.affix.value = "umgt"
 conf.db.method = "setConnectionName"
@@ -573,7 +577,8 @@ conf.db.value = "Sandbox-UMGT"
 </p>
 <gen:highlight type="ini">
 [Default]
-PasswordHashProvider.Default.Class = "APF\modules\usermanagement\biz\provider\crypt\CryptHardcodedSaltPasswordHashProvider"
+PasswordHashProvider.Default.Namespace = "modules::usermanagement::biz::provider::crypt"
+PasswordHashProvider.Default.Class = "CryptHardcodedSaltPasswordHashProvider"
 
 Salt = "...mein statischer Salt..."
 </gen:highlight>
@@ -590,8 +595,7 @@ Salt = "...mein statischer Salt..."
    wie folgt:
 </p>
 <gen:highlight type="php">
-use APF\modules\usermanagement\biz\PasswordHashProvider;
-
+import('modules::usermanagement::biz', 'PasswordHashProvider');
 class Sha1PasswordHashProvider extends DefaultPasswordHashProvider {
 
    public function createPasswordHash($password, $dynamicSalt) {
@@ -606,7 +610,8 @@ class Sha1PasswordHashProvider extends DefaultPasswordHashProvider {
 </p>
 <gen:highlight type="ini">
 [Default]
-PasswordHashProvider.Default.Class = "VENDOR\..\Sha1PasswordHashProvider"
+PasswordHashProvider.Default.Namespace = "my::namespace"
+PasswordHashProvider.Defaul.Class = "Sha1PasswordHashProvider"
 </gen:highlight>
 <p>
    Die Direktive <em>Salt</em> wurde nicht definiert, da der Provider keinen statischen Salt nutzt.
@@ -641,8 +646,10 @@ PasswordHashProvider.Default.Class = "VENDOR\..\Sha1PasswordHashProvider"
    zu realisieren, ist folgende Konfiguration notwendig:
 </p>
 <gen:highlight type="ini">
-PasswordHashProvider.Default.Class = "APF\modules\usermanagement\biz\provider\cryptCryptHardcodedSaltPasswordHashProvider"
-PasswordHashProvider.Fallback.Class = "APF\modules\usermanagement\biz\provider\md5\OldMD5PasswordHashProvider"
+PasswordHashProvider.Default.Namespace = "modules::usermanagement::biz::provider::crypt"
+PasswordHashProvider.Default.Class = "CryptHardcodedSaltPasswordHashProvider"
+PasswordHashProvider.Fallback.Namespace = "modules::usermanagement::biz::provider::md5"
+PasswordHashProvider.Fallback.Class = "OldMD5PasswordHashProvider"
 </gen:highlight>
 <div class="hint">
    Die Bezeichnung der Subsections (hier <em>Default</em> und <em>Fallback</em>) ist dabei nicht relevant, die
@@ -774,8 +781,8 @@ role.b = "Editorial functionality"
     angelegt/angepasst werden:
 </p>
 <gen:highlight type="ini">
-FieldEncryption.FieldNames = "EMail|Username|Password|..."
-FieldEncryption.Key = "..."
+    FieldEncryption.FieldNames = "EMail|Username|Password|..."
+    FieldEncryption.Key = "..."
 </gen:highlight>
 <p>
     Der Wert von <em>FieldEncryption.FieldNames</em> definiert, auf welche Felder 
@@ -789,6 +796,7 @@ FieldEncryption.Key = "..."
     Der Wert des <em>FieldEncryption.Key</em> sollte ein möglichst langer Schlüssel 
     mit Sonderzeichen sein, welcher für jede Anwendung einzigartig sein sollte. 
 </p>
+
 <p>
     <b>2. Aktivierung</b><br>
     Damit die Verschlüsselung "on-the-fly" erledigt werden kann, ist es notwendig diese über 
@@ -797,9 +805,9 @@ FieldEncryption.Key = "..."
     (z.B. <em>index.php</em>) einzufügen:
 </p>
 <gen:highlight type="php">
-use APF\core\service\DIServiceManager;
-$umgt = DIServiceManager::getServiceObject('APF\modules\usermanagement\biz', 'UmgtManager', {CONTEXT}, {LANGUAGE});
-$umgt->activateEncryption();
+    use APF\core\service\DIServiceManager;
+    $umgt = DIServiceManager::getServiceObject('APF\modules\usermanagement\biz', 'UmgtManager', {CONTEXT}, {LANGUAGE});
+    $umgt->activateEncryption();
 </gen:highlight>
 <p>
     Diese Zeilen müssen nach der Einbindung des APF-Core und dem Setzen von Einstellungen an den

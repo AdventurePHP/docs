@@ -1,6 +1,6 @@
 <doku:title parent="071" tags="tutorials,comment function,multi-language,reusability,front controller," title="Comment function" urlname="Comment-function-tutorial">
   This tutorial describes the realization of a comment function with use of the APF. It is focused
-  on multi-language support and re-usability.
+  on multi-language support and reusability.
 </doku:title>
 <h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
 <p>
@@ -445,44 +445,34 @@ public function loadEntries() {
 <gen:highlight type="apf-xml">
 &lt;@controller class="APF\modules\comments\pres\controller\CommentListingController" @&gt;
 &lt;div class="cm--list"&gt;
-   &lt;html:getstring
-      namespace="APF\modules\comments"
-      config="language.ini"
-      entry="listing.text.1"
-   /&gt;
-   &lt;a rel="nofollow" href="&lt;html:placeholder name="Link" /&gt;#comments" title="&lt;html:getstring
-      namespace="APF\modules\comments"
-      config="language.ini"
-      entry="listing.text.2.title" /&gt;"&gt;&lt;strong&gt;
-         &lt;html:getstring
-            namespace="APF\modules\comments"
-            config="language.ini"
-            entry="listing.text.2" /&gt;
-   &lt;/strong&gt;&lt;/a&gt;
-   &lt;html:getstring
-      namespace="APF\modules\comments"
-      config="language.ini"
-      entry="listing.text.3"
-   /&gt;
+   &lt;div class="cm--list-head"&gt;
+      &lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="listing.text.1" /&gt; &lt;a rel="nofollow" href="&lt;html:placeholder name="Link" /&gt;#comments" title="&lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="listing.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="listing.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt; &lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="listing.text.3" /&gt;
+   &lt;/div&gt;
+   &lt;div class="cm--list-pager"&gt;
+      &lt;html:placeholder name="Pager" /&gt;
+   &lt;/div&gt;
+   &lt;div class="cm--list-items"&gt;
+      &lt;html:placeholder name="Content" /&gt;
+   &lt;/div&gt;
 &lt;/div&gt;
 &lt;html:template name="ArticleComment"&gt;
    &lt;div class="cm--list-item"&gt;
       &lt;div class="cm--list-item-head"&gt;
-         &lt;div class="cm--list-item-head-num"&gt;&lt;html:placeholder name="Number" /&gt;&lt;/div&gt;
+         &lt;div class="cm--list-item-head-num"&gt;&lt;template:placeholder name="Number" /&gt;&lt;/div&gt;
          &lt;div class="cm--list-item-head-date"&gt;
-            &lt;span&gt;&lt;html:placeholder name="Name" /&gt;&lt;/span&gt;
-            &lt;em&gt;&lt;html:placeholder name="Date" /&gt;, &lt;html:placeholder name="Time" /&gt;&lt;/em&gt;
+            &lt;span&gt;&lt;template:placeholder name="Name" /&gt;&lt;/span&gt;
+            &lt;em&gt;&lt;template:placeholder name="Date" /&gt;, &lt;template:placeholder name="Time" /&gt;&lt;/em&gt;
          &lt;/div&gt;
          &lt;div style="clear: left;"&gt;&lt;/div&gt;
       &lt;/div&gt;
       &lt;div class="cm--list-item-body"&gt;
-         &lt;html:placeholder name="Comment" /&gt;
+         &lt;template:placeholder name="Comment" /&gt;
       &lt;/div&gt;
    &lt;/div&gt;
 &lt;/html:template&gt;
 &lt;html:template name="NoEntries"&gt;
    &lt;div class="cm--list-noentries"&gt;
-      &lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="noentries.text" /&gt;
+      &lt;template:getstring namespace="APF\modules\comments" config="language.ini" entry="noentries.text" /&gt;
    &lt;/div&gt;
 &lt;/html:template&gt;
 </gen:highlight>
@@ -617,13 +607,14 @@ class CommentListingController extends CommentBaseDocumentController {
 </p>
 <gen:highlight type="apf-xml">
 &lt;@controller class="APF\modules\comments\pres\controller\CommentCreateEntryController" @&gt;
+&lt;core:addtaglib class="APF\tools\form\taglib\HtmlFormTag" prefix="html" name="form" /&gt;
 &lt;div class="cm--create"&gt;
    &lt;div class="cm--create-head"&gt;
       &lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="formhint.text.1" /&gt; &lt;a href="&lt;html:placeholder name="back" /&gt;#comments" title="&lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="formhint.text.2.title" /&gt;"&gt;&lt;strong&gt;&lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="formhint.text.2" /&gt;&lt;/strong&gt;&lt;/a&gt;&lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="formhint.text.3" /&gt;
    &lt;/div&gt;
    &lt;div class="cm--create-form"&gt;
       &lt;html:form name="AddComment" method="post"&gt;
-         &lt;span&gt;&lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="form.name" /&gt;*&lt;/span&gt;
+         &lt;span&gt;&lt;form:getstring namespace="APF\modules\comments" config="language.ini" entry="form.name" /&gt;*&lt;/span&gt;
          &lt;form:text
             maxlength="100"
             name="Name"
@@ -635,7 +626,7 @@ class CommentListingController extends CommentBaseDocumentController {
             control="Name|Comment"
          /&gt;
          &lt;br /&gt;
-         &lt;span&gt;&lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="form.email" /&gt;*&lt;/span&gt;
+         &lt;span&gt;&lt;form:getstring namespace="APF\modules\comments" config="language.ini" entry="form.email" /&gt;*&lt;/span&gt;
          &lt;form:text
             maxlength="100"
             name="EMail"
@@ -653,7 +644,7 @@ class CommentListingController extends CommentBaseDocumentController {
          /&gt;
          &lt;br /&gt;
          &lt;br /&gt;
-         &lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="form.comment" /&gt;
+         &lt;form:getstring namespace="APF\modules\comments" config="language.ini" entry="form.comment" /&gt;
          &lt;br /&gt;
          &lt;form:area
             name="Comment"
@@ -663,9 +654,10 @@ class CommentListingController extends CommentBaseDocumentController {
          /&gt;
          &lt;br /&gt;
          &lt;br /&gt;
-         &lt;span&gt;&lt;html:getstring namespace="APF\modules\comments" config="language.ini" entry="form.confirm" /&gt;*&lt;/span&gt;
+         &lt;span&gt;&lt;form:getstring namespace="APF\modules\comments" config="language.ini" entry="form.confirm" /&gt;*&lt;/span&gt;
          &lt;br /&gt;
          &lt;br /&gt;
+         &lt;form:addtaglib class="APF\modules\captcha\pres\taglib\SimpleCaptchaTag" prefix="form" name="captcha" /&gt;
          &lt;form:captcha
              text_class="cm--create-element-captcha"
              name="Captcha"
