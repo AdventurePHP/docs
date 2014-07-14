@@ -21,19 +21,38 @@
    Der <int:link pageid="098"/> des APF ist nach dem <em>HMVC-Pattern</em> entworfen und verwaltet die einzelnen
    Elemente und Komponenten Ihrer Software in Dokumenten. Jedes dieser Dokumente - auch <em>Knoten</em> genannt - kann
    weitere Knoten enthalten. Ein Knoten wird im APF durch die Klasse <em>Document</em> und davon erbenden Klassen
-   repräsentiert. Dabei definiert jede Instanz die möglichen Kind-Typen über die interne Liste <em>$this->tagLibs</em>.
+   repräsentiert.
 </p>
 <p>
-   Der APF-Parser ist aus Komplexitäts- und Performance-Gründen so entworfen, dass er nur diejenigen Tags innerhalb
-   eines Dokuments verarbeitet, die auch dort als mögliche Kind-Elemente bekannt sind. Möchten Sie einen Tag nutzen,
-   der im aktuellen Dokument noch nicht bekannt ist, können Sie den <em>&lt;core:addtaglib /&gt;</em>-Tag nutzen. Der
-   so bekannt gegebene Tag kann unmittelbar danach genutzt werden.
+   Der APF-Parser verarbeitet alle Tags der Form
+</p>
+<gen:highlight type="apf-xml">
+&lt;prefix:name /&gt;
+</gen:highlight>
+<p>
+   beziehungsweise
+</p>
+<gen:highlight type="apf-xml">
+&lt;prefix:name&gt;&lt;/prefix:name&gt;
+</gen:highlight>
+<p>
+   inklusive der definierten Tag-Attribute innerhalb von Template-Dateien. Zur Erzeugung des DOM-Baums greift er auf
+   die <em>Document::$knownTags</em>- (statisch) und <em>Document::$knownInstanceTags</em>-Listen (pro Instanz) zurück
+   um die zu nutzende Implementierung zu erhalten. Möchten Sie in Ihrem Projekt einen eigenen Tag nutzen,
+   der im Auslieferungszustand des APF noch nicht bekannt ist, können Sie den <em>&lt;core:addtaglib /&gt;</em>-Tag
+   nutzen. Dieser macht den gewünschten Tag inklusive seiner Implementierung entweder global für alle Templates oder
+   den lokalen DOM-Knoten bekannt. In einem Template auf diese Weise bekannt gegebene Tags können unmittelbar danach
+   genutzt werden.
+</p>
+<p>
+   Die Signatur des Tags gestaltet sich wie folgt:
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
    class=""
    prefix=""
    name=""
+   [scope=""]
 /&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
@@ -50,6 +69,11 @@
     <strong>name</strong>: XML-Tag-Name.
     (<strong>Zeichen</strong>: <code>[a-z]</code>)
   </li>
+   <li>
+      <strong>scope</strong>: Definiert die Art der Tag-Registrierung. <em>global</em> registriert den Tag projektweit,
+      <em>local</em> nur für den aktuellen DOM-Knoten. Standard: <em>global</em>.
+      (<strong>Erlaubte Werte</strong>: <code>global|local</code>)
+   </li>
 </ul>
 <p>
    Die innerhalb der Klasse zu implementierenden Methoden können der <int:link pageid="002" /> oder dem Tutorial

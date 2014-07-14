@@ -23,15 +23,34 @@
    types stored in the <em>$this->tagLibs</em> list.
 </p>
 <p>
-   The APF parser is designed to process only known tags due to complexity and performance reasons. In case you want to
-   add custom types to the current document you may use the <em>&lt;core:addtaglib /&gt;</em> tag. After it's addition,
-   your custom tag can be used directly.
+   The APF parser is designed to process all tags that either match
+</p>
+<gen:highlight type="apf-xml">
+&lt;prefix:name /&gt;
+</gen:highlight>
+<p>
+   or
+</p>
+<gen:highlight type="apf-xml">
+&lt;prefix:name&gt;&lt;/prefix:name&gt;
+</gen:highlight>
+<p>
+   including all tag attributes defined along with the tag. Creating the DOM tree the parser used the
+   <em>Document::$knownTags</em> (static) and <em>Document::$knownInstanceTags</em> (per instance) lists to evaluate
+   the implementation of the respective tag. In case you intend to a custom tag that has not been registered with the
+   APF you may want to use the <em>&lt;core:addtaglib /&gt;</em> tag. This tag registers the desired custom tag with
+   the APF parser either globally for all templates or just the local DOM node. Tags registered within templates can
+   directly be used after registration.
+</p>
+<p>
+   The signature of the tag is as follows:
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
    class=""
    prefix=""
    name=""
+   [scope=""]
 /&gt;
 </gen:highlight>
 <strong>Description of the attributes:</strong>
@@ -47,6 +66,11 @@
    <li>
       <strong>name</strong>: The XML tag name.
       (<strong>Allowed characters</strong>: <code>[a-z]</code>)
+   </li>
+   <li>
+      <strong>scope</strong>: Defines the tag registration type. <em>global</em> means project scope and <em>local</em>
+      registers the tag for the current DOM node only. Default: <em>global</em>.
+      (<strong>Allowed values</strong>: <code>global|local</code>)
    </li>
 </ul>
 <p>
