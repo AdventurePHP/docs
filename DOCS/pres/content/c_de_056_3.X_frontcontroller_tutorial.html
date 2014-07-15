@@ -182,20 +182,33 @@ use APF\core\pagecontroller\APFObject;
 
 class ApplicationModel extends APFObject {
 
-   public function __construct() {
+   /**
+    * @var string Defines the log-in method (request|cookie|session).
+    */
+   private $loginMode = 'request';
 
-      // Definiert den gerade anzuzeigenden View (login|welcome)
-      $this->attributes['view.content.template'] = 'login';
+   /**
+    * @var string|null Indicates whether a failed log-in attempt exists.
+    */
+   private $loginStatus = null;
 
-      // User-ID des aktuell eingeloggten Benutzers (null|user_id)
-      $this->attributes['user.id'] = null;
+   /**
+    * @param string $loginMode
+    */
+   public function setLoginMode($loginMode) {
+      $this->loginMode = $loginMode;
+   }
 
-      // Definiert die Methode des Logins (request|cookie|session)
-      $this->attributes['login.mode'] = 'request';
+   public function getLoginMode() {
+      return $this->loginMode;
+   }
 
-      // Zeigt, ob ein fehlgeschlagener Login vorliegt
-      $this->attributes['login.status'] = null;
+   public function setLoginStatus($loginStatus) {
+      $this->loginStatus = $loginStatus;
+   }
 
+   public function getLoginStatus() {
+      return $this->loginStatus;
    }
 
 }
@@ -259,19 +272,19 @@ class LoginAction extends AbstractFrontcontrollerAction {
             if ($this->validateCredentials($Username, $Password)) {
 
                // Fall 1.1.1: Daten aus Session gewonnen und erfolgreich eingeloggt
-               $model->setAttribute('view.content.template', 'content');
+               $model->setLoginMode('content');
 
             } else {
 
                // Fall 1.1.2: Daten aus Session gewonnen und diese sind nicht valide
-               $model->setAttribute('view.content.template', 'login');
+               $model->setLoginMode('login');
 
             }
 
          } else {
 
             // Fall 1.2: Keine Daten aus Session erhältlich
-            $model->setAttribute('view.content.template', 'login');
+            $model->setLoginMode('login');
 
          }
 
@@ -283,20 +296,20 @@ class LoginAction extends AbstractFrontcontrollerAction {
             if ($this->validateCredentials($username, md5($password))) {
 
                // Fall 2.1.1. Login-Vorgang war erfolgreich
-               $model->setAttribute('view.content.template', 'content');
+               $model->setLoginMode('content');
 
             } else {
 
                // Fall 2.1.2: Login-Vorgang war auf Grund falscher Benutzerdaten NICHT erfolgreich
-               $model->setAttribute('view.content.template', 'login');
-               $model->setAttribute('login.status', 'failed');
+               $model->setLoginMode('login');
+               $model->setLoginStatus('failed');
 
             }
 
          } else {
 
             // Fall Falls 2.2: Formular wurde unvollständig ausgefüllt
-            $model->setAttribute('view.content.template', 'login');
+            $model->setLoginMode('login');
 
          }
 
@@ -310,7 +323,7 @@ class LoginAction extends AbstractFrontcontrollerAction {
          $session->destroySession('MyApplication');
 
          // Login-Formular erzeugen
-         $model->setAttribute('view.content.template', 'login');
+         $model->setLoginMode('login');
       }
 
    }

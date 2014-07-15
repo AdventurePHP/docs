@@ -92,7 +92,7 @@
 <p>
    Für das Template zur Ausgabe des Gästebuchs legen wir dann den Ordner
 </p>
-<gen:highlight type="code">/var/www/html/guestbook/EXAMPLE/gb/templates</gen:highlight>
+<gen:highlight type="code">/var/www/html/guestbook/apps/gb/templates</gen:highlight>
 <p>
    an und erstellen darin eine Datei mit dem Namen
 </p>
@@ -103,20 +103,15 @@
    Hallo-Welt!-Tutorial und passen die Parameter entsprechend an:
 </p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
-
-use APF\core\singleton\Singleton:;
-use APF\core\frontcontroller\Frontcontroller;
-
-RootClassLoader::addLoader(new StandardClassLoader('EXAMPLE', '/var/www/html/guestbook'));
-
-$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
-echo $fC->start('EXAMPLE\gb\templates', 'guestbook');
+include('./apps/core/pagecontroller/pagecontroller.php');
+import('core::frontcontroller', 'Frontcontroller');
+$fC = &Singleton::getInstance('Frontcontroller');
+echo $fC->start('gb::templates', 'guestbook');
 </gen:highlight>
 <p>
    Das Code-Snippet zeigt bereits wichtige Konventionen des APF: Klassen und Template-Dateien werden 
-   immer relativ zum Installations-Ordner der Basis-Bibliotheken adressiert.
-   Verzeichnisse (Namespaces) werden mit &rdquo;\&ldquo; statt &rdquo;/&ldquo; getrennt und
+   immer relativ zum Installations-Ordner der Basis-Bibliotheken (hier: apps) adressiert.
+   Verzeichnisse (Namespaces) werden mit &rdquo;::&ldquo; statt &rdquo;/&ldquo; getrennt und 
    Datei-Namen ohne Endung notiert.Template-Dateien tragen die Endung &rdquo;.html&ldquo;,
    PHP-Klassen &rdquo;.php&ldquo;.
 </p>
@@ -141,8 +136,6 @@ echo $fC->start('EXAMPLE\gb\templates', 'guestbook');
    Autor des Eintrags beinhaltet.
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\biz;
-
 final class Entry {
    private $title;
    private $text;
@@ -166,8 +159,6 @@ final class Entry {
    komplexe Eigenschaft entries:
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\biz;
-
 final class Guestbook {
    private $title;
    private $description;
@@ -224,10 +215,10 @@ final class User {
    wie folgt:
 </p>
 <gen:highlight type="code">
-/APF/modules/guestbook2009/
-                           pres/
-                           biz/
-                           data/
+/modules/guestbook2009/
+                       pres/
+                       biz/
+                       data/
 </gen:highlight>
 <p>
    Der Ordner pres dient der Ablage der Bestandteile der Präsentations-Schicht, unter biz
@@ -240,7 +231,10 @@ final class User {
    die Namenskonvention Klasse=Datei-Name vor. Später kann dann die Klasse User daher via
 </p>
 <gen:highlight type="php">
-use APF\modules\guestbook2009\biz\User;
+import(
+   'modules::guestbook2009::biz',
+   'User'
+);
 </gen:highlight>
 <p>eingebunden werden.</p>
 
@@ -425,7 +419,7 @@ class GuestbookModel extends APFObject {
    Da ein Model im Sinne der eingesetzten 3-Schicht-Architektur zur Business-Schicht zählt,
    legen wird diese Klasse unter dem Namespace (=Ordner)
 </p>
-<gen:highlight type="code">/APF/modules/guestbook2009/biz</gen:highlight>
+<gen:highlight type="code">modules::guestbook2009::biz</gen:highlight>
 <p>
    ab. Durch die Vererbung besitzt das Objekt bereits eine get()- und set()-Methode zur Manipulation
    der GuestbookId.
@@ -437,22 +431,22 @@ class GuestbookModel extends APFObject {
 <gen:highlight type="php">
 class GuestbookImportTemplateTag extends ImportTemplateTag {
 
-   public function onParseTime() {
+   public function onParseTime(){
 
-      $model = & $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
+      $model = &$this->getServiceObject('modules::guestbook2009::biz','GuestbookModel');
       $guestbookId = $this->getAttribute('gbid');
 
       // do not include the guestbook, if gbid is not set/existent
-      if ($guestbookId == null || ((int) $guestbookId) == 0) {
+      if($guestbookId == null || ((int)$guestbookId) == 0){
          throw new InvalidArgumentException('[GuestbookImportTemplateTag::onParseTime()] The attribute '
-               . '"gbid" is empty or not present or the value is not an id. Please specify the '
-               . 'attribute correctly in order to include the guestbook module!');
+            .'"gbid" is empty or not present or the value is not an id. Please specify the '
+            .'attribute correctly in order to include the guestbook module!');
       }
 
       $model->setGuestbookId($guestbookId);
 
-      $this->setAttribute('namespace', 'APF\modules\guestbook2009\pres\templates');
-      $this->setAttribute('template', 'guestbook');
+      $this->attributes['namespace'] = 'modules::guestbook2009::pres::templates';
+      $this->attributes['template'] = 'guestbook';
       parent::onParseTime();
 
    }
@@ -473,7 +467,8 @@ class GuestbookImportTemplateTag extends ImportTemplateTag {
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:addtaglib
-   class="APF\modules\guestbook2009\pres\taglib\GuestbookImportTemplateTag"
+   namespace="modules::guestbook2009::pres::taglib"
+   class="GuestbookImportTemplateTag"
    prefix="gb"
    name="import"
 />
@@ -493,10 +488,10 @@ class GuestbookImportTemplateTag extends ImportTemplateTag {
    zur besseren Gliederung folgende Struktur aufgebaut:
 </p>
 <gen:highlight type="code">
-/APF/guestbook2009/pres/
-                       controller/
-                       taglib/
-                       templates/
+guestbook2009/pres/
+                   controller/
+                   taglib/
+                   templates/
 </gen:highlight>
 <p>
    Der Ordner controller dient später zur Ablage der MVC-Document-Controller-Klassen, im Ordner
@@ -551,7 +546,7 @@ class GuestbookImportTemplateTag extends ImportTemplateTag {
 class GuestbookController extends BaseDocumentController {
    public function transformContent(){
       $gS = &$this->getDIServiceObject(
-         'APF\modules\guestbook2009\biz',
+         'modules::guestbook2009::biz',
          'GuestbookService'
       );
       $guestbook = $gS->loadGuestbook();
@@ -603,76 +598,72 @@ class GuestbookController extends BaseDocumentController {
 
 &lt;html:template name="entry">
   ...
-  <html:placeholder name="title" />
+  <template:placeholder name="title" />
   ...
-  <html:placeholder name="name" />,
-  <html:placeholder name="web" />
+  <template:placeholder name="name" />,
+  <template:placeholder name="web" />
   ...
-  <html:placeholder name="text"/>
+  <template:placeholder name="text"/>
   ...
   Datum:
-  <html:placeholder name="date" />,
+  <template:placeholder name="date" />,
   Uhrzeit:
-  <html:placeholder name="time" />
+  <template:placeholder name="time" />
   ...
-&lt;/html:template&gt;
+</html:template>
 </gen:highlight>
 <p>
-   Für die Ausgabe der Liste wurde das <em>&lt;html:template /&gt;</em> mit Platzhaltern ausgestattet, die
+   Für die Ausgabe der Liste wurde das &lt;html:template /> mit Platzhaltern ausgestattet, die
    die Inhalte eines Entry-Objekts repräsentieren. Die fertigen Liste wird dann dem Platzhalter
-   <em>&lt;html:placeholder name="content" /&gt;</em> mitgegeben.
+   &lt;html:placeholder name="content" /> mitgegeben.
 </p>
 <p>
    Dass ein Document-Controller von der Klasse BaseDocumentController erben muss ist nicht nur reine
    Konvention, sondern bietet auch eine Reihe von Vorteilen. Die Klasse beinhaltet eine Vielzahl
    von Methoden, die das Erzeugen von dynamischem Inhalt erleichtern. Zu diesen zählt die
-   Funktion <em>getTemplate($tmplName)</em>, die eine Referenz auf die mit <em>$tmplName</em> benannte Instanz der
+   Funktion getTemplate($tmplName), die eine Referenz auf die mit $tmplName benannte Instanz der
    Taglib &lt;html:placeholder /> zurück liefert. So kann in einem Controller bequem auf die
    im DOM-Baum umliegenden Objekte zugegriffen werden.
 </p>
 <p>
    In diesem Fall handelt es sich dabei um ein Kind-Objekt des DOM-Knotens, der mit Hilfe der
-   Template-Datei list.html erzeugt wurde. Die Instanz der Taglib <em>&lt;html:placeholder /&gt;</em> ist
-   wiederum ein Kind der Instanz der Taglib <em>&lt;html:template /&gt;</em>. Da über die Methode <em>$this->getDocument()</em>
+   Template-Datei list.html erzeugt wurde. Die Instanz der Taglib &lt;template:placeholder /> ist
+   wiederum ein Kind der Instanz der Taglib &lt;html:template />. Da über die Methode <em>$this->getDocument()</em>
    eine Referenz auf das aktuelle DOM-Objekt bezogen werden kann, kann auch in einem Controller auf die umliegenden
    Objekte direkt zugegriffen werden:
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\pres\controller;
-
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
-class GuestbookListController extends GuestbookBaseController {
+class GuestbookListController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $gS = & $this->getGuestbookService();
+      // get the guestbook service
+      $gS = &$this->getDIServiceObject('modules::guestbook2009::biz', 'GuestbookService');
       $entryList = $gS->loadPagedEntryList();
 
-      $tmpl_entry = & $this->getTemplate('entry');
+      $templateEntry = &$this->getTemplate('entry');
       $buffer = (string) '';
       foreach ($entryList as $entry) {
 
          $editor = $entry->getEditor();
-         $tmpl_entry->setPlaceHolder('name', $editor->getName());
-         $tmpl_entry->setPlaceHolder('website', $editor->getWebsite());
+         $templateEntry->setPlaceHolder('name', $editor->getName());
+         $templateEntry->setPlaceHolder('website', $editor->getWebsite());
 
-         $tmpl_entry->setPlaceHolder('title', $entry->getTitle());
-         $tmpl_entry->setPlaceHolder('text', $entry->getText());
+         $templateEntry->setPlaceHolder('title', $entry->getTitle());
+         $templateEntry->setPlaceHolder('text', $entry->getText());
 
          $creationTimestamp = $entry->getCreationTimestamp();
-         $tmpl_entry->setPlaceHolder('time', date('H:i:s', strtotime($creationTimestamp)));
-         $tmpl_entry->setPlaceHolder('date', date('d.m.Y', strtotime($creationTimestamp)));
+         $templateEntry->setPlaceHolder('time', date('H:i:s', strtotime($creationTimestamp)));
+         $templateEntry->setPlaceHolder('date', date('d.m.Y', strtotime($creationTimestamp)));
 
-         $buffer .= $tmpl_entry->transformTemplate();
+         $buffer .= $templateEntry->transformTemplate();
       }
       $this->setPlaceHolder('content', $buffer);
 
       // add the pager
       $this->setPlaceHolder('pager', $gS->getPagerOutput());
 
-      // add dynamic link
+      // add dyamic link
       $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array('gbview' => 'create')));
       $this->setPlaceHolder('createlink', $link);
    }
@@ -712,14 +703,14 @@ class GuestbookListController extends GuestbookBaseController {
 </p>
 <gen:highlight type="php">
 class MockGuestbookService extends APFObject {
-   public function loadGuestbook() {
+   public function loadGuestbook(){
       $gb = new Guestbook();
       $gb->setTitle('Mein Gästebuch');
       $gb->setDescription('Dies ist mein erster Test des neuen Gästebuchs. Die Einträge werden von einer Mock-Schicht zur Verfügung gestellt.');
       return $gb;
    }
 
-   public function loadPagedEntryList() {
+   public function loadPagedEntryList(){
       $entry = new Entry();
       $entry->setTitle('MOCK-Eintrag');
       $entry->setText(
@@ -742,7 +733,7 @@ class MockGuestbookService extends APFObject {
       return $entries;
    }
 
-   public function getPagerOutput() {
+   public function getPagerOutput(){
       return '';
    }
 }
@@ -793,7 +784,8 @@ conf. {CONFKEY}.value = ""]
 <gen:highlight type="ini">
 [GuestbookService]
 servicetype = "SINGLETON"
-class = "APF\modules\guestbook2009\biz\MockGuestbookService"
+namespace = "modules::guestbook2009::biz"
+class = "MockGuestbookService"
 </gen:highlight>
 
 <h3 id="Chapter-14-Konfiguration"><a href="#Chapter-14-Konfiguration">14. Konfiguration</a></h3>
@@ -843,9 +835,9 @@ class = "APF\modules\guestbook2009\biz\MockGuestbookService"
    den Context der Anwendung noch nicht definiert, müssen wir dies nun nachholen. Aus diesem
    Grund fügen in der index.php wir zwischen
 </p>
-<gen:highlight type="php">$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');</gen:highlight>
+<gen:highlight type="php">$fC = &Singleton::getInstance('Frontcontroller');</gen:highlight>
 <p>und</p>
-<gen:highlight type="php">echo $fC->start('EXAMPLE\gb\templates', 'guestbook');</gen:highlight>
+<gen:highlight type="php">echo $fC->start('gb::templates', 'guestbook');</gen:highlight>
 <p>ein</p>
 <gen:highlight type="php">$fC->setContext('testproject');</gen:highlight>
 <p>hinzu. Damit wird der Context des Page-Controllers auf den Wert testproject gesetzt.</p>
@@ -892,11 +884,11 @@ class = "APF\modules\guestbook2009\biz\MockGuestbookService"
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:getstring
-  namespace="APF\modules\guestbook2009\pres"
+  namespace="modules::guestbook2009::pres"
   config="language.ini"
   entry="list.date"
 />:
-<html:placeholder name="date" />, ...
+<template:placeholder name="date" />, ...
 </gen:highlight>
 <p>Die korrespondierende Konfigurations-Datei ist wie im nachfolgenden Listing beschrieben aufgebaut:</p>
 <gen:highlight type="ini">
@@ -908,15 +900,15 @@ list.date = "Date"
 ...
 </gen:highlight>
 <p>
-   Da sich die Signaturen der Tags in den Templates nur um das Attribut <em>entry</em> unterscheiden, kann
+   Da sich die Signaturen der Tags in den Templates nur um das Attribut entry unterscheiden, kann
    die Einbindung nochmals durch die Implementierung einer eigenen Taglib vereinfacht werden. In der
    verküzten Form wird die Beschriftung des Datums dann per
 </p>
 <gen:highlight type="apf-xml">
-&lt;html:langlabel
+&lt;form:langlabel
   entry="form.label.email"
-/&gt;:
-&lt;html:placeholder name="date" /&gt;, ...
+/>:
+<template:placeholder name="date" />, ...
 </gen:highlight>
 <p>
    erledigt. Die Implementierung der Taglib &lt;form:langlabel /> nutzt dabei die im APF enthaltene
@@ -925,17 +917,18 @@ list.date = "Date"
    verwendet wird, leitet die Klasse <em>GuestbookFormLanguageLabelTag</em> nochmals von einer Basis-Klasse ab:
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\pres\taglib;
-
-use APF\core\pagecontroller\LanguageLabelTag;
-
-class GuestbookLanguageLabelTag extends LanguageLabelTag {
-
-   public function __construct() {
-      $this->setAttribute('namespace', 'APF\modules\guestbook2009\pres');
-      $this->setAttribute('config', 'language.ini');
+class Guestbook2009LanguageLabelTag extends LanguageLabelTag {
+   public function __construct(){
+      $this->attributes['namespace'] =
+         'modules::guestbook2009::pres';
+      $this->attributes['config'] =
+         'language';
    }
-
+}
+class GuestbookFormLanguageLabelTag extends Guestbook2009LanguageLabelTag {
+   public function __construct() {
+      parent::__construct();
+   }
 }
 </gen:highlight>
 
@@ -956,10 +949,16 @@ class GuestbookLanguageLabelTag extends LanguageLabelTag {
    APF-Formular gestaltet sich wie folgt:
 </p>
 <gen:highlight type="apf-xml">
-&lt;html:form name="search" method="post"&gt;
-  &lt;html:text name="searchterm" /&gt;
-  &lt;form:button name="send" value="GO"/&gt;
-&lt;/html:form&gt;
+&lt;core:addtaglib
+   namespace="tools::form::taglib"
+   class="HtmlFormTag"
+   prefix="html"
+   name="form"
+/>
+&lt;html:form name="search" method="post">
+  &lt;html:text name="searchterm" />
+  <form:button name="send" value="GO"/>
+</html:form>
 </gen:highlight>
 <p>
    In diesem Formular wird das Attribut action selbst gefüllt, so dass mit dem gezeigten Code
@@ -1034,51 +1033,44 @@ class SearchController extends BaseDocumentController {
    Speicherung an den GuestbookService zu übergeben:
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\pres\controller;
-
-use APF\modules\guestbook2009\biz\Entry;
-use APF\modules\guestbook2009\biz\User;
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
-class GuestbookCreateEntryController extends GuestbookBaseController {
-
-   public function transformContent() {
-
-      $form = & $this->getForm('create_entry');
-
-      if ($form->isSent() && $form->isValid()) {
-
-         // Fill domain objects by extracting the values
-         // from the form elements directly.
-         $name = & $form->getFormElementByName('name');
-         $email = & $form->getFormElementByName('email');
-         $website = & $form->getFormElementByName('website');
-
+class GuestbookCreateEntryController extends BaseDocumentController {
+   public function transformContent(){
+      $form =
+        &$this->getForm('create_entry');
+      if($form->get('isSent')
+            && $form->get('isValid')){
+         $name = &$form->getFormElementByName('name');
+         $email = &$form->getFormElementByName('email');
+         $web = &$form->getFormElementByName('website');
          $user = new User();
-         $user->setName($name->getAttribute('value'));
-         $user->setEmail($email->getAttribute('value'));
-         $user->setWebsite($website->getAttribute('value'));
-
-         $title = & $form->getFormElementByName('title');
-         $text = & $form->getFormElementByName('text');
+         $user->setName(
+            $name->getAttribute('value')
+         );
+         $user->setEmail(
+            $email->getAttribute('value')
+         );
+         $user->setWebsite(
+            $web->getAttribute('value')
+         );
+         $title = &$form->getFormElementByName('title');
+         $text = &$form->getFormElementByName('text');
          $entry = new Entry();
-         $entry->setTitle($title->getAttribute('value'));
-         $entry->setText($text->getContent());
-
+         $entry->setTitle(
+            $title->getAttribute('value')
+         );
+         $entry->setText(
+            $text->getContent()
+         );
          $entry->setEditor($user);
 
-         // Save the entry using the business component.
-         $this->getGuestbookService()->saveEntry($entry);
+         $gbService = &$this->getDIServiceObject('modules::guestbook2009::biz','GuestbookService');
+         $gbService->saveEntry($entry);
+
       }
-
       ...
-
       $form->transformOnPlace();
-
       ...
    }
-
 }
 </gen:highlight>
 <p>Ist das Formular weder abgeschickt noch valide, wird es per</p>
@@ -1113,6 +1105,12 @@ class GuestbookCreateEntryController extends GuestbookBaseController {
    zunächst die Taglib in das Eingabe-Formular integriert werden:
 </p>
 <gen:highlight type="apf-xml">
+&lt;form:addtaglib
+   namespace="modules::captcha::pres::taglib"
+   class="SimpleCaptchaTag"
+   prefix="form"
+   name="captcha"
+/>
 &lt;form:captcha
   clearonerror="true"
 /&gt;
@@ -1120,8 +1118,25 @@ class GuestbookCreateEntryController extends GuestbookBaseController {
 <p>
    Wie der Code-Box zu entnehmen ist, wird die verwendete Taglib zunächst dem Formular bekannt
    gegeben. Bauen wir die Zeilen in das Template des Create-Views ein, stellen wir zunächst
-   fest, dass kein CAPTCHA-Bild ausgegeben wird.
+   fest, dass kein CAPTCHA-Bild ausgegeben wird. Um dies zu ermöglichen, muss die
+   Bootstrap-Datei angepasst und die Auslieferung der Seite über den Front-Controller geregelt
+   werden. Die index.php muss gemäß <int:link pageid="094" /> damit folgende Gestalt haben:
 </p>
+<gen:highlight type="php">
+include('./apps/core/pagecontroller/pagecontroller.php');
+import(
+   'core::frontcontroller',
+   'Frontcontroller'
+);
+$fC = &Singleton::getInstance(
+   'Frontcontroller'
+);
+$fC->setContext('testproject');
+echo $fC->start(
+   'gb::templates',
+   'guestbook'
+);
+</gen:highlight>
 <p>
    Der Front-Controller ist eine Erweiterung des Page-Controllers, der vor dem Erstellen der Seite,
    nach dem Aufbau des DOM-Baumes und nach der Transformation so genannte Actions ausführt.
@@ -1181,16 +1196,22 @@ ActionClass = "APF\modules\captcha\biz\actions\ShowCaptchaImageAction"
 &lt;@controller
    class="APF\modules\guestbook2009\pres\controller\GuestbookLoginController"
 @&gt;
-Please log in to administrate the guest book.
-&lt;html:form name="login" method="post"&gt;
-  &lt;html:placeholder name="error" /&gt;
-  &lt;label&gt;Username:&lt;/label&gt;
-  &lt;form:text maxlength="100" name="username" class="gb--login-field-username" /&gt;
+&lt;core:addtaglib
+   namespace="tools::form::taglib"
+   class="HtmlFormTag"
+   prefix="html"
+   name="form"
+/&gt;
+Please log in to administrate the guestbook.
+&lt;html:form name="login" method="post">
+  <form:placeholder name="error" />
+  <label>Username:</label>
+  <form:text maxlength="100" name="username" class="gb--login-field-username" />
   ...
-  &lt;label&gt;Password:&lt;/label&gt;
-  &lt;form:password maxlength="100" name="password" /&gt;
+  <label>Password:</label>
+  <form:password maxlength="100" name="password" />
   ...
-  &lt;form:button name="login" value="Login" /&gt;
+  <form:button name="login" value="Login" />
 &lt;/html:form&gt;
 &lt;html:template name="error"&gt;
   ... The given user credentials are wrong! ...
@@ -1207,33 +1228,51 @@ Please log in to administrate the guest book.
    übergeben. Schlägt diese fehl, so wird die zuvor erwähnte Fehlermeldung angezeigt:
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\pres\controller;
-
-use APF\modules\guestbook2009\biz\User;
-
-class GuestbookLoginController extends GuestbookBaseController {
-
-   public function transformContent() {
-
-      $form = & $this->getForm('login');
-
-      if ($form->isSent() && $form->isValid()) {
-
-         $fieldUser = & $form->getFormElementByName('username');
-         $fieldPass = & $form->getFormElementByName('password');
+class GuestbookLoginController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('login');
+      if($form->get('isSent')
+            && $form->get('isValid')){
+         $fieldUser =
+            &$form->getFormElementByName(
+               'username'
+            );
+         $fieldPass =
+            &$form->getFormElementByName(
+               'password'
+            );
          $user = new User();
-         $user->setUsername($fieldUser->getAttribute('value'));
-         $user->setPassword($fieldPass->getAttribute('value'));
-
-         if (!$this->getGuestbookService()->validateCredentials($user)) {
-            $error = & $this->getTemplate('error');
-            $form->setPlaceHolder('error', $error->transformTemplate());
+         $user->setUsername(
+            $fieldUser->getAttribute(
+               'value'
+            )
+         );
+         $user->setPassword(
+            $fieldPass->getAttribute(
+               'value'
+            )
+         );
+         $gS =
+            &$this->getDIServiceObject(
+            'modules::guestbook2009::biz',
+            'GuestbookService'
+         );
+         if(
+            !$gS->validateCredentials(
+               $user)
+           ){
+            $error =
+               &$this->getTemplate(
+                  'error'
+               );
+            $form->setPlaceHolder(
+               'error',
+               $error->transformTemplate()
+            );
          }
       }
-
       $form->transformOnPlace();
    }
-
 }
 </gen:highlight>
 <p>
@@ -1294,35 +1333,32 @@ class GuestbookLoginController extends GuestbookBaseController {
    gewünschten Links:
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\pres\controller;
-
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
-class GuestbookAdminController extends GuestbookBaseController {
+class GuestbookAdminController extends BaseDocumentController {
 
    public function transformContent() {
 
       // invoke the service to check, if the current user may request this page
-      $this->getGuestbookService()->checkAccessAllowed();
+      $gS = &$this->getDIServiceObject('modules::guestbook2009::biz', 'GuestbookService');
+      $gS->checkAccessAllowed();
 
-      // generate the admin menu links to be able to include the module in either page.
+      // generate the admin menu links using the fc linkhander to
+      // be able to include the module in either page.
       $editLink = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
-            'gbview'    => 'admin',
-            'adminview' => 'edit'
-      )));
+                          'gbview' => 'admin',
+                          'adminview' => 'edit'
+                      )));
       $this->setPlaceHolder('editLink', $editLink);
 
       $deleteLink = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
-            'gbview'    => 'admin',
-            'adminview' => 'delete'
-      )));
+                          'gbview' => 'admin',
+                          'adminview' => 'delete'
+                      )));
       $this->setPlaceHolder('deleteLink', $deleteLink);
 
       $logoutLink = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
-            'gbview'    => 'admin',
-            'adminview' => 'logout'
-      )));
+                          'gbview' => 'admin',
+                          'adminview' => 'logout'
+                      )));
       $this->setPlaceHolder('logoutLink', $logoutLink);
    }
 
@@ -1356,25 +1392,16 @@ class GuestbookAdminController extends GuestbookBaseController {
    ableiten. Diese beinhaltet die Funktion, das Formular darzustellen:
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\pres\controller\admin;
-
-use APF\modules\guestbook2009\biz\Entry;
-use APF\modules\guestbook2009\pres\controller\GuestbookBaseController;
-use APF\tools\form\taglib\SelectBoxTag;
-use APF\tools\link\LinkGenerator;
-use APF\tools\link\Url;
-
-abstract class GuestbookBackendBaseController extends GuestbookBaseController {
+abstract class GuestbookBackendBaseController extends BaseDocumentController {
 
    protected function displayEntrySelection($adminView) {
 
       // fill the select list
-      $form = & $this->getForm('selectentry');
+      $form = &$this->getForm('selectentry');
+      $select = &$form->getFormElementByName('entryid');
 
-      /* @var $select SelectBoxTag */
-      $select = & $form->getFormElementByName('entryid');
-
-      $entriesList = $this->getGuestbookService()->loadEntryListForSelection();
+      $gS = &$this->getDIServiceObject('modules::guestbook2009::biz', 'GuestbookService');
+      $entriesList = $gS->loadEntryListForSelection();
 
       foreach ($entriesList as $entry) {
          /* @var $entry Entry */
@@ -1383,9 +1410,9 @@ abstract class GuestbookBackendBaseController extends GuestbookBaseController {
 
       // define form action url concerning the view it is rendered in
       $action = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
-            'gbview'    => 'admin',
-            'adminview' => $adminView
-      )));
+                          'gbview' => 'admin',
+                          'adminview' => $adminView
+                      )));
 
       $form->setAttribute('action', $action);
 
@@ -1400,9 +1427,9 @@ abstract class GuestbookBackendBaseController extends GuestbookBaseController {
 </p>
 <gen:highlight type="apf-xml">
 &lt;core:appendnode
-   namespace="APF\modules\guestbook2009\pres\templates\admin"
+   namespace="modules::guestbook2009::pres::templates::admin"
    template="choose"
-/&gt;
+/>
 </gen:highlight>
 
 <h3 id="Chapter-23-Bearbeiten-eines-Eintrags"><a href="#Chapter-23-Bearbeiten-eines-Eintrags">23. Bearbeiten eines Eintrags</a></h3>
@@ -1419,9 +1446,15 @@ abstract class GuestbookBackendBaseController extends GuestbookBaseController {
 @&gt;
 Please select an entry to edit!
 &lt;core:appendnode
-   namespace="APF\modules\guestbook2009\pres\templates\admin"
-   template="choose"
-/&gt;
+  namespace="modules::guestbook2009::pres::templates::admin"
+  template="choose"
+/>
+&lt;core:addtaglib
+   namespace="tools::form::taglib"
+   class="HtmlFormTag"
+   prefix="html"
+   name="form"
+/>
 &lt;html:form name="edit_entry" method="post">
   ...
   <form:button name="send" value="Save" />
@@ -1446,98 +1479,48 @@ Please select an entry to edit!
       name="choose"
       value="OK"
    />
-&lt;/html:form&gt;
+</html:form>
 </gen:highlight>
 <p>
    Der Controller ist nun dafür zuständig, im ersten Schritt das Auswahl-Menü
    anzuzeigen und im zweiten Schritt die Bearbeitung des Eintrags zu ermöglichen:
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\pres\controller\admin;
-
-use APF\modules\guestbook2009\biz\Entry;
-use APF\modules\guestbook2009\biz\User;
-use APF\tools\request\RequestHandler;
-
 class GuestbookEditEntryController extends GuestbookBackendBaseController {
-
-   public function transformContent() {
-
+   public function transformContent(){
       $entryId = RequestHandler::getValue('entryid');
-      if ($entryId === null) {
-         $this->displayEntrySelection('edit');
-      } else {
-
-         // pre-fill edit form by directly accessing the APF form objects
-         $gS = & $this->getGuestbookService();
-         $form = & $this->getForm('edit_entry');
-         if ($form->isSent() === false) {
-
-            $entry = $gS->loadEntry($entryId);
-            $editor = $entry->getEditor();
-
-            $name = & $form->getFormElementByName('name');
-            $name->setAttribute('value', $editor->getName());
-
-            $email = & $form->getFormElementByName('email');
-            $email->setAttribute('value', $editor->getEmail());
-
-            $website = & $form->getFormElementByName('website');
-            $website->setAttribute('value', $editor->getWebsite());
-
-            $title = & $form->getFormElementByName('title');
-            $title->setAttribute('value', $entry->getTitle());
-
-            $text = & $form->getFormElementByName('text');
-            $text->setContent($entry->getText());
-
-            $hiddenEntryId = & $form->getFormElementByName('entryid');
-            $hiddenEntryId->setAttribute('value', $entry->getId());
-
-            $hiddenEditorId = & $form->getFormElementByName('editorid');
-            $hiddenEditorId->setAttribute('value', $editor->getId());
-
-         } else {
-
-            // save entry
-            if ($form->isValid() === true) {
-
-               $entry = new Entry();
-               $editor = new User();
-
-               $name = & $form->getFormElementByName('name');
-               $editor->setName($name->getAttribute('value'));
-
-               $email = & $form->getFormElementByName('email');
-               $editor->setEmail($email->getAttribute('value'));
-
-               $website = & $form->getFormElementByName('website');
-               $editor->setWebsite($website->getAttribute('value'));
-
-               $title = & $form->getFormElementByName('title');
-               $entry->setTitle($title->getAttribute('value'));
-
-               $text = & $form->getFormElementByName('text');
-               $entry->setText($text->getContent());
-
-               // retrieve the entry id from the hidden field
-               $hiddenEntryId = & $form->getFormElementByName('entryid');
-               $entry->setId($hiddenEntryId->getAttribute('value'));
-
-               // retrieve the editor id from the hidden field
-               $hiddenEditorId = & $form->getFormElementByName('editorid');
-               $editor->setId($hiddenEditorId->getAttribute('value'));
-
-               $entry->setEditor($editor);
-
-               $gS->saveEntry($entry);
-            }
-         }
-
-         $form->transformOnPlace();
+      if($entryId === null){
+         $this->displayEntrySelection(
+            'edit'
+         );
+         return;
       }
+      $gS = &$this->getDIServiceObject(
+         'modules::guestbook2009::biz',
+         'GuestbookService'
+      );
+      $form = &$this->getForm(
+         'edit_entry'
+      );
+      if(!$form->get('isSent')){
+         $entry = $gS->loadEntry(
+            $entryId
+         );
+         $editor = $entry->getEditor();
+         $name = &$form->getFormElementByName('name');
+         $name->setAttribute(
+            'value',$editor->getName()
+         );
+         ...
+      }
+      else{
+         if($form->get('isValid')){
+            // ... collect values ...
+            $gS->saveEntry($entry);
+         }
+      }
+      $form->transformOnPlace();
    }
-
 }
 </gen:highlight>
 <p>
@@ -1567,67 +1550,64 @@ class GuestbookEditEntryController extends GuestbookBackendBaseController {
 ...
 Please select an entry to delete!
 &lt;core:appendnode
-   namespace="APF\modules\guestbook2009\pres\templates\admin"
-   template="choose"
-/&gt;
+  namespace="modules::guestbook2009::pres::templates::admin"
+  template="choose"
+/>
 &lt;html:template name="confirm_text">
   Do you really want do delete this entry?
-&lt;/html:template&gt;
+</html:template>
 &lt;html:form name="delete_yes" method="post">
   <form:button name="yes" value="Yes" />
   <form:hidden name="entryid" />
-&lt;/html:form&gt;
-&lt;html:form name="delete_no" method="post"&gt;
-  &lt;form:button name="no" value="No" /&gt;
-&lt;/html:form&gt;
+</html:form>
+&lt;html:form name="delete_no" method="post">
+  <form:button name="no" value="No" />
+</html:form>
 </gen:highlight>
 <p>
    Der zugehörige Controller bietet – ähnlich wie im letzten Abschnitt – die Liste der
    Einträge zur Auswahl an und kümmert sich um die Verarbeitung der Eingabe:
 </p>
 <gen:highlight type="php">
-namespace APF\modules\guestbook2009\pres\controller\admin;
-
-use APF\modules\guestbook2009\biz\Entry;
-use APF\tools\request\RequestHandler;
-
 class GuestbookDeleteEntryController extends GuestbookBackendBaseController {
-
-   public function transformContent() {
-
+   public function transformContent(){
       $entryId = RequestHandler::getValue('entryid');
-      if ($entryId === null) {
+      if($entryId === null){
          $this->displayEntrySelection('delete');
-      } else {
-
-         $form_yes = & $this->getForm('delete_yes');
-         $form_no = & $this->getForm('delete_no');
-
-         if ($form_no->isSent() || $form_yes->isSent()) {
-
-            $entry = null;
-            if ($form_yes->isSent()) {
-               $entry = new Entry();
-               $entry->setId($entryId);
-            }
-
-            $this->getGuestbookService()->deleteEntry($entry);
-         } else {
-
-            $hidden_yes_entryid = & $form_yes->getFormElementByName('entryid');
-            $hidden_yes_entryid->setAttribute('value', $entryId);
-            $form_yes->transformOnPlace();
-
-            $hidden_no_entryid = & $form_no->getFormElementByName('entryid');
-            $hidden_no_entryid->setAttribute('value', $entryId);
-            $form_no->transformOnPlace();
-
-            $template_confirm_text = $this->getTemplate('confirm_text');
-            $template_confirm_text->transformOnPlace();
-         }
+         return;
       }
-   }
 
+      $gS = &$this->getDIServiceObject(
+         'modules::guestbook2009::biz',
+         'GuestbookService'
+      );
+      $formYes = &$this->getForm(
+         'delete_yes'
+      );
+      $formNo = &$this->getForm(
+         'delete_no'
+      );
+      if($formNo->get('isSent') ||
+         $formYes->get('isSent')){
+         $entry = null;
+         if($formYes->get('isSent')){
+            $entry = new Entry();
+            $entry->setId($entryId);
+         }
+         $gS->deleteEntry($entry);
+         return;
+      }
+
+      $hiddenYes = &$formYes->getFormElementByName('entryid');
+      $hiddenYes ->setAttribute('value',$entryId);
+      $formYes->transformOnPlace();
+      $formNo->transformOnPlace();
+
+      $confirm = $this->getTemplate(
+         'confirm_text'
+      );
+      $confirm->transformOnPlace();
+   }
 }
 </gen:highlight>
 
@@ -1655,7 +1635,8 @@ class GuestbookDeleteEntryController extends GuestbookBackendBaseController {
 <gen:highlight type="ini">
 [GuestbookService]
 servicetype = "SINGLETON"
-class = "APF\modules\guestbook2009\biz\GuestbookService"
+namespace = "modules::guestbook2009::biz"
+class = "GuestbookService"
 conf.pager.method = "setPagerConfigSection"
 conf.pager.value = "Guestbook2009"
 </gen:highlight>
@@ -1689,7 +1670,9 @@ final class GuestbookService extends APFObject {
       return $mapper->loadGuestbook();
    }
    private function &getMapper(){
-      return $this->getDIServiceObject('APF\modules\guestbook2009\data', 'GuestbookMapper');
+      return $this->getDIServiceObject(
+         'modules::guestbook2009::data',
+         'GuestbookMapper');
    }
 }
 </gen:highlight>
@@ -1720,29 +1703,33 @@ final class GuestbookService extends APFObject {
 </p>
 <gen:highlight type="php">
 public function loadPagedEntryList(){
-
-   $pager = & $this->getPager();
-
-   /* @var $model GuestbookModel */
-   $model = & $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
-   $entryIds = $pager->loadEntries(array('GuestbookID' => $model->getGuestbookId()));
+   $pager = &$this->getPager();
+   $model = &$this->getServiceObject(
+      'modules::guestbook2009::biz',
+      'GuestbookModel'
+   );
+   $entryIds = $pager->loadEntries(
+      array(
+         'GuestbookID' =>
+         $model->get('GuestbookId'))
+      );
 
    $entries = array();
-   $mapper = & $this->getMapper();
-   foreach ($entryIds as $entryId) {
-      $entries[] = $mapper->loadEntry($entryId);
+   $mapper = &$this->getMapper();
+   foreach($entryIds as $entryId){
+      $entries[] =
+         $mapper->loadEntry($entryId);
    }
-
    return $entries;
 }
 private function &getPager(){
-   if ($this->pager === null) {
-      /* @var $pMF PagerManagerFabric */
-      $pMF = & $this->getServiceObject('APF\modules\pager\biz\PagerManagerFabric');
-      $this->pager = & $pMF->getPagerManager($this->pagerConfigSection);
-   }
-
-   return $this->pager;
+   $pMF = &$this->getServiceObject(
+      'modules::pager::biz',
+      'PagerManagerFabric'
+   );
+   return $pMF->getPagerManager(
+      $this->pagerConfigSection
+   );
 }
 </gen:highlight>
 
@@ -1756,24 +1743,22 @@ private function &getPager(){
 <gen:highlight type="php">
 public function validateCredentials(User $user) {
 
-   $mapper = & $this->getMapper();
+   $mapper = &$this->getMapper();
    if ($mapper->validateCredentials($user)) {
 
       // log user in
-      /* @var $model GuestbookModel */
-      $model = & $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
+      $model = &$this->getServiceObject('modules::guestbook2009::biz', 'GuestbookModel');
       $guestbookId = $model->getGuestbookId();
-      $session = new Session('APF\modules\guestbook2009\biz\\' . $guestbookId);
-      $session->save('LoggedIn', 'true');
+      $session = new Session('modules::guestbook2009::biz::' . $guestbookId);
+      $session->saveSessionData('LoggedIn', 'true');
 
       // redirect to admin page
       $adminLink = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
-            'gbview'    => 'admin',
-            'adminview' => null
-      )));
+                          'gbview' => 'admin',
+                          'adminview' => null
+                      )));
       HeaderManager::forward($adminLink);
    }
-
    return false;
 }
 </gen:highlight>
@@ -1789,19 +1774,19 @@ Eine weitere Aufgabe besteht in der Speicherung von Einträgen. Hier ergeben sic
 <gen:highlight type="php">
 public function saveEntry(Entry $entry) {
 
-   $mapper = & $this->getMapper();
+   $mapper = &$this->getMapper();
    $mapper->saveEntry($entry);
 
    // Forward to the desired view to prevent F5-bugs.
    $entryId = $entry->getId();
    if (!empty($entryId)) {
       $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
-            'gbview' => 'admin'
-      )));
+                          'gbview' => 'admin'
+                      )));
    } else {
       $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array(
-            'gbview' => 'list'
-      )));
+                          'gbview' => 'list'
+                      )));
    }
    HeaderManager::forward($link);
 }
@@ -1917,26 +1902,22 @@ TargetObject = "Language"
 </p>
 <gen:highlight type="php">
 $user = new GenericDomainObject('User');
-$user->setProperty('Name', '');
-$user->setProperty('Email', '');
+$user->setProperty('Name','');
+$user->setProperty('Email','');
 $orm->saveObject($user);
-</gen:highlight>
-<p>
-   Die Variable <em>$orm</em> beinhaltet dabei eine Instanz des Mappers, der durch
-</p>
-<gen:highlight type="php">
-$ormFactory = &$this->getServiceObject(
-   'APF\modules\genericormapper\data\GenericORMapperFactory'
+Die Variable $orm beinhaltet dabei eine Instanz des Mappers, der durch
+$ormFactory =
+   &$this->getServiceObject(
+      'modules::genericormapper::data',
+      'GenericORMapperFactory'
 );
 $orm = &$ormFactory->getGenericORMapper(
-   'APF\modules\guestbook2009\data',
+   'modules::guestbook2009::data',
    'guestbook2009',
    '...'
 );
 </gen:highlight>
-<p>
-   erzeugt wurde.
-</p>
+<p>erzeugt wurde.</p>
 
 <h3 id="Chapter-32-Setup-der-Datenbank"><a href="#Chapter-32-Setup-der-Datenbank">32. Setup der Datenbank</a></h3>
 <p>
@@ -1981,19 +1962,18 @@ Type = "MySQLx"
 </gen:highlight>
 <p>Nach dem Anlegen können wir das Setup der Datenbank mit dem folgenden Script ausführen:</p>
 <gen:highlight type="php">
-include('./APF/core/bootstrap.php');
-
-use APF\modules\genericormapper\data\tools\GenericORMapperManagementTool;
-
-$setup = new GenericORMapperManagementTool();
-$setup->setContext('testproject');
-
-$setup->addMappingConfiguration('APF\modules\guestbook2009\data', 'guestbook2009');
-$setup->addRelationConfiguration('APF\modules\guestbook2009\data', 'guestbook2009');
-
-$setup->setConnectionName('guestbook2009');
-
-$setup->run(true);
+include('apps/core/pagecontroller/pagecontroller.php');
+import(
+  'modules::genericormapper::data::tools',
+  'GenericORMapperSetup'
+);
+$setupMapper = new GenericORMapperSetup();
+$setupMapper->setContext('testproject');
+$setupMapper->setupDatabase(
+   'modules::guestbook2009::data',
+   'guestbook2009',
+   'guestbook2009'
+);
 </gen:highlight>
 <p>Ein Blick in die Datenbank zeigt uns, welche Tabellen erstellt wurden:</p>
 
@@ -2014,15 +1994,16 @@ $setup->run(true);
    der Auswahl im Backend:
 </p>
 <gen:highlight type="php">
-public function loadEntryListForSelection() {
-   $sortCrit = new GenericCriterionObject();
-   $sortCrit->addOrderIndicator('CreationTimestamp', 'DESC');
+public function loadEntryListForSelection(){
+   $sortCrit =
+      new GenericCriterionObject();
+   $sortCrit->addOrderIndicator(
+      'CreationTimestamp','DESC');
    $gb = $this->getCurrentGuestbook();
-
-   return $this->mapGenericEntries2DomainObjects(
-         $gb->loadRelatedObjects('Guestbook2Entry', $sortCrit),
-         false
+   $list = $gb->loadRelatedObjects(
+      'Guestbook2Entry',$sortCrit
    );
+   return $list;
 }
 </gen:highlight>
 <p>
@@ -2045,10 +2026,15 @@ public function loadEntryListForSelection() {
 </p>
 <gen:highlight type="php">
 private function getCurrentGuestbook(){
-   /* @var $model GuestbookModel */
-   $model = & $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
-
-   return $this->orm->loadObjectByID('Guestbook', $model->getGuestbookId());
+   $orm = &$this->getGenericORMapper();
+   $model = &$this->getServiceObject(
+      'modules::guestbook2009::biz',
+      'GuestbookModel'
+   );
+   return $orm->loadObjectByID(
+      'Guestbook',
+      $model->get('GuestbookId')
+   );
 }
 </gen:highlight>
 <p>
@@ -2058,54 +2044,52 @@ private function getCurrentGuestbook(){
    abgebildet ist:
 </p>
 <gen:highlight type="php">
-private function mapGenericEntries2DomainObjects($entries = array(), $addEditor = true){
+private function mapGenericEntries2DomainObjects($entries = array(),$addEditor = true){
 
    // return empty array, because having no entries means nothing to do!
-   if (count($entries) == 0) {
+   if(count($entries) == 0){
       return array();
    }
 
    // invoke benchmarker to be able to monitor the performance
-   /* @var $t BenchmarkTimer */
-   $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+   $t = &Singleton::getInstance('BenchmarkTimer');
    $t->start('mapGenericEntries2DomainObjects()');
 
    // load the language object for the current language to enable
    // language dependent mapping!
+   $orm = &$this->getGenericORMapper();
    $lang = $this->getCurrentLanguage();
 
    // define the criterion
    $critEntries = new GenericCriterionObject();
-   $critEntries->addRelationIndicator('Attribute2Language', $lang);
+   $critEntries->addRelationIndicator('Attribute2Language',$lang);
 
    $gbEntries = array();
-   /* @var $current GenericDomainObject */
-   foreach ($entries as $current) {
+   foreach($entries as $current){
 
       // Check, whether there are attributes related in the current language.
       // If not, do NOT add an entry, because it will be empty!
-      $attributes = $this->orm->loadRelatedObjects($current, 'Entry2LangDepValues', $critEntries);
-      if (count($attributes) > 0) {
+      $attributes = $orm->loadRelatedObjects($current,'Entry2LangDepValues',$critEntries);
+      if(count($attributes) > 0){
 
          // load the entry itself
          $entry = new Entry();
          $entry->setCreationTimestamp($current->getProperty('CreationTimestamp'));
 
-         foreach ($attributes as $attribute) {
+         foreach($attributes as $attribute){
 
-            if ($attribute->getProperty('Name') == 'title') {
+            if($attribute->getProperty('Name') == 'title'){
                $entry->setTitle($attribute->getProperty('Value'));
             }
-            if ($attribute->getProperty('Name') == 'text') {
+            if($attribute->getProperty('Name') == 'text'){
                $entry->setText($attribute->getProperty('Value'));
             }
-
          }
 
          // add the editor's data
-         if ($addEditor === true) {
+         if($addEditor === true){
             $editor = new User();
-            $user = $this->orm->loadRelatedObjects($current, 'Editor2Entry');
+            $user = $orm->loadRelatedObjects($current,'Editor2Entry');
             $editor->setName($user[0]->getProperty('Name'));
             $editor->setEmail($user[0]->getProperty('Email'));
             $editor->setWebsite($user[0]->getProperty('Website'));
@@ -2116,18 +2100,17 @@ private function mapGenericEntries2DomainObjects($entries = array(), $addEditor 
          $entry->setId($current->getProperty('EntryID'));
          $gbEntries[] = $entry;
       }
-
    }
 
    $t->stop('mapGenericEntries2DomainObjects()');
-
    return $gbEntries;
 }
-private function getCurrentLanguage() {
+private function getCurrentLanguage(){
+
    $crit = new GenericCriterionObject();
    $crit->addPropertyIndicator('ISOCode', $this->language);
-
-   return $this->orm->loadObjectByCriterion('Language', $crit);
+   $orm = &$this->getGenericORMapper();
+   return $orm->loadObjectByCriterion('Language', $crit);
 }
 </gen:highlight>
 <p>
@@ -2162,8 +2145,12 @@ private function getCurrentLanguage() {
 </p>
 <gen:highlight type="php">
 public function saveEntry($entry){
-   $genericEntry = $this->mapDomainObject2GenericEntry($entry);
-   $this->orm->saveObject($genericEntry);
+   $genericEntry =
+    $this->mapDomainObject2GenericEntry(
+      $entry
+   );
+   $orm = &$this->getGenericORMapper();
+   $orm->saveObject($genericEntry);
 }
 </gen:highlight>
 <p>
@@ -2177,56 +2164,56 @@ private function mapDomainObject2GenericEntry($domEntry){
 
    $domEditor = $domEntry->getEditor();
    $editor = new GenericDomainObject('User');
-   $editor->setProperty('Name', $domEditor->getName());
-   $editor->setProperty('Email', $domEditor->getEmail());
-   $editor->setProperty('Website', $domEditor->getWebsite());
+   $editor->setProperty('Name',$domEditor->getName());
+   $editor->setProperty('Email',$domEditor->getEmail());
+   $editor->setProperty('Website',$domEditor->getWebsite());
    $editorId = $domEditor->getId();
-   if (!empty($editorId)) {
-      $editor->setProperty('UserID', $editorId);
+   if(!empty($editorId)){
+      $editor->setProperty('UserID',$editorId);
    }
 
    // try to load an existing title attribute to avoid new attributes
    // on updates and merge changes
-   $title = $this->getGenericAttribute($domEntry, 'title');
-   $title->setProperty('Name', 'title');
-   $title->setProperty('Value', $domEntry->getTitle());
-   $title->addRelatedObject('Attribute2Language', $lang);
+   $title = $this->getGenericAttribute($domEntry,'title');
+   $title->setProperty('Name','title');
+   $title->setProperty('Value',$domEntry->getTitle());
+   $title->addRelatedObject('Attribute2Language',$lang);
 
-   $text = $this->getGenericAttribute($domEntry, 'text');
-   $text->setProperty('Name', 'text');
-   $text->setProperty('Value', $domEntry->getText());
-   $text->addRelatedObject('Attribute2Language', $lang);
+   $text = $this->getGenericAttribute($domEntry,'text');
+   $text->setProperty('Name','text');
+   $text->setProperty('Value',$domEntry->getText());
+   $text->addRelatedObject('Attribute2Language',$lang);
 
    // setup generic domain object structure to preserve the relations
    $entry = new GenericDomainObject('Entry');
-   $entry->addRelatedObject('Entry2LangDepValues', $title);
-   $entry->addRelatedObject('Entry2LangDepValues', $text);
-   $entry->addRelatedObject('Editor2Entry', $editor);
+   $entry->addRelatedObject('Entry2LangDepValues',$title);
+   $entry->addRelatedObject('Entry2LangDepValues',$text);
+   $entry->addRelatedObject('Editor2Entry',$editor);
    $gb = $this->getCurrentGuestbook();
-   $entry->addRelatedObject('Guestbook2Entry', $gb);
+   $entry->addRelatedObject('Guestbook2Entry',$gb);
 
    $entryId = $domEntry->getId();
-   if (!empty($entryId)) {
-      $entry->setProperty('EntryID', $entryId);
+   if(!empty($entryId)){
+      $entry->setProperty('EntryID',$entryId);
    }
-
    return $entry;
 }
-private function getGenericAttribute($domEntry, $name){
+private function getGenericAttribute($domEntry,$name){
 
    // try to load
    $entry = new GenericDomainObject('Entry');
-   $entry->setProperty('EntryID', $domEntry->getId());
+   $entry->setProperty('EntryID',$domEntry->getId());
+
+   $orm = &$this->getGenericORMapper();
 
    $crit = new GenericCriterionObject();
-   $crit->addPropertyIndicator('Name', $name);
-   $crit->addRelationIndicator('Attribute2Language', $this->getCurrentLanguage());
+   $crit->addPropertyIndicator('Name',$name);
+   $crit->addRelationIndicator('Attribute2Language',$this->getCurrentLanguage());
 
-   $attributes = $this->orm->loadRelatedObjects($entry, 'Entry2LangDepValues', $crit);
-   if (isset($attributes[0])) {
+   $attributes = $orm->loadRelatedObjects($entry,'Entry2LangDepValues',$crit);
+   if(isset($attributes[0])){
       return $attributes[0];
    }
-
    return new GenericDomainObject('Attribute');
 }
 </gen:highlight>
@@ -2259,26 +2246,26 @@ private function getGenericAttribute($domEntry, $name){
 </p>
 <gen:highlight type="php">
 public function deleteEntry($domEntry){
-
-   $entry = new GenericDomainObject('Entry');
-   $entry->setProperty('EntryID', $domEntry->getId());
-
-   // Delete the attributes of the entry, so that the object
-   // itself can be deleted. If we don't do this, the ORM
-   // will not be glad, because the entry still has child objects!
-   $attributes = $this->orm->loadRelatedObjects($entry, 'Entry2LangDepValues');
-   foreach ($attributes as $attribute) {
-      $this->orm->deleteObject($attribute);
+   $orm = &$this->getGenericORMapper();
+   $entry = new GenericDomainObject(
+      'Entry'
+   );
+   $entry->setProperty(
+      'EntryID',$domEntry->getId()
+   );
+   $attibutes = $orm->loadRelatedObjects(
+      $entry, 'Entry2LangDepValues'
+   );
+   foreach($attributes as $attribute){
+      $orm->deleteObject($attribute);
    }
-
-   // delete associated users, because we don't need them anymore.
-   $users = $this->orm->loadRelatedObjects($entry, 'Editor2Entry');
-   foreach ($users as $user) {
-      $this->orm->deleteObject($user);
+   $users = $orm->loadRelatedObjects(
+      $entry,'Editor2Entry'
+   );
+   foreach($users as $user){
+      $orm->deleteObject($user);
    }
-
-   // now delete entry object (associations are deleted automatically)
-   $this->orm->deleteObject($entry);
+   $orm->deleteObject($entry);
 }
 </gen:highlight>
 <p>
