@@ -25,7 +25,7 @@
    is no &quot;real&quot; XML parser but resolves explicitly and self closing tags as well as unlimited tag hierarchies.
 </p>
 <div class="warn">
-   Please note the restrictions of the APF parser within the <a href="#Chapter-6-The-APF-parser">The APF parser</a>
+   Please note the restrictions of the APF parser within the <a href="#Chapter-6-Tag-hierarchies">Tag hierarchies</a>
    chapter.
 </div>
 <p>
@@ -113,75 +113,37 @@
    created regarding the tag definition and the substance the <em>XMLParser</em> has extracted from the template.
 </p>
 <div class="hint">
-   <p>
-      The page controller is designed to process all tags that either match
-   </p>
-<gen:highlight type="apf-xml">
-&lt;prefix:name /&gt;
+   Please note that the page controller only processes tags that are known within the current node. For this reason,
+   custom tags must be published to the current node. You can do so using the <em>&lt;core:addtaglib /&gt;</em> tag or
+   adding
+<gen:highlight type="php">
+$this->tagLibs[] = new TagLib(...);
 </gen:highlight>
-   <p>
-      or
-   </p>
-<gen:highlight type="apf-xml">
-&lt;prefix:name&gt;&lt;/prefix:name&gt;
-</gen:highlight>
-   <p>
-      including all tag attributes defined along with the tag. According to <a href="#Chapter-2-Definition-of-a-tag">chapter 2</a>
-      a tag can be defined with any number of attributes.
-   </p>
-   <p>
-      Creating the DOM tree the parser used the list of registered tags to create a tag instance. The list contains the
-      name of the class that implements the tag. Tags shipped with the APF are already registered within the
-      <em>bootstrap.php</em>.
-   </p>
-   <p>
-      Tags can be both registered for <strong>all templates</strong> as well as per <strong>DOM node</strong>. This allows
-      you to register project-specific tags at a central place and at the same time - if necessary - overwrite APF tags
-      locally.
-   </p>
+   to the constructor of your custom tag. Using the <em>&lt;core:addtaglib /&gt;</em> tag is necessary if you intend to
+   add a custom tag within a template file, the PHP code sample can be used within custom tags to publish further
+   hierarchies to the APF parser.
 </div>
-<div class="hint">
-   <p>
-      In case you want to register a tag for an entire project you can add the following line to your bootstrap file:
-   </p>
+<p>
+   Publishing your tag you need to specify <em>prefix</em> and <em>name</em> as well as <em>namespace</em> and
+   <em>class name</em> of the tag implementation. Thereby, you can re-use one implementation in different hierarchy
+   levels or projects using a different <em>prefix</em> and <em>name</em> declaration. The tag declaration class -
+   <em>TagLib</em> - has the following signature (condensed):
+</p>
 <gen:highlight type="php">
-Document::addTagLib('VENDOR\..\DateDisplayTag', 'date', 'display');
-</gen:highlight>
-   <p>
-      In case the tag should only be registered with the current DOM node the tag implementation is as follows:
-   </p>
-<gen:highlight type="php">
-use APF\core\pagecontroller\Document;
+final class TagLib {
 
-class MyTag extends Document {
+   private $class;
+   private $prefix;
+   private $name;
 
-   public function __construct() {
-      $this->addInstanceTagLib('VENDOR\..\SpecialDateDisplayTag', 'date', 'display');
+   public function __construct($class, $prefix, $name) {
    }
 
 }
 </gen:highlight>
-   <p>
-      Using the <em>&lt;date:display /&gt;</em> tag within your project the APF parser will create an instance of
-      <em>DateDisplayTag</em>. Using it within <em>MyTag</em> the APF parser creates as <em>SpecialDateDisplayTag</em>
-      instead.
-   </p>
-   <p>
-      Within templates custom tags can be registered using the <em>&lt;core:addtaglib /&gt;</em> tag. It includes an
-      option to register your custom tag both globally for all templates and locally for the current DOM node. Details
-      can be found in chapter <int:link pageid="046" anchor="Chapter-1-1-Addtaglib" />.
-   </p>
-</div>
-<div class="warn">
-   Please note that the APF parser processes all XML tags with scheme <em>&lt;prefix:name &gt;</em>. This may lead to
-   issues in case you intend to write namespace'd XML tags directly to the HTML source code. Using the old notation of
-   the <em>Google +1</em> inclusion via
-<gen:highlight type="apf-xml">
-&lt;g:plusone&gt;&lt;/g:plusone&gt;
-</gen:highlight>
-   The parser will complain about a missing tag definition. In such cases, please use alternative inclusion methods
-   or implement a wrapper tag that generates the output.
-</div>
+<p>
+   Details on tag hierarchies can be found in the <a href="#Chapter-6-Tag-hierarchies">tag hierarchies</a> chapter.
+</p>
 
 <h3 id="Chapter-4-Class-structure-of-tags"><a href="#Chapter-4-Class-structure-of-tags">4. Class structure of tags</a></h3>
 <p>
@@ -199,8 +161,7 @@ class Document extends APFObject {
    protected $parentObject = null;
    protected $children = array();
    protected $content;
-   protected static $knownTags = array();
-   protected $knownInstanceTags = array();
+   protected $tagLibs = array();
 
    public function __construct() {
    }
@@ -242,19 +203,12 @@ class Document extends APFObject {
       respective values. In case a tag defines no attributes the list is empty.
    </li>
    <li>
-      The (static) <em>knownTags</em> list contains tags registered for <em>all templates</em>. When the APF parser
-      detects a tag according to the expected syntax this list is being used to find the name of the respective
-      implementation (fully qualified class name) using tag prefix and name.
-   </li>
-   <li>
-      The <em>knownInstanceTags</em> list also contains a list of tag prefixes and names referring to the respective
-      tag implementations. The difference is that this list is only valid for the present DOM node instance. When the
-      APF parser finds a local definition of the tag definition the local one will be used. With this mechanism, you
-      can e.g. overwrite tag implementations delivered with the APF using <em>Document::addInstanceTagLib()</em>. In
-      contrast to it's static pendent <em>Document::addTagLib()</em> it fills the dynamic list of the current node.
-      <div class="warn">
-         Please be aware that the APF parser uses the global list again for child tags of the current DOM node. Recursive
-         inheritance is not implemented.
+      The <em>tagLibs</em> list contains all known tags for the current node. As mentioned in the previous chapter,
+      the APF parser only processes tags that are known within a particular hierarchy level or within a DOM element
+      respectively. Which tags are known and which are not is thus defined by this list.
+      <div class="hint">
+         The <em>tagLibs</em> list can be used in custom tag implementations to publish new tags or to remove some or
+         all of them. Since manipulation of this list directly influences the parser, please be careful!
       </div>
    </li>
    <li>
@@ -359,8 +313,13 @@ class HourDisplayTag extends Document {
    prefix="current"
    name="date"
 /&gt;
-&lt;current:date format="H:i:s" /&gt;
+<current:date format="H:i:s" />
 </gen:highlight>
+<div class="hint">
+   The constructor of the <em>Document</em> class defines a standard set of known tags that are not necessary in the
+   current implementation. Hence, the constructor may be overwritten by your implementation to optimize memory
+   consumption. This can be done because the tag has no need for further children.
+</div>
 
 <h4 id="Chapter-5-2-Complex-tag"><a href="#Chapter-5-2-Complex-tag">5.2. Complex tag</a></h4>
 <p>
@@ -391,7 +350,7 @@ use VENDOR\tags\GalleryDataSourceTag;
 class GalleryTag extends Document {
 
    public function __construct() {
-      Document::addTagLib(
+      $this->tagLibs[] = new TagLib(
          'VENDOR\tags\GalleryDataSourceTag',
          'gallery',
          'datasource'
@@ -403,16 +362,8 @@ class GalleryTag extends Document {
 }
 </gen:highlight>
 <p>
-   Within the constructor the <em>&lt;gallery:datasource /&gt;</em> tag is published to the parser. In this case,
-   global registration is used. This allows usage of the tag within all levels of the DOM tree and within all templates.
+   Within the constructor the <em>&lt;gallery:datasource /&gt;</em> tag is published to the parser.
 </p>
-<div class="hint">
-   Registration of tags can be done within your bootstrap file as we are using static (=global) registration in this case.
-   This means that the point in time is relevant rather than the place of registration. According to the
-   <int:link pageid="098" anchor="Chapter-2-1-Timing-model">timing Model</int:link> the constructor of the
-   <em>GalleryTag</em> class is executed before children are being analyzed. With this knowledge registering tag
-   implementations can be encapsulated with the component it self and thus allow ease usage.
-</div>
 
 <h5 id="Chapter-5-2-2-Configuration-of-the-content-provider"><a href="#Chapter-5-2-2-Configuration-of-the-content-provider">5.2.2. Configuration of the content provider</a></h5>
 <p>
@@ -486,6 +437,9 @@ use VENDOR\tags\GalleryTag;
 
 class GalleryDataSourceTag extends Document {
 
+   public function __construct() {
+   }
+
    public function onAfterAppend() {
       $provider = &$this->getServiceObject(
          $this->getAttribute('class')
@@ -502,8 +456,9 @@ class GalleryDataSourceTag extends Document {
 }
 </gen:highlight>
 <p>
-   Within the <em>onAfterAppend()</em> method the desired provider is created using the
-   <int:link pageid="107" anchor="Chapter-3-2-1-ServiceManager-Simple-services">ServiceManager</int:link>
+   Since the <em>GalleryDataSourceTag</em> is not expecting further child nodes the constructor of the <em>Document</em>
+   class has been overwritten with empty content. Within the <em>onAfterAppend()</em> method the desired provider is
+   created using the <int:link pageid="107" anchor="Chapter-3-2-1-ServiceManager-Simple-services">ServiceManager</int:link>
    to automatically pass context and language to the instance. After that, the father element of the tag - an instance
    of the <em>GalleryTag</em> class as stated by the IDE type hint - is injected the provider.
 </p>
@@ -516,8 +471,8 @@ class GalleryDataSourceTag extends Document {
 <p>
    In order to enable the <em>GalleryDataSourceTag</em> to create and inject the gallery content provider the
    <em>GalleryTag</em> has to publish the tag to be caught and executed by the page controller. To create an instance
-   of the tag, the page controller brings the <em>Document::extractTagLibTags()</em> method inherited from the
-   <em>Document</em> class.
+   of the tag, the page controller brings the <em>extractTagLibTags()</em> method inherited from the <em>Document</em>
+   class.
 </p>
 <p>
    The point in time when this method is called is subjected to your decision. To ensure proper functionality, please
@@ -554,7 +509,7 @@ class GalleryTag extends Document {
 }
 </gen:highlight>
 <p>
-   Everything else is done by the APF parser according to the content of the template.
+   Everything else is done by the APF parser according to the known tags.
 </p>
 
 <h5 id="Chapter-5-2-4-Output-creation"><a href="#Chapter-5-2-4-Output-creation">5.2.4. Output creation</a></h5>
@@ -713,73 +668,50 @@ class GalleryTag extends Document {
    <int:link pageid="002"/>.
 </p>
 
-<h3 id="Chapter-6-The-APF-parser"><a href="#Chapter-6-The-APF-parser">6. The APF parser</a></h3>
-
-<h4 id="Chapter-6-1-Features"><a href="#Chapter-6-1-Features">6.1. Features</a></h4>
-<p>
-   The APF parser includes the following capabilities:
-</p>
-<ul>
-   <li>
-      The parser is able to resolve symmetric and asymmetric structures of self-closing and explicit-closing tags as
-      well as nested structures. Example:
-<gen:highlight type="apf-xml">
-<foo:bar>
-   ...
-   <foo:bar>
-      ...
-   </foo:bar>
-   ...
-   <foo:bar />
-   ...
-</foo:bar>
-<foo:bar>
-   ...
-   <zig:zag>
-      ...
-      <foo:bar />
-      ...
-   </zig:zag>
-   ...
-</foo:bar>
-</gen:highlight>
-      It resolves tags with the same combination of prefix and name as well as different and assigns them to the right
-      level of hierarchy within the APF DOM tree.
-   </li>
-   <li>
-      Registered XML tags can be (re-)used at any level using the defined prefix and name. The parser assigns to the
-      DOM tree according to the placement within the respective template.
-   </li>
-   <li>
-      Processing content is subjected to the tag implementation. This applies especially to the tag content (static
-      content and further tags). It allows you to decide freely how the content should be treated at implementation time.
-      With this approach you can easily influence the construction of the APF DOM tree or display content only if certain
-      conditions apply.
-   </li>
-</ul>
-<p>
-   Moreover, the APF parser implements the concept of the APF <int:link pageid="098" /> and is responsible for creating
-   the DOM tree.
-</p>
-
-<h4 id="Chapter-6-2-Restrictions"><a href="#Chapter-6-2-Restrictions">6.2. Restrictions</a></h4>
+<h3 id="Chapter-6-Tag-hierarchies"><a href="#Chapter-6-Tag-hierarchies">6. Tag hierarchies</a></h3>
 <p>
    For performance and consistency reasons the APF parser contains several restrictions compared to a &quot;real&quot;
-   XML parser. These are:
+   XML parser. Thease are:
 </p>
 <ul>
    <li>Tag attributes must be separated by blanks. Tab signs are not allowed.</li>
-   <li>
-      Tags are not allowed as attribute values. Using such definitions will lead to a <em>ParserException</em>!
-   </li>
    <li>The content of tag attributes must be delimited by double quotes.</li>
+   <li>
+      Tag hierarchies are only resolved correctly in case a tag - specifies by it's prefix and name - is only known to
+      one hierarchy level. This requires registering a tag implementation within different levels to be registered with
+      a unique couple of prefix and name.
+      <div class="warn">
+         In case you intend to use a tag both at the top hierarchy level within a template file and at a deeper level
+         the parser will not assign the tags correct. Example:
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="VENDOR\..\FooBarTag"
+   prefix="foo"
+   name="tag"
+/&gt;
+&lt;foo:bar id="..."/&gt;
+&lt;html:template name="..."&gt;
+   &lt;template:addtaglib
+      class="VENDOR\..\FooBarTag"
+      prefix="foo"
+      name="tag"
+   /&gt;
+   &lt;foo:bar id="..."/&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+         Doing so, the parser will add the instance of te <em>&lt;foo:bar /&gt;</em> to the top level hierarchy. Within
+         the <em>&lt;html:template /&gt;</em> tag no <em>&lt;foo:bar /&gt;</em> instance is assigned. But - due to the
+         structure of the parser - the place holder is there and during transformation errors or unexpected behaviour
+         will come up.
+      </div>
+   </li>
    <li>
       The definition of a tag will only be recognized by the APF parser in case tag declaration and attributes are
       separated by space. This is especially important for multi-line tag definitions with nested tags. The following
       example cannot be evaluated by the APF parser:
 <gen:highlight type="apf-xml">
 &lt;form:recaptcha
-name="my-captcha"&gt;
+   name="my-captcha"&gt;
    &lt;recaptcha:getstring
       ...
    /&gt;
@@ -797,6 +729,259 @@ name="my-captcha"&gt;
    </li>
 </ul>
 
+<h4 id="Chapter-6-1-Simple-hierarchies"><a href="#Chapter-6-1-Simple-hierarchies">6.1. Simple hierarchies</a></h4>
+<p>
+   Having simple tag hierarchies, tags appear only once within different levels. There the parser restrictions only
+   apply to the node that is currently processed - merely the current template file.
+</p>
+<p>
+   As an example, let us take the following snippet that includes a further template:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="..." /&gt;
+&lt;core:importdesign
+   namespace="..."
+   template="template2"
+/&gt;
+</gen:highlight>
+<p>
+   The template file <em>template2</em> - it represents the next hierarchy level within the DOM tree - contains the
+   subsequent content:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="" /&gt;
+&lt;html:template name="..."&gt;
+   ...
+&lt;/html:template&gt;
+</gen:highlight>
+<p>
+   Since both <em>&lt;html:placeholder /&gt;</em> tags are located within different template files they are correctly
+   assigned to the appropriate level.
+</p>
+<div class="hint">
+   Please note, that APF tags can only be processed if they are known to the APF parser. If you are using custom tags,
+   you have to publish them using the <em>&lt;*:addtaglib /&gt;</em> tag.
+</div>
+<div class="warn">
+   Publishing a custom tag using the <em>&lt;*:addtaglib /&gt;</em> tag only affects the current DOM node! In case you
+   intend to re-use the tag within different hierarchy levels the tag must be published in all levels to use. Please
+   note the hints on this within the next chapter.
+</div>
+
+<h4 id="Chapter-6-2-Complex-hierarchies"><a href="#Chapter-6-2-Complex-hierarchies">6.2. Complex hierarchies</a></h4>
+<p>
+   As an example for complex tag hierarchies we are using a tag that outputs translations identified by a unique key and
+   the current language. The tag should be used directly within a template file, within a <em>&lt;html:template /&gt;</em>
+   tag und within a custom tag.
+</p>
+<p>
+   As a basis for the further discussion, the following template will be used:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="VENDOR\..\GetTextTag"
+   prefix="html"
+   name="text"
+/&gt;
+&lt;html:text key="..." /&gt;
+
+&lt;html:template name=""&gt;
+   &lt;core:addtaglib
+         class="VENDOR\..\GetTextTag"
+         prefix="template"
+         name="text"
+      /&gt;
+   &lt;template:text key="..." /&gt;
+&lt;/html:template&gt;
+
+&lt;user:control-panel&gt;
+   &lt;control-panel:text key="..." /&gt;
+   &lt;control-panel:navi /&gt;
+&lt;/user:control-panel&gt;
+</gen:highlight>
+<p>
+   The <em>GetTextTag</em> is published using a <em>&lt;*:addtaglib /&gt;</em> tag within the first hierarchy level and
+   within the <em>&lt;html:template /&gt;</em> tag. The <em>&lt;user:control-panel /&gt;</em> tag already knows it by
+   the implementation.
+</p>
+<div class="warn">
+   Due to the restrictions of the APF parser described in <a href="#Chapter-6-Tag-hierarchies">chapter 6</a> it is
+   necessary to define a unique prefix using the <em>&lt;*:text /&gt;</em> tag within a <em>&lt;html:template /&gt;</em>
+   and <em>&lt;user:control-panel /&gt;</em> tag. In case prefix and name of the <em>&lt;*:text /&gt;</em> tag are
+   equal within all levels, the parser will assign the tags to the level the tag is published in first - in this case
+   the first one.
+</div>
+<div class="hint">
+   Because of the above reasons and to express the membership of a tag to a certain hierarchy it is recommended to
+   choose prefix and name according to the hierarchy level. Within the above example the child tags of the
+   <em>&lt;user:control-panel /&gt;</em> tag are using the <em>control-panel</em> prefix. For deeper structures the
+   following example can be taken as a basis:
+<gen:highlight type="apf-xml">
+&lt;shop:basket&gt;
+   &lt;basket:title /&gt;
+   &lt;basket:products&gt;
+      &lt;products:listing /&gt;
+      &lt;products:sum /&gt;
+   &lt;/basket:products&gt;
+&lt;/shop:basket&gt;
+</gen:highlight>
+   Further notes can be found in the forum under
+   <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=4&amp;t=38">Schachtelung TagLibs</a>
+   (German).
+</div>
+
+<h4 id="Chapter-6-3-Nested-structures"><a href="#Chapter-6-3-Nested-structures">6.3. Nested structures</a></h4>
+<p>
+   As of release 1.17 the APF parser is able to process nested structures of tags with the same prefix and name within
+   one document or one file (see <a href="#Chapter-6-Tag-hierarchies">chapter 6</a>). Other restrictions of the APF
+   parser compared to a full-features XML parser do still apply.
+</p>
+<p>
+   The following code box contains a sample tag hierarchy that is correctly processes with the APF 1.17:
+</p>
+<gen:highlight type="apf-xml">
+<foo:bar>
+   ...
+   <foo:bar>
+      ...
+      <foo:bar>
+         ...
+      </foo:bar>
+      ...
+   </foo:bar>
+   ...
+   <foo:bar />
+   ...
+   <foo:bar>
+      ...
+   </foo:bar>
+   ...
+</foo:bar>
+<foo:bar>
+   ...
+</foo:bar>
+</gen:highlight>
+<p>
+   The above described source code contains an asymmetric structure of different <em>&lt;foo:bar /&gt;</em> tags that
+   are nested with a varying level count including a mixture of explicit-closing and self-closing tags. The parser
+   now processes symmetric (same amount of opening and closing tags) and asymmetric (odd amount of opening and closing
+   tags) structures and is able to assign the appropriate content to the correct hierarchy level.
+</p>
+<p>
+   For further discussion within this chapter the following nested HTML list will be used similar to an
+   <em>&lt;ul /&gt;</em> tag:
+</p>
+<gen:highlight type="apf-xml">
+<html:list>
+   <list:item>Chapter 1</list:item>
+   <list:item>
+      Chapter 2
+      <html:list>
+         <list:item>Chapter 2.1</list:item>
+         <list:item>Chapter 2.2</list:item>
+      </html:list>
+   </list:item>
+   <list:item>Chapter 3</list:item>
+</html:list>
+</gen:highlight>
+<p>
+   Implementing tags that support nested structures the behaviour may vary depending on the positioning or the hierarchy
+   level within the DOM tree. For the present example there is not need for that since the generated HTML follows the
+   tag structure.
+</p>
+<div class="hint">
+   The APF parser analyzes the tags contained within a document using the registered tags listed within the
+   <em>$this->tagLibs</em> array. While analyzing, the parser uses the exact order of the tags as they are registered.
+</div>
+<p>
+   This fact is especially important for overlapping structures since choosing a wrong tag order of the list of known
+   tags may then lead to wrong assignment of the instances to the desired hierarchy levels. The above example is based
+   on the following simplified structure:
+</p>
+<gen:highlight type="apf-xml">
+<ul>
+   <li>
+      <ul>
+         <li></li>
+      </ul>
+   </li>
+</ul>
+</gen:highlight>
+<p>
+   Parsing the tags you must be aware that all <em>&lt;ul/&gt;</em> tags must be processed first and within this
+   structure all <em>&lt;li/&gt;</em> tags have to be parsed first. Afterwards, the parser may search for other elements
+   within the <em>&lt;li/&gt;</em> tags.
+</p>
+<div class="hint">
+   The APF parser follows the principle that inner structures of a tag are not analyzed directly but passed to the child
+   node directly. This enables the implementation of the tag to decide what happens with the content on an on-demand
+   basis.
+</div>
+<p>
+   Both hints can be directly used as an implementation instruction. The tag representation of the list tag is as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\Document;
+
+class UnorderedListTag extends Document {
+
+   public function __construct() {
+      $this->tagLibs = array(
+         new TagLib('SANDBOX\pres\taglib\ListElementTag', 'list', 'item')
+      );
+   }
+
+   public function onParseTime() {
+      $this->extractTagLibTags();
+   }
+
+   public function transform() {
+      return '<ul>' . parent::transform() . '</ul>';
+   }
+
+}
+</gen:highlight>
+<p>
+   The <em>UnorderedListTag</em> registers list entries as possible child elements and generates the HTML output using
+   a surrounding <em>&lt;ul/&gt;</em> tag. Further <em>&lt;html:list/&gt;</em> tags are not processed since this is
+   delegated to the <em>&lt;list:item/&gt;</em> tags to respect the tag order.
+</p>
+<div class="warn">
+   Using nested structures your tag implementation must be aware of this fact to correctly process the applied content.
+   For this reason it is necessary to register the outer tag as a possible child structure - or expressed as a rule of
+   thumb: the tag must know itself! Otherwise, the recursion is broken.
+</div>
+<p>
+   The implementation of the list elements is as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\Document;
+
+class ListElementTag extends Document {
+
+   public function __construct() {
+      $this->tagLibs = array(
+         new TagLib('SANDBOX\pres\taglib\UnorderedListTag', 'html', 'list')
+      );
+   }
+
+   public function onParseTime() {
+      $this->extractTagLibTags();
+   }
+
+   public function transform() {
+      return '<li>' . parent::transform() . '</li>';
+   }
+
+}
+</gen:highlight>
+<p>
+   The constructor of the <em>ListElementTag</em> class registers the <em>&lt;html:list/&gt;</em> tag again to ensure
+   that content of the list element is correctly processes regarding further sub-structures. The list tag implementation
+   is aware of list elements and vice versa. This is why the present tag implementation can be used to created nested
+   structures with unlimited hierarchy levels.
+</p>
+
 <h3 id="Chapter-7-Examples"><a href="#Chapter-7-Examples">7. Examples</a></h3>
 <p>
    This chapter contains implementation examples for tags that you may use as a basis for your day-to-day work or as a
@@ -812,8 +997,9 @@ name="my-captcha"&gt;
 
 <h4 id="Chapter-7-1-Simple-tag-with-attributes"><a href="#Chapter-7-1-Simple-tag-with-attributes">7.1. Simple tag with attributes</a></h4>
 <p>
-   As an example, this chapter will use the <em>&lt;html:text /&gt;</em> tag. It outputs a language dependent text
-   identified by the applied key. Example:
+   This chapter deals with the implementation of the <em>&lt;html:text /&gt;</em> tag from
+   <a href="#Chapter-6-2-Complex-hierarchies">section 6.2</a>. The tag outputs a language dependent text identified by
+   the applied key. Example:
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:text key="log-in.mousover.text" /&gt;
@@ -888,12 +1074,6 @@ class MAMImageTag extends Document {
    tag. The result of the tag is then an image tag that can be formatted using the <em>id</em>, <em>style</em>, and
    <em>class</em> (HTML) attributes.
 </p>
-<div class="hint">
-   In case you want to mark the <em>key</em> attribute as mandatory you may want to use the
-   <em>Document::getRequiredAttribute()</em> method to retrieve it's value. This method throws a
-   <em>InvalidArgumentException</em> in case the attribute has not been defined. This eases implementation and executes
-   the necessary checks for you internally.
-</div>
 
 <h4 id="Chapter-7-2-Simple-tag-with-content"><a href="#Chapter-7-2-Simple-tag-with-content">7.2. Simple tag with content</a></h4>
 <p>
@@ -948,17 +1128,15 @@ class EntityEncodeTag extends Document {
    As an example for this chapter, please note the following template:
 </p>
 <gen:highlight type="apf-xml">
-&lt;core:addtaglib
-   class="VENDOR\..\TemplateNameDisplayTag"
-   prefix="template"
-   name="display-name"
-/&gt;
 &lt;html:template name="test1"&gt;
    ...
 &lt;/html:template&gt;
 &lt;html:template name="test2"&gt;
-   ...
-   &lt;template:display-name /&gt;
+   &lt;template:addtaglib
+      class="VENDOR\..\TemplateNameDisplayTag"
+      prefix="template"
+      name="display-name"
+   /&gt;
    ...
 &lt;/html:template&gt;
 </gen:highlight>
@@ -1064,7 +1242,6 @@ use APF\core\pagecontroller\Document;
 interface NavigationNode {
    public function getLabel();
    public function getUrl();
-   public function isActive();
    public function getParent();
    public function getChildren();
 }
@@ -1127,8 +1304,10 @@ class NavigationNodeTag extends Document {
    private $node;
 
    public function __construct() {
-      self::addTagLib('EXAMPLE\navigation\pres\taglibs\NavigationItemTag', 'navi', 'item');
-      self::addTagLib('EXAMPLE\navigation\pres\taglibs\NavigationContentTag', 'navi', 'content');
+      $this->tagLibs = array(
+         new TagLib('APF\extensions\navigation\pres\tags\NavigationItemTag', 'navi', 'item'),
+         new TagLib('APF\extensions\navigation\pres\tags\NavigationContentTag', 'navi', 'content')
+      );
    }
 
    public function setNode(NavigationNode $node) {
@@ -1176,7 +1355,9 @@ class NavigationNodeTag extends Document {
 class NavigationItemTag extends Document {
 
    public function __construct() {
-      self::addTagLib('EXAMPLE\navigation\pres\taglibs\ItemTemplateContentTag', 'item', 'content');
+      $this->tagLibs = array(
+         new TagLib('APF\extensions\navigation\pres\tags\ItemTemplateContentTag', 'item', 'content')
+      );
    }
 
    public function onParseTime() {
@@ -1236,7 +1417,9 @@ class NavigationContentTag extends Document {
 </p>
 <ul>
    <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=1126">TagLib unterschiedliche Zustände</a> (German)</li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=982">Taglib innerhalb eines Templates</a> (German)</li>
    <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=827">Taglib der Template rundherum läd</a> (German)</li>
+   <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=540">Taglibs</a> (German)</li>
    <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=505">Mehrere Checkboxes taglib aus DB holen und ausgeben</a> (German)</li>
    <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=456">Taglib-Call innerhalb eines Taglib-Call</a> (German)</li>
    <li><a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=5&amp;t=191">transform() von eigenem taglib nicht ausgeführt</a> (German)</li>
