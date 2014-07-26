@@ -1,0 +1,229 @@
+<doku:title parent="100" tags="migration,2.1,3.0,erweitertes templating" title="Migration von 2.1 auf 3.0" urlname="Migration-von-2-1-auf-3-0">
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 2.1), die notwendig sind
+   um Ihre Applikation auf die Version 3.0 zu portieren.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Version 3.0 des Adventure PHP Framework beinhaltet einen von Grund auf neu geschriebenen Parser. Auf diesem basieren
+   eine Vielzahl von neuen Funktionen und Optimierungen.
+</p>
+<p>
+   Mit erscheinen dieses Release wird die Weiterentwicklung der Version 2.1 eingestellt. Security- und Bug-Fixes werden
+   bis Ende 2014 verfügbar sein.
+</p>
+<p>
+   In diesem Artikel erfahren Sie, wie Sie eine bestehende Anwendung auf APF-Version 3.0 aktualisieren können. Wie
+   bereits von den vorangegangenen Versionen gewohnt, kann die Migration auch in diesem Release weitestgehend automatisiert
+   erfolgen. Zu diesem Zweck liegen zwei Migrations-Skripten bei: <em>migrate-code.sh</em> für die Aktualisierung von
+   HTML- und PHP-Dateien und <em>migrate-config.sh</em> für Konfigurations-Dateien.
+</p>
+<div class="hint">
+   Das APF-Team empfiehlt, die Nutzung der Migrations-Skripten einer manuellen Migration vorzuziehen. Dies spart Zeit
+   und Kosten und stellt sicher, dass alle relevanten Stellen erfasst wurden.
+</div>
+<p>
+   Die folgenden Kapitel stellen die notwendigen Schritte zum Umstieg auf Version 3.0 zusammen.
+</p>
+
+<h3 id="Chapter-2-Automatisierte-Migration"><a href="#Chapter-2-Automatisierte-Migration">2. Automatisierte Migration</a></h3>
+<p>
+   Wie von Release 2.1 bereits bekannt, lässt sich die Migration mit Hilfe eines mitgelieferten Migrations-Skripts
+   erledigen. In diesem Release wurden Änderungen an Code- und Konfigurations-Dateien vorgenommen, die mit Hilfe der
+   Skripte <em>migrate-code.sh</em> und <em>migrate-config.sh</em> auf Ihre bestehende Applikation übertragen werden
+   können.
+</p>
+<div class="warn">
+   Bitte stellen Sie sicher, dass Sie vor der Migration alle unter <int:link pageid="157" /> beschriebenen Schritte
+   durchgeführt haben. Setzen Sie eine noch ältere Version ein, migrieren Sie bitte zuerst <em>vollständig</em> auf die
+   Version 2.1. Hinweise zur jeweiligen Migration finden Sie auf der Seite <int:link pageid="100" />.
+</div>
+<p>
+   Sofern Sie auf Windows entwickeln, installieren Sie bitte eine aktuelle Version von <em>cygwin</em> (Download unter
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Eine Migration auf Basis eines
+   Windows-Batch-Script wird nicht angeboten.
+</p>
+<p>
+   Um Ihre Quell-Code-Dateien auf den neuesten Stand zu bringen, führen Sie das Skript bitte wie folgt aus:
+</p>
+<div class="warn">
+   Bitte wechseln Sie vor der Ausführung in das Konfigurationsverzeichnis Ihrer Applikation um unerwartete Ergebnisse
+   zu vermeiden.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-code.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.0 automatic code migration          #
+#############################################
+
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.4.16.
+
+#############################################
+
+Starting migration ...
+* Migrate taglib declaration statements ...
+* Consolidate tag usage ...
+* Remove redundant tag lib registration ...
+* Switch to new place holder logic ...
+
+#############################################
+
+Migration done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+
+<h3 id="Chapter-3-Manuelle-Schritte"><a href="#Chapter-3-Manuelle-Schritte">3. Manuelle Schritte</a></h3>
+<p>
+   Das Migrations-Skript kann leider nicht alle Projekt-spezifischen Konstrukte migrieren. Die folgenden Kapitel
+   zeigen, welche manuellen Schritte notwendig sind um bestehenden Code mit der Version 3.0 einsetzen zu können:
+</p>
+
+<h4 id="Chapter-3-1-Front-Controller"><a href="#Chapter-3-1-Front-Controller">3.1. Front-Controller</a></h4>
+<p>
+   Mit dem Issue <a href="http://tracker.adventure-php-framework.org/view.php?id=207">ID#207</a> wurde eine lange in
+   der Code-Basis vorhandene Klassen-Design-Schwäche entfernt. Die Klasse <em>APFObject</em> ist nun nicht mehr für die
+   Speicherung von XML-Tag-Attributen zuständig - dies wurde in die Klasse <em>Document</em> verschoben, denn diese
+   repräsentiert einen APF-DOM-Knoten.
+</p>
+<p>
+   Mit dieser Änderung geht auch eine Änderung der Klasse <em>FrontControllerInput</em> einher, die Action-Parameter nun
+   in einem eigenen Feld speichert: <em>$this->parameters</em>.
+</p>
+<p>
+   Um auf die neue Version zu aktualisieren, ersetzen Sie bitte alle Vorkommen in Klassen, die von
+   <em>FrontControllerInput</em> ableiten wie folgt:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Bisheriger Name</td>
+         <td>Neuer Name</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>(<em>APFObject</em>) $this->attributes</td>
+         <td>(<em>FrontControllerInput</em>) $this->parameters</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::getAttribute()</td>
+         <td>FrontControllerInput::getParameter()</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::getAttributes()</td>
+         <td>FrontControllerInput::getParameters()</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::setAttribute()</td>
+         <td>FrontControllerInput::setParameter()</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::setAttributes()</td>
+         <td>FrontControllerInput::setParameters()</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::deleteAttribute()</td>
+         <td>(mehr unterstützt)</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::addAttribute()</td>
+         <td>(mehr unterstützt)</td>
+      </tr>
+   </tbody>
+</table>
+
+<h4 id="Chapter-3-2-APFObject"><a href="#Chapter-3-2-APFObject">3.2. APFObject</a></h4>
+<p>
+   Wie in <a href="#Chapter-3-1-Front-Controller">Kapitel 3.1</a> angesprochen wurde das Attribut-Handling wurde aus
+   <em>APFObject</em> entfernt. Diese Änderung betrifft damit auch Klassen, die direkt von <em>APFObject</em> erben
+   und z.B. bei der Implementierung von View-Models auf das <em>$this->attributes</em>-Feld zurückgreifen.
+</p>
+<p>
+   Passen Sie beim Umstieg auf die neue Version bitte die relevanten Stellen an.
+</p>
+
+<h4 id="Chapter-3-3-Platzhalter"><a href="#Chapter-3-3-Platzhalter">3.3. Platzhalter</a></h4>
+<p>
+   Die Funktion des <em>&lt;html:placeholder /&gt;</em>-Tags im Inhaltsbereich eine eigene, vereinfachte Platzhalternotation
+   nutzen zu können wurde in Release 3.0 entfernt.
+</p>
+<p>
+   Finden Sie in Ihrem Projekt Code-Stellen wie
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="foo"&gt;This is a {bar} thing.&lt;/html:placeholder&gt
+</gen:highlight>
+<p>
+   schreiben Sie diese bitte wie folgt um:
+</p>
+<gen:highlight type="apf-xml">
+This is a &#36;{bar} thing.
+</gen:highlight>
+<p>
+   Im Controller ändert sich die Verwendung des Platzhalters von bisher
+</p>
+<gen:highlight type="php">
+$this->setStringPlaceHolder('foo', 'bar', '...');
+</gen:highlight>
+<p>
+   auf
+</p>
+<gen:highlight type="php">
+$this->setPlaceHolder('bar', '...');
+</gen:highlight>
+
+<h3 id="Chapter-4-FAQ"><a href="#Chapter-4-FAQ">4. FAQ</a></h3>
+<p>
+   Die folgenden Kapitel beinhalten häufig auftretende Fehler und mögliche Lösungen:
+</p>
+
+<h4 id="Chapter-4-1-Fehlende-Tag-Registrierung"><a href="#Chapter-4-1-Fehlende-Tag-Registrierung">4.1. Fehlende Tag-Registrierung</a></h4>
+<h5 id="Chapter-4-1-1-Frage"><a href="#Chapter-4-1-1-Frage">Frage</a></h5>
+<p>
+   Beim Aufruf einer Seite tritt folgender Fehler auf:
+</p>
+<gen:highlight type="code">
+Fatal error: Uncaught exception
+'APF\core\pagecontroller\ParserException' with message ' in ***/APF/core/pagecontroller/Document.php on line
+1037 APF\core\pagecontroller\ParserException: No tag definition found for prefix "template" and name
+"placeholder" in document with type "APF\core\pagecontroller\TemplateTag"! Template code: [..]
+</gen:highlight>
+
+<h5 id="Chapter-4-1-2-Antwort"><a href="#Chapter-4-1-2-Antwort">Antwort</a></h5>
+<p>
+   Migrations-Skript wurde noch nicht ausgeführt oder der Tag wurde im aktuellen Projekt (noch) nicht registriert.
+   Bitte füge Sie ein <em>&lt;core:addtaglib /&gt;</em> zu Ihrem Template hinzu oder registrieren den Tag in der
+   <em>index.php</em> via <em>Document::addTagLib(...);</em>.
+</p>
+
+<h4 id="Chapter-4-2-Altes-Platzhalter-Format"><a href="#Chapter-4-2-Altes-Platzhalter-Format">4.2. Altes Platzhalter-Format</a></h4>
+<h5 id="Chapter-4-2-1-Frage"><a href="#Chapter-4-2-1-Frage">Frage</a></h5>
+<p>
+   Beim Aufruf der Seite tritt folgender Fehler auf:
+</p>
+<gen:highlight type="code">
+No closing tag found for tag &lt;html:placeholder /&gt;!
+Template code: &lt;html:placeholder name="anchor"&gt;
+&lt;a href="{URL}" title="{TITLE}" class="breadcrumb {CLASSES}" >{TEXT}&lt;/a&gt;&lt;/template:placeholder&gt;
+</gen:highlight>
+
+<h5 id="Chapter-4-2-2-Antwort"><a href="#Chapter-4-2-2-Antwort">Antwort</a></h5>
+<p>
+   Die Verwendung von <em>String Placeholdern</em> ist in Version 3.0 nicht mehr vorhanden. Lösen Sie diese bitte wie
+   in <a href="#Chapter-3-3-Platzhalter">Kapitel 3.3</a> beschrieben auf. Für die vorliegende Fehlermeldung ist folgende
+   Lösung möglich:
+</p>
+<gen:highlight type="code">
+&lt;a href="&#36;{URL}" title="&#36;{TITLE}" class="breadcrumb &#36;{CLASSES}"&gt;&#36;{TEXT}&lt;/a&gt;
+</gen:highlight>
+<p>
+   Bitte beachten Sie, dass der zugehörige Controller ebenfalls angepasst werden muss.
+</p>
+
+<h3 id="Chapter-5-Weitere-Optimierungen"><a href="#Chapter-5-Weitere-Optimierungen">5. Weitere Optimierungen</a></h3>
+<p>
+   Tipps für den Umstieg auf Version 3.0 und Vorschläge zur Optimierung Ihrer Anwendung finden Sie im Artikel
+   <int:link pageid="158" />.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_159" />
