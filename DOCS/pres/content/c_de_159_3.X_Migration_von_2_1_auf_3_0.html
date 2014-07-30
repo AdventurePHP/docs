@@ -172,6 +172,38 @@ $this->setStringPlaceHolder('foo', 'bar', '...');
 $this->setPlaceHolder('bar', '...');
 </gen:highlight>
 
+<h4 id="Chapter-3-4-Signatur-Aenderung-DateSelectorTag-TimeSelectorTag"><a href="#Chapter-3-4-Signatur-Aenderung-DateSelectorTag-TimeSelectorTag">3.4. Signatur-Änderung DateSelectorTag und TimeSelectorTag</a></h4>
+<p>
+   Mit der Umsetzung von <a class="external" href="http://tracker.adventure-php-framework.org/view.php?id=208">ID#208</a>
+   wurde die Signatur der Methoden <em>DateSelectorTag::getDate()</em> und <em>DateSelectorTag::setDate()</em> sowie
+   <em>TimeSelectorTag::getTime()</em> und <em>TimeSelectorTag::setTime()</em> geändert.
+</p>
+<p>
+   Die beiden Setter nehmen nun neben einem String auch eine Instanz der Klasse <em>DateTime</em> zur Initialisierung
+   entgegen. Damit ist eine stärkere Typisierung der Daten in Ihrer Anwendung möglich.
+</p>
+<div class="hint">
+   Das APF-Team empfiehlt beim Umstieg auf die Version 3.0 Datums- und Zeit-Werte in <em>DateTime</em>-Instanzen zu
+   verpacken. Dies erleichtert nicht nur die Nutzung der beiden Tags, sondern sorgt für eine saubere Kapselung der
+   Werte.
+</div>
+<p>
+   Die Getter-Methoden geben ab der Version ausschließlich <em>DateTime</em>-Instanzen zurück. Dies erfordert im Gegensatz
+   zu den Setter-Methoden eine Änderung Ihrer bestehenden Code-Basis. Sofern Sie bisher für das Auslesen und Verarbeiten
+   eines <em>DateSelectorTag</em> den Code
+</p>
+<gen:highlight type="php">
+$date = &$form->getFormElementByName('date-of-birth');
+$sql = 'INSERT INTO ... SET ..., dob = `' . $date->getDate() . '`, ... ';
+</gen:highlight>
+<p>
+   genutzt haben, muss dieser ab Version 3.0 wie folgt lauten:
+</p>
+<gen:highlight type="php">
+$date = &$form->getFormElementByName('date-of-birth');
+$sql = 'INSERT INTO ... SET ..., dob = `' . $date->getDate()->format('Y-m-d') . '`, ... ';
+</gen:highlight>
+
 <h3 id="Chapter-4-FAQ"><a href="#Chapter-4-FAQ">4. FAQ</a></h3>
 <p>
    Die folgenden Kapitel beinhalten häufig auftretende Fehler und mögliche Lösungen:
