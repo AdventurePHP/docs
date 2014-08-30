@@ -1,0 +1,248 @@
+<doku:title parent="100" tags="validierung,validatoren" title="Validierung" urlname="Validierung">
+   Auf dieser Seite erfahren Sie mehr über die Validator-Definition des APF und die Implementierung von eigenen
+   Validatoren.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Die Validierung von Daten finden in einer Applikation in der Regel an mehreren Stellen statt. Benutzer-Eingaben werden
+   zunächst in einem Formular validiert, bei der Verarbeitung von Datenbank-Inhalten im Hintergrund kann ebenfalls eine
+   Validierung sinnvoll sein.
+</p>
+<p>
+   Das APF stellt zur Validierung von Formular-Eingaben zahlreiche Validatoren zur Verfügung. Eine Übersicht erhalten
+   Sie auf der Seite <int:link pageid="113" anchor="Chapter-4-1-Verfuegbare-Validatoren" />. Die dort beschriebenen
+   Formular-Validatoren nutzen zu einem großen Teil die mit dem APF ausgelieferten <em>Validator</em>-Implementierungen
+   zur Ausführung der eigentlichen Logik.
+</p>
+
+<h3 id="Chapter-2-Definition-und-Implementierung"><a href="#Chapter-2-Definition-und-Implementierung">2. Definition und Implementierung</a></h3>
+<p>
+   Ein Validator definiert sich über das Interface <em>APF\tools\validation\Validator</em>:
+</p>
+<gen:highlight type="php">
+interface Validator {
+
+   public function isValid($subject);
+
+}
+</gen:highlight>
+<p>
+   Die Methode <em>isValid()</em> liefert im Erfolgsfall <em>true</em>, ist die Eingabe fehlerhaft, den Wert <em>false</em>.
+</p>
+<p>
+   Zur Prüfung einer Eingabe auf eine gültige Zahl ist folgende Implementierung notwendig:
+</p>
+<gen:highlight type="php">
+class IntegerValidator implements Validator {
+
+   public function isValid($subject) {
+      $input = trim($subject);
+      if ($input === (string) (int) $input) {
+         return true;
+      }
+
+      return false;
+   }
+
+}
+</gen:highlight>
+<p>
+   Die Anwendung gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+(new IntegerValidator())->isValid(5);
+</gen:highlight>
+<div class="hint">
+   Möchten Sie auf Basis des <em>Validator</em>-Interfaces eigene Validatoren implementieren, so können Sie diese mit
+   beliebigen Konfigurations-Optionen über den Konstruktor und/oder zusätzliche Setter ausstatten.
+</div>
+
+<h3 id="Chapter-3-Verfuegbare-Validatoren"><a href="#Chapter-3-Verfuegbare-Validatoren">3. Verfügbare Validatoren</a></h3>
+<p>
+   Die folgenden Kapitel beschreiben die mit dem APF ausgelieferten Validatoren und deren Funktionsweise.
+</p>
+
+<h4 id="Chapter-3-1-EMailValidator"><a href="#Chapter-3-1-EMailValidator">3.1. EMailValidator</a></h4>
+<p>
+   Der <em>EMailValidator</em> kümmert sich um die Prüfung von E-Mail-Adressen. Er verfügt über zwei Regelsätze, die
+   bei Bedarf angepasst werden können. Dazu übergeben Sie den gewünschten Regelsatz einfach bei der Erzeugung des
+   Validators.
+</p>
+<p>
+   Die Regel <em>EMailValidator::RULE_SIMPLE</em> führt eine einfache Prüfung durch, mit <em>EMailValidator::RULE_COMPLEX</em>
+   wird eine strikter am RFC 822 orientierte Regel ausgeführt. Möchten Sie eine eigene Regel definieren, so übergeben Sie
+   hierzu bitte einen regulären Ausdruck im Konstruktor.
+</p>
+<p>
+   Beispiel:
+</p>
+<gen:highlight type="php">
+// Einfache Validierung
+(new EMailValidator())->isValid('foo@bar.de');
+(new EMailValidator(EMailValidator::RULE_SIMPLE))->isValid('foo@bar.de');
+
+// RFC 822 Validierung
+(new EMailValidator(EMailValidator::RULE_COMPLEX))->isValid('foo@bar.de');
+
+// Eigene Validierung
+(new EMailValidator('/^([a-zA-Z0-9\.\_\-@]+)$/'))->isValid('foo@bar.de');
+</gen:highlight>
+
+<h4 id="Chapter-3-2-IntegerValidator"><a href="#Chapter-3-2-IntegerValidator">3.2. IntegerValidator</a></h4>
+<p>
+   Der <em>IntegerValidator</em> prüft, ob die Eingabe eine gültige Zahl ist. Der Validator bietet keine weitere
+   Konfiguration an.
+</p>
+<p>
+   Beispiel:
+</p>
+<gen:highlight type="php">
+(new IntegerValidator())->isValid(5);
+</gen:highlight>
+
+<h4 id="Chapter-3-3-NumberScopeValidator"><a href="#Chapter-3-3-NumberScopeValidator">3.3. NumberScopeValidator</a></h4>
+<p>
+   Mit dem <em>NumberScopeValidator</em> lassen sich Zahlen auf verschiedene Arten validieren:
+</p>
+<ul>
+   <li>
+      Erfüllen eines Mindest-Wertes. Wird der Parameter <em>$minValue</em> mit <em>0</em> initialisiert, so gilt
+      keine Begrenzung.
+   </li>
+   <li>
+      Unterschreiten eines Maximal-Wertes. Wird der Parameter <em>$maxValue</em> mit <em>0</em> initialisiert, so gilt
+      keine Begrenzung.
+   </li>
+   <li>
+      Erfüllen eines Wertebereichs.
+   </li>
+</ul>
+<p>
+   Zusätzlich zu den genannten Prüfungsmöglichkeiten bietet der Validator folgende Konfigurationsmöglichkeiten an:
+</p>
+<ul>
+   <li>Mit dem Parameter <em>$onlyIntegersAccepted</em> lässt sich die Prüfung auf Integer-Zahlen einschränken.</li>
+   <li><em>$includeLowerEnd</em> definiert, ob der zu prüfende Wert auf dem unteren Ende eines Wertebereichs liefen darf.</li>
+   <li><em>$includeUpperEnd</em> definiert, ob der zu prüfende Wert auf dem oberen Ende eines Wertebereichs liefen darf.</li>
+</ul>
+<p>
+   Beispiel:
+</p>
+<gen:highlight type="php">
+// Einfacher Test
+(new NumberScopeValidator())->isValid(5)
+
+// Test auf Mindestwert
+(new NumberScopeValidator(5))->isValid(6));
+
+// Test auf Maximalwert
+(new NumberScopeValidator(null, 5))->isValid(4));
+
+// Test auf Einhaltung eines Bereichs
+(new NumberScopeValidator(3, 5))->isValid(4));
+
+// Test auf Einhaltung eines Bereichs mit Einschluss des unteren Rands
+(new NumberScopeValidator(3, 5, false, true))->isValid(4));
+
+// Test auf Einhaltung eines Bereichs mit Einschluss des oberen Rands
+(new NumberScopeValidator(3, 5, false, false, true))->isValid(4));
+
+// Test auf Einhaltung eines Bereichs mit Einschluss beider Ränder
+(new NumberScopeValidator(3, 5, false, true, true))->isValid(3));
+
+// Test auf Integer-Zahlen
+(new NumberScopeValidator(3, 5, true, true, true))->isValid(3));
+</gen:highlight>
+
+<h4 id="Chapter-3-4-PhoneNumberValidator"><a href="#Chapter-3-4-PhoneNumberValidator">3.4. PhoneNumberValidator</a></h4>
+<p>
+   Der <em>PhoneNumberValidator</em> kümmert sich um die Prüfung von Telefon-Nummern. Er verfügt über drei Regelsätze, die
+   bei Bedarf angepasst werden können. Dazu übergeben Sie den gewünschten Regelsatz einfach bei der Erzeugung des
+   Validators.
+</p>
+<p>
+   Es sind folgende Regelsätze vorhanden:
+</p>
+<ul>
+   <li>
+      <strong>PhoneNumberValidator::STANDARD</strong> (Standard):
+      Mit dieser Regel lassen sich die meißten Telefonnummern korrekt validieren.
+   </li>
+   <li>
+      <strong>PhoneNumberValidator::INTERNATIONAL</strong>:
+      Nutzen Sie diese Regel um internationale Telefonnummern zu validieren.
+   </li>
+   <li>
+      <strong>PhoneNumberValidator::INTERNATIONAL_EPP</strong>:
+      Möchten Sie internationale Telefonnummern nach dem <em>EPP</em>-Standard validieren, so nutzen Sie bitte diese
+      Regel.
+   </li>
+</ul>
+<p>
+   Möchten Sie eine eigene Regel definieren, so übergeben Sie hierzu bitte einen regulären Ausdruck im Konstruktor.
+</p>
+<p>
+   Beispiel:
+</p>
+<gen:highlight type="php">
+// Einfache Prüfung
+(new PhoneNumberValidator())->isValid('+49 (87) 69490555');
+
+// Prüfung einer internationalen Telefonnummer
+(new PhoneNumberValidator(PhoneNumberValidator::INTERNATIONAL))->isValid('+1 855 192 5323');
+
+// Prüfung einer internationalen Telefonnummer nach EPP-Standard
+(new PhoneNumberValidator(PhoneNumberValidator::INTERNATIONAL_EPP))->isValid('+44.02436596672');
+</gen:highlight>
+
+<h4 id="Chapter-3-5-TextLengthValidator"><a href="#Chapter-3-5-TextLengthValidator">3.5. TextLengthValidator</a></h4>
+<p>
+   Mit Hilfe des <em>TextLengthValidator</em> lassen sich Zeichenketten auf die Einhaltung bestimmter Längenvorgaben
+   prüfen. Zur Konfiguration bietet der Validator folgende Parameter an:
+</p>
+<ul>
+   <li>
+      <strong>$minLength</strong>:
+      Definiert die Mindestlänge der Zeichenkette, die eingehalten werden muss.
+   </li>
+   <li>
+      <strong>$maxLength</strong>:
+      Definiert die Maximallänge, die eigehalten werden muss. Wird diese mit <em>0</em> definiert, gilt keine Begrenzung.
+   </li>
+   <li>
+      <strong>$mode</strong> (optional):
+      Über den Modus lässt sich definieren, ob die eingegebene Zeichenkette inklusive ihrer führenden und nachfolgenden
+      Leerzeichen geprüft wird (<em>TextLengthValidator::MODE_LAX</em>) oder ob die Zeichenkette zuvor bereinigt wird
+      (<em>TextLengthValidator::MODE_STRICT</em>).
+   </li>
+</ul>
+<p>
+   Beispiel:
+</p>
+<gen:highlight type="php">
+// Test auf Mindestlänge
+(new TextLengthValidator(3, 0))->isValid('Lorem ipsum'));
+
+// Test auf Maximallänge
+(new TextLengthValidator(0, 3))->isValid('Lorem ipsum'));
+
+// Test eines Längenbereichs
+(new TextLengthValidator(3, 11))->isValid('Lorem ipsum'));
+
+// Test eines Längenbereichs ohne führende und nachfolgende Leerzeichen
+(new TextLengthValidator(3, 11, TextLengthValidator::MODE_STRICT))->isValid('Lorem ipsum'));
+</gen:highlight>
+
+<h4 id="Chapter-3-6-UriValidator"><a href="#Chapter-3-6-UriValidator">3.5. UriValidator</a></h4>
+<p>
+   Mit dem <em>UriValidator</em> lassen sich URLs auf Gültigkeit prüfen. Der Validator bietet keine weitere
+   Konfiguration an.
+</p>
+<p>
+   Beispiel:
+</p>
+<gen:highlight type="php">
+(new UriValidator())->isValid('http://example.com/foo/bar');
+</gen:highlight>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_160" />

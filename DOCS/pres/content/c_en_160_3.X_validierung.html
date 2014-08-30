@@ -1,0 +1,239 @@
+<doku:title parent="100" tags="validation,validators" title="Validation" urlname="Validation">
+   This page describes the validator definition of the APF and implementation of custom validators.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   Validation of data happens at several places within an application. User input is validated within a form, processing
+   of database content in the background may also require validation.
+</p>
+<p>
+   The APF provides various validators to control form input. A list of available validators can be found under
+   Sie auf der Seite <int:link pageid="113" anchor="Chapter-4-1-Shipped-validators" />. Most of the validators described
+   there rely on the <em>Validator</em> implementations shipped along with the APF executing the underlying logic.
+</p>
+
+<h3 id="Chapter-2-Definition-and-Implementation"><a href="#Chapter-2-Definition-and-Implementation">2. Definition and Implementation</a></h3>
+<p>
+   Validators are defined by the <em>APF\tools\validation\Validator</em> interface:
+</p>
+<gen:highlight type="php">
+interface Validator {
+
+   public function isValid($subject);
+
+}
+</gen:highlight>
+<p>
+   Method <em>isValid()</em> returns <em>true</em> if the subject is valid and <em>false</em> in case the input is
+   invalid.
+</p>
+<p>
+   Checking a form input being a given integer value the following can be used:
+</p>
+<gen:highlight type="php">
+class IntegerValidator implements Validator {
+
+   public function isValid($subject) {
+      $input = trim($subject);
+      if ($input === (string) (int) $input) {
+         return true;
+      }
+
+      return false;
+   }
+
+}
+</gen:highlight>
+<p>
+   Usage is as follows:
+</p>
+<gen:highlight type="php">
+(new IntegerValidator())->isValid(5);
+</gen:highlight>
+<div class="hint">
+   In case you intent to implement your own validator based on the <em>Validator</em> interface you can add any kind
+   of configuration using the constructor and/or additional setter methods.
+</div>
+
+<h3 id="Chapter-3-Available-validators"><a href="#Chapter-3-Available-validators">3. Available validators</a></h3>
+<p>
+   The following chapters list the validators delivered with the APF and describe their usage.
+</p>
+
+<h4 id="Chapter-3-1-EMailValidator"><a href="#Chapter-3-1-EMailValidator">3.1. EMailValidator</a></h4>
+<p>
+   The <em>EMailValidator</em> allows you to check e-mail addresses. It brings two rule sets that can be adapted as
+   necessary. To change the rule set please provide the desired one during construction of the validator.
+</p>
+<p>
+   <em>EMailValidator::RULE_SIMPLE</em> executes a simple check <em>EMailValidator::RULE_COMPLEX</em> is more orientated
+   towards RFC 822. In case you intend to change the rule set please provide an alternative regular expression to the
+   constructor.
+</p>
+<p>
+   Example:
+</p>
+<gen:highlight type="php">
+// Simple validation
+(new EMailValidator())->isValid('foo@bar.de');
+(new EMailValidator(EMailValidator::RULE_SIMPLE))->isValid('foo@bar.de');
+
+// RFC 822 validation
+(new EMailValidator(EMailValidator::RULE_COMPLEX))->isValid('foo@bar.de');
+
+// Custom validation
+(new EMailValidator('/^([a-zA-Z0-9\.\_\-@]+)$/'))->isValid('foo@bar.de');
+</gen:highlight>
+
+<h4 id="Chapter-3-2-IntegerValidator"><a href="#Chapter-3-2-IntegerValidator">3.2. IntegerValidator</a></h4>
+<p>
+   Using the <em>IntegerValidator</em> you can check whether the input is a valid number. The Validator does not provide
+   additional configuration options.
+</p>
+<p>
+   Example:
+</p>
+<gen:highlight type="php">
+(new IntegerValidator())->isValid(5);
+</gen:highlight>
+
+<h4 id="Chapter-3-3-NumberScopeValidator"><a href="#Chapter-3-3-NumberScopeValidator">3.3. NumberScopeValidator</a></h4>
+<p>
+   Using the <em>NumberScopeValidator</em> you can validate numbers in various ways:
+</p>
+<ul>
+   <li>
+      Match against a given minimum value. In case <em>$minValue</em> is initialized with <em>0</em> no limit is defined.
+   </li>
+   <li>
+      Match against a maximum number. In case <em>$minValue</em> is initialized with <em>0</em> no limit is defined.
+   </li>
+   <li>
+      Match against a range of values.
+   </li>
+</ul>
+<p>
+   In addition the validator offers the following configuration options:
+</p>
+<ul>
+   <li>Using parameter <em>$onlyIntegersAccepted</em> you can limit the check to accept integers only.</li>
+   <li><em>$includeLowerEnd</em> defines whether the value may equal the lower end of the range.</li>
+   <li><em>$includeLowerEnd</em> defines whether the value may equal the upper end of the range.</li>
+</ul>
+<p>
+   Example:
+</p>
+<gen:highlight type="php">
+// Simple test
+(new NumberScopeValidator())->isValid(5)
+
+// Test with a min value
+(new NumberScopeValidator(5))->isValid(6));
+
+// Test with a max value
+(new NumberScopeValidator(null, 5))->isValid(4));
+
+// Test with a range
+(new NumberScopeValidator(3, 5))->isValid(4));
+
+// Test with a range including the lower end
+(new NumberScopeValidator(3, 5, false, true))->isValid(4));
+
+// Test with a range including the upper end
+(new NumberScopeValidator(3, 5, false, false, true))->isValid(4));
+
+// Test with a range including both ends
+(new NumberScopeValidator(3, 5, false, true, true))->isValid(3));
+
+// Test with integer numbers only
+(new NumberScopeValidator(3, 5, true, true, true))->isValid(3));
+</gen:highlight>
+
+<h4 id="Chapter-3-4-PhoneNumberValidator"><a href="#Chapter-3-4-PhoneNumberValidator">3.4. PhoneNumberValidator</a></h4>
+<p>
+   The <em>PhoneNumberValidator</em> allows to validate phone numbers. It brings three rule sets that may be adapted
+   on purpose. To change the rule set please provide the desired one during construction of the validator.
+</p>
+<p>
+   The three rule sets are:
+</p>
+<ul>
+   <li>
+      <strong>PhoneNumberValidator::STANDARD</strong> (default):
+      Let's you validate most of the phone numbers.
+   </li>
+   <li>
+      <strong>PhoneNumberValidator::INTERNATIONAL</strong>:
+      Please use this rule to validate international phone numbers.
+   </li>
+   <li>
+      <strong>PhoneNumberValidator::INTERNATIONAL_EPP</strong>:
+      Please use this rule to validate international phone numbers following the <em>EPP</em> standard.
+   </li>
+</ul>
+<p>
+   In case you intend to change the rule set please provide an alternative regular expression to the constructor.
+</p>
+<p>
+   Example:
+</p>
+<gen:highlight type="php">
+// Simple test
+(new PhoneNumberValidator())->isValid('+49 (87) 69490555');
+
+// Test for international phone numbers
+(new PhoneNumberValidator(PhoneNumberValidator::INTERNATIONAL))->isValid('+1 855 192 5323');
+
+// Test for international phone numbers using the EPP standard
+(new PhoneNumberValidator(PhoneNumberValidator::INTERNATIONAL_EPP))->isValid('+44.02436596672');
+</gen:highlight>
+
+<h4 id="Chapter-3-5-TextLengthValidator"><a href="#Chapter-3-5-TextLengthValidator">3.5. TextLengthValidator</a></h4>
+<p>
+   Using the <em>TextLengthValidator</em> you can validate strings complying with a dedicated rule set. Configuration
+   includes the following parameters:
+</p>
+<ul>
+   <li>
+      <strong>$minLength</strong>:
+      Defines the minimum length the string must have.
+   </li>
+   <li>
+      <strong>$maxLength</strong>:
+      Defines the maximum length the string must have. Setting the parameter to <em>0</em> means no limit.
+   </li>
+   <li>
+      <strong>$mode</strong> (optional):
+      Mode defines whether the string is checked including leading and trailing blanks
+      (<em>TextLengthValidator::MODE_LAX</em>) or whether it is trim'd before (<em>TextLengthValidator::MODE_STRICT</em>).
+   </li>
+</ul>
+<p>
+   Example:
+</p>
+<gen:highlight type="php">
+// Test against a minimum length
+(new TextLengthValidator(3, 0))->isValid('Lorem ipsum'));
+
+// Test against a maximum length
+(new TextLengthValidator(0, 3))->isValid('Lorem ipsum'));
+
+// Test against a range
+(new TextLengthValidator(3, 11))->isValid('Lorem ipsum'));
+
+// Test against a range w/o leading and trailing blanks
+(new TextLengthValidator(3, 11, TextLengthValidator::MODE_STRICT))->isValid('Lorem ipsum'));
+</gen:highlight>
+
+<h4 id="Chapter-3-6-UriValidator"><a href="#Chapter-3-6-UriValidator">3.5. UriValidator</a></h4>
+<p>
+   The <em>UriValidator</em> validates URLs. The Validator does not provide additional configuration options.
+</p>
+<p>
+   Example:
+</p>
+<gen:highlight type="php">
+(new UriValidator())->isValid('http://example.com/foo/bar');
+</gen:highlight>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_160" />
