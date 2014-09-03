@@ -26,6 +26,10 @@ class GenericHighlightTag extends Document {
    private static $JAVA_SCRIPT = 'javascript';
    private static $GENERIC = 'generic';
 
+   public function onAfterAppend() {
+      // don't extract expression tags
+   }
+
    /**
     * @public
     *
