@@ -1,0 +1,547 @@
+<doku:title parent="119" tags="templates,platzhalter,objekt zugriff" title="Erweiterte Template-Funktionen" urlname="Erweiterte-Template-Funktionen">
+   Das vorliegende Kapitel beschreibt die erweiterten Templating-Funktionalitäten wie verkürzte Platzhalter-Syntax
+   und der Zugriff auf Objekte in Data-Attributen. Desweiteren wird die Erweiterung von Template-Ausdrücken beschrieben.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Aufbauend auf <int:link pageid="047" /> verfügt das APF über eine erweiterte Syntax für einfacheres Templating.
+</p>
+<p>
+   Im Auslieferungszustand stehen die in <a href="#Chapter-2-Verfuegbare-Funktionen">Kapitel 2</a> beschriebenen
+   Möglichkeiten zur Verfügung, in <a href="#Chapter-3-Erweiterung-der-Syntax">Kapitel 3</a> erfahren Sie, wie die
+   Syntax erweitert werden kann.
+</p>
+
+<h3 id="Chapter-2-Verfuegbare-Funktionen"><a href="#Chapter-2-Verfuegbare-Funktionen">2. Verfügbare Funktionen</a></h3>
+<p>
+   Zusätzlich zu den im Kapitel <int:link pageid="047" anchor="Chapter-2-Aufbau-von-Templates"/> beschriebenen
+   Funktionen lassen sich innerhalb von APF-Templates auch dynamische Template-Ausdrücke nutzen. Diese bieten Ihnen eine
+   Kurzschreibweise für Platzhalter wie z.B. <em>&lt;html:placeholder /&gt;</em> sowie eine Pseudo-Sprache für den Zugriff
+   auf Data-Attribute von APF-DOM-Knoten. Darüber hinaus lassen sich auch Methoden-Aufrufe und Listen-Zugriffe auf
+   Data-Attribute realisieren.
+</p>
+<p>
+   Die folgenden Kapitel zeigen Ihnen die Nutzung der beiden Funktionen und geben Ihnen Anwendungsbeispiele.
+</p>
+
+<h4 id="Chapter-2-1-Platzhalter"><a href="#Chapter-2-1-Platzhalter">2.1. Platzhalter</a></h4>
+<p>
+   Neben den bekannten APF-Tags für Platzhalter wie beispielsweise
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="foo" /&gt;
+</gen:highlight>
+<p>
+   lässt sich auch die Kurzformen
+</p>
+<gen:highlight type="apf-xml">
+&#36;{foo}
+</gen:highlight>
+<p>
+   nutzen. Dies hilft die Größe Ihres Template-Codes zu reduzieren und gegebenfalls Probleme mit der IDE-Unterstützung
+   für HTML-Dateien zu vermeiden.
+</p>
+<div class="hint">
+   Die Kurzschreibweise von Platzhaltern setzt sich aus <em>&#36;{</em>, einem eindeutigen Bezeichner und einer schließenden
+   Klammer - <em>}</em> - zusammen. Der Bezeichner darf keine weiteren Klammern enthalten. Erlaubt sind große und kleine
+   Buchstaben sowie Binde- und Unterstriche.
+</div>
+<p>
+   Der Zugriff auf Platzhalter in der Kurzform unterscheidet sich nicht von der herkömmlichen Notation. Möchten Sie die
+   Platzhalter des Templates
+</p>
+<gen:highlight type="apf-xml">
+<@controller
+   class="VENDOR\..\controller\SampleController"
+@>
+<div class="&#36;{css-class}">
+   <p>
+      &#36;{intro-text}
+   </p>
+   <p>
+      &#36;{detail-text}
+   </p>
+   <p>
+      <a href="&#36;{link-target}">&#36;{link-label}</a>
+   </p>
+</div>
+</gen:highlight>
+<p>
+   füllen, so können Sie dazu den folgenen Controller-Code nutzen:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+
+class SampleController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $model = $this->getModel();
+
+      $this->setPlaceHolder('css-class', $model->getCssClass());
+      $this->setPlaceHolder('intro-text', $model->getIntroText());
+      $this->setPlaceHolder('detail-text', $model->getDetailText());
+      $this->setPlaceHolder('link-target', $model->getMoreLink()->getTarget());
+      $this->setPlaceHolder('link-label', $model->getMoreLink()->getLabel());
+
+   }
+
+   /**
+    * @return ContentModel
+    */
+   private function getModel() {
+      return new ContentModel();
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-2-2-Objekt-Zugriff"><a href="#Chapter-2-2-Objekt-Zugriff">2.2. Objekt-Zugriff</a></h4>
+<p>
+   Die <em>Pseudo-Template-Sprache</em> des APF ermöglicht Ihnen, mit einem dynamischen Ausdruck auf Data-Attribute von
+   APF-DOM-Knoten zuzugreifen und die dort abgelegten Inhalte innerhalb von Templates auszugeben.
+</p>
+<p>
+   Das in <a href="#Chapter-3-1-Platzhalter">Kapitel 2.1</a> beschriebene Template-Beispiel lässt sich mit Hilfe der
+   <em>Pseudo-Sprache</em> wie folgt vereinfachen:
+</p>
+<gen:highlight type="apf-xml">
+<@controller
+   class="VENDOR\..\controller\SampleController"
+@>
+<div class="&#36;{news->getCssClass()}">
+   <p>
+      &#36;{news->getIntroText()}
+   </p>
+   <p>
+      &#36;{news->getDetailText()}
+   </p>
+   <p>
+      <a href="&#36;{news->getMoreLink()->getLinkTarget()}">
+         &#36;{news->getMoreLink()->getLinkLabel()}
+      </a>
+   </p>
+</div>
+</gen:highlight>
+<p>
+   Der Controller verkürzt sich ebenfalls:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+
+class SampleController extends BaseDocumentController {
+
+   public function transformContent() {
+      $this->setData('news', $this->getModel());
+   }
+
+   /**
+    * @return ContentModel
+    */
+   private function getModel() {
+      return new ContentModel();
+   }
+
+}
+</gen:highlight>
+<p>
+   Auf diese Weise lässt sich wiederholender Code aus Controllern entfernen und damit die Übersichtlichkeit erhöhen.
+</p>
+<p>
+   Grundlage für die <em>Pseudo-Template-Sprache</em> ist das APF-DOM-Modell. Dieses ermöglicht - analog zu HTML-Knoten
+   - Data-Attribute zu definieren. Die Klasse <em>Document</em> stellt hierzu die Methoden <em>setData()</em> und
+   <em>getData()</em> zur Verfügung. Innerhalb des <em>BaseDocumentController</em> können Sie mit den gleichnamigen
+   Methoden ebenfalls auf die Data-Attribute des aktuellen Knotens zuzugreifen.
+</p>
+<p>
+   Die folgenden Kapitel stellen Ihnen die Funktionalitäten der Template-Sprache genauer vor.
+</p>
+
+<h5 id="Chapter-2-2-1-Listen-Zugriff"><a href="#Chapter-2-2-1-Listen-Zugriff">2.2.1. Listen-Zugriff</a></h5>
+<p>
+   Mit der <em>Pseudo-Template-Sprache</em> des APF lassen sich Listen-Zugriffe für Data-Attribute analog zur PHP-Syntax
+   realisieren. Dabei werden einfach, sowie mehrfach verschachtelte Arrays mit nummerischen und alphanummerischen
+   Adressen unterstützt.
+</p>
+<p>
+   Sie können im Template auf einfache und verschachtelte Listen mit einfachen Inhalten, aber auch auf Listen mit
+   komplexen Inhalten (Objekte) zugreifen. Der Zugriff auf komplexe Inhalte erfordert gegebenenfalls weitere Schritte.
+   Beachten Sie hierzu bitte <a href="#Chapter-2-2-2-Objekt-Zugriff">Kapitel 2.2.2</a> und
+   <a href="#Chapter-2-2-3-Kombinierter-Zugriff">Kapitel 2.2.3</a>.
+</p>
+<p>
+   Die folgende Code-Box zeigt Ihnen den Zugriff auf Listen im Template:
+</p>
+<gen:highlight type="apf-xml">
+<@controller
+   class="VENDOR\..\controller\SampleController"
+@>
+&lt;!-- Zugriff auf das erste, nummerische Offset --&gt;
+&#36;{news[0]}
+
+&lt;!-- Zugriff auf das Offset xyz --&gt;
+&#36;{news['xyz']}
+
+&lt;!-- Zugriff auf das nummerische Offset 1 und darin auf das nummerische Offset 2 --&gt;
+&#36;{news[1][2]}
+
+&lt;!-- Zugriff auf das nummerische Offset 1 und darin auf das alphanummerische Offset xyz --&gt;
+&#36;{news[1]['xyz']}
+
+&lt;!-- Zugriff mit Mischformen --&gt;
+&#36;{news[1][2][3][4]}
+&#36;{news[1]['two'][3]['four']}
+</gen:highlight>
+<p>
+   Um mit den beschriebenen Ausdrücken auf Inhalte zugreifen zu können sind die Data-Attribute im Controller wie
+   folgt zu befüllen:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+
+class SampleController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $model = $this->getModel();
+
+      // Zugriff auf das erste, nummerische Offset
+      $this->setData(
+         'news',
+         array(
+            0 => $model
+         )
+      );
+
+      // Zugriff auf das Offset xyz
+      $this->setData(
+         'news',
+         array(
+            'xyz' => $model
+         )
+      );
+
+      // Zugriff auf das nummerische Offset 1 und darin auf das nummerische Offset 2
+      $this->setData(
+         'news',
+         array(
+            1 => array(
+               2 => $model
+            )
+         )
+      );
+
+      // Zugriff auf das nummerische Offset 1 und darin auf das alphanummerische Offset xyz
+      $this->setData(
+         'news',
+         array(
+            1 => array(
+               'xyz' => $model
+            )
+         )
+      );
+
+      // Zugriff mit Mischformen
+      $this->setData(
+         'news',
+         array(
+            1 => array(
+               2 => array(
+                  3 => array(
+                     4 => $model
+                  )
+               )
+            )
+         )
+      );
+      $this->setData(
+         'news',
+         array(
+            1 => array(
+               'two' => array(
+                  3 => array(
+                     'four' => $model
+                  )
+               )
+            )
+         )
+      );
+
+   }
+
+   /**
+    * @return ContentModel
+    */
+   private function getModel() {
+      return new ContentModel();
+   }
+
+}
+</gen:highlight>
+<div class="hint">
+   Implementieren die in der Liste befindlichen Objekte die <em>__toString()</em>-Methode, so können Sie die Ausgabe
+   der Objekte durch einen Listen-Zugriff erzeugen ohne weitere Methoden-Aufrufe zu definieren.
+</div>
+
+<h5 id="Chapter-2-2-2-Objekt-Zugriff"><a href="#Chapter-2-2-2-Objekt-Zugriff">2.2.2. Objekt-Zugriff</a></h5>
+<p>
+   Neben dem Zugriff auf Listen, bietet die <em>Pseudo-Template-Sprache</em> des APF auch den Zugriff auf Objekte in
+   Data-Attributen. Die Syntax folgt auch hier der PHP-Syntax.
+</p>
+<p>
+   Methoden-Aufrufe lassen sich in beliebiger Anzahl und Abfolge definieren und können auch in Verbindung mit Listen
+   genutzt werden. Beachten Sie hierzu bitte die Dokumentation in
+   <a href="#Chapter-2-2-3-Kombinierter-Zugriff">Kapitel 2.2.3</a>.
+</p>
+<p>
+   Die folgende Code-Box zeigt Ihnen Beispiele für Methoden-Aufrufe:
+</p>
+<gen:highlight type="apf-xml">
+<@controller
+   class="VENDOR\..\controller\SampleController"
+@>
+&lt;!-- Zugriff auf die Methode getCssClass() der Klasse ContentModel --&gt;
+&#36;{news->getCssClass()}
+
+&lt;!--
+   Zugriff auf die Methode getLinkLabel() der Klasse LinkModel, das von der
+   Methode getMoreLink() der Klasse ContentModel zurückgegeben wird
+--&gt;
+&#36;{news->getMoreLink()->getLinkLabel()}
+</gen:highlight>
+<p>
+   Um mit den beschriebenen Ausdrücken auf Inhalte zugreifen zu können muss das Data-Attribute <em>news</em> im
+   Controller wie folgt zu befüllt werden:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+
+class SampleController extends BaseDocumentController {
+
+   public function transformContent() {
+      $this->setData('news', $this->getModel());
+   }
+
+}
+</gen:highlight>
+
+<h5 id="Chapter-2-2-3-Kombinierter-Zugriff"><a href="#Chapter-2-2-3-Kombinierter-Zugriff">2.2.3. Kombinierter-Zugriff</a></h5>
+<p>
+   Die in <a href="#Chapter-2-2-1-Listen-Zugriff">Kapitel 2.2.1</a> und
+   <a href="#Chapter-2-2-2-Objekt-Zugriff">Kapitel 2.2.2</a> beschriebenen Listen- und Methoden-Zugriffe lassen sich
+   auch zu komplexeren Abfragen kombinieren. So kann durch eine Kombination eines Listen- und ein oder mehrerer
+   Methoden-Aufrufe der Zugriff auf eine Liste von Einträgen und deren Eigenschaften realisieren.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass mehrere Methoden-Aufrufe bzw. Listen-Zugriffe jeweils durch <em>-&gt;</em> getrennt sind.
+</div>
+<p>
+   Beabsichtigen Sie in einem Template die ersten drei News-Einträge auszugeben, so lässt sich dies mit dem folgenden
+   Template realisieren:
+</p>
+<gen:highlight type="apf-xml">
+<@controller
+   class="VENDOR\..\controller\SampleController"
+@>
+<ul class="news-list">
+   <li>&#36;{news[0]->getIntroText()}</li>
+   <li>&#36;{news[1]->getIntroText()}</li>
+   <li>&#36;{news[2]->getIntroText()}</li>
+</ul>
+</gen:highlight>
+<p>
+   Zur Erzeugung der Ausgabe ist folgender Controller-Code notwendig:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+
+class SampleController extends BaseDocumentController {
+
+   public function transformContent() {
+      $this->setData('news', $this->getNews());
+   }
+
+   /**
+    * @return ContentModel[]
+    */
+   private function getNews() {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   Die Methode <em>getNews()</em> liefert dabei eine Liste von <em>ContentModel</em>-Objekten zurück.
+</p>
+<p>
+   Die Implementierung der <em>Pseudo-Template-Sprache</em> ermöglicht darüber hinaus weitere Kombinationen von Ausdrücken:
+</p>
+<gen:highlight type="apf-xml">
+&lt;!-- Aufruf von getBar() auf das dritte von getFoo() zurückgegebene Element --&gt;
+&#36;{news->getFoo()->[3]->getBar()}
+
+&lt;!--
+   Aufruf von getBaz() auf das Ergebnis von getBar(), das im Offset foo des
+   5.ten Elements im Data-Attribut news steht
+--&gt;
+&#36;{news[5]['foo']->getBar()->getBaz()}
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass die im letzen Code-Block aufgeführten Beispiele jeweils eine entsprechende Daten-Struktur
+   voraussetzen! Fehlerhafte Ausdrücke führen zu Fehlern und damit zum Abbruch der Applikation.
+</div>
+
+<h3 id="Chapter-3-Erweiterung-der-Syntax"><a href="#Chapter-3-Erweiterung-der-Syntax">3. Erweiterung der Syntax</a></h3>
+<p>
+   Die erweiterte Templating-Syntax basiert auf einer Funktion des APF-Parsers zur Verarbeitung von logischen Ausdrücken.
+   Dabei leitet <em>&#36;{</em> einen Ausdruck ein und <em>}</em> schließt diesen. Der Teil zwischen diesen beiden Elementen
+   formuliert die eigentliche Anweisung. Auf diese Weise lassen sich Platzhalter und der Zugriff auf Data-Attribute
+   sehr einfach und mit einer im Vergleich zu XML-Tags kürzeren Schreibweise realisieren.
+</p>
+<p>
+   Die während des Verarbeitens eines Templates oder einer Tag-Struktur gefundenen Ausdrücke werden in APF-DOM-Knoten
+   übersetzt und an die entsprechende Stelle im Baum eingehangen. Damit können Sie auf diese innerhalb der Applikation
+   mit den gewohnten Mechanismen zugreifen.
+</p>
+<p>
+   Zur Erweiterung der in <a href="#Chapter-2-Verfuegbare-Funktionen">Kapitel 2</a> beschriebenen
+   Templating-Syntax lassen sich mit Hilfe der Methode <em>Document::addTemplateExpression()</em> - analog zu
+   <em>Document::addTagLib()</em> - eigene Ausdrücke registrieren.
+</p>
+<p>
+   Die folgenden Kapitel beschreiben nun den Aufbau und den Einsatz von eigenen Ausdrücken.
+</p>
+
+<h4 id="Chapter-3-1-Definition"><a href="#Chapter-3-1-Definition">3.1. Definition</a></h4>
+<p>
+   Ein Template-Ausdruck definiert sich über das Interface <em>TemplateExpression</em>. Dieses dient dem APF-Parser zu
+   erkennen, ob der Ausdruck für die Verarbeitung des Inhalts zwischen <em>&#36;{</em> und <em>}</em> zuständig ist.
+   Falls dies zutrifft, erzeugt er einen DOM-Knoten, der die Funktionalität des Ausdrucks repräsentiert.
+</p>
+<p>
+   Das Interface definiert folgende Methoden:
+</p>
+<gen:highlight type="php">
+namespace APF\core\pagecontroller;
+
+interface TemplateExpression {
+
+   public static function applies($token);
+
+   public static function getDocument($token);
+
+}
+</gen:highlight>
+<p>
+   Die Methode <em>applies()</em> nutzt der Parser um an Hand der registrierten Ausdrücke den jeweils zuständige
+   Implementierung zu evaluieren. Hierzu übergibt der APF-Parser den zu verarbeitenden Ausdruck und erwartet die Rückgabe
+   von <em>true</em> sofern die Implementierung zuständig ist. Ist dies nicht der Fall, ist der Rückgabewert <em>false</em>.
+</p>
+<p>
+   Wird in einem Template der Ausdruck
+</p>
+<gen:highlight type="apf-xml">
+${getString(APF\modules\comments, language.ini, header.title)}
+</gen:highlight>
+<p>
+   definiert, so übergibt der Parser <em>getString(APF\modules\comments, language.ini, header.title)</em> an die Methode
+   <em>applies()</em>.
+</p>
+<p>
+   Die Methode <em>getDocument()</em> übernimmt die Erzeugung eines DOM-Knotens zur Verarbeitung des Ausdrucks.
+   Damit folgt das APF konsequent dem HMVC-Ansatz beim Aufbau von GUI-Komponenten und kapselt die Funktionalität in einem
+   Tag.
+</p>
+
+<h4 id="Chapter-3-2-Implementierung"><a href="#Chapter-3-2-Implementierung">3.2. Implementierung</a></h4>
+<p>
+   Die Implementierung eines Template-Ausdrucks umfasst die Implementierung des <em>TemplateExpression</em>-Interfaces,
+   die wiederum eine Tag-Implementierung als Rückgabe der <em>getDocument()</em>-Methode verwendet. Die
+   <em>TemplateExpression</em>-Implementierung beschreibt dabei den Ausdruck, der Tag implementiert die konkrete
+   Funktionalität des Ausdrucks.
+</p>
+<p>
+   Als Beispiel für dieses Kapitel soll die verkürzte Syntax für den
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link>-Tag dienen. Dieser gibt je
+   nach Sprache der Anwendung einen lokalisierten Inhalt aus einer Sprach-Datei aus.
+</p>
+<p>
+   Die folgende Code-Box beinhaltet eine Implementierung für die verkürzte <em>&lt;html:getstring /&gt;</em>-Syntax:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\expression;
+
+class GetStringTemplateExpression implements TemplateExpression {
+
+   const START_TOKEN = 'getString(';
+   const END_TOKEN = ')';
+
+   public static function applies($token) {
+      return strpos($token, self::START_TOKEN) !== false && strpos($token, self::END_TOKEN) !== false;
+   }
+
+   public static function getDocument($token) {
+
+      $startTokenPos = strpos($token, self::START_TOKEN);
+      $endTokenPos = strpos($token, self::END_TOKEN, $startTokenPos + 1);
+
+      $arguments = explode(',', substr($token, $startTokenPos + 10, $endTokenPos - $startTokenPos - 10));
+
+      $object = new LanguageLabelTag();
+      $object->setAttribute('namespace', trim($arguments[0]));
+      $object->setAttribute('config', trim($arguments[1]));
+      $object->setAttribute('entry', trim($arguments[2]));
+
+      return $object;
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Innerhalb der <em>applies()</em>-Methode wird zunächst festgestellt, ob die vorliegende Implementierung für die
+   Verarbeitung zuständig ist. Dies geschieht an Hand des erwarteten öffnenden und schließenden Token.
+</p>
+<div class="warn">
+   Bitte beachten Sie, dass die Verarbeitung von Template-Ausdrücken an Hand von Zeichenketten und nicht an Hand von
+   XML-Strukturen erfolgt. Bitte stellen Sie daher bei der Implementierung von eigenen Ausdrücken sicher, dass diese
+   innerhalb eines Projektes eindeutig zu erkennen sind.
+</div>
+<p>
+   Die <em>getDocument()</em>-Methode erzeugt im Anschluss den einen Tag, der die Verarbeitung des Ausdrucks übernimmt.
+   Im Fall des <em>getString()</em>-Ausdrucks basiert die Implementierung auf dem im APF vorhandenen <em>LanguageLabelTag</em>-Tag
+   der an Hand der Attribute <em>namespace</em>, <em>config</em> und <em>entry</em> eine Sprach-abhängige Ausgabe erzeugt.
+</p>
+<p>
+   Hinweise zur Implementierung von eigenen Tags finden Sie unter <int:link pageid="147" />.
+</p>
+
+<h4 id="Chapter-3-3-Konfiguration"><a href="#Chapter-3-3-Konfiguration">3.3. Konfiguration</a></h4>
+<p>
+   Möchten Sie den im vorangegangenen Kapitel erstellten Template-Ausdruck nutzen, so muss dieser in der Bootstrap-Datei
+   registriert werden. Hierzu können Sie folgenden Code nutzen:
+</p>
+<gen:highlight type="php">
+Document::addTemplateExpression('VENDOR\..\expression\GetStringTemplateExpression');
+</gen:highlight>
+<p>
+   Anschließend lässt sich der Ausdruck in einem Template wie folgt nutzen:
+</p>
+<gen:highlight type="apf-xml">
+<h2>Beispiel</h2>
+<p>
+   ${getString(APF\modules\comments, language.ini, header.title)}
+</p>
+</gen:highlight>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_161" />
