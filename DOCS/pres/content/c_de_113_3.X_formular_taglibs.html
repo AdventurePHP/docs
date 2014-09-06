@@ -929,6 +929,71 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
    entnommen werden.
 </div>
 
+<h4 id="Chapter-3-23-Group"><a href="#Chapter-3-23-Group">3.23. Group</a></h4>
+<p>
+   Mit Hilfe des <em>&lt;form:group /&gt;</em>-Tags lassen sich alle im <a href="#Chapter-3-Mitgelieferte-Tags">Kapitel 3</a>
+   aufgeführten Formular-Elemente gruppieren. Dies kann Ihnen beispielsweise helfen, mehrere Formular-Elemente inklusive
+   des zugehörigen Markup bei Bedarf ohne aufwändige Logik im Controller auszublenden.
+</p>
+<div class="hint">
+   Eine Gruppe von Formular-Elementen kann weitere Gruppen enthalten. So lassen sich sehr einfach quasi-dynamische
+   Formulare erstellen, die sich im Controller je nach Anwendungsfall steuern lassen.
+</div>
+<p>
+   Der Formular-Element-Gruppen-Tag besitzt folgende Signatur:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:group name="" [id=""]&gt;
+   ...
+&lt;/form:group&gt;
+</gen:highlight>
+<p>
+   Die Attribute <em>name</em> bzw. <em>id</em> können genutzt werden um eine Gruppe innerhalb eines Controllers zu
+   beziehen. Der Tag selbst erzeugt keine eigene Ausgabe, er zeigt lediglich die darin befindlichen Fomular-Elemente und
+   das HTML an.
+</p>
+<p>
+   Die folgende Code-Box zeigt eine Checkbox sowie eine Gruppe mit einem Textfeld und dem zugehörigen Label:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="group-example"&gt;
+
+   &lt;form:checkbox name="hide-group" /&gt; Gruppe ausblenden?
+
+   &lt;form:group name="grouped-text"&gt;
+      &lt;p&gt;
+         &lt;form:label&gt;Vorname&lt;/form:label&gt;
+         &lt;form:text name="surname" /&gt;
+      &lt;/p&gt;
+   &lt;/form:group&gt;
+
+   &lt;form:button name="send" value="Absenden" /&gt;
+
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Im nachfolgende gezeigten Controller lässt sich das Feld zur Eingabe des Vornamens sehr einfach über das Ausblenden
+   der Gruppe realisieren:
+</p>
+<gen:highlight type="php">
+class SignUpController extends BaseDocumentController {
+
+   public function transformContent() {
+      $form = & $this->getForm('group-example');
+
+      $groupSwitch = & $form->getFormElementByName('hide-group');
+      if ($groupSwitch->isChecked()) {
+         $form->getFormElementByName('grouped-text')->hide();
+      }
+
+      $form->transformOnPlace();
+   }
+}
+</gen:highlight>
+<p>
+   Weitere Hinweise zur Verwendung von Formular-Element-Gruppen finden Sie unter <int:link pageid="114" anchor="" />.
+</p>
+
 <h3 id="Chapter-4-Validierung"><a href="#Chapter-4-Validierung">4. Validierung</a></h3>
 <p>
    In den bisherigen Versionen des APF wurde die Validierung direkt mit einem Formular-Element

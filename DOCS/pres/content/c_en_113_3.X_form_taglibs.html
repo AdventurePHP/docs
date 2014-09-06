@@ -913,6 +913,69 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
    describes the <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /&gt;</int:link> tag.
 </div>
 
+<h4 id="Chapter-3-23-Group"><a href="#Chapter-3-23-Group">3.23. Group</a></h4>
+<p>
+   Using the <em>&lt;form:group /&gt;</em> tag all form controls described in <a href="#Chapter-3-Shipped-tags">chapter 3</a>
+   can be grouped. This helps to e.g. hide several form elements including the respective markup without complex
+   controller logic.
+</p>
+<div class="hint">
+   A group of form elements can contain further groups. This allows you to create pseudo-dynamic forms that can be
+   managed within a controller according to the desired use case.
+</div>
+<p>
+   The form element group tag is defined as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:group name="" [id=""]&gt;
+   ...
+&lt;/form:group&gt;
+</gen:highlight>
+<p>
+   Using attributes <em>name</em> or <em>id</em> you can obtain the instance of the group within a controller. The tag
+   itself does not create any output but displays the inner form controls together with the contained markup.
+</p>
+<p>
+   The following code box shows a checkbox as well as a group containing a text field with it's corresponding label:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="group-example"&gt;
+
+   &lt;form:checkbox name="hide-group" /&gt; Hide group?
+
+   &lt;form:group name="grouped-text"&gt;
+      &lt;p&gt;
+         &lt;form:label&gt;Surname&lt;/form:label&gt;
+         &lt;form:text name="surname" /&gt;
+      &lt;/p&gt;
+   &lt;/form:group&gt;
+
+   &lt;form:button name="send" value="Send" /&gt;
+
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   The following controller code hides the surname input field in case the checkbox is checked:
+</p>
+<gen:highlight type="php">
+class SignUpController extends BaseDocumentController {
+
+   public function transformContent() {
+      $form = & $this->getForm('group-example');
+
+      $groupSwitch = & $form->getFormElementByName('hide-group');
+      if ($groupSwitch->isChecked()) {
+         $form->getFormElementByName('grouped-text')->hide();
+      }
+
+      $form->transformOnPlace();
+   }
+}
+</gen:highlight>
+<p>
+   Further instructions on form element groups can be found under <int:link pageid="114" anchor="" />.
+</p>
+
 <h3 id="Chapter-4-Validation"><a href="#Chapter-4-Validation">4. Validation</a></h3>
 <p>
    In the previous versions of the APF the validation was linked directly with a form element and
