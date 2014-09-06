@@ -12,7 +12,7 @@ $apfClassLoaderRootPath = $dir . '/APF';
 $apfClassLoaderConfigurationRootPath = $dir . '/config/APF';
 include('../APF/core/bootstrap.php');
 
-RootClassLoader::addLoader(new StandardClassLoader('DEV', $dir . '/DEV'));
+RootClassLoader::addLoader(new StandardClassLoader('DEV', $dir . '/DEV', $dir . '/config/DEV'));
 
 // Define class loader for documentation page resources
 RootClassLoader::addLoader(new StandardClassLoader('DOCS', $dir . '/DOCS', $dir . '/config/DOCS'));
