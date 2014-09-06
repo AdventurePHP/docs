@@ -420,10 +420,6 @@ class SearchController extends BaseDocumentController {
       <strong>getFormElementsByTagName():</strong> Returns a list of form elements selected by tag name
       (z.B. <em>form:text</em>).
    </li>
-   <li>
-      <strong>getFormElementsByObjectID():</strong> Returns a form element selected by the APF DOM
-      id. This can be used generating dynamic forms.
-   </li>
 </ul>
 
 <h4 id="Chapter-4-1-Select-by-name"><a href="#Chapter-4-1-Select-by-name">4.1. Select by name</a></h4>
@@ -543,9 +539,8 @@ class EditController extends BaseDocumentController {
 </p>
 <ul>
    <li><strong>getFormElementByName()</strong>,</li>
-   <li><strong>getFormElementByTagName()</strong>,</li>
-   <li><strong>getFormElementByID()</strong> oder</li>
-   <li><strong>getFormElementByObjectID()</strong></li>
+   <li><strong>getFormElementByTagName()</strong>, or</li>
+   <li><strong>getFormElementByID()</strong></li>
 </ul>
 <p>
    methods can be used to gather an instance of the desired form control. After that, you can take one
@@ -836,14 +831,13 @@ class SelectController extends BaseDocumentController {
          $form->addFormContentBeforeMarker('fields',$this->formElements[$CurrentType][$i]['label'].': ');
 
          // add text field (name attribute is present to enable validation and presetting!)
-         $currentElementID = $form->addFormElementBeforeMarker(
+         $currentElement = &$form->addFormElementBeforeMarker(
                                 'fields',
                                 'form:text',
                                 array('name' => $this->formElements[$CurrentType][$i]['name'])
                              );
 
          // configure further form element attributes
-         $currentElement = &$form->getFormElementByObjectID($currentElementID);
          $currentElement->setAttribute('style','width: 200px;');
 
          // add a line break
@@ -881,14 +875,13 @@ for($i = 0; $i < count($this->formElements[$CurrentType]); $i++){
    $form->addFormContentBeforeMarker('fields',$this->formElements[$CurrentType][$i]['label'].': ');
 
    // add text field (name attribute is present to enable validation and presetting!)
-   $currentElementID = $form->addFormElementBeforeMarker(
+   $currentElement = &$form->addFormElementBeforeMarker(
                            'fields',
                            'form:text',
                            array('name' => $this->formElements[$CurrentType][$i]['name'])
                        );
 
    // configure further form element attributes
-   $currentElement = &$form->getFormElementByObjectID($currentElementID);
    $currentElement->setAttribute('style','width: 200px;');
 
    // add filter to the current element
@@ -1187,7 +1180,7 @@ class GermanUmlautsFilter extends AbstractFormFilter {
 
 <h4 id="Chapter-8-1-Manipulation-of-the-visibility-via-controller"><a href="#Chapter-8-1-Manipulation-of-the-visibility-via-controller">8.1. Manipulation of the visibility via controller</a></h4>
 <p>
-   In 1.17 the <em>AbstractFormControl</em> class has been added the
+   <em>AbstractFormControl</em> class defines the
 </p>
 <ul>
    <li><em>hide()</em></li>
@@ -1195,8 +1188,9 @@ class GermanUmlautsFilter extends AbstractFormFilter {
    <li><em>isVisible()</em></li>
 </ul>
 <p>
-   methods. Since all form controls are derived from this class, the visibility feature is theoretically present for all
-   form controls. Please note the list of supported controls in <a href="#Chapter-8-3-Supported-controls">chapter 8.3</a>.
+   methods to define and manipulate visibility. Since all form controls are derived from this class, the visibility
+   feature is theoretically present for all form controls. Please note the list of supported controls in
+   <a href="#Chapter-8-4-Supported-controls">chapter 8.4</a>.
 </p>
 <p>
    <em>isVisible()</em> can be used to query the current visibility status within a document controller or within a tag.
@@ -1253,29 +1247,9 @@ class LoginController extends BaseDocumentController {
    When the form is displayed the checkbox is not visible anymore and users cannot interact with it.
 </p>
 <p>
-   Please note the hints in <a href="#Chapter-8-4-Implementation-of-custom-controls">chapter 8.4</a> on the implementation
+   Please note the hints in <a href="#Chapter-8-5-Implementation-of-custom-controls">chapter 8.5</a> on the implementation
    of custom form controls respecting the visibility definition.
 </p>
-<div class="warn">
-   <p>
-      Please note, that controls set to invisible by <em>hide()</em> are included in validation and filtering anyhow.
-      This may lead to hidden elements causing validation errors and the user cannot solve this because the control is
-      not displayed.
-   </p>
-   <p>
-      In case you intent to influence the visibility of form controls within a controller, please mark the control as
-      valid by
-   </p>
-<gen:highlight type="php">
-$checkbox = &$form->getFormElementByName('stay-logged-in');
-$checkbox->hide();
-$checkbox->markAsValid();
-</gen:highlight>
-   <p>
-      or think about defining an optional validator (see
-      <int:link pageid="113" anchor="Chapter-4-1-Shipped-validators" />).
-   </p>
-</div>
 
 <h4 id="Chapter-8-2-Hiding-dependent-controls"><a href="#Chapter-8-2-Hiding-dependent-controls">8.2. Hiding dependent controls</a></h4>
 <p>
@@ -1317,7 +1291,75 @@ $checkbox->markAsValid();
 stay-logged-in-label|password
 </gen:highlight>
 
-<h4 id="Chapter-8-3-Supported-controls"><a href="#Chapter-8-3-Supported-controls">8.3. Supported controls</a></h4>
+<h4 id="Chapter-8-3-Hide-group"><a href="#Chapter-8-3-Hide-group">8.3. Hide a group</a></h4>
+<p>
+   A more sophisticated is to control visibility of form controls using groups. This allows showing and hiding of
+   several form controls at the same time and let's you also control surrounding HTML code which is not possible with
+   the approach described in <a href="#Chapter-8-2-Hiding-dependent-controls">chapter 8.2</a>.
+</p>
+<p>
+   Defining a group you can use the <int:link pageid="113" anchor="Chapter-3-23-Group">&lt;form:group /&gt;</int:link>
+   tag. The tag itself does not generate any output but displays the form controls and HTML code defined therein.
+</p>
+<p>
+   The form setup can thus be updated as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="log-in"&gt;
+   &lt;p&gt;
+      &lt;label for="user-name"&gt;User name:&lt;/label&gt;
+      &lt;form:select name="user-name" id="user-name" /&gt;
+   &lt;/p&gt;
+
+   &lt;p&gt;
+      &lt;label for="password"&gt;Password:&lt;/label&gt;:
+      &lt;form:text name="password" id="password" /&gt;
+   &lt;/p&gt;
+
+   &lt;form:group name="stay-logged-in-group"&gt;
+      &lt;p&gt;
+         &lt;form:label for="stay-logged-in"&gt;Stay logged-in?&lt;/form:label&gt;:
+         &lt;form:checkbox
+            name="stay-logged-in"
+            id="stay-logged-in"
+         /&gt;
+      &lt;/p&gt;
+   &lt;/form:group&gt;
+
+   &lt;p&gt;
+      &lt;form:button name="log-in" value="Log-in" /&gt;
+   &lt;/p&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<div class="hint">
+   Please note, that the HTML markup has been added <em>&lt;p /&gt;</em> tags to demonstrates that you can also hide
+   the HTML markup that wraps form controls.
+</div>
+<p>
+   Hiding the check box for activating the permanent log-in can be realized within the controller as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class LoginController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = &$this->getForm('log-in');
+
+      $group = &$form->getFormElementByName('stay-logged-in-group');
+      $group->hide();
+
+      ...
+
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-8-4-Supported-controls"><a href="#Chapter-8-4-Supported-controls">8.3. Supported controls</a></h4>
 <p>
    Defining the visibility state is not supported by all form control types. This is because elements like the
    <int:link pageid="113" anchor="Chapter-3-4-Hidden">&lt;form:hidden /&gt;</int:link> tag do not generate visible
@@ -1343,9 +1385,10 @@ stay-logged-in-label|password
    <li><em>&lt;form:area /&gt;</em></li>
    <li><em>&lt;form:date /&gt;</em></li>
    <li><em>&lt;form:time /&gt;</em></li>
+   <li><em>&lt;form:group /&gt;</em></li>
 </ul>
 
-<h4 id="Chapter-8-4-Implementation-of-custom-controls"><a href="#Chapter-8-4-Implementation-of-custom-controls">8.4. Implementation of custom controls</a></h4>
+<h4 id="Chapter-8-5-Implementation-of-custom-controls"><a href="#Chapter-8-5-Implementation-of-custom-controls">8.5. Implementation of custom controls</a></h4>
 <p>
    The definition of the visibility definition is structurally defined within the <em>AbstractFormControl</em> class and
    is thus present to all form controls. As the behaviour of what should happen when a form control is marked hidden is
@@ -1354,8 +1397,8 @@ stay-logged-in-label|password
 </p>
 <p>
    The visibility status is held with the <em>AbstractFormControl::$isVisible</em> class variable. <em>true</em> means
-   that the control is <em>visible</em>, <em>false</em> inidcates that the controls listed in
-   <a href="#Chapter-8-3-Supported-controls">chapter 8.3.</a> are not displayed.
+   that the control is <em>visible</em>, <em>false</em> indicates that the controls listed in
+   <a href="#Chapter-8-4-Supported-controls">chapter 8.4</a> are not displayed.
 </p>
 <p>
    To respect the visibility status with custom form controls, the subsequent code can be used as a template:
