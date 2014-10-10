@@ -2,9 +2,8 @@
 namespace DOCS\biz\actions\changelang;
 
 use APF\core\frontcontroller\AbstractFrontcontrollerAction;
-use DOCS\biz\UrlManager;
-use APF\tools\request\RequestHandler;
 use APF\tools\http\HeaderManager;
+use DOCS\biz\UrlManager;
 
 /**
  * @package DOCS\biz\actions\changelang
@@ -34,15 +33,16 @@ class ChangeLangAction extends AbstractFrontcontrollerAction {
    public function run() {
 
       // clean input parameters to avoid sql injection!
-      $targetLang = preg_replace('/([^en|^de])/i', '', RequestHandler::getValue(self::$LANG));
-      $targetPageId = preg_replace('/([^0-9]+)/', '', RequestHandler::getValue(self::$PAGE_ID));
-      $targetVersion = RequestHandler::getValue(self::$VERSION_ID);
+      $request = &self::getRequest();
+      $targetLang = preg_replace('/([^en|^de])/i', '', $request->getParameter(self::$LANG));
+      $targetPageId = preg_replace('/([^0-9]+)/', '', $request->getParameter(self::$PAGE_ID));
+      $targetVersion = $request->getParameter(self::$VERSION_ID);
       if ($targetVersion !== null) {
          $targetVersion = preg_replace('/([^0-9A-Za-z\.]+)/', '', $targetVersion);
       }
 
       /* @var $urlMan UrlManager */
-      $urlMan = & $this->getServiceObject('DOCS\biz\UrlManager');
+      $urlMan = &$this->getServiceObject('DOCS\biz\UrlManager');
       $forwardUrl = $urlMan->generateLink($targetPageId, $targetLang, $targetVersion);
 
       HeaderManager::forward($forwardUrl);

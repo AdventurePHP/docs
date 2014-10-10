@@ -14,7 +14,6 @@ use DOCS\biz\SearchResult;
 use DOCS\biz\TrackerSearchResult;
 use DOCS\biz\UrlManager;
 use APF\tools\link\Url;
-use APF\tools\request\RequestHandler;
 use DOCS\biz\WikiSearchResult;
 
 /**
@@ -48,7 +47,7 @@ class SearchController extends BaseDocumentController {
    public function transformContent() {
 
       // register search content
-      $searchTerm = RequestHandler::getValue('search', '');
+      $searchTerm = self::getRequest()->getParameter('search', '');
 
       // display form
       $form = & $this->getForm('SearchV2');

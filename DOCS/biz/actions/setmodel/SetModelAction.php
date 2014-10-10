@@ -3,9 +3,8 @@ namespace DOCS\biz\actions\setmodel;
 
 use APF\core\frontcontroller\AbstractFrontcontrollerAction;
 use APF\core\singleton\Singleton;
-use DOCS\biz\APFModel;
 use APF\tools\http\HeaderManager;
-use APF\tools\request\RequestHandler;
+use DOCS\biz\APFModel;
 
 /**
  * @package DOCS\biz\actions\setmodel
@@ -22,8 +21,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
    private static $ABOUT_PAGEID = '073';
 
    public function isActive() {
-      $statAction = $this->getFrontController()->getActionByName('stat');
-      return $statAction == null;
+      return $this->getFrontController()->getActionByName('stat') == null;
    }
 
    /**
@@ -41,15 +39,16 @@ class SetModelAction extends AbstractFrontcontrollerAction {
    public function run() {
 
       /* @var $model APFModel */
-      $model = & Singleton::getInstance('DOCS\biz\APFModel');
+      $model = &Singleton::getInstance('DOCS\biz\APFModel');
+
+      $request = &self::getRequest();
 
       // register request parameters
       $pageIndicatorNames = $model->getAttribute('page.indicator');
       $pageIndicatorNameDe = $pageIndicatorNames['de'];
       $pageIndicatorNameEn = $pageIndicatorNames['en'];
-      $currentPageIndicators = RequestHandler::getValues(
-         array($pageIndicatorNameDe => null, $pageIndicatorNameEn => null)
-      );
+      $currentPageIndicators[$pageIndicatorNameDe] = $request->getParameter($pageIndicatorNameDe);
+      $currentPageIndicators[$pageIndicatorNameEn] = $request->getParameter($pageIndicatorNameEn);
 
       // check request parameters and set current language
       if ($currentPageIndicators[$pageIndicatorNameDe] != null) {
@@ -83,7 +82,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
       $model->setAttribute('page.id', $pageId);
 
       // fill current version
-      $versionId = RequestHandler::getValue($model->getVersionUrlIdentifier());
+      $versionId = $request->getParameter($model->getVersionUrlIdentifier());
       if (empty($versionId)) {
          $versionId = $model->getDefaultVersionId();
       }
@@ -119,6 +118,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
     * @param string $language The current language.
     * @param string $pageId The current page id.
     * @param string $versionId The current page's version id.
+    *
     * @return string The name of the file to load.
     *
     * @author Christian Achatz
@@ -148,6 +148,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
             $versions[] = $matches[1];
          }
       }
+
       return $versions;
    }
 

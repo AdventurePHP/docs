@@ -4,7 +4,6 @@ namespace DOCS\pres\taglib;
 use APF\core\pagecontroller\Document;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
-use APF\tools\request\RequestHandler;
 use DOCS\biz\APFModel;
 use DOCS\pres\controller\release\ReleaseBaseController;
 
@@ -83,7 +82,7 @@ class RevisionHistoryTag extends Document {
     * @return string The release number contained in the url, or a fallback number form the tag definition.
     */
    private function getReleaseNumber() {
-      $release = RequestHandler::getValue(ReleaseBaseController::$REV_HISTORY_PARAM);
+      $release = self::getRequest()->getParameter(ReleaseBaseController::$REV_HISTORY_PARAM);
       if ($release === null) {
          $release = $this->getAttribute(self::$FALLBACK_RELEASE_PARAM);
       }
