@@ -2,8 +2,8 @@
 namespace DOCS\biz\actions\setmodel;
 
 use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\http\Response;
 use APF\core\singleton\Singleton;
-use APF\tools\http\HeaderManager;
 use DOCS\biz\APFModel;
 
 /**
@@ -103,7 +103,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
 
       // send real 404 in case the file is not found
       if (strpos($model->getPageContentFileName(), '404') !== false) {
-         HeaderManager::send($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found', true, 404);
+         self::getResponse()->setStatusCode(Response::CODE_NOT_FOUND)->send();
       }
 
    }

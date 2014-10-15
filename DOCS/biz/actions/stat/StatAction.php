@@ -2,9 +2,8 @@
 namespace DOCS\biz\actions\stat;
 
 use APF\core\frontcontroller\AbstractFrontcontrollerAction;
-
+use APF\core\http\HeaderImpl;
 use DOCS\biz\statistics\StatManager;
-use APF\tools\http\HeaderManager;
 
 /**
  * @package DOCS\biz\actions\stat
@@ -49,20 +48,20 @@ class StatAction extends AbstractFrontcontrollerAction {
 
       // write statistic entry
       /* @var $sM StatManager */
-      $sM = & $this->getServiceObject('DOCS\biz\statistics\StatManager');
+      $sM = &$this->getServiceObject('DOCS\biz\statistics\StatManager');
       $sM->writeStatistic($pageId . ' - ' . $pageName, $pageLang);
 
       // deliver non-cachable image
       $expiresDate = date('r', 0);
       $lastModified = date('r', time());
-      HeaderManager::send('Content-Type: image/gif', true);
-      HeaderManager::send('Cache-Control: no-cache,no-store,must-revalidate', true);
-      HeaderManager::send('Pragma: no-cache', true);
-      HeaderManager::send('Expires: ' . $expiresDate, true);
-      HeaderManager::send('Last-Modified: ' . $lastModified, true);
-      printf('%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%', 71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 255, 0, 192, 192, 192, 0, 0, 0, 33, 249, 4, 1, 0, 0, 0, 0, 44, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59);
-
-      exit(0);
+      $response = self::getResponse();
+      $response->setHeader(new HeaderImpl('Content-Type', 'image/gif'));
+      $response->setHeader(new HeaderImpl('Cache-Control', 'no-cache,no-store,must-revalidate'));
+      $response->setHeader(new HeaderImpl('Pragma', 'no-cache'));
+      $response->setHeader(new HeaderImpl('Expires', '' . $expiresDate));
+      $response->setHeader(new HeaderImpl('Last-Modified', '' . $lastModified));
+      $response->setBody(sprintf('%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%', 71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 255, 0, 192, 192, 192, 0, 0, 0, 33, 249, 4, 1, 0, 0, 0, 0, 44, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59));
+      $response->send();
    }
 
    /**
@@ -98,6 +97,7 @@ class StatAction extends AbstractFrontcontrollerAction {
       $length = strlen($name);
       $delimiter = strpos($_SERVER['REQUEST_URI'], '/', $start + $length);
       $foo = substr($_SERVER['REQUEST_URI'], $start + $length, $delimiter - $start - $length);
+
       return urldecode(urldecode($foo));
    }
 

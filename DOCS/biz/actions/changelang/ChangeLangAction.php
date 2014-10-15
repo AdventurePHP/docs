@@ -2,7 +2,6 @@
 namespace DOCS\biz\actions\changelang;
 
 use APF\core\frontcontroller\AbstractFrontcontrollerAction;
-use APF\tools\http\HeaderManager;
 use DOCS\biz\UrlManager;
 
 /**
@@ -45,7 +44,7 @@ class ChangeLangAction extends AbstractFrontcontrollerAction {
       $urlMan = &$this->getServiceObject('DOCS\biz\UrlManager');
       $forwardUrl = $urlMan->generateLink($targetPageId, $targetLang, $targetVersion);
 
-      HeaderManager::forward($forwardUrl);
+      self::getResponse()->forward($forwardUrl);
    }
 
 }

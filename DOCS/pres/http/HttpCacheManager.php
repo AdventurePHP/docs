@@ -1,7 +1,8 @@
 <?php
 namespace DOCS\pres\http;
 
-use APF\tools\http\HeaderManager;
+use APF\core\http\mixins\GetRequestResponseTrait;
+use APF\core\http\HeaderImpl;
 
 /**
  * @package DOCS\pres\http
@@ -17,6 +18,8 @@ use APF\tools\http\HeaderManager;
  */
 final class HttpCacheManager {
 
+   use GetRequestResponseTrait;
+
    /**
     * @var int One week in seconds.
     */
@@ -28,17 +31,17 @@ final class HttpCacheManager {
    private static $TWO_DAYS_IN_SECS = 86400;
 
    public static function sendHtmlCacheHeaders() {
-      HeaderManager::send('Content-Type: text/html; charset=utf-8');
+      self::getResponse()->setHeader(new HeaderImpl('Content-Type', 'text/html; charset=utf-8'));
       self::sendCacheHeaders(self::$TWO_DAYS_IN_SECS);
    }
 
    public static function sendCssCacheHeaders() {
-      HeaderManager::send('Content-Type: text/css; charset=utf-8');
+      self::getResponse()->setHeader(new HeaderImpl('Content-Type', 'text/css; charset=utf-8'));
       self::sendCacheHeaders(self::$WEEK_IN_SECS);
    }
 
    public static function sendJsCacheHeaders() {
-      HeaderManager::send('Content-Type: text/javascript; charset=utf-8');
+      self::getResponse()->setHeader(new HeaderImpl('Content-Type', 'text/javascript; charset=utf-8'));
       self::sendCacheHeaders(self::$WEEK_IN_SECS);
    }
 
@@ -46,9 +49,10 @@ final class HttpCacheManager {
       $expires = time() + $expiresTime;
       $expiresDate = date('r', $expires);
       $lastModified = date('r', time());
-      HeaderManager::send('Expires: ' . $expiresDate);
-      HeaderManager::send('Last-Modified: ' . $lastModified);
-      HeaderManager::send('Cache-Control: public; max-age=' . $expiresTime);
+      $response = self::getResponse();
+      $response->setHeader(new HeaderImpl('Expires', $expiresDate));
+      $response->setHeader(new HeaderImpl('Last-Modified', $lastModified));
+      $response->setHeader(new HeaderImpl('Cache-Control', 'public; max-age='. $expiresTime));
    }
 
 }
