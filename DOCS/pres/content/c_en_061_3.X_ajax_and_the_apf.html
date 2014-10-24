@@ -336,16 +336,17 @@ class NewsPagerAjaxBackendAction extends AbstractFrontcontrollerAction {
       $news = $provider->getNewsByPage($dataDir, $page);
 
       // send json
-      HeaderManager::send('Content-Type: application/json');
-      echo json_encode(array(
-         'headline' => $news->getHeadline(),
-         'subheadline' => $news->getSubHeadline(),
-         'content' => $news->getContent(),
-         'newscount' => $news->getNewsCount()
-      ));
+      $response = self::getResponse();
+      $response->setHeader(new HeaderImpl('Content-Type', 'application/json'));
 
-      // close application, since we've done all the work here.
-      exit(0);
+      $response->setBody(json_encode(array(
+            'headline'    => $news->getHeadline(),
+            'subheadline' => $news->getSubHeadline(),
+            'content'     => $news->getContent(),
+            'newscount'   => $news->getNewsCount()
+      )));
+
+      $response->send();
    }
 
 }
