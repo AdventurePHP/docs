@@ -204,21 +204,121 @@ $date = &$form->getFormElementByName('date-of-birth');
 $sql = 'INSERT INTO ... SET ..., dob = `' . $date->getDate()->format('Y-m-d') . '`, ... ';
 </gen:highlight>
 
-<h4 id="Chapter-3-5-RequestHandler"><a href="#Chapter-3-5-RequestHandler">3.5. RequestHandler</a></h4>
+<h4 id="Chapter-3-5-Neue-Request-Implementierung"><a href="#Chapter-3-5-Neue-Request-Implementierung">3.5. Neue Request-Implementierung</a></h4>
 <p>
-   RequestHandler muss durch die neue HTTP Request und Response Implementierung ersetzt werden. Das Migrations-Skript
-   erfasst die einfachen Fälle (getValue()), nicht aber die komplexen (getValues()), da das zu kompliziert und zu stark
-   auf den Anwendungsfall bezogen ist.
+   Im Rahmen der Umsetzung von <a class="external" href="http://tracker.adventure-php-framework.org/view.php?id=234">ID#234</a>
+   wurden die Klassen <em>RequestHandler</em> und <em>HeaderManager</em> durch eine vollständig objektorientierte
+   <em>Request</em>- und <em>Response</em>-Umsetzung für die Abstraktion der HTTP-Kommunikation ersetzt.
+</p>
+<p>
+   Diese erleichtern die Implementierung und bieten einfache Methoden für gängige Aufgaben wie das Auslesen von
+   Request-Inhalten, die Manipulation von HTTP-Antwort-Headern und die Weiterleitung auf andere URLs.
+</p>
+<p>
+   Die Umstellung auf das neue Modell erfolgt weitestgehend durch die Ausführung der
+   <a href="#Chapter-2-Automatisierte-Migration">automatisierten Migration</a>, einige Teile müssen jedoch manuell
+   erledigt werden.
+</p>
+<p>
+   Die folgenden Kapitel beschreiben die manuell vorzunehmenden Änderungen um auf die neue <em>Request</em>- und
+   <em>Response</em>-Implementierung umzustellen.
+</p>
+<div class="hint">
+   Hinweise zur Request-Verarbeitung im APF 3.0 finden Sie im Kapitel <int:link pageid="163" />.
+</div>
+
+<h4 id="Chapter-3-5-1-RequestHandler"><a href="#Chapter-3-5-1-RequestHandler">3.5.1. RequestHandler</a></h4>
+<p>
+   Die Klasse <em>RequestHandler</em> diente im APF bis Version 2.1 zur Abstraktion des Zugriffs auf die Inhalte der
+   aktuellen Anfrage. Die darin enthaltenen Funktionalitäten sind nun vollständig in der Klasse <em>RequestImpl</em>
+   enthalten.
+</p>
+<p>
+   Bei der Migration werden die einfachen und auch häufigsten Fälle erfasst. Die Nutzung von <em>getValues()</em> kann
+   auf Grund der Komplexität der Anwendung nicht automatisch umgestellt werden. Schreiben Sie daher alle Vorkommen der
+   Methode von z.B.
 </p>
 <gen:highlight type="php">
 $values = RequestHandler::getValues(array('page', 'sort' => 'asc'));
 </gen:highlight>
 <p>
-   zu
+   auf
 </p>
 <gen:highlight type="php">
 $page = self::getRequest()->getParameter('page');
 $sort = self::getRequest()->getParameter('sort', 'asc');
+</gen:highlight>
+<p>
+   um. Alternativ lässt sich folgende Implementierung nutzen, die den Eingriff in den Code Ihrer bestehenden Anwendung
+   gering hält:
+</p>
+<gen:highlight type="php">
+$values = array();
+$request = self::getRequest();
+foreach (array('page', 'sort' => 'asc') as $name => $default) {
+   if (is_integer($name)) {
+      $values[$default] = $request->getParameter($default);
+   } else {
+      $values[$name] = $request->getParameter($name, $default);
+   }
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-5-2-HeaderManager"><a href="#Chapter-3-5-2-HeaderManager">3.5.2. HeaderManager</a></h4>
+<p>
+   Mit Hilfe der Klasse <em>HeaderManager</em> ließen sich im APF bis Version 2.1 die HTTP-Header der Antwort
+   manipulieren und Benutzer zu generierten URLs weiter leiten. Die darin enthaltenen Funktionalitäten sind nun
+   vollständig in der Klasse <em>ResponseImpl</em> aufgegangen.
+</p>
+<p>
+   Die Migration des <em>HeaderManager</em> auf die neuen Funktionen lässt sich größtenteils automatisiert erledigen.
+   Eine Ausnahme bilden Front-Controller-Actions, die in der Regel umfassende Manipulationen der Antwort vornehmen. Aus
+   diesem Grund bitten wir Sie, Actions nach der Migration nochmals genauerer unter die Lupe zu nehmen.
+</p>
+<p>
+   Code-Blöcke wie z.B.
+</p>
+<gen:highlight type="php">
+HeaderManager::send('Content-Type: application/json');
+echo json_encode(array(
+      'headline'    => $news->getHeadline(),
+      'subheadline' => $news->getSubHeadline(),
+      'content'     => $news->getContent(),
+      'newscount'   => $news->getNewsCount()
+));
+
+exit(0);
+</gen:highlight>
+<p>
+   werden von der automatisieren Migration zu
+</p>
+<gen:highlight type="php">
+self::getResponse()->setHeader(new HeaderImpl('Content-Type', 'application/json'));
+echo json_encode(array(
+      'headline'    => $news->getHeadline(),
+      'subheadline' => $news->getSubHeadline(),
+      'content'     => $news->getContent(),
+      'newscount'   => $news->getNewsCount()
+));
+
+exit(0);
+</gen:highlight>
+<p>
+   umgeschrieben. Dies führt dazu, dass der gesendete <em>Content-Type</em>-Header nicht beim Browser ankommt, da die
+   <em>ResponseImpl</em>-Instanz nicht mit zurück gesendet wird. Ändern Sie den Code daher manuell wie folgt ab:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->setHeader(new HeaderImpl('Content-Type', 'application/json'));
+
+$response->setBody(json_encode(array(
+      'headline'    => $news->getHeadline(),
+      'subheadline' => $news->getSubHeadline(),
+      'content'     => $news->getContent(),
+      'newscount'   => $news->getNewsCount()
+)));
+
+$response->send();
 </gen:highlight>
 
 <h3 id="Chapter-4-FAQ"><a href="#Chapter-4-FAQ">4. FAQ</a></h3>
