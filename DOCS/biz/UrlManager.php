@@ -7,9 +7,6 @@ use APF\core\pagecontroller\APFObject;
 use APF\core\singleton\Singleton;
 
 /**
- * @package DOCS\biz
- * @name UrlManager
- *
  * This tool let's you generate a APF docu page link by a
  * given page id (e.g. "072") and provides multi-language
  * page titles.

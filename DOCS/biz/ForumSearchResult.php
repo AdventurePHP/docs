@@ -2,9 +2,6 @@
 namespace DOCS\biz;
 
 /**
- * @package DOCS\biz
- * @class ForumSearchResult
- *
  * This class represents the domain object of the forum search functionality.
  *
  * @author Christian Achatz

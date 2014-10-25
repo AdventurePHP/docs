@@ -7,9 +7,6 @@ use DOCS\biz\APFModel;
 use DOCS\biz\UrlManager;
 
 /**
- * @package DOCS\pres\taglib
- * @class InternalLinkTag
- *
  * This taglib let's you easily create internal links. Depending on
  * the attributes given, the link is generated using the title of the
  * target page or a custom one.

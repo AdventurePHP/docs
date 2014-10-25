@@ -6,19 +6,12 @@ use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
 
 /**
- * @package DOCS\pres\controller
- * @class SidebarDisplayTag
- *
  * Displays the sidebar, depending on the model information.
  *
  * @author Christian Achatz
  * @version 0.1, 19.01.2010<br />
  */
 class SidebarDisplayTag extends ImportTemplateTag {
-
-   public function __construct() {
-      parent::__construct();
-   }
 
    /**
     * @public

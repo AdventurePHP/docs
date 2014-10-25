@@ -5,9 +5,6 @@ use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
 
 /**
- * @package DOCS\pres\controller\release
- * @class SideBarCurrentController
- *
  * Generates the sidebar links to the current stable and current
  * experimental release page.
  *
@@ -27,10 +24,6 @@ class SideBarCurrentController extends ReleaseBaseController {
     * @var string[] Stores all releases (cache)!
     */
    private $allReleases;
-
-   public function __construct() {
-      parent::__construct();
-   }
 
    public function transformContent() {
 

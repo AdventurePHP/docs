@@ -4,9 +4,6 @@ namespace DOCS\pres\taglib;
 use APF\core\pagecontroller\Document;
 
 /**
- * @package DOCS\pres\taglib
- * @class GenericHighlightTag
- *
  * Implements a generic code highlighting taglib.
  *
  * @author Christian Achatz

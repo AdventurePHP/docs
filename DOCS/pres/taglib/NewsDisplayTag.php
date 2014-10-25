@@ -4,9 +4,6 @@ namespace DOCS\pres\taglib;
 use APF\core\pagecontroller\AppendNodeTag;
 
 /**
- * @package DOCS\pres\taglib
- * @class NewsDisplayTag
- *
  * Enhances the <em>&lt;core:appendnode /&gt;</em> taglib to be able
  * to include language dependent template fragments.
  *
@@ -15,10 +12,6 @@ use APF\core\pagecontroller\AppendNodeTag;
  * Version 0.1, 29.01.2010<br />
  */
 class NewsDisplayTag extends AppendNodeTag {
-
-   public function __construct() {
-      parent::__construct();
-   }
 
    /**
     * Includes the news template depending on the desired language.

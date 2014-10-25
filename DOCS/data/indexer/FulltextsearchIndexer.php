@@ -14,9 +14,6 @@ use DOCS\biz\APFModel;
 use APF\tools\filesystem\FilesystemManager;
 
 /**
- * @package DOCS\data\indexer
- * @class FulltextsearchIndexer
- *
  * Implements an indexer for the full text search.
  * Details on the concept can be seen on http://www.phpbar.de/w/Volltextsuche.
  *

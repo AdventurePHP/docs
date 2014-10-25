@@ -4,8 +4,6 @@ namespace DOCS\biz\statistics;
 use APF\core\pagecontroller\APFObject;
 
 /**
- * @class BaseStatSection
- *
  * Implements the basic stat section domain object.
  */
 class BaseStatSection extends APFObject {

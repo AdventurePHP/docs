@@ -8,9 +8,6 @@ use DOCS\biz\APFModel;
 use DOCS\pres\controller\release\ReleaseBaseController;
 
 /**
- * @package DOCS\pres\taglib
- * @class RevisionHistoryTag
- *
  * Displays the revision history for the desired release.
  *
  * @author Christian Achatz
@@ -20,10 +17,6 @@ use DOCS\pres\controller\release\ReleaseBaseController;
 class RevisionHistoryTag extends Document {
 
    private static $FALLBACK_RELEASE_PARAM = 'fallback';
-
-   public function __construct() {
-      // nothing to do, especially not initialize object id as this is done by the APF parser
-   }
 
    public function onParseTime() {
 

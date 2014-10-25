@@ -6,9 +6,6 @@ use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
 
 /**
- * @package DOCS\pres\taglib
- * @class ContentDisplayTag
- *
  * Implements the "html:content" tag.
  *
  * @author Christian Achatz
@@ -17,10 +14,6 @@ use DOCS\biz\APFModel;
  * Version 0.2, 17.09.2008 (Changed function to fit new model structure)<br />
  */
 class ContentDisplayTag extends Document {
-
-   public function __construct() {
-      // nothing to do, especially not initialize object id as this is done by the APF parser
-   }
 
    /**
     * @public

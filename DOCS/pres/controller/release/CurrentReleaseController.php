@@ -2,9 +2,6 @@
 namespace DOCS\pres\controller\release;
 
 /**
- * @package DOCS\pres\controller\release
- * @class CurrentReleaseController
- *
  * Displays the current release (stable) package.
  *
  * @author Christian Achatz
@@ -12,10 +9,6 @@ namespace DOCS\pres\controller\release;
  * Version 0.1, 28.12.2009<br />
  */
 class CurrentReleaseController extends ReleaseBaseController {
-
-   public function __construct() {
-      parent::__construct();
-   }
 
    public function transformContent() {
 

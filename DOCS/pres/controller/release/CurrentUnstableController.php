@@ -2,9 +2,6 @@
 namespace DOCS\pres\controller\release;
 
 /**
- * @package DOCS\pres\controller\release
- * @class CurrentUnstableController
- *
  * Implements the document controller for the current unstable release view.
  *
  * @author Christian Achatz
@@ -12,10 +9,6 @@ namespace DOCS\pres\controller\release;
  * Version 0.1, 29.12.2009<br />
  */
 class CurrentUnstableController extends ReleaseBaseController {
-
-   public function __construct() {
-      parent::__construct();
-   }
 
    public function transformContent() {
 

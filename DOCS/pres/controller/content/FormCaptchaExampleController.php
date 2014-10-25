@@ -4,14 +4,11 @@ namespace DOCS\pres\controller\content;
 use APF\core\pagecontroller\BaseDocumentController;
 
 /**
- * @package DOCS\pres\controller\content
- * @class FormCaptchaExampleController
- *
- *  Implements the document controller for the captcha form example.
+ * Implements the document controller for the captcha form example.
  *
  * @author Christian Achatz
  * @version
- *  Version 0.1, 20.07.2008<br />
+ * Version 0.1, 20.07.2008<br />
  */
 class FormCaptchaExampleController extends BaseDocumentController {
 

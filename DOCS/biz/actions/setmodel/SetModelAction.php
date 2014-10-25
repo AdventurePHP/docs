@@ -7,9 +7,6 @@ use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
 
 /**
- * @package DOCS\biz\actions\setmodel
- * @class SetModelAction
- *
  * Represents the front controller action to initialize the page's model.
  *
  * @author Christian Achatz

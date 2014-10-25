@@ -6,20 +6,13 @@ use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
 
 /**
- * @package DOCS\pres\taglib
- * @class QuickNaviContentTag
- *
- * Implements the taglib, that displays the quicknavi content.
+ * Implements the taglib, that displays the quick navi content.
  *
  * @author Christian Achatz
  * @version
  * Version 0.1, 28.12.2009<br />
  */
 class QuickNaviContentTag extends Document {
-
-   public function __construct() {
-      // nothing to do, especially not initialize object id as this is done by the APF parser
-   }
 
    /**
     * @public

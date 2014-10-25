@@ -2,9 +2,6 @@
 namespace DOCS\biz;
 
 /**
- * @package DOCS\biz
- * @class TrackerSearchResult
- *
  * This class represents the domain object of the tracker search functionality.
  *
  * @author Christian Achatz

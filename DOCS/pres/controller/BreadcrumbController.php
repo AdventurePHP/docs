@@ -7,9 +7,6 @@ use DOCS\biz\APFModel;
 use DOCS\biz\UrlManager;
 
 /**
- * @package DOCS\pres\controller
- * @class BreadcrumbController
- *
  * Document controller that displays the breadcrumb when navigating
  * to the second stage.
  *

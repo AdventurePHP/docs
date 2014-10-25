@@ -4,8 +4,6 @@ namespace DOCS\biz\statistics;
 use APF\core\pagecontroller\APFObject;
 
 /**
- * @class StatEntry
- *
  * Represents a single stat entry within a stat section.
  */
 class StatEntry extends APFObject {

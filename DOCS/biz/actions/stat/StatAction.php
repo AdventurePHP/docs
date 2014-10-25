@@ -6,9 +6,6 @@ use APF\core\http\HeaderImpl;
 use DOCS\biz\statistics\StatManager;
 
 /**
- * @package DOCS\biz\actions\stat
- * @class StatAction
- *
  * Represents the front controller action to log the access statistics.
  *
  * @author Christian Achatz

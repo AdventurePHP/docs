@@ -1,13 +1,10 @@
 <?php
 namespace DOCS\pres\http;
 
-use APF\core\http\mixins\GetRequestResponseTrait;
 use APF\core\http\HeaderImpl;
+use APF\core\http\mixins\GetRequestResponse;
 
 /**
- * @package DOCS\pres\http
- * @class HttpCacheManager
- *
  * This util class sends additional http headers, that allow
  * caching of the delivered resources.
  *
@@ -18,7 +15,7 @@ use APF\core\http\HeaderImpl;
  */
 final class HttpCacheManager {
 
-   use GetRequestResponseTrait;
+   use GetRequestResponse;
 
    /**
     * @var int One week in seconds.
@@ -52,7 +49,7 @@ final class HttpCacheManager {
       $response = self::getResponse();
       $response->setHeader(new HeaderImpl('Expires', $expiresDate));
       $response->setHeader(new HeaderImpl('Last-Modified', $lastModified));
-      $response->setHeader(new HeaderImpl('Cache-Control', 'public; max-age='. $expiresTime));
+      $response->setHeader(new HeaderImpl('Cache-Control', 'public; max-age=' . $expiresTime));
    }
 
 }

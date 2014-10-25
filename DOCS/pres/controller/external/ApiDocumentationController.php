@@ -4,9 +4,6 @@ namespace DOCS\pres\controller\external;
 use DOCS\pres\controller\release\ReleaseBaseController;
 
 /**
- * @package DOCS\pres\controller\external
- * @class ApiDocumentationController
- *
  * Implements the document controller of the API documentation listing.
  *
  * @author Christian Achatz
@@ -14,10 +11,6 @@ use DOCS\pres\controller\release\ReleaseBaseController;
  * Version 0.1, 10.01.2009<br />
  */
 class ApiDocumentationController extends ReleaseBaseController {
-
-   public function __construct() {
-      parent::__construct();
-   }
 
    /**
     * @public

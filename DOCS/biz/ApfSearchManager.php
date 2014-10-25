@@ -9,9 +9,6 @@ use APF\core\singleton\Singleton;
 use DateTime;
 
 /**
- * @package DOCS\biz
- * @class ApfSearchManager
- *
  * Business component of the full text search feature.
  *
  * @author Christian Achatz

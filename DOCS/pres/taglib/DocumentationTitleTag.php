@@ -6,9 +6,6 @@ use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
 
 /**
- * @package DOCS\pres\taglib
- * @class DocumentationTitleTag
- *
  * Implements the title taglib. The tag informs the model about the page's title and
  * displays a <h2> heading.
  *

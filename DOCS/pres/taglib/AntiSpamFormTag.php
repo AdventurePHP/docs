@@ -4,15 +4,12 @@ namespace DOCS\pres\taglib;
 use APF\tools\form\taglib\AbstractFormControl;
 
 /**
- * @package APF\sites\demosite\prea\taglib
- * @class AntiSpamFormTag
- *
- *  Implements an anti spam function, that marks a form as invalid, when it is posted within
- *  a configured amount of time.
+ * Implements an anti spam function, that marks a form as invalid, when it is posted within
+ * a configured amount of time.
  *
  * @author Christian Achatz
  * @version
- *  Version 0.1, 17.07.2008<br />
+ * Version 0.1, 17.07.2008<br />
  */
 class AntiSpamFormTag extends AbstractFormControl {
 

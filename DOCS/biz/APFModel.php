@@ -4,9 +4,6 @@ namespace DOCS\biz;
 use APF\core\pagecontroller\Document;
 
 /**
- * @package DOCS\biz
- * @class APFModel
- *
  * Implements the model of the APF docs page.
  *
  * @author Christian Achatz

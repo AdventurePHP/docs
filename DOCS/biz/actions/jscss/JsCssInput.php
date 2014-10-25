@@ -4,9 +4,6 @@ namespace DOCS\biz\actions\jscss;
 use APF\core\frontcontroller\FrontcontrollerInput;
 
 /**
- * @package DOCS\biz\actions\css
- * @class JsCssInput
- *
  * Represents the action's input object.
  *
  * @author Christian Achatz

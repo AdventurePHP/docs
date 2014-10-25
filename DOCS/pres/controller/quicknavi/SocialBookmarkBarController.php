@@ -6,9 +6,6 @@ use APF\tools\link\LinkGenerator;
 use APF\tools\link\Url;
 
 /**
- * @package DOCS\pres\controller\quicknavi
- * @class SocialBookmarkBarController
- *
  * Fills the dynamic content of the social network bar.
  *
  * @author Christian Achatz

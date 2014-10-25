@@ -10,9 +10,6 @@ use DOCS\biz\UrlManager;
 use APF\tools\filesystem\FilesystemManager;
 
 /**
- * @package DOCS\pres\controller\release
- * @class ReleaseBaseController
- *
  * Implements basic functionality for the release pages.
  *
  * @author Christian Achatz

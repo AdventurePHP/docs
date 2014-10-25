@@ -5,9 +5,6 @@ use APF\core\frontcontroller\AbstractFrontcontrollerAction;
 use DOCS\biz\UrlManager;
 
 /**
- * @package DOCS\biz\actions\changelang
- * @class ChangeLangAction
- *
  * Represents the front controller action to change the site's language.
  *
  * @author Christian Achatz

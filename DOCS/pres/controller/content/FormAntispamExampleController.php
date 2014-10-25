@@ -4,14 +4,11 @@ namespace DOCS\pres\controller\content;
 use APF\core\pagecontroller\BaseDocumentController;
 
 /**
- * @package DOCS\pres\controller\content
- * @class FormAntispamExampleController
- *
- *  Implements the document controller for the anti spam form example.
+ * Implements the document controller for the anti spam form example.
  *
  * @author Christian Achatz
  * @version
- *  Version 0.1, 17.07.2008<br />
+ * Version 0.1, 17.07.2008<br />
  */
 class FormAntispamExampleController extends BaseDocumentController {
 
@@ -29,7 +26,7 @@ class FormAntispamExampleController extends BaseDocumentController {
    public function transformContent() {
 
       // obtain a reference on the desired form (depends on the language of the document!)
-      $Form__AntiSpamExample = & $this->getForm('AntiSpamExample_' . $this->language);
+      $Form__AntiSpamExample = &$this->getForm('AntiSpamExample_' . $this->language);
 
       // check if form is valid or not
       if ($Form__AntiSpamExample->isValid() == true) {

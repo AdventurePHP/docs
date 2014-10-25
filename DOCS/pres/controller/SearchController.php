@@ -17,9 +17,6 @@ use APF\tools\link\Url;
 use DOCS\biz\WikiSearchResult;
 
 /**
- * @package DOCS\pres\controller
- * @class SearchController
- *
  * Implements the document controller for the search.html template.
  *
  * @author Christian Achatz

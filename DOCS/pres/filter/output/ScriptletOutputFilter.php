@@ -5,9 +5,6 @@ use APF\core\filter\ChainedContentFilter;
 use APF\core\filter\FilterChain;
 
 /**
- * @package DOCS\pres\filter\output
- * @class ScriptletOutputFilter
- *
  * Implements a custom output filter, that kills whitespaces and newlines
  * marked by JAVA scriptlet tags (<% ... %>).
  *

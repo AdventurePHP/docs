@@ -6,9 +6,6 @@ use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\registry\Registry;
 
 /**
- * @package DOCS\pres\controller\external
- * @class FaqController
- *
  * Implements the document controller for the FAQ list.
  *
  * @author Christian Achatz

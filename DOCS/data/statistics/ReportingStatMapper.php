@@ -10,15 +10,12 @@ use DOCS\biz\statistics\LinkTableStatSection;
 use DOCS\biz\statistics\StatEntry;
 
 /**
- * @package DOCS\data\statistics
- * @module ReportingStatMapper
- *
- *  Implements the statistic data loader.
+ * Implements the statistic data loader.
  *
  * @author Christian Achatz
  * @version
- *  Version 0.1, 15.11.2008<br />
- *  Version 0.2. 16.11.2008<br />
+ * Version 0.1, 15.11.2008<br />
+ * Version 0.2. 16.11.2008<br />
  */
 class ReportingStatMapper extends APFObject {
 

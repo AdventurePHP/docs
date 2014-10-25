@@ -2,9 +2,6 @@
 namespace DOCS\biz;
 
 /**
- * @package DOCS\biz
- * @class WikiSearchResult
- *
  * This class represents the domain object of the wiki search functionality.
  *
  * @author Christian Achatz

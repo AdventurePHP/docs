@@ -9,9 +9,6 @@ use DOCS\data\statistics\ReportingStatMapper;
 use DOCS\data\statistics\StatMapper;
 
 /**
- * @package DOCS\biz\statistics
- * @class StatManager
- *
  * Implements the statistic business layer.
  *
  * @author Christian Achatz

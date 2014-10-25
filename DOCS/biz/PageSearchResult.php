@@ -2,9 +2,6 @@
 namespace DOCS\biz;
 
 /**
- * @package DOCS\biz
- * @class PageSearchResult
- *
  * This class represents the domain object of the full-text search functionality.
  *
  * @author Christian Achatz
