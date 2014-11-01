@@ -485,47 +485,230 @@ foreach($request->getHeaders() as $header) {
    Details entnehmen Sie bitte der <int:link pageid="002" />.
 </p>
 
-<hr />
-<ul>
-   <li>
-      Details zum Response:
-      <ul>
-         <li>Beziehen des Response (Details siehe oben)</li>
-         <li>
-            Standard-HTTP Eigenschaften (HTTP-Version, Status, Reason-Phrase)
-         </li>
-         <li>
-            Convenience-Methoden für Header: (set|get)ContentType()
-         </li>
-         <li>
-            Setzen/Überschreiben/Entfernen von Headern.
-         </li>
-         <li>
-            Füllen des Response-Body.
-         </li>
-         <li>
-            Setzen/Löschen von Cookies.
-         </li>
-         <li>
-            Weiterleitungsmethoden: forward(), redirect(), sendNotFound(), sendServerError()
-         </li>
-         <li>
-            Senden des Response: implizit per echo/__toString() und implizit per send()
-         </li>
-         <li>
-            Manipulieren des Response in der index.php.
-         </li>
-         <li>
-            Debugging: dump()
-         </li>
-         <li>exitAfterForward(): Feature für UnitTests zum Abschalten des exit()</li>
-      </ul>
-   </li>
-</ul>
-
 <h3 id="Chapter-4-Der-Response"><a href="#Chapter-4-Der-Response">4. Der Response</a></h3>
 <p>
+   Analog zur Definition des <em>Request</em> beschreibt das Interface <em>Response</em> die Struktur der HTTP-Antwort
+   einer APF-basierten Applikation. Es beinhaltet Konstanten für oft verwendete Definitionen sowie Methoden zur Abfrage
+   und Manipulation von Inhalten. Der folgende Code-Block zeigt die Definition des Interface (gekürzt):
+</p>
+<gen:highlight type="php">
+interface Response {
 
+   const VERSION_1_0 = '1.0';
+   const VERSION_1_1 = '1.1';
+
+   ...
+
+   const CODE_OK = 200;
+
+   ...
+
+   const CODE_MOVED_PERMANENTLY = 301;
+   const CODE_FOUND = 302;
+   const CODE_SEE_OTHER = 303;
+   const CODE_NOT_MODIFIED = 304;
+   const CODE_USE_PROXY = 305;
+   const CODE_TEMPORARY_REDIRECT = 307;
+
+   ...
+
+   const CODE_UNAUTHORIZED = 401;
+
+   ...
+
+   public function getVersion();
+   public function setVersion($version);
+   public function getStatusCode();
+   public function setStatusCode($code);
+   public function getReasonPhrase();
+   public function setReasonPhrase($phrase);
+   public function getBody();
+   public function setBody($body, $append = false);
+
+   public function send($exit = true);
+
+   public function forward($url, $exitAfterForward = true);
+   public function redirect($url, $permanent = false, $exitAfterForward = true);
+   public function sendNotFound($exitAfterForward = true);
+   public function sendServerError($exitAfterForward = true);
+
+   public function isSent();
+
+   ...
+
+   public function getHeaders();
+   public function setHeader(Header $header);
+   public function deleteHeader(Header $header);
+
+   public function getCookies();
+   public function setCookie(Cookie $cookie);
+   public function deleteCookie(Cookie $cookie);
+</gen:highlight>
+<p>
+   Die Implementierung des Interfaces - die Klasse <em>ResponseImpl</em> - besitzt darüber hinaus noch eine Reihe von
+   Convenience Methoden zur Vereinfachung der Implementierung. Details hierzu erfahren Sie in den nächsten Kapiteln.
+</p>
+
+<h4 id="Chapter-4-1-Beziehen-des-Response"><a href="#Chapter-4-1-Beziehen-des-Response">4.1. Beziehen des Response</a></h4>
+<p>
+   Die Instanz des <em>Response</em>s ist innerhalb der Anwendung eindeutig. Aus diesem Grund wird diese über die
+   <em>Singleton</em>-Implementierung bezogen. Details hierzu finden Sie unter <int:link pageid="030" anchor="Chapter-1-Singleton"/>.
+</p>
+<p>
+   In allen Klassen, die von
+</p>
+<ul>
+   <li><em>APF\core\pagecontroller\Document</em>,</li>
+   <li><em>APF\core\pagecontroller\BaseDocumentController</em>,</li>
+   <li><em>APF\core\frontcontroller\AbstractFrontcontrollerAction</em> oder</li>
+   <li><em>APF\tools\form\validator\AbstractFormValidator</em></li>
+</ul>
+<p>
+   ableiten steht die statische Methode <em>getResponse()</em> zur Verfügung. In allen anderen Klassen lässt sich das
+   Trait <em>APF\core\http\mixins\GetRequestResponse</em> nutzen um die Funktionalität zur Verfügung zu stellen.
+</p>
+<p>
+   Möchten Sie die Instanz der aktuellen Anfrage beziehen, so lässt sich folgender Code nutzen:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+</gen:highlight>
+<p>
+   Die Variable <em>$response</em> beinhaltet nun eine Instanz der Klasse <em>ResponseImpl</em>.
+</p>
+<p>
+   Möchten Sie die Instanz ausserhalb einer Klasse beziehen, so können Sie den nachfolgend abgedruckten Code nutzen:
+</p>
+<gen:highlight type="php">
+$response = Singleton::getInstance('APF\core\http\ResponseImpl');
+</gen:highlight>
+
+<h4 id="Chapter-4-2-Definition-der-Standard-Eigenschaften"><a href="#Chapter-4-2-Definition-der-Standard-Eigenschaften">4.2. Definition der Standard-Eigenschaften</a></h4>
+<p>
+   Jede Antwort einer HTTP-Kommunikation enthält definierte Bestandteile wie die Version des Protokolls, dem Antwort-Status
+   und einer Beschreibung des Status. Daneben gibt es weitere Meta-Informationen, die als Header verpackt sind.
+   Details zu Headern finden Sie in <a href="#Chapter-4-3-Definition-von-Headern">Kapitel 4.3</a>.
+</p>
+<p>
+   Die Version Ihrer Antwort lässt sich mit Hilfe der Methode <em>setVersion()</em> definieren. Ohne Änderung wird die
+   Antwort immer als Version <em>HTTP/1.1</em> gesendet. Möchten Sie eine andere Version definieren, lässt sich dies
+   wie folgt erledigen:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->setVersion('1.0');
+</gen:highlight>
+<p>
+   Für Ihre Applikation interessanter ist die Definition des Status-Codes und der zugehörigen Beschreibung. Nehmen Sie
+   keine Änderung vor, wird Ihre Antwort beim Aufrufer als <em>HTTP/1.1 200 OK</em> ankommen. Möchten Sie durch einen
+   anderen Status Code einen besonderen Umstand (z.B. Seite nicht gefunden) ausdrücken, können Sie den Status wie folgt
+   ändern:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->setStatusCode(Response::CODE_NOT_FOUND);
+</gen:highlight>
+<p>
+   Alle Standard-Codes werden automatisch in die zugehörige Beschreibung übersetzt. Bei einer 404-Antwort lautet diese
+   <em>Not Found</em>. Möchten Sie diese ändern um weitere Informationen an den Aufrufer zu senden, so nutzen Sie dazu
+   bitte die <em>setReasonPhrase()</em>:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->setStatusCode(Response::CODE_NOT_FOUND);
+$response->setReasonPhrase('Page ' . $_SERVER['REQUEST_URI'] . ' not found!);
+</gen:highlight>
+<p>
+   Die zum Aufrufer gesendete Antwort lautet in diesem Fall:
+</p>
+<gen:highlight type="code">
+HTTP/1.1 404 Page /foo not found!
+</gen:highlight>
+
+<h4 id="Chapter-4-3-Definition-von-Headern"><a href="#Chapter-4-3-Definition-von-Headern">4.3. Definition von Headern</a></h4>
+<p>
+   Neben den Standard-Eigenschaften lässt sich eine HTTP-Antwort mit weiteren Meta-Eigenschaften in Form von HTTP-Headern
+   ausstatten. Für die Implementierung einer Web-Applikation sind hier besonders der in der Antwort zurückgelieferte
+   Datentyp (z.B. HTML, CSS, Bild), die Informationen zur Gültigkeit und Weiterleitungen interessant. Für die Umsetzung
+   von Weiterleitungen stehen die in <a href="#Chapter-4-6-Weiterleitungen">Kapitel 4.6</a> beschriebenen, spezielle
+   Methoden zur Verfügung.
+</p>
+<p>
+   Der Datentyp der zurückgelieferten Antwort lässt sich mit entweder mit Hilfe der Convenience-Methode
+   <em>setContentType()</em> oder per <em>setHeader()</em> definieren:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+
+// Benutzung der Convenience-Methode
+$response->setContentType('image/png');
+
+// Native Definition eines Headers
+$response->setHeader(new HeaderImpl(HeaderImpl::CONTENT_TYPE, 'image/png'));
+</gen:highlight>
+<p>
+   Mit Hilfe der nativen Definition von Headern lassen sich beliebige Meta-Daten in der HTTP-Antwort definieren. Die
+   folgende Code-Box zeigt einige gängige Beispiele:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+
+// Definiert das Datum der Anfrage
+$response->setHeader(new HeaderImpl('Date', date('%Y-%m-%d %H:%i:%s')));
+
+// Erlaubt das Zwischenspeichern der Antwort in Caches und Proxies
+$response->setHeader(new HeaderImpl('Cache-Control ', 'public'));
+
+// Definiert den Zeitpunkt der letzten Änderung
+$response->setHeader(new HeaderImpl('Last-Modified', $lastModificationDate));
+</gen:highlight>
+<div class="hint">
+   Möchten Sie einen bereits gesetzten Header überschreiben, so setzen Sie diesen einfach mit der Methode <em>setHeader()</em>.
+   Die neue Definition überschreibt dabei die alte.
+</div>
+<p>
+   Um einen bereits gesetzten Header zu entfernen nutzen Sie bitte die Methode <em>deleteHeader()</em>:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->deleteHeader(new HeaderImpl('Date', null));
+</gen:highlight>
+
+
+
+<!-- hier weiter -->
+<h4 id="Chapter-4-4-Fuellen-des-Bodies"><a href="#Chapter-4-4-Fuellen-des-Bodies">4.4. Füllen des Bodies</a></h4>
+<p>
+   Füllen des Response-Body.
+</p>
+
+<h4 id="Chapter-4-5-Setzen-und-Loeschen-von-Cookies"><a href="#Chapter-4-5-Setzen-und-Loeschen-von-Cookies">4.5. Setzen und Löschen von Cookies</a></h4>
+<p>
+   Setzen/Löschen von Cookies.
+</p>
+
+<h4 id="Chapter-4-6-Weiterleitungen"><a href="#Chapter-4-6-Weiterleitungen">4.6. Weiterleitungen</a></h4>
+
+<p>
+   Weiterleitungsmethoden: forward(), redirect(), sendNotFound(), sendServerError()
+</p>
+
+<h4 id="Chapter-4-7-Senden-der-Antwort"><a href="#Chapter-4-7-Senden-der-Antwort">4.7. Senden der Antwort</a></h4>
+<p>
+   Senden des Response: implizit per echo/__toString() und explizit per send()
+</p>
+<p>
+   Manipuperen des Response in der index.php.
+</p>
+
+<h4 id="Chapter-4-8-Debugging"><a href="#Chapter-4-8-Debugging">4.8. Debugging</a></h4>
+<p>
+   Debugging: dump()
+</p>
+
+<h4 id="Chapter-4-9-Unit-Testing"><a href="#Chapter-4-9-Unit-Testing">4.9. Unit-Testing</a></h4>
+<p>
+   exitAfterForward(): Feature für UnitTests zum Abschalten des exit().
 </p>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_163" />
