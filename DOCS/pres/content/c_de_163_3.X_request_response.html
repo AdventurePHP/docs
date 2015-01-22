@@ -364,8 +364,11 @@ foreach($request->getCookies() as $cookie) {
    </p>
    <p>
       Dies bedeutet, dass ein per <em>getCookies()</em> bzw. <em>getCookie()</em> ausgelesenes Cookie nicht direkt im
-      <em>Response</em> zurück gesendet werden kann. Dies würde auf Grund der fehlenden Anganben entweder zu unerwünschtem
+      <em>Response</em> zurück gesendet werden kann. Dies würde auf Grund der fehlenden Angaben entweder zu unerwünschtem
       Verhalten oder zu Fehlern führen.
+   </p>
+   <p>
+      Bitte beachten Sie hierzu ebenso die Hinweise in <a href="#Chapter-4-5-Setzen-und-Loeschen-von-Cookies">Kapitel 4.5</a>.
    </p>
 </div>
 
@@ -673,42 +676,218 @@ $response->setHeader(new HeaderImpl('Last-Modified', $lastModificationDate));
 $response = self::getResponse();
 $response->deleteHeader(new HeaderImpl('Date', null));
 </gen:highlight>
+<p>
+   Um alle bereits gesetzten Header zu entfernen, nutzen Sie bitte die Methode <em>resetHeaders()</em>:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->resetHeaders();
+</gen:highlight>
 
-
-
-<!-- hier weiter -->
 <h4 id="Chapter-4-4-Fuellen-des-Bodies"><a href="#Chapter-4-4-Fuellen-des-Bodies">4.4. Füllen des Bodies</a></h4>
 <p>
-   Füllen des Response-Body.
+   In der Regel beinhaltet die Antwort einer Anfrage einen Inhalt (z.B. HTML-Code). Um den <em>Response</em> mit Inhalt
+   zu füllen können Sie die Methode <em>setBody()</em> nutzen. Diese unterstützt sowohl das Setzen des Inhalts als auch
+   das Anhängen von weiteren Inhalten:
 </p>
+<gen:highlight type="php">
+$response = self::getResponse();
+
+// Definieren des Inhaltes (überschreibt den bisherigen Inhalt)
+$response->setBody('...');
+
+// Hinzufügen eines Inhaltes
+$response->setBody('...', true);
+</gen:highlight>
+<p>
+   Um den bis zu einem definierten Zeitpunkt im Ablauf der Applikation generierten Inhalt abzufragen, nutzen Sie bitte
+   die Funktion <em>getBody()</em>.
+</p>
+<div class="hint">
+   Die Definition des Inhalts wird bei der Ausführung des <int:link pageid="012" /> bereits für Sie übernommen. Das
+   explizite Setzen des Inhalts ist in der Regel nur in Front-Controller-Actions notwendig. Details hierzu entnehmen
+   Sie bitte <a href="#Chapter-4-7-Senden-der-Antwort">Kapitel 4.7</a>.
+</div>
 
 <h4 id="Chapter-4-5-Setzen-und-Loeschen-von-Cookies"><a href="#Chapter-4-5-Setzen-und-Loeschen-von-Cookies">4.5. Setzen und Löschen von Cookies</a></h4>
 <p>
-   Setzen/Löschen von Cookies.
+   Beabsichtigen Sie in Ihrer Applikation Inhalte in einem Cookie speichern, so lässt sich dazu die Methode
+   <em>setCookie()</em> nutzen. Hierzu konstruieren Sie zunächst das gewünschte Cookie und geben es der
+   <em>Response</em>-Instanz mit:
 </p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_des_cookies', Cookie::DEFAULT_EXPIRATION_TIME, 'www.example.com');
+$cookie->setValue('Gewuenschter Wert');
+
+$response = self::getResponse();
+$response->setCookie($cookie);
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass der Wert eines Cookies vom Typ string ist. Beabsichtigen Sie komplexere Strukturen zu
+   speichern, müssen Sie selbst für die De- und Encodierung sorgen. Hierzu können beispielsweise die Funktionen
+   <em>serialize()</em> und <em>unserialize()</em> genutzt werden.
+</div>
+<div class="hint">
+   Bitte beachten Sie weiterhin, dass die Größe von Cookies direkten Einfluss auf die Anfrage-Performance hat, da
+   Cookies im HTTP-Anfragen mitgeliefert werden. Achten Sie daher immer auf eine möglichst kleine Datenmenge. Die
+   Datenmenge kann beispielsweise durch ein eigenes, komprimiertes Datenformat oder durch Nutzung von
+   Komprimierungsfunktionen erreicht werden.
+</div>
+<p>
+   Möchten Sie ein bereits gesetztes Cookie verändern, so lässt sich dies mit Hilfe des folgenden Codes erledigen:
+</p>
+<div class="warn">
+   <p>
+      Bitte beachten Sie, dass ein bereits gesetztes Cookies nicht alle Informationen beinhaltet. Aus diesem Grund sollten
+      Sie - sofern gewünscht und relevant - bei der Wiederverwendung eines ausgelesenen Cookies die Parameter
+   </p>
+   <ul>
+      <li>Cookie::expireTime</li>
+      <li>Cookie::domain</li>
+      <li>Cookie::path</li>
+      <li>Cookie::secure</li>
+      <li>Cookie::httpOnly</li>
+   </ul>
+   <p>
+      auf die gewünschten Werte setzen.
+   </p>
+   <p>
+      Details hierzu entnehmen Sie bitte <a href="#Chapter-3-4-Auslesen-von-Cookies">Kapitel 3.4</a>.
+   </p>
+</div>
+<gen:highlight type="php">
+$request = self::getRequest();
+$cookie = $request->getCookie('name_des_cookies');
+
+$cookie
+   ->setExpireTime(86400 * 2)
+   ->setDomain('other.example.com')
+   ->setPath('/foo/bar')
+   ->setHttpOnly(true)
+   ->setSecure(false);
+
+$response = self::getResponse();
+$response->setCookie($cookie);
+</gen:highlight>
+<p>
+   Zum Löschen eines Cookies können Sie die Methode <em>Response::deleteCookie()</em> einsetzen. Dieses markiert das
+   übergebene Cookie für den Client als verfallen und zu löschen:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->deleteCookie(new Cookie('name_des_cookies'));
+</gen:highlight>
+<div class="hint">
+   Bitte beachten Sie, dass die Werte des zu löschenden Cookies identisch mit den Werten zur Erstellungszeit sein müssen.
+   Dies bedeutet, dass beispielsweise Domain und Pfad vor dem Aufruf von <em>deleteCookie()</em> auf die entsprechenden
+   Werte gesetzt werden müssen.
+</div>
 
 <h4 id="Chapter-4-6-Weiterleitungen"><a href="#Chapter-4-6-Weiterleitungen">4.6. Weiterleitungen</a></h4>
-
 <p>
-   Weiterleitungsmethoden: forward(), redirect(), sendNotFound(), sendServerError()
+   Ein typischer Anwendungsfall einer Web-Applikation ist das Weiterleiten auf diverse Ziel-Seiten - etwa einer
+   Login-Seite - und das Senden von HTTP-Status-Informationen.
+</p>
+<p>
+   Zur Weiterleitung einer Anfrage auf einer andere Ziel-Seite stehen Ihnen die Methoden <em>forward()</em> und
+   <em>redirect()</em> zur Verfügung. Mit Hilfe von <em>forward()</em> lassen sich Weiterleitungen mit einem Status-Code
+   <em>303</em> (<em>see other</em>) realisieren, wohingegen <em>redirect()</em> den Status-Code <em>301</em> bzw.
+   <em>302</em> zurück liefert.
+</p>
+<p>
+   Der folgende Code-Block zeigt typische Anwendungsfälle der beiden Methoden:
+</p>
+<gen:highlight type="php">
+$request = self::getRequest();
+$response = self::getResponse();
+
+$link = LinkGenerator::generateUrl(
+   $request->getUrl()->mergeQuery(array('param1' => '','param2' => 'new_value'))
+);
+
+// Verweis auf eine andere Seite
+$response->forward($link);
+
+// Temporäre Weiterleitung
+$response->redirect($link);
+
+// Permanente Weiterleitung
+$response->redirect($link, true);
+</gen:highlight>
+<div class="hint">
+   <p>
+      Die beiden Methoden <em>forward()</em> und <em>redirect()</em> brechen die weitere Code-Abarbeitung mit einem
+      <em>exit()</em> ab um <em>Code-Injection</em> zu verhindern (siehe
+      <a href="http://adamdoupe.com/blog/2011/04/20/overview-of-execution-after-redirect-web-application-vulnerabilities/">Overview of Execution After Redirect Web Application Vulnerabilities</a>).
+   </p>
+   <p>
+      Um dieses Verhalten in Unit-Tests abschalten zu können, bietet der <em>HeaderManager</em> die Methoden
+      <em>deactivateExitAfterForward()</em> und <em>activateExitAfterForward()</em> um das Verhalten global aus, bzw.
+      ein zu schalten.
+   </p>
+   <p>
+      Um innerhalb eines konkreten Aufrufs von <em>forward()</em> oder <em>redirect()</em> einen Abbruch zu erreichen,
+      lassen sich die optionalen Parameter <em>$exitAfterForward</em> auf <em>false</em> setzen.
+   </p>
+</div>
+<p>
+   Mit Hilfe der Methoden <em>sendNotFound()</em> und <em>sendServerError()</em> lässt sich der Client über einen Fehler
+   in der Applikation informieren. <em>sendNotFound()</em> sendet Status-Code <em>404</em> um anzuzeigen, dass die
+   gewünschte Seite nicht gefunden wurde und <em>sendServerError()</em> sendet Status-Code <em>500</em> (Server-Fehler).
 </p>
 
 <h4 id="Chapter-4-7-Senden-der-Antwort"><a href="#Chapter-4-7-Senden-der-Antwort">4.7. Senden der Antwort</a></h4>
 <p>
-   Senden des Response: implizit per echo/__toString() und explizit per send()
+   Möchten Sie die Antwort einer Anfrage an den Client senden, lässt sich das auf zwei Arten erledigen: direkte Ausgabe
+   des <em>Response</em> per <em>echo</em> oder mit Hilfe der Methode <em>send()</em>.
 </p>
 <p>
-   Manipuperen des Response in der index.php.
+   Nutzen Sie die Funktion <em>echo</em>, so lässt sich der Text <em>Hallo Welt!</em> wie folgt an den Client senden:
 </p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->setBody('Hallo Welt!');
+echo $response;
+</gen:highlight>
+<p>
+   Sofern Sie Kontrolle über die Request-Verarbeitung benötigen - beispielsweise um diese in einer Front-Controller-Action
+   zu beenden - bietet sich die Nutzung der Methode <em>send()</em> an:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->setBody('Hallo Welt!');
+$response->send();
+</gen:highlight>
+<p>
+   Möchten Sie den Response vor dem Senden an den Client in der Bootstrap-Datei manipulieren, so lässt sich das wie
+   folgt erreichen:
+</p>
+<gen:highlight type="php">
+$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+$response = $fC->start('...', '...');
+
+$version = '3.0';
+$response->setBody('&lt;!-- Software-Version: ' . $version . ' --&gt;', true);
+$response->setHeader(new HeaderImpl('X-Software-Version', $version));
+
+echo $response;
+</gen:highlight>
 
 <h4 id="Chapter-4-8-Debugging"><a href="#Chapter-4-8-Debugging">4.8. Debugging</a></h4>
 <p>
-   Debugging: dump()
+   Um den vollständigen Inhalt einer Antwort zu Debugging-Zwecken auszugeben lässt sich die Methode <em>dump()</em>
+   einsetzen. Diese lässt sich beispielsweise in der Bootstrap-Datei nutzen um alle gesendeten Header und den Inhalt
+   der Anfrage anzuzeigen:
 </p>
+<gen:highlight type="php">
+$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+$response = $fC->start('...', '...');
 
-<h4 id="Chapter-4-9-Unit-Testing"><a href="#Chapter-4-9-Unit-Testing">4.9. Unit-Testing</a></h4>
-<p>
-   exitAfterForward(): Feature für UnitTests zum Abschalten des exit().
-</p>
+echo $response->dump();
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass die Seite im Browser ggf. nicht wie erwartet angezeigt wird, da zur Darstellung notwendige
+   HTTP-Header nicht gesendet werden. Benutzen Sie die Methode <em>dump()</em> daher nur zu Debuggng-Zwecken.
+</div>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_163" />
