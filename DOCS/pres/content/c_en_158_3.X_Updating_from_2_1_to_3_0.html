@@ -1,0 +1,288 @@
+<doku:title parent="100" tags="updating,2.1,3.0" title="Updating from 2.1 to 3.0" urlname="Updating-from-2-1-to-3-0">
+   This article is dedicated for updating from APF 2.X to version 3.X. It describes new features and changes and gives
+   advice on how to optimize your existing application.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   Version 3.0 of the Adventure PHP Framework brings a huge number of new features and changes. This article describes
+   which new functionality affects your existing application and how to upgrade to the new version applying optimizations
+   at the same time.
+</p>
+<p>
+   This article mainly focuses on upgrading from the 2.X line. In case you are running on an older version from the
+   1.X generation please migrate to 2.1 first. Hints and advices can be found under <int:link pageid="100" />.
+</p>
+
+<h3 id="Chapter-2-The-APF-parser"><a href="#Chapter-2-The-APF-parser">2. The APF parser</a></h3>
+<p>
+   In Version 3.0 the APF parser has been rewritten completely. The main driver for this decision were limitations of the
+   old version complicating application development and rising the need for workarounds in some cases.
+</p>
+<p>
+   The prior implementation of the parser was not capable of resolving all tag structures - especially regarding hierarchy
+   assignment - which led to parser issues and thus application crashed or tags not being parsed which in turn influences
+   functionality. In addition, tag registration needed to be done on a per-instance level again and again.
+</p>
+<p>
+   Another problem was timing. Analyzing templates based on a list of known tags instead of the tag definition and order
+   within the template certain workarounds for timing issues needed to be implemented.
+</p>
+<p>
+   All those issues are now solved with the new parser and this allows to apply various optimizations to your application.
+   Some of them are already described in article <int:link pageid="159" />.
+</p>
+<p>
+   The new parser features the following advantages over version 2.1:
+</p>
+<ul>
+   <li>
+      Tags are analyzed and parsed according to their definition within the template instead of a list of known tags.
+      This means that release 3.0 supports all tag structures and nesting patterns. Tags that are not parsed or tag
+      structures leading to parser errors are gone.
+   </li>
+   <li>
+      Analyzing tags based on the template structure removes the direct dependency between tags and their hierarchy
+      level. Starting with 2.0 each tag can be used in any hierarchy level or tag structure (theoretically) with the
+      same combination of prefix and name. This eases implementation a lot and saves you from writing tag wrappers
+      that have been necessary in the past to use tags in certain hierarchy levels.
+   </li>
+   <li>
+      With version 3.0 tags are registered globally. This means that you can use a tag that has been registered
+      with a unique combination of prefix and name in any template and hierarchy level. This allows you to register tags
+      within your bootstrap file centrally and just once for the entire application.
+   </li>
+   <li>
+      The extended templating syntax is available in all templates and hierarchy levels. Details can be taken from
+      chapter <int:link pageid="161" />.
+   </li>
+   <li>
+      Many new features (see <a class="external" href="http://tracker.adventure-php-framework.org/roadmap_page.php?version_id=9">Roadmap</a>)
+      such as iterators in forms or within a <em>&lt;html:template /&gt;</em> tag can now be realized out-of-the-box.
+   </li>
+</ul>
+<p>
+   The following chapters describe all optimization options in detail.
+</p>
+
+<h4 id="Chapter-2-1-Automated-migration"><a href="#Chapter-2-1-Automated-migration">2.1. Automated migration</a></h4>
+<p>
+   As a first step updating to the new version as well as optimizing your application is executing the migration
+   scripts as described under <int:link pageid="159" />. This process already optimizes your application based on the
+   components of the APF.
+</p>
+
+<h4 id="Chapter-2-2-Optimization-of-tag-registration"><a href="#Chapter-2-2-Optimization-of-tag-registration">2.2. Optimization of tag registration</a></h4>
+<p>
+   To simplify your templates the APF team recommends the following adaptions of your application:
+</p>
+<ul>
+   <li>
+      Extract all <em>&lt;core:addtaglib /&gt;</em> tags from your templates and replace them by appropriate
+      <em>Document::addTagLib()</em> statements within your bootstrap file. In case your template contains tags such as
+<gen:highlight type="apf-xml">
+&lt;template:addtaglib class="DOCS\pres\taglib\InternalLinkTag" prefix="int" name="link" /&gt;
+&lt;core:addtaglib class="DOCS\pres\taglib\InternalLinkTag" prefix="int" name="link" /&gt;
+</gen:highlight>
+      replace it by
+<gen:highlight type="php">
+Document::addTagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link');
+</gen:highlight>
+      Please be sure to register tags before the front controller is started.
+   </li>
+   <li>
+      Extract all <em>self::addTagLib()</em> statements from your application - e.g.
+<gen:highlight type="php">
+class FooTag extends Document {
+   public function __contruct() {
+      self::addTagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link');
+   }
+   ...
+}
+</gen:highlight>
+      - and add them to the bootstrap file.
+   </li>
+   <li>
+      Now, consolidate the created list to get rid of duplicate tag registrations.
+   </li>
+</ul>
+<div class="hint">
+   In case a module consists of a central template and several sub templates you may want to do tag registration via
+   <em>&lt;core:addtaglib /&gt;</em> tag(s) within the main template. Due to the fact that the main template is analyzed
+   by the parser before the succeeding templates included by <em>&lt;core:importdesign /&gt;</em> all tags registered
+   within the main template are also available within sub templates from a timing perspective.
+</div>
+
+<h4 id="Chapter-2-3-Re-usage-of-registered-tags"><a href="#Chapter-2-3-Re-usage-of-registered-tags">2.3. Re-usage of registered tags</a></h4>
+<p>
+   The APF parser has been optimized in version 3.0 to able to resolve tags with the same combination of prefix and
+   name in any hierarchy. Tag structure
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib class="..." prefix="template" name="link"/&gt;
+&lt;int:link /&gt;
+
+&lt;html:template&gt;
+   &lt;template:addtaglib class="..." prefix="template" name="link"/&gt;
+   &lt;template:link /&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+<p>
+   can be simplified to
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib class="..." prefix="template" name="link"/&gt;
+&lt;int:link /&gt;
+
+&lt;html:template&gt;
+   &lt;int:link /&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+<p>
+   <em>&lt;int:link /&gt;</em> must be registered only once within an application: either via a consolidated
+   <em>&lt;core:addtaglib /&gt;</em> tag within a template or within the <em>index.php</em>.
+</p>
+
+<h4 id="Chapter-2-4-Removing-wrapper-tags"><a href="#Chapter-2-4-Removing-wrapper-tags">2.4. Removing wrapper tags</a></h4>
+<p>
+   In previous versions it has been necessary to define wrapper tags or re-register tag implementations under a separate
+   prefix and name to work around some <int:link pageid="147" anchor="Chapter-6-Tag-hierarchies" version="2.X">weaknesses of the APF parses</int:link>.
+   Until and including 2.1 the parser wasn't able to translate tags with the same prefix and name into the appropriate
+   hierarchy level as the template analysis was done based on a list of registered tags.
+</p>
+<p>
+   Version 3.0 removes this weakness and you can now remove any kind of workarounds to this issue. In order to optimize
+   you application based on release 3.0 the following examples describes the full potential of the new APF parser.
+</p>
+<p>
+   In order to realize tag structure
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:iterator name=""&gt;
+   ...
+   &lt;iterator:fallback&gt;
+      ...
+      [&lt;fallback:placeholder name="" /&gt;]
+      [&lt;fallback:getstring namespace="" config="" entry="" /&gt;]
+      [&lt;fallback:addtaglib class="" prefix="" name="" /&gt;]
+      ...
+   &lt;/iterator:fallback&gt;]
+   ...
+&lt;/html:iterator&gt;
+</gen:highlight>
+<p>
+   in prior releases (details of the tag signature see <int:link pageid="078" anchor="Chapter-1-Iterator" version="2.X" />)
+   a wrapper tag was necessary to allow declaration of the child tags such as they are assigned to the correct instance
+   and not to <em>&lt;html:iterator /&gt;</em> directly by accident.
+</p>
+<p>
+   The respective source code is as follows:
+</p>
+<gen:highlight type="php">
+class HtmlIteratorTag extends Document {
+   public function __construct() {
+      $this->tagLibs[] = new TagLib('APF\tools\html\taglib\HtmlIteratorFallbackTag', 'iterator', 'fallback');
+      ...
+   }
+   ...
+}
+
+class HtmlIteratorFallbackTag extends TemplateTag {
+
+   public function __construct() {
+      $this->tagLibs[] = new TagLib('APF\core\pagecontroller\PlaceHolderTag', 'fallback', 'placeholder');
+      $this->tagLibs[] = new TagLib('APF\core\pagecontroller\AddTaglibTag', 'fallback', 'addtaglib');
+      $this->tagLibs[] = new TagLib('APF\core\pagecontroller\LanguageLabelTag', 'fallback', 'getstring');
+   }
+
+}
+</gen:highlight>
+<p>
+   Since the 3.0 parser is able to resolve the tag structure correctly the (separately implemented)
+   <em>&lt;iterator:fallback /&gt;</em> tag can easily be replaced by the &quot;real&quot; <em>TemplateTag</em>. For
+   your project this means:
+</p>
+<ul>
+   <li>
+      <em>HtmlIteratorFallbackTag</em> can be removed completely and the tag registration of the
+      <em>&lt;iterator:fallback /&gt;</em> tag can be re-written to
+<gen:highlight type="php">
+Document::addTagLib('APF\core\pagecontroller\TemplateTag', 'iterator', 'fallback');
+</gen:highlight>
+   </li>
+   <li>
+      In addition, the tag structure can be re-written to
+<gen:highlight type="apf-xml">
+&lt;html:iterator name=""&gt;
+   ...
+   &lt;iterator:fallback&gt;
+      ...
+      [&lt;html:placeholder name="" /&gt;]
+      [&lt;html:getstring namespace="" config="" entry="" /&gt;]
+      [&lt;core:addtaglib class="" prefix="" name="" /&gt;]
+      ...
+   &lt;/iterator:fallback&gt;]
+   ...
+&lt;/html:iterator&gt;
+</gen:highlight>
+      since <em>&lt;html:placeholder /&gt;</em> can also be used within an <em>&lt;iterator:fallback /&gt;</em> tag.
+   </li>
+</ul>
+<p>
+   Reducing tag registrations and implementation not only saves code but also reduces the complexity of your application.
+   For this reason, it is recommended to search for similar patterns and re-write them with the capabilities of the
+   new APF parser in mind.
+</p>
+
+<h4 id="Chapter-2-5-Switching-to-the-extended-templating-syntax"><a href="#Chapter-2-5-Switching-to-the-extended-templating-syntax">2.5. Switching to the extended templating syntax</a></h4>
+<p>
+   In order to improve the readability of your templates it is recommended to switch from place holder notation
+   <em>&lt;html:placeholder /&gt;</em> to the extended templating syntax which provides a far compact notation.
+</p>
+<p>
+   This chance can easily be done on the command line with the migration script shipped with the APF for all
+   template files:
+</p>
+<div class="warn">
+   Please be sure to change to the source directory of your application to avoid unexpected results.
+</div>
+<gen:highlight type="code">
+$ /path/to/migration/migrate-place-holders.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.0 automatic place holder migration  #
+#############################################
+
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.4.16.
+
+#############################################
+
+Starting migration ...
+
+#############################################
+
+Migration done! Place holders are now written in extended templating syntax.
+</gen:highlight>
+<div class="warn">
+   Please make sure to execute the automated migration of your code base before. Details can be taken from
+   <int:link pageid="159" />.
+</div>
+
+<h3 id="Chapter-3-Autoloading"><a href="#Chapter-3-Autoloading">3. Autoloading</a></h3>
+<p>
+   Version 3.0 of the APF supports using composer to struture and manage your projects. To avoid issues with loading
+   classes the APF team recommends to follow PHP standard
+   <a class="external" href="http://www.php-fig.org/psr/psr-2/">PSR-2</a> regarding code structure.
+</p>
+<p>
+   Important is especially the <em>one class per file</em> rule.
+</p>
+<div class="hint">
+   Please note, that the APF follows the rules described under the
+   <a class="external" href="http://www.php-fig.org/psr/psr-2/">PSR-2</a> and
+   <a class="external" href="http://www.php-fig.org/psr/psr-4/">PSR-4</a> standard in most cases. With the source code
+   format the APF team has defined custom rule sets. For details, please refer to the
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/APF_Coding_Standard">APF Coding Standard</a>.
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_158" />
