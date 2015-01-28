@@ -1,0 +1,395 @@
+<doku:title parent="100" tags="migration,2.1,3.0" title="Migration from 2.1 to 3.0" urlname="Migration-from-2-1-to-3-0">
+   This page describes the adaptions of your current software (up to and including release 2.1) necessary to upgrade it
+   to release 3.0.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   Version 3.0 of the Adventure PHP Framework contains an all-new parser. Based on this new component various new features
+   and optimizations have been introduced.
+</p>
+<div class="hint">
+   As of the 3.0 release enhancement of version version 2.1 will be discontinued. Security and bug fixes will be available
+   until end of 2015.
+</div>
+<p>
+   This article shows how to update your application to APF version 3.0. As you might already be familiar with from previous
+   versions migration can be done in an automated fashion for nearly all changes. For this reason, the release contains
+   two scripts: <em>migrate-code.sh</em> to update your HTML and PHP files and <em>migrate-config.sh</em> for configuration
+   files.
+</p>
+<div class="hint">
+   The APF team recommends to use the migration scripts rather than upgrading manually. This not only saves time and
+   money but also ensure that all relevant areas of your project code are covered.
+</div>
+<p>
+   The below chapters contain an in-depth description on how to switch to APF 3.0 and which kind of changes have to be
+   applied to your existing application(s) to run them based on this version.
+</p>
+
+<h3 id="Chapter-2-Automated-migration"><a href="#Chapter-2-Automated-migration">2. Automated migration</a></h3>
+<p>
+   As you might already be familiar with from release 2.1 migration can be done using the migration script shipped along
+   with the release. This release includes changes to code, templates, and configuration files. Using
+   <em>migrate-code.sh</em> and <em>migrate-config.sh</em> you can easily be adapted your existing application to the
+   new scheme.
+</p>
+<div class="warn">
+   Please be sure to execute all steps described under <int:link pageid="157" />. In case you are using an order version
+   of the APF, please <em>completely</em> migrate to version 2.1. Instructions can be taken from <int:link pageid="100" />.
+</div>
+<p>
+   In case your development environment is windows, please install the latest <em>cygwin</em> version (download under
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Migration for Windows Batch Scripts is
+   not supported.
+</p>
+<p>
+   To update the code files to the latest scheme, please execute the script as follows:
+</p>
+<div class="warn">
+   Please change to the code directory before execution to avoid unexpected results.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-code.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.0 automatic code migration          #
+#############################################
+
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.4.16.
+
+#############################################
+
+Starting migration ...
+* Migrate taglib declaration statements ...
+* Consolidate tag usage ...
+* Remove redundant tag lib registration ...
+* Switch to new place holder logic ...
+
+#############################################
+
+Migration done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+<p>
+   To update the configuration files to the latest scheme, please execute the script as follows:
+</p>
+<div class="warn">
+   Please change to the configuration directory before execution to avoid unexpected results.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-config.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.0 automatic configuration migration #
+#############################################
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.4.16.
+
+#############################################
+
+Starting configuration migration ...
+* Migrate cache configuration ...
+* Migrate pager configuration ...
+
+#############################################
+
+Migration done! Please check your configuration and follow instructions within migration documentation!
+</gen:highlight>
+
+<h3 id="Chapter-3-Manual-steps"><a href="#Chapter-3-Manual-steps">3. Manual steps</a></h3>
+<p>
+   Unfortunately, not all components of your application can be migrated by the delivered scripts. This chapter lists
+   all changes to be applied by hand.
+</p>
+
+<h4 id="Chapter-3-1-Front-controller"><a href="#Chapter-3-1-Front-controller">3.1. Front controller</a></h4>
+<p>
+   With issue <a href="http://tracker.adventure-php-framework.org/view.php?id=207">ID#207</a> an old class design
+   weakness has been removed from the code base. Class <em>APFObject</em> now is no longer responsible for storing XML
+   attributes. This has been moved to <em>Document</em> as this class represents an APF DOM node.
+</p>
+<p>
+   With this change, <em>FrontControllerInput</em> had to be adapted as well to save the action parameters in a
+   different way: <em>$this->parameters</em>.
+</p>
+<p>
+   In order to update to this new version please replace all occurrences of the following symbols within classes derived
+   from <em>FrontControllerInput</em> as follows:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Old name</td>
+         <td>New Name</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>(<em>APFObject</em>) $this->attributes</td>
+         <td>(<em>FrontControllerInput</em>) $this->parameters</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::getAttribute()</td>
+         <td>FrontControllerInput::getParameter()</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::getAttributes()</td>
+         <td>FrontControllerInput::getParameters()</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::setAttribute()</td>
+         <td>FrontControllerInput::setParameter()</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::setAttributes()</td>
+         <td>FrontControllerInput::setParameters()</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::deleteAttribute()</td>
+         <td>(no longer supported)</td>
+      </tr>
+      <tr>
+         <td>FrontControllerInput::addAttribute()</td>
+         <td>(no longer supported)</td>
+      </tr>
+   </tbody>
+</table>
+
+<h4 id="Chapter-3-2-APFObject"><a href="#Chapter-3-2-APFObject">3.2. APFObject</a></h4>
+<p>
+   As mentioned in <a href="#Chapter-3-1-Front-controller">chapter 3.1</a> the attribute handling has been removed from
+   <em>APFObject</em>. This change also effects classes derived from <em>APFObject</em> that are being used as view models
+   and rely in the <em>$this->attributes</em> field.
+</p>
+<p>
+   Please adapt all use cases to run your application in APF 3.0.
+</p>
+
+<h4 id="Chapter-3-3-Place-holder"><a href="#Chapter-3-3-Place-holder">3.3. Place holder</a></h4>
+<p>
+   The functionality to define simple place holders within a <em>&lt;html:placeholder /&gt;</em> tag has been removed
+   in release 3.0.
+</p>
+<p>
+   In case you are using code like
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:placeholder name="foo"&gt;This is a {bar} thing.&lt;/html:placeholder&gt
+</gen:highlight>
+<p>
+   please rewrite it to:
+</p>
+<gen:highlight type="apf-xml">
+This is a &#36;{bar} thing.
+</gen:highlight>
+<p>
+   Within controllers usage of the place holders changes from
+</p>
+<gen:highlight type="php">
+$this->setStringPlaceHolder('foo', 'bar', '...');
+</gen:highlight>
+<p>
+   to
+</p>
+<gen:highlight type="php">
+$this->setPlaceHolder('bar', '...');
+</gen:highlight>
+
+<h4 id="Chapter-3-4-Signature-change-DateSelectorTag-TimeSelectorTag"><a href="#Chapter-3-4-Signature-change-DateSelectorTag-TimeSelectorTag">3.4. Signature changeDateSelectorTag and TimeSelectorTag</a></h4>
+<p>
+   Implementing <a class="external" href="http://tracker.adventure-php-framework.org/view.php?id=208">ID#208</a> the
+   signature of <em>DateSelectorTag::getDate()</em> and <em>DateSelectorTag::setDate()</em> as well as
+   <em>TimeSelectorTag::getTime()</em> and <em>TimeSelectorTag::setTime()</em> have been adapted.
+</p>
+<p>
+   Both setters now take a string as well as an instance of <em>DateTime</em> initializing the tag. This allows better
+   typing of data within your application.
+</p>
+<div class="hint">
+   The APF team recommends to start using <em>DateTime</em> to represent date and time valued with APF 3.0. This not
+   only eases usage of both tags but also allows strong encapsulation of date and time values.
+</div>
+<p>
+   Both getter methods return a <em>DateTime</em> instance. This change requires changes to your code base (in contrast
+   to the setters). In case you are using the following code to read and process the content of a <em>DateSelectorTag</em>
+   like
+</p>
+<gen:highlight type="php">
+$date = &$form->getFormElementByName('date-of-birth');
+$sql = 'INSERT INTO ... SET ..., dob = `' . $date->getDate() . '`, ... ';
+</gen:highlight>
+<p>
+   please rewrite it to:
+</p>
+<gen:highlight type="php">
+$date = &$form->getFormElementByName('date-of-birth');
+$sql = 'INSERT INTO ... SET ..., dob = `' . $date->getDate()->format('Y-m-d') . '`, ... ';
+</gen:highlight>
+
+<h4 id="Chapter-3-5-New-request-implementation"><a href="#Chapter-3-5-New-request-implementation">3.5. New request implementation</a></h4>
+<p>
+   With implementation of <a class="external" href="http://tracker.adventure-php-framework.org/view.php?id=234">ID#234</a>
+   classes <em>RequestHandler</em> and <em>HeaderManager</em> have been replaced by an object-oriented <em>Request</em>
+   and <em>Response</em> implementation as an abstraction of the HTTP communication.
+</p>
+<p>
+   This eases implementation and offers simple and easy-to-use methods for common tasks such as reading request content,
+   manipulating HTTP responses, or redirecting to other URLs.
+</p>
+<p>
+   Switching to the new model is automated as much as possible by the
+   <a href="#Chapter-2-Automated-migration">automated migration</a> but some parts need to be adapted by hand.
+</p>
+<p>
+   The following chapters describe the necessary adaptions to use the new <em>Request</em> and <em>Response</em>
+   implementation.
+</p>
+<div class="hint">
+   Details on the request processing process of APF 3.0 can be found in chapter <int:link pageid="163" />.
+</div>
+
+<h4 id="Chapter-3-5-1-RequestHandler"><a href="#Chapter-3-5-1-RequestHandler">3.5.1. RequestHandler</a></h4>
+<p>
+   In APF up to version 2.1 <em>RequestHandler</em> provided an abstraction for accessing content of the current request.
+   All functionality is now contained in <em>RequestImpl</em>.
+</p>
+<p>
+   Updating using the migration scripts covers almost all use cases. The only exception is <em>getValues()</em> as this
+   cannot be migrated due to complexity reasons. For this reason, please rewrite all use cases from e.g.
+</p>
+<gen:highlight type="php">
+$values = RequestHandler::getValues(array('page', 'sort' => 'asc'));
+</gen:highlight>
+<p>
+   to
+</p>
+<gen:highlight type="php">
+$page = self::getRequest()->getParameter('page');
+$sort = self::getRequest()->getParameter('sort', 'asc');
+</gen:highlight>
+<p>
+   Alternatively, you may want to use the following code snippet to decrease impact on your code base:
+</p>
+<gen:highlight type="php">
+$values = array();
+$request = self::getRequest();
+foreach (array('page', 'sort' => 'asc') as $name => $default) {
+   if (is_integer($name)) {
+      $values[$default] = $request->getParameter($default);
+   } else {
+      $values[$name] = $request->getParameter($name, $default);
+   }
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-5-2-HeaderManager"><a href="#Chapter-3-5-2-HeaderManager">3.5.2. HeaderManager</a></h4>
+<p>
+   In APF up to version 2.1 <em>HeaderManager</em> provided an interface to manipulate HTTP responses or to redirect
+   users to certain URLs. All functionality contained there has been moved to <em>ResponseImpl</em>.
+</p>
+<p>
+   Migration of the <em>HeaderManager</em> can be done in an automated fashion for a great majority of use cases. The
+   only exception is front controller actions as they heavily manipulate the response in most cases. For this reason,
+   please review all actions within your project thoroughly.
+</p>
+<p>
+   The automated migration rewrite code blocks such as
+</p>
+<gen:highlight type="php">
+HeaderManager::send('Content-Type: application/json');
+echo json_encode(array(
+      'headline'    => $news->getHeadline(),
+      'subheadline' => $news->getSubHeadline(),
+      'content'     => $news->getContent(),
+      'newscount'   => $news->getNewsCount()
+));
+
+exit(0);
+</gen:highlight>
+<p>
+   to
+</p>
+<gen:highlight type="php">
+self::getResponse()->setHeader(new HeaderImpl('Content-Type', 'application/json'));
+echo json_encode(array(
+      'headline'    => $news->getHeadline(),
+      'subheadline' => $news->getSubHeadline(),
+      'content'     => $news->getContent(),
+      'newscount'   => $news->getNewsCount()
+));
+
+exit(0);
+</gen:highlight>
+<p>
+   This leads to the fact that the <em>Content-Type</em> header is not sent to the browser as the <em>ResponseImpl</em>
+   instance is not sent back. For this reason please change the code to:
+</p>
+<gen:highlight type="php">
+$response = self::getResponse();
+$response->setHeader(new HeaderImpl('Content-Type', 'application/json'));
+
+$response->setBody(json_encode(array(
+      'headline'    => $news->getHeadline(),
+      'subheadline' => $news->getSubHeadline(),
+      'content'     => $news->getContent(),
+      'newscount'   => $news->getNewsCount()
+)));
+
+$response->send();
+</gen:highlight>
+
+<h3 id="Chapter-4-FAQ"><a href="#Chapter-4-FAQ">4. FAQ</a></h3>
+<p>
+   The following chapters contain issues that came up during migration to the new version along with solutions:
+</p>
+
+<h4 id="Chapter-4-1-Missing-tag-registration"><a href="#Chapter-4-1-Missing-tag-registration">4.1. Missing tag registration</a></h4>
+<h5 id="Chapter-4-1-1-Question"><a href="#Chapter-4-1-1-Question">Question</a></h5>
+<p>
+   Calling the application it fails with:
+</p>
+<gen:highlight type="code">
+Fatal error: Uncaught exception
+'APF\core\pagecontroller\ParserException' with message ' in ***/APF/core/pagecontroller/Document.php on line
+1037 APF\core\pagecontroller\ParserException: No tag definition found for prefix "template" and name
+"placeholder" in document with type "APF\core\pagecontroller\TemplateTag"! Template code: [..]
+</gen:highlight>
+
+<h5 id="Chapter-4-1-2-Answer"><a href="#Chapter-4-1-2-Answer">Answer</a></h5>
+<p>
+   This means that the migration script has not been executed on the current project or the tag is not yet registered
+   for the current project. Please add an <em>&lt;core:addtaglib /&gt;</em> to your template or add a
+   <em>Document::addTagLib(...);</em> to your <em>index.php</em>.
+</p>
+
+<h4 id="Chapter-4-2-Old-place-holder-format"><a href="#Chapter-4-2-Old-place-holder-format">4.2. Old place holder format</a></h4>
+<h5 id="Chapter-4-2-1-Question"><a href="#Chapter-4-2-1-Question">Question</a></h5>
+<p>
+   Calling the application it fails with:
+</p>
+<gen:highlight type="code">
+No closing tag found for tag &lt;html:placeholder /&gt;!
+Template code: &lt;html:placeholder name="anchor"&gt;
+&lt;a href="{URL}" title="{TITLE}" class="breadcrumb {CLASSES}" >{TEXT}&lt;/a&gt;&lt;/template:placeholder&gt;
+</gen:highlight>
+
+<h5 id="Chapter-4-2-2-Answer"><a href="#Chapter-4-2-2-Answer">Antwort</a></h5>
+<p>
+   Usage of <em>string place holders</em> is no longer supported by version 3.0. Please resolve all issues with the
+   approach described in <a href="#Chapter-3-3-Place-holder">chapter 3.3</a>. Above error message may be resolved as
+   follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;a href="&#36;{URL}" title="&#36;{TITLE}" class="breadcrumb &#36;{CLASSES}"&gt;&#36;{TEXT}&lt;/a&gt;
+</gen:highlight>
+<p>
+   Please note that the corresponding controller must be adapted as well.
+</p>
+
+<h3 id="Chapter-5-Further-optimisations"><a href="#Chapter-5-Further-optimisations">5. Further optimisations</a></h3>
+<p>
+   Tips for upgrading to version 3.0 and suggestions on how to optimize your application can be taken from article
+   <int:link pageid="158" />.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_159" />
