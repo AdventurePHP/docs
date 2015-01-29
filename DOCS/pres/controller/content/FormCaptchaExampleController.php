@@ -24,32 +24,33 @@ class FormCaptchaExampleController extends BaseDocumentController {
    public function transformContent() {
 
       // obtain a reference on the desired form (depends on the language of the document!)
-      $Form__CaptchaExample = &$this->getForm('CaptchaExample_' . $this->language);
+      $language = $this->getDocument()->getLanguage();
+      $form = &$this->getForm('CaptchaExample_' . $language);
 
       // check if form is valid or not
-      if ($Form__CaptchaExample->isValid() == true) {
+      if ($form->isValid() == true) {
 
          // print "valid" state
-         if ($this->language == 'de') {
-            $Form__CaptchaExample->setPlaceHolder('ValidOrInvalid', 'valide');
+         if ($language == 'de') {
+            $form->setPlaceHolder('ValidOrInvalid', 'valide');
          } else {
-            $Form__CaptchaExample->setPlaceHolder('ValidOrInvalid', 'valid');
+            $form->setPlaceHolder('ValidOrInvalid', 'valid');
          }
 
       } else {
 
          // print "invalid" state
-         if ($this->language == 'de') {
-            $Form__CaptchaExample->setPlaceHolder('ValidOrInvalid', 'nicht valide');
+         if ($language == 'de') {
+            $form->setPlaceHolder('ValidOrInvalid', 'nicht valide');
          } else {
-            $Form__CaptchaExample->setPlaceHolder('ValidOrInvalid', 'invalid');
+            $form->setPlaceHolder('ValidOrInvalid', 'invalid');
          }
 
       }
 
       // display form on the place of definition
-      $Form__CaptchaExample->setAttribute('action', '#Chapter-captcha');
-      $Form__CaptchaExample->transformOnPlace();
+      $form->setAttribute('action', '#Chapter-captcha');
+      $form->transformOnPlace();
 
    }
 
