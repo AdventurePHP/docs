@@ -317,6 +317,9 @@ class SearchController extends BaseDocumentController {
    &lt;p&gt;
       &lt;label for="image"&gt;Image:&lt;/label&gt;
       &lt;form:file name="image" id="image" accepts="jpg|image/png" maxsize="269205"/&gt;
+   &lt;/p&gt;
+   &lt;p&gt;
+      &lt;form:button name="send" value="GO" /&gt;
       &lt;form:addvalidator
             class="MimeTypeValidator"
             control="image"
@@ -327,9 +330,6 @@ class SearchController extends BaseDocumentController {
             control="image"
             button="send"
       /&gt;
-   &lt;/p&gt;
-   &lt;p&gt;
-      &lt;form:button name="send" value="GO" /&gt;
    &lt;/p&gt;
 &lt;/html:form&gt;
 </gen:highlight>
@@ -618,12 +618,12 @@ class FileUploadController extends BaseDocumentController {
       Please fill in the &lt;html:placeholder name="field-name" /&gt; field!
    &lt;/form:listener&gt;
    &lt;form:text name="name" /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
    &lt;form:addvalidator
       class="APF\tools\form\validator\TextLengthValidator"
       control="name"
       button="send"
    /&gt;
-   &lt;form:button name="send" value="Send" /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
 <em>Controller:</em>
@@ -651,6 +651,7 @@ class FormController extends BaseDocumentController {
       Please fill in the email field with a correct email address!
    &lt;/form:listener&gt;
    &lt;form:text name="email" /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
    &lt;form:addvalidator
       class="APF\tools\form\validator\TextLengthValidator"
       control="name"
@@ -663,7 +664,6 @@ class FormController extends BaseDocumentController {
       button="send"
       type="special"
    /&gt;
-   &lt;form:button name="send" value="Send" /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
 <div class="warn">
@@ -686,6 +686,7 @@ class FormController extends BaseDocumentController {
       &lt;/div&gt;
    &lt;/form:listener&gt;
    &lt;form:text name="email" /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
    &lt;form:addvalidator
       class="APF\tools\form\validator\TextLengthValidator"
       control="name"
@@ -703,7 +704,6 @@ class FormController extends BaseDocumentController {
       control="email"
       button="send"
    /&gt;
-   &lt;form:button name="send" value="Send" /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
 </div>
@@ -882,7 +882,7 @@ class EncryptedSIDHashProvider extends APFObject implements CSRFHashProvider {
    tool. For more information about this tool read the instructions in the Wiki (German only):
    <a class="wiki" href="http://wiki.adventure-php-framework.org/MultiFileUpload" title="MultiFileUpload im Wiki">MultiFileUpload im Wiki</a>
 </p>
-<!-- hier weiter -->
+
 <h4 id="Chapter-3-22-Label"><a href="#Chapter-3-22-Label">3.22. Label</a></h4>
 <p>
    You can also define form control labels as APF tag.
@@ -1066,18 +1066,23 @@ class SignUpController extends BaseDocumentController {
    large part of the demands. Should these not be enough, own validators can be implemented. This is
    described in the next chapter.
 </p>
+<div class="warn">
+   Please ensure <em>&lt;form:addvalidator /&gt;</em> tags are defined after the respective <em>&lt;form:button /&gt;</em>
+   or <em>&lt;form:imagebutton /&gt;</em> definition within your template. This is necessary for the validator to
+   resolve the button declaration.
+</div>
 <div class="hint">
    Since release 1.13 validators can be declared optional. Therefore, the appropriate form control
    must have the <em>optional</em> attribute set to <em>true</em>:
 <gen:highlight type="apf-xml">
 &lt;html:form name="..."&gt;
    &lt;form:text name="age" optional="true"/&gt;
+   &lt;form:button name="send" value="Send" /&gt;
    &lt;form:addvalidator
       class="APF\tools\form\validator\IntegerValidator"
       button="send"
       control="age"
    /&gt;
-   &lt;form:button name="send" value="Send" /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
    Please note, that optional validation is only available for textual fields at the moment. The
@@ -1190,12 +1195,12 @@ class SignUpController extends BaseDocumentController {
 &lt;html:form name="..."&gt;
    &lt;form:password name="pass" ref="pass2" /&gt;
    &lt;form:password name="pass2" /&gt;
+   &lt;form:button name="login" value="login" /&gt;
    &lt;form:addvalidator
       class="APF\tools\form\validator\FieldCompareValidator"
       control="pass"
       button="login"
    /&gt;
-   &lt;form:button name="login" value="login" /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
 
@@ -1329,12 +1334,12 @@ class SignUpController extends BaseDocumentController {
    <fieldset>
       <label for="pdf">PDF file:</label>
       &lt;form:file name="pdf" id="pdf" accepts="pdf|application/pdf" /&gt;
+      &lt;form:button name="send" value="GO" /&gt;
       &lt;form:addvalidator
          class="APF\tools\form\validator\MimeTypeValidator"
          control="pdf"
          button="send"
       /&gt;
-      &lt;form:button name="send" value="GO" /&gt;
    </fieldset>
 &lt;/html:form&gt;
 </gen:highlight>
@@ -1365,12 +1370,12 @@ class SignUpController extends BaseDocumentController {
    <fieldset>
       <label for="image">Image:</label>
       &lt;form:file name="image" id="image" minsize="20480" maxsize="512000" /&gt;
+      &lt;form:button name="send" value="GO" /&gt;
       &lt;form:addvalidator
          class="APF\tools\form\validator\FileSizeValidator"
          control="image"
          button="send"
       /&gt;
-      &lt;form:button name="send" value="GO" /&gt;
    </fieldset>
 &lt;/html:form&gt;
 </gen:highlight>
@@ -1385,12 +1390,12 @@ class SignUpController extends BaseDocumentController {
    <fieldset>
       ...
       &lt;form:checkbox name="agb" value="agb" /&gt; Accepting terms of conditions.
+      &lt;form:button name="send" value="GO" /&gt;
       &lt;form:addvalidator
          class="APF\tools\form\validator\CheckboxValidator"
          button="send"
          control="agb"
       /&gt;
-      &lt;form:button name="send" value="GO" /&gt;
    </fieldset>
 &lt;/html:form&gt;
 </gen:highlight>
@@ -1407,12 +1412,12 @@ class SignUpController extends BaseDocumentController {
 <gen:highlight type="apf-xml">
 &lt;html:form name="..."&gt;
    &lt;form:timecaptcha name="timecaptcha"/&gt;
+   &lt;form:button name="send" value="Send"/&gt;
    &lt;form:addvalidator
       class="APF\tools\form\validator\TimeCaptchaValidator"
       button="send"
       control="timecaptcha"
    /&gt;
-   &lt;form:button name="send" value="Send"/&gt;
 &lt;/html:form&gt;
 </gen:highlight>
 
@@ -1624,15 +1629,18 @@ public function addValidator(AbstractFormValidator &$validator){
 
 <h4 id="Chapter-5-1-Available-filters"><a href="#Chapter-5-1-Available-filters">5.1. Available filters</a></h4>
 <p>
-   As in previous releases, the APF ships a couple of built-in filters. These usually cover the large
-   part of the demands. Should these not be enough, own filters can be implemented. This is described
-   in the next chapter.
+   The APF ships a couple of built-in filters. These usually cover the large part of the demands. Should these not be
+   enough, own filters can be implemented. This is described in the next chapter.
 </p>
+<div class="warn">
+   Please ensure <em>&lt;form:addfilter /&gt;</em> tags are defined after the respective <em>&lt;form:button /&gt;</em>
+   or <em>&lt;form:imagebutton /&gt;</em> definition within your template. This is necessary for the filter to
+   resolve the button declaration.
+</div>
 <div class="hint">
    <p>
-      Starting with release 1.14 the regular expressions of various filters can be adapted by 
-      defining the expression within the <em>filter-expr</em> tag attribute on the target form control.
-      This helps to avoid character set issues as discussed within the
+      Regular expressions of various filters can be adapted by defining the expression within the <em>filter-expr</em>
+      tag attribute on the target form control. This helps to avoid character set issues as discussed within the
       <a linkrewrite="false" class="forum" href="http://forum.adventure-php-framework.org/viewtopic.php?f=10&amp;t=643#p6275">Forum</a>
       (German). 
    </p>
