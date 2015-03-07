@@ -631,6 +631,103 @@ class IteratorStatus {
 </ul>
 </gen:highlight>
 
+<h5 id="Chapter-1-3-6-Stacking-of-iterators"><a href="#Chapter-1-3-6-Stacking-of-iterators">1.3.6. Stacking of iterators</a></h5>
+<p>
+   Displaying multi-dimensional lists iterators can be stacked. The following code block defines a two-dimensional data
+   structure with women and men names including two examples each:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class IteratorStackingController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $iterator = $this->getIterator('names');
+      $iterator->fillDataContainer([
+            [
+                  'name' => 'Women names:',
+                  'list' => [
+                        ['name' => 'Maria'],
+                        ['name' => 'Theodora']
+                  ]
+            ],
+            [
+                  'name' => 'Men names:',
+                  'list' => [
+                        ['name' => 'John'],
+                        ['name' => 'George']
+                  ]
+            ]
+      ]);
+
+   }
+
+}
+</gen:highlight>
+<p>
+   In case you want to display the structure with an iterator, you may want to use the following template code:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="names" transform-on-place="true"&gt;
+   &lt;ul&gt;
+   &lt;iterator:item&gt;
+      &lt;li&gt;
+         &lt;item:fill-iterator name="examples" data="item['list']"/&gt;
+         (${status-&gt;getCounter()}) ${item['name']}
+         &lt;ul&gt;
+            &lt;html:iterator name="examples" transform-on-place="true"&gt;
+               &lt;iterator:item&gt;
+                  &lt;li&gt;(${status-&gt;getCounter()}) ${item['name']}&lt;/li&gt;
+               &lt;/iterator:item&gt;
+            &lt;/html:iterator&gt;
+         &lt;/ul&gt;
+      &lt;/li&gt;
+   &lt;/iterator:item&gt;
+   &lt;/ul&gt;
+&lt;/html:iterator>
+</gen:highlight>
+<p>
+   The <em>&lt;item-fill-iterator /&gt;</em> tag initializes the iterator the same way <em>fillDataContainer()</em>
+   does but in this case the stacked <em>examples</em> iterator. The tag uses data of the current loop run and injects
+   the data contained in the <em>list</em> attribute into the stacked iterator.
+</p>
+<p>
+   The <em>name</em> attribute of the <em>&lt;item-fill-iterator /&gt;</em> tag refers to the stacked iterator - in
+   this case the <em>examples</em> iterator - and the <em>data</em> attribute is used to evaluate the data set to be
+   injected into the stacked iterator. The syntax follows the extended templating syntax described in chapter
+   <int:link pageid="161" />.
+</p>
+<p>
+   The output of the list that is defined within the above controller is as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;ul&gt;
+   &lt;li&gt;
+      (1) Women names:
+      &lt;ul&gt;
+         &lt;li&gt;(1) Maria&lt;/li&gt;
+         &lt;li&gt;(2) Theodora&lt;/li&gt;
+      &lt;/ul&gt;
+   &lt;/li&gt;
+   &lt;li&gt;
+      (2) Men names:
+      &lt;ul&gt;
+         &lt;li&gt;(1) John&lt;/li&gt;
+         &lt;li&gt;(2) George&lt;/li&gt;
+      &lt;/ul&gt;
+   &lt;/li&gt;
+&lt;/ul&gt;
+</gen:highlight>
+<div class="warn">
+   Due to the fact that an iterator is controller by a document controller the stacked iterator must define attribute
+   <em>transform-on-place</em> with value <em>true</em>. Otherwise, the iterator will not be displayed!
+</div>
+<div class="hint">
+   The implementation described here allows to stack iterators several times. Please ensure that each stacked iterator is
+   properly initialized.
+</div>
+
 <h3 id="Chapter-2-Mediastream"><a href="#Chapter-2-Mediastream">2. Media stream tags</a></h3>
 <p>
    The media stream tags enable the developer to store and deliver GUI ressources directly from the

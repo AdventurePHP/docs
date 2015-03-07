@@ -647,6 +647,106 @@ class IteratorStatus {
 </ul>
 </gen:highlight>
 
+<h5 id="Chapter-1-3-6-Schachtelung-von-Iteratoren"><a href="#Chapter-1-3-6-Schachtelung-von-Iteratoren">1.3.6. Schachtelung von Iteratoren</a></h5>
+<p>
+   Für die Ausgabe von verschachtelten Listen lassen sich Iteratoren auch mehrfach schachteln. Der folgende Code-Block
+   definiert eine verschachtelte Datenstruktur, die eine Liste mit Frauen- und Männer-Namen mit jeweils zwei Beispielen
+   enthält:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class IteratorStackingController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $iterator = $this->getIterator('names');
+      $iterator->fillDataContainer([
+            [
+                  'name' => 'Women names:',
+                  'list' => [
+                        ['name' => 'Maria'],
+                        ['name' => 'Theodora']
+                  ]
+            ],
+            [
+                  'name' => 'Men names:',
+                  'list' => [
+                        ['name' => 'John'],
+                        ['name' => 'George']
+                  ]
+            ]
+      ]);
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Möchten Sie die Namen mit Hilfe einer verschachtelten Liste ausgeben, so lässt sich dafür folgender Template-Code
+   nutzen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="names" transform-on-place="true"&gt;
+   &lt;ul&gt;
+   &lt;iterator:item&gt;
+      &lt;li&gt;
+         &lt;item:fill-iterator name="examples" data="item['list']"/&gt;
+         (${status-&gt;getCounter()}) ${item['name']}
+         &lt;ul&gt;
+            &lt;html:iterator name="examples" transform-on-place="true"&gt;
+               &lt;iterator:item&gt;
+                  &lt;li&gt;(${status-&gt;getCounter()}) ${item['name']}&lt;/li&gt;
+               &lt;/iterator:item&gt;
+            &lt;/html:iterator&gt;
+         &lt;/ul&gt;
+      &lt;/li&gt;
+   &lt;/iterator:item&gt;
+   &lt;/ul&gt;
+&lt;/html:iterator>
+</gen:highlight>
+<p>
+   Der <em>&lt;item-fill-iterator /&gt;</em>-Tag sorgt analog der <em>fillDataContainer()</em>-Methode dafür, dass
+   der Iterator - in diesem Fall der geschachtelte Iterator <em>examples</em> -  mit Daten befüllt wird. Dabei bedient
+   er sich aus den Inhalten des aktuellen Schleifendurchlaufs und injiziert die Inhalte des Attributs <em>list</em> in
+   den geschachtelten Iterator zur Ausgabe.
+</p>
+<p>
+   Das Attribut <em>name</em> des <em>&lt;item-fill-iterator /&gt;</em>-Tags referenziert auf den geschachtelten Iterator
+   - in diesem Fall <em>examples</em> - und das Attribut <em>data</em> wird zur Evaluierung des Inhalts genutzt, der
+   in den geschachtelten Iterator ijiziert wird. Die Syntax folgt der im Kapitel <int:link pageid="161" /> beschriebenen
+   erweiterten Templating-Syntax.
+</p>
+<p>
+   Die Ausgabe der im Controller definierten Liste gestaltet sich wie folgt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;ul&gt;
+   &lt;li&gt;
+      (1) Women names:
+      &lt;ul&gt;
+         &lt;li&gt;(1) Maria&lt;/li&gt;
+         &lt;li&gt;(2) Theodora&lt;/li&gt;
+      &lt;/ul&gt;
+   &lt;/li&gt;
+   &lt;li&gt;
+      (2) Men names:
+      &lt;ul&gt;
+         &lt;li&gt;(1) John&lt;/li&gt;
+         &lt;li&gt;(2) George&lt;/li&gt;
+      &lt;/ul&gt;
+   &lt;/li&gt;
+&lt;/ul&gt;
+</gen:highlight>
+<div class="warn">
+   Da die Steuerung eines Iterators im Document-Controller stattfindet, muss im geschachtelten Iterator das Attribut
+   <em>transform-on-place</em> auf den Wert <em>true</em> gesetzt werden. Andernfalls wird der Iterator nicht ausgegeben!
+</div>
+<div class="hint">
+   Die Implementierung erlaubt eine beliebig tiefe Schachtelung von Iteratoren. Bitte vergewissen Sie sich dabei, dass
+   jede Sub-Instanz auch entsprechend initialisiert wird.
+</div>
+
 <h3 id="Chapter-2-Mediastream"><a href="#Chapter-2-Mediastream">2. Mediastream-Tags</a></h3>
 <p>
    Die Mediastream-Tags ermöglichen es dem Entwickler, Ressourcen zur Gestaltung der GUI direkt
