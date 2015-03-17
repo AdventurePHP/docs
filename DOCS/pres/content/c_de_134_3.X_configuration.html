@@ -181,6 +181,12 @@ Registry::register('APF\core', 'Environment', 'TESTBOX');
    Das Release des Adventure PHP Framework liefert bereits vier Provider-Implementierungen mit. Diese
    sind in den folgenden Kapiteln erläutert.
 </p>
+<div class="hint">
+   Neben der in diesem Kapitel beschriebenen Zugriffs-Möglichkeit auf Konfigurationen zeigt
+   <a href="#Chapter-6-3-Vereinfachte-Adressierung-von-Sektionen-und-Werten">Kapitel 6.3</a> eine Vereinfachung über die
+   Nutzung von Pfad-basierten Abfragen. Mit dieser lässt sich der Code kürzer und damit übersichtlicher gestalten. Hierbei
+   gelten keine Einschränkungen und Sie können stets beiden Möglichkeiten in Ihrer Applikation nutzen.
+</div>
 
 <h4 id="Chapter-3-1-INI-Provider"><a href="#Chapter-3-1-INI-Provider">3.1. INI-Provider</a></h4>
 <p>
@@ -227,11 +233,6 @@ class FooController extends BaseDocumentController {
       Die Schlüssel einer Sektion werden als Werte innerhalb einer Sektion bereitgestellt. Konkrete
       Werte könne mit der Methode <em>getValue()</em> abgefragt werden:
       <gen:highlight type="php">$config->getSection('showCaptcha')->getValue('InputParams')</gen:highlight>
-      <div class="warn">
-         Die Abfrage von Keys, die Sub-Sektions-Kenner enthalten ist auf unterster Ebene nur im
-         <em>IniConfigurationProvider</em> möglich. Der im nächsten Punkt aufgezeigte Zugriff ist
-         jedoch allgemeingültig.
-      </div>
    </li>
    <li>
       Als eine Besonderheit des INI-Formates werden Schlüssel mit einem Punkt (&quot;.&quot;) zu
@@ -694,9 +695,9 @@ key3 = "value3"
    neben den genannten Features weitere, die in den folgenden Kapiteln näher beschrieben sind.
 </p>
 
-<h4 id="Chapter-5-1-Ini-und-Xml-Provider"><a href="#Chapter-5-1-Ini-und-Xml-Provider">5.1. INI- und XML-Provider</a></h4>
+<h4 id="Chapter-5-1-Ini-Xml-und-PHP-Provider"><a href="#Chapter-5-1-Ini-Xml-und-PHP-Provider">5.1. INI, XML- und PHP-Provider</a></h4>
 <p>
-   Die Implementierungen für das INI- und XML-Format ermöglichen es, das Format der Konfigurationen
+   Die Implementierungen für das INI-, XML- und PHP-Format ermöglichen es, das Format der Konfigurationen
    zu beeinflussen. Hierzu stehen die Schalter <em>omitContext</em>, <em>omitEnvironment</em> und
    <em>activateEnvironmentFallback</em>. Diese beeinflussen im wesentlichen den Aufbau des Pfades
    unter dem die Konfiguration erwartet wird, ermöglichen dadurch jedoch weitere Anwendungsfälle.
@@ -1073,7 +1074,7 @@ ConfigurationManager::deleteConfiguration(
    Provider es erlaubt, eine über den INI-Provider geladene Konfiguration als XML-Datei zu speichern.
 </p>
 <div class="warn">
-   Format-Konvertierungen sind aktuell nur für den INI- und XML-Provider uneingeschränkt möglich, da
+   Format-Konvertierungen sind aktuell nur für den INI-, XML- und PHP-Provider uneingeschränkt möglich, da
    diese beliebige hierarchische Strukturen unterstützen. Das Datenbank-Format kann nur einfache
    Hierarchien verarbeiten und ist daher nur als Quelle für eine Format-Konvertierung geeignet. Der
    <em>MemcachedConfigurationProvider</em> ist hauptsächlich für die Performance-Optimierung gedacht
@@ -1098,6 +1099,142 @@ $this->saveConfiguration('APF\widgets\calendar', 'labels.ini', $config);
    Zwischen dem Absetzen der beiden Methoden-Aufrufe ist es natürlich ohne weiteres möglich, die
    Konfiguration zu manipulieren.
 </p>
+
+<h4 id="Chapter-6-3-Vereinfachte-Adressierung-von-Sektionen-und-Werten"><a href="#Chapter-6-3-Vereinfachte-Adressierung-von-Sektionen-und-Werten">6.3. Vereinfachte Adressierung von Sektionen und Werten</a></h4>
+<p>
+   Neben der klassischen (kaskadierten) Abfrage von Konfigurations-Werten mit Hilfe der Methoden <em>getSection()</em>
+   und <em>getValue()</em> unterstützen die <em>Configuration</em>-Implementierungen ebenfalls eine Pfad-basierte
+   Variante. Dabei werden Pfad-Teile jeweils durch einen Punkt (<em>.</em>) getrennt.
+</p>
+<p>
+   Die folgenden Kapitel beschreiben die Möglichkeiten der erweiterten Syntax.
+</p>
+
+<h5 id="Chapter-6-3-1-Lesen-von-Sektionen-und-Werten"><a href="#Chapter-6-3-1-Lesen-von-Sektionen-und-Werten">6.3.1. Lesen von Sektionen und Werten</a></h5>
+<p>
+   Innerhalb der Methode <em>getSection()</em> gelten mehrere, durch Punkt getrennte Abschnitte als Sub-Sektionen der
+   jeweiligen Konfiguration. Bei einem Aufruf von <em>getValue()</em> sind alle Pfad-Abschnitte bis auf den letzten Teil
+   als Sub-Sektionen zu verstehen, der letzte Teil beschreibt den Namen des gewünschten Wertes.
+</p>
+<p>
+   Möchten Sie die Konfigurations-Datei
+</p>
+<gen:highlight type="php">
+return [
+   'de' => [
+      'form' => [
+         'headline' => 'Kommentar:',
+         'labels' => [
+            'name' => 'Name:',
+            'email' => 'E-Mail:',
+            'button' => 'Speichern'
+         ]
+      ]
+   ],
+   'en' => [
+      'form' => [
+         'headline' => 'Comment:',
+         'labels' => [
+            'name' => 'Name:',
+            'email' => 'E-mail:',
+            'button' => 'Save'
+         ]
+      ]
+   ]
+];
+</gen:highlight>
+<p>
+   zur Beschriftung eines Formular nutzen, so lassen sich die Werte der Attribute <em>headline</em> bzw. <em>email</em>
+   entweder per
+</p>
+<gen:highlight type="php">
+$headline = $config
+               ->getSection($this->getLanguage())
+               ->getSection('form')
+               ->getValue('headline');
+$email = $config
+               ->getSection($this->getLanguage())
+               ->getSection('form')
+               ->getSection('labels')
+               ->getValue('email');
+</gen:highlight>
+<p>
+   abfragen oder mit Hilfe der Pfad-basierten schreibweise wie folgt verkürzen:
+</p>
+<gen:highlight type="php">
+$headline = $config->getValue($this->getLanguage() . '.form.headline');
+$email = $config->getValue($this->getLanguage() . '.form.labels.email');
+</gen:highlight>
+<p>
+   Um die Inhalte der Sektion <em>labels</em> auslesen zu können, lässt sich entweder die klassische Schreibweise
+</p>
+<gen:highlight type="php">
+$labels = $config
+               ->getSection($this->getLanguage())
+               ->getSection('form')
+               ->getSection('labels');
+</gen:highlight>
+<p>
+   oder die kürzere Notation
+</p>
+<gen:highlight type="php">
+$labels = $config->getSection($this->getLanguage() . '.form.labels');
+</gen:highlight>
+<p>
+   nutzen.
+</p>
+
+<h5 id="Chapter-6-3-2-Schreiben-von-Sektionen-und-Werten"><a href="#Chapter-6-3-2-Schreiben-von-Sektionen-und-Werten">6.3.2. Schreiben von Sektionen und Werten</a></h5>
+<p>
+   Die in <a href="#Chapter-6-3-1-Lesen-von-Sektionen-und-Werten">Kapitel 6.3.1</a> beschriebene Vorgehensweise lässt
+   sich auch auf das Schreiben bzw. Hinzufügen von Sektionen und Werten anwenden.
+</p>
+<p>
+   Der Aufruf
+</p>
+<gen:highlight type="php">
+$config->getSection($this->getLanguage() . '.form.texts', new PhpConfiguration());
+</gen:highlight>
+<p>
+   erzeugt eine neue Sektion <em>texts</em> unterhalb von <em>forms</em> und lässt sich beispielsweise per
+</p>
+<gen:highlight type="php">
+$config->getValue($this->getLanguage() . '.form.texts.field-one', '...');
+</gen:highlight>
+<p>
+   mit Werten befüllen.
+</p>
+<div class="hint">
+   Bei der Anlage von Sektionen oder Werten werden alle im Pfad noch nicht vorhandene Sektionen automatisch angelegt.
+   Dies bedeutet, dass Sie die im <a href="#Chapter-6-3-1-Lesen-von-Sektionen-und-Werten">Kapitel 6.3.1</a> abgedruckte
+   Konfiguration mit den folgenden Zeilen erzeugen und speichern können:
+<gen:highlight type="php">
+$config = new PhpConfiguration();
+$config->getValue('de.form.headline', 'Kommentar:');
+
+$config->setValue('de.form.labels.name', 'Name:');
+$config->setValue('de.form.labels.email', 'E-Mail:');
+$config->setValue('de.form.labels.button', 'Speichern');
+
+ConfigurationManager::saveConfiguration(..., ..., ..., ..., ..., $config);
+</gen:highlight>
+</div>
+
+<h5 id="Chapter-6-3-3-Entfernen-von-Sektionen-und-Werten"><a href="#Chapter-6-3-3-Entfernen-von-Sektionen-und-Werten">6.3.3. Entfernen von Sektionen und Werten</a></h5>
+<p>
+   Möchten Sie Sektionen oder Werte aus Ihrer Konfiguration entfernen, so lässt sich auch hierzu die Pfad-Notation
+   verwenden. Mit Hilfe von
+</p>
+<gen:highlight type="php">
+$config->removeSection($this->getLanguage() . '.form.labels');
+</gen:highlight>
+<p>
+   wird die Sektion <em>texts</em> mit ihren Werten <em>name</em>, <em>email</em> und <em>button</em> entfernt. Soll
+   lediglich das Attribut <em>button</em> entfernt werden, lässt sich dies wie folgt berwerkstelligen:
+</p>
+<gen:highlight type="php">
+$config->removeValue($this->getLanguage() . '.form.labels.button');
+</gen:highlight>
 
 <h3 id="Chapter-7-Erweiterung-der-Formate"><a href="#Chapter-7-Erweiterung-der-Formate">7. Erweiterung der Formate</a></h3>
 <p>
@@ -1124,10 +1261,9 @@ $this->saveConfiguration('APF\widgets\calendar', 'labels.ini', $config);
    es in diesem Fall aus, die Klasse <em>BaseConfiguration</em> als Basis zu nutzen:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\Configuration;
 use APF\core\configuration\provider\BaseConfiguration;
 
-class JsonConfiguration extends BaseConfiguration implements Configuration {
+class JsonConfiguration extends BaseConfiguration {
 }
 </gen:highlight>
 
@@ -1398,7 +1534,7 @@ class JsonConfigurationProvider extends BaseConfigurationProvider implements Con
    registriert und kann dann wie im Kapitel <a href="#Chapter-3-Vorhandene-Provider">Vorhandene Provider</a>
    beschrieben zum Laden und Speichern von Konfiurationen eingesetzt werden. Er unterstützt dabei
    alle besonderen Features aus Abschnitt
-   <a href="#Chapter-5-1-Ini-und-Xml-Provider">Konfiguration des INI- und XML-Providers</a>.
+   <a href="#Chapter-5-1-Ini-Xml-und-PHP-Provider">Konfiguration des INI- und XML-Providers</a>.
 </p>
 <div class="hint">
    Der hier beschriebene Provider ist im APF-Release ebenfalls enthalten und der Quellcode kann

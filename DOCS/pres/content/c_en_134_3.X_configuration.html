@@ -47,7 +47,7 @@
       <strong>Context:</strong> The context impresses the usage of a certain software (e.g. module)
       within a surrounding application (e.g. website). Since the APF is designed to operate various
       installations and applications with one single code base, the <em>context</em> can be used to
-      reparate the configurations of modules regarding their installation.
+      separate the configurations of modules regarding their installation.
    </li>
    <li>
       <strong>Environment:</strong> The <em>environment</em> attribute is to distinguish between the
@@ -170,12 +170,17 @@ Registry::register('APF\core', 'Environment', 'TESTBOX');
    The release of the Adventure PHP Framework shipps four provider implementations that are described
    in detail within the following chapters.
 </p>
+<div class="hint">
+   Besides the access model described in this chapter
+   <a href="#Chapter-6-3-Simplified-access-of-sections-and-values">section 6.3</a> introduces a simplified model based
+   on path queries. Using this notation allows to shorten your source code and this gain clarity. It's your freedom of
+   choice which model to go for as both are fully supported.
+</div>
 
 <h4 id="Chapter-3-1-INI-provider"><a href="#Chapter-3-1-INI-provider">3.1. INI provider</a></h4>
 <p>
-   The INI provider implements the default confiuration format of the APF. Since release 1.13 this
-   was the only format available. It follows the 
-   <a class="external" href="http://de.wikipedia.org/wiki/Initialisierungsdatei">ini file scheme</a>.
+   The INI provider implements the default configuration format of the APF. It follows the
+   <a class="external" href="http://en.wikipedia.org/wiki/INI_file">ini file scheme</a>.
 </p>
 <p>
    Loading a file with the content
@@ -215,11 +220,6 @@ class FooController extends BaseDocumentController {
       The keys within one section are provided as values within this section. Dedicated values can
       thus be queried using the <em>getValue()</em> method:
       <gen:highlight type="php">$config->getSection('showCaptcha')->getValue('InputParams')</gen:highlight>
-      <div class="warn">
-         Requesting keys that contain sub section delimiter can only be used at the root level of 
-         the configuration as implemented by the <em>IniConfigurationProvider</em>. For higher levels,
-         the access method described within the next bullet point is generically possible.
-      </div>
    </li>
    <li>
       One specialty of the INI format is that keys containing dots (&quot;.&quot;) are resolved as
@@ -683,9 +683,9 @@ key3 = "value3"
    functionality. This is described within the subsequent chapters.
 </p>
 
-<h4 id="Chapter-5-1-Ini-and-Xml-provider"><a href="#Chapter-5-1-Ini-and-Xml-provider">5.1. INI- and XML provider</a></h4>
+<h4 id="Chapter-5-1-Ini-Xml-and-PHP-provider"><a href="#Chapter-5-1-Ini-Xml-and-PHP-provider">5.1. IN-, XML, and PHP provider</a></h4>
 <p>
-   The implementations of the INI and XML scheme have the switches <em>omitContext</em>, 
+   The implementations of the INI, XML, and PHP scheme have the switches <em>omitContext</em>,
    <em>omitEnvironment</em> and <em>activateEnvironmentFallback</em>. They can be used to adapt the
    construction of the configuration file path and name, and can thus generate new application
    cases.
@@ -1050,7 +1050,7 @@ ConfigurationManager::deleteConfiguration(
    file using the XML provider.
 </p>
 <div class="warn">
-   Please be aware that format conversions are only fully supported by the INI and XML providers at
+   Please be aware that format conversions are only fully supported by the INI, XML, and PHP providers at
    the moment. These are the only providers that support unlimited configuration hierarchies. The
    configuration format provided by the database provider may only be used as a source format for
    conversions. The <em>MemcachedConfigurationProvider</em> is intended for performance optimization
@@ -1074,35 +1074,164 @@ $this->saveConfiguration('APF\widgets\calendar', 'labels.ini', $config);
    Of course, you can manipulate the configuration between the load and save calls.
 </p>
 
+<h4 id="Chapter-6-3-Simplified-access-of-sections-and-values"><a href="#Chapter-6-3-Simplified-access-of-sections-and-values">6.3. Simplified access of sections and values</a></h4>
+<p>
+   Besides the classic (cascaded) access of configuration values using <em>getSection()</em> and <em>getValue()</em>
+   the <em>Configuration</em> implementation also support a path-based model. Dots (<em>.</em>) separate different parts
+   within the query.
+</p>
+<p>
+   The following chapters describe the possibilities of the syntax in more detail.
+</p>
+
+<h5 id="Chapter-6-3-1-Reading-sections-and-values"><a href="#Chapter-6-3-1-Reading-sections-and-values">6.3.1. Reading sections and values</a></h5>
+<p>
+   Using <em>getSection()</em> multiple parts separated by a dot are considered as sub sections of the current
+   configuration. With <em>getValue()</em> all path elements except the last one are considered as sub sections and the
+   last one is considered as the name of the attribute.
+</p>
+<p>
+   In case you want to use configuration file
+</p>
+<gen:highlight type="php">
+return [
+   'de' => [
+      'form' => [
+         'headline' => 'Kommentar:',
+         'labels' => [
+            'name' => 'Name:',
+            'email' => 'E-Mail:',
+            'button' => 'Speichern'
+         ]
+      ]
+   ],
+   'en' => [
+      'form' => [
+         'headline' => 'Comment:',
+         'labels' => [
+            'name' => 'Name:',
+            'email' => 'E-mail:',
+            'button' => 'Save'
+         ]
+      ]
+   ]
+];
+</gen:highlight>
+<p>
+   to label a form you can read attributes <em>headline</em> and <em>email</em> either via
+</p>
+<gen:highlight type="php">
+$headline = $config
+               ->getSection($this->getLanguage())
+               ->getSection('form')
+               ->getValue('headline');
+$email = $config
+               ->getSection($this->getLanguage())
+               ->getSection('form')
+               ->getSection('labels')
+               ->getValue('email');
+</gen:highlight>
+<p>
+   of using the path-based model:
+</p>
+<gen:highlight type="php">
+$headline = $config->getValue($this->getLanguage() . '.form.headline');
+$email = $config->getValue($this->getLanguage() . '.form.labels.email');
+</gen:highlight>
+<p>
+   To read all content from the <em>labels</em> section you can either use the classic approach with
+</p>
+<gen:highlight type="php">
+$labels = $config
+               ->getSection($this->getLanguage())
+               ->getSection('form')
+               ->getSection('labels');
+</gen:highlight>
+<p>
+   or the shorthand form
+</p>
+<gen:highlight type="php">
+$labels = $config->getSection($this->getLanguage() . '.form.labels');
+</gen:highlight>
+
+<h5 id="Chapter-6-3-2-Writing-of-sections-and-values"><a href="#Chapter-6-3-2-Writing-of-sections-and-values">6.3.2. Writing of sections and values</a></h5>
+<p>
+   The shorthand query described in <a href="#Chapter-6-3-1-Reading-sections-and-values">chapter 6.3.1</a> may also
+   be applied when adding sections and values.
+</p>
+<p>
+   Calling
+</p>
+<gen:highlight type="php">
+$config->getSection($this->getLanguage() . '.form.texts', new PhpConfiguration());
+</gen:highlight>
+<p>
+   creates a new section <em>texts</em> within section <em>forms</em> and can be filled by values with the following
+   code snippet:
+</p>
+<gen:highlight type="php">
+$config->getValue($this->getLanguage() . '.form.texts.field-one', '...');
+</gen:highlight>
+<div class="hint">
+   Creating sections and values all sections that are not existing prior to creation are autmatically created on the go.
+   This means that the configuration printed in <a href="#Chapter-6-3-1-Reading-sections-and-values">chapter 6.3.1</a>
+   can easely be created from the scratch as follows:
+<gen:highlight type="php">
+$config = new PhpConfiguration();
+$config->getValue('de.form.headline', 'Kommentar:');
+
+$config->setValue('de.form.labels.name', 'Name:');
+$config->setValue('de.form.labels.email', 'E-Mail:');
+$config->setValue('de.form.labels.button', 'Speichern');
+
+ConfigurationManager::saveConfiguration(..., ..., ..., ..., ..., $config);
+</gen:highlight>
+</div>
+
+<h5 id="Chapter-6-3-3-Removing-sections-and-values"><a href="#Chapter-6-3-3-Removing-sections-and-values">6.3.3. Removing sections and values</a></h5>
+<p>
+   In case you intend to remove sections or values from your configuration you may also want to use the path notation.
+   With
+</p>
+<gen:highlight type="php">
+$config->removeSection($this->getLanguage() . '.form.labels');
+</gen:highlight>
+<p>
+   section <em>texts</em> along with the contained values <em>name</em>, <em>email</em>, and <em>button</em> are removed.
+   If you want to remove attribute <em>button</em> only you may want to use the following code snippet:
+</p>
+<gen:highlight type="php">
+$config->removeValue($this->getLanguage() . '.form.labels.button');
+</gen:highlight>
+
 <h3 id="Chapter-7-Enhancing-the-formats"><a href="#Chapter-7-Enhancing-the-formats">7. Enhancing the formats</a></h3>
 <p>
    The <a href="#Chapter-2-2-Software-components">software components</a> of the APF configuration
-   feature is designed to be flexible and provide a generic soluction for application configuration.
+   feature is designed to be flexible and provide a generic solution for application configuration.
    To enhance and existing format it is recommended to overload the shipped provider implementations
    to adapt them to your requirements. As an alternative, the interfaces can be implemented to support
    a special kind of format.
 </p>
 <p>
    The latter procedure is discussed within the next chapters using the
-   <a class="external" href="http://de.wikipedia.org/wiki/JSON">JSON</a> formats as an example.
+   <a class="external" href="http://en.wikipedia.org/wiki/JSON">JSON</a> formats as an example.
 </p>
 
 <h4 id="Chapter-7-1-Implementation-configuration"><a href="#Chapter-7-1-Implementation-configuration">7.1. Implementation of the configuration interface</a></h4>
 <p>
-   Beeing able to provide a custom format, the <em>Configuration</em> interface must be implemented
+   Being able to provide a custom format, the <em>Configuration</em> interface must be implemented
    for the custom provider. In case the format is intended to support the same features as the INI
    and XML provider, the <em>BaseConfiguration</em> class can be taken that is also used for the
    providers mentioned.
 </p>
 <p>
-   Since the JSON format can also be used for any complexity concernin hierarchie levels it is 
-   sufficent to use the <em>BaseConfiguration</em> as a basis:
+   Since the JSON format can also be used for any complexity concerning hierarchy levels it is
+   sufficient to use the <em>BaseConfiguration</em> as a basis:
 </p>
 <gen:highlight type="php">
-use APF\core\configuration\Configuration;
 use APF\core\configuration\provider\BaseConfiguration;
 
-class JsonConfiguration extends BaseConfiguration implements Configuration {
+class JsonConfiguration extends BaseConfiguration {
 }
 </gen:highlight>
 
@@ -1372,7 +1501,7 @@ class JsonConfigurationProvider extends BaseConfigurationProvider implements Con
    <em>bootstrap.php</em>. Then the provider can be used to read and write configurations as
    it was described in the <a href="#Chapter-3-Existing-providers">existing providers</a> section.
    Due to inheritance from the <em>BaseConfigurationProvider</em> class, the JSON provider has all
-   the features of the <a href="#Chapter-5-1-Ini-and-Xml-provider">INI and XML provider</a>.
+   the features of the <a href="#Chapter-5-1-Ini-Xml-and-PHP-provider">INI and XML provider</a>.
 </p>
 <div class="hint">
    The configuration provider implementation is also contained in the APF release and the source
