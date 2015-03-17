@@ -522,6 +522,48 @@ init.db.name = "calendar-database-connection"
       </div>
    </li>
 </ul>
+<p>
+   The APF <int:link pageid="134" /> component allows you to use any kind of format for the definition of services as
+   access to configuration resources has been abstracted and standardized. This provides the advantage that service
+   definitions can be stored as PHP files instead of INI files.
+</p>
+<p>
+   In case you want to configure the <em>GuestbookMapper</em> service based on the above described schema the following
+   configuration file is required:
+</p>
+<gen:highlight type="php">
+return [
+   'GuestbookMapper' => [
+      'servicetype' => 'NORMAL',
+      'class' => 'APF\modules\guestbook2009\data\GuestbookMapper',
+      'conf' => [
+         'db' => [
+            'method' => 'setConnectionName',
+            'value' => '...'
+         ]
+      ],
+      'init' => [
+         'orm' => [
+            'method' => 'setORMInitType',
+            'namespace' => 'APF\modules\guestbook2009\data',
+            'name' => 'GORM'
+         ]
+      ]
+   ]
+];
+</gen:highlight>
+<p>
+   Using the configuration directive <em>DIServiceManager::$configurationExtension</em> you can define which configuration
+   scheme will be used:
+</p>
+<gen:highlight type="php">
+DIServiceManager::$configurationExtension = 'php';
+</gen:highlight>
+<div class="warn">
+   Please note, that with changing the configuration scheme all configurations are expected in the selected format - in
+   this case PHP files. At the moment, the <em>DIServiceManager</em> does not support the option to select the format
+   per configuration or service.
+</div>
 
 <h5 id="Chapter-4-3-2-Service-definition"><a href="#Chapter-4-3-2-Service-definition">4.3.2. Service definition</a></h5>
 <p>

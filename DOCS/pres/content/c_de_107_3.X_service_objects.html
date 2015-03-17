@@ -553,6 +553,48 @@ init.db.name = "calendar-database-connection"
       </div>
    </li>
 </ul>
+<p>
+   Die APF-<int:link pageid="134" />s-Komponente erlaubt die Nutzung von beliebigen Formaten für die Definition von
+   Services, da der Zugriff auf die jeweiligen Formate abstrahiert und standardisiert ist. Dieser Vorteil lässt sich
+   nutzen um Service-Definitionen beispielsweise als PHP- statt INI-Dateien abzulegen.
+</p>
+<p>
+   Möchten Sie den Service <em>GuestbookMapper</em> nach dem obigen Schema konfigurieren, so ist dafür folgende
+   Konfigurations-Datei notwendig:
+</p>
+<gen:highlight type="php">
+return [
+   'GuestbookMapper' => [
+      'servicetype' => 'NORMAL',
+      'class' => 'APF\modules\guestbook2009\data\GuestbookMapper',
+      'conf' => [
+         'db' => [
+            'method' => 'setConnectionName',
+            'value' => '...'
+         ]
+      ],
+      'init' => [
+         'orm' => [
+            'method' => 'setORMInitType',
+            'namespace' => 'APF\modules\guestbook2009\data',
+            'name' => 'GORM'
+         ]
+      ]
+   ]
+];
+</gen:highlight>
+<p>
+   Mit Hilfe der Konfigurations-Direktive <em>DIServiceManager::$configurationExtension</em> lässt sich anschließend das
+   verwendete Konfigurations-Schema definieren:
+</p>
+<gen:highlight type="php">
+DIServiceManager::$configurationExtension = 'php';
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass mit der Umstellung des zu verwendenden Konfigurations-Schemas alle Konfigurationen im
+   gewählten Format - in diesem Fall als PHP-Datei - erwartet werden. Der <em>DIServiceManager</em> unterstützt derzeit
+   keine Möglichkeit um das Format pro Konfiguration bzw. Service zu wählen.
+</div>
 
 <h5 id="Chapter-4-3-2-Service-Definition"><a href="#Chapter-4-3-2-Service-Definition">4.3.2. Service-Definition</a></h5>
 <p>
