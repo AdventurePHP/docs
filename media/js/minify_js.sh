@@ -3,13 +3,13 @@
 # Script to minify the css files into one single shrinked css file to optimize performance.        #
 ####################################################################################################
 
-BASEPATH=/cygdrive/c/Users/Christian/Entwicklung/Tools//yuicompressor-2.4.2
+BASEPATH=/cygdrive/c/Users/Christian/Entwicklung/Tools/yuicompressor-2.4.2
 LIBPATH=$BASEPATH/lib
 BUILDPATH=$BASEPATH/build
 JSPATH=$(pwd)
 TEMPJSFILE="apf-combined.js"
 COMBINEDJSFILE="apf.js"
-JQUERYJSFILE="jquery-1-9-1-min.js"
+JQUERYJSFILE="jquery-2-1-3-min.js"
 
 # build classpath
 CLASSPATH=
