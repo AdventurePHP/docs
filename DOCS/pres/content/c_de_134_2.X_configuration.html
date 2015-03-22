@@ -1,0 +1,1312 @@
+<doku:title parent="119" tags="konfiguration" title="Konfiguration" urlname="Konfiguration">
+  Das Kapitel Konfiguration beschreibt die Mechanismen, die das APF bietet um konfigurierbare Anwendungen
+  zu schreiben. Hier lernen Sie, wie unterschiedliche Formate gelesen und geschrieben werden und
+  wie sich das Konfigurations-Schema erweitern lässt.
+</doku:title>
+
+<h3 id="Chapter-1-Uebersicht"><a href="#Chapter-1-Uebersicht">1. Übersicht</a></h3>
+<p>
+   Das Konfigurations-Konzept des APF sieht eine Abstraktion des Zugriffs auf Konfigurationen vor. Dies ermöglicht es
+   nicht nur beliebige Quellen (z.B. Dateien und Datenbanken), sondern auch beliebige Datei-Formate (z.B. INI, XML)
+   anzusprechen.
+</p>
+<p>
+   Technisch wird diese Abstraktion durch die Trennung von Speicher-Format und Repräsentation
+   sowie die Einführung von Format-abhängigen Zugriffs-Komponenten erreicht. Dazu existiert eine
+   zentrale Instanz, die zur Verwaltung der Formate vorgesehen ist (<em>ConfigurationManager</em>)
+   und konkrete Implementierungen für die gewünschten Formate (z.B. <em>IniConfigurationProvider</em>).
+   Die einzelnen Provider lassen sich beim <em>ConfigurationManager</em> dann für ein definiertes
+   Format registrieren.
+</p>
+<p>
+   Ein weiteres Merkmal ist die gemeinsame Definition der Repräsentation eines Konfigurations-Formates.
+   Hierzu existiert das Interface <em>Configuration</em>, das von jedem Provider hinsichtlich dem
+   lesenden und schreibenden Zugriffs implementiert werden muss. 
+</p>
+
+<h3 id="Chapter-2-Technisches-Konzept"><a href="#Chapter-2-Technisches-Konzept">2. Technisches Konzept</a></h3>
+<h4 id="Chapter-2-1-Konfigurations-Schema"><a href="#Chapter-2-1-Konfigurations-Schema">2.1. Konfigurations-Schema</a></h4>
+<p>
+   Das technische Konzept der Konfigurations-Komponente des APF sieht vor, dass eine Konfiguration
+   von folgenden Parametern abhängen kann:
+</p>
+<ul>
+   <li>
+      <strong>Basis-Ordner</strong> Die mit dem Release mitgelieferten, Datei-basierten Provider
+      folgen der Empfehlung, Programmcode und Konfiguration zu trennen. Aus diesem Grund erwarten 
+      diese die Konfigurations-Dateien alle unter dem Ordner <em>/config</em>, der parallel zu
+      den Ordnern <em>core</em>, <em>modules</em>, ... angelegt ist.
+   </li>
+   <li>
+      <strong>Namespace:</strong> Dieser Teil beschreibt den physikalischen (oder virtuellen)
+      Speicherort der Konfiguration relativ zum <em>Basis-Ordner</em>. Üblicherweise gleicht
+      der Pfad dem Namespace der Applikation um die Zugehörigkeit auszudrücken. Wie auch bei der
+      Einbindung von Klassen und Komponenten üblich, werden Namespace-Abschnitte durch &quot;\&quot;
+      getrennt (wie auch PHP-Namespace-Bereiche).
+   </li>
+   <li>
+      <strong>Context:</strong> Der <em>Context</em> drückt die Verwendung einer Software (z.B. Modul)
+      in einer umgebenden Anwendung (z.B. Webseite) aus. Da das APF für den Betrieb von beliebig
+      vielen Installationen und Anwendungen aus einer Code-Basis ermöglichen möchte, kann der
+      <em>Context</em> dazu genutzt werden, die Konfigurationen von Modulen innerhalb von mehreren
+      Installationen zu unterscheiden.
+   </li>
+   <li>
+      <strong>Environment:</strong> Das Merkmal <em>Environment</em> ermöglicht eine Unterscheidung
+      der Konfiguration hinsichtlich der Umgebung, in der eine Software eingesetzt wird (z.B. Test-
+      oder Produktions-Umgebung). Damit lässt sich die Installation einer Anwendung durch jeweils
+      für die Umgebungen vorhandenen Konfigurationen ohne Code-Anpassung auf den Ziel-Umgebungen
+      erledigen.
+   </li>
+   <li>
+      <strong>Name:</strong> Der Name der Konfiguration definiert den physikalischen Datei-Namen für
+      Datei-basierte Provider bzw. den virtuellen Namen einer Konfiguration für z.B. Datenbank-basierte
+      Implementierungen.
+   </li>
+   <li>
+      <strong>Endung/Typ:</strong> Die Datei-Endung wird als Kenner für den Konfigurations-Typ genutzt.
+      So lässt sich für einen bestimmten (Datei-)Typ ein entsprechender Provider registrieren. 
+   </li>
+</ul>
+<p>Die folgende Tabelle beschreibt die einzelnen Teile nochmal im Detail:</p>
+<table>
+   <thead>
+      <tr>
+         <td>Installations-Ordner</td>
+         <td>Basis-Ordner</td>
+         <td>Namespace</td>
+         <td>Context</td>
+         <td>Environment</td>
+         <td>Name</td>
+         <td>Endung/Typ</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>/APF</td>
+         <td>/config</td>
+         <td>widgets\calendar</td>
+         <td>siteone</td>
+         <td>DEV</td>
+         <td>labels</td>
+         <td>.xml</td>
+      </tr>
+   </tbody>
+</table>
+<p>Hieraus ergibt sich folgender Datei-Name bzw. Pfad:</p>
+<gen:highlight type="text">
+/APF/config/widgets/calendar/siteone/DEV_labels.xml
+</gen:highlight>
+<div class="hint">
+   Das hier gezeigte Schema ist das Standard-Schema des APF. Bitte beachten Sie, dass dieses je
+   nach <em>ConfigurationProvider</em>-Implementierung variieren kann!
+</div>
+<p>
+   Bitte beachten Sie, dass die Werte <em>Context</em> und <em>Environment</em> üblicherweise in der
+   Bootstrap-Datei (<em>index.php</em>) konfiguriert werden. Der Context kann dem
+   <int:link pageid="098" /> und <int:link pageid="012" /> mit der Methode <em>setContext()</em>
+   mitgeteilt werden, die Umgebung wird via <int:link pageid="067" /> konfiguriert:
+</p>
+<gen:highlight type="php">
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+$fC->setContext('my\context');
+echo $fC->start('...', '...');
+
+// Environment-Definition für beide Anwendungfälle
+Registry::register('APF\core', 'Environment', 'TESTBOX');
+</gen:highlight>
+<p>
+   Alle weiteren Parameter einer Konfigurations-Resource werden beim Laden derselben explizit oder
+   implizit mitgegeben.
+</p>
+
+<h4 id="Chapter-2-2-Software-Komponenten"><a href="#Chapter-2-2-Software-Komponenten">2.2. Software-Komponenten</a></h4>
+<p>
+   Zur Definition der Software-Komponenten bringt das APF folgende Interfaces und Implementierungen
+   mit:
+</p>
+<ul>
+   <li>
+      <strong>ConfigurationManager:</strong> Die Komponente <em>ConfigurationManager</em> ist für
+      die Verwaltung der <em>ConfigurationProvider</em> zuständig und fungiert als zentrale
+      Komponente für den lesenden und schreibenden Zugriff auf Konfigurationen. Sie übernimmt 
+      die Auflösung des zuständigen Providers sowie das Caching von Konfigurationen, die innerhalb
+      eines Request bereits geladen wurden.
+   </li>
+   <li>
+      <strong>Configuration:</strong>
+      Das Interface <em>Configuration</em> beschreibt das Aussehen der Objekt-Repräsentation einer
+      Konfiguration bzw. der Sektion einer Konfiguration. Jeder Provider stellt eine auf diesem
+      Interface basierende Implementierung bereit. Dabei gilt, dass die Objekt-Repräsentation einer
+      Konfiguration sich aus genau den Implementierungen zusammensetzt. Eine Sektion innerhalb einer
+      Konfiguration wird wieder durch eine Instanz der Implementierung des zugehörigen Providers
+      repräsentiert.
+   </li>
+   <li>
+      <strong>ConfigurationProvider:</strong>
+      Der <em>ConfigurationProvider</em> (Interface) beschreibt die Implementierung eines Providers
+      für ein bestimmtes Format. Es definiert diejenigen Methoden des Interfaces, die der
+      <em>ConfigurationManager</em> nutzt um das Lesen und Schreiben an den zuständigen Provider
+      zu delegieren.
+   </li>
+   <li>
+      <strong>ConfigurationException:</strong> Die genannte Exception wird gemäß API-Definition
+      immer dann geworfen, wenn Fehler beim Konfigurations-Handling auftreten. Der Entwickler hat
+      damit über ein try-catch-Konstrukt die Möglichkeit diese zu behandeln.
+   </li>
+</ul>
+<p>
+   Um das Lesen und Schreiben von Konfigurationen zu vereinfachen, stehen in allen Klassen, die von
+   <em>APFObject</em> erben die Methoden <em>getConfiguration()</em> und <em>saveConfiguration()</em>
+   zur Verfügung. Das Löschen von Konfigurationen kann über die Methode <em>deleteConfiguration()</em>
+   bewerkstellig werden.
+</p>
+<div class="warn">
+   Da Konfigurations-Dateien oft sensible Daten beinhalten, sollte der <em>/config</em>-Ordner und damit die
+   Installation des APF nicht öffentlich zugänglich sein. Es wird daher empfohlen, die Dateien ausserhalb des
+   Web-Roots aufzubewahren oder eine <em>.htaccess</em>-Datei mit dem Inhalt
+<gen:highlight type="code">
+&lt;Location "/path/to/APF/installation/config"&gt;
+   Order Allow,Deny
+   Deny from all
+&lt;/Location&gt;
+</gen:highlight>
+   im <em>/config</em>-Ordner zu platzieren.
+</div>
+
+<h3 id="Chapter-3-Vorhandene-Provider"><a href="#Chapter-3-Vorhandene-Provider">3. Vorhandene Provider</a></h3>
+<p>
+   Das Release des Adventure PHP Framework liefert bereits vier Provider-Implementierungen mit. Diese
+   sind in den folgenden Kapiteln erläutert.
+</p>
+
+<h4 id="Chapter-3-1-INI-Provider"><a href="#Chapter-3-1-INI-Provider">3.1. INI-Provider</a></h4>
+<p>
+   Der INI-Provider implementiert das Standard-Konfigurations-Format des APF. Bis zur Version 1.13
+   war dieses als einziges Format verfügbar und folgt dem Datei-Schema der
+   <a class="external" href="http://de.wikipedia.org/wiki/Initialisierungsdatei">ini-Datei</a>.
+</p>
+<p>
+   Das Laden einer INI-Datei mit dem Inhalt
+</p>
+<gen:highlight type="ini">
+[showCaptcha]
+FC.ActionClass = "APF\modules\captcha\biz\actions\ShowCaptchaImageAction"
+</gen:highlight>
+<p>
+   (Auszug aus einer <int:link pageid="012">Front-Controller-Konfiguration</int:link>) kann innerhalb
+   eines <int:link pageid="006">Document-Controllers</int:link> wie folgt erledigt werden:
+</p>
+<gen:highlight type="php">
+class FooController extends BaseDocumentController {
+   public function transformContent() {
+      $config = $this->getConfiguration('widgets\calendar', 'labels.ini');
+      ...
+   }
+}
+</gen:highlight>
+<p>
+   Die Variable <em>$config</em> enthält nun eine Instanz der Klasse <em>IniConfiguration</em> -
+   dem Format des <em>IniConfigurationProvider</em> -, der in der Standard-Konfiguration des APF
+   mit dem Handling von Dateien mit der Endung <em>.ini</em> betraut ist.
+</p>
+<p>
+   Die Objekt-Struktur, die vom Provider zurückgegeben wird hängt dabei von der Definition der
+   Konfigurations-Datei ab. Dabei gelten folgende &quot;Regeln&quot;:
+</p>
+<ul>
+   <li>
+      INI-Sektionen werden gemäß dem Schema des Interface <em>Configuration</em> als Sektionen
+      zur Verfügung gestellt. Damit lässt sich die Sektions-Repräsentation der oben aufgeführten
+      Konfiguration per <gen:highlight type="php">$config->getSection('showCaptcha')</gen:highlight>
+      abfragen.
+   </li>
+   <li>
+      Die Schlüssel einer Sektion werden als Werte innerhalb einer Sektion bereitgestellt. Konkrete
+      Werte könne mit der Methode <em>getValue()</em> abgefragt werden:
+      <gen:highlight type="php">$config->getSection('showCaptcha')->getValue('FC.InputParams')</gen:highlight>
+      <div class="warn">
+         Die Abfrage von Keys, die Sub-Sektions-Kenner enthalten ist auf unterster Ebene nur im
+         <em>IniConfigurationProvider</em> möglich. Der im nächsten Punkt aufgezeigte Zugriff ist
+         jedoch allgemeingültig.
+      </div>
+   </li>
+   <li>
+      Als eine Besonderheit des INI-Formates werden Schlüssel mit einem Punkt (&quot;.&quot;) zu
+      Sub-Sektionen aufgelöst. Für die oben aufgeführte Konfiguration bedeutet das, dass die Sektion
+      <em>showCaptcha</em> über eine Sub-Sektion <em>FC</em> verfügt. Konkrete Werte dieser Sektion
+      können damit über
+      <gen:highlight type="php">$config->getSection('showCaptcha')->getSection('FC')->getValue('InputParams')</gen:highlight>
+      abgefragt werden. Der Provider unterstützt beliebige Ebenen von Sub-Sektionen. Dabei ist
+      jede Sektion für sich genommen wieder eine Instanz der Klasse <em>IniConfiguration</em>.
+   </li>
+</ul>
+<p>
+   Der schreibende Zugriff gestaltet sich ebenso intuitiv:
+</p>
+<gen:highlight type="php">
+class BarController extends BaseDocumentController {
+   public function transformContent() {
+
+      $config = new IniConfiguration();
+
+      $section = new IniConfiguration();
+      $section->setValue('year_label', 'Jahr');
+      $section->setValue('month_label', 'Monat');
+      $section->setValue('day_label', 'Tag');
+      
+      $config->setSection('global-labels', $section);
+
+
+      $this->saveConfiguration('widgets\calendar', 'labels.ini', $config);
+   }
+}
+</gen:highlight>
+<p>
+   Neben der gezeigten Vorgehensweise ist es auch jederzeit möglich, gelesene Konfigurationen nach
+   einer Manipulation wieder zu speichern.
+</p>
+
+<h4 id="Chapter-3-2-XML-Provider"><a href="#Chapter-3-2-XML-Provider">3.2. XML-Provider</a></h4>
+<p>
+   Der XML-Provider wurde mit dem Release 1.13 eingeführt und unterstützt das 
+   APF-Konfigurations-Format. Hierzu wurde folgendes Schema definiert (Auszug aus der Konfiguration
+   für den Data-Mapper des
+   <int:link pageid="129" anchor="Chapter-30-Die-Datenschicht">Gästebuch-Moduls</int:link>):
+</p>
+<gen:highlight type="xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;configuration&gt;
+   &lt;section name="GuestbookMapper"&gt;
+      &lt;property name="servicetype"&gt;NORMAL&lt;/property&gt;
+      &lt;property name="namespace"&gt;modules\guestbook2009\data&lt;/property&gt;
+      &lt;property name="class"&gt;GuestbookMapper&lt;/property&gt;
+      &lt;section name="conf"&gt;
+         &lt;section name="db"&gt;
+            &lt;property name="method"&gt;setConnectionName&lt;/property&gt;
+            &lt;property name="value"&gt;guestbook2009&lt;/property&gt;
+         &lt;/section&gt;
+         &lt;section name="orm"&gt;
+            &lt;property name="method"&gt;setORMInitType&lt;/property&gt;
+            &lt;property name="value"&gt;NORMAL&lt;/property&gt;
+         &lt;/section&gt;
+      &lt;/section&gt;
+   &lt;/section&gt;
+&lt;/configuration&gt;
+</gen:highlight>
+<p>Das Schema zeichnet sich durch folgende Punkte aus:</p>
+<ul>
+   <li>
+      Die Konfiguration wird mit dem Tag <em>configuration</em> umschlossen. Sie bildet das Root-Element.
+   </li>
+   <li>
+      Eine Konfiguration besteht in der ersten Ebene - wie auch die 
+      <a href="#Chapter-3-1-INI-Provider">INI-Konfiguration</a> - aus Sektionen. Diese werden (in
+      jeder Ebene) durch das Tag <em>section</em> deklariert. Eine Sektion erhält ihren Namen über
+      das Attribut <em>name</em>.
+   </li>
+   <li>
+      Innerhalb einer Sektion können weitere Sektionen oder konkrete Werte mittels des
+      <em>property</em>-Tag definiert werden. Letztere zeichnen sich durch einen Namen (Attribut
+      <em>name</em>) und den Inhalt des Tags (Wert) aus.
+   </li>
+</ul>
+<p>
+   Der Zugriff auf die Konfiguration gestaltet sich analog zu 3.1:
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomething() {
+      $config = $this->getConfiguration('modules\guestbook2009', 'serviceobjects.xml');
+      ...
+   }
+}
+</gen:highlight>
+<p>
+   Die Variable <em>$config</em> enthält nun eine Instanz der Klasse <em>XmlConfiguration</em> -
+   dem Format des <em>XmlConfigurationProvider</em>. Die Objekt-Struktur, folgt dabei folgenden
+   &quot;Regeln&quot;:
+</p>
+<ul>
+   <li>
+      XML-Sektionen der ersten Ebene werden gemäß dem Schema des Interface <em>Configuration</em>
+      als Sektionen in der Konfiguration zur Verfügung gestellt. Damit kann die Sektion
+      <em>GuestbookMapper</em> per
+      <gen:highlight type="php">$config->getSection('GuestbookMapper')</gen:highlight>
+      abfragen.
+   </li>
+   <li>
+      Die <em>property</em>-Tags einer Sektion werden als Werte innerhalb dieser bereitgestellt.
+      Konkrete Werte könne mit der Methode <em>getValue()</em> abgefragt werden:
+      <gen:highlight type="php">$config->getSection('GuestbookMapper')->getValue('servicetype')</gen:highlight>
+   </li>
+   <li>
+      Alle <em>section</em>-Tags innerhalb einer Sektion werden als Sub-Sektion zur Verfügung 
+      gestellt. Konkrete Werte der Sektion <em>db</em> können damit via
+      <gen:highlight type="php">$config
+         ->getSection('GuestbookMapper')
+         ->getSection('conf')
+         ->getSection('db')
+         ->getValue('method')</gen:highlight>
+      abgefragt werden. Der Provider unterstützt beliebige Ebenen von Sub-Sektionen. Dabei ist
+      jede Sektion für sich genommen wieder eine Instanz der Klasse <em>XmlConfiguration</em>.
+   </li>
+</ul>
+<p>
+   Der schreibende Zugriff ist identisch zum INI-Format (hier am Beispiel der Veränderung einer
+   geladenen Konfiguration):
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomethingElse() {
+      $config = $this->getConfiguration('modules\guestbook2009', 'serviceobjects.xml');
+      $config->getSection('GuestbookMapper')->setValue('servicetype', APFService::SERVICE_TYPE_SINGLETON);
+      $this->saveConfiguration('widgets\calendar', 'labels.ini', $config);
+   }
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-3-Db-Provider"><a href="#Chapter-3-3-Db-Provider">3.3. Db-Provider</a></h4>
+<p>
+   Der <em>DbConfigurationProvider</em> ist eine einfache Implementierung des APF-Konfigurations-Schema
+   um Konfigurationen in der Datenbank abzulegen. Er unterstützt im Gegensatz zu den Formaten
+   <em>INI</em> und <em>XML</em> nur eine flache Hierarchie (Konfiguration -> Sektion -> Wert),
+   beherrscht jedoch die Zuordnung von Context-, Sprach- und Umgebungs-abhängigen Werten.
+</p>
+<p>
+   Zur Nutzung des Providers muss eine Datenbank-Tabelle der Form
+</p>
+<gen:highlight type="sql">
+CREATE TABLE IF NOT EXISTS `config_widgets_calendar` (
+  `context` varchar(50) NOT NULL,
+  `language` varchar(5) NOT NULL,
+  `environment` varchar(20) NOT NULL,
+  `name` varchar(20) NOT NULL,
+  `section` varchar(20) NOT NULL,
+  `key` varchar(30) NOT NULL,
+  `value` varchar(500) NOT NULL,
+  `creationtimestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `modificationtimestamp` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`context`,`language`,`environment`,`name`,`section`,`key`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+</gen:highlight>
+<p>
+   angelegt werden. Gemäß dem in Kapitel <a href="#Chapter-2-1-Konfigurations-Schema">Konfigurations-Schema</a>
+   aufgezeigten Adressierung von Konfigurationen kann ein in der Datenbank befindlicher wie folgt
+   geladen werden:
+</p>
+<gen:highlight type="php">
+class FooController extends BaseDocumentController {
+   public function transformContent() {
+      $config = $this->getConfiguration('widgets\calendar', 'labels.db');
+      ...
+   }
+}
+</gen:highlight>
+<p>
+   Die Variable <em>$config</em> enthält nun eine Instanz der Klasse <em>DbConfiguration</em> -
+   dem Format des <em>DbConfigurationProvider</em>. Die Objekt-Struktur, folgt dabei folgenden
+   &quot;Regeln&quot;:
+</p>
+<ul>
+   <li>
+      Sektionen (siehe Spalte <em>section</em>) werden durch Gruppierung der Werte unter jeweils
+      gleichen Werten für eine Abrage nach <em>context</em>, <em>language</em>, <em>environment</em>
+      und <em>name</em> als Elemente der ersten Ebene erzeugt. Eine Sektion kann damit wie bei den
+      zuvor beschriebenen Formaten per
+      <gen:highlight type="php">$config->getSection('main')</gen:highlight>
+      abfragen werden.
+   </li>
+   <li>
+      Werte innerhalb von Sektionen sind über die Methode <em>getValue()</em> zu erfragen:
+      <gen:highlight type="php">$config->getSection('main')->getValue('icon')</gen:highlight>
+   </li>
+</ul>
+<div class="warn">
+   Auf Grund der schematischen Einschränkungen des Datenbank-Providers sollte dieser nur für
+   einfache Konfigurationen verwendet werden. Um die Performance zu steigern eignet sich eine
+   Kombination mit dem <a href="#Chapter-3-4-Memcached-Provider">MemcachedConfigurationProvider</a>.
+</div>
+<p>
+   Der schreibende Zugriff auf den Datenbank-Store gestaltet sich identisch zu den zuvor
+   beschriebenen Formaten:
+</p>
+<gen:highlight type="php">
+class BarController extends BaseDocumentController {
+   public function transformContent() {
+      $config = $this->getConfiguration('widgets\calendar', 'labels.db');
+      $config->getSection('main')->setValue('icon', 'calendar_big.png');
+      $this->saveConfiguration('widgets\calendar', 'labels.db', $config);
+   }
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-4-Memcached-Provider"><a href="#Chapter-3-4-Memcached-Provider">3.4. Memcached-Provider</a></h4>
+<p>
+   Der <em>MemcachedConfigurationProvider</em> unterstützt selbst keine eigenes Format, sondern
+   ist eine Art &quot;Mediator&quot;-Provider, der einen bestehenden Provider für das Lesen und
+   Schreiben nutzt, die Konfiguration jedoch für den schnellen Zugriff in einem
+   <a class="external" href="http://www.memcached.org/">Memcached</a>-Store Request-übergreifend
+   hält.
+</p>
+<p>
+   Sofern der Provider auf die Datei-Endung bzw. den Typ &quot;mem&quot; konfiguriert ist (siehe
+   <a href="#Chapter-5-Konfiguration-der-Provider">Konfiguration der Provider</a>), so lässt sich
+   eine Konfiguration wie folgt laden:
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomething() {
+      $config = $this->getConfiguration('widgets\calendar', 'labels.mem');
+      ...
+   }
+}
+</gen:highlight>
+<p>
+   Die Variable <em>$config</em> beinhaltet nun die gewünschte Konfiguration. Dazu versucht der
+   Provider die gewünschte Konfiguration aus dem Memcached-Store zu beziehen. Falls diese dort noch
+   nicht vorhanden oder abgelaufen ist, wird die physikalische Datei geladen und in den Store
+   geschrieben.
+</p>
+<p>
+   Das Schreiben einer Konfiguration aus dem Memcached-Store inkludiert das Update der Konfiguration
+   im Speicher und auf dem persistenten Datenträger. Die folgende Code-Box zeigt ein Beispiel:
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomethingElse() {
+      $config = $this->getConfiguration('widgets\calendar', 'labels.mem');
+      $config->getSection('global-labels')->setValue('day_label', 'Tag');
+      $this->saveConfiguration('widgets\calendar', 'labels.mem', $config);
+   }
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-5-APC-Provider"><a href="#Chapter-3-5-APC-Provider">3.4. APC Provider</a></h4>
+<p>
+   Der <em>ApcConfigurationProvider</em> unterstützt ebenso wie der
+   <a href="#Chapter-3-4-Memcached-Provider">MemcachedConfigurationProvider</a> kein eigenes Format, sondern
+   ist eine Art &quot;Mediator&quot;-Provider, der einen bestehenden Provider für das Lesen und
+   Schreiben nutzt, die Konfiguration jedoch für den schnellen Zugriff in einem
+   <a class="external" href="http://www.php.net/manual/en/book.apc.php">APC Shared Memory Segment</a>
+   Request-übergreifend hält.
+</p>
+<p>
+   Sofern der Provider auf die Datei-Endung bzw. den Typ &quot;apc&quot; konfiguriert ist (siehe
+   <a href="#Chapter-5-Konfiguration-der-Provider">Konfiguration der Provider</a>), so lässt sich
+   eine Konfiguration wie folgt laden:
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomething() {
+      $config = $this->getConfiguration('widgets\calendar', 'labels.apc');
+      ...
+   }
+}
+</gen:highlight>
+<p>
+   Die Variable <em>$config</em> beinhaltet nun die gewünschte Konfiguration. Dazu versucht der
+   Provider die gewünschte Konfiguration aus dem APC-Store zu beziehen. Falls diese dort noch
+   nicht vorhanden oder abgelaufen ist, wird die physikalische Datei geladen und in den Store
+   geschrieben.
+</p>
+<p>
+   Das Schreiben einer Konfiguration aus dem APC-Store inkludiert das Update der Konfiguration
+   im Speicher und auf dem persistenten Datenträger. Die folgende Code-Box zeigt ein Beispiel:
+</p>
+<gen:highlight type="php">
+class FooService extends APFObject {
+   public function doSomethingElse() {
+      $config = $this->getConfiguration('widgets\calendar', 'labels.apc');
+      $config->getSection('global-labels')->setValue('day_label', 'Tag');
+      $this->saveConfiguration('widgets\calendar', 'labels.apc', $config);
+   }
+}
+</gen:highlight>
+
+<h3 id="Chapter-4-Erweitertes-Handling-von-Konfigurationen"><a href="#Chapter-4-Erweitertes-Handling-von-Konfigurationen">4. Erweitertes Handling von Konfigurationen</a></h3>
+<p>
+   In vielen Anwendungsfällen ist es nicht nur notwendig, einzelne Konfigurations-Werte zu lesen,
+   sondern alle Elemente einzubeziehen oder mehrere Werte aus der Konfiguration zu nutzen.
+</p>
+<p>
+   Für den ersten Anwendungsfall bietet das Interface <em>Configuration</em> die Methoden
+   <em>getSectionNames()</em> und <em>getValueNames()</em> an. Diese geben alle Sektions- und
+   Werte-Schlüssel zurück. So lassen sich beispielsweise über den folenden Quelltext alle
+   Sektions-Namen ausgeben:
+</p>
+<gen:highlight type="php">
+foreach($config->getSectionNames() as $sectionName) {
+   echo $sectionName;
+}
+</gen:highlight>
+<p>
+   Um die Schlüssel der Werte einer Sektion auszugeben, kann folgender Code genutzt werden:
+</p>
+<gen:highlight type="php">
+foreach($section->getValueNames() as $valueName) {
+   echo $valueName;
+}
+</gen:highlight>
+<p>
+   Zur Manipulation von Konfigurations-Repräsentationen stehen gemäß Interface noch zwei weitere
+   Methoden zur Verfügung: <em>removeSection()</em> und <em>removeValue</em>. Mit Hilfe dieser
+   kann die Konfiguration
+</p>
+<gen:highlight type="ini">
+[Default]
+key1 = "value1"
+key2 = "value2"
+key3 = "value3"
+</gen:highlight>
+<p>
+   mit dem PHP-Code
+</p>
+<gen:highlight type="php">
+$config = $this->getConfiguration('...', 'config.ini');
+
+$section = new IniConfiguration();
+$section->setValue('key1', 'value1');
+$section->setValue('key3', 'value2');
+$section->setValue('key2', 'value3');
+
+$config->setSection('Special', $section);
+
+$config->getSection('Default')->removeValue('key2');
+
+$this->saveConfiguration('...', 'config.ini', $config);
+</gen:highlight>
+<p>
+   zu folgendem Ergebnis geführt werden:
+</p>
+<gen:highlight type="ini">
+[Default]
+key1 = "value1"
+key3 = "value3"
+
+[Special]
+key1 = "value1"
+key2 = "value2"
+key3 = "value3"
+</gen:highlight>
+
+<h3 id="Chapter-5-Konfiguration-der-Provider"><a href="#Chapter-5-Konfiguration-der-Provider">5. Konfiguration der Provider</a></h3>
+<p>
+   Die in <a href="#Chapter-3-Vorhandene-Provider">Kapitel 3</a> genannten Provider unterstützen
+   neben den genannten Features weitere, die in den folgenden Kapiteln näher beschrieben sind.
+</p>
+
+<h4 id="Chapter-5-1-Ini-und-Xml-Provider"><a href="#Chapter-5-1-Ini-und-Xml-Provider">5.1. INI- und XML-Provider</a></h4>
+<p>
+   Die Implementierungen für das INI- und XML-Format ermöglichen es, das Format der Konfigurationen
+   zu beeinflussen. Hierzu stehen die Schalter <em>omitContext</em>, <em>omitEnvironment</em> und
+   <em>activateEnvironmentFallback</em>. Diese beeinflussen im wesentlichen den Aufbau des Pfades
+   unter dem die Konfiguration erwartet wird, ermöglichen dadurch jedoch weitere Anwendungsfälle.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass nur der INI-Provider standardmäßig aktiviert ist. Alle anderen Provider
+   (wie hier der XML-Provider) müssen manuell nach dem Einbinden der Datei <em>bootstrap.php</em>
+   registriert werden. Dies funktioniert für den XML-Provider wie folgt:
+<gen:highlight type="php">
+use APF\core\configuration\provider\xml\XmlConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+ConfigurationManager::registerProvider('xml', new XmlConfigurationProvider());
+</gen:highlight>
+</div>
+
+<h5 id="Chapter-5-1-1-omitContext"><a href="#Chapter-5-1-1-omitContext">5.1.1. Schalter omitComtext</a></h5>
+<p>
+   Ist der Schalter <em>omitContext</em> aktiviert, wird der Context nicht mehr als Teil des
+   Datei-Pfades erwartet. Es ergibt sich dann folgender Aufbau:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Installations-Ordner</td>
+         <td>Basis-Ordner</td>
+         <td>Namespace</td>
+         <td>Environment</td>
+         <td>Name</td>
+         <td>Ending/Typ</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>/APF</td>
+         <td>/config</td>
+         <td>widgets\calendar</td>
+         <td>DEV</td>
+         <td>labels</td>
+         <td>.xml</td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   Dieser Mechanismus kann für Konfigurations-Dateien verwendet werden, die ohnehin unabhängig vom
+   Context sind. Um die Möglichkeit der Context-abhängigen Konfiguration trotzdem parallel anbieten
+   zu können, ist es mit der Implementierung der INI- und XML-Provider möglich, diese für mehrere
+   Typen/Endungen zu registrieren.
+</p>
+<p>
+   Sollen innerhalb einer Applikation Dateien mit der Endung <em>.lang</em> als Sprach-Konfigurationen
+   ohne Context konfigurierbar sein, so kann dies nach Einbinden der Datei <em>bootstrap.php</em>
+   (z.B. in der <em>index.php</em>) durch Neu-Registrierung des INI- oder XML-Providers auf die
+   Endung <em>.lang</em> passieren:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\provider\ini\IniConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+$langProv = new IniConfigurationProvider();
+$langProv->setOmitContext(true);
+ConfigurationManager::registerProvider('lang', $langProv);
+</gen:highlight>
+<p>
+   Damit können Context-unabhängige Sprach-Konfigurationen beispielsweise mit dem 
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring">&lt;html:getstring /></int:link>-Tag
+   verwendet werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:getstring namespace="widgets\calendar" config="labels.lang" entry="key3" /&gt;
+</gen:highlight>
+<p>
+   Da der genannte Tag ebenso den <em>ConfigurationManager</em> und den für die Endung registrierten
+   Provider nutzt, ist diese Vorgehensweise auch für andere Anwendungsfälle (z.B.
+   <int:link pageid="006" />) möglich.
+</p>
+<div class="hint">
+   Sofern das beschrieben Verhalten auf für <em>.ini</em>-Dateien genutzt werdem soll, kann der
+   INI-Provider nach dem Einbinden der <em>bootstrap.php</em> mit der aktivierten Option
+   neu registriert werden. Dieses Vorgehen wird jedoch ausdrücklich nicht empfohlen, wenn Komponenten
+   des APF eingesetzt werden, die Context-abhängige Konfigurationen benötigen.
+</div>
+
+<h5 id="Chapter-5-1-2-omitEnvironment"><a href="#Chapter-5-1-2-omitEnvironment">5.1.2. Schalter omitEnvironment</a></h5>
+<p>
+   Ist der Schalter <em>omitEnvironment</em> aktiviert, so wird die konfigurierte Umgebung nicht
+   mehr als Teil des Datei-Namens der Konfigurations-Datei genutzt. Es ergibt sich folgender Aufbau:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Installations-Ordner</td>
+         <td>Basis-Ordner</td>
+         <td>Namespace</td>
+         <td>Context</td>
+         <td>Name</td>
+         <td>Ending/Typ</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>/APF</td>
+         <td>/config</td>
+         <td>widgets\calendar</td>
+         <td>siteone</td>
+         <td>labels</td>
+         <td>.xml</td>
+      </tr>
+   </tbody>
+</table>
+<p>
+   Dieser Mechanismus kann für Konfigurations-Dateien verwendet werden, die ohnehin unabhängig von
+   der Umgebung sind. Um die Möglichkeit der Umgebungs-abhängigen Konfiguration trotzdem parallel
+   anbieten zu können, ist es mit der Implementierung der INI- und XML-Provider möglich, diese für
+   mehrere Typen/Endungen zu registrieren.
+</p>
+<p>
+   Ist es innerhalb einer Komponente nicht erforderlich, Konfigurationen abhängig von der Umgebung
+   zu nutzen, können für diesen Anwendungsfall spezielle Datei-Endungen (z.B. <em>.allini</em>)
+   genutzt werden. Die Registrierung eines solchen INI- oder XML-Providers kann wie im nächsten
+   Code-Block beschrieben erfolgen:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\provider\ini\IniConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+$langProv = new IniConfigurationProvider();
+$langProv->setOmitEnvironment(true);
+ConfigurationManager::registerProvider('allini', $langProv);
+</gen:highlight>
+
+<h5 id="Chapter-5-1-3-activateEnvironmentFallback"><a href="#Chapter-5-1-3-activateEnvironmentFallback">5.1.3. Schalter activateEnvironmentFallback</a></h5>
+<p>
+   Der Schalter <em>activateEnvironmentFallback</em> bewirkt, dass nicht vorhandene
+   Umgebungs-abhängige Konfigurationen auf die <em>DEFAULT</em>-Umgebung gemappt werden. Dies
+   ermöglicht das Anlegen von &quot;Standard&quot;-Umgebungs-Konfigurationen, die bei Bedarf pro
+   Umgebung überschrieben werden. Das Pfad-Format wird durch das Aktivieren des Features nicht
+   geändert und ist daher identisch zum <a href="#Chapter-2-1-Konfigurations-Schema">Standard-Schema</a>.
+</p>
+<p>
+   Soll das Feature für einen INI- bzw. XML-Provider aktiviert werden, so kann das wie folgt
+   erledigt werden:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\provider\ini\IniConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+// Neu-Konfiguration eines bestehenden Providers
+try {
+   $prov = ConfigurationManager::retrieveProvider('lang');
+} catch (ConfigurationException $e) {
+   // Sofern der Provider noch nicht registriert wurde,
+   // erstellen wir ihn "lazy" neu.
+   $prov = new IniConfigurationProvider();
+}
+$prov->activateEnvironmentFallback(true);
+ConfigurationManager::registerProvider('lang', $prov);
+
+// Konfiguration eines neuen Providers
+$prov = new IniConfigurationProvider();
+$prov->activateEnvironmentFallback(true);
+ConfigurationManager::registerProvider('lang', $prov);
+</gen:highlight>
+
+<h5 id="Chapter-5-1-4-omitConfigSubFolder"><a href="#Chapter-5-1-4-omitConfigSubFolder">5.1.4. Schalter omitConfigSubFolder</a></h5>
+<div class="hint">
+   Bitte beachten Sie, dass diese Funktion erst ab dem Release 2.1 verfügbar ist.
+</div>
+<p>
+   Im Auslieferungs-Zustand des APF werden alle Konfigurationen unter dem Basis-Ordner <em>/config</em> abgelegt (siehe
+   <a href="#Chapter-2-1-Konfigurations-Schema">Kapitel 2.1</a>). Nutzen Sie für Ihre Konfigurations-Dateien bereits einen
+   eigenen Ordner - dies lässt sich sehr einfach über eine angepasste
+   <int:link pageid="154" anchor="Chapter-4-2-Anpassung-des-Basis-Pfads-fuer-Konfigurationen">ClassLoader-Konfiguration</int:link>
+   erreichen - ist der Basis-Ordner gegebenenfalls redundant. Beispiel:
+</p>
+<gen:highlight type="code">
+/path/to/project/src/...
+/path/to/project/conf/config/...
+</gen:highlight>
+<p>
+   In diesem Fall lässt sich der Schalter <em>omitConfigSubFolder</em> nutzen um die Konfiguration direkt unter
+   <em>/path/to/project/conf</em> ablegen zu können.
+</p>
+<p>
+   Das Pfad-Format wird durch das Aktivieren des Features nicht geändert und ist daher identisch zum
+   <a href="#Chapter-2-1-Konfigurations-Schema">Standard-Schema</a>.
+</p>
+<p>
+   Soll das Feature für einen INI- bzw. XML-Provider aktiviert werden, so kann das wie folgt
+   erledigt werden:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\provider\ini\IniConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+// Neu-Konfiguration eines bestehenden Providers
+try {
+   $prov = ConfigurationManager::retrieveProvider('lang');
+} catch (ConfigurationException $e) {
+   // Sofern der Provider noch nicht registriert wurde,
+   // erstellen wir ihn "lazy" neu.
+   $prov = new IniConfigurationProvider();
+}
+$prov->setOmitConfigSubFolder(true);
+ConfigurationManager::registerProvider('lang', $prov);
+
+// Konfiguration eines neuen Providers
+$prov = new IniConfigurationProvider();
+$prov->setOmitConfigSubFolder(true);
+ConfigurationManager::registerProvider('lang', $prov);
+</gen:highlight>
+
+<h4 id="Chapter-5-2-Db-Provider"><a href="#Chapter-5-2-Db-Provider">5.2. Db-Provider</a></h4>
+<p>
+   Um den <em>DbConfigurationProvider</em> zu registrieren, ist folgender Quellcode nach dem
+   Einbinden der Datei <em>bootstrap.php</em> notwendig:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\provider\db\DbConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+ConfigurationManager::registerProvider('db', new DbConfigurationProvider('Live-DB'));
+</gen:highlight>
+<p>
+   Der beschriebene Code registriert den Provider für die Endung <em>.db</em> und definiert
+   die Datenbank-Verbindung, die zum Lesen und Schreiben der Konfigurationen genutzt werden soll.
+</p>
+<div class="hint">
+   Die Implementierung sieht vor, dass der Tabellen-Name abhängig vom Namespace ist, unter dem die
+   Konfiguration abgelegt ist. Die Benennung der Tabelle folgt der Regel, dass zunächst alle
+   Groß-Buchstaben durch Klein-Buchstaben ersetzt, &quot;::&quot; durch &quot;_&quot; ersetzt wird
+   und dann alle Zeichen ausser Kleinbuchstaben und &quot;_&quot; ersetzt werden. Dieses Suffix
+   bildet dann zusammen mit dem Präfix &quot;config_&quot; den Namen der Tabelle.
+</div>
+
+<h4 id="Chapter-5-3-Memcached-Provider"><a href="#Chapter-5-3-Memcached-Provider">5.3. Memcached-Provider</a></h4>
+<p>
+   Der <em>MemcachedConfigurationProvider</em> ist - wie bereits beschrieben - dazu gedacht,
+   physikalisch vorhandene Konfigurationen für den schnelleren Zugriff in einem
+   <em>Memcached</em>-Store zu halten und von dort zu beziehen. Hierzu benötigt der Provider die
+   gewünschte Memcached-Verbindung und den Provider, der das Lesen und schreiben der physikalischen
+   Konfiguration übernimmt.
+</p>
+<p>
+   Um den Provider zu registrieren, ist folgender Quellcode nach dem Einbinden der Datei
+   <em>bootstrap.php</em> notwendig:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\provider\mem\MemcachedConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+$mem = new Memcache();
+$mem->addServer('localhost', 11211, true);
+$provider = new MemcachedConfigurationProvider('ini', $mem);
+$provider->setExpireTime(30);
+ConfigurationManager::registerProvider('mem',$provider);
+</gen:highlight>
+<p>
+   Der beschriebene Code registriert den Provider für die virtuelle Endung <em>.mem</em>, definiert
+   eine persistente Verbindung zu einem lokalen Memcached-Server und nutzt den bereits registrierten
+   INI-Provider für das Laden und Speichern der Konfigurationen.
+</p>
+<p>
+   Weiterhin wird die Cache-Gültigkeitsdauer auf 30 Sekunden festgelegt. Standard ist 1 Tag.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass der Name der physikalisch gespeicherten Datei die Endung des im
+   Konstruktor angegebenen Provider-Typen hat (im obigen Beispiel: <em>.ini</em>). Das bedeutet,
+   dass beim ersten Aufruf von
+   <gen:highlight type="php">$this->getConfiguration('widgets\calendar', 'labels.mem')</gen:highlight>
+   die physikalische Datei
+   <gen:highlight type="code">/APF/config/widgets/calendar/siteone/DEFAULT_labels.ini</gen:highlight>
+   (bzw. gemäß den Regel der Konfiguration des INI-Provider) geladen wird. Ab dem zweiten Aufruf und
+   innerhalb der Cache-Gültigkeitsdauer wird die Konfiguration direkt aus dem Memcached-Store
+   geladen und zurückgegeben.
+</div>
+<p>
+   Der Provider bietet auf Grund der Nutzung eines anderen Providers die Möglichkeit alle Provider,
+   die physikalisch gespeicherte Daten nutzen, zwischen zu speichern.
+</p>
+
+<h4 id="Chapter-5-4-APC-Provider"><a href="#Chapter-5-4-APC-Provider">5.4. APC-Provider</a></h4>
+<p>
+   Der <em>ApcConfigurationProvider</em> ist - wie bereits beschrieben - dazu gedacht,
+   physikalisch vorhandene Konfigurationen für den schnelleren Zugriff in einem
+   <em>APC Shared Memory Segment</em> zu halten und von dort zu beziehen. Hierzu benötigt den Provider, der
+   das Lesen und schreiben der physikalischen Konfiguration übernimmt.
+</p>
+<p>
+   Die übrige Konfiguration wird bereits durch die Konfigurationsdirektiven der <em>php.ini</em> zur Verfügung gestellt.
+</p>
+<p>
+   Um den Provider zu registrieren, ist folgender Quellcode nach dem Einbinden der Datei
+   <em>bootstrap.php</em> notwendig:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\provider\apc\ApcConfigurationProvider;
+use APF\core\configuration\ConfigurationManager;
+
+$provider = new ApcConfigurationProvider('ini');
+$provider->setExpireTime(60);
+ConfigurationManager::registerProvider('apc', $provider);
+</gen:highlight>
+<p>
+   Der beschriebene Code registriert den Provider für die virtuelle Endung <em>.apc</em> und nutzt den bereits
+   registrierten INI-Provider für das Laden und Speichern der Konfigurationen.
+</p>
+<p>
+   Weiterhin wird die Cache-Gültigkeitsdauer auf 60 Sekunden festgelegt. Standard ist 1 Tag.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass der Name der physikalisch gespeicherten Datei die Endung des im
+   Konstruktor angegebenen Provider-Typen hat (im obigen Beispiel: <em>.ini</em>). Das bedeutet,
+   dass beim ersten Aufruf von
+   <gen:highlight type="php">$this->getConfiguration('widgets\calendar', 'labels.apc')</gen:highlight>
+   die physikalische Datei
+   <gen:highlight type="code">/APF/config/widgets/calendar/siteone/DEFAULT_labels.ini</gen:highlight>
+   (bzw. gemäß den Regel der Konfiguration des INI-Provider) geladen wird. Ab dem zweiten Aufruf und
+   innerhalb der Cache-Gültigkeitsdauer wird die Konfiguration direkt aus dem APC-Store
+   geladen und zurückgegeben.
+</div>
+<p>
+   Der Provider bietet auf Grund der Nutzung eines anderen Providers die Möglichkeit alle Provider,
+   die physikalisch gespeicherte Daten nutzen, zwischen zu speichern.
+</p>
+
+<h3 id="Chapter-6-Lesen-und-Schreiben-von-Konfigurationen"><a href="#Chapter-6-Lesen-und-Schreiben-von-Konfigurationen">6. Lesen und Schreiben von Konfigurationen</a></h3>
+
+<h4 id="Chapter-6-1-Nativer-Zugriff"><a href="#Chapter-6-1-Nativer-Zugriff">6.1. Nativer Zugriff</a></h4>
+<p>
+   Die vorangegangenen Kapitel haben gezeigt, wie Konfigurationen mit den in der Klasse
+   <em>APFObject</em> vorhandenen Methoden gelesen und geschrieben werden kann. Neben dieser
+   Vorgehensweise kann der ConfigurationManager natürlich auch direkt verwendet werden. Hierbei
+   handelt es sich um eine statische Komponente, die wie ein Singleton von überall zugegriffen
+   werden kann. Der Zugriff gestaltet sich dabei wie folgt:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\ConfigurationManager;
+
+// Laden einer Konfiguration
+$config = ConfigurationManager::loadConfiguration(
+               $namespace, $context, $language, $environment, $name);
+
+// Speichern einer Konfiguration
+ConfigurationManager::saveConfiguration(
+               $namespace, $context, $language, $environment, $name, $config);
+
+// Löschen einer Konfiguration
+ConfigurationManager::deleteConfiguration(
+               $namespace, $context, $language, $environment, $name);
+</gen:highlight>
+<p>
+   Um den gewünschten Effekt zu erziehlen müssen die übergebenen Variablen mit den für die Anwendung
+   relevanten Werte gefüllt werden. Sofern die adressierten Provider bestimmte Elemente des
+   <a href="#Chapter-2-1-Konfigurations-Schema">Standard-Schemas</a> nicht benutzten, können die
+   Werte mit <em>null</em> übergebenen werden.
+</p>
+<p>
+   Zur weiteren Verwaltung der Provider stehen noch die statischen Methoden
+</p>
+<ul>
+   <li>removeProvider($extension)</li>
+   <li>getRegisteredProviders()</li>
+   <li>retrieveProvider($extension)</li>
+</ul>
+<p>
+   zur Verfügung.
+</p>
+
+<h4 id="Chapter-6-2-Format-Konvertierung"><a href="#Chapter-6-2-Format-Konvertierung">6.2. Format-Konvertierung</a></h4>
+<p>
+   Da die Konfiguration über das gemeinsame Interface <em>Configuration</em> abstrahiert ist, ist
+   es möglich, Format-Konvertierungen durchzuführen. Das bedeutet konkret, dass das Konzept der
+   Provider es erlaubt, eine über den INI-Provider geladene Konfiguration als XML-Datei zu speichern.
+</p>
+<div class="warn">
+   Format-Konvertierungen sind aktuell nur für den INI- und XML-Provider uneingeschränkt möglich, da
+   diese beliebige hierarchische Strukturen unterstützen. Das Datenbank-Format kann nur einfache
+   Hierarchien verarbeiten und ist daher nur als Quelle für eine Format-Konvertierung geeignet. Der
+   <em>MemcachedConfigurationProvider</em> ist hauptsächlich für die Performance-Optimierung gedacht
+   und implementiert daher kein eigenes Format, in das die Daten konvertiert werden können.
+</div>
+<p>
+   Um eine INI-Datei als XML abspeichern zu können (oder umgekehrt) kann folgender Code verwendet
+   werden:
+</p>
+<gen:highlight type="php">
+$config = $this->getConfiguration('widgets\calendar', 'labels.ini');
+$this->saveConfiguration('widgets\calendar', 'labels.xml', $config);
+</gen:highlight>
+<p>
+   Für den umgekehrten Fall müssen lediglich die Endungen tauscht werden:
+</p>
+<gen:highlight type="php">
+$config = $this->getConfiguration('widgets\calendar', 'labels.xml');
+$this->saveConfiguration('widgets\calendar', 'labels.ini', $config);
+</gen:highlight>
+<p>
+   Zwischen dem Absetzen der beiden Methoden-Aufrufe ist es natürlich ohne weiteres möglich, die
+   Konfiguration zu manipulieren.
+</p>
+
+<h3 id="Chapter-7-Erweiterung-der-Formate"><a href="#Chapter-7-Erweiterung-der-Formate">7. Erweiterung der Formate</a></h3>
+<p>
+   Das <a href="#Chapter-2-2-Software-Komponenten">Design der Komponenten</a> der APF-Konfiguration
+   ist auf einfache Erweiterbarkeit und generische Verwendung ausgelegt. Um ein bestehendes Format
+   zu erweitern, können die oben aufgeführten Provider-Klassen überschrieben und an die Anforderung
+   angepasst werden. Alternativ empfiehlt es sich, die Interfaces zu nutzen um neue 
+   Konfigurations-Schemata bereitzustellen.
+</p>
+<p>
+   Dies soll in den folgenden Kapiteln an Hand des 
+   <a class="external" href="http://de.wikipedia.org/wiki/JSON">JSON</a>-Formats demonstriert werden.
+</p>
+
+<h4 id="Chapter-7-1-Implementierung-Configuration"><a href="#Chapter-7-1-Implementierung-Configuration">7.1. Implementierung des Configuration-Interface</a></h4>
+<p>
+   Zur Bereitstellung der relevanten Abstraktion der Konfiguration muss das Interface
+   <em>Configuration</em> für den Provider implementiert werden. Im einfachsten Fall kann hierzu
+   die Klasse <em>BaseConfiguration</em> genutzt werden, die bereits für den INI- und XML-Provider
+   genutzt wird.
+</p>
+<p>
+   Da das JSON-Format eine beliebige Komplexität hinsichtlich der Hierarchie abbilden kann, reicht
+   es in diesem Fall aus, die Klasse <em>BaseConfiguration</em> als Basis zu nutzen:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\Configuration;
+use APF\core\configuration\provider\BaseConfiguration;
+
+class JsonConfiguration extends BaseConfiguration implements Configuration {
+}
+</gen:highlight>
+
+<h4 id="Chapter-7-2-Implementierung-Provider"><a href="#Chapter-7-2-Implementierung-Provider">7.2. Implementierung des ConfigurationProvider-Interface</a></h4>
+<p>
+   Die Haupt-Aufgabe liegt nun bei der Implementierung des Providers, der das Format interpretiert
+   und in die &quot;Domänen-Objekte&quot; (in diesem Fall: <em>JsonConfiguration</em>) übersetzt bzw.
+   die Objekt-Repräsentation zurück nach JSON überführt um die Konfiguration speichern zu können.
+</p>
+<p>
+   Auch hier kann die für die INI- und XML-Provider vorhandene Klasse <em>BaseConfigurationProvider</em>
+   zur Vereinfachung der Implementierung genutzt werden. Das Grundgerüst des Providers sieht also
+   folgenden Code vor:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\ConfigurationProvider;
+use APF\core\configuration\provider\BaseConfigurationProvider;
+
+class JsonConfigurationProvider extends BaseConfigurationProvider implements ConfigurationProvider {
+   ...
+}
+</gen:highlight>
+<p>
+   PHP bietet für das Handling des JSON-Format die Funktionen <em>json_encode()</em> und
+   <em>json_decode()</em> an. Diese können dazu genutzt werden, ein Objekt nach JSON zu serialisieren
+   und aus dem serialisierten Element eine Objekt-Struktur wieder herzustellen. Hinsichlich der
+   Serialisierung besteht jedoch die Einschränkung, dass Objekt-Beschreibungen nicht mit in die
+   Datenstruktur abgelegt werden. Damit ist es direkt nicht möglich die Funktionen für die
+   Codierung und Decodierung von <em>JsonConfiguration</em>-Objekten zu nutzen. Der Provider
+   muss in diesem Fall also als <em>data mapper</em> im Rahmen eines Transfer-Formates fungieren.
+</p>
+<p>
+   Für dieses Beispiel entscheiden wir uns daher, Arrays als Meta-Format zu nutzen. Enthält ein
+   Offset ein weiteres Array als Datentyp, ist der Offset als weitere Sektion anzusehen, ist dort
+   ein skalarer Wert abgelegt, handelt es sich um eine Schlüssel-Wert-Zuweisung. Die Dekodierung
+   einer in der JSON-Notation abgelegten Struktur wird dabei jedoch weiter von der Funktion
+   <em>json_decode()</em> (im Fall des Lesens einer Konfiguration) erledigt.
+</p>
+<p>
+   Der folgende Code-Block zeigt nun das Mapping einer JSON-Struktur in zunächst eine Array-Struktur
+   und anschließend die Übersetzung in die APF-Konfigurations-Objekte:
+</p>
+<gen:highlight type="php">
+private function mapStructure($fileContent) {
+
+   $rawConfiguration = json_decode($fileContent, true);
+
+   $config = new JsonConfiguration();
+
+   foreach ($rawConfiguration as $name => $value) {
+      if (is_array($value)) {
+         $config->setSection($name, $this->mapSection($value));
+      } else {
+         $config->setValue($name, $value);
+      }
+   }
+
+   return $config;
+}
+
+private function mapSection(array $section) {
+
+   $config = new JsonConfiguration();
+
+   foreach ($section as $name => $value) {
+      if (is_array($value)) {
+         $config->setSection($name, $this->mapSection($value));
+      } else {
+         $config->setValue($name, $value);
+      }
+   }
+
+   return $config;
+}
+</gen:highlight>
+<p>
+   Eine JSON-Struktur der Form
+</p>
+<gen:highlight type="code">
+{
+   "Section_One":
+      {
+         "foo":"bar",
+         "bar":"baz",
+         "sub-section":
+            {
+               "key1":"value1",
+               "key2":"value2",
+               "key3":"value3"
+            }
+       }
+}
+</gen:highlight>
+<p>
+   Wir damit in eine Objekt-Struktur der Form
+</p>
+<gen:highlight type="code">
+JsonConfiguration Object
+(
+    [values:private] => Array
+        (
+        )
+    [sections:private] => Array
+        (
+            [Section_One] => JsonConfiguration Object
+                (
+                    [values:private] => Array
+                        (
+                            [foo] => bar
+                            [bar] => baz
+                        )
+                    [sections:private] => Array
+                        (
+                            [sub-section] => JsonConfiguration Object
+                                (
+                                    [values:private] => Array
+                                        (
+                                            [key1] => value1
+                                            [key2] => value2
+                                            [key3] => value3
+                                        )
+                                    [sections:private] => Array
+                                        (
+                                        )
+                                )
+                        )
+                )
+        )
+)
+</gen:highlight>
+<p>
+   übersetzt. Nun muss noch der Rückschritt implementiert werden, der die Objekt-Struktur in ein
+   Array konvertiert, das dann per <em>json_encode()</em> in die Datei gespeichert werden kann. Hier
+   machen wir uns die Methoden <em>getValueNames()</em> und <em>getSectionNames()</em> zu Nutze, die
+   alle Elemente der aktuellen Konfiguration bzw. Sektion aufzählen. Der notwendige Quellcode sieht
+   folgendes vor:
+</p>
+<gen:highlight type="php">
+private function resolveStructure(JsonConfiguration $config) {
+
+   $rawConfig = array();
+
+   foreach ($config->getSectionNames() as $name) {
+      $rawConfig[$name] = $this->resolveSection($config->getSection($name));
+   }
+
+   return json_encode($rawConfig);
+}
+
+private function resolveSection(JsonConfiguration $config) {
+
+   $rawConfig = array();
+
+   foreach ($config->getValueNames() as $name) {
+      $rawConfig[$name] = $config->getValue($name);
+   }
+
+   foreach ($config->getSectionNames() as $name) {
+      $rawConfig[$name] = $this->resolveSection($config->getSection($name));
+   }
+
+   return $rawConfig;
+}
+</gen:highlight>
+<p>
+   Um den Provider vollwertig nutzen zu können, ist nun noch die Implementierung der Methoden
+   <em>loadConfiguration()</em> und <em>saveConfiguration()</em> notwendig. Diese beinhaltet jeweils
+   einen Aufruf der genannten Mapping-Methoden und weitere Sicherungs-Maßnahmen. Hier der Quellcode
+   im Überblick:
+</p>
+<gen:highlight type="php">
+use APF\core\configuration\Configuration;
+use APF\core\configuration\ConfigurationException;
+use APF\core\configuration\ConfigurationProvider;
+use APF\core\configuration\provider\BaseConfigurationProvider;
+use APF\core\configuration\provider\json\JsonConfiguration;
+
+class JsonConfigurationProvider extends BaseConfigurationProvider implements ConfigurationProvider {
+
+   public function loadConfiguration($namespace, $context, $language, $environment, $name) {
+
+      $fileName = $this->getFilePath($namespace, $context, $language, $environment, $name);
+
+      if (file_exists($fileName)) {
+         return $this->mapStructure(file_get_contents($fileName));
+      }
+
+      throw new ConfigurationException('Configuration file "' . $fileName . '" can notbe found!');
+   }
+
+   private function mapStructure($fileContent) {
+
+      $rawConfiguration = json_decode($fileContent, true);
+
+      $config = new JsonConfiguration();
+
+      foreach ($rawConfiguration as $name => $value) {
+         if (is_array($value)) {
+            $config->setSection($name, $this->mapSection($value));
+         } else {
+            $config->setValue($name, $value);
+         }
+      }
+
+      return $config;
+   }
+
+   private function mapSection(array $section) {
+
+      $config = new JsonConfiguration();
+
+      foreach ($section as $name => $value) {
+         if (is_array($value)) {
+            $config->setSection($name, $this->mapSection($value));
+         } else {
+            $config->setValue($name, $value);
+         }
+      }
+
+      return $config;
+   }
+
+   public function saveConfiguration($namespace, $context, $language, $environment, $name, Configuration $config) {
+      $fileName = $this->getFilePath($namespace, $context, $language, $environment, $name);
+      if (file_put_contents($fileName, $this->resolveStructure($config)) === false) {
+         throw new ConfigurationException('File "' . $fileName . '" cannot be saved!');
+      }
+   }
+
+   private function resolveStructure(JsonConfiguration $config) {
+
+      $rawConfig = array();
+
+      foreach ($config->getSectionNames() as $name) {
+         $rawConfig[$name] = $this->resolveSection($config->getSection($name));
+      }
+
+      return json_encode($rawConfig);
+   }
+
+   private function resolveSection(JsonConfiguration $config) {
+
+      $rawConfig = array();
+
+      foreach ($config->getValueNames() as $name) {
+         $rawConfig[$name] = $config->getValue($name);
+      }
+
+      foreach ($config->getSectionNames() as $name) {
+         $rawConfig[$name] = $this->resolveSection($config->getSection($name));
+      }
+
+      return $rawConfig;
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-7-3-Verwendung"><a href="#Chapter-7-3-Verwendung">7.3. Verwendung</a></h4>
+<p>
+   Der im vorangegangenen Kapitel beschriebene Provider unterstützt wie auch der INI- und XML-Provider
+   eine beliebige Komplexität der Konfiguration und kann daher ohne Einschränkung zur
+   <a href="#Chapter-6-2-Format-Konvertierung">Format-Konvertierung</a> eingesetzt werden.
+</p>
+<p>
+   Die Anwendung des Providers gestaltet sich analog zu den im letzten Absatz genannten Providern.
+   Zunächst muss er nach dem Einbinden der <em>bootstrap.php</em> für eine beliebige Endung
+   registriert und kann dann wie im Kapitel <a href="#Chapter-3-Vorhandene-Provider">Vorhandene Provider</a>
+   beschrieben zum Laden und Speichern von Konfiurationen eingesetzt werden. Er unterstützt dabei
+   alle besonderen Features aus Abschnitt
+   <a href="#Chapter-5-1-Ini-und-Xml-Provider">Konfiguration des INI- und XML-Providers</a>.
+</p>
+<div class="hint">
+   Der hier beschriebene Provider ist im APF-Release ebenfalls enthalten und der Quellcode kann
+   unter dem Namespace <em>APF\core\configuration\provider\json</em> eingesehen werden.
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_134" />
