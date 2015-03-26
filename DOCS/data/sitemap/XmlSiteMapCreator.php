@@ -1,7 +1,8 @@
 <?php
 namespace DOCS\data\sitemap;
 
-
+use APF\core\database\ConnectionManager;
+use APF\core\pagecontroller\APFObject;
 use DOCS\biz\UrlManager;
 
 class XmlSiteMapCreator extends APFObject {
@@ -13,16 +14,16 @@ class XmlSiteMapCreator extends APFObject {
       $config = $this->getConfiguration('DOCS\biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
-      $sql = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      $cM = &$this->getServiceObject('APF\core\database\ConnectionManager');
+      $sql = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       $select = 'SELECT * FROM search_articles ORDER BY PageID ASC';
       $result = $sql->executeTextStatement($select);
 
       /* @var $urlMan UrlManager */
-      $urlMan = & $this->getServiceObject('DOCS\biz\UrlManager');
+      $urlMan = &$this->getServiceObject('DOCS\biz\UrlManager');
 
-      $buffer = (string)'<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
+      $buffer = (string) '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
       $buffer .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 
       while ($data = $sql->fetchData($result)) {
@@ -36,6 +37,7 @@ class XmlSiteMapCreator extends APFObject {
       }
 
       $buffer .= '</urlset>' . PHP_EOL;
+
       return $buffer;
    }
 
