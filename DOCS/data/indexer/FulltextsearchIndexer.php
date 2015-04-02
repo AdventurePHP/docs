@@ -7,6 +7,7 @@ use APF\core\database\DatabaseHandlerException;
 use APF\core\logging\LogEntry;
 use APF\core\logging\Logger;
 use APF\core\pagecontroller\APFObject;
+use APF\core\pagecontroller\Document;
 use APF\core\pagecontroller\Page;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
@@ -325,6 +326,11 @@ class FulltextsearchIndexer extends APFObject {
       $model->setVersionId($version);
       $model->setPageContentFileName('c_' . $lang . '_' . $fileName . '.html');
       $model->setAttribute('page.language', $lang);
+
+      Document::addTagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link');
+      Document::addTagLib('DOCS\pres\taglib\DocumentationTitleTag', 'doku', 'title');
+      Document::addTagLib('DOCS\pres\taglib\GenericHighlightTag', 'gen', 'highlight');
+      Document::addTagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link');
 
       // create a page
       $currentPage = new Page();
