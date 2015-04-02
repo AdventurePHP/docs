@@ -1,0 +1,1386 @@
+<doku:title parent="119" tags="service,object,dependency,injection,di,framework,factory,service manager,manager,business services" title="Services" urlname="Services">
+   The present chapter describes the object creation mechanisms contained in the framework. In particular, it details
+   the dependency injection container that brings the ability to easily provide pre-configured objects.
+</doku:title>
+
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   Encapsulation of certain functionality into separate components is a well-known pattern in object oriented development.
+   The advantages are described as <em>Multi-tier Architecture Pattern</em>. This means that each layer takes responsibility
+   of dedicated parts of the application.
+</p>
+<p>
+   Typically, <em>layers</em> or <em>services</em> are represented by one ore more classes what drives the need to create
+   those classes. Moreover, it's your challenge to design and create reusable layers - <em>services</em> - that expose an
+   easy-to-use and self-explantory API. An application's  data layer for instance requires a connection to an external
+   data source whereas a business component has to know about the environment the application is used. In addition,
+   layers define dependencies amongst each other.
+</p>
+<p>
+   In order to ensure proper encapsulation and thus exchangeability of layers within an application an upper layer should
+   not know about the internal structure and functionality of low layer components. To achieve this creation methods and
+   configuration should be separated from the calling layer.
+</p>
+<p>
+   The following chapters explain mechanisms and tools for <int:link pageid="030" /> that allow encapsulation of
+   functionality and creating clear structures within your application.
+</p>
+
+<h3 id="Chapter-2-Creation-of-objects"><a href="#Chapter-2-Creation-of-objects">2. Creation of objects</a></h3>
+<p>
+   The Adventure PHP Framework uses different paradigms to create objects within the <int:link pageid="012" /> and
+   <int:link pageid="098" />. Especially <em>Front-Controller-Actions</em> and <em>Tags</em> containing UI
+   functionality have to be provided with their runtime environment. This is about injecting the parent component and
+   applying the current <em>context</em> and <em>language</em> in order to access <int:link pageid="134" /> depending on
+   those values. Therefor, the APF uses both <em>Factory pattern</em> and <em>Dependency Injection Pattern</em>.
+</p>
+<div class="hint">
+   Creating objects APF components hand on
+   <ul>
+      <li>Context and</li>
+      <li>Language</li>
+   </ul>
+   These are essential information that are applied to each and every object to for instance load
+   <int:link pageid="134" /> items or realize language-dependent functionality (e.g.
+   <int:link pageid="046" anchor="Chapter-2-2-Getstring" />).
+</div>
+<p>
+   The framework lays it's clear focus on creating UI along with mechanisms and functionality required for that. This
+   means, that you as a developer are responsible for creating objects outside of the UI area. For this reason, the APF
+   contains two tools to support this at best: <a href="#Chapter-3-ServiceManager">ServiceManager</a> and the
+   <a href="#Chapter-4-DIServiceManager">DIServiceManager</a>.
+</p>
+<div class="warn">
+   Please ensure that all objects having access to configurations or create further objects that make use of the current
+   context or language of your application are created by either <em>ServiceManager</em> or <em>DIServiceManager</em>.
+   Otherwise, there will be errors loading configurations or create context- or language-dependent objects.
+</div>
+<div class="hint">
+   <p>
+      For the benefit of a generic facility to create any kind of class as <em>Singleton</em>, <em>SessionSingleton</em>,
+      or <em>ApplicationSingleton</em> the APF does not support constructor arguments. Initialization is only done using
+      <em>method injection</em> or <em>setter injection</em> respectively. Dependencies in terms of configuration and
+      other services are thus applied after construction of the respective object.
+   </p>
+   <p>
+      <a href="#Chapter-4-3-1-Configuration-scheme">Chapter 4.3.1</a> depicts mechanisms to do further initialization
+      (see: <em>setupmethod</em>).
+   </p>
+</div>
+
+<h3 id="Chapter-3-ServiceManager"><a href="#Chapter-3-ServiceManager">3. ServiceManager</a></h3>
+<p>
+   The <em>ServiceManager</em> is an extension to the existing <em>Singleton</em>-, <em>SessionSingleton</em>-, and
+   <em>ApplicationSingleton</em> implementations described under <int:link pageid="030" />. Compared to these implementations,
+   the <em>ServiceManager</em> is better integrated into the framework and <em>APFObject</em> offers a
+   <em>convenience method</em> <em>APFObject::getServiceObject()</em> that can be used to easily create objects.
+</p>
+<p>
+   The current <em>context</em> and <em>language</em> are automatically applied to the created instance by the
+   <em>ServiceManager</em> and is thus returned fully initialized.
+</p>
+
+<h4 id="Chapter-3-1-Service-definition"><a href="#Chapter-3-1-Service-definition">3.1. Service definition</a></h4>
+<p>
+   To create objects with the <em>ServiceManager</em> the class definition must comply with the <em>APFService</em>
+   interface. This interface allows to inject context and language and is used to mark services classes.
+</p>
+<p>
+   The interface is as follows:
+</p>
+<gen:highlight type="php">
+interface APFService {
+
+   const SERVICE_TYPE_NORMAL = 'NORMAL';
+   const SERVICE_TYPE_CACHED = 'CACHED';
+   const SERVICE_TYPE_SINGLETON = 'SINGLETON';
+   const SERVICE_TYPE_SESSION_SINGLETON = 'SESSIONSINGLETON';
+   const SERVICE_TYPE_APPLICATION_SINGLETON = 'APPLICATIONSINGLETON';
+
+   public function setContext($context);
+
+   public function getContext();
+
+   public function setLanguage($lang);
+
+   public function getLanguage();
+
+   public function setServiceType($serviceType);
+
+   public function getServiceType();
+
+}
+</gen:highlight>
+<p>
+   The constants listed above define the list of possible creation patterns of services. The subsequently listed
+   methods allow injection of context and language.
+</p>
+<div class="warn">
+   In case the object to create does not implement the <em>APFService</em> interface and exception is thrown.
+</div>
+
+<h4 id="Chapter-3-2-Creation-of-services"><a href="#Chapter-3-2-Creation-of-services">3.2. Creation of services</a></h4>
+<p>
+   Within your application you can use the <em>ServiceManager</em> either directly (see
+   <a href="#Chapter-3-2-1-Native-usage">3.2.1. Native usage</a>) or via <em>APFObject::getServiceObject()</em> (she
+   <a href="#Chapter-3-2-2-Using-the-wrapper">3.2.2. Using the wrapper</a>). The following chapters discuss the pros and
+   cons.
+</p>
+
+<h5 id="Chapter-3-2-1-Native-usage"><a href="#Chapter-3-2-1-Native-usage">3.2.1. Native usage</a></h5>
+<p>
+   The <em>ServiceManager</em> can be used allover the code invoking it's static method <em>getServiceObject()</em>. Here
+   is an example:
+</p>
+<gen:highlight type="php">
+use APF\core\service\ServiceManager;
+$instance = &ServiceManager::getServiceObject('VENDOR\..\Class', $context, $language);
+</gen:highlight>
+<p>
+   As you can take from the code snippet you need to know about the context and the current language retrieving an
+   object instance. In general you always have these pieces of information present within an APF-created object since the
+   framework takes care to distribute all relevant information.
+</p>
+<p>
+   In case you create objects on your own or you are out of the area of validity of an object - e.g. within your
+   <em>index.php</em> - you may want to use the <int:link pageid="012" /> instance as source. Usually, the instance is
+   created within your bootstrap file using setting the current context and language. The relevant code is as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\frontcontroller\Frontcontroller;
+use APF\core\singleton\Singleton;
+
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+
+$context = $fC->getContext();
+$language = $fC->getLanguage();
+
+use APF\core\service\ServiceManager;
+$instance = &ServiceManager::getServiceObject('VENDOR\..\Class', $context, $language);
+</gen:highlight>
+<div class="warn">
+   Please note, that within the DOM tree of the <int:link pageid="098" /> context and language can be re-defined for
+   certain child structures within the tree. For this reason and to avoid issues with propagation of context and language
+   it is recommended to use the wrapper method (see
+   <a href="#Chapter-3-2-2-Using-the-wrapper">chapter 3.2.2</a>).
+</div>
+
+<h5 id="Chapter-3-2-2-Using-the-wrapper"><a href="#Chapter-3-2-2-Using-the-wrapper">3.2.2. Using the wrapper</a></h5>
+<p>
+   <em>APFObject</em> contains the <em>getServiceObject()</em> method that encapsulates a <em>ServiceManager</em> call.
+   It also takes care of applying the correct context and language. You can create objects as follows using this approach:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\APFObject;
+
+class GodObject extends APFObject {
+   public function doSomething(){
+      $service =
+         &$this->getServiceObject(
+            $serviceClass,
+            [$type = APFService::SERVICE_TYPE_SINGLETON],
+            [$instanceId = null]
+         );
+      $service->doSomethingElse();
+   }
+}
+</gen:highlight>
+<p>
+   <em>APFObject::getServiceObject()</em> offers the following parameters:
+</p>
+<ul>
+   <li>
+      <strong>$serviceClass</strong>:
+      Defines the fully-qualified name of the service implementation (e.g. <em>VENDOR\..\MyServiceName</em>).
+   </li>
+   <li>
+      <strong>$type</strong>:
+      The <em>$type</em> parameter defines the object creation flavor and thus the area of validity of the instance.
+      Available values:
+      <ul>
+         <li><em>APFService::SERVICE_TYPE_NORMAL</em></li>
+         <li><em>APFService::SERVICE_TYPE_SINGLETON</em></li>
+         <li><em>APFService::SERVICE_TYPE_SESSION_SINGLETON</em></li>
+         <li><em>APFService::SERVICE_TYPE_APPLICATION_SINGLETON</em></li>
+      </ul>
+      This parameter is optional. Default value is <em>APFService::SERVICE_TYPE_SINGLETON</em>. Details on the listed
+      areas of validity can be taken from <int:link pageid="030" />.
+   </li>
+   <li>
+      <strong>$instanceId</strong>:
+      All implementations described in chapter <int:link pageid="030" /> have the ability to define unique identifiers
+      for object instances. This can be used to create several instances of the same implementation e.g. for several
+      database connections based on the same implementation. This feature can also be used with the
+      <em>ServiceManager</em>.
+   </li>
+</ul>
+<div class="hint">
+   To ease implementation of services you may want to derive your class from <em>APFObject</em> instead of implementing
+   the <em>APFService</em> interface. <em>APFObject</em> already includes all relevant basics to start from.
+</div>
+
+<h3 id="Chapter-4-DIServiceManager"><a href="#Chapter-4-DIServiceManager">4. DIServiceManager</a></h3>
+<p>
+   The <em>DIServiceManager</em> is a <em>Dependency Injection</em> and <em>Inversion of Control</em> container creating
+   and configuring services (see
+   <a href="http://www.martinfowler.com/articles/injection.html">Inversion of Control Containers and the Dependency Injection pattern</a>
+   by Martin Fowler). The definition of Services is based on configuration files (paradigm: <em>wire by configuration</em>),
+   that both define the service implementation as well as dependencies and configuration parameters.
+</p>
+<p>
+   Creating the service instanced the <em>DIServiceManager</em> uses the capabilities of the
+   <a href="#Chapter-3-ServiceManager">ServiceManager</a> and thus offers applicable areas of validity for all use cases
+   (details can be taken from <int:link pageid="030" />).
+</p>
+<p>
+   Compared to the <em>ServiceManager</em> the dependency injection container offers another abstraction layer creating
+   and configuring services. Using the container you do not directly refer to an implementation but a configuration. This
+   eases exchanging implementations or use MOCk implementations on-demand.
+</p>
+<p>
+   Using the container you can either use the static method <em>DIServiceManager::getServiceObject()</em> or the
+   <em>convenience method</em> <em>APFObject::getDIServiceObject()</em>.
+</p>
+<p>
+   Using <em>APFObject::getDIServiceObject()</em> the current <em>context</em> and <em>language</em> are automatically
+   applied to the <em>DIServiceManager</em> and thus the created object will be fully initialized.
+</p>
+<p>
+   Services can be prepared for usage by both other services or static configuration parameters.
+</p>
+
+<h4 id="Chapter-4-1-Service-definition"><a href="#Chapter-4-1-Service-definition">4.1. Service definition</a></h4>
+<p>
+   In order to create objects with the <em>DIServiceManager</em> your implementation must comply with the <em>APFDIService</em>
+   interface. This interfaces is based on <em>APFService</em> and provides the necessary structure to create and manage
+   instances with the dependency injection container.
+</p>
+<p>
+   The interface is as follows:
+</p>
+<gen:highlight type="php">
+interface APFDIService extends APFService {
+
+   public function markAsInitialized();
+
+   public function markAsPending();
+
+   public function isInitialized();
+
+}
+</gen:highlight>
+<p>
+   All methods listed above allow the container to query the status of the instance - e.g. the initialization state.
+</p>
+<div class="warn">
+   Due to the fact that the object creation is delegated to the <em>ServiceManager</em> it is required that your
+   implementation is t least an <em>APFService</em>. Otherwise, an exception is thrown.
+</div>
+
+<h4 id="Chapter-4-2-Creation-of-services"><a href="#Chapter-4-2-Creation-of-services">4.2. Creation of services</a></h4>
+<p>
+   Within your application you can use the <em>DIServiceManager</em> either directly (see
+   <a href="#Chapter-4-2-1-Native-usage">4.2.1. Native usage</a>) or via <em>APFObject::getDIServiceObject()</em>
+   (see <a href="#Chapter-4-2-2-Usage-of-the-wrapper">4.2.2. Usage of the wrapper</a>). The following chapters describe
+   the pros and cons.
+</p>
+
+<h5 id="Chapter-4-2-1-Native-usage"><a href="#Chapter-4-2-1-Native-usage">4.2.1. Native usage</a></h5>
+<p>
+   The <em>DIServiceManager</em> can be used allover the code invoking it's static method <em>getServiceObject()</em>.
+   Here is an example:
+</p>
+<gen:highlight type="php">
+use APF\core\service\DIServiceManager;
+$instance = &DIServiceManager::getServiceObject('VENDOR\..', 'Service-Name', $context, $language);
+</gen:highlight>
+<p>
+   The first two parameters define the <em>namespace</em> and the <em>name</em> of the service definition. This effectively
+   refers a configuration section that defines the services (details see
+   <a href="#Chapter-4-3-Configuration">chapter 4.3</a>. Calling this method the current context and language must be
+   present. In general you always have these pieces of information present within an APF-created object since the
+   framework takes care to distribute all relevant information.
+</p>
+<p>
+   In case you create objects on your own or you are out of the area of validity of an object - e.g. within your
+   <em>index.php</em> - you may want to use the <int:link pageid="012" /> instance as source. Usually, the instance is
+   created within your bootstrap file using setting the current context and language. The relevant code is as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\frontcontroller\Frontcontroller;
+use APF\core\singleton\Singleton;
+
+$fC = &Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+
+$context = $fC->getContext();
+$language = $fC->getLanguage();
+
+use APF\core\service\DIServiceManager;
+$instance = &DIServiceManager::getServiceObject('VENDOR\..', 'Service-Name', $context, $language);
+</gen:highlight>
+<div class="warn">
+   Please note, that within the DOM tree of the <int:link pageid="098" /> context and language can be re-defined for
+   certain child structures within the tree. For this reason and to avoid issues with propagation of context and language
+   it is recommended to use the wrapper method (see <a href="#Chapter-4-2-2-Usage-of-the-wrapper">chapter 4.2.2</a>).
+</div>
+
+<h5 id="Chapter-4-2-2-Usage-of-the-wrapper"><a href="#Chapter-4-2-2-Usage-of-the-wrapper">4.2.2. Usage of the wrapper</a></h5>
+<p>
+   <em>APFObject</em> offers the <em>getDIServiceObject()</em> method that encapsulates the <em>DIServiceManager</em>.
+   It takes care to distribute the current context and language. You can create objects as follows:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\APFObject;
+
+class GodObject extends APFObject {
+   public function doSomething(){
+      $service =
+         &$this->getDIServiceObject(
+            $serviceNamespace
+            $serviceName
+         );
+      $service->doSomethingElse();
+   }
+}
+</gen:highlight>
+<p>
+   <em>APFObject::getDIServiceObject()</em> has the following parameters defined:
+</p>
+<ul>
+   <li>
+      <strong>$serviceNamespace</strong>:
+      Defines the namespace of the service configuration (e.g. <em>VENDOR\namespace\of\my\component</em>).
+   </li>
+   <li>
+      <strong>$serviceName</strong>:
+      Defines the reference name of the service configuration within the previously defined namespace (e.g. <em>open-weather-map-service</em>).
+   </li>
+</ul>
+<div class="hint">
+   To ease implementation of services you may want to derive your class from <em>APFObject</em> instead of implementing
+   the <em>APFService</em> interface. <em>APFObject</em> already includes all relevant basics to start from.
+</div>
+
+<h4 id="Chapter-4-3-Configuration"><a href="#Chapter-4-3-Configuration">4.3. Configuration</a></h4>
+<p>
+   Creation and configuration of services with the <em>DIServiceManager</em> significantly differs from using the
+   <a href="#Chapter-3-ServiceManager">ServiceManager</a>. Each service is described by a unique configuration. This is
+   because one service is not only representing itself but can also be used to initialize other services. This allows you
+   to define dependencies between different service with the <em>DIServiceManager</em>.
+</p>
+<p>
+   Definition of a single service is done using a configuration section that is addressed by the namespace of the config
+   file and the name of the section itself. The <em>DIServiceManager</em> uses the configuration mechanism of the APF to
+   load <int:link pageid="134" /> files.
+</p>
+<p>
+   Using the <em>ConfigurationManager</em> offers several possibilities - e.g. define services depending on namespace,
+   context, and environment. This means:
+</p>
+<ul>
+   <li>
+      Services can be grouped into logical areas using <em>namespaces</em>. This eases naming and separation within your
+      application.
+   </li>
+   <li>
+      Services can be defined or configured according to their usage scenario (<em>context</em>). This for instance
+      allows you to used two different services for weather forecasts within one application based on the same
+      implementation.
+   </li>
+   <li>
+      Using the <em>environment</em> services can be tailored to different physical platforms (e.g. development, staging
+      production). The same implementation can e.g. be used within a development environment where the service runs in
+      debug mode or on production servers where only dedicated information is written to log files.
+   </li>
+</ul>
+<p>
+   The subsequent chapters describe the details on configuration of services.
+</p>
+
+<h5 id="Chapter-4-3-1-Configuration-scheme"><a href="#Chapter-4-3-1-Configuration-scheme">4.3.1. Configuration scheme</a></h5>
+<p>
+   The definition of services is described by a configuration section within a configuration file with name
+   <em>{ENVIRONMENT}_serviceobjects.ini</em> as mentioned above. The value for environment must be replaced by the
+   value that your application defines (default: <em>DEFAULT</em>).
+</p>
+<p>
+   Within this kind of file each section defines a unique and independently usable service definition. The content of
+   one section is defined by the following scheme:
+</p>
+<gen:highlight type="ini">
+[{service-name}]
+class = ""
+servicetype = ""
+
+[conf.{CONF_KEY}.method = ""
+conf.{CONF_KEY}.value = ""]
+
+[init.{INIT_KEY}.method = ""
+init.{INIT_KEY}.namespace = ""
+init.{INIT_KEY}.name = ""]
+
+[setupmethod = ""]
+</gen:highlight>
+<p>
+   The meaning of the listed components are described below:
+</p>
+<ul>
+   <li>
+      <strong>service-name</strong>:
+      The <em>service-name</em> forms the unique identifier of a service in conjunction with the namespace of the
+      configuration file. It is used for requesting a service through <em>APFObject::getDIServiceObject()</em>
+      or <em>DIServiceManager::getServiceObject()</em> as well as for initializing services with other services.
+   </li>
+   <li>
+      <strong>class</strong>:
+      The fully-qualified class name of the service implementation (e.g. <em>VENDOR\..\Class</em>). The content of
+      this parameter is identical to the first parameter of an <em>ServiceManager::getServiceObject()</em> call.
+   </li>
+   <li>
+      <strong>servicetype</strong>:
+      This directive defines the way of creating the service. Please take the available modes from
+      <a href="#Chapter-3-2-2-Using-the-wrapper">chapter 3.2.2</a>. In addition, you may want to use
+      <em>APFService::SERVICE_TYPE_CACHED</em> or <em>CACHED</em>. This value means, that the service implementation is
+      created again with each request to the container (see <em>APFService::SERVICE_TYPE_NORMAL</em>) but the configuration
+      file is loaded only once.
+   </li>
+   <li>
+      <strong>conf.*</strong>:
+      The <em>conf</em> area is intended to initialize the service with static configuration.
+      <div class="hint">
+         This kind of initialization only allows to pass primitive data types. Thus, it is recommended for values like
+         user names, passwords, and URLs etc. (also called <em>simple configuration</em>).
+      </div>
+      Each service may define any number or attributes. This can be done by using multiple <em>conf</em> blocks choosing
+      an appropriate <em>{CONF_KEY}</em> place holder.
+      <div class="warn">
+         Please note that the <em>{CONF_KEY}</em> place holder must be the same within one group (for attributes
+         <em>method</em> and <em>value</em>) but different between various groups (combination of one <em>method</em>
+         and one <em>value</em> attribute). The following code block gives you an  example for initializing a service
+         with a user, a password, and a URL:
+<gen:highlight type="ini">
+conf.user.method = "setUser"
+conf.user.value = "John"
+
+conf.pass.method = "setPassword"
+conf.pass.value = "Doe"
+
+conf.url.method = "setUr"
+conf.url.value = "https://example.com/service/v1/soap"
+</gen:highlight>
+      </div>
+      Initializing the user key <em>user</em> has been defined. The value of the <em>conf.user.method</em> attribute
+      refers to the method that is called by the <em>DIServiceManager</em> on the service implementation defined with
+      the <em>class</em> attribute to apply the value of the <em>conf.user.value</em> attribute. Same applies to
+      other sections
+   </li>
+   <li>
+      <strong>init.*</strong>:
+      The <em>init</em> area is intended to initialize the service with dynamic or complex configuration using other
+      services.
+      <div class="hint">
+         Using this section you are able to use complex data structures to initialize services. This means passing
+         service instances as initialization parameter to the instance to be created (<em>dependency injection</em>) and
+         thus configure it for the designed use case (e.g. inject database connection to be used).
+      </div>
+      Each service dan be configured using any number of further services. This can be done by using multiple <em>init</em>
+      blocks choosing an appropriate <em>{INIT_KEY}</em> place holder.
+      <div class="warn">
+         Please note that the <em>{INIT_KEY}</em> place holder must be the same within one group (for attributes
+         <em>method</em>, <em>namespace</em>, and <em>name</em>) but different between various groups (combination of
+         one <em>method</em>-, one <em>value</em>, and one <em>name</em> attribute). The following code block gives you
+         an example for initializing a service the database connection for a weather forecast service:
+<gen:highlight type="ini">
+init.weather.method = "setWeatherService"
+init.weather.namespace = "VENDOR\namespace\of\service\definition"
+init.weather.name = "open-weather-map-service"
+
+init.db.method = "setDatabaseConnection"
+init.db.namespace = "VENDOR\namespace\of\database\connection\definition"
+init.db.name = "calendar-database-connection"
+</gen:highlight>
+      </div>
+      Initializing the weather forecast service key <em>weather</em> has been defined. The value of the
+      <em>init.weather.method</em> attribute refers to the method of the implementation defined with the <em>class</em>
+      attribute that the <em>DIServiceManager</em> calls to inject the service that is described by attributes
+      <em>init.weather.namespace</em> and <em>init.weather.name</em>. Same applies to other sections.
+   </li>
+   <li>
+      <strong>setupmethod</strong>:
+      Optional parameter <em>setupmethod</em> allows to call a method at the end of the configuration of an object using
+      the dependencies that are defined with the <em>conf.*</em> and <em>init.*</em> areas.
+      <div class="hint">
+         <em>setupmethod</em> can be used to further initialize the object instance using the injected information. This
+         is especially helpful for initialization of a service that needs all dependencies resolved previously (e.g.
+         name of the database connection).
+      </div>
+      <div class="warn">
+         In order to avoid multiple initialization calls your service may return <em>true</em> for method
+         <em>isInitialized()</em> defined within the <em>APFDIService</em> interface as soon as the inituialization is
+         done. This piece of information is used by the <em>DIServiceManager</em> to skip the <em>setupmethod</em>
+         call in case the service has already been initialized.
+      </div>
+   </li>
+</ul>
+
+<h5 id="Chapter-4-3-2-Service-definition"><a href="#Chapter-4-3-2-Service-definition">4.3.2. Service definition</a></h5>
+<p>
+   One single service is defined by a configuration section described in
+   <a href="#Chapter-4-3-1-Configuration-scheme">chapter 4.3.1</a> and references to other sections in case of
+   dependencies. The sections are defined within a configuration file can be addressed by their <em>namespace</em> and
+   the name of the file - <em>{ENVIRONMENT}_serviceobjects.ini</em>.
+</p>
+<p>
+   The name of the configuration file is fixed and cannot be changed. This allows you to omit the file name while
+   requesting services and thus eases the usage of the <em>DIServiceManager</em>. Within one file, you can define
+   several services as long as the name of the service - which in turn is the name of the service - is unique.
+</p>
+<p>
+   In case you try to query a service by
+</p>
+<gen:highlight type="php">
+use APF\core\service\DIServiceManager;
+
+$service = DIServiceManager::getServiceObject(
+   'VENDOR\namespace\of\service\definition',
+   'open-weather-map-service',
+   $context,
+   $language
+);
+</gen:highlight>
+<p>
+   the <em>DIServiceManager</em> expects a service definition - which in turn is represented by a configuration section
+   - named <em>open-weather-map-service</em> located within
+</p>
+<gen:highlight type="code">
+/path/to/VENDOR/config/namespace/of/service/definition/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini
+</gen:highlight>
+<p>
+   The parameter <em>/path/to/VENDOR</em> - which is the base path of the application and configuration files for vendor
+   <em>VENDOR</em> - as well as <em>{CONTEXT}</em> and <em>{ENVIRONMENT}</em> directly depend on the configuration of
+   your application. Details on the usage of configuration files and their schema definition can be taken from
+   <int:link pageid="134" /> and <int:link pageid="154" />.
+</p>
+<div class="hint">
+   <p>
+      Using namespace of configuration files and service names addressing services contained there developers are free
+      to define and structure service definitions. You can either define dependent services within the same configuration
+      file as well as on other ones.
+   </p>
+   <p>
+      This opportunity may be used to separate basic services or services that are used multiple times (e.g. database
+      connections) and place them into a basic namespace whereas dedicated services are located within a deeper section
+      of the namespace tree.
+   </p>
+</div>
+
+<h4 id="Chapter-4-4-Usage"><a href="#Chapter-4-4-Usage">4.4. Usage</a></h4>
+<p>
+   The subsequent features describe different use cases and the appropriate service implementation and configuration.
+</p>
+<h5 id="Chapter-4-4-1-Creation-of-a-simple-service"><a href="#Chapter-4-4-1-Creation-of-a-simple-service">4.4.1. Creation of a simple service</a></h5>
+<p>
+   The first use case is about creating a simple service that returns a shipment date based on the order date and time.
+   In order to display a possible shipment date the service should be used within a <int:link pageid="006" />.
+</p>
+
+<h6 id="Chapter-4-4-1-1-Implementation"><a href="#Chapter-4-4-1-1-Implementation">4.4.1.1. Implementation</a></h6>
+<p>
+   At first we are defining the structure of the service. The interface is as follows:
+</p>
+<gen:highlight type="php">
+namespace ACME\shop\order;
+
+interface PreliminaryShipmentDateCalculator {
+   /**
+    * @param \DateTime $orderDate
+    * @return \DateTime
+    */
+   public function getShipmentDate(\DateTime $orderDate);
+}
+</gen:highlight>
+<p>
+   The implementation should now calculate a shipment date based on the input:
+</p>
+<gen:highlight type="php">
+namespace ACME\shop\order;
+
+class SimpleShipmentDateCalculator extends APFObject implements PreliminaryShipmentDateCalculator {
+   private $shipmentPeriodInDays = 10;
+
+   public function getShipmentDate(DateTime $orderDate) {
+      return $orderDate->add(\DateInterval::createFromDateString('+' . $this->shipmentPeriodInDays . 'd'));
+   }
+}
+</gen:highlight>
+<div class="hint">
+   Please note, that <em>SimpleShipmentDateCalculator</em> extends <em>APFObject</em>. This means that it automatically
+   complies with the <em>APFDIService</em> and it's requirements. Doing so, you can easily implement services without
+   caring about the internals. In case you want to remove dependency to <em>APFObject</em> please follow the instructions
+   noted in <a href="#Chapter-4-4-5-Implementation-of-APFDIService">chapter 4.4.5.</a>.
+</div>
+<p>
+   In order to create a service within a document controller it is required to create the service configuration.
+</p>
+<div class="hint">
+   Defining the namespace of the service definition it is recommended to use the same namespace of the implementation
+   to express affiliation.
+</div>
+
+<h6 id="Chapter-4-4-1-2-Usage"><a href="#Chapter-4-4-1-2-Usage">4.4.1.2. Usage</a></h6>
+<p>
+   According to the hint within the last chapter the namespace of the service configuration should be defined as
+   <em>ACME\shop\order</em> and the name of the service definition is <em>shipment-date-calculator</em>. The service
+   can thus be used within a controller like this:
+</p>
+<gen:highlight type="php">
+namespace ACME\shop\ui\checkout;
+
+use ACME\shop\order\SimpleShipmentDateCalculator;
+use APF\core\pagecontroller\BaseDocumentController;
+
+class PreliminaryShipmentDateController extends BaseDocumentController {
+   public function transformContent() {
+
+      /* @var $service SimpleShipmentDateCalculator */
+      $service = & $this->getDIServiceObject('ACME\shop\order', 'shipment-date-calculator');
+
+      $this->setPlaceHolder(
+         'shipment-date',
+         $service->getShipmentDate(new \DateTime())->format('Y-m-d')
+      );
+
+   }
+
+}
+</gen:highlight>
+
+<h6 id="Chapter-4-4-1-3-Configuration"><a href="#Chapter-4-4-1-3-Configuration">4.4.1.3. Configuration</a></h6>
+<p>
+   Configuration - or the configuration file - depends on several parameters. For this use case we assume the following
+   facts:
+</p>
+<ul>
+   <li>
+      For vendor <em>ACME</em> a <em>StandardClassLoader</em> is registered according to the description under
+      <int:link pageid="154" /> which defines <em>/path/to/ACME</em> as base path.
+   </li>
+   <li>
+      Context of the application passed to the <int:link pageid="012" /> is <em>customer-one</em>.
+   </li>
+   <li>
+      Environment has been left as is for the current application and is thus <em>DEFAULT</em>.
+   </li>
+</ul>
+<p>
+   Assuming the above points the <em>DIServiceManager</em> expects the configuration file
+</p>
+<gen:highlight type="code">
+/path/to/ACME/config/shop/order/customer-one/DEFAULT_serviceobjects.ini
+</gen:highlight>
+<p>
+   to be filled withe
+</p>
+<gen:highlight type="ini">
+[shipment-date-calculator]
+class="ACME\shop\order\SimpleShipmentDateCalculator"
+servicetype="SINGLETON"
+</gen:highlight>
+
+<h5 id="Chapter-4-4-2-Initialization-of-a-simple-service"><a href="#Chapter-4-4-2-Initialization-of-a-simple-service">4.4.2. Initialization of a simple service</a></h5>
+<p>
+   In <a href="#Chapter-4-4-1-Creation-of-a-simple-service">chapter 4.4.1</a> <em>SimpleShipmentDateCalculator</em> has
+   been configured statically. This means, the average shipment days have been configured within the code. Withing this
+   chapter, the definition of the interface and the implementation should be improved to take a configurable amount of
+   days as configuration parameter.
+</p>
+
+<h6 id="Chapter-4-4-2-1-Implementation"><a href="#Chapter-4-4-2-1-Implementation">4.4.2.1. Implementation</a></h6>
+<p>
+   Interface <em>PreliminaryShipmentDateCalculator</em> now contains an additional method <em>setShipmentPeriod()</em>
+   to allow the service to be configured:
+</p>
+<gen:highlight type="php">
+namespace ACME\shop\order;
+
+interface PreliminaryShipmentDateCalculator {
+   /**
+    * @param int $shipmentPeriodInDays
+    */
+   public function setShipmentPeriodInDays($shipmentPeriodInDays);
+
+   /**
+    * @param \DateTime $orderDate
+    * @return \DateTime
+    */
+   public function getShipmentDate(\DateTime $orderDate);
+}
+</gen:highlight>
+<p>
+   The implementation is thus extended as follows:
+</p>
+<gen:highlight type="php">
+namespace ACME\shop\order;
+
+class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator {
+
+   /**
+    * @var int
+    */
+   private $shipmentPeriodInDays = 10;
+
+   public function setShipmentPeriodInDays($shipmentPeriodInDays) {
+      $this->shipmentPeriodInDays = $shipmentPeriodInDays;
+   }
+
+   public function getShipmentDate(\DateTime $orderDate) {
+      return $orderDate->add(\DateInterval::createFromDateString('+' . $this->shipmentPeriodInDays . 'd'));
+   }
+
+}
+</gen:highlight>
+
+<h6 id="Chapter-4-4-2-2-Configuration"><a href="#Chapter-4-4-2-2-Configuration">4.4.2.2. Configuration</a></h6>
+<p>
+   Based on the assumptions in <a href="#Chapter-4-4-1-3-Configuration">chapter 4.4.1.3</a> the configuration of the
+   <em>shipment-date-calculator</em> section can be enhanced as follows:
+</p>
+<gen:highlight type="ini">
+[shipment-date-calculator]
+class="ACME\shop\order\SimpleShipmentDateCalculator"
+servicetype="SINGLETON"
+
+conf.shipment-days.method="setShipmentPeriodInDays"
+conf.shipment-days.value="7"
+</gen:highlight>
+<p>
+   Using the service the delivery date is 7 days compared to the configuration in
+   <a href="#Chapter-4-4-1-2-Usage">chapter 4.4.1.2</a>.
+</p>
+<div class="hint">
+   With this change a clear separation of code and configuration has been introduced. This allows to define different
+   shipment days for different applications and different environments without changing the code.
+</div>
+
+<h5 id="Chapter-4-4-3-Using-the-initialization-method"><a href="#Chapter-4-4-3-Using-the-initialization-method">4.4.3. Using the initialization method</a></h5>
+<p>
+   Construction or configuration of objects is challenging in case internal states or resources (e.g. database connections)
+   are dependent on one or more configuration parameters. In such cases it is necessary to first resolve all dependencies
+   or resources and after that create &quot;operating state&quot; of the respective instance.
+</p>
+<p>
+   One possible solution is to use the <em>setter</em> methods to inject configuration parameters and to keep order for
+   all object usages while utilizing the last one to create the operating state. This approach is dangerous since with
+   inappropriate use or using the instance across the session the integrity of the internal object state cannot be
+   guaranteed.
+</p>
+<p>
+   In order to avoid issues with initialization the <em>DIServiceManager</em> offers execution of an initialization
+   method. It can be defined within the service configuration using the <em>setupmethod</em> attribute.
+</p>
+<div class="hint">
+   The <em>DIServiceManager</em> calls the specified method at the end of the configuration process - meaning after
+   injecting all dependencies defined within within the respective <em>conf.*</em> and <em>init.*</em> sections. This
+   ensures that all necessary information is available for finally initializing the instance.
+</div>
+
+<h6 id="Chapter-4-4-3-1-Implementation"><a href="#Chapter-4-4-3-1-Implementation">4.4.3.1. Implementation</a></h6>
+<p>
+   Within the following example <em>SimpleShipmentDateCalculator</em> from <a href="#Chapter-4-4-2-Initialization-of-a-simple-service">chapter 4.4.2</a>
+   will be extended to calculate the potential shipment date basic value and a time-dependent factor. The factor is
+   calculated by two different configuration parameters and is only valid within the time slot defined by the two
+   parameters.
+</p>
+<p>
+   <em>setupmethod</em> is used to execute calculation of the factor that <em>getShipmentDate()</em> can rely on an
+   existing factor rather than initialize it on-demand calculating the shipment date. For this reason let's first extend
+   the <em>PreliminaryShipmentDateCalculator</em> interface to set the start and end time:
+</p>
+<gen:highlight type="php">
+namespace ACME\shop\order;
+
+interface PreliminaryShipmentDateCalculator {
+   /**
+    * @param int $shipmentPeriodInDays
+    */
+   public function setShipmentPeriodInDays($shipmentPeriodInDays);
+
+   /**
+    * @param string $start
+    */
+   public function setStartTime($start);
+
+   /**
+    * @param string $end
+    */
+   public function setEndTime($end);
+
+   /**
+    * @param \DateTime $orderDate
+    * @return \DateTime
+    */
+   public function getShipmentDate(\DateTime $orderDate);
+}
+</gen:highlight>
+<p>
+   The implementation of the services can then be extended as follows:
+</p>
+<gen:highlight type="php">
+namespace ACME\shop\order;
+
+class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator {
+
+   /**
+    * @var int
+    */
+   private $shipmentPeriodInDays = 10;
+
+   /**
+    * @var \DateTime
+    */
+   private $start;
+
+   /**
+    * @var \DateTime
+    */
+   private $end;
+
+   /**
+    * @var int
+    */
+   private $dynamicFactor;
+
+   public function setShipmentPeriodInDays($shipmentPeriodInDays) {
+      $this->shipmentPeriodInDays = $shipmentPeriodInDays;
+   }
+
+   public function setStartTime($start) {
+      $this->start = new \DateTime($start);
+   }
+
+   public function setEndTime($end) {
+      $this->end = new \DateTime($end);
+   }
+
+   ...
+}
+</gen:highlight>
+<p>
+   Calculation of the <em>$dynamicFactor</em> should now be done within the <em>initialize()</em> method. The
+   implementation of <em>SimpleShipmentDateCalculator</em> is thus extended one more time:
+</p>
+<gen:highlight type="php">
+class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator {
+
+   /**
+    * @var int
+    */
+   private $shipmentPeriodInDays = 10;
+
+   /**
+    * @var \DateTime
+    */
+   private $start;
+
+   /**
+    * @var \DateTime
+    */
+   private $end;
+
+   /**
+    * @var int
+    */
+   private $dynamicFactor;
+
+   public function setShipmentPeriodInDays($shipmentPeriodInDays) {
+      $this->shipmentPeriodInDays = $shipmentPeriodInDays;
+   }
+
+   public function setStartTime($start) {
+      $this->start = new \DateTime($start);
+   }
+
+   public function setEndTime($end) {
+      $this->end = new \DateTime($end);
+   }
+
+   public function initialize() {
+      $difference = $this->end->diff($this->start)->h;
+      $this->dynamicFactor = $difference > 1 ? $difference : 1;
+   }
+
+   public function getShipmentDate(\DateTime $orderDate) {
+      $period = $this->shipmentPeriodInDays;
+      if ($orderDate->diff($this->start)->h >= 0 && $this->end->diff($orderDate)->h <= 0) {
+         $period = $this->shipmentPeriodInDays;
+      }
+
+      return $orderDate->add(
+         \DateInterval::createFromDateString(
+            '+' . ($period) . 'd'
+         )
+      );
+   }
+
+}
+</gen:highlight>
+<div class="hint">
+   <em>initialize()</em> has not been added to the interface since initialization is considered an implementation
+   specific of the current service. In case initialization as described above is something that is essential for the
+   service for every implementation and you intend to create the instance using the <em>DIServiceManager</em> under all
+   circumstances you may add <em>initialize()</em> the the interface as well.
+</div>
+<div class="warn">
+   <p>
+      The instance of <em>SimpleShipmentDateCalculator</em> is not explicitly marked as initialized within
+      <em>initialize()</em>. This leads to the fact that the <em>DIServiceManager</em> calls <em>initialize()</em> with
+      any new request of this object again.
+   </p>
+   <p>
+      In case the state of the object after initialization is valid for a longer period of time (e.g. for the entire
+      lifetime of the object) you can mark it as initialized. The <em>DIServiceManager</em> then does not call
+      <em>setupmethod</em> again. This is especially recommended for expensive initialization code.
+   </p>
+   <p>
+      To do so implementation of <em>initialize()</em> has to be changed as follows:
+   </p>
+<gen:highlight type="php">
+class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator {
+
+   ...
+
+   public function initialize() {
+      $difference = $this->end->diff($this->start)->h;
+      $this->dynamicFactor = $difference > 1 ? $difference : 1;
+      $this->markAsInitialized();
+   }
+
+   ...
+
+}
+</gen:highlight>
+</div>
+<p>
+   Now, all preparations are done to initialize the service. The next chapter describes how to configure the service
+   for it's usage.
+</p>
+
+<h6 id="Chapter-4-4-3-2-Configuration"><a href="#Chapter-4-4-3-2-Configuration">4.4.3.2. Configuration</a></h6>
+<p>
+   Within the previous chapter <em>SimpleShipmentDateCalculator</em> has been adapted to take all necessary configuration
+   parameters to allows dynamic initialization.
+</p>
+<p>
+   To use the enhanced service implementation the configuration has to be adapted as follows:
+</p>
+<gen:highlight type="ini">
+[shipment-date-calculator]
+class="ACME\shop\order\SimpleShipmentDateCalculator"
+servicetype="SINGLETON"
+
+setupmethod="initialize"
+
+conf.shipment-days.method="setShipmentPeriodInDays"
+conf.shipment-days.value="7"
+
+conf.from.method="setStartTime"
+conf.from.value="18:00:00"
+
+conf.to.method="setEndTime"
+conf.to.value="23:59:59"
+</gen:highlight>
+<p>
+   Using the <em>shipment-date-calculator</em> service a dynamic factor is added to the delivery date between 6pm and 0pm.
+</p>
+
+<h5 id="Chapter-4-4-4-Initialisation-of-complex-services"><a href="#Chapter-4-4-4-Initialisation-of-complex-services">4.4.4. Initialisation of complex services</a></h5>
+<p>
+   This chapter is about the initialization of services using other services. You may use this approach in case simple
+   data types used within <em>conf.*</em> sections are no longer sufficient or one service requires another service to
+   for it's work (e.g. database connection).
+</p>
+<p>
+   Initializing services can be done with <em>init.*</em> sections. There you can apply a service instance to a dedicated
+   method of the service to initialize. Within this chapter we will create the <em>DatabaseConfiguredShipmentDateCalculator</em>
+   that evaluates the shipment dates using a database table.
+</p>
+
+<h6 id="Chapter-4-4-4-1-Implementation"><a href="#Chapter-4-4-4-1-Implementation">4.4.4.1. Implementation</a></h6>
+<p>
+   Implementation of the <em>DatabaseConfiguredShipmentDateCalculator</em> is based on the interface definition
+   <em>PreliminaryShipmentDateCalculator</em> described in <a href="#Chapter-4-4-1-1-Implementation">chapter 4.4.1.1</a>
+   that requires the <em>getShipmentDate()</em> method to be implemented.
+</p>
+<p>
+   Connecting to the database the <int:link pageid="031" /> or a dedicated driver implementation respectively is used -
+   in this case the <em>MySQLiHandler</em>. Implementation is as follows:
+</p>
+<gen:highlight type="php">
+namespace ACME\shop\ui\checkout;
+
+use APF\core\database\MySQLiHandler;
+
+class DatabaseConfiguredShipmentDateCalculator implements PreliminaryShipmentDateCalculator {
+
+   /**
+    * @var MySQLiHandler
+    */
+   private $databaseConnection;
+
+   /**
+    * @param MySQLiHandler $databaseConnection
+    */
+   public function setDatabaseConnection(MySQLiHandler $databaseConnection) {
+      $this->databaseConnection = $databaseConnection;
+   }
+
+   public function getShipmentDate(\DateTime $orderDate) {
+      $select = 'SELECT `shipment_days` FROM ... WHERE ... ' . $orderDate->format('Y-m-d H:i:s') . ';';
+      $result = $this->databaseConnection->executeTextStatement($select);
+      $data = $this->databaseConnection->fetchData($result);
+      return $data['shipment_days'];
+   }
+
+}
+</gen:highlight>
+<p>
+   Similar to <a href="#Chapter-4-4-3-Using-the-initialization-method">chapter 4.4.3</a> the
+   <em>DatabaseConfiguredShipmentDateCalculator</em> defines <em>setDatabaseConnection()</em> to allow configuration of
+   the service. In this case using an instance of <em>MySQLiHandler</em> instead of any scalar value.
+</p>
+<p>
+   Within <em>getShipmentDate()</em> the database connection is used to evaluate the shipment date and the method relies
+   on the database connection being present.
+</p>
+
+<h6 id="Chapter-4-4-4-2-Configuration"><a href="#Chapter-4-4-4-2-Configuration">4.4.4.2. Configuration</a></h6>
+<p>
+   To use service <em>DatabaseConfiguredShipmentDateCalculator</em> a respective configuration is required that defines
+   the service and it's dependent components (database connection via <em>MySQLiHandler</em>) and their configuration.
+</p>
+<p>
+   The definition is as follows:
+</p>
+<gen:highlight type="ini">
+[shipment-date-calculator]
+class="ACME\shop\order\DatabaseConfiguredShipmentDateCalculator"
+servicetype="SINGLETON"
+</gen:highlight>
+<p>
+   Configuration of the database connection - another service definition that is used for initialization purposes later
+   one - can be done with the following section:
+</p>
+<gen:highlight type="ini">
+[shipment-database]
+class = "APF\core\database\MySQLiHandler"
+servicetype = "SINGLETON"
+
+setupmethod = "setup"
+
+conf.host.method = "setHost"
+conf.host.value = "localhost"
+
+conf.name.method = "setDatabaseName"
+conf.name.value = "..."
+
+conf.user.method = "setUser"
+conf.user.value = "root"
+
+conf.pass.method = "setPass"
+conf.pass.value = "..."
+
+conf.charset.method = "setCharset"
+conf.charset.value = "utf8"
+
+conf.collation.method = "setCollation"
+conf.collation.value = "utf8_general_ci"
+</gen:highlight>
+<p>
+   Section <em>shipment-database</em> first defines the service implementation that is an APF component in this case -
+   class <em>MySQLiHandler</em>. Since it implements the <em>DatabaseConnection</em> interface you can create instances
+   using the <em>DIServiceManager</em>.
+</p>
+<p>
+   After configuration using various <em>conf.*</em> sections the instance is finally initialized using the <em>setupmethod</em>
+   described in <a href="#Chapter-4-4-3-Using-the-initialization-method">chapter 4.4.3.</a> and is then ready for usage.
+</p>
+<p>
+   To use this database connection within our <em>DatabaseConfiguredShipmentDateCalculator</em> implementation it has to
+   be injected into the service. You can do so by extending the <em>shipment-date-calculator</em> configuration section
+   as follows:
+</p>
+<gen:highlight type="ini">
+[shipment-date-calculator]
+class="ACME\shop\order\DatabaseConfiguredShipmentDateCalculator"
+servicetype="SINGLETON"
+
+init.db.method = "setConnection"
+init.db.namespace = "ACME\shop\order"
+init.db.name = "shipment-database"
+</gen:highlight>
+<div class="hint">
+
+   The above configuration assumes that both services are defined within one single configuration file. In case your
+   application behaves different, please adapt <em>init.db.namespace</em> to point to the desired namespace.
+</div>
+<p>
+   Using the <em>shipment-date-calculator</em> service <em>getShipmentDate()</em> can directly access the database
+   connection that is ready to use.
+</p>
+<div class="hint">
+   Another example can be taken from wiki page
+   <a class="wiki" href="http://wiki.adventure-php-framework.org/Erzeugen_des_GORM_mit_dem_DIServiceManager" title="Erzeugen des GORM mit dem DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>
+   (German)xd.
+</div>
+
+<h5 id="Chapter-4-4-5-Implementation-of-APFDIService"><a href="#Chapter-4-4-5-Implementation-of-APFDIService">4.4.5. Implementation of APFDIService</a></h5>
+<p>
+   <em>APFObject</em> already implements the <em>APFDIService</em> interface and provides all basic conditions to create
+   objects with the <em>DIServiceManager</em>. In case you intend to resolve this dependency you can implement the interface
+   directly within your service at any time.
+</p>
+<p>
+   For your custom implementation of the <em>APFDIService</em> interface please keep the following in mind:
+</p>
+<ul>
+   <li>
+      Managing <em>context</em>, <em>language</em> and <em>service type</em> is part of your implementation now. This
+      means that the respective values are stored and returned as per interface definition (e.g. <em>getContext()</em>).
+   </li>
+   <li>
+      Initialization and marking the service' initialization state is done using <em>markAsInitialized()</em> as well as
+      <em>markAsPending()</em>. The current state is requested by the  <em>DIServiceManager</em> invoking
+      <em>isInitialized()</em>. Storing and returning the initialization state is to be handled by your implementation.
+   </li>
+</ul>
+<div class="hint">
+   Implementing custom services initialized by <em>setupmethod</em> marking services as initialized can also be done
+   within the <em>isInitialized()</em> method. Using <em>APFObject</em> as your basis for implementation flagging the
+   current instance as initialized has to happen during initialization with the <em>setupmethod</em> calling
+   <em>markAsInitialized()</em>.
+</div>
+
+<h5 id="Chapter-4-4-6-Usage-of-services"><a href="#Chapter-4-4-6-Usage-of-services">4.4.6. Usage of services</a></h5>
+<p>
+   Consuming services created with the <em>DIServiceManager</em> has many flavours. Some of them have already been
+   discussed within previous chapters. The following table summarizes all possibilities and includes further hints and
+   tips:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Descriptions</td>
+         <td>Areas of usage</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>
+            Chapters <a href="#Chapter-4-4-1-Creation-of-a-simple-service">4.4.1</a> up to
+            <a href="#Chapter-4-4-4-Initialisation-of-complex-services">4.4.4</a> describe using the
+            <em>DIServiceManager</em> to obtain an instance. You may either use convenience method
+            <em>APFObject::getDIServiceObject()</em> or <em>DIServiceManager::getServiceObject()</em> directly.
+         </td>
+         <td>
+            This kind of usage is recommended for <int:link pageid="006" /> and <int:link pageid="147"/>.
+         </td>
+      </tr>
+      <tr>
+         <td>
+            <p>
+               <a href="#Chapter-4-4-4-Initialisation-of-complex-services">Chapter 4.4.4</a> outlines initialisation
+               and configuration of services with multiple values and other services. The service requested by e.g. a
+               document controller is already finally configured after retrieval and the user does not have to investigate
+               further (<em>inversion of control</em>).
+            </p>
+            <p>
+               Within a service you can directly use another service that has been injected by the DI container without
+               approaching the <em>DIServiceManager</em>. This eases implementation and removes explicit dependencies and
+               thus improves transparency and testability.
+            </p>
+            <p>
+               This kind of usage scenario is also available for document controllers. Chapter 4 of the
+               <int:link pageid="006" anchor="Chapter-4-Controller-creation-via-DI-container" /> documentation
+               describes the necessary steps to create controllers with the <em>DIServiceManager</em>.
+            </p>
+         </td>
+         <td>
+            It is recommended to use this approach for <int:link pageid="006" /> that make use of complex services or
+            use several services. Besides, you can use this paradigm to improve testability of controllers through
+            removal of explicit dependencies.
+         </td>
+      </tr>
+      <tr>
+         <td>
+            <p>
+               Similar to creation of document controllers you can also create <em>front controller actions</em> with
+               the DI container. This eases implementation and removes explicit dependencies to improve transparency and
+               testability as well.
+            </p>
+            <p>
+               Chapter 3.3 of the
+               <int:link pageid="012" anchor="Chapter-3-3-Action-creation-via-DI-container" /> documentation summarizes
+               the steps to create actions with the <em>DIServiceManager</em>.
+            </p>
+         </td>
+         <td>
+            This kind of usage is recommended for <int:link pageid="012" /> actions that make ise of complex actions or
+            use several services. Besides, you can use this paradigm to improve testability of actions through
+            removal of explicit dependencies.
+         </td>
+      </tr>
+   </tbody>
+</table>
+
+<h4 id="Chapter-4-5-Areas-of-validity"><a href="#Chapter-4-5-Areas-of-validity">4.5. Areas of validity</a></h4>
+<p>
+   The Adventure PHP Framework offers several possibility for <int:link pageid="030" /> that allow creating instances
+   with different kind of areas of validity. Using <em>ServiceManager</em> or <em>DIServiceManager</em> you can also
+   leverage these mechanisms. Creating objects with <em>APFObject::getServiceObject()</em> described in
+   <a href="#Chapter-3-2-2-Using-the-wrapper">chapter 3.2.2</a> and configure services as noted in
+   <a href="#Chapter-4-3-Configuration">chapter 4.3</a> the area of validity can be defined programatically or by
+   configuration per instance.
+</p>
+<p>
+   The following table describes the available areas of validity and their recommended use case scenario:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>Area of validity</td>
+         <td>Description</td>
+         <td>Use case</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>
+            <em>NORMAL</em>
+         </td>
+         <td>
+            Object is being created at any request to <em>ServiceManager</em> or <em>DIServiceManager</em> and is thus
+            probably initialized every time.
+         </td>
+         <td>
+            In case a new object should be automatically applied with the current <em>context</em> and <em>language</em>
+            but there is no need to operate on the same instance this area of validity is recommended. In general
+            <em>SINGLETON</em> is recommended for services.
+         </td>
+      </tr>
+      <tr>
+         <td>
+            <em>SINGLETON</em>
+         </td>
+         <td>
+            Object is created and initialized on first request at <em>ServiceManager</em> or <em>DIServiceManager</em>
+            only. It is considered valid during the entire HTTP request.
+         </td>
+         <td>
+            Objects having this area of validity can be used to exchange information between different HMVC elements
+            within one HTTP request.
+            <br />
+            <br />
+            Another use case is multiple usage of services within different areas of the software and within one HTTP
+            request in case initialization is complex and should therefore be performed only once.
+         </td>
+      </tr>
+      <tr>
+         <td>
+            <em>SESSION_SINGLETON</em>
+         </td>
+         <td>
+            Object is created and initialized on first request at <em>ServiceManager</em> or <em>DIServiceManager</em>
+            only. It is considered valid during the entire HTTP session.
+         </td>
+         <td>
+            Objects having this area of validity can be used as view model e.g. for multi-page workflows to temporarily
+            store data across multiple HTTP requests within one visit being processed at the end of a user flow
+            consolidated.
+            <br />
+            <br />
+            Another use case is multiple usage of services within different areas of the software and within one HTTP
+            session in case initialization is complex and should therefore be performed only once.
+         </td>
+      </tr>
+      <tr>
+         <td>
+            <em>APPLICATION_SINGLETON</em>
+         </td>
+         <td>
+            Object is created and initialized on first request at <em>ServiceManager</em> or <em>DIServiceManager</em>
+            only. It is considered valid during the entire web server up-time.
+         </td>
+         <td>
+            Objects having this area of validity can be used to exchange data across components within your application
+            independent of request or session.
+            <br />
+            <br />
+            Another use case is multiple usage of services within different areas of the software and within an entire
+            application in case initialization is complex and should therefore be performed only once.
+         </td>
+      </tr>
+   </tbody>
+</table>
+<div class="warn">
+   <p>
+      Please note that using <em>SESSION_SINGLETON</em> and <em>APPLICATION_SINGLETON</em> as desired area of validity
+      objects will be serialized between different requests. Since resources (e.g. file pointer, database connections)
+      cannot be serialized they have to be re-initialized at every new request if necessary.
+   </p>
+   <p>
+      In order to maintain a database connection within class <em>DataMapper</em> that is requested from
+      <em>ServiceManager</em> oer <em>DIServiceManager</em> you may want to use the following code:
+   </p>
+<gen:highlight type="php">
+class DataMapper extends APFObject {
+
+   /**
+    * @var MySQLiHandler
+    */
+   private $connection;
+
+   ...
+
+   public function __wakeup() {
+      $this->connection = ...;
+   }
+
+}
+</gen:highlight>
+   <p>
+      As soon as the service is requested within a subsequent request <em>__wakeup()</em> is called and the connection
+      is re-created.
+   </p>
+   <p>
+      In case your are using the <em>DIServiceManager</em> and you make use of the <em>setupmethod</em> you can also
+      reset the initialization status of your instance. This ensures that the <em>setupmethod</em> is called again at
+      the first request of the respective service and thus the service is re-initialized. To use this approach you may
+      want to use the following code:
+   </p>
+<gen:highlight type="php">
+class DataMapper extends APFObject {
+
+   /**
+    * @var MySQLiHandler
+    */
+   private $connection;
+
+   ...
+
+   public function __sleep() {
+      $this->markAsPending();
+   }
+
+   public function initialize() {
+      $this->connection = ...;
+   }
+
+}
+</gen:highlight>
+   <p>
+      This option is limited to usage with the <em>DIServiceManager</em> and requires usage of the <em>setupmethod</em>
+      to initialize the service.
+   </p>
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_107" />
