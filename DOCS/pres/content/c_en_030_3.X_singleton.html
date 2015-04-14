@@ -81,9 +81,9 @@ $model = Singleton::getInstance('VENDOR\..\FooModel');
 use APF\core\singleton\Singleton;
 use APF\core\database\MySQLiHandler;
 
-$connectionOne = Singleton::getInstance('APF\core\database\MySQLiHandler', 'ConnOne');
+$connectionOne = Singleton::getInstance('APF\core\database\MySQLiHandler', [], 'ConnOne');
 
-$connectionTwo = Singleton::getInstance('APF\core\database\MySQLiHandler', 'ConnTwo');
+$connectionTwo = Singleton::getInstance('APF\core\database\MySQLiHandler', [], 'ConnTwo');
 </gen:highlight>
 <p>
    Both variables <em>$connectionOne</em> and <em>$connectionTwo</em> now contain an instance of the
@@ -92,6 +92,49 @@ $connectionTwo = Singleton::getInstance('APF\core\database\MySQLiHandler', 'Conn
 <div class="warn">
    Please note, that each instance (e.g. <em>ConnOne</em>) must be obtained invoking the second parameter calling
    <em>getInstance()</em>. Otherwise, a new instance will be created.
+</div>
+<p>
+   Using the optional argument <em>$arguments</em> (applied empty within the previous example) you can specify
+   constructor arguments that are applied to the instance to be created. From a software design point of view this has
+   an important benefit as dependencies can directly be expressed as constructor arguments.
+</p>
+<p>
+   In case you want to create an instance of class
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\service;
+
+class WeatherService {
+
+   public function __construct($url, DateTime $date) {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   using <em>http://api.openweathermap.org/data/2.5/weather</em> (argument <em>$url</em>) and
+   <em>14.04.2014</em> (argument <em>$date</em>) to initialize it you can achieve this easily using the following code
+   block:
+</p>
+<gen:highlight type="php">
+$service = Singleton::getInstance(
+              'VENDOR\..\service\WeatherService',
+              [
+                 'http://api.openweathermap.org/data/2.5/weather',
+                 DateTime::createFromFormat('d.m.Y', '14.04.2015')
+              ]
+);
+</gen:highlight>
+<p>
+   Using the second argument of the <em>getInstance()</em> method you can specify any number of constructor arguments.
+</p>
+<div class="warn">
+   Please note that the order of parameters applied to the <em>getInstance()</em> method must match the order of
+   parameters specified in the constructor of the class to be created! Otherwise, unexpected issues may come up.
+</div>
+<div class="hint">
+   Creating an instance with constructor arguments can of course be combined with the definition of an instance identifier.
 </div>
 
 <h3 id="Chapter-2-SessionSingleton"><a href="#Chapter-2-SessionSingleton">2. SessionSingleton</a></h3>
@@ -124,10 +167,32 @@ $model = SessionSingleton::getInstance('VENDOR\..\FooModel');
 use APF\core\singleton\Singleton;
 use VENDOR\..\FooModel;
 
-$modelOne = SessionSingleton::getInstance('VENDOR\..\FooModel', 'WorkflowOne');
+$modelOne = SessionSingleton::getInstance('VENDOR\..\FooModel', [], 'WorkflowOne');
 
-$modelTwo = SessionSingleton::getInstance('VENDOR\..\FooModel', 'WorkflowTwo');
+$modelTwo = SessionSingleton::getInstance('VENDOR\..\FooModel', [], 'WorkflowTwo');
 </gen:highlight>
+<p>
+   Using the optional argument <em>$arguments</em> (applied empty within the previous example) you can specify
+   constructor arguments that are applied to the instance to be created. From a software design point of view this has
+   an important benefit as dependencies can directly be expressed as constructor arguments.
+</p>
+<p>
+   In case you want to create an instance of class <em>FooModel</em> and initialize it at the same time you may want to
+   use the following code block:
+</p>
+<gen:highlight type="php">
+$model = SessionSingleton::getInstance('VENDOR\..\FooModel', ['foo', 'bar']);
+</gen:highlight>
+<p>
+   Using the second argument of the <em>getInstance()</em> method you can specify any number of constructor arguments.
+</p>
+<div class="warn">
+   Please note that the order of parameters applied to the <em>getInstance()</em> method must match the order of
+   parameters specified in the constructor of the class to be created! Otherwise, unexpected issues may come up.
+</div>
+<div class="hint">
+   Creating an instance with constructor arguments can of course be combined with the definition of an instance identifier.
+</div>
 
 <h3 id="Chapter-3-ApplicationSingleton"><a href="#Chapter-3-ApplicationSingleton">3. ApplicationSingleton</a></h3>
 <p>
@@ -160,12 +225,40 @@ $service = ApplicationSingleton::getInstance('VENDOR\..\WeatherService');
 </p>
 <gen:highlight type="php">
 use APF\core\singleton\ApplicationSingleton;
-use VENDOR\..\WeatherService;
+use VENDOR\..\service\WeatherService;
 
-$serviceOne = ApplicationSingleton::getInstance('VENDOR\..\WeatherService', 'ServiceOne');
+$serviceOne = ApplicationSingleton::getInstance('VENDOR\..\service\WeatherService', [], 'ServiceOne');
 
-$serviceTwo = ApplicationSingleton::getInstance('VENDOR\..\WeatherService', 'ServiceTwo');
+$serviceTwo = ApplicationSingleton::getInstance('VENDOR\..\service\WeatherService', [], 'ServiceTwo');
 </gen:highlight>
+<p>
+   Using the optional argument <em>$arguments</em> (applied empty within the previous example) you can specify
+   constructor arguments that are applied to the instance to be created. From a software design point of view this has
+   an important benefit as dependencies can directly be expressed as constructor arguments.
+</p>
+<p>
+   In case you want to create an instance of class <em>WeatherService</em> and initialize it at the same time you may want to
+   use the following code block:
+</p>
+<gen:highlight type="php">
+$service = ApplicationSingleton::getInstance(
+              'VENDOR\..\service\WeatherService',
+              [
+                 'http://api.openweathermap.org/data/2.5/weather',
+                 DateTime::createFromFormat('d.m.Y', '14.04.2015')
+              ]
+);
+</gen:highlight>
+<p>
+   Using the second argument of the <em>getInstance()</em> method you can specify any number of constructor arguments.
+</p>
+<div class="warn">
+   Please note that the order of parameters applied to the <em>getInstance()</em> method must match the order of
+   parameters specified in the constructor of the class to be created! Otherwise, unexpected issues may come up.
+</div>
+<div class="hint">
+   Creating an instance with constructor arguments can of course be combined with the definition of an instance identifier.
+</div>
 
 <h3 id="Chapter-4-Further-reading"><a href="#Chapter-4-Further-reading">4. Further reading</a></h3>
 <p>

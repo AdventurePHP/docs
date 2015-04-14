@@ -88,9 +88,9 @@ $model = Singleton::getInstance('VENDOR\..\FooModel');
 use APF\core\singleton\Singleton;
 use APF\core\database\MySQLiHandler;
 
-$connectionOne = Singleton::getInstance('APF\core\database\MySQLiHandler', 'ConnOne');
+$connectionOne = Singleton::getInstance('APF\core\database\MySQLiHandler', [], 'ConnOne');
 
-$connectionTwo = Singleton::getInstance('APF\core\database\MySQLiHandler', 'ConnTwo');
+$connectionTwo = Singleton::getInstance('APF\core\database\MySQLiHandler', [], 'ConnTwo');
 </gen:highlight>
 <p>
    Die beiden Variablen <em>$connectionOne</em> und <em>$connectionTwo</em> beinhalten nun je eine Instanz der Klasse
@@ -100,6 +100,51 @@ $connectionTwo = Singleton::getInstance('APF\core\database\MySQLiHandler', 'Conn
    Bitte beachten Sie, dass beim Bezug der jeweiligen Instanz (z.B. <em>ConnOne</em>) der zweite Parameter beim Aufruf
    der Methode <em>getInstance()</em> immer mitgegeben werden muss. Andernfalls erhalten Sie eine neue Instanz der
    Klasse.
+</div>
+<p>
+   Mit dem optionalen Argument <em>$arguments</em> (im vorangegangenen Beispiel leer übergeben) lassen sich
+   Konstruktor-Argumente definieren, die bei der Erzeugung des Objektes an die Instanz übergeben werden. Aus
+   Software-Design-Gesichtspunkten bietet das den Vorteil, dass Abhängigkeiten direkt über den Konstruktor ausgedrückt
+   werden können.
+</p>
+<p>
+   Möchten Sie eine Instanz der Klasse
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\service;
+
+class WeatherService {
+
+   public function __construct($url, DateTime $date) {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   erzeugen und mit dem Werten <em>http://api.openweathermap.org/data/2.5/weather</em> (Argument <em>$url</em>) und
+   <em>14.04.2014</em> (Argument <em>$date</em>) initialisieren, so lässt sich dazu folgender Code-Block nutzen:
+</p>
+<gen:highlight type="php">
+$service = Singleton::getInstance(
+              'VENDOR\..\service\WeatherService',
+              [
+                 'http://api.openweathermap.org/data/2.5/weather',
+                 DateTime::createFromFormat('d.m.Y', '14.04.2015')
+              ]
+);
+</gen:highlight>
+<p>
+   Mit dem zweiten Argument der Methode <em>getInstance()</em> lassen sich beliebig viele Konstruktor-Argumente
+   definieren.
+</p>
+<div class="warn">
+   Bitte beachten Sie, dass die Reihenfolge der Parameter bei der Übergabe an <em>getInstance()</em> mit der Reihenfolge
+   der Parameter-Definition der zu erzeugenden Klasse übereinstimmt! Andernfalls kann es zu unerwarteten Fehlern kommen.
+</div>
+<div class="hint">
+   Die Erzeugung einer Instanz mit Konstruktor-Argumenten ist selbstverständlich auch mit der Vergabe einer
+   Instanz-Identifikation kombinierbar.
 </div>
 
 <h3 id="Chapter-2-SessionSingleton"><a href="#Chapter-2-SessionSingleton">2. SessionSingleton</a></h3>
@@ -134,10 +179,35 @@ $model = SessionSingleton::getInstance('VENDOR\..\FooModel');
 use APF\core\singleton\Singleton;
 use VENDOR\..\FooModel;
 
-$modelOne = SessionSingleton::getInstance('VENDOR\..\FooModel', 'WorkflowOne');
+$modelOne = SessionSingleton::getInstance('VENDOR\..\FooModel', [], 'WorkflowOne');
 
-$modelTwo = SessionSingleton::getInstance('VENDOR\..\FooModel', 'WorkflowTwo');
+$modelTwo = SessionSingleton::getInstance('VENDOR\..\FooModel', [], 'WorkflowTwo');
 </gen:highlight>
+<p>
+   Mit dem optionalen Argument <em>$arguments</em> (im vorangegangenen Beispiel leer übergeben) lassen sich
+   Konstruktor-Argumente definieren, die bei der Erzeugung des Objektes an die Instanz übergeben werden. Aus
+   Software-Design-Gesichtspunkten bietet das den Vorteil, dass Abhängigkeiten direkt über den Konstruktor ausgedrückt
+   werden können.
+</p>
+<p>
+   Möchten Sie eine Instanz der Klasse <em>FooModel</em> erzeugen und gleichzeitig initialisieren, so lässt sich dazu
+   folgender Code-Block nutzen:
+</p>
+<gen:highlight type="php">
+$model = SessionSingleton::getInstance('VENDOR\..\FooModel', ['foo', 'bar']);
+</gen:highlight>
+<p>
+   Mit dem zweiten Argumen der Methode <em>getInstance()</em> lassen sich beliebig viele Konstruktor-Argumente
+   definieren.
+</p>
+<div class="warn">
+   Bitte beachten Sie, dass die Reihenfolge der Parameter bei der Übergabe an <em>getInstance()</em> mit der Reihenfolge
+   der Parameter-Definition der zu erzeugenden Klasse übereinstimmt! Andernfalls kann es zu unerwarteten Fehlern kommen.
+</div>
+<div class="hint">
+   Die Erzeugung einer Instanz mit Konstruktor-Argumenten ist selbstverständlich auch mit der Vergabe einer
+   Instanz-Identifikation kombinierbar.
+</div>
 
 <h3 id="Chapter-3-ApplicationSingleton"><a href="#Chapter-3-ApplicationSingleton">3. ApplicationSingleton</a></h3>
 <p>
@@ -153,9 +223,9 @@ $modelTwo = SessionSingleton::getInstance('VENDOR\..\FooModel', 'WorkflowTwo');
 </p>
 <gen:highlight type="php">
 use APF\core\singleton\ApplicationSingleton;
-use VENDOR\..\WeatherService;
+use VENDOR\..\service\WeatherService;
 
-$service = ApplicationSingleton::getInstance('VENDOR\..\WeatherService');
+$service = ApplicationSingleton::getInstance('VENDOR\..\service\WeatherService');
 </gen:highlight>
 <p>
    Sollte die Instanz innerhalb der Applikation noch nicht erzeugt worden sein, wird diese im Hintergrund angelegt und
@@ -174,10 +244,41 @@ $service = ApplicationSingleton::getInstance('VENDOR\..\WeatherService');
 use APF\core\singleton\ApplicationSingleton;
 use VENDOR\..\WeatherService;
 
-$serviceOne = ApplicationSingleton::getInstance('VENDOR\..\WeatherService', 'ServiceOne');
+$serviceOne = ApplicationSingleton::getInstance('VENDOR\..\service\WeatherService', [], 'ServiceOne');
 
-$serviceTwo = ApplicationSingleton::getInstance('VENDOR\..\WeatherService', 'ServiceTwo');
+$serviceTwo = ApplicationSingleton::getInstance('VENDOR\..\service\WeatherService', [], 'ServiceTwo');
 </gen:highlight>
+<p>
+   Mit dem optionalen Argument <em>$arguments</em> (im vorangegangenen Beispiel leer übergeben) lassen sich
+   Konstruktor-Argumente definieren, die bei der Erzeugung des Objektes an die Instanz übergeben werden. Aus
+   Software-Design-Gesichtspunkten bietet das den Vorteil, dass Abhängigkeiten direkt über den Konstruktor ausgedrückt
+   werden können.
+</p>
+<p>
+   Möchten Sie eine Instanz der Klasse <em>WeatherService</em> erzeugen und gleichzeitig initialisieren, so lässt sich dazu
+   folgender Code-Block nutzen:
+</p>
+<gen:highlight type="php">
+$service = ApplicationSingleton::getInstance(
+              'VENDOR\..\service\WeatherService',
+              [
+                 'http://api.openweathermap.org/data/2.5/weather',
+                 DateTime::createFromFormat('d.m.Y', '14.04.2015')
+              ]
+);
+</gen:highlight>
+<p>
+   Mit dem zweiten Argumen der Methode <em>getInstance()</em> lassen sich beliebig viele Konstruktor-Argumente
+   definieren.
+</p>
+<div class="warn">
+   Bitte beachten Sie, dass die Reihenfolge der Parameter bei der Übergabe an <em>getInstance()</em> mit der Reihenfolge
+   der Parameter-Definition der zu erzeugenden Klasse übereinstimmt! Andernfalls kann es zu unerwarteten Fehlern kommen.
+</div>
+<div class="hint">
+   Die Erzeugung einer Instanz mit Konstruktor-Argumenten ist selbstverständlich auch mit der Vergabe einer
+   Instanz-Identifikation kombinierbar.
+</div>
 
 <h3 id="Chapter-4-Weiterfuehrende-Kapitel"><a href="#Chapter-4-Weiterfuehrende-Kapitel">4. Weiterführende Kapitel</a></h3>
 <p>
