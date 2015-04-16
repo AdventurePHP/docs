@@ -65,14 +65,19 @@
 </div>
 <div class="hint">
    <p>
-      Zugunsten einer generische Möglichkeit, beliebige Klasse als <em>Singleton</em>, <em>SessionSingleton</em> oder
-      <em>ApplicationSingleton</em> zu erzeugen, verzichtet das APF auf die Unterstützung von Konstruktor-Argumenten. Bei
-      der Initialisierung wird daher ausschließlich auf <em>method injection</em> bzw. <em>setter injection</em> gesetzt.
-      Die erforderlichen Daten oder Abhängigkeiten werden dem Objekt also nach der Erzeugung zur Verfügung gestellt.
+      Zur Erzeugung und gleichzeitiger Initialisierung einer beliebigen Klasse als <em>Singleton</em>,
+      <em>SessionSingleton</em> oder <em>ApplicationSingleton</em> unterstützt das APF zwei anerkannte Konzepte:
+      <strong>constructor injection</strong> und <strong>method injection</strong> bzw. <strong>setter injection</strong>.
    </p>
    <p>
-      Möglichkeiten zur Ausführung von Initialisierungsmethoden finden Sie in Kapitel
-      <a href="#Chapter-4-3-1-Konfigurations-Schema">Kapitel 4.3.1</a> (Stichwort: <em>setupmethod</em>).
+      Bei der <em>constructor injection</em> werden die Abhängigkeiten direkt in den Konstruktor der Klasse
+      injiziert, nutzen Sie <em>method injection</em> bzw. <em>setter injection</em>, so werden die
+      erforderlichen Daten oder Abhängigkeiten dem Objekt nach der Erzeugung zur Verfügung gestellt.
+   </p>
+   <p>
+      Möglichkeiten zur Ausführung von Initialisierungsmethoden für die Nutzung des <em>method injection</em> bzw.
+      <em>setter injection</em> Konzeptes finden Sie in Kapitel <a href="#Chapter-4-3-1-Konfigurations-Schema">Kapitel 4.3.1</a>
+      (Stichwort: <em>setupmethod</em>).
    </p>
 </div>
 
@@ -178,6 +183,11 @@ $instance = &ServiceManager::getServiceObject('VENDOR\..\Class', $context, $lang
    wird empfohlen Objekte über die entsprechende Wrapper-Methode (siehe
    <a href="#Chapter-3-2-2-Nutzung-des-Wrappers">Kapitel 3.2.2</a>) zu erstellen.
 </div>
+<p>
+   Die Methode <em>getServiceObject()</em> bietet neben den verpflichtenden Angaben noch weitere Parameter zur Steuerung
+   der Erzeugung und Initialisierung von Objekten. Bitte entnehmen Sie die Details der Parameter <em>$arguments</em>,
+   <em>$type</em> und <em>$instanceId</em> <a href="#Chapter-3-2-2-Nutzung-des-Wrappers">Kapitel 3.2.2</a>.
+</p>
 
 <h5 id="Chapter-3-2-2-Nutzung-des-Wrappers"><a href="#Chapter-3-2-2-Nutzung-des-Wrappers">3.2.2. Nutzung des Wrappers</a></h5>
 <p>
@@ -193,6 +203,7 @@ class GodObject extends APFObject {
       $service =
          &$this->getServiceObject(
             $serviceClass,
+            [$arguments = []],
             [$type = APFService::SERVICE_TYPE_SINGLETON],
             [$instanceId = null]
          );
@@ -207,6 +218,14 @@ class GodObject extends APFObject {
    <li>
       <strong>$serviceClass</strong>:
       Gibt den voll-qualifizierten Namen der Service-Implementierung an (Beispiel: <em>VENDOR\..\MyServiceName</em>).
+   </li>
+   <li>
+      <strong>$arguments</strong>:
+      Mit dem optionalen Argument <em>$arguments</em> lassen sich Konstruktor-Argumente definieren, die bei der Erzeugung
+      des Objektes an die Instanz übergeben werden. Aus Software-Design-Gesichtspunkten bietet das den Vorteil, dass
+      Abhängigkeiten direkt über den Konstruktor ausgedrückt werden können. Bitte beachten Sie, dass die Reihenfolge der
+      Parameter bei der Übergabe an <em>getServiceObject()</em> mit der Reihenfolge der Parameter-Definition der zu
+      erzeugenden Klasse übereinstimmt! Details können unter <int:link pageid="030" /> nachgelesen werden.
    </li>
    <li>
       <strong>$type</strong>:
@@ -438,6 +457,11 @@ class GodObject extends APFObject {
 class = ""
 servicetype = ""
 
+[construct.{CONSTRUCT_KEY}.value = ""]
+
+[construct.{CONSTRUCT_KEY}.namespace = ""
+[construct.{CONSTRUCT_KEY}.name = ""]
+
 [conf.{CONF_KEY}.method = ""
 conf.{CONF_KEY}.value = ""]
 
@@ -447,6 +471,12 @@ init.{INIT_KEY}.name = ""]
 
 [setupmethod = ""]
 </gen:highlight>
+<div class="hint">
+   Mit Hilfe der <em>construct.*</em>- und <em>init.*</em>-Sektionen lassen sich komplexe Datentypen zur Initialisierung
+   eines Services nutzen. Dies ermöglicht Ihnen, einer Service-Instanz weitere Instanzen von referenzierten Services zu
+   injizieren (<em>dependency injection</em>) und damit für ihren Anwendungsfall zu konfigurieren (z.B. Übergabe der
+   zu verwendenden Datenbank-Verbindung).
+</div>
 <p>
    Die einzelnen Bestandteile haben folgende Bedeutung:
 </p>
@@ -472,8 +502,32 @@ init.{INIT_KEY}.name = ""]
       die Konfigurations-Datei nicht neu geladen wird.
    </li>
    <li>
+      <strong>construct.*</strong>:
+      Der <em>construct.*</em>-Bereich dient der Konfiguration von expliziten Abhängigkeiten, die der zu erzeugenden
+      Service im Konstruktor erwartet. Hierzu gibt es ähnlich zu den unten beschriebenen <em>conf.*</em>-und
+      <em>init.*</em>-Bereichen zwei Optionen: die Initialisierung mit primitiven Werten und anderen Service-Instanzen.
+      <div class="warn">
+         Bitte beachten Sie, dass die Reihenfolge der Parameter bei der Übergabe an <em>getInstance()</em> mit der
+         Reihenfolge der Parameter-Definition der zu erzeugenden Klasse übereinstimmt! Andernfalls kann es zu
+         unerwarteten Fehlern kommen.
+      </div>
+      Ein Service kann mit einer beliebigen Anzahl von Werten und anderen Services initialisiert werden.
+      <br />
+      Bitte beachten Sie, dass der <em>{CONSTRUCT_KEY}</em>-Platzhalter für jeden statischen (Attribut <em>value</em>)
+      oder dynamischen Parameter (Anordnung von je einem <em>namespace</em>- und <em>name</em>-Attribut) eindeutig
+      gewählt werden muss. Er definiert den Schlüssel einer Abhängigkeits-Definition bzw. einer Gruppe.
+      <br />
+      Möchten Sie einen Service mit statischen Werten konfigurieren, nutzen Sie dazu die
+      <em>construct.{CONSTRUCT_KEY}.value</em>-Schreibweise (analog zur <em>conf.*</em>-Sektion) und weisen Sie dem
+      Attribut den gewünschten Wert zu.
+      <br />
+      Zur Konfiguration bzw. Initialisierung mit einem weiteren Service definieren Sie bitte den zu injizierenden
+      Service mit den Attributen <em>construct.{CONSTRUCT_KEY}.namespace</em> und <em>construct.{CONSTRUCT_KEY}.name</em>.
+   </li>
+   <li>
       <strong>conf.*</strong>:
-      Der <em>conf</em>-Bereich dient dazu, einen Service mit einer statischen Konfiguration zu initialisieren.
+      Der <em>conf</em>-Bereich dient dazu, einen Service mit einer statischen Konfiguration (<em>method injection</em>
+      bzw. <em>setter injection</em>) zu initialisieren.
       <div class="hint">
          Da der der Service-Instanz mitgegebene Wert lediglich primitive Datentypen enthalten kann, eignet sich diese Art der
          Konfiguration (auch <em>einfache Konfiguration</em> genannt) für Werte wie Benutzer-Namen, Passwörter, URLs etc.
@@ -493,7 +547,7 @@ conf.user.value = "John"
 conf.pass.method = "setPassword"
 conf.pass.value = "Doe"
 
-conf.url.method = "setUr"
+conf.url.method = "setUrl"
 conf.url.value = "https://example.com/service/v1/soap"
 </gen:highlight>
       </div>
@@ -504,16 +558,12 @@ conf.url.value = "https://example.com/service/v1/soap"
    </li>
    <li>
       <strong>init.*</strong>:
-      Der <em>init</em>-Bereich dient zur dynamischen oder komplexen Konfiguration von Services mit Hilfe anderer Services.
-      <div class="hint">
-         Mit Hilfe dieser Sektion lassen sich komplexe Datentypen zur Initialisierung des Services nutzen. Dies
-         ermöglicht Ihnen, einer Service-Instanz weitere Instanzen von referenzierten Services zu injizieren
-         (<em>dependency injection</em>) und damit für ihren Anwendungsfall zu konfigurieren (z.B. Übergabe der
-         zu verwendenden Datenbank-Verbindung).
-      </div>
-      Jeder Service kann mit einer beliebigen Anzahl von weiteren Services konfiguriert werden. Dies kann durch mehrfache
-      Verwendung des oben aufgeführten <em>init</em>-Blocks und geeigneter Wahl des <em>{INIT_KEY}</em>-Platzhalters
-      erreicht werden.
+      Der <em>init</em>-Bereich dient zur dynamischen oder komplexen Konfiguration von Services mit Hilfe anderer Services
+      (<em>method injection</em> bzw. <em>setter injection</em>).
+      <br />
+      Jeder Service kann mit einer beliebigen Anzahl von weiteren Services konfiguriert werden. Dies kann durch
+      mehrfache Verwendung des oben aufgeführten <em>init</em>-Blocks und geeigneter Wahl des
+      <em>{INIT_KEY}</em>-Platzhalters erreicht werden.
       <div class="warn">
          Bitte beachten Sie, dass der <em>{INIT_KEY}</em>-Platzhalter innerhalb einer Gruppe (für die Attribute
          <em>method</em>, <em>namespace</em> und <em>name</em>) gleich und für unterschiedliche Gruppen (Anordnung von
@@ -693,7 +743,7 @@ class SimpleShipmentDateCalculator extends APFObject implements PreliminaryShipm
    Bitte beachten Sie, dass die Klasse <em>SimpleShipmentDateCalculator</em> von <em>APFObject</em> erbt. Damit erfüllt
    sie bereits die Anforderungen des Interfaces <em>APFDIService</em>. Dies erleichtert Ihnen die Implementierung
    von eigenen Services. Möchten Sie die Abhängigkeit zu <em>APFObject</em> auflösen, lesen Sie zunächst die Hinweise in
-   <a href="#Chapter-4-4-5-Implementierung-von-APFDIService">Kapitel 4.4.5.</a>.
+   <a href="#Chapter-4-4-6-Implementierung-von-APFDIService">Kapitel 4.4.5.</a>.
 </div>
 <p>
    Um den Sevice in einem Document-Controller zu erzeugen, ist es zunächt notwendig, eine Service-Konfiguration zu
@@ -1219,7 +1269,107 @@ init.db.name = "shipment-database"
    <a class="wiki" href="http://wiki.adventure-php-framework.org/Erzeugen_des_GORM_mit_dem_DIServiceManager" title="Erzeugen des GORM mit dem DIServiceManager">Erzeugen des GORM mit dem DIServiceManager</a>.
 </div>
 
-<h5 id="Chapter-4-4-5-Implementierung-von-APFDIService"><a href="#Chapter-4-4-5-Implementierung-von-APFDIService">4.4.5. Implementierung von APFDIService</a></h5>
+<h5 id="Chapter-4-4-5-Komplexe-Initialisierung-ueber-den-Konstruktor"><a href="#Chapter-4-4-5-Komplexe-Initialisierung-ueber-den-Konstruktor">4.4.5. Komplexe Initialisierung über den Konstruktor</a></h5>
+<p>
+   Für das im <a href="#Chapter-4-4-3-Nutzung-der-Initialisierungs-Methode">Kapitel 4.4.3</a> beschriebenen Beispiel
+   wird die Methode <em>initialize()</em> genutzt, um die per <em>setter injection</em> bzw. <em>method injection</em>
+   konfigurierte <em>SimpleShipmentDateCalculator</em>-Instanz für den Gebrauch zu initialisieren.
+</p>
+<p>
+   In diesem Kapitel soll das <em>constructor injection</em>-Prinzip angewendet werden. Dies hat den Vorteil, dass
+   gleichzeitig alle notwendigen Parameter injiziert und das Objekt in den gebrauchsfertigen versetzt werden kann.
+   Aus Software-Design-Gesichtspunkten bietet das ebenso den Vorteil, dass Abhängigkeiten direkt über den Konstruktor
+   ausgedrückt werden können.
+</p>
+<div class="warn">
+   Bitte beachten Sie, dass die Injizierung von Abhängigkeiten in den Konstruktor viele Vorteile besitzt, jedoch nicht
+   für alle Anwendungsfälle genutzt werden kann. Möchten Sie beispielsweise eine Kontext- oder Sprach-abhängige
+   Konfiguration laden, ist das im Konstruktor nicht möglich, da zum Konstruktions-Zeitpunkt die Werte für Kontext und
+   Sprache noch nicht im Objekt vorhanden sind.
+</div>
+
+<h6 id="Chapter-4-4-5-1-Implementierung"><a href="#Chapter-4-4-5-1-Implementierung">4.4.5.1. Implementierung</a></h6>
+<p>
+   Der <em>SimpleShipmentDateCalculator</em> definiert in
+   <a href="#Chapter-4-4-3-Nutzung-der-Initialisierungs-Methode">Kapitel 4.4.3</a> drei Abhängigkeiten:
+   <em>$shipmentPeriodInDays</em>, <em>$start</em> und <em>$end</em>. Aus diesem wird der dynamische Faktor
+   <em>$dynamicFactor</em> errechnet.
+</p>
+<p>
+   Um alle Abhängigkeiten im Konstruktor auflösen zu können ist die Implementierung wie folgt zu ändern:
+</p>
+<gen:highlight type="php">
+namespace ACME\shop\order;
+
+class SimpleShipmentDateCalculator implements PreliminaryShipmentDateCalculator {
+
+   /**
+    * @var int
+    */
+   private $shipmentPeriodInDays = 10;
+
+   /**
+    * @var \DateTime
+    */
+   private $start;
+
+   /**
+    * @var \DateTime
+    */
+   private $end;
+
+   /**
+    * @var int
+    */
+   private $dynamicFactor;
+
+   public function __construct($shipmentPeriodInDays, $start, $end) {
+      $this->shipmentPeriodInDays = $shipmentPeriodInDays;
+      $this->start = new \DateTime($start);
+      $this->end = new \DateTime($end);
+
+      $difference = $this->end->diff($this->start)->h;
+      $this->dynamicFactor = $difference > 1 ? $difference : 1;
+   }
+
+   ...
+}
+</gen:highlight>
+<p>
+   Damit lässt sich <em>SimpleShipmentDateCalculator</em> durch Übergabe der geforderten Informationen gleichzeitig
+   erzeugen und initialisieren.
+</p>
+
+<h6 id="Chapter-4-4-5-2-Konfiguration"><a href="#Chapter-4-4-5-2-Konfiguration">4.4.5.2. Konfiguration</a></h6>
+<p>
+   Die Implementierung des <em>SimpleShipmentDateCalculator</em> aus
+   <a href="#Chapter-4-4-3-Nutzung-der-Initialisierungs-Methode">Kapitel 4.4.3</a> wurde im vorangegangenen Abschnitt
+   so angepasst, dass dieser alle Konfigurations-Parameter als Konstruktor-Argumente erwartet.
+</p>
+<p>
+   Um die Service-Implementierung nutzen zu können, ist folgende Konfiguration erforderlich:
+</p>
+<gen:highlight type="ini">
+[shipment-date-calculator]
+class="ACME\shop\order\SimpleShipmentDateCalculator"
+servicetype="SINGLETON"
+
+construct.shipment-days.value="7"
+construct.from.value="18:00:00"
+construct.to.value="23:59:59"
+</gen:highlight>
+<p>
+   Nach dem Aufruf von
+</p>
+<gen:highlight type="php">
+/* @var $service SimpleShipmentDateCalculator */
+$service = & $this->getDIServiceObject('ACME\shop\order', 'shipment-date-calculator');
+</gen:highlight>
+<p>
+   ist der Service bereits vollständig konfiguriert und initialisiert.
+</p>
+
+<h5 id="Chapter-4-4-6-Implementierung-von-APFDIService"><a href="#Chapter-4-4-6-Implementierung-von-APFDIService">4.4.6. Implementierung von APFDIService</a></h5>
 <p>
    Die Klasse <em>APFObject</em> implementiert das <em>APFDIService</em>-Interface und stellt damit alle notwendigen
    Voraussetzungen zur Verfügung um Objekte dieses Typs mit dem <em>DIServiceManager</em> zu erzeugen. Ist dies nicht
@@ -1249,7 +1399,7 @@ init.db.name = "shipment-database"
    über die Methode <em>markAsInitialized()</em> abbilden.
 </div>
 
-<h5 id="Chapter-4-4-6-Nutzung-von-Services"><a href="#Chapter-4-4-6-Nutzung-von-Services">4.4.6. Nutzung von Services</a></h5>
+<h5 id="Chapter-4-4-7-Nutzung-von-Services"><a href="#Chapter-4-4-7-Nutzung-von-Services">4.4.7. Nutzung von Services</a></h5>
 <p>
    Die Nutzung von Services, die mit dem <em>DIServiceManager</em> erzeugt wurden kann auf unterschiedliche Arten erfolgen.
    Einige davon wurden bereits in den letzten Kapitel besprochen. Die folgende Tabelle fasst alle Möglichkeiten zusammen
