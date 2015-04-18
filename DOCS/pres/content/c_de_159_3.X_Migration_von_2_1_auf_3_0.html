@@ -380,6 +380,46 @@ if ($config->hasSection($this->getLanguage())) {
 }
 </gen:highlight>
 
+<h4 id="Chapter-3-7-ServiceManager-API"><a href="#Chapter-3-7-ServiceManager-API">3.7. ServiceManager API</a></h4>
+<p>
+   APF 3.0 führt das Konzept der <em>constructor injection</em> zur <int:link pageid="030" /> und <int:link pageid="107" />
+   ein. Dies erleichtert die Erzeugung und gleichzeitige Initialisierung von Objekten und ermöglicht, Abhängigkeiten
+   direkt im Konstruktor auszurücken.
+</p>
+<p>
+   Die automatisierte Migration erfasst bereits alle Aufrufe von <em>APFObject::getServiceObject()</em> die Aufrufe
+   von <em>ServiceManager::getServiceObject()</em> werden allerdings nicht abgedeckt. Bitte prüfen Sie Ihre Applikation,
+   ob die Methode genutzt wird und aktualisieren Sie beispielsweise die Code-Stelle
+</p>
+<gen:highlight type="php">
+$model = & ServiceManager::getServiceObject(
+      'CMS\core\biz\CMSModel',
+      $context,
+      'de',
+      APFService::SERVICE_TYPE_SESSION_SINGLETON
+);
+</gen:highlight>
+<p>
+   zu
+</p>
+<gen:highlight type="php">
+$model = & ServiceManager::getServiceObject(
+      'CMS\core\biz\CMSModel',
+      $context,
+      'de',
+      [],
+      APFService::SERVICE_TYPE_SESSION_SINGLETON
+);
+</gen:highlight>
+<p>
+   ab.
+</p>
+<div class="warn">
+   Bitte beachten Sie zudem, dass die als veraltet gekennzeichneten Methoden <em>APFObject::getAndInitServiceObject()</em>
+   und <em>ServiceManager::getAndInitServiceObject()</em> entfernt wurden. Nutzen Sie statt dessen bitte die unter
+   <int:link pageid="030" /> und <int:link pageid="107" /> beschriebenen Möglichkeiten.
+</div>
+
 <h3 id="Chapter-4-FAQ"><a href="#Chapter-4-FAQ">4. FAQ</a></h3>
 <p>
    Die folgenden Kapitel beinhalten häufig auftretende Fehler und mögliche Lösungen:
