@@ -1,0 +1,681 @@
+<doku:title parent="100" tags="view,model,templating" title="Working with view models" urlname="Working-with-view-models">
+    This article deals with using view models to separate controller and view and to improve testability of controllers.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   The view-generating part of the APF is heavily based on the <em>HMVC</em> pattern. In contrast to <em>MVC</em> it is
+   more flexible and allows to build complex applications without the need to strongly connect all parts of the
+   application or to bring workarounds for decoupling in place (e.g. <em>view helpers</em>). Due to the nature of
+   <em>HMVC</em> the application is split into any number of separate parts representing a particular functionality of
+   the application. <em>Separation of concerns</em> is thus easy to achieve and brings several benefits for re-usability
+   and testing aspects.
+</p>
+<p>
+   To bind all parts of the application together the APF used the <em>inversion of control</em> principle expressed by
+   the APF DOM model and implemented by the <int:link pageid="098" />. Besides, the URL or the session are also used to
+   allow information exchange and/or storage between parts of the application.
+</p>
+<p>
+   In <em>HMVC</em>-based applications there is not just one <em>model</em> but each <em>MVC</em> unit could have it's
+   own data representation matching the functional requirements. It is not necessarily required to define one model per
+   unit and several units could even share a model in case they are responsible for handling certain parts of the
+   application that deal with the same data structure.
+</p>
+<p>
+   In personalized <em>HMVC</em>-based application there is often a strong need to share essential information such as
+   the current user. For this reason, you may define an <strong>application model</strong> that will be used by various
+   parts and contains vital information of the application's state - such as the user.
+</p>
+<p>
+   In order to still encapsulate data structures within dedicated <em>HMVC</em> entities it is recommended to use
+   <strong>view models</strong>. View models represent data structures (a.k.a. <em>DTO</em>) and/or behaviour (a.k.a.
+   <em>domain object</em>) of single <em>MVC</em> units. Besides their data and/or behavioural encapsulation they can
+   be used as a container to generate the view representation of a dedicated <em>MVC</em> element.
+</p>
+<p>
+   Using <em>HMVC</em> in combination with <em>view models</em> not only allows to encapsulate data but also to easily
+   test controllers based on the <em>view model</em>'s content rather than based on the HTML output that is generated.
+   This chapter describes the usage of the <em>view model concept</em> within <em>HMVC</em> in depth to enable you
+   writing clean and reusable applications.
+</p>
+<p>
+   In order to fully capture the components that are used within this chapter it is recommended to read the following
+   chapter before:
+</p>
+<ul>
+   <li><int:link pageid="098" /></li>
+   <li><int:link pageid="161" /></li>
+</ul>
+
+<h3 id="Chapter-2-Using-view-models"><a href="#Chapter-2-Using-view-models">2. Using view models</a></h3>
+<p>
+   The following chapters will describe usage of the <em>view model</em> concept by two different scenarios:
+</p>
+<ul>
+   <li>Filling a template with data from an application entity.</li>
+   <li>Displaying repetitive data via a template and with the iterator.</li>
+</ul>
+<p>
+   As mentioned above <em>view models</em> are any PHP class that encapsulates data from your application in any kind -
+   e.g. a user's address or a web page teaser. Models solely containing data are often referred to as <em>DTO</em>s.
+   Models that contain business logic are considered <em>domain objects</em>.
+</p>
+<p>
+   In general, view models are objects that are directly used within an <em>HMVC</em> unit to generate HTML output. It
+   may be handy to directly use objects returned by an O/R mapper as view models since they already represent the data
+   that is processed by a particular part of an application.
+</p>
+<p>
+   Besides the strong data tying using view models has a positive impact on the size of the controller implementation
+   as view logic can be encapsulated nicely.
+</p>
+<div class="warn">
+   Please note that models represented by arrays or array access implementations are prone to errors during access and
+   break IDE and static code analysis support. For this reason, the APF does explicitly <strong>not recommend</strong>
+   to use arrays or array access implementations for any kind of models.
+</div>
+
+<h4 id="Chapter-2-1-Displaying-entities-with-templates"><a href="#Chapter-2-1-Displaying-entities-with-templates">2.1. Displaying entities with templates</a></h4>
+<p>
+   Given the use case that an application should display the user's address the appropriate data could be encapsulated
+   in the following entity:
+</p>
+<gen:highlight type="php">
+class Address {
+
+    public function getStreet() {
+    }
+
+    public function getStreetNumber() {
+    }
+
+    public function getZip() {
+    }
+
+    public function getCity() {
+    }
+
+    public function getCountry() {
+    }
+
+}
+</gen:highlight>
+<p>
+   An instance of this class may be returned by an O/R mapper or may be created within the controller manually. To keep
+   things simple the following code assumes that method <em>getAddress()</em> returns an instance.
+</p>
+<p>
+   To display the address object you could use the following template:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:template name="user-address"&gt;
+    &lt;p&gt;
+        ${street} ${street-number}
+    &lt;/p&gt;
+    &lt;p&gt;
+        ${zip} ${city}
+    &lt;/p&gt;
+    &lt;p&gt;
+        ${country}
+    &lt;/p&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+<p>
+   To display the entity you could use the following controller code:
+</p>
+<gen:highlight type="php">
+class AddressController extends BaseDocumentController {
+
+    public function transformContent() {
+        $tmpl = $this->getTemplate('user-address');
+
+        $address = $this->getAddress();
+
+        $tmpl->setPlaceHolder('street', $address->getStreet());
+        $tmpl->setPlaceHolder('street-number', $address->getStreetNumber());
+        $tmpl->setPlaceHolder('zip', $address->getZip());
+        $tmpl->setPlaceHolder('city', $address->getCity());
+        $tmpl->setPlaceHolder('country', $address->getCountry());
+
+        $tmpl->transformOnPlace();
+
+    }
+
+}
+</gen:highlight>
+<p>
+   This has several disadvantages: the controller code gets fat and contains a lot of view-centric logic (e.g. displaying
+   data) and separation between real view logic and just displaying data according to the <em>MVC</em> pattern gets
+   lost.
+</p>
+<p>
+   For this reason, it is recommended to implement the controller in a more <em>view model</em>-based style as we
+   already have a model <em>Address</em> that represents the data to display. For this reason, we could simplify the
+   controller as follows:
+</p>
+<gen:highlight type="php">
+class AddressController extends BaseDocumentController {
+
+    public function transformContent() {
+        $address = $this->getAddress();
+        $this->getTemplate('user-address')
+             ->setData('address', $address)
+             ->transformOnPlace();
+    }
+
+}
+</gen:highlight>
+<p>
+   To bring the optimization in place the view template needs some adaption using APF's <int:link pageid="161">extended
+   templating functionality</int:link>:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:template name="user-address"&gt;
+    &lt;p&gt;
+        ${address-&gt;getStreet()} ${address-&gt;getStreetNumber()}
+    &lt;/p&gt;
+    &lt;p&gt;
+        ${address-&gt;getZip()} ${address-&gt;getCity()}
+    &lt;/p&gt;
+    &lt;p&gt;
+        ${address-&gt;getCountry()}
+    &lt;/p&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+<div class="hint">
+   In case no model is available you may nevertheless use or change to the <em>view model</em> concept as it also
+   applies to arrays. Admittedly, arrays are no real data encapsulation and prone to errors during access but could be
+   an appropriate tool to enhance your application. Using arrays you could still keep your controller simple:
+<gen:highlight type="php">
+class AddressController extends BaseDocumentController {
+
+    public function transformContent() {
+        $address = [
+            'street' => '...',
+            'street-number' => '...',
+            'zip' => '...',
+            'city' => '...',
+            'country' => '...'
+        ];
+        $this->getTemplate('user-address')
+             ->setData('address', $address)
+             ->transformOnPlace();
+    }
+
+}
+</gen:highlight>
+    The template needs to be adapted as follows according to <int:link pageid="161" />:
+<gen:highlight type="apf-xml">
+&lt;html:template name="user-address"&gt;
+    &lt;p&gt;
+        ${address['street']} ${address['street-number']}
+    &lt;/p&gt;
+    &lt;p&gt;
+        ${address['zip'] ${address['city']}
+    &lt;/p&gt;
+    &lt;p&gt;
+        ${address['country']}
+    &lt;/p&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+</div>
+<p>
+   The same approach can be used to display close-to-static content such as web page teasers with partly dynamic data
+   (e.g. a formatted date). Assuming that your data is coming from any kind of CMS implementation and method
+   <em>getContent()</em> returns an associative array with identifiers referring to editorial form fields and their
+   respective CMS content. In such kind of situations you can still apply the <em>view model</em> concept by wrapping
+   the data into a view model with getters for each field.
+</p>
+<p>
+   The following code box contains a view model implementation that both covers CMS data as well as the dynamic parts
+   (formatted date):
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\model;
+
+class Teaser {
+
+   private $data;
+
+   public function __construct(array $cmsData = []) {
+       $this->data = $cmsData;
+   }
+
+   public function getHeadline() {
+       return $this->data['headline'];
+   }
+
+   public function getText() {
+       return $this->data['text'];
+   }
+
+   public function getDate() {
+       return (new \DateTime())->format('d.m.Y');
+   }
+
+}
+</gen:highlight>
+<p>
+   Using the new model you can set up your controller as follows:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+use VENDOR\..\model\Teaser;
+
+class TeaserController extends BaseDocumentController {
+
+   public function transformContent() {
+      $model = new Teaser($this->getContent());
+      $this->getTemplate('teaser')->setData('content', $model);
+   }
+
+}
+</gen:highlight>
+<p>
+   The template necessary for displaying the teaser could be the following:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:template name="teaser"&gt;
+    &lt;h2&gt;
+        ${content->getHeadline()} (${content->getDate()})
+    &lt;/h2&gt;
+    &lt;p&gt;
+   ${content->getText()}
+    &lt;/p&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+
+<h4 id="Chapter-2-2-Displaying-lists"><a href="#Chapter-2-2-Displaying-lists">2.2. Displaying lists</a></h4>
+<p>
+   Displaying lists is quite similar to displaying simple entities. The <em>view model</em> concept can be
+   applied the same way and reduces the lines of code of your controller.
+</p>
+<p>
+   The following chapters show how to display a list of users along with some key information. To keep things easy,
+   loading the user list is delegated to the <em>UmgtManager</em> shipped with the APF. As a <em>view model</em> class
+   <em>UmgtUser</em> is used that is also delivered with the APF.
+</p>
+<p>
+   As mentioned in <a href="#Chapter-2-Using-view-models">chapter 2</a> you can basically use any PHP class as your view
+   model and even arrays could be a less favorable solution. In case we are using an existing business component such as
+   the <em>UmgtManager</em> that delivers it's own set of domain objects we are already half way done.
+</p>
+<p>
+   For details on the <em>UmgtManager</em> please refer to chapter <int:link pageid="142" />.
+</p>
+
+<h4 id="Chapter-2-2-1-Using-templates"><a href="#Chapter-2-2-1-Using-templates">2.2.1. Using templates</a></h4>
+<p>
+   Within this chapter, a simple <em>&lt;html:template /&gt;</em>-Tag should be used to display the user list. This
+   certainly implies more logic to be put into the controller, however the view logic can be encapsulated very well to
+   still be able to guarantee excellent testability.
+</p>
+<p>
+   Based on the <em>UmgtManager</em>-API displaying a list of users can be implemented as follows:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+use APF\modules\usermanagement\biz\model\UmgtUser;
+use APF\modules\usermanagement\biz\UmgtManager;
+
+class UserListController extends BaseDocumentController {
+
+  public function transformContent() {
+
+     $umgt = $this->getUmgtManager();
+     $users = $umgt->getPagedUserList();
+
+     $this->displayUsers($users);
+
+  }
+
+   protected function displayUsers(array $users = []) {
+      foreach($users as $user) {
+         $this->setPlaceHolder('users', $this->displayUser($user), true);
+      }
+   }
+
+   protected function displayUser(UmgtUser $user) {
+     return $this->getTemplate('user')
+         ->setData('user', $user)
+         ->transform();
+   }
+
+   /**
+    * @return UmgtManager
+    */
+   protected function getUmgtManager() {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   The following code box contains the corresponding view template:
+</p>
+<gen:highlight type="apf-xml">
+&lt;ul&gt;
+   ${users}
+&lt;/ul&gt;
+&lt;html:template name="user"&gt;
+    &lt;li&gt;
+       &lt;p&gt;
+          ${user-&gt;getDisplayName()}
+       &lt;/p&gt;
+       &lt;p&gt;
+          ${user-&gt;getStreetName()}, ${user-&gt;getStreetNumber()}
+       &lt;/p&gt;
+       &lt;p&gt;
+          ${user-&gt;getZIPCode()}, ${user-&gt;getCity()}
+       &lt;/p&gt;
+    &lt;/li&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+<p>
+   Without a doubt, this approach introduces some more view logic into the controller compared to the implementation in
+   <a href="#Chapter-2-1-Displaying-entities-with-templates">chapter 2.1</a>. However there is an elegant solution to
+   remove the logic again by using a view component that takes care of iterating over the list and displaying the
+   entries: the <int:link pageid="078" anchor="Chapter-1-Iterator">iterator tag</int:link>. For details, please have
+   a look at the <a href="#Chapter-2-2-2-Using-the-iterator">next chapter</a>.
+</p>
+<p>
+   In case an existing model does not contain all required functionality to display the desired information there are
+   two options: generate content within the controller or extend the model. To separate view and controller logic it is
+   recommended to extend the model.
+</p>
+<p>
+   Assuming that <em>UmgtUser</em> does not provide an option to display an obfuscated e-mail address you could easily
+   extend the class as follows:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\model;
+
+use APF\modules\usermanagement\biz\model\UmgtUser;
+
+class UserViewModel {
+
+   /**
+    * @var $user UmgtUser
+    */
+   private $user;
+
+   public function __construct(UmgtUser $user) {
+      $this->user = $user;
+   }
+
+   public function getObfuscatedEmail() {
+      return preg_replace('/(.+){4}(.+)@(.+)\.(.+)/', '****$2@$3.**', $this->user->getEMail());
+   }
+
+   public function __call($name, array $arguments) {
+      if (method_exists($this->user, $name)) {
+         return $this->user->{$name}();
+      }
+      throw new InvalidArgumentException('No such method "' . $name . '()" in class "'
+            . get_class($this->user) . '"!');
+   }
+
+}
+</gen:highlight>
+<div class="warn">
+   Please note that using <em>__call()</em> is just used to keep this example clear. The APF team does explicitly
+   <strong>not recommend</strong> to use magic methods as this will prevent any sort of auto complete, highlighting, and
+   documentation within your IDE!
+</div>
+<p>
+   The controller then needs to be slightly adapted to display the obfuscated e-mail address:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+use APF\modules\usermanagement\biz\model\UmgtUser;
+use APF\modules\usermanagement\biz\UmgtManager;
+
+class UserListController extends BaseDocumentController {
+
+   ...
+
+   protected function displayUser(UmgtUser $user) {
+     return $this->getTemplate('user')
+         ->setData('user', new UserViewModel($user))
+         ->transform();
+   }
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   With your template you can now easily use the <em>getObfuscatedEmail()</em> method just as any other method:
+</p>
+<gen:highlight type="apf-xml">
+&lt;ul&gt;
+   ${users}
+&lt;/ul&gt;
+&lt;html:template name="user"&gt;
+    &lt;li&gt;
+       &lt;p&gt;
+          ${user-&gt;getDisplayName()}
+       &lt;/p&gt;
+       &lt;p&gt;
+          ${user-&gt;getStreetName()}, ${user-&gt;getStreetNumber()}
+       &lt;/p&gt;
+       &lt;p&gt;
+          ${user-&gt;getZIPCode()}, ${user-&gt;getCity()}
+       &lt;/p&gt;
+       &lt;p&gt;
+          ${user-&gt;getObfuscatedEmail()}
+       &lt;/p&gt;
+    &lt;/li&gt;
+&lt;/html:template&gt;
+</gen:highlight>
+
+<h4 id="Chapter-2-2-2-Using-the-iterator"><a href="#Chapter-2-2-2-Using-the-iterator">2.2.2. Using the iterator</a></h4>
+<p>
+   The <int:link pageid="078" anchor="Chapter-1-Iterator">iterator tag</int:link> is a view component based on the APF
+   DOM tree concept represented by a tag that provides an API to inject the list to display. It takes responsibility for
+   templating and displaying content including static surrounding content (e.g. start and end of a list). This component
+   is ideal to be used with the <em>view model</em> concept as it allows you to keep your controller clean and small.
+</p>
+<p>
+   In order to display the list of users from <a href="#Chapter-2-2-1-Using-templates">chapter 2.2.1</a> the templates
+   needs some adaption:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:iterator name="users"&gt;
+   &lt;ul&gt;
+   &lt;iterator:item&gt;
+      &lt;li&gt;
+          &lt;p&gt;
+             ${user-&gt;getDisplayName()}
+          &lt;/p&gt;
+          &lt;p&gt;
+             ${user-&gt;getStreetName()}, ${user-&gt;getStreetNumber()}
+          &lt;/p&gt;
+          &lt;p&gt;
+             ${user-&gt;getZIPCode()}, ${user-&gt;getCity()}
+          &lt;/p&gt;
+      &lt;/li&gt;
+   &lt;/iterator:item&gt;
+   &lt;/ul&gt;
+&lt;/html:iterator&gt;
+</gen:highlight>
+<p>
+   The controller implementation is now really reduced to controller logic according to the <em>MVC</em> pattern:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+use APF\modules\usermanagement\biz\model\UmgtUser;
+use APF\modules\usermanagement\biz\UmgtManager;
+
+class UserListController extends BaseDocumentController {
+
+  public function transformContent() {
+
+     $umgt = $this->getUmgtManager();
+     $users = $umgt->getPagedUserList();
+
+     $this->getIterator('users')
+          ->fillDataContainer($users)
+          ->transformOnPlace();
+
+  }
+
+   /**
+    * @return UmgtManager
+    */
+   protected function getUmgtManager() {
+      ...
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-2-2-3-Using-a-custom-tag"><a href="#Chapter-2-2-3-Using-a-custom-tag">2.2.3. Using a custom tag</a></h4>
+<p>
+   In case the <em>HtmlIteratorTag</em> is not sufficient to display a list of data within your application you can
+   easily create a custom tag that displays your data based on the
+   <int:link pageid="046" anchor="Chapter-2-3-Template">&lt;html:template /&gt;</int:link> tag. Details on tag
+   implementation can be taken from chapter <int:link pageid="147" />.
+</p>
+<p>
+   Assuming that the user's address is optional during registration it might make sense to not display the address
+   block in case no data is available. To easily create the desired output the template could be structured as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;user:list name="users"&gt;
+   &lt;ul&gt;
+   &lt;html:template name="user"&gt;
+      &lt;li&gt;
+         &lt;p&gt;
+            ${user-&gt;getDisplayName()}
+         &lt;/p&gt;
+         ${user-address}
+         &lt;html:template name="address"&gt;
+            &lt;p&gt;
+               ${user-&gt;getStreetName()}, ${user-&gt;getStreetNumber()}
+            &lt;/p&gt;
+            &lt;p&gt;
+               ${user-&gt;getZIPCode()}, ${user-&gt;getCity()}
+            &lt;/p&gt;
+         &lt;/html:template&gt;
+      &lt;/li&gt;
+   &lt;/html:template&gt;
+   &lt;/ul&gt;
+&lt;/user:list&gt;
+</gen:highlight>
+<p>
+   The <em>&lt;user:list /&gt;</em> tag consists of an inner HTML part that takes static HTML and the outer
+   <em>&lt;html:template /&gt;</em> tag representing one user entry. Ths inner <em>&lt;html:template /&gt;</em> tag
+   represents the user's address. In case the user has address data available the content of the inner
+   <em>&lt;html:template /&gt;</em> is injected in tho the <em>${user-address}</em> place holder.
+</p>
+<p>
+   The following code box containing the implementation of the <em>&lt;user:list /&gt;</em> tag. Please note that the
+   software design of the tag can be adapted in any kind matching your requirements.
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\taglib;
+
+use APF\core\pagecontroller\Document;
+use APF\core\pagecontroller\TemplateTag;
+use APF\modules\usermanagement\biz\model\UmgtUser;
+
+class UserListTag extends Document {
+
+   /**
+    * @var $users UmgtUser[]
+    */
+   private $users;
+
+   public function setList(array $users = []) {
+      $this->users = $users;
+      return $this;
+   }
+
+   public function onParseTime() {
+      $this->extractTagLibTags();
+   }
+
+   public function transform() {
+
+      /* @var $template TemplateTag */
+      $template = $this->getChildNode('name', 'user', 'APF\core\pagecontroller\Template');
+
+      $html = '';
+      foreach ($this->users as $user) {
+
+         // inject user to allow access values via the extended templating syntax
+         $template->setData('user', $user);
+
+         // check on available address
+         $street = $user->getStreetName();
+         $number = $user->getStreetNumber();
+         $zip = $user->getZIPCode();
+         $city = $user->getCity();
+         if (!empty($street) && !empty($number) && !empty($zip) && !empty($city)) {
+
+            /* @var $address TemplateTag */
+            $address = $template->getChildNode('name', 'user', 'APF\core\pagecontroller\Template');
+
+            // inject user to allow access values via the extended templating syntax
+            $address->setData('user', $user);
+
+            // fill place holder with address representation
+            $template->setPlaceHolder('user-address', $address->transformTemplate());
+         }
+
+         $html .= $template->transform();
+
+      }
+
+      return $html;
+
+   }
+
+}
+</gen:highlight>
+<p>
+   The controller code is just as simple as with using the iterator:
+</p>
+<gen:highlight type="php">
+namespace VENDOR\..\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+use APF\modules\usermanagement\biz\model\UmgtUser;
+use APF\modules\usermanagement\biz\UmgtManager;
+
+class AlternativeUserListController extends BaseDocumentController {
+
+  public function transformContent() {
+
+     $umgt = $this->getUmgtManager();
+     $users = $umgt->getPagedUserList();
+
+     $this->getChildNode('name', 'users', 'VENDOR\..\taglib\UserListTag')->setList($users);
+
+  }
+
+   /**
+    * @return UmgtManager
+    */
+   protected function getUmgtManager() {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   As the <em>&lt;user:list /&gt;</em> tag implements the <em>transform()</em> method directly returning the desired
+   list there is no need for an additional <em>transformOnPlace()</em> call as with the <em>&lt;html:template /&gt;</em>
+   tag.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_164" />
