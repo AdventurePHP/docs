@@ -1,0 +1,145 @@
+<doku:title parent="100" tags="migration,3.0,3.1" title="Migration von 3.0 auf 3.1" urlname="Migration-von-3-0-auf-3-1">
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 3.0.1), die notwendig sind
+   um Ihre Applikation auf die Version 3.1 zu portieren.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Einleitung...
+</p>
+<div class="hint">
+   Mit dem Erscheinen dieses Release wird die Weiterentwicklung der Version 3.0 eingestellt. Security- und Bug-Fixes
+   werden bis Ende 2016 verfügbar sein.
+</div>
+<p>
+   In diesem Artikel erfahren Sie, wie Sie eine bestehende Anwendung auf APF-Version 3.1 aktualisieren können. Wie
+   bereits von den vorangegangenen Versionen gewohnt, kann die Migration auch in diesem Release weitestgehend automatisiert
+   erfolgen. Zu diesem Zweck liegen zwei Migrations-Skripten bei: <em>migrate-code.sh</em> für die Aktualisierung von
+   HTML- und PHP-Dateien und <em>migrate-config.sh</em> für Konfigurations-Dateien.
+</p>
+<div class="hint">
+   Das APF-Team empfiehlt, die Nutzung der Migrations-Skripten einer manuellen Migration vorzuziehen. Dies spart Zeit
+   und Kosten und stellt sicher, dass alle relevanten Stellen erfasst wurden.
+</div>
+<p>
+   Die folgenden Kapitel stellen die notwendigen Schritte zum Umstieg auf Version 3.1 zusammen.
+</p>
+
+<h3 id="Chapter-2-Automatisierte-Migration"><a href="#Chapter-2-Automatisierte-Migration">2. Automatisierte Migration</a></h3>
+<p>
+   Wie von Release 3.0 bereits bekannt, lässt sich die Migration mit Hilfe eines mitgelieferten Migrations-Skripts
+   erledigen. In diesem Release wurden Änderungen an Code- und Konfigurations-Dateien vorgenommen, die mit Hilfe der
+   Skripte <em>migrate-code.sh</em> und <em>migrate-config.sh</em> auf Ihre bestehende Applikation übertragen werden
+   können.
+</p>
+<div class="warn">
+   Bitte stellen Sie sicher, dass Sie vor der Migration alle unter <int:link pageid="159" /> beschriebenen Schritte
+   durchgeführt haben. Setzen Sie eine noch ältere Version ein, migrieren Sie bitte zuerst <em>vollständig</em> auf die
+   Version 3.0. Hinweise zur jeweiligen Migration finden Sie auf der Seite <int:link pageid="100" />.
+</div>
+<div class="err">
+   Bitte erstellen Sie vor der Ausführung der Skripten eine Sicherungskopie Ihrer Anwendung um bei Bedarf Inhalte wieder
+   herstellen zu können!
+</div>
+<p>
+   Sofern Sie auf Windows entwickeln, installieren Sie bitte eine aktuelle Version von <em>cygwin</em> (Download unter
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Eine Migration auf Basis eines
+   Windows-Batch-Script wird nicht angeboten.
+</p>
+<p>
+   Um Ihre Quell-Code-Dateien auf den neuesten Stand zu bringen, führen Sie das Skript bitte wie folgt aus:
+</p>
+<div class="warn">
+   Bitte wechseln Sie vor der Ausführung in das Code-Verzeichnis Ihrer Applikation um unerwartete Ergebnisse
+   zu vermeiden.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-code.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.1 automatic code migration          #
+#############################################
+
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.6.12.
+
+#############################################
+
+Starting migration ...
+* Migrate request and response obtaining ...
+
+#############################################
+
+Migration done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+<p>
+   Um Ihre Konfigurations-Dateien auf den neuesten Stand zu bringen, führen Sie das Skript bitte wie folgt aus:
+</p>
+<div class="warn">
+   Bitte wechseln Sie vor der Ausführung in das Konfigurations-Verzeichnis Ihrer Applikation um unerwartete Ergebnisse
+   zu vermeiden.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-config.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.1 automatic configuration migration #
+#############################################
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.6.12.
+
+#############################################
+
+Starting configuration migration ...
+* Migrate cache configuration ...
+* Migrate pager configuration ...
+
+#############################################
+
+Migration done! Please check your configuration and follow instructions within migration documentation!
+</gen:highlight>
+
+<h3 id="Chapter-3-Manuelle-Schritte"><a href="#Chapter-3-Manuelle-Schritte">3. Manuelle Schritte</a></h3>
+<p>
+   Das Migrations-Skript kann leider nicht alle Projekt-spezifischen Konstrukte migrieren. Die folgenden Kapitel
+   zeigen, welche manuellen Schritte notwendig sind um bestehenden Code mit der Version 3.1 einsetzen zu können:
+</p>
+
+<h4 id="Chapter-3-1-Zugriff-auf-Request-und-Response"><a href="#Chapter-3-1-Zugriff-auf-Request-und-Response">3.1. Zugriff auf Request und Response</a></h4>
+<p>
+   Um das Erstellen von Unit Tests zu erleichtern wurde der Zugriff auf den <em>Request</em> und <em>Response</em>
+   auf einen Instanz-bezogenen Modus umgestellt. Statt
+</p>
+<gen:highlight type="php">
+self::getRequest()
+</gen:highlight>
+<p>
+   können Sie nun
+</p>
+<gen:highlight type="php">
+$this->getRequest()
+</gen:highlight>
+<p>
+   nutzen und die Methode so in Unit Tests einfacher mit einem MOCK belegen.
+</p>
+<p>
+   Sollten Sie in einer statischen Methode Zugriff auf den <em>Request</em> benötigen, steht Ihnen über das Trait
+   <em>APF\core\http\mixins\GetRequestResponse</em> die statische Methode <em>getRequestStatic()</em> zur Verfügung.
+</p>
+<p>
+   Der Zugriff auf den Response verhält sich analog dazu. Statt bisher
+</p>
+<gen:highlight type="php">
+self::getResponse()
+</gen:highlight>
+<p>
+   können Sie nun per
+</p>
+<gen:highlight type="php">
+$this->getResponse()
+</gen:highlight>
+<p>
+   auf die Instanz der <em>Response</em>-Implementierung zugreifen. Auch in diesem Fall steht Ihnen zusätzlich die
+   Methode <em>getResponseStatic()</em> für den statischen Zugriff zur Verfügung.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_165" />
