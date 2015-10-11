@@ -22,10 +22,17 @@ use DOCS\biz\errorhandler\LiveErrorHandler;
 use DOCS\biz\exceptionhandler\LiveExceptionHandler;
 use DOCS\pres\filter\output\ScriptletOutputFilter;
 use DOCS\pres\http\HttpCacheManager;
+use DOCS\pres\taglib\AntiSpamFormTag;
+use DOCS\pres\taglib\ContentDisplayTag;
 use DOCS\pres\taglib\DocumentationLinkTag;
 use DOCS\pres\taglib\DocumentationTitleTag;
 use DOCS\pres\taglib\GenericHighlightTag;
 use DOCS\pres\taglib\InternalLinkTag;
+use DOCS\pres\taglib\NewsDisplayTag;
+use DOCS\pres\taglib\QuickNaviContentTag;
+use DOCS\pres\taglib\SidebarDisplayTag;
+use DOCS\pres\taglib\TrackingTag;
+use DOCS\pres\taglib\VersionSelectionTag;
 
 date_default_timezone_set('Europe/Berlin');
 ob_start();
@@ -92,6 +99,13 @@ Document::addTagLib(DocumentationLinkTag::class, 'doku', 'link');
 Document::addTagLib(DocumentationTitleTag::class, 'doku', 'title');
 Document::addTagLib(GenericHighlightTag::class, 'gen', 'highlight');
 Document::addTagLib(InternalLinkTag::class, 'int', 'link');
+Document::addTagLib(VersionSelectionTag::class, 'version', 'selector');
+Document::addTagLib(QuickNaviContentTag::class, 'html', 'quicknavi');
+Document::addTagLib(ContentDisplayTag::class, 'html', 'content');
+Document::addTagLib(SidebarDisplayTag::class, 'sidebar', 'importdesign');
+Document::addTagLib(NewsDisplayTag::class, 'news', 'appendnode');
+Document::addTagLib(AntiSpamFormTag::class, 'form', 'antispam');
+Document::addTagLib(TrackingTag::class, 'tracking', 'pixel');
 
 /* @var $fC Frontcontroller */
 $fC = Singleton::getInstance(Frontcontroller::class);

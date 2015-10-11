@@ -2,7 +2,6 @@
 namespace DOCS\pres\controller;
 
 use APF\core\pagecontroller\BaseDocumentController;
-use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
 
@@ -80,22 +79,6 @@ class MainController extends BaseDocumentController {
          $this->setPlaceHolder('content-wrapper-class', ' class="noSidebar"');
       }
 
-      // include tracking pixel
-      $pageLang = $model->getLanguage();
-      $pageName = $model->getTitle();
-      $pageId = $model->getPageId();
-      $baseUrl = Registry::retrieve('APF\core', 'URLBasePath');
-      $requestUrl = Registry::retrieve('APF\core', 'CurrentRequestURL');
-      $referer = (empty($_SERVER['HTTP_REFERER'])) ? 'n/a' : $_SERVER['HTTP_REFERER'];
-
-      // we need manual link generation gere to ensure correct transmission
-      // of the referer and current url.
-      $url = $baseUrl . '/DOCS_biz_statistics-action/stat/lang/'
-            . $pageLang . '/title/' . urlencode($pageName) . '/id/' . $pageId
-            . '/url/' . urlencode(urlencode($requestUrl))
-            . '/referer/' . urlencode(urlencode($referer)) . '/';
-
-      $this->setPlaceHolder('TrackingPixelUrl', $url);
    }
 
 }
