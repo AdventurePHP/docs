@@ -42,7 +42,7 @@ class NewsController extends BaseDocumentController {
     */
    private function &getNewsItems() {
       $children = & $this->getDocument()->getChildren();
-      $newsItems = array();
+      $newsItems = [];
       foreach ($children as $objectId => $DUMMY) {
          if ($children[$objectId] instanceof NewsItemTag) {
             $newsItems[$objectId] = & $children[$objectId];

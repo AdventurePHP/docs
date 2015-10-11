@@ -15,11 +15,11 @@ class FormCaptchaExampleController extends BaseDocumentController {
    /**
     * @public
     *
-    *  Implements the transformContent() method of the BaseDocumentController class. Creates the document's html code.
+    * Implements the transformContent() method of the BaseDocumentController class. Creates the document's html code.
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 20.07.2008<br />
+    * Version 0.1, 20.07.2008<br />
     */
    public function transformContent() {
 

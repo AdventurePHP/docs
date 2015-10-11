@@ -8,11 +8,11 @@ use DOCS\biz\UrlManager;
 
 class TopNavigationController extends BaseDocumentController {
 
+   private static $DOC_PAGE_ID = '072';
    /**
     * @var string[] main navigation definition.
     */
-   private $navi = array();
-   private static $DOC_PAGE_ID = '072';
+   private $navi = [];
 
    public function __construct() {
       $this->navi[] = '001';
@@ -25,7 +25,7 @@ class TopNavigationController extends BaseDocumentController {
    public function transformContent() {
 
       /* @var $model APFModel */
-      $model = Singleton::getInstance('DOCS\biz\APFModel');
+      $model = Singleton::getInstance(APFModel::class);
       $pageId = $model->getPageId();
 
       // by default, the documentation tab is active for all other sites!
@@ -34,11 +34,11 @@ class TopNavigationController extends BaseDocumentController {
       }
 
       /* @var $urlMan UrlManager */
-      $urlMan = & $this->getServiceObject('DOCS\biz\UrlManager');
+      $urlMan = &$this->getServiceObject(UrlManager::class);
 
       $version = $model->getVersionId();
 
-      $buffer = (string)'';
+      $buffer = (string) '';
       foreach ($this->navi as $naviNode) {
          $buffer .= '<li>';
          $title = $urlMan->getPageTitle($naviNode, $this->language, $version);
@@ -60,6 +60,7 @@ class TopNavigationController extends BaseDocumentController {
     * Checks, whether the current page is a top level navi node.
     *
     * @param string $pageId The current page id.
+    *
     * @return bool true, in case it is, false otherwise.
     *
     * @author Christian Achatz
@@ -72,6 +73,7 @@ class TopNavigationController extends BaseDocumentController {
             return true;
          }
       }
+
       return false;
    }
 
@@ -80,7 +82,7 @@ class TopNavigationController extends BaseDocumentController {
     */
    private function getParentNodeId() {
       /* @var $model APFModel */
-      $model = Singleton::getInstance('DOCS\biz\APFModel');
+      $model = Singleton::getInstance(APFModel::class);
       $parentPageId = $model->getParentPageId();
       if ($parentPageId == '0') {
          return self::$DOC_PAGE_ID;
@@ -90,6 +92,7 @@ class TopNavigationController extends BaseDocumentController {
       if (!in_array($parentPageId, $this->navi)) {
          return self::$DOC_PAGE_ID;
       }
+
       return $parentPageId;
    }
 

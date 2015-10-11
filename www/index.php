@@ -22,6 +22,10 @@ use DOCS\biz\errorhandler\LiveErrorHandler;
 use DOCS\biz\exceptionhandler\LiveExceptionHandler;
 use DOCS\pres\filter\output\ScriptletOutputFilter;
 use DOCS\pres\http\HttpCacheManager;
+use DOCS\pres\taglib\DocumentationLinkTag;
+use DOCS\pres\taglib\DocumentationTitleTag;
+use DOCS\pres\taglib\GenericHighlightTag;
+use DOCS\pres\taglib\InternalLinkTag;
 
 date_default_timezone_set('Europe/Berlin');
 ob_start();
@@ -47,7 +51,7 @@ $sqlProvider->setOmitContext(true);
 ConfigurationManager::registerProvider('sql', $sqlProvider);
 
 /* @var $l Logger */
-$l = & Singleton::getInstance('APF\core\logging\Logger');
+$l = &Singleton::getInstance(Logger::class);
 $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
 // configure logger for database debug messages
@@ -60,17 +64,14 @@ $l->addLogWriter('searchlog', clone $defaultWriter);
 
 // configure url rewriting feature
 // 1. input and output filter
-
 InputFilterChain::getInstance()->prependFilter(new ChainedUrlRewritingInputFilter());
-
 OutputFilterChain::getInstance()->appendFilter(new ChainedUrlRewritingOutputFilter());
 
 // 2. link scheme
-
 LinkGenerator::setLinkScheme(new RewriteLinkScheme());
 
 // configure page values
-Registry::register('DOCS', 'Releases.LocalDir', 'C:\Users\Christian\Entwicklung\Build\RELEASES');
+Registry::register('DOCS', 'Releases.LocalDir', '/path/to/Build/RELEASES');
 Registry::register('DOCS', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
 Registry::register('DOCS', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
 Registry::register('DOCS', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
@@ -87,13 +88,13 @@ OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
 HttpCacheManager::sendHtmlCacheHeaders();
 
 // Register tags to avoid performance overhead
-Document::addTagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link');
-Document::addTagLib('DOCS\pres\taglib\DocumentationTitleTag', 'doku', 'title');
-Document::addTagLib('DOCS\pres\taglib\GenericHighlightTag', 'gen', 'highlight');
-Document::addTagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link');
+Document::addTagLib(DocumentationLinkTag::class, 'doku', 'link');
+Document::addTagLib(DocumentationTitleTag::class, 'doku', 'title');
+Document::addTagLib(GenericHighlightTag::class, 'gen', 'highlight');
+Document::addTagLib(InternalLinkTag::class, 'int', 'link');
 
 /* @var $fC Frontcontroller */
-$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+$fC = Singleton::getInstance(Frontcontroller::class);
 $fC->setContext(null);
 $fC->setLanguage('de');
 
@@ -103,7 +104,7 @@ echo $fC->start('DOCS\pres\templates', 'main');
 
 // display benchmark report on demand
 /* @var $t BenchmarkTimer */
-$t = Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+$t = Singleton::getInstance(BenchmarkTimer::class);
 if (isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true') {
    echo $t->createReport();
 }

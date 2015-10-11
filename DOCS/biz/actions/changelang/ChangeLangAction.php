@@ -29,7 +29,7 @@ class ChangeLangAction extends AbstractFrontcontrollerAction {
    public function run() {
 
       // clean input parameters to avoid sql injection!
-      $request = &self::getRequest();
+      $request = $this->getRequest();
       $targetLang = preg_replace('/([^en|^de])/i', '', $request->getParameter(self::$LANG));
       $targetPageId = preg_replace('/([^0-9]+)/', '', $request->getParameter(self::$PAGE_ID));
       $targetVersion = $request->getParameter(self::$VERSION_ID);
@@ -38,10 +38,10 @@ class ChangeLangAction extends AbstractFrontcontrollerAction {
       }
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject('DOCS\biz\UrlManager');
+      $urlMan = &$this->getServiceObject(UrlManager::class);
       $forwardUrl = $urlMan->generateLink($targetPageId, $targetLang, $targetVersion);
 
-      self::getResponse()->forward($forwardUrl);
+      $this->getResponse()->forward($forwardUrl);
    }
 
 }

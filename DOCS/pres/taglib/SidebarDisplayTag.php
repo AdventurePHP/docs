@@ -26,7 +26,7 @@ class SidebarDisplayTag extends ImportTemplateTag {
    public function onParseTime() {
 
       /* @var $model APFModel */
-      $model = & Singleton::getInstance('DOCS\biz\APFModel');
+      $model = &Singleton::getInstance(APFModel::class);
       if ($model->getDisplaySidebar() == true) {
 
          // get content

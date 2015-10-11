@@ -45,7 +45,7 @@ class AntiSpamFormTag extends AbstractFormControl {
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 17.07.2008<br />
+    * Version 0.1, 17.07.2008<br />
     */
    public function transform() {
       return '<input type="hidden" name="' . $this->getAntiSpamName() . '" value="' . date('U') . '" />';
@@ -54,13 +54,13 @@ class AntiSpamFormTag extends AbstractFormControl {
    /**
     * @private
     *
-    *  Returns the name of the anti spam field.
+    * Returns the name of the anti spam field.
     *
     * @return string $AntiSpamName name of the anti spam field
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 17.07.2008<br />
+    * Version 0.1, 17.07.2008<br />
     */
    private function getAntiSpamName() {
       return strtolower($this->getParentObject()->getAttribute('name')) . '_antispam';

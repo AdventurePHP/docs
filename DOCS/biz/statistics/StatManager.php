@@ -2,8 +2,8 @@
 namespace DOCS\biz\statistics;
 
 use APF\core\benchmark\BenchmarkTimer;
+use APF\core\http\mixins\GetRequestResponse;
 use APF\core\pagecontroller\APFObject;
-use APF\core\session\Session;
 use APF\core\singleton\Singleton;
 use DOCS\data\statistics\ReportingStatMapper;
 use DOCS\data\statistics\StatMapper;
@@ -18,6 +18,8 @@ use DOCS\data\statistics\StatMapper;
  */
 class StatManager extends APFObject {
 
+   use GetRequestResponse;
+
    /**
     * @public
     *
@@ -28,6 +30,7 @@ class StatManager extends APFObject {
     * @param string $month desired month or null
     * @param string $day desired day or null
     * @param string $hour desired hour or null
+    *
     * @return array $statSections list of the desired stat sections
     *
     * @author Christian Achatz
@@ -36,12 +39,12 @@ class StatManager extends APFObject {
     */
    public function readStatistic($period = 'overview', $year = null, $month = null, $day = null, $hour = null) {
 
-      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+      $t = &Singleton::getInstance(BenchmarkTimer::class);
       /* @var $t BenchmarkTimer */
       $t->start('getStatData(' . $period . ')');
 
       // Statistik-Daten laden
-      $sM = & $this->getAndInitServiceObject('DOCS\data\statistics\ReportingStatMapper', 'Stat');
+      $sM = &$this->getServiceObject(ReportingStatMapper::class);
       /* @var $sM ReportingStatMapper */
       switch ($period) {
          case 'year':
@@ -70,6 +73,54 @@ class StatManager extends APFObject {
    }
 
    /**
+    * @private
+    *
+    * Calculates the average and sums of certain stat items.
+    *
+    * @param BaseStatSection[] $statList List of stat sections.
+    *
+    * @return BaseStatSection[] Manipulated list of stat sections.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 05.06.2006<br />
+    * Version 0.2, 16.11.2008 (Adapted to the new domain objects)<br />
+    */
+   private function calculateAverageAndSum($statList) {
+
+      for ($i = 0; $i < count($statList); $i++) {
+
+         if ($statList[$i] instanceof LinkTableStatSection) {
+
+            /* @var $entries StatEntry[] */
+            $entries = $statList[$i]->getAttribute('Entries');
+
+            $sum = (int) 0;
+            $count = (int) 0;
+
+            for ($j = 0; $j < count($entries); $j++) {
+
+               $sum = $sum + intval($entries[$j]->getAttribute('Value'));
+               $count++;
+
+            }
+
+            $statList[$i]->setAttribute('Sum', $sum);
+            if ($count > 0) {
+               $statList[$i]->setAttribute('Average', intval($sum / $count));
+            } else {
+               $statList[$i]->setAttribute('Average', 0);
+            }
+
+         }
+
+      }
+
+      return $statList;
+
+   }
+
+   /**
     * @public
     *
     * Business layer method to create a stat entry.
@@ -90,33 +141,58 @@ class StatManager extends APFObject {
       $DNSName = $DNSIP['DNS'];
 
       // create data layer component
-      $wSM = & $this->getAndInitServiceObject('DOCS\data\statistics\StatMapper', 'Stat');
+      $wSM = &$this->getServiceObject(StatMapper::class);
       /* @var $wSM StatMapper */
-
-      // create session manager
-      $Session = new Session('Stat');
 
       // create stat entry
       $wSM->createStatEntry(
-         $PageName,
-         $PageLang,
-         $_SERVER['REQUEST_URI'],
-         date('d'),
-         date('m'),
-         date('Y'),
-         date('H'),
-         date('i'),
-         date('s'),
-         $this->getUserName(),
-         $Session->getSessionID(),
-         $this->getBrowser(),
-         $this->getLanguage(),
-         $this->getOS(),
-         $IPAddress,
-         $DNSName,
-         $this->getReferrer(),
-         $_SERVER['HTTP_USER_AGENT']
+            $PageName,
+            $PageLang,
+            $_SERVER['REQUEST_URI'],
+            date('d'),
+            date('m'),
+            date('Y'),
+            date('H'),
+            date('i'),
+            date('s'),
+            $this->getUserName(),
+            $this->getRequest()->getSessionId(),
+            $this->getBrowser(),
+            $this->getLanguage(),
+            $this->getOS(),
+            $IPAddress,
+            $DNSName,
+            $this->getReferrer(),
+            $_SERVER['HTTP_USER_AGENT']
       );
+   }
+
+   /**
+    * @public
+    *
+    * Gathers client ip and dns name.
+    *
+    * @return array Associative array with the client ip and dns name.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 22.03.2005<br />
+    */
+   public function getHostInfo() {
+
+      $DNSIP = trim($_SERVER['REMOTE_ADDR']);
+
+      if (preg_match("/^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])" .
+            "(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$/", $DNSIP)
+      ) {
+         $return['DNS'] = gethostbyaddr($DNSIP);
+         $return['IP'] = $DNSIP;
+      } else {
+         $return['DNS'] = $DNSIP;
+         $return['IP'] = gethostbyname($DNSIP);
+      }
+
+      return $return;
    }
 
    /**
@@ -145,201 +221,85 @@ class StatManager extends APFObject {
    /**
     * @public
     *
-    * Gathers the HTTP referer.
+    * Gathers the client browser type.
     *
-    * @return string $Referer the referer or '*'
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 22.12.2005<br />
-    */
-   public function getReferrer() {
-      return isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '*';
-   }
-
-   /**
-    * @public
-    *
-    *  Gathers the client language.
-    *
-    * @return string $Lang client language or '*'
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 22.12.2005<br />
-    */
-   public function getLanguage() {
-      return (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) && !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']))
-            ? $_SERVER['HTTP_ACCEPT_LANGUAGE']
-            : '*';
-   }
-
-   /**
-    * @public
-    *
-    * Gathers client ip and dns name.
-    *
-    * @return array Associative array with the client ip and dns name.
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 22.03.2005<br />
-    */
-   public function getHostInfo() {
-
-      $DNSIP = trim($_SERVER['REMOTE_ADDR']);
-
-      if (preg_match("/^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])" .
-            "(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$/", $DNSIP)
-      ) {
-         $return['DNS'] = gethostbyaddr($DNSIP);
-         $return['IP'] = $DNSIP;
-      } else {
-         $return['DNS'] = $DNSIP;
-         $return['IP'] = gethostbyname($DNSIP);
-      }
-
-      return $return;
-   }
-
-   private function getUserAgent() {
-      return isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'n/a';
-   }
-
-   /**
-    * @public
-    *
-    * Gathers the OS of the client machine.
-    *
-    * @return string $OS the client machine os or '*'
+    * @return string $Browser the corresponding browser string or the content of the HTTP_USER_AGENT directive
     *
     * @author Christian Achatz
     * @version
     * Version 0.1, 22.12.2005<br />
     * Version 0.2, 14.10.2008 (Corrected some table entries)<br />
     */
-   public function getOS() {
-
-      $osTable = array(
-         'Windows 98' => 'Windows 98',
-         'Win98' => 'Windows 98',
-         'Windows NT' => 'Windows NT',
-         'Windows NT 4.0' => 'Windows NT SP6a',
-         'Windows NT 5.0' => 'Windows 2000',
-         'Windows NT 5.1' => 'Windows XP',
-         'Windows NT 5.2' => 'Windows XP SP2',
-         'Windows NT 5.3' => 'Windows XP SP3',
-         'Windows NT 6.0' => 'Windows Vista',
-         'Windows NT 6.1' => 'Windows 7',
-         'Mac OS X' => 'Mac OS X',
-         'Mac' => 'Macintosh',
-         'Ubuntu' => 'Ubuntu Linux',
-         'SUSE' => 'SUSE Linux',
-         'Debian' => 'Debian Linux',
-         'Fedora' => 'Fedora Linux',
-         'Mandriva' => 'Mandriva Linux',
-         'Linux' => 'Linux'
-      );
-
-      $userAgent = $this->getUserAgent();
-
-      foreach ($osTable as $key => $value) {
-         if (substr_count($userAgent, $key) > 0) {
-            $os = $value;
-            break;
-         }
-      }
-
-      if (empty($os) || $os == ' ') {
-         $os = '*';
-      }
-
-      return $os;
-
-   }
-
-   /**
-    * @public
-    *
-    *  Gathers the client browser type.
-    *
-    * @return string $Browser the corresponding browser string or the content of the HTTP_USER_AGENT directive
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 22.12.2005<br />
-    *  Version 0.2, 14.10.2008 (Corrected some table entries)<br />
-    */
    public function getBrowser() {
 
-      $browserTable = array(
-         'AppleWebKit' => '[BROWSER] Safari',
-         'Konqueror' => '[BROWSER] Konqueror',
-         'Konqueror/3.4' => '[BROWSER] Konqueror 3.4',
-         'Konqueror/3.3' => '[BROWSER] Konqueror 3.3',
-         'MSIE 11' => '[BROWSER] Internet Explorer 11',
-         'MSIE 10' => '[BROWSER] Internet Explorer 10',
-         'MSIE 9' => '[BROWSER] Internet Explorer 9',
-         'MSIE 8' => '[BROWSER] Internet Explorer 8',
-         'MSIE 7' => '[BROWSER] Internet Explorer 7',
-         'MSIE 5' => '[BROWSER] Internet Explorer 5',
-         'MSIE 5.5' => '[BROWSER] Internet Explorer 5.5',
-         'MSIE 6' => '[BROWSER] Internet Explorer 6',
-         'MSIE 3' => '[BROWSER] Internet Explorer 3',
-         'MSIE 4' => '[BROWSER] Internet Explorer 4',
-         'MSIE' => '[BROWSER] Internet Explorer',
-         'Opera/11' => '[BROWSER] Opera 11',
-         'Opera/10' => '[BROWSER] Opera 10',
-         'Opera/9' => '[BROWSER] Opera 9',
-         'Opera/8' => '[BROWSER] Opera 8',
-         'Opera' => '[BROWSER] Opera',
-         'Firefox/3' => '[BROWSER] Firefox 3',
-         'Firefox/2' => '[BROWSER] Firefox 2',
-         'Firefox' => '[BROWSER] Firefox',
-         'iCab' => '[BROWSER] iCab',
-         'w3m/' => '[BROWSER] w3m',
-         'Safari' => '[BROWSER] Safari'
-      );
+      $browserTable = [
+            'AppleWebKit'   => '[BROWSER] Safari',
+            'Konqueror'     => '[BROWSER] Konqueror',
+            'Konqueror/3.4' => '[BROWSER] Konqueror 3.4',
+            'Konqueror/3.3' => '[BROWSER] Konqueror 3.3',
+            'MSIE 11'       => '[BROWSER] Internet Explorer 11',
+            'MSIE 10'       => '[BROWSER] Internet Explorer 10',
+            'MSIE 9'        => '[BROWSER] Internet Explorer 9',
+            'MSIE 8'        => '[BROWSER] Internet Explorer 8',
+            'MSIE 7'        => '[BROWSER] Internet Explorer 7',
+            'MSIE 5'        => '[BROWSER] Internet Explorer 5',
+            'MSIE 5.5'      => '[BROWSER] Internet Explorer 5.5',
+            'MSIE 6'        => '[BROWSER] Internet Explorer 6',
+            'MSIE 3'        => '[BROWSER] Internet Explorer 3',
+            'MSIE 4'        => '[BROWSER] Internet Explorer 4',
+            'MSIE'          => '[BROWSER] Internet Explorer',
+            'Opera/11'      => '[BROWSER] Opera 11',
+            'Opera/10'      => '[BROWSER] Opera 10',
+            'Opera/9'       => '[BROWSER] Opera 9',
+            'Opera/8'       => '[BROWSER] Opera 8',
+            'Opera'         => '[BROWSER] Opera',
+            'Firefox/3'     => '[BROWSER] Firefox 3',
+            'Firefox/2'     => '[BROWSER] Firefox 2',
+            'Firefox'       => '[BROWSER] Firefox',
+            'iCab'          => '[BROWSER] iCab',
+            'w3m/'          => '[BROWSER] w3m',
+            'Safari'        => '[BROWSER] Safari'
+      ];
 
       //
       //   This select can be used to analyze spider and bot access:
       //   SELECT UserAgent, COUNT(UserAgent) AS count FROM statistics WHERE NOT INSTR(UserAgent,'Mozilla') GROUP BY UserAgent
       //
 
-      $botTable = array(
-         'Yahoo! Slurp' => '[BOT] Yahoo! spider',
-         'appie 1.1 (www.walhello.com)' => '[BOT] walhello.com',
-         'contype' => '[BOT] ConType spider',
-         'findlinks/0.87' => '[BOT] Wordspider Uni Leipzig',
-         'getRAX' => '[BOT] getRAX Spider',
-         'Gigabot/2.0' => '[BOT] Gibagot',
-         'Googlebot/2.1' => '[BOT] Google.de',
-         'HeinrichderMiragoRobot' => '[BOT] MiragoRobot',
-         'ia_archiver' => '[BOT] Alexa websearch',
-         'Jetbot/1.0' => '[BOT] JetBot',
-         'larbin-mb' => '[BOT] Larbin webspider',
-         'libwww-perl' => '[BOT] libperl www-client',
-         'LinkWalker' => '[BOT] LinkWalker',
-         'lwp-trivial/1.36' => '[BOT] LWP-Trivial web crawler',
-         'MJ12bot/v0.9.0' => '[BOT] majestic12.co.uk',
-         'msnbot/0.3' => '[BOT] MSN bot 0.3',
-         'msnbot/1.0' => '[BOT] MSN bot 1.0',
-         'psbot/0.1' => '[BOT] PicSearch crawler',
-         'Seekbot/1.0' => '[BOT] seekbot.net',
-         'suchbaer.de' => '[BOT] suchbaer.de',
-         'TurnitinBot/2.0' => '[BOT] turnitin.com',
-         'Wildsoft Surfer' => '[BOT] Wildsoft surfer / dlman crawler',
-         'WMP/1.0' => '[BOT] webmasterplan.de CrawlTool',
-         'Zao-Crawler' => '[BOT] kototoi.org/zao',
-         'Baiduspider' => '[BOT] baidu.com spider',
-         'Twiceler-0.9' => '[BOT] Twicler Spider',
-         'msnbot-media/1.0' => '[BOT] MSN media bot',
-         'msnbot-media/1.1' => '[BOT] MSN media bot',
-         'msnbot/1.1' => '[BOT] MSN bot 1.1',
-         'Yandex' => '[BOT] Yandex spider',
-         'vBSEO' => '[BOT] vBSEO link checker',
-         'freshmeat.net URI validator' => '[BOT] freshmeat link checker'
-      );
+      $botTable = [
+            'Yahoo! Slurp'                 => '[BOT] Yahoo! spider',
+            'appie 1.1 (www.walhello.com)' => '[BOT] walhello.com',
+            'contype'                      => '[BOT] ConType spider',
+            'findlinks/0.87'               => '[BOT] Wordspider Uni Leipzig',
+            'getRAX'                       => '[BOT] getRAX Spider',
+            'Gigabot/2.0'                  => '[BOT] Gibagot',
+            'Googlebot/2.1'                => '[BOT] Google.de',
+            'HeinrichderMiragoRobot'       => '[BOT] MiragoRobot',
+            'ia_archiver'                  => '[BOT] Alexa websearch',
+            'Jetbot/1.0'                   => '[BOT] JetBot',
+            'larbin-mb'                    => '[BOT] Larbin webspider',
+            'libwww-perl'                  => '[BOT] libperl www-client',
+            'LinkWalker'                   => '[BOT] LinkWalker',
+            'lwp-trivial/1.36'             => '[BOT] LWP-Trivial web crawler',
+            'MJ12bot/v0.9.0'               => '[BOT] majestic12.co.uk',
+            'msnbot/0.3'                   => '[BOT] MSN bot 0.3',
+            'msnbot/1.0'                   => '[BOT] MSN bot 1.0',
+            'psbot/0.1'                    => '[BOT] PicSearch crawler',
+            'Seekbot/1.0'                  => '[BOT] seekbot.net',
+            'suchbaer.de'                  => '[BOT] suchbaer.de',
+            'TurnitinBot/2.0'              => '[BOT] turnitin.com',
+            'Wildsoft Surfer'              => '[BOT] Wildsoft surfer / dlman crawler',
+            'WMP/1.0'                      => '[BOT] webmasterplan.de CrawlTool',
+            'Zao-Crawler'                  => '[BOT] kototoi.org/zao',
+            'Baiduspider'                  => '[BOT] baidu.com spider',
+            'Twiceler-0.9'                 => '[BOT] Twicler Spider',
+            'msnbot-media/1.0'             => '[BOT] MSN media bot',
+            'msnbot-media/1.1'             => '[BOT] MSN media bot',
+            'msnbot/1.1'                   => '[BOT] MSN bot 1.1',
+            'Yandex'                       => '[BOT] Yandex spider',
+            'vBSEO'                        => '[BOT] vBSEO link checker',
+            'freshmeat.net URI validator'  => '[BOT] freshmeat link checker'
+      ];
 
       $browser = '';
 
@@ -365,51 +325,92 @@ class StatManager extends APFObject {
       return $browser;
    }
 
+   private function getUserAgent() {
+      return isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'n/a';
+   }
+
    /**
-    * @private
+    * @public
     *
-    * Calculates the average and sums of certain stat items.
+    * Gathers the client language.
     *
-    * @param BaseStatSection[] $statList List of stat sections.
-    * @return BaseStatSection[] Manipulated list of stat sections.
+    * @return string $Lang client language or '*'
     *
     * @author Christian Achatz
     * @version
-    * Version 0.1, 05.06.2006<br />
-    * Version 0.2, 16.11.2008 (Adapted to the new domain objects)<br />
+    * Version 0.1, 22.12.2005<br />
     */
-   private function calculateAverageAndSum($statList) {
+   public function getLanguage() {
+      return (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) && !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+            ? $_SERVER['HTTP_ACCEPT_LANGUAGE']
+            : '*';
+   }
 
-      for ($i = 0; $i < count($statList); $i++) {
+   /**
+    * @public
+    *
+    * Gathers the OS of the client machine.
+    *
+    * @return string $OS the client machine os or '*'
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 22.12.2005<br />
+    * Version 0.2, 14.10.2008 (Corrected some table entries)<br />
+    */
+   public function getOS() {
 
-         if (get_class($statList[$i]) == 'LinkTableStatSection') {
+      $osTable = [
+            'Windows 98'     => 'Windows 98',
+            'Win98'          => 'Windows 98',
+            'Windows NT'     => 'Windows NT',
+            'Windows NT 4.0' => 'Windows NT SP6a',
+            'Windows NT 5.0' => 'Windows 2000',
+            'Windows NT 5.1' => 'Windows XP',
+            'Windows NT 5.2' => 'Windows XP SP2',
+            'Windows NT 5.3' => 'Windows XP SP3',
+            'Windows NT 6.0' => 'Windows Vista',
+            'Windows NT 6.1' => 'Windows 7',
+            'Mac OS X'       => 'Mac OS X',
+            'Mac'            => 'Macintosh',
+            'Ubuntu'         => 'Ubuntu Linux',
+            'SUSE'           => 'SUSE Linux',
+            'Debian'         => 'Debian Linux',
+            'Fedora'         => 'Fedora Linux',
+            'Mandriva'       => 'Mandriva Linux',
+            'Linux'          => 'Linux'
+      ];
 
-            /* @var $entries StatEntry[] */
-            $entries = $statList[$i]->getAttribute('Entries');
+      $userAgent = $this->getUserAgent();
 
-            $sum = (int)0;
-            $count = (int)0;
-
-            for ($j = 0; $j < count($entries); $j++) {
-
-               $sum = $sum + intval($entries[$j]->getAttribute('Value'));
-               $count++;
-
-            }
-
-            $statList[$i]->setAttribute('Sum', $sum);
-            if ($count > 0) {
-               $statList[$i]->setAttribute('Average', intval($sum / $count));
-            } else {
-               $statList[$i]->setAttribute('Average', 0);
-            }
-
+      foreach ($osTable as $key => $value) {
+         if (substr_count($userAgent, $key) > 0) {
+            $os = $value;
+            break;
          }
-
       }
 
-      return $statList;
+      if (empty($os) || $os == ' ') {
+         $os = '*';
+      }
 
+      return $os;
+
+   }
+
+   /**
+    * @public
+    *
+    * Gathers the HTTP referer.
+    *
+    * @return string $Referer the referer or '*'
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 22.12.2005<br />
+    */
+   public function getReferrer() {
+      return isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '*';
    }
 
 }

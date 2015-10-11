@@ -38,14 +38,14 @@ class InternalLinkTag extends Document {
 
       // setup version
       /* @var $model APFModel */
-      $model = & Singleton::getInstance('DOCS\biz\APFModel');
+      $model = &Singleton::getInstance(APFModel::class);
       $currentVersion = $model->getVersionId();
 
       $version = $this->getAttribute('version', $currentVersion);
 
       // setup link text
       /* @var $urlMan UrlManager */
-      $urlMan = & $this->getServiceObject('DOCS\biz\UrlManager');
+      $urlMan = &$this->getServiceObject(UrlManager::class);
       $linkText = $this->getLinkText();
       if ($linkText === null) {
          $linkText = $urlMan->getPageTitle($pageId, $lang, $version);
@@ -94,6 +94,7 @@ class InternalLinkTag extends Document {
       if (empty($this->content)) {
          return null;
       }
+
       return $this->content;
    }
 

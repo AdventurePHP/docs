@@ -7,13 +7,13 @@ use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\pagecontroller\TemplateTag;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
+use APF\tools\link\Url;
 use DOCS\biz\ApfSearchManager;
 use DOCS\biz\ForumSearchResult;
 use DOCS\biz\PageSearchResult;
 use DOCS\biz\SearchResult;
 use DOCS\biz\TrackerSearchResult;
 use DOCS\biz\UrlManager;
-use APF\tools\link\Url;
 use DOCS\biz\WikiSearchResult;
 
 /**
@@ -44,14 +44,14 @@ class SearchController extends BaseDocumentController {
    public function transformContent() {
 
       // register search content
-      $searchTerm = self::getRequest()->getParameter('search', '');
+      $searchTerm = $this->getRequest()->getParameter('search', '');
 
       // display form
-      $form = & $this->getForm('SearchV2');
+      $form = &$this->getForm('SearchV2');
       $form->transformOnPlace();
 
       /* @var $l Logger */
-      $l = & Singleton::getInstance('APF\core\logging\Logger');
+      $l = &Singleton::getInstance(Logger::class);
       $l->logEntry('searchlog', 'SearchString: "' . $searchTerm . '"', LogEntry::SEVERITY_INFO);
 
       // display results
@@ -60,7 +60,7 @@ class SearchController extends BaseDocumentController {
          $section = $this->getTemplate('Results');
 
          /* @var $m ApfSearchManager */
-         $m = & $this->getServiceObject('DOCS\biz\ApfSearchManager');
+         $m = &$this->getServiceObject(ApfSearchManager::class);
 
          $this->displayResultList($m->loadSearchResult($searchTerm), $section, 'WebsiteResult');
          $this->displayResultList($m->loadWikiSearchResults($searchTerm), $section, 'WikiResult');
@@ -84,10 +84,10 @@ class SearchController extends BaseDocumentController {
       $config = $this->getConfiguration('DOCS\biz', 'language.ini');
 
       // initialize buffer
-      $buffer = (string)'';
+      $buffer = (string) '';
 
       // get template
-      $template = & $this->getTemplate('Result');
+      $template = &$this->getTemplate('Result');
 
       $count = count($list);
 
@@ -118,7 +118,7 @@ class SearchController extends BaseDocumentController {
       if ($count < 1) {
 
          // get template
-         $templateNoSearchResult = & $this->getTemplate('NoSearchResult_' . $this->getLanguage());
+         $templateNoSearchResult = &$this->getTemplate('NoSearchResult_' . $this->getLanguage());
 
          // add message to buffer
          $buffer .= $templateNoSearchResult->transformTemplate();
@@ -130,28 +130,23 @@ class SearchController extends BaseDocumentController {
 
    }
 
-   private function getUrl(SearchResult $result) {
-      if ($result instanceof PageSearchResult) {
-         /* @var $urlMan UrlManager */
-         $urlMan = & $this->getServiceObject('DOCS\biz\UrlManager');
-         $currentUrl = Url::fromCurrent(true);
-         $baseUrl = $currentUrl->getScheme() . '://' . $currentUrl->getHost();
-         $url = $urlMan->generateLink($result->getPageId(), $result->getLanguage(), $result->getVersionId());
-         return $baseUrl . $url;
-      } else if ($result instanceof WikiSearchResult) {
-         return Registry::retrieve('DOCS', 'WikiBaseURL') . '/' . $result->getLanguage() . '/' . $result->getPageId();
+   private function getIconCode(SearchResult $result) {
+      if ($result instanceof WikiSearchResult) {
+         return '&#xe001;';
+      } else if ($result instanceof ForumSearchResult) {
+         return '&#xe002;';
       } else if ($result instanceof TrackerSearchResult) {
-         return Registry::retrieve('DOCS', 'TrackerBaseURL') . '/view.php?id=' . $result->getPageId();
+         return '&#xe003;';
       } else {
-         /* @var $result ForumSearchResult */
-         return Registry::retrieve('DOCS', 'ForumBaseURL') . '/viewtopic.php?f=' . $result->getForumId() . '&amp;t=' . $result->getTopicId();
+         return '&#xe000;';
       }
    }
 
    private function getTitle(SearchResult $result) {
       if ($result instanceof PageSearchResult) {
          /* @var $urlMan UrlManager */
-         $urlMan = & $this->getServiceObject('DOCS\biz\UrlManager');
+         $urlMan = &$this->getServiceObject(UrlManager::class);
+
          return $urlMan->getPageTitle($result->getPageId(), $result->getLanguage(), $result->getVersionId());
       } else if ($result instanceof WikiSearchResult) {
          return $result->getTitle();
@@ -163,15 +158,22 @@ class SearchController extends BaseDocumentController {
       }
    }
 
-   private function getIconCode(SearchResult $result) {
-      if ($result instanceof WikiSearchResult) {
-         return '&#xe001;';
-      } else if ($result instanceof ForumSearchResult) {
-         return '&#xe002;';
+   private function getUrl(SearchResult $result) {
+      if ($result instanceof PageSearchResult) {
+         /* @var $urlMan UrlManager */
+         $urlMan = &$this->getServiceObject(UrlManager::class);
+         $currentUrl = Url::fromCurrent(true);
+         $baseUrl = $currentUrl->getScheme() . '://' . $currentUrl->getHost();
+         $url = $urlMan->generateLink($result->getPageId(), $result->getLanguage(), $result->getVersionId());
+
+         return $baseUrl . $url;
+      } else if ($result instanceof WikiSearchResult) {
+         return Registry::retrieve('DOCS', 'WikiBaseURL') . '/' . $result->getLanguage() . '/' . $result->getPageId();
       } else if ($result instanceof TrackerSearchResult) {
-         return '&#xe003;';
+         return Registry::retrieve('DOCS', 'TrackerBaseURL') . '/view.php?id=' . $result->getPageId();
       } else {
-         return '&#xe000;';
+         /* @var $result ForumSearchResult */
+         return Registry::retrieve('DOCS', 'ForumBaseURL') . '/viewtopic.php?f=' . $result->getForumId() . '&amp;t=' . $result->getTopicId();
       }
    }
 

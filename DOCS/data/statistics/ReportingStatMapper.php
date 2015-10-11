@@ -4,9 +4,9 @@ namespace DOCS\data\statistics;
 use APF\core\database\ConnectionManager;
 use APF\core\database\DatabaseConnection;
 use APF\core\pagecontroller\APFObject;
-use DOCS\biz\statistics\SimpleStatSection;
 use DOCS\biz\statistics\BaseStatSection;
 use DOCS\biz\statistics\LinkTableStatSection;
+use DOCS\biz\statistics\SimpleStatSection;
 use DOCS\biz\statistics\StatEntry;
 
 /**
@@ -28,150 +28,53 @@ class ReportingStatMapper extends APFObject {
 
    /**
     * @private
-    *  Contains the maximum length of the output area.
+    * Contains the maximum length of the output area.
     */
    private $imageMaxLength = 800;
 
    /**
     * @public
     *
-    *  Initializes the mapper.
-    *
-    * @param string $initParam the desired database connection key
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 15.11.2008<br />
-    */
-   public function init($initParam) {
-      /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
-      $this->conn = & $cM->getConnection($initParam);
-   }
-
-   /**
-    * @public
-    *
-    *  Returns the list of stat sections for the overview.
+    * Returns the list of stat sections for the overview.
     *
     * @return array $statSections list of stat sections
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 15.11.2008<br />
+    * Version 0.1, 15.11.2008<br />
     */
    public function getStatData4Overview() {
       return $this->genericGetStatData(
-         'Year',
-         null,
-         '10'
+            'Year',
+            null,
+            '10'
       );
    }
 
    /**
     * @public
     *
-    *  Returns the list of stat sections for the year period.
-    *
-    * @param string $year desired year
-    * @return array $statSections list of stat sections
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 15.11.2008<br />
-    */
-   public function getStatData4Year($year) {
-      return $this->genericGetStatData(
-         'Month',
-            'Year = \'' . $year . '\'',
-         '10'
-      );
-   }
-
-   /**
-    * @public
-    *
-    *  Returns the list of stat sections for the month period.
-    *
-    * @param string $year desired year
-    * @param string $month desired month
-    * @return array $statSections list of stat sections
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 15.11.2008<br />
-    */
-   public function getStatData4Month($year, $month) {
-      return $this->genericGetStatData(
-         'Day',
-            'Year = \'' . $year . '\' AND Month = \'' . $month . '\'',
-         '10'
-      );
-   }
-
-   /**
-    * @public
-    *
-    *  Returns the list of stat sections for the day period.
-    *
-    * @param string $year desired year
-    * @param string $month desired month
-    * @param string $day desired day
-    * @return array $statSections list of stat sections
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 15.11.2008<br />
-    */
-   public function getStatData4Day($year, $month, $day) {
-      return $this->genericGetStatData(
-         'Hour',
-            'Year = \'' . $year . '\' AND Month = \'' . $month . '\' AND Day = \'' . $day . '\'',
-         '20'
-      );
-   }
-
-   /**
-    * @public
-    *
-    *  Returns the list of stat sections for the hour period.
-    *
-    * @param string $year desired year
-    * @param string $month desired month
-    * @param string $day desired day
-    * @param string $hour desired hour
-    * @return array $statSections list of stat sections
-    *
-    * @author Christian Achatz
-    * @version
-    *  Version 0.1, 15.11.2008<br />
-    */
-   public function getStatData4Hour($year, $month, $day, $hour) {
-      return $this->genericGetStatData(
-         'Minute',
-            'Year = \'' . $year . '\' AND Month = \'' . $month . '\' AND Day = \'' . $day . '\' AND Hour = \'' . $hour . '\''
-      );
-   }
-
-   /**
-    * @public
-    *
-    *  Implements a reusable loader for the various statistic views (overview, year, ...).
+    * Implements a reusable loader for the various statistic views (overview, year, ...).
     *
     * @param string $attribute the current attribute to load
     * @param string $where the where statement for the current view
     * @param string $limit the limit clause for the current view
+    *
     * @return BaseStatSection[] $sections the stat section for the current view
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 15.11.2008 (Initial version of the abstract stat loader)<br />
-    *  Version 0.2. 16.11.2008 (Finished work and tried to abstract some more parts)<br />
+    * Version 0.1, 15.11.2008 (Initial version of the abstract stat loader)<br />
+    * Version 0.2. 16.11.2008 (Finished work and tried to abstract some more parts)<br />
     */
    private function genericGetStatData($attribute, $where = null, $limit = null) {
 
+      /* @var $cM ConnectionManager */
+      $cM = &$this->getServiceObject(ConnectionManager::class);
+      $this->conn = &$cM->getConnection('Stat');
+
       // initialize return list
-      $statSections = array();
+      $statSections = [];
 
       // create array with all available period values (years, months, ...)
       $select_period = 'SELECT ' . $attribute . ' FROM ' . $this->table . ' ';
@@ -185,7 +88,7 @@ class ReportingStatMapper extends APFObject {
       $select_period = $select_period . ';';
       $result_period = $this->conn->executeTextStatement($select_period);
 
-      $available_period_values = array();
+      $available_period_values = [];
       while ($data_period = $this->conn->fetchData($result_period)) {
          $available_period_values[] = $data_period[$attribute];
       }
@@ -206,10 +109,10 @@ class ReportingStatMapper extends APFObject {
       $select_pages = $select_pages . ';';
       $result_pages = $this->conn->executeTextStatement($select_pages);
 
-      $pagesPerPeriod = array();
+      $pagesPerPeriod = [];
       $offset = 0;
       $max = 0;
-      $entries = array();
+      $entries = [];
       while ($data_pages = $this->conn->fetchData($result_pages)) {
 
          $entry = new StatEntry();
@@ -235,8 +138,8 @@ class ReportingStatMapper extends APFObject {
       $sect->setAttribute('Title', 'Number of unique visitors');
 
       $max = 0;
-      $entries = array();
-      $pagesPerVisitor = array();
+      $entries = [];
+      $pagesPerVisitor = [];
       for ($i = 0; $i < count($available_period_values); $i++) {
 
          $select_max = 'SELECT SessionID FROM ' . $this->table . '';
@@ -269,7 +172,7 @@ class ReportingStatMapper extends APFObject {
       $sect->setAttribute('Title', 'Pages per unique visitor');
 
       $max = 0;
-      $entries = array();
+      $entries = [];
       for ($i = 0; $i < count($pagesPerVisitor); $i++) {
 
          $entry = new StatEntry();
@@ -421,15 +324,41 @@ class ReportingStatMapper extends APFObject {
    /**
     * @private
     *
-    *  Reads the desired stat section from the database using the given statement and title.
+    * Calculates the current divisor to get the maximum length of one value. For display purpose only.
+    *
+    * @param string $value current maximum value
+    *
+    * @return string $divisor calculate divisor for te current stat section
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 04.06.2006<br />
+    */
+   private function calculateDivisor($value) {
+
+      if ($value > $this->imageMaxLength) {
+         $divisor = $value / $this->imageMaxLength;
+      } else {
+         $divisor = 1;
+      }
+
+      return $divisor;
+
+   }
+
+   /**
+    * @private
+    *
+    * Reads the desired stat section from the database using the given statement and title.
     *
     * @param string $statement the statement to load the section's data
     * @param string $title the title of the section
+    *
     * @return SimpleStatSection $sect the resulting stat section
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 16.11.2008<br />
+    * Version 0.1, 16.11.2008<br />
     */
    private function getStatSectionByStatement($statement, $title) {
 
@@ -439,7 +368,7 @@ class ReportingStatMapper extends APFObject {
       $result = $this->conn->executeTextStatement($statement);
 
       $max = 0;
-      $entries = array();
+      $entries = [];
 
       while ($data = $this->conn->fetchData($result)) {
 
@@ -454,33 +383,98 @@ class ReportingStatMapper extends APFObject {
 
       $sect->setAttribute('Entries', $entries);
       $sect->setAttribute('Divisor', $this->calculateDivisor($max));
+
       return $sect;
 
    }
 
-
    /**
-    * @private
+    * @public
     *
-    *  Calculates the current divisor to get the maximum length of one value. For display purpose only.
+    * Returns the list of stat sections for the year period.
     *
-    * @param string $value current maximum value
-    * @return string $divisor calculate divisor for te current stat section
+    * @param string $year desired year
+    *
+    * @return array $statSections list of stat sections
     *
     * @author Christian Achatz
     * @version
-    *  Version 0.1, 04.06.2006<br />
+    * Version 0.1, 15.11.2008<br />
     */
-   private function calculateDivisor($value) {
+   public function getStatData4Year($year) {
+      return $this->genericGetStatData(
+            'Month',
+            'Year = \'' . $year . '\'',
+            '10'
+      );
+   }
 
-      if ($value > $this->imageMaxLength) {
-         $divisor = $value / $this->imageMaxLength;
-      } else {
-         $divisor = 1;
-      }
+   /**
+    * @public
+    *
+    * Returns the list of stat sections for the month period.
+    *
+    * @param string $year desired year
+    * @param string $month desired month
+    *
+    * @return array $statSections list of stat sections
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 15.11.2008<br />
+    */
+   public function getStatData4Month($year, $month) {
+      return $this->genericGetStatData(
+            'Day',
+            'Year = \'' . $year . '\' AND Month = \'' . $month . '\'',
+            '10'
+      );
+   }
 
-      return $divisor;
+   /**
+    * @public
+    *
+    * Returns the list of stat sections for the day period.
+    *
+    * @param string $year desired year
+    * @param string $month desired month
+    * @param string $day desired day
+    *
+    * @return array $statSections list of stat sections
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 15.11.2008<br />
+    */
+   public function getStatData4Day($year, $month, $day) {
+      return $this->genericGetStatData(
+            'Hour',
+            'Year = \'' . $year . '\' AND Month = \'' . $month . '\' AND Day = \'' . $day . '\'',
+            '20'
+      );
+   }
 
+   /**
+    * @public
+    *
+    * Returns the list of stat sections for the hour period.
+    *
+    * @param string $year desired year
+    * @param string $month desired month
+    * @param string $day desired day
+    * @param string $hour desired hour
+    *
+    * @return array $statSections list of stat sections
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 15.11.2008<br />
+    */
+   public function getStatData4Hour($year, $month, $day, $hour) {
+      return $this->genericGetStatData(
+            'Minute',
+            'Year = \'' . $year . '\' AND Month = \'' . $month . '\' AND Day = \'' . $day . '\' AND Hour = \'' . $hour . '\''
+      );
    }
 
 }

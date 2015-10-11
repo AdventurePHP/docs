@@ -37,8 +37,8 @@ class JsCssAction extends AbstractFrontcontrollerAction {
          HttpCacheManager::sendJsCacheHeaders();
       }
 
-      $response = self::getResponse();
-      $request = self::getRequest();
+      $response = $this->getResponse();
+      $request = $this->getRequest();
 
       if ($request->isGzipSupported()) {
          $content = gzencode(file_get_contents($fileName), 9);

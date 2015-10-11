@@ -34,7 +34,7 @@ class MainController extends BaseDocumentController {
    public function transformContent() {
 
       /* @var $model APFModel */
-      $model = Singleton::getInstance('DOCS\biz\APFModel');
+      $model = Singleton::getInstance(APFModel::class);
 
       // current title
       $this->setPlaceHolder('Title', $model->getTitle());

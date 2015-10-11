@@ -22,7 +22,7 @@ $iniProvider = ConfigurationManager::retrieveProvider('ini');
 $iniProvider->setOmitConfigSubFolder(true);
 $iniProvider->setOmitContext(true);
 
-$fC = Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+$fC = Singleton::getInstance(Frontcontroller::class);
 /* @var $fC Frontcontroller */
 $fC->setContext(null);
 $fC->start(null, null); // no template, because we do not need one!

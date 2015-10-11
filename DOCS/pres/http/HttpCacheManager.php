@@ -28,17 +28,17 @@ final class HttpCacheManager {
    private static $TWO_DAYS_IN_SECS = 86400;
 
    public static function sendHtmlCacheHeaders() {
-      self::getResponse()->setHeader(new HeaderImpl('Content-Type', 'text/html; charset=utf-8'));
+      self::getResponseStatic()->setHeader(new HeaderImpl('Content-Type', 'text/html; charset=utf-8'));
       self::sendCacheHeaders(self::$TWO_DAYS_IN_SECS);
    }
 
    public static function sendCssCacheHeaders() {
-      self::getResponse()->setHeader(new HeaderImpl('Content-Type', 'text/css; charset=utf-8'));
+      self::getResponseStatic()->setHeader(new HeaderImpl('Content-Type', 'text/css; charset=utf-8'));
       self::sendCacheHeaders(self::$WEEK_IN_SECS);
    }
 
    public static function sendJsCacheHeaders() {
-      self::getResponse()->setHeader(new HeaderImpl('Content-Type', 'text/javascript; charset=utf-8'));
+      self::getResponseStatic()->setHeader(new HeaderImpl('Content-Type', 'text/javascript; charset=utf-8'));
       self::sendCacheHeaders(self::$WEEK_IN_SECS);
    }
 
@@ -46,7 +46,7 @@ final class HttpCacheManager {
       $expires = time() + $expiresTime;
       $expiresDate = date('r', $expires);
       $lastModified = date('r', time());
-      $response = self::getResponse();
+      $response = self::getResponseStatic();
       $response->setHeader(new HeaderImpl('Expires', $expiresDate));
       $response->setHeader(new HeaderImpl('Last-Modified', $lastModified));
       $response->setHeader(new HeaderImpl('Cache-Control', 'public; max-age=' . $expiresTime));

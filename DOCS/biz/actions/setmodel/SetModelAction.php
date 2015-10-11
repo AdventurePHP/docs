@@ -36,9 +36,9 @@ class SetModelAction extends AbstractFrontcontrollerAction {
    public function run() {
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance('DOCS\biz\APFModel');
+      $model = &Singleton::getInstance(APFModel::class);
 
-      $request = &self::getRequest();
+      $request = $this->getRequest();
 
       // register request parameters
       $pageIndicatorNames = $model->getAttribute('page.indicator');
@@ -100,7 +100,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
 
       // send real 404 in case the file is not found
       if (strpos($model->getPageContentFileName(), '404') !== false) {
-         self::getResponse()->setStatusCode(Response::CODE_NOT_FOUND);
+         $this->getResponse()->setStatusCode(Response::CODE_NOT_FOUND);
       }
 
    }
@@ -138,7 +138,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
 
    private function getAvailableVersions($contentFilePath, $prefix, $language, $pageId) {
       $files = glob($contentFilePath . '/' . $prefix . '_' . $language . '_' . $pageId . '*');
-      $versions = array();
+      $versions = [];
       foreach ($files as $file) {
          $fileName = basename($file);
          if (preg_match('#' . $prefix . '_' . $language . '_' . $pageId . '_([A-Za-z0-9\.]{3})_#', $fileName, $matches)) {

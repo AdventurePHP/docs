@@ -14,7 +14,7 @@ class DocumentationLinkTag extends Document {
 
    /**
     * @private
-    *  Defines the maximum length of a link name.
+    * Defines the maximum length of a link name.
     */
    private $maxLinkLength = 50;
 

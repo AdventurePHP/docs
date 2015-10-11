@@ -19,21 +19,21 @@ class BreadcrumbController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $model = & Singleton::getInstance('DOCS\biz\APFModel');
+      $model = &Singleton::getInstance(APFModel::class);
       /* @var $model APFModel */
       $parent = $model->getParentPageId();
       $lang = $model->getLanguage();
       $version = $model->getVersionId();
       if ($parent !== '0') {
          /* @var $linkGen UrlManager */
-         $linkGen = & $this->getServiceObject('DOCS\biz\UrlManager');
+         $linkGen = &$this->getServiceObject(UrlManager::class);
          $docuLink = $linkGen->generateLink($parent, $lang, $version);
          $docuTitle = $linkGen->getPageTitle($parent, $lang, $version);
 
          $breadcrumb = $this->getTemplate('breadcrumb');
          $breadcrumb->setPlaceHolder('title', $model->getTitle());
          $breadcrumb->setPlaceHolder(
-            'mainpage',
+               'mainpage',
                '<a href="' . $docuLink . '" title="' . $docuTitle . '">' . $docuTitle . '</a>'
          );
          $breadcrumb->transformOnPlace();

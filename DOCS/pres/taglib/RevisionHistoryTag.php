@@ -32,7 +32,7 @@ class RevisionHistoryTag extends Document {
 
       // append release number to HTML title to avoid duplicate titles for SEO reasons
       /* @var $model APFModel */
-      $model = Singleton::getInstance('DOCS\biz\APFModel');
+      $model = Singleton::getInstance(APFModel::class);
       $model->setTitle($model->getTitle() . ' ' . $this->getReleaseNumber());
 
    }
@@ -75,7 +75,7 @@ class RevisionHistoryTag extends Document {
     * @return string The release number contained in the url, or a fallback number form the tag definition.
     */
    private function getReleaseNumber() {
-      $release = self::getRequest()->getParameter(ReleaseBaseController::$REV_HISTORY_PARAM);
+      $release = $this->getRequest()->getParameter(ReleaseBaseController::$REV_HISTORY_PARAM);
       if ($release === null) {
          $release = $this->getAttribute(self::$FALLBACK_RELEASE_PARAM);
       }

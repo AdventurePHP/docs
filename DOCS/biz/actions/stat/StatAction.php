@@ -45,13 +45,13 @@ class StatAction extends AbstractFrontcontrollerAction {
 
       // write statistic entry
       /* @var $sM StatManager */
-      $sM = &$this->getServiceObject('DOCS\biz\statistics\StatManager');
+      $sM = &$this->getServiceObject(StatManager::class);
       $sM->writeStatistic($pageId . ' - ' . $pageName, $pageLang);
 
       // deliver non-cachable image
       $expiresDate = date('r', 0);
       $lastModified = date('r', time());
-      $response = self::getResponse();
+      $response = $this->getResponse();
       $response->setHeader(new HeaderImpl('Content-Type', 'image/gif'));
       $response->setHeader(new HeaderImpl('Cache-Control', 'no-cache,no-store,must-revalidate'));
       $response->setHeader(new HeaderImpl('Pragma', 'no-cache'));
@@ -75,6 +75,15 @@ class StatAction extends AbstractFrontcontrollerAction {
       return $this->getParameter(self::$REQUEST_URL_INDICATOR);
    }
 
+   private function getParameter($name) {
+      $start = strpos($_SERVER['REQUEST_URI'], $name);
+      $length = strlen($name);
+      $delimiter = strpos($_SERVER['REQUEST_URI'], '/', $start + $length);
+      $foo = substr($_SERVER['REQUEST_URI'], $start + $length, $delimiter - $start - $length);
+
+      return urldecode(urldecode($foo));
+   }
+
    /**
     * Evaluates and returnes the referer in a special way, because the
     * tracking pixel has a different referer.
@@ -87,15 +96,6 @@ class StatAction extends AbstractFrontcontrollerAction {
     */
    private function getReferer() {
       return $this->getParameter(self::$REFERER_INDICATOR);
-   }
-
-   private function getParameter($name) {
-      $start = strpos($_SERVER['REQUEST_URI'], $name);
-      $length = strlen($name);
-      $delimiter = strpos($_SERVER['REQUEST_URI'], '/', $start + $length);
-      $foo = substr($_SERVER['REQUEST_URI'], $start + $length, $delimiter - $start - $length);
-
-      return urldecode(urldecode($foo));
    }
 
 }

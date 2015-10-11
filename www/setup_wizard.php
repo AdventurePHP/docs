@@ -5,6 +5,7 @@ use APF\core\database\config\StatementConfigurationProvider;
 use APF\core\frontcontroller\Frontcontroller;
 use APF\core\loader\RootClassLoader;
 use APF\core\loader\StandardClassLoader;
+use APF\core\singleton\Singleton;
 
 // pre-define the root path of the root class loader (if necessary)
 $dir = dirname(dirname($_SERVER['SCRIPT_FILENAME']));
@@ -29,7 +30,7 @@ $sqlProvider->setOmitContext(true);
 ConfigurationManager::registerProvider('sql', $sqlProvider);
 
 /* @var $fC Frontcontroller */
-$fC = & \APF\core\singleton\Singleton::getInstance('APF\core\frontcontroller\Frontcontroller');
+$fC = &Singleton::getInstance(Frontcontroller::class);
 $fC->setContext(null);
 $fC->setLanguage('de');
 

@@ -17,8 +17,8 @@ use APF\core\singleton\Singleton;
  */
 final class UrlManager extends APFObject {
 
-   private $linkCache = array();
-   private $titleCache = array();
+   private $linkCache = [];
+   private $titleCache = [];
 
    /**
     * @public
@@ -28,6 +28,7 @@ final class UrlManager extends APFObject {
     * @param string $pageId The id of the target page.
     * @param string $lang The desired target language.
     * @param string $versionId The page's version.
+    *
     * @return string The page title.
     *
     * @author Christian Achatz
@@ -43,7 +44,7 @@ final class UrlManager extends APFObject {
       }
 
       // select title from the database
-      $sql = & $this->getConnection();
+      $sql = &$this->getConnection();
       // avoid injections!
       $pageId = $sql->escapeValue($pageId);
       $lang = $sql->escapeValue($lang);
@@ -55,7 +56,7 @@ final class UrlManager extends APFObject {
       $data = $sql->fetchData($result);
 
       /* @var $model APFModel */
-      $model = & Singleton::getInstance('DOCS\biz\APFModel');
+      $model = &Singleton::getInstance(APFModel::class);
       $defaultVersionId = $model->getDefaultVersionId();
       if (empty($data['Title']) && $versionId != $defaultVersionId) {
          $title = $this->getPageTitle($pageId, $lang, $defaultVersionId);
@@ -64,6 +65,7 @@ final class UrlManager extends APFObject {
       }
 
       $this->titleCache[$hash] = $title;
+
       return $this->titleCache[$hash];
 
    }
@@ -75,7 +77,8 @@ final class UrlManager extends APFObject {
     */
    private function &getConnection() {
       /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
+      $cM = &$this->getServiceObject(ConnectionManager::class);
+
       return $cM->getConnection('FulltextSearch');
    }
 
@@ -87,6 +90,7 @@ final class UrlManager extends APFObject {
     * @param string $pageId The id of the target page.
     * @param string $lang The desired target language.
     * @param string $versionId The page's version.
+    *
     * @return string The desired link.
     * @throws \InvalidArgumentException In case of empty version identifier.
     *
@@ -107,15 +111,15 @@ final class UrlManager extends APFObject {
       }
 
       // setup the basic part of the link
-      $pageIdent = (string)$pageId;
+      $pageIdent = (string) $pageId;
       /* @var $model APFModel */
-      $model = & Singleton::getInstance('DOCS\biz\APFModel');
+      $model = &Singleton::getInstance(APFModel::class);
       $urlLangIdent = $model->getUrlIdentifier($lang);
       $urlVersionIdent = $model->getVersionUrlIdentifier();
       $defaultVersionId = $model->getDefaultVersionId();
 
       // fetch the url name from the database using the fulltext search
-      $sql = & $this->getConnection();
+      $sql = &$this->getConnection();
       // avoid injections!
       $pageId = $sql->escapeValue($pageId);
       $lang = $sql->escapeValue($lang);

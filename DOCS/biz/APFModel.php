@@ -76,10 +76,10 @@ class APFModel extends Document {
       $this->attributes[self::$PAGE_NAVI_FILE] = null;
 
       // defines the page indicator per language
-      $this->attributes['page.indicator'] = array(
+      $this->attributes['page.indicator'] = [
             'de' => 'Seite',
             'en' => 'Page'
-      );
+      ];
 
       // display sidebar (true) or not (false)
       $this->attributes[self::$DISPLAY_SIDEBAR] = true;

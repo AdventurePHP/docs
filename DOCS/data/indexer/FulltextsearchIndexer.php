@@ -2,6 +2,7 @@
 namespace DOCS\data\indexer;
 
 use APF\core\configuration\Configuration;
+use APF\core\database\AbstractDatabaseHandler;
 use APF\core\database\ConnectionManager;
 use APF\core\database\DatabaseHandlerException;
 use APF\core\logging\LogEntry;
@@ -11,8 +12,8 @@ use APF\core\pagecontroller\Document;
 use APF\core\pagecontroller\Page;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
-use DOCS\biz\APFModel;
 use APF\tools\filesystem\FilesystemManager;
+use DOCS\biz\APFModel;
 
 /**
  * Implements an indexer for the full text search.
@@ -42,7 +43,7 @@ class FulltextsearchIndexer extends APFObject {
    /**
     * @var array List of stop words according to language (e.g. $stopWords['en'][1] => 'but')
     */
-   private $stopWords = array();
+   private $stopWords = [];
 
    public function __construct() {
       $this->charset = Registry::retrieve('APF\core', 'Charset');
@@ -73,13 +74,10 @@ class FulltextsearchIndexer extends APFObject {
    public function importArticles() {
 
       /* @var $L Logger */
-      $L = & Singleton::getInstance('APF\core\logging\Logger');
+      $L = &Singleton::getInstance(Logger::class);
 
       $config = $this->getConfig();
-
-      /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
-      $SQL = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      $SQL = $this->getConnection($config);
 
       // delete old articles
       $L->logEntry($this->logFileName, '[DELETE] Delete articles ...');
@@ -149,6 +147,25 @@ class FulltextsearchIndexer extends APFObject {
    }
 
    /**
+    * @return Configuration
+    */
+   private function getConfig() {
+      return $this->getConfiguration('DOCS\biz', 'fulltextsearch.ini');
+   }
+
+   /**
+    * @param Configuration $config
+    *
+    * @return AbstractDatabaseHandler
+    */
+   private function &getConnection(Configuration $config) {
+      /* @var $cM ConnectionManager */
+      $cM = &$this->getServiceObject(ConnectionManager::class);
+
+      return $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+   }
+
+   /**
     * @public
     *
     * Creates the index out of the articles in database.
@@ -161,14 +178,10 @@ class FulltextsearchIndexer extends APFObject {
    public function createIndex() {
 
       /* @var $l Logger */
-      $l = & Singleton::getInstance('APF\core\logging\Logger');
+      $l = &Singleton::getInstance(Logger::class);
 
-      // get configuration
       $config = $this->getConfig();
-
-      /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
-      $SQL = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      $SQL = $this->getConnection($config);
 
       // delete the recent index
       $delete = 'TRUNCATE search_index';
@@ -206,7 +219,7 @@ class FulltextsearchIndexer extends APFObject {
          $SQL->executeTextStatement($delete_index);
 
          // do indexing
-         $index = array();
+         $index = [];
 
          foreach ($contentArray as $word) {
 
@@ -267,42 +280,6 @@ class FulltextsearchIndexer extends APFObject {
    /**
     * @private
     *
-    * Returns the id of the given word while lazily creating the database entry.
-    *
-    * @param string $word Word for the search index.
-    *
-    * @return int Id of the given word within the index.
-    *
-    * @author Christian Achatz
-    * @version
-    * Version 0.1, 06.03.2008<br />
-    */
-   private function getWordId($word) {
-
-      $config = $this->getConfig();
-
-      /* @var $cM ConnectionManager */
-      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
-      $sql = & $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
-
-      $select_word = 'SELECT WordID FROM search_word WHERE Word = \'' . $word . '\'';
-      $result_word = $sql->executeTextStatement($select_word);
-      $data_word = $sql->fetchData($result_word);
-
-      if (!isset($data_word['WordID'])) {
-         $insert_word = 'INSERT INTO search_word (Word) VALUES (\'' . $word . '\')';
-         $sql->executeTextStatement($insert_word);
-         $id = $sql->getLastID();
-      } else {
-         $id = $data_word['WordID'];
-      }
-
-      return $id;
-   }
-
-   /**
-    * @private
-    *
     * Creates the page output of the requested page.
     *
     * @param string $pageId id of the current page.
@@ -321,7 +298,7 @@ class FulltextsearchIndexer extends APFObject {
 
       // fill the model
       /* @var $model APFModel */
-      $model = & Singleton::getInstance('DOCS\biz\APFModel');
+      $model = &Singleton::getInstance(APFModel::class);
       $model->setAttribute('page.id', $pageId);
       $model->setVersionId($version);
       $model->setPageContentFileName('c_' . $lang . '_' . $fileName . '.html');
@@ -364,33 +341,33 @@ class FulltextsearchIndexer extends APFObject {
    private function normalizeContent($content, $language) {
 
       // replace special characters and normalize
-      $locSearch = array(
-         '/ß/',
-         '/ä/',
-         '/ö/',
-         '/ü/',
-         '/Ä/',
-         '/Ö/',
-         '/Ü/',
-         '/\|/i',
-         '/<|>|\{|\}|\[|\]|\(|\)/i',
-         '/\'|\"/',
-         '/=/'
-      );
+      $locSearch = [
+            '/ß/',
+            '/ä/',
+            '/ö/',
+            '/ü/',
+            '/Ä/',
+            '/Ö/',
+            '/Ü/',
+            '/\|/i',
+            '/<|>|\{|\}|\[|\]|\(|\)/i',
+            '/\'|\"/',
+            '/=/'
+      ];
 
-      $locReplace = array(
-         'ss',
-         'ae',
-         'oe',
-         'ue',
-         'ae',
-         'oe',
-         'ue',
-         '',
-         '',
-         '',
-         ''
-      );
+      $locReplace = [
+            'ss',
+            'ae',
+            'oe',
+            'ue',
+            'ae',
+            'oe',
+            'ue',
+            '',
+            '',
+            '',
+            ''
+      ];
 
       $content = strip_tags($content);
       $content = stripslashes($content);
@@ -409,10 +386,36 @@ class FulltextsearchIndexer extends APFObject {
    }
 
    /**
-    * @return Configuration
+    * @private
+    *
+    * Returns the id of the given word while lazily creating the database entry.
+    *
+    * @param string $word Word for the search index.
+    *
+    * @return int Id of the given word within the index.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 06.03.2008<br />
     */
-   private function getConfig() {
-      return $this->getConfiguration('DOCS\biz', 'fulltextsearch.ini');
+   private function getWordId($word) {
+
+      $config = $this->getConfig();
+      $sql = $this->getConnection($config);
+
+      $select_word = 'SELECT WordID FROM search_word WHERE Word = \'' . $word . '\'';
+      $result_word = $sql->executeTextStatement($select_word);
+      $data_word = $sql->fetchData($result_word);
+
+      if (!isset($data_word['WordID'])) {
+         $insert_word = 'INSERT INTO search_word (Word) VALUES (\'' . $word . '\')';
+         $sql->executeTextStatement($insert_word);
+         $id = $sql->getLastID();
+      } else {
+         $id = $data_word['WordID'];
+      }
+
+      return $id;
    }
 
 }

@@ -3,6 +3,7 @@ namespace DOCS\pres\controller\release;
 
 use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
+use DOCS\biz\UrlManager;
 
 /**
  * Generates the sidebar links to the current stable and current
@@ -34,45 +35,16 @@ class SideBarCurrentController extends ReleaseBaseController {
       $normalizedUnstable = ReleaseBaseController::normalizeVersionNumber($unstableRelease);
       $normalizedStable = ReleaseBaseController::normalizeVersionNumber($stableRelease);
       if ($normalizedUnstable > $normalizedStable) {
-         $tmpl = & $this->getTemplate(self::$UNSTABLE);
+         $tmpl = &$this->getTemplate(self::$UNSTABLE);
          $tmpl->setPlaceHolder('release', $this->buildLink($unstableRelease, self::$UNSTABLE_PAGEID));
          $tmpl->transformOnPlace();
       }
 
       // handle stable releases
-      $tmpl = & $this->getTemplate(self::$STABLE);
+      $tmpl = &$this->getTemplate(self::$STABLE);
       $tmpl->setPlaceHolder('release', $this->buildLink($stableRelease, self::$STABLE_PAGEID));
       $tmpl->transformOnPlace();
 
-   }
-
-   /**
-    * @param string $release The release to link to.
-    * @param string $pageId The page id to link to.
-    * @return string The desired link to the release page.
-    */
-   private function buildLink($release, $pageId) {
-      /* @var $urlMan UrlManager */
-      $urlMan = & $this->getServiceObject('DOCS\biz\UrlManager');
-
-      /* @var $model APFModel */
-      $model = & Singleton::getInstance('DOCS\biz\APFModel');
-
-      $link = $urlMan->generateLink($pageId, $this->language, $model->getDefaultVersionId());
-      return '<a href="' . $link . '" title="Get release ' . $release . '!">APF ' . $release . '</a>';
-   }
-
-   /**
-    * @return string The current unstable release number.
-    */
-   private function getCurrentUnstableRelease() {
-      $releases = $this->getAllReleasesCached();
-      foreach ($releases as $release) {
-         if (!$this->isStableRelease($release)) {
-            return $release;
-         }
-      }
-      return null;
    }
 
    /**
@@ -85,6 +57,7 @@ class SideBarCurrentController extends ReleaseBaseController {
             return $release;
          }
       }
+
       return null;
    }
 
@@ -95,7 +68,40 @@ class SideBarCurrentController extends ReleaseBaseController {
       if (count($this->allReleases) == 0) {
          $this->allReleases = $this->getAllReleases();
       }
+
       return $this->allReleases;
+   }
+
+   /**
+    * @return string The current unstable release number.
+    */
+   private function getCurrentUnstableRelease() {
+      $releases = $this->getAllReleasesCached();
+      foreach ($releases as $release) {
+         if (!$this->isStableRelease($release)) {
+            return $release;
+         }
+      }
+
+      return null;
+   }
+
+   /**
+    * @param string $release The release to link to.
+    * @param string $pageId The page id to link to.
+    *
+    * @return string The desired link to the release page.
+    */
+   private function buildLink($release, $pageId) {
+      /* @var $urlMan UrlManager */
+      $urlMan = &$this->getServiceObject(UrlManager::class);
+
+      /* @var $model APFModel */
+      $model = &Singleton::getInstance(APFModel::class);
+
+      $link = $urlMan->generateLink($pageId, $this->language, $model->getDefaultVersionId());
+
+      return '<a href="' . $link . '" title="Get release ' . $release . '!">APF ' . $release . '</a>';
    }
 
 }

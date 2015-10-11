@@ -5,9 +5,9 @@ use APF\core\benchmark\BenchmarkTimer;
 use APF\core\pagecontroller\BaseDocumentController;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
+use APF\tools\filesystem\FilesystemManager;
 use DOCS\biz\APFModel;
 use DOCS\biz\UrlManager;
-use APF\tools\filesystem\FilesystemManager;
 
 /**
  * Implements basic functionality for the release pages.
@@ -18,88 +18,31 @@ use APF\tools\filesystem\FilesystemManager;
  */
 abstract class ReleaseBaseController extends BaseDocumentController {
 
-   private static $REV_HISTORY_PAGEID = '126';
-
    /**
     * @public
     * @var string The name of the param, that indicates the release version to show the
     * history of. It is public, because the rev:history tag uses this param, too.
     */
    public static $REV_HISTORY_PARAM = 'release';
-
+   private static $REV_HISTORY_PAGEID = '126';
+   private static $PHP5_RELEASE_FILE_INDICATOR = '-php5';
+   private static $NOARCH_RELEASE_FILE_INDICATOR = '-noarch';
+   private static $CODE_RELEASE_FILE_INDICATOR = '-codepack';
+   private static $SNAPSHOT_RELEASE_FOLDER_NAME = 'snapshot';
    /**
     * @protected
     * @var string Defines, where the releases reside on the filesystem.
     */
    protected $releasesLocalDir = null;
-
    /**
     * @protected
     * @var string Defines the base URL, where the releases can be accessed via the HTTP protocol.
     */
    protected $releasesBaseURL = null;
 
-   private static $PHP5_RELEASE_FILE_INDICATOR = '-php5';
-   private static $NOARCH_RELEASE_FILE_INDICATOR = '-noarch';
-   private static $CODE_RELEASE_FILE_INDICATOR = '-codepack';
-
-   private static $SNAPSHOT_RELEASE_FOLDER_NAME = 'snapshot';
-
    public function __construct() {
       $this->releasesLocalDir = Registry::retrieve('DOCS', 'Releases.LocalDir');
       $this->releasesBaseURL = Registry::retrieve('DOCS', 'Releases.BaseURL');
-   }
-
-   /**
-    * @protected
-    *
-    * Evaluates, whether a release is stable or not. All releases having
-    * a dash are considered unstable.
-    *
-    * @param string $releaseNumber The release number to check.
-    * @return bool True, in case the given release number is a stable release, false otherwise.
-    *
-    * @author Christian Achatz
-    * @version
-    * Version 0.1, 29.12.2009<br />
-    */
-   protected function isStableRelease($releaseNumber) {
-      if (preg_match('/\-(.*)/', $releaseNumber)) {
-         return false;
-      }
-      return true;
-   }
-
-   /**
-    * @protected
-    *
-    * Returns all available releases.
-    *
-    * @return string[] All available releases.
-    *
-    * @author Christian Achatz
-    * @version
-    * Version 0.1, 29.12.2009<br />
-    */
-   protected function getAllReleases() {
-      /* @var $t BenchmarkTimer */
-      $t = & Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
-      $id = 'ReleaseBaseController::getAllReleases()';
-      $t->start($id);
-      $rawReleases = array_reverse(FilesystemManager::getFolderContent($this->releasesLocalDir));
-
-      // exclude snapshot release folder
-      $releases = array();
-      foreach ($rawReleases as $release) {
-         if ($release != self::$SNAPSHOT_RELEASE_FOLDER_NAME) {
-            $releases[] = $release;
-         }
-      }
-
-      usort($releases, array('DOCS\pres\controller\release\ReleaseBaseController', 'sortReleases'));
-
-      $t->stop($id);
-      return $releases;
    }
 
    /**
@@ -110,6 +53,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     *
     * @param string $offsetOne Release 1 to compare with release 2.
     * @param string $offsetTwo Release 2 to compare with release 1.
+    *
     * @return int Comparison result.
     *
     * @author Christian Achatz
@@ -133,7 +77,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
             $OffsetOneSecondValue = substr($offsetOne, $dashPosOneValue + 1);
             $OffsetTwoSecondValue = substr($offsetTwo, $dashPosTwoValue + 1);
 
-            $IdenticalValuesArray = array();
+            $IdenticalValuesArray = [];
             $IdenticalValuesArray[] = $OffsetOneSecondValue;
             $IdenticalValuesArray[] = $OffsetTwoSecondValue;
             natsort($IdenticalValuesArray);
@@ -161,7 +105,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
             $OffsetOneSecondValue = substr($offsetOne, $dashPosOneValue + 1);
             $OffsetTwoSecondValue = $offsetTwo;
 
-            $IdenticalValuesArray = array();
+            $IdenticalValuesArray = [];
             $IdenticalValuesArray[] = $OffsetOneSecondValue;
             $IdenticalValuesArray[] = $OffsetTwoSecondValue;
             natsort($IdenticalValuesArray);
@@ -212,6 +156,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     * Normalizes the version number to an integer.
     *
     * @param string $version The version number extracted by the folder.
+    *
     * @return int The normalized version number.
     *
     * @author Christian Achatz
@@ -225,7 +170,63 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       if ($length < 3) {
          $version .= str_repeat('0', 3 - $length);
       }
-      return (int)$version;
+
+      return (int) $version;
+   }
+
+   /**
+    * @protected
+    *
+    * Evaluates, whether a release is stable or not. All releases having
+    * a dash are considered unstable.
+    *
+    * @param string $releaseNumber The release number to check.
+    *
+    * @return bool True, in case the given release number is a stable release, false otherwise.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 29.12.2009<br />
+    */
+   protected function isStableRelease($releaseNumber) {
+      if (preg_match('/\-(.*)/', $releaseNumber)) {
+         return false;
+      }
+
+      return true;
+   }
+
+   /**
+    * @protected
+    *
+    * Returns all available releases.
+    *
+    * @return string[] All available releases.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 29.12.2009<br />
+    */
+   protected function getAllReleases() {
+      /* @var $t BenchmarkTimer */
+      $t = &Singleton::getInstance(BenchmarkTimer::class);
+      $id = 'ReleaseBaseController::getAllReleases()';
+      $t->start($id);
+      $rawReleases = array_reverse(FilesystemManager::getFolderContent($this->releasesLocalDir));
+
+      // exclude snapshot release folder
+      $releases = [];
+      foreach ($rawReleases as $release) {
+         if ($release != self::$SNAPSHOT_RELEASE_FOLDER_NAME) {
+            $releases[] = $release;
+         }
+      }
+
+      usort($releases, ['DOCS\pres\controller\release\ReleaseBaseController', 'sortReleases']);
+
+      $t->stop($id);
+
+      return $releases;
    }
 
    /**
@@ -234,6 +235,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     * Displays one particular release.
     *
     * @param string $releaseNumber The number of the release to display.
+    *
     * @return string The HTML source for the given release.
     *
     * @author Christian Achatz
@@ -243,8 +245,8 @@ abstract class ReleaseBaseController extends BaseDocumentController {
    protected function displayRelease($releaseNumber) {
 
       // get templates
-      $templateReleaseHead = & $this->getTemplate('ReleaseHead');
-      $templateReleaseFile = & $this->getTemplate('ReleaseFile');
+      $templateReleaseHead = &$this->getTemplate('ReleaseHead');
+      $templateReleaseFile = &$this->getTemplate('ReleaseFile');
 
       // ----------------------------------------------------------------------------------------
 
@@ -266,10 +268,10 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       $dokuFiles = FilesystemManager::getFolderContent($this->releasesLocalDir . '/' . $releaseNumber . '/' . $docsFolder);
 
       // choose new template for versions > 1.10
-      $templateOfflineDoku = & $this->getTemplate('OfflineDoku');
+      $templateOfflineDoku = &$this->getTemplate('OfflineDoku');
 
       $templateOfflineDoku->setPlaceHolder('ReleaseVersion', $releaseNumber);
-      $bufferOfflineDoku = (string)'';
+      $bufferOfflineDoku = (string) '';
 
       for ($k = 0; $k < count($dokuFiles); $k++) {
 
@@ -309,7 +311,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       }
 
       // -- check version to be greater than 1.10, than display only one online api doku
-      $templateDocumentation = & $this->getTemplate('Documentation');
+      $templateDocumentation = &$this->getTemplate('Documentation');
       $templateDocumentation->setPlaceHolder('DocsFolder', $docsFolder);
 
       $templateDocumentation->setPlaceHolder('ReleaseVersion', $releaseNumber);
@@ -323,13 +325,13 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       $title .= $releaseNumber;
 
       /* @var $urlMan UrlManager */
-      $urlMan = & $this->getServiceObject('DOCS\biz\UrlManager');
+      $urlMan = &$this->getServiceObject(UrlManager::class);
 
       /* @var $model APFModel */
-      $model = & Singleton::getInstance('DOCS\biz\APFModel');
+      $model = &Singleton::getInstance(APFModel::class);
       $link = $urlMan->generateLink(self::$REV_HISTORY_PAGEID, $this->language, $model->getDefaultVersionId());
       $templateDocumentation->setPlaceHolder(
-         'HistoryLink',
+            'HistoryLink',
             '<a href="' . $link . '?' . self::$REV_HISTORY_PARAM . '=' . $releaseNumber . '" title="' . $title . '">' . $title . '</a>'
       );
 
@@ -337,7 +339,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
 
 
       // display release files
-      $bufferFiles = (string)'';
+      $bufferFiles = (string) '';
 
       for ($j = 0; $j < count($files); $j++) {
 
@@ -350,7 +352,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
             $templateReleaseFile->setPlaceHolder('Link', $this->releasesBaseURL . '/' . $releaseNumber . '/download/' . $files[$j]);
             $templateReleaseFile->setPlaceHolder('Name', $this->getDisplayFileName($files[$j]));
             $templateReleaseFile->setPlaceHolder('Date', $fileAttributes['modificationdate']);
-            $templateReleaseFile->setPlaceHolder('Size', round((int)$fileAttributes['size'] / 1000, 1));
+            $templateReleaseFile->setPlaceHolder('Size', round((int) $fileAttributes['size'] / 1000, 1));
             $templateReleaseFile->setPlaceHolder('Type', $this->getExtensionDisplayText($fileAttributes['extension']));
 
             // mark codepack releases with a special class
@@ -377,37 +379,10 @@ abstract class ReleaseBaseController extends BaseDocumentController {
    /**
     * @private
     *
-    * Maps the file extension to a display text.
-    *
-    * @param string $ext The file extension.
-    * @return string The human readable extension label.
-    *
-    * @author Christian Achatz
-    * @version
-    * Version 0.1, 30.12.2009<br />
-    */
-   private function getExtensionDisplayText($ext) {
-      $displayName = (string)'';
-      switch ($ext) {
-         case 'zip':
-            $displayName = 'zip';
-            break;
-         case 'gz':
-            $displayName = 'gzip';
-            break;
-         case 'bz2':
-            $displayName = 'bzip2';
-            break;
-      }
-      return $displayName;
-   }
-
-   /**
-    * @private
-    *
     * Filters the given list of files to contain only the desired branch files.
     *
     * @param string[] $files The full file list.
+    *
     * @return string[] The filtered file list.
     *
     * @author Christian Achatz
@@ -415,7 +390,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     * Version 0.1, 30.12.2009<br />
     */
    private function filterFiles($files) {
-      $filteredList = array();
+      $filteredList = [];
 
       foreach ($files as $file) {
 
@@ -442,6 +417,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     * Shortens the display file name removing the date signature.
     *
     * @param string $fileName The real file name.
+    *
     * @return string The display file name.
     *
     * @author Christian Achatz
@@ -450,6 +426,36 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     */
    private function getDisplayFileName($fileName) {
       return preg_replace('/\-([0-9]{4})-([0-9]{2})-([0-9]{2})-([0-9]{4})/', '', $fileName);
+   }
+
+   /**
+    * @private
+    *
+    * Maps the file extension to a display text.
+    *
+    * @param string $ext The file extension.
+    *
+    * @return string The human readable extension label.
+    *
+    * @author Christian Achatz
+    * @version
+    * Version 0.1, 30.12.2009<br />
+    */
+   private function getExtensionDisplayText($ext) {
+      $displayName = (string) '';
+      switch ($ext) {
+         case 'zip':
+            $displayName = 'zip';
+            break;
+         case 'gz':
+            $displayName = 'gzip';
+            break;
+         case 'bz2':
+            $displayName = 'bzip2';
+            break;
+      }
+
+      return $displayName;
    }
 
    /**
@@ -466,7 +472,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     */
    protected function setContentPlaceHolder($content) {
       $this->setPlaceHolder(
-         'Content',
+            'Content',
             '<div id="DownloadFiles">'
             . PHP_EOL
             . $content
