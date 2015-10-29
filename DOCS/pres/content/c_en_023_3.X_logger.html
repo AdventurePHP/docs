@@ -273,6 +273,77 @@ $logger->setLogThreshold(array(
    Details on the definition can be taken from <int:link pageid="002"/>.
 </p>
 
+<h4 id="Chapter-3-5-Overriding-the-threshold"><a href="#Chapter-3-5-Overriding-the-threshold">3.5. Overriding the threshold</a></h4>
+<div class="hint">
+   Please note that this functionality is available starting with version 3.1!
+</div>
+<p>
+   In production environments thresholds are usually set to a high value according to the configuration described in
+   <a href="#Chapter-3-4-Threshold">chapter 3.4</a>. Often, only <em>FATAL</em>, <em>ERROR</em> and <em>WARN</em>
+   entries are allowed.
+</p>
+<p>
+   This is both valid and reasonable for security and performance reasons. However, facing errors that are hard to
+   reproduce information necessary for analysis gets lost (e.g. <em>INFO</em> or <em>DEBUG</em> entries).
+</p>
+<p>
+   In order to be prepared for this use case the <em>Logger</em> provides an option to override the threshold definition
+   in certain cases dynamically.
+</p>
+<div class="hint">
+   This option of the <em>Logger</em> is deactivated by default or not configured respectively.
+</div>
+
+<h5 id="Chapter-3-5-1-Functionality"><a href="#Chapter-3-5-1-Functionality">3.5.1. Functionality</a></h5>
+<p>
+   The threshold definition described in <a href="#Chapter-3-4-Threshold">chapter 3.4</a> is based on a fixed list of
+   allowed <em>severities</em> that are included when processing log entries. Entries that don't match the definition are
+   discarded.
+</p>
+<p>
+   To override or deactivate the threshold definition in relevant error scenarios the <em>Logger</em> can be configured
+   with a list of suitable <em>severities</em> with assigned thresholds.
+</p>
+<p>
+   In case one of the defined thresholds is reached for the current request the <em>Logger</em> processes
+   <strong>alle</strong> entries recorded during the request. This especially includes all entries that would have been
+   lost using the <em>normal</em> threshold definition.
+</p>
+<div class="warn">
+   <em>DEBUG</em> or <em>TRACE</em> entries typically contain sensitive information about your application or customers.
+   Using this option, please ensure your log information is properly protected against third-person access!
+</div>
+
+<h5 id="Chapter-3-5-2-Configuration"><a href="#Chapter-3-5-2-Configuration">3.5.2. Configuration</a></h5>
+<p>
+   Threshold definition
+</p>
+<gen:highlight type="php">
+$logger->setThresholdOverride([
+   LogEntry::SEVERITY_ERROR => 5
+]);
+</gen:highlight>
+<p>
+   causes all buffered log entries to be processed in case of 5 or more <em>LogEntry::SEVERITY_ERROR</em> events in the
+   current request.
+</p>
+<div class="hint">
+   Please note, that processing of log entries is delegated to the respective <em>LogWriter</em>s. This may also
+   influence the effective processing of log entries!
+</div>
+<p>
+   Since method <em>setThresholdOverride()</em> allows to pass a list of threshold definitions the statement can be
+   even more complex. The following definition processes all log enries in case of at least one <em>FATAL</em> entry or
+   at lest 5 <em>ERROR</em> entries or at least 20 <em>WARN</em> entries:
+</p>
+<gen:highlight type="php">
+$logger->setThresholdOverride([
+   LogEntry::SEVERITY_FATAL => 1,
+   LogEntry::SEVERITY_ERROR => 5,
+   LogEntry::SEVERITY_WARN => 20
+]);
+</gen:highlight>
+
 <h3 id="Chapter-4-Existing-LogWriter"><a href="#Chapter-4-Existing-LogWriter">4. Existing LogWriter</a></h3>
 <p>
    The APF ships several <em>LogWriter</em> implementations described within the subsequent chapters.

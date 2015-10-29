@@ -290,6 +290,80 @@ $logger->setLogThreshold(array(
    Details zur Definition entnehmen Sie bitte der <int:link pageid="002"/>.
 </p>
 
+<h4 id="Chapter-3-5-Aufhebung-des-Schwellwerts"><a href="#Chapter-3-5-Aufhebung-des-Schwellwerts">3.5. Aufhebung des Schwellwerts</a></h4>
+<div class="hint">
+   Bitte beachten Sie, dass diese Funktionalität erst ab dem Version 3.1 zur Verfügung steht!
+</div>
+<p>
+   In Produktions-Umgebungen ist es üblich den Schwellwert über die in <a href="#Chapter-3-4-Schwellwert">Kapitel 3.4</a>
+   beschriebene Konfigurations-Möglichkeit auf einen hohen Wert zu setzen. Oft werden ausschließlich <em>FATAL</em>-,
+   <em>ERROR</em>- und <em>WARN</em>-Einträge zugelassen.
+</p>
+<p>
+   Dies ist sowohl aus Performance- als auch aus Sicherheits-Gründen nachvollziehbar und sinnvoll. Bei schwer
+   nachzuvollziehenden Fehlern geht dadurch jedoch oft wertvolle Informationen für die Analyse (z.B. <em>INFO</em>- oder
+   <em>DEBUG</em>-Einträge) verloren.
+</p>
+<p>
+   Um auch für diesen Anwendungsfall gerüstet zu sein, bietet Ihnen der <em>Logger</em> die Möglichkeit die
+   Schwellwert-Definition in bestimmten Situationen dynamisch aufzuheben.
+</p>
+<div class="hint">
+   Im Auslieferungszustand des <em>Logger</em> ist diese Option deaktiviert bzw. nicht konfiguriert.
+</div>
+
+<h5 id="Chapter-3-5-1-Funktionsweise"><a href="#Chapter-3-5-1-Funktionsweise">3.5.1. Funktionsweise</a></h5>
+<p>
+   Die in <a href="#Chapter-3-4-Schwellwert">Kapitel 3.4</a> beschriebene Schwellwert-Definition beruht auf einer fest
+   definierten Liste von <em>severities</em>, die beim Schreiben der Log-Einträge verarbeitet werden. Einträge, deren
+   <em>severity</em> nicht enthalten sind, werden verworfen.
+</p>
+<p>
+   Um diese Schwellwert-Definition in relevanten Fehler-Situationen dynamisch aufzuheben, lässt sich der <em>Logger</em>
+   mit Hilfe einer Liste von <em>severities</em> und geeigneten Schwellwerten konfigurieren.
+</p>
+<p>
+   Ist ein auf diese Weise definierter Schwellwert in der aktuellen Anfrage erreicht, verarbeitet der <em>Logger</em>
+   <strong>alle</strong> während der Anfrage aufgezeichneten Einträge. Dies umfasst insbesondere Einträge, die durch die
+   <em>normale</em> Schwellwert-Definition verloren gegangen wären.
+</p>
+<div class="warn">
+   Typischerweise enthalten <em>DEBUG</em>- oder <em>TRACE</em>-Einträge sensible Informationen über Ihre Anwendung oder
+   Ihre Kunden. Sofern Sie diese Option nutzen, stellen Sie bitte sicher, dass Ihre Log-Information entsprechend vor dem
+   Zugriff von unbefugten Dritten geschützt sind!
+</div>
+
+<h5 id="Chapter-3-5-2-Konfiguration"><a href="#Chapter-3-5-2-Konfiguration">3.5.2. Konfiguration</a></h5>
+<p>
+   Die Schwellwert-Definition
+</p>
+<gen:highlight type="php">
+$logger->setThresholdOverride([
+   LogEntry::SEVERITY_ERROR => 5
+]);
+</gen:highlight>
+<p>
+   sorgt dafür, dass bei Auftreten von 5 oder mehr <em>LogEntry::SEVERITY_ERROR</em>-Einträgen alle im Puffer
+   befindlichen Einträge verarbeitet werden.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass die Verarbeitung von Log-Einträgen an die jeweils konfigurierten <em>LogWriter</em> delegiert
+   wird. Je nach Implementierung kann dies ebenfalls Einfluss auf die effektive Verarbeitung der Einträge haben!
+</div>
+<p>
+   Da die Methode <em>setThresholdOverride()</em> eine Liste von Schwellwert-Definitionen entgegen nimmt, kann diese
+   beliebig komplex gestaltet werden. Die folgende Definition sorgt dafür, dass bei Auftreten von mindestens einem
+   <em>FATAL</em>-Eintrag oder mindestens 5 <em>ERROR</em>- oder wiederum mindestens 20 <em>WARN</em>-Einträgen alle
+   Einträge verarbeitet werden:
+</p>
+<gen:highlight type="php">
+$logger->setThresholdOverride([
+   LogEntry::SEVERITY_FATAL => 1,
+   LogEntry::SEVERITY_ERROR => 5,
+   LogEntry::SEVERITY_WARN => 20
+]);
+</gen:highlight>
+
 <h3 id="Chapter-4-Vorhandene-LogWriter"><a href="#Chapter-4-Vorhandene-LogWriter">4. Vorhandene LogWriter</a></h3>
 <p>
    In den folgenden Kapiteln werden die mitgelieferten <em>LogWriter</em>-Implementierungen beschriebenen.
