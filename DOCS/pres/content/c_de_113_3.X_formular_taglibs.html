@@ -1,4 +1,4 @@
-<doku:title parent="119" tags="form,taglib,validatoren,validator,filter,auto,ausfuellen,presetting,1.11" title="Formulare" urlname="Formulare">
+<doku:title parent="119" tags="form,taglib,validatoren,validator,filter,auto,ausfuellen,presetting" title="Formulare" urlname="Formulare">
    Das APF bietet auf Basis von Taglibs eine komplette Abstraktion von Formularen und
    Formular-Elementen. Diese beherrschen out-of-the-box Presetting (Auto-Ausfüllen), Validierung
    und Filterung. Im Document-Controller steht ein Formular als eigenständiges Objekt mit diversen
@@ -12,10 +12,9 @@
 </p>
 <p>
    Das Release des Adventure PHP Framework beinhaltet daher einen Satz von Taglibs, mit denen
-   HTML-Formulare vollständig abstrahiert sind und die gleichzeitig Features, wie Filterung,
-   Validierung und Presetting out-of-the box beherrschen. Mit den in der Version 1.11 überarbeiteten
-   Taglibs können Formular-Felder mit beliebigen Filter und Validatoren belegt und eigene Taglibs
-   integriert werden.
+   HTML-Formulare vollständig abstrahiert sind und die gleichzeitig Features wie Filterung,
+   Validierung und Presetting out-of-the box beherrschen. Mit den mitgelieferten Taglibs können
+   Formular-Felder mit beliebigen Filter und Validatoren belegt und eigene Taglibs integriert werden.
 </p>
 <p>
    Die folgenden Kapitel beschreiben den grundsätzlichen Aufbau und die Verarbeitung von Formularen,
@@ -63,7 +62,36 @@ class SearchController extends BaseDocumentController {
    }
 }
 </gen:highlight>
-<p>Die folgenden Kapitel beschreiben nun die vorhandenen Formular-Elemente und deren Einsatzgebiet.</p>
+<p>
+   Die Absende-Methode eines Formulars lässt sich über das Attribut <em>method</em> bestimmen. Hier stehen die beiden
+   Optionen <em>post</em> und <em>get</em> zur Verfügung. Als Standard wurde <em>post</em> definiert.
+</p>
+<p>
+   Im Fall eines <strong>POST</strong> werden alle Inhalte des Formulars in kodierter Form an die im Attribut
+   <em>action</em> angegebene URL geschickt.
+</p>
+<p>
+   Das Verhalten für <strong>GET</strong> unterscheidet sich davon. Hier werden die Inhalte aller Felder des Formulars
+   an die im Attribut <em>action</em> definierte URL angehängt und diese aufgerufen.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass gemäß
+   <a class="external" href="http://www.w3.org/TR/2011/WD-html5-20110525/association-of-controls-and-forms.html#form-submission-algorithm">HTML5-Spezifikation</a>
+   alle URL-Parameter der im Attribut <em>action</em> definierte URL bei einer Übermittlung per <strong>GET</strong>
+   verworfen werden. Um diese zu erhalten, setzen Sie bitte das Attribut <em>submit-action-url-params</em> auf den
+   Wert <em>true</em>:
+<gen:highlight type="apf-xml">
+&lt;html:form name="Search" action="/?page=search" method="get" submit-action-url-params="true"&gt;
+   &lt;form:text name="searchterm" /&gt;
+   &lt;form:button name="search" value="GO" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+   Mit der beschriebenen Vorgehensweise stellen Sie sicher, dass der URL-Parameter <em>page</em> bei der Anfrage mit
+   übertragen wird.
+</div>
+<p>
+   Die folgenden Kapitel beschreiben nun die vorhandenen Formular-Elemente und deren Einsatzgebiet.
+</p>
 
 <h3 id="Chapter-3-Mitgelieferte-Tags"><a href="#Chapter-3-Mitgelieferte-Tags">3. Mitgelieferte Tags</a></h3>
 <p>
@@ -996,16 +1024,7 @@ class SignUpController extends BaseDocumentController {
 
 <h3 id="Chapter-4-Validierung"><a href="#Chapter-4-Validierung">4. Validierung</a></h3>
 <p>
-   In den bisherigen Versionen des APF wurde die Validierung direkt mit einem Formular-Element
-   verknüpft und diese auch im <int:link pageid="098" anchor="Chapter-2-1-Ablaufdiagramm">Lifecycle einer Taglib</int:link>
-   ausgeführt. Das hat zum Nachteil, dass ein Element mit nur einem Validator belegt werden kann und
-   sich häufig redundanter Code durch Definition der Validatoren pro Feld ergibt. Weiterhin war es
-   nicht ohne Weiteres möglich eigene Validatoren einzuhängen.
-</p>
-<p>
-   Ab Version 1.11 wurden diese Umstände berücksichtigt und die Formular-Taglibs auf eine neue
-   Variante der Validierung umgestellt. Ab dieser Version werden Validatoren über ein eigenes
-   Tag, das nach dem
+   Validatoren werden über ein eigenes Tag, das nach dem
    <a class="external" href="http://de.wikipedia.org/wiki/Observer_%28Entwurfsmuster%29" title="Observer-Pattern ">Observer-Pattern</a>
    implementiert ist, an das einzelne Element gebunden. So ist es möglich, mehrere Validatoren auf ein
    Feld anzusetzen, eigene Validatoren zu schreiben und mit einer Observer-Definition mehrere Felder
@@ -1607,12 +1626,7 @@ public function addValidator(AbstractFormValidator &$validator){
 
 <h3 id="Chapter-5-Filter"><a href="#Chapter-5-Filter">5. Filter</a></h3>
 <p>
-   In den bisherigen Versionen des APF wurde die Filterung von Formular-Element-Werten ebenfalls direkt
-   mit einem Formular-Element verknüpft und im <int:link pageid="098" anchor="Chapter-2-1-Ablaufdiagramm">Lifecycle einer Taglib</int:link>
-   ausgeführt. Hieraus ergeben sich ähnliche Nachteile wie es bei der Validierung der Fall ist.
-   Deshalb wurde auch die Filterung in der Version 1.11 nach dem Konzept der Validierung angepasst.
-   Ab Version 1.11 können Filter gleichermaßen als Observer auf ein Formular-Element angewendet
-   werden.
+   Ähnlich der Struktur der Validatoren werden auch Filter als Observer auf ein Formular-Element angewendet.
 </p>
 <div class="hint">
    Die Filterung von Formular-Felder wird <strong>vor</strong> der Validierung ausgeführt um zu

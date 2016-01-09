@@ -1,4 +1,4 @@
-<doku:title parent="119" tags="form,taglib,validatoren,validator,filter,auto,ausfuellen,presetting,1.11" title="Forms" urlname="Forms">
+<doku:title parent="119" tags="form,taglib,validator,filter,auto,pre-fill,presetting" title="Forms" urlname="Forms">
    The APF provides a complete form abstraction implementation based on tags. It includes out-of-the-box presetting,
    validation and filtering. Within document controllers you can access a form as a dedicated instance with extensive
    functionality.
@@ -11,7 +11,7 @@
 <p>
    The release of the Adventure PHP Framework contains a set of taglibs, that fully describe HTML
    forms and that contain features such as filtering, validation and presetting at the same time out of
-   the box. With the taglibs reworked with release 1.11, form fields can be applied various filters and
+   the box. With the taglibs delivered form fields can be applied various filters and
    validators and custom form elements can be integrated with the delivered ones.
 </p>
 <p>
@@ -60,6 +60,31 @@ class SearchController extends BaseDocumentController {
    }
 }
 </gen:highlight>
+<p>
+   Submission method of forms can be defined via the <em>method</em> attribute. You can choose between <em>post</em> and
+   <em>get</em>. Default is <em>post</em>.
+</p>
+<p>
+   In case of a <strong>POST</strong> all form fields are sent to the URL specified in the <em>action</em> attribute in
+   an encoded way.
+</p>
+<p>
+   Behaviour for <strong>GET</strong> is different. Here, the content of all form fields is appended to the URL defined
+   in the <em>action</em> attribute and the request is submitted.
+</p>
+<div class="hint">
+   Please note, that using <strong>GET</strong> to submit the form according to the
+   <a class="external" href="http://www.w3.org/TR/2011/WD-html5-20110525/association-of-controls-and-forms.html#form-submission-algorithm">HTML5 specification</a>
+   all URL parameters in the <em>action</em> attribute are discarded. To preserve them, please set attribute
+   <em>submit-action-url-params</em> to <em>true</em>:
+<gen:highlight type="apf-xml">
+&lt;html:form name="Search" action="/?page=search" method="get" submit-action-url-params="true"&gt;
+   &lt;form:text name="searchterm" /&gt;
+   &lt;form:button name="search" value="GO" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+   With this approach URL parameter <em>page</em> will be sent along with the request.
+</div>
 <p>
    The subsequent sections present the form controls contained within the APF release and give you
    a brief introduction to the usage of these elements.
@@ -977,15 +1002,7 @@ class SignUpController extends BaseDocumentController {
 
 <h3 id="Chapter-4-Validation"><a href="#Chapter-4-Validation">4. Validation</a></h3>
 <p>
-   In the previous versions of the APF the validation was linked directly with a form element and
-   the validation was executed within the <int:link pageid="098" anchor="Chapter-2-1-Activity-diagram">lifecycle of the taglibs</int:link>.
-   This has the disadvantage, that one element can be defined with only one validator. This leads to
-   redundant code, because each field must have it's own validator defined. Furthermore, it was not
-   possible to implement own validators.
-</p>
-<p>
-   From version 1.11 these circumstances were considered and the form taglibs were moved to a new
-   variation of the validation. From this version validators are applied by an own tag, that follows
+   Validators are applied by an own tag, that follows
    the <a class="external" href="http://en.wikipedia.org/wiki/Observer_pattern" title="Observer pattern">observer pattern</a>.
    The tag itself then binds a validator to the desired form control. Thus it is possible to attach
    several validators onto one field, to write own validators and to validate several fields with one
@@ -1578,15 +1595,7 @@ public function addValidator(AbstractFormValidator &$validator){
 
 <h3 id="Chapter-5-Filters"><a href="#Chapter-5-Filters">5. Filters</a></h3>
 <p>
-   In the previous versions of the APF the filters were linked directly with a form element and
-   executed within the <int:link pageid="098" anchor="Chapter-2-1-Activity-diagram">lifecycle of the taglibs</int:link>.
-   This has the disadvantage, that one element can be defined with only one filter. This leads to
-   redundant code, because each field must have it's own filter defined.
-</p>
-<p>
-   From version 1.11 these circumstances were considered and the form taglibs were moved to a new
-   variation of the filter facility. Thus, filters can be added as observers just like form validators
-   can be defined.
+   Filters are added as observers just like form validators can be defined.
 </p>
 <div class="hint">
    Filtering of form elements is executed <strong>before</strong> validation to avoid positive
