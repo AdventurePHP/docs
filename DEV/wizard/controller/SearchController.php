@@ -4,11 +4,23 @@ namespace DEV\wizard\controller;
 use APF\core\filter\OutputFilterChain;
 use APF\core\logging\Logger;
 use APF\core\pagecontroller\BaseDocumentController;
+use APF\core\pagecontroller\Document;
 use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
+use APF\tools\form\taglib\SelectBoxTag;
 use DOCS\data\indexer\FulltextsearchIndexer;
 use DOCS\pres\filter\output\ScriptletOutputFilter;
-use APF\tools\form\taglib\SelectBoxTag;
+use DOCS\pres\taglib\AntiSpamFormTag;
+use DOCS\pres\taglib\ContentDisplayTag;
+use DOCS\pres\taglib\DocumentationLinkTag;
+use DOCS\pres\taglib\DocumentationTitleTag;
+use DOCS\pres\taglib\GenericHighlightTag;
+use DOCS\pres\taglib\InternalLinkTag;
+use DOCS\pres\taglib\NewsDisplayTag;
+use DOCS\pres\taglib\QuickNaviContentTag;
+use DOCS\pres\taglib\SidebarDisplayTag;
+use DOCS\pres\taglib\TrackingTag;
+use DOCS\pres\taglib\VersionSelectionTag;
 use Exception;
 
 class SearchController extends BaseDocumentController {
@@ -18,7 +30,7 @@ class SearchController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $form = & $this->getForm('index-maintenance');
+      $form = &$this->getForm('index-maintenance');
 
       if ($form->isSent() && $form->isValid()) {
 
@@ -61,11 +73,11 @@ class SearchController extends BaseDocumentController {
    private function executeIndexer($job) {
 
       /* @var $l Logger */
-      $l = & Singleton::getInstance('APF\core\logging\Logger');
+      $l = &Singleton::getInstance('APF\core\logging\Logger');
       $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
       $stdWriter = $l->getLogWriter(
-         Registry::retrieve('APF\core', 'InternalLogTarget')
+            Registry::retrieve('APF\core', 'InternalLogTarget')
       );
       $l->addLogWriter('fulltextsearchindexer', clone $stdWriter);
       $l->addLogWriter('mysqli', clone $stdWriter);
@@ -78,6 +90,19 @@ class SearchController extends BaseDocumentController {
       Registry::register('DOCS', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
       Registry::register('DOCS', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
       Registry::register('DOCS', 'TrackerBaseURL', 'http://tracker.adventure-php-framework.org');
+
+      // Register tags to avoid performance overhead
+      Document::addTagLib(DocumentationLinkTag::class, 'doku', 'link');
+      Document::addTagLib(DocumentationTitleTag::class, 'doku', 'title');
+      Document::addTagLib(GenericHighlightTag::class, 'gen', 'highlight');
+      Document::addTagLib(InternalLinkTag::class, 'int', 'link');
+      Document::addTagLib(VersionSelectionTag::class, 'version', 'selector');
+      Document::addTagLib(QuickNaviContentTag::class, 'html', 'quicknavi');
+      Document::addTagLib(ContentDisplayTag::class, 'html', 'content');
+      Document::addTagLib(SidebarDisplayTag::class, 'sidebar', 'importdesign');
+      Document::addTagLib(NewsDisplayTag::class, 'news', 'appendnode');
+      Document::addTagLib(AntiSpamFormTag::class, 'form', 'antispam');
+      Document::addTagLib(TrackingTag::class, 'tracking', 'pixel');
 
       // special output filter (to filter scriptlet tags out of the index!)
       OutputFilterChain::getInstance()->appendFilter(new ScriptletOutputFilter());
