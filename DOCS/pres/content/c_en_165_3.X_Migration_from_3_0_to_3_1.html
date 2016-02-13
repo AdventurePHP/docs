@@ -1,0 +1,163 @@
+<doku:title parent="100" tags="migration,3.0,3.1" title="Migration from 3.0 to 3.1" urlname="Migration-from-3-0-to-3-1">
+   This page describes the adaptions of your current software (up to and including release 3.0.3) necessary to upgrade it
+   to release 3.1.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   Version 3.1 is almost fully compatible with it's predecessor. After execution of the automatic migration only minor
+   adaptions are necessary as described in <a href="#Chapter-3-Manual-steps">chapter 3</a>.
+</p>
+<div class="hint">
+   As of the 3.1 release enhancement of version version 3.0 will be discontinued. Security and bug fixes will be available
+   until end of 2016.
+</div>
+<p>
+   This article shows how to update your application to APF version 3.1. As you might already be familiar with from previous
+   versions migration can be done in an automated fashion for nearly all changes. For this reason, the release contains
+   two scripts: <em>migrate-code.sh</em> to update your HTML and PHP files and <em>migrate-config.sh</em> for configuration
+   files.
+</p>
+<div class="hint">
+   The APF team recommends to use the migration scripts rather than upgrading manually. This not only saves time and
+   money but also ensure that all relevant areas of your project code are covered.
+</div>
+<p>
+   The below chapters contain an in-depth description on how to switch to APF 3.1 and which kind of changes have to be
+   applied to your existing application(s) to run them based on this version.
+</p>
+
+<h3 id="Chapter-2-Automated-migration"><a href="#Chapter-2-Automated-migration">2. Automated migration</a></h3>
+<p>
+   Migration can be done using the migration script shipped along with the release. This release includes changes to
+   code, templates, and configuration files. Using <em>migrate-code.sh</em> and <em>migrate-config.sh</em> you can
+   easily be adapted your existing application to the new scheme.
+</p>
+<div class="warn">
+   Please be sure to execute all steps described under <int:link pageid="159" />. In case you are using an order version
+   of the APF, please <em>completely</em> migrate to version 3.0. Instructions can be taken from <int:link pageid="100" />.
+</div>
+<div class="err">
+   Please create a backup before execution of the scripts to be able to restore parts of your application if necessary!
+</div>
+<p>
+   In case your development environment is windows, please install the latest <em>cygwin</em> version (download under
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Migration for Windows Batch Scripts is
+   not supported.
+</p>
+<p>
+   To update the code files to the latest scheme, please execute the script as follows:
+</p>
+<div class="warn">
+   Please change to the code directory before execution to avoid unexpected results.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-code.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.1 automatic code migration          #
+#############################################
+
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.6.12.
+
+#############################################
+
+Starting migration ...
+* Migrate request and response obtaining ...
+* Migrate method signature ...
+
+#############################################
+
+Migration done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+<p>
+   To update the configuration files to the latest scheme, please execute the script as follows:
+</p>
+<div class="warn">
+   Please change to the configuration directory before execution to avoid unexpected results.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-config.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.1 automatic configuration migration #
+#############################################
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.6.12.
+
+#############################################
+
+Starting configuration migration ...
+
+#############################################
+
+Migration done! Please check your configuration and follow instructions within migration documentation!
+</gen:highlight>
+
+<h3 id="Chapter-3-Manual-steps"><a href="#Chapter-3-Manual-steps">3. Manual steps</a></h3>
+<p>
+   Unfortunately, not all components of your application can be migrated by the delivered scripts. This chapter lists
+   all changes to be applied by hand.
+</p>
+
+<h4 id="Chapter-3-1-Request-and-Response-access"><a href="#Chapter-3-1-Request-and-Response-access">3.1. Request and Response access</a></h4>
+<p>
+   To ease unit test creation access to <em>Request</em> and <em>Response</em> has been changed to an instance-based
+   approach. Instead of
+</p>
+<gen:highlight type="php">
+self::getRequest()
+</gen:highlight>
+<p>
+   please use
+</p>
+<gen:highlight type="php">
+$this->getRequest()
+</gen:highlight>
+<p>
+   now. This eases MOCK'ing in unit tests.
+</p>
+<p>
+   In case static access is required on the <em>Request</em> please use trait
+   <em>APF\core\http\mixins\GetRequestResponse</em> containing static method <em>getRequestStatic()</em>.
+</p>
+<p>
+   Same applies for the <em>Response</em>. Instead of
+</p>
+<gen:highlight type="php">
+self::getResponse()
+</gen:highlight>
+<p>
+   please use
+</p>
+<gen:highlight type="php">
+$this->getResponse()
+</gen:highlight>
+<p>
+   to obtain an instance of the <em>Response</em> implementation. As for the <em>Request</em> you can may also want to
+   use <em>getResponseStatic()</em> for static access.
+</p>
+
+<h4 id="Chapter-3-2-Method-signature-change"><a href="#Chapter-3-2-Method-signature-change">3.2. Method signature change</a></h4>
+<p>
+   Version 3.1 introduces the abbreviated array notation into the APF code base. To ensure compatibility of your
+   application the APF team recommends adaption of all methods overwriting APF methods. For this reason, please replace
+   all occurrences of e.g.
+</p>
+<gen:highlight type="php">
+public function setAttributes(array $attributes = array())
+</gen:highlight>
+<p>
+   with
+</p>
+<gen:highlight type="php">
+public function setAttributes(array $attributes = [])
+</gen:highlight>
+<p>
+   Searching for the relevant lines you may want to use the following regular expression:
+</p>
+<gen:highlight type="code">
+( |\()array\(
+</gen:highlight>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_165" />
