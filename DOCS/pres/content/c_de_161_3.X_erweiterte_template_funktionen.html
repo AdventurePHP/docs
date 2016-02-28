@@ -560,4 +560,456 @@ Document::addTemplateExpression('VENDOR\..\expression\GetStringTemplateExpressio
 </p>
 </gen:highlight>
 
+<h3 id="Chapter-4-Bedingte-Ausgabe"><a href="#Chapter-4-Bedingte-Ausgabe">4. Bedingte Ausgabe</a></h3>
+<p>
+   Ein häufiger Anwendungsfall in Web-Anwendungen ist die bedingte Ausgabe von Inhalten. Als Lösung bietet das APF zwei
+   Tag-Implementierungen, die einfache sowie komplexe Anwendungsszenarien abdecken.
+</p>
+<p>
+   Der <em>&lt;cond:placeholder /&gt;</em>-Tag erlaubt die Ausgabe von Inhalten sofern eine definierte
+   Bedingung erfüllt wurde. Der <em>&lt;cond:template /&gt;</em>-Tag ist für komplexere Ausgaben wie die bedingte
+   Ausgabe von komplexen Inhalten gedacht.
+</p>
+<div class="hint">
+   <em>&lt;cond:placeholder /&gt;</em> und <em>&lt;cond:template /&gt;</em> kombinieren die Definition der Ausgabe mit
+   der Ausgabe-Bedingung direkt im Template. Dadurch erhöht sich nicht nur die Übersichtlichkeit, sondern hilft auch
+   den Controller-Code einfach zu gestalten.
+</div>
+<p>
+   Die folgenden Kapitel bringen Ihnen die Verwendung der beiden Tags an Hand von ausführlichen Beispielen näher.
+</p>
+
+<h4 id="Chapter-4-1-Platzhalter"><a href="#Chapter-4-1-Platzhalter">4.1. Platzhalter</a></h4>
+<p>
+   Die Signatur des <em>&lt;cond:placeholder /&gt;</em>-Tags gestaltet sich wie folgt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:placeholder name="" [condition=""]&gt;
+   ... ${content} ...
+&lt;/cond:placeholder&gt;
+</gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+   <li>
+      <strong>name</strong>:
+      Name des Platzhalters. Über den Namen kann auf das Element zugegriffen werden - z.B. im Controller.
+      (<strong>Zeichen:</strong> [A-Za-z0-9-_])
+   </li>
+   <li>
+      <strong>condition</strong> (optional):
+      Definition der Bedingung, die über die Ausgabe des Inhalts entscheidet (<strong>Standard:</strong>
+      <em>notEmpty()</em>). Details zu den verfügbaren Bedingungen entnehmen Sie bitte
+      <a href="#Chapter-4-3-Verfuegbare-Bedingungen">Kapitel 4.3</a>.
+   </li>
+   <li>
+      <strong>&#36;{content}</strong>:
+      Mit Hilfe des inneren Platzhalters <em>content</em> lässt sich der im Controller gesetzte Inhalt innerhalb der
+      bedingten Ausgabe platzieren.
+   </li>
+</ul>
+<p>
+   Das folgende Beispiel zeigt die Ausgabe eines Teasers, der eine optionale Zwischen-Überschrift besitzt. Durch den
+   Einsatz des <em>&lt;cond:placeholder /&gt;</em>-Tags lässt sich die bedingte Ausgabe sehr einfach realisieren:
+</p>
+<gen:highlight type="apf-xml">
+&lt;h2 class="..."&gt;${headline}&lt;/h2&gt;
+&lt;cond:placeholder name="sub-headline"&gt;
+   &lt;h3 class="..."&gt;${content}&lt;/h3&gt;
+&lt;/cond:placeholder&gt;
+&lt;p&gt;
+   ${content}
+&lt;/p&gt;
+</gen:highlight>
+<p>
+   Der <em>&lt;cond:placeholder /&gt;</em>-Tag verhält sich innerhalb eines Templates wie ein &quot;normaler&quot;
+   Platzhalter (siehe <int:link pageid="046" anchor="Chapter-2-1-Placeholder" />). Damit lässt er sich innerhalb eines
+   Controllers sehr einfach mit anderen Platzhalter kombinieren.
+</p>
+<p>
+   Der Controller gestaltet sich damit wie folgt:
+</p>
+<gen:highlight type="php">
+class TeaserController extends BaseDocumentController {
+
+   public function transformContent() {
+      $teaser = $this->getTeaser();
+      $this->setPlaceHolders([
+         'headline' => $teaser->getHeadline(),
+         'sub-headline' => $teaser->getSubHeadline(),
+         'content' => $teaser->getContent()
+      ]);
+   }
+
+}
+</gen:highlight>
+<p>
+   Die Zwischen-Überschrift wird nun nur dann ausgegeben, sofern die Methode <em>getSubHeadline()</em> einen nicht
+   leeren Inhalt liefern.
+</p>
+<p>
+   Soll die Zwischen-Überschrift nur dann angezeigt werden, wenn Sie eine Länge von mindestens 5 und maximal 20 Zeichen
+   besitzt, so lässt sich dies durch Anpassung im Template wie folgt realisieren:
+</p>
+<gen:highlight type="apf-xml">
+&lt;h2 class="..."&gt;${headline}&lt;/h2&gt;
+&lt;cond:placeholder name="sub-headline" condition="between(5,20)"&gt;
+   &lt;h3 class="..."&gt;${content}&lt;/h3&gt;
+&lt;/cond:placeholder&gt;
+&lt;p&gt;
+   ${content}
+&lt;/p&gt;
+</gen:highlight>
+<div class="hint">
+   Die Liste der verfügbaren Bedingungen entnehmen Sie bitte <a href="#Chapter-4-3-Verfuegbare-Bedingungen">Kapitel 4.3</a>.
+</div>
+<p>
+   Innerhalb des <em>&lt;cond:placeholder /&gt;</em>-Tags lässt sich ebenfalls die
+   <a href="#Chapter-2-Verfuegbare-Funktionen">erweiterte Templating-Syntax</a> anwenden. Damit können Sie mit Hilfe
+   von <em>&#36;{content}</em> auch Listen bzw. Objekte darstellen.
+</p>
+<p>
+   Das folgende Beispiel definiert zusätzlich zur optionalen Zwischen-Überschrift noch einen optionalen, weiterführenden
+   Link:
+</p>
+<gen:highlight type="apf-xml">
+&lt;h2 class="..."&gt;${headline}&lt;/h2&gt;
+&lt;cond:placeholder name="sub-headline"&gt;
+   &lt;h3 class="..."&gt;${content}&lt;/h3&gt;
+&lt;/cond:placeholder&gt;
+&lt;p&gt;
+   ${content}
+&lt;/p&gt;
+&lt;cond:placeholder name="link"&gt;
+   &lt;a href="${content->getUrl()}"&gt;${content->getLabel()}&lt;/a&gt;
+&lt;/cond:placeholder&gt;
+</gen:highlight>
+<p>
+   Der Controller muss zur Ausgabe des Links wie folgt erweitert werden:
+</p>
+<gen:highlight type="php">
+class TeaserController extends BaseDocumentController {
+
+   public function transformContent() {
+      $teaser = $this->getTeaser();
+      $this->setPlaceHolders([
+         'headline' => $teaser->getHeadline(),
+         'sub-headline' => $teaser->getSubHeadline(),
+         'content' => $teaser->getContent(),
+         'link' => $teaser->getMoreLink()
+      ]);
+   }
+
+}
+</gen:highlight>
+<p>
+   Liefert die Methode <em>getMoreLink()</em> ein assoziatives Array mit den Offsets <em>more-link</em> und
+   <em>more-label</em> zurück so kann die Ausgabe wie folgt vorgenommen werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:placeholder name="link"&gt;
+   &lt;a href="${content['more-link']}"&gt;${content['more-label']}&lt;/a&gt;
+&lt;/cond:placeholder&gt;
+</gen:highlight>
+<p>
+   Ein komplexeres Szenario ergibt sich, sofern bei nicht gepflegtem Link ein Verweis auf die Startseite angezeigt
+   werden soll. Der folgende Template-Code zeigt - sofern vorhanden - den weiterführenden Link oder einen Verweis auf
+   die Startseite an:
+</p>
+<gen:highlight type="apf-xml">
+   &lt;cond:placeholder name="link" condition="empty()"&gt;
+   &lt;a href="/"&gt;Startseite&lt;/a&gt;
+&lt;/cond:placeholder&gt;
+&lt;cond:placeholder name="link"&gt;
+   &lt;a href="${content->getUrl()}"&gt;${content->getLabel()}&lt;/a&gt;
+&lt;/cond:placeholder&gt;
+</gen:highlight>
+
+<h4 id="Chapter-4-2-Template"><a href="#Chapter-4-2-Template">4.2. Template</a></h4>
+<p>
+   Die Signatur des <em>&lt;cond:template /&gt;</em>-Tags gestaltet sich wie folgt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="" expression="" [condition=""]&gt;
+   ...
+&lt;/cond:template&gt;
+</gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+   <li>
+      <strong>content-mapping</strong>:
+      Definiert, welcher Inhalt aus dem <strong>Eltern-Dokument</strong> zur Ausgabe genutzt werden soll. Die Evaluierung
+      wird dabei mit Hilfe der erweiterten Templating-Syntax (siehe <a href="#Chapter-2-Verfuegbare-Funktionen">Kapitel 2</a>)
+      vorgenommen. Das Ergebnis steht innerhalb des Tags dann im Data-Attribut <em>content</em> zur weiteren Nutzung zur
+      Verfügung.
+   </li>
+   <li>
+      <strong>expression</strong>:
+      Mit Hilfe des im Attribut <em>expression</em> definierten Ausdrucks wird der Vergleichswert errechnet. Dieser wird
+      dann gegen die im Attribut <em>condition</em> definierten Bedingung geprüft um zu entscheiden, ob der Inhalt
+      ausgegeben werden soll oder nicht. Die Evaluierung wird dabei ebenfalls mit Hilfe der erweiterten Templating-Syntax
+      (siehe <a href="#Chapter-2-Verfuegbare-Funktionen">Kapitel 2</a>) vorgenommen.
+   </li>
+   <li>
+      <strong>condition</strong> (optional):
+      Definiert die Bedingung, die über die Ausgabe des Inhalts entscheidet (<strong>Standard:</strong>
+      <em>notEmpty()</em>). Details zu den verfügbaren Bedingungen entnehmen Sie bitte
+      <a href="#Chapter-4-3-Verfuegbare-Bedingungen">Kapitel 4.3</a>.
+   </li>
+</ul>
+<div class="warn">
+   Die Attribute des Tags lassen sich auch wie folgt lesen: <em>content-mapping</em> definiert den Kontext der Ausgabe
+   und mit Hilfe von <em>expression</em> wird der Wert evaluiert, der mit Hilfe der <em>condition</em> zur
+   Ausgabesteuerung bewertet wird.
+</div>
+<p>
+   Template-Fragmente - wie beispielsweise auch das
+   <int:link pageid="046" anchor="Chapter-2-3-Template">&lt;html:template /&gt;</int:link>-Tag - sind für die Ausgabe von
+   sich wiederholenden oder nur unter bestimmten Bedingungen anzuzeigenden Inhalten gedacht. Nutzen Sie das
+   <em>&lt;html:template /&gt;</em>-Tag, übernimmt der Controller die Steuerung der Evaluierung der Bedingung und
+   die Ausgabe. Mit dem <em>&lt;cond:template /&gt;</em>-Tag lässt sich die Anzeige-Logik komplett an das Template
+   delegieren um den Controller schlank zu halten.
+</p>
+<p>
+   Der <em>&lt;cond:template /&gt;</em>-Tag bietet Ihnen die Möglichkeit, komplexe, bedingte Ausgaben im Template zu
+   formulieren. Soll der in <a href="#Chapter-4-1-Platzhalter">Kapitel 4.1</a> beschriebene Teaser
+   nur dann ausgegeben werden, wenn er für die Darstellung freigegeben ist, so kann die Ausgabe im Template wie folgt
+   erledigt werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="teaser" expression="content-&gt;displayIt()" condition="true()"&gt;
+   &lt;h2 class="..."&gt;${content-&gt;getHeadline()}&lt;/h2&gt;
+   &lt;cond:template content-mapping="content" expression="content-&gt;getSubHeadline()" condition="notEmpty()"&gt;
+      &lt;h3 class="..."&gt;${content-&gt;getSubHeadline()}&lt;/h3&gt;
+   &lt;/cond:template&gt;
+   &lt;p&gt;${content-&gt;getText()}&lt;/p&gt;
+   &lt;cond:template content-mapping="content-&gt;getMoreLink()" expression="content" condition="notEmpty()"&gt;
+      &lt;a href="${content-&gt;getUrl()}"&gt;${content-&gt;getLabel()}&lt;/a&gt;
+   &lt;/cond:template&gt;
+&lt;/cond:template&gt;
+</gen:highlight>
+<div class="hint">
+   Die Bennenung der Variablen bzw. Data-Attribute kann vollständig frei definiert werden. Bitte beachten Sie, dass die
+   Namen der Data-Attribute in Controller und Template übereinstimmen müssen!
+</div>
+<p>
+   Da die Darstellung komplett dem Template überlassen ist, lässt sich innerhalb des Controllers sehr einfach mit einem
+   <int:link pageid="164" lang="en">View-Model</int:link> (Englisch) arbeiten. Dies hilft Ihnen dabei, eine klare
+   Datenstruktur aufzubauen und mit dem Inhalt verbundene Logik im <em>Domänen-Objekt</em> bzw. <em>View-Model</em> zu
+   kapseln. Dies hilft Ihnen die Testbarkeit und damit die Qualität Ihrer Software zu erhöhen.
+</p>
+<p>
+   Zur Ausgabe eines Teasers ist folgender Controller-Code erforderlich:
+</p>
+<gen:highlight type="php">
+class TeaserController extends BaseDocumentController {
+
+   public function transformContent() {
+      $this->setData('teaser', $this->getTeaser());
+   }
+
+}
+</gen:highlight>
+<p>
+   Die Funktion <em>getTeaser()</em> liefert dabei eine Instanz der Klasse <em>Teaser</em> mit folgenden Methoden zurück:
+</p>
+<gen:highlight type="php">
+class Teaser {
+
+   public function displayIt() { ... }
+   public function getHeadline() { ... }
+   public function getSubHeadline() { ... }
+   public function getText() { ... }
+   public function getMoreLink() { ... }
+
+}
+</gen:highlight>
+<p>
+   <em>getMoreLink()</em> gibt eine Instanz der Klasse <em>MoreLink</em> mit folgenden Methoden zurück:
+</p>
+<gen:highlight type="php">
+class MoreLink {
+
+   public function getUrl() { ... }
+   public function getLabel() { ... }
+
+}
+</gen:highlight>
+<div class="hint">
+   Die genannten Methoden können mit Hilfe der erweiterten Templating-Syntax (siehe
+   <a href="#Chapter-2-Verfuegbare-Funktionen">Kapitel 2</a>) zur Ausgabe von Inhalten sowie zur Formulierung von
+   Mappings und Bedingungen genutzt werden.
+</div>
+<p>
+   Mit Hilfe der umschließenden Tag-Definition
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="teaser" expression="content-&gt;displayIt()" condition="true()"&gt;
+   ...
+&lt;/cond:template&gt;
+</gen:highlight>
+<p>
+   werden folgende Dinge definiert:
+</p>
+<ul>
+   <li>
+      Das Attribut <em>content-mapping</em> definiert, welcher Inhalt innerhalb des Templates in der Variable
+      <em>content</em> zur weiteren Verarbeitung und Ausgabe zur Verfügung stehen soll (<em>Kontext</em> der Ausgabe).
+      In diesem Fall wird das Data-Attribut <em>teaser</em> aus dem <strong>Eltern-Dokument</strong> genutzt, das gemäß
+      Controller-Code eine Instanz der Klasse <em>Teaser</em> enthält.
+   </li>
+   <li>
+      Der Inhalt des <em>expression</em>-Attributs evaluiert denjenigen Wert, der mit der im Attribut <em>condition</em>
+      formulierten Bedingung verglichen werden soll. Auf Basis des <em>content-mapping</em>, kann im Ausdruck auf das
+      Data-Attribut <em>content</em> verwendet werden.
+      <br />
+      In diesem Fall wird die Methode <em>displayIt()</em> der Klasse <em>Teaser</em> genutzt, die einen boolschen
+      Wert zurück liefert.
+   </li>
+   <li>
+      Die im Attribut <em>condition</em> formulierte Bedingung legt fest, ob der Inhalt des Templates ausgegeben wird
+      oder nicht. Trifft die Bedingung <em>true()</em> zu - bzw. liefert die Methode <em>displayIt()</em> den Wert
+      <em>true</em> -, so wird das Template dargestellt.
+   </li>
+</ul>
+<p>
+   Innerhalb des Templates sind zwei weitere <em>&lt;cond:template /&gt;</em>-Tags definiert, die sich um die optionale
+   Ausgabe der Zwischen-Überschrift und des weiterführenden Links kümmern.
+</p>
+<p>
+   Die Zwischenüberschrift wird mit Hilfe der Tag-Definition
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="content" expression="content-&gt;getSubHeadline()" condition="notEmpty()"&gt;
+   &lt;h3 class="..."&gt;${content-&gt;getSubHeadline()}&lt;/h3&gt;
+&lt;/cond:template&gt;
+</gen:highlight>
+<p>
+   dann ausgegeben, wenn die Methode <em>getSubHeadline()</em> einen nicht leeren Inhalt zurück liefert. Die
+   Tag-Definition liest sich wie folgt:
+</p>
+<ul>
+   <li>
+      Als Inhalt (<em>Kontext</em> der Ausgabe) wird der Inhalt des Data-Attributs <em>content</em> des
+      <strong>Eltern-Elements</strong> genutzt werden. Dies wird durch den Ausdruck im Attribut <em>content-mapping</em>
+      festgelegt. Dabei handelt es sich auch hier um die Instanz der Klasse <em>Teaser</em>.
+   </li>
+   <li>
+      Die <em>expression</em> definiert, dass die von der Methode <em>getSubHeadline()</em> zurückgegebene
+      Zwischenüberschrift zur Steuerung der Ausgabe heran gezogen werden soll.
+   </li>
+   <li>
+      Mit Hilfe der Bedingung <em>notEmpty()</em> wird überprüft, ob die Zwischenüberschrift vorhanden ist. Ist die
+      Zeichenkette nicht leer, wird das HTML-Gerüst inklusive der Überschrift ausgegeben.
+   </li>
+</ul>
+<p>
+   Ähnlich verhält es sich mit dem weiterführenden Link. Hier wurde das <em>content-mapping</em> allerdings dazu genutzt,
+   die Instanz der Klasse <em>MoreLink</em>, die von der Methode <em>geMoreLink()</em> zurückgegeben wird, im
+   Data-Attribut <em>content</em> zur Verfügung zu stellen. Dies erleichtert nicht nur die Formulierung der Bedingungen,
+   sondern auch die Ausgabe innerhalb des Templates.
+</p>
+<p>
+   Der weiterführende Link lässt sich basierend auf dem Vorhandensein eines Links in der <em>Teaser</em>-Instanz wie
+   folgt bewerkstelligen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="content-&gt;getMoreLink()" expression="content" condition="notEmpty()"&gt;
+   &lt;a href="${content-&gt;getUrl()}"&gt;${content-&gt;getLabel()}&lt;/a&gt;
+&lt;/cond:template&gt;
+</gen:highlight>
+<p>
+   Die Tag-Definition lässt sich folgendermaßen interpretieren:
+</p>
+<ul>
+   <li>
+      Als Inhalt (<em>Kontext</em> der Ausgabe) wird der Rückgabe-Wert der Methode <em>getMoreLink()</em> der
+      <em>Teaser</em>-Instanz im Data-Attributs <em>content</em> des <strong>Eltern-Elements</strong> genutzt. Die
+      Methode gibt entweder eine Instanz der Klasse <em>MoreLink</em> oder <em>null</em> zurück.
+   </li>
+   <li>
+      Zur Ausgabe-Steuerung soll ebenfalls der Rückgabe-Wert der Methode <em>getMoreLink()</em> genutzt werden. Dies wird
+      im Attribut <em>expression</em> definiert indem direkt auf das Data-Attribut <em>contemnt</em> verwiesen wird.
+   </li>
+   <li>
+      Die im Attribut <em>condition</em> definierte Bedingung prüft nun, ob der weiterführende Link vorhanden ist
+      (Data-Attribut <em>content</em> enthält eine Instanz der Klasse <em>MoreLink</em>) und gibt das Template zur
+      Ausgabe frei.
+   </li>
+</ul>
+<div class="hint">
+   Die Schachtelungstiefe von <em>&lt;cond:template /&gt;</em>-Tags ist nicht begrenzt. Damit lassen sich auch noch
+   komplexere Konstrukte definieren.
+</div>
+<div class="hint">
+   Mit Hilfe der in <a href="#Chapter-2-Verfuegbare-Funktionen">Kapitel 2</a> beschriebenen erweiterten Templating-Syntax
+   kann sich innerhalb eines Templates auch auf ausserhalb definierte Inhalte zugreifen. Wird im Controller ein
+   zusätzliches Data-Attribut <em>headline-color</em> definiert, kann dies wie folgt zur Ausgabe-Formatierung verwendet
+   werden:
+<gen:highlight type="apf-xml">
+&lt;cond:template ...&gt;
+   &lt;h2
+      class="${this->getParentObject()->getParentObject()->getData('headline-color')}"&gt;
+      ...
+   &lt;/h2&gt;
+   ...
+&lt;/cond:template&gt;
+</gen:highlight>
+</div>
+
+<h4 id="Chapter-4-3-Verfuegbare-Bedingungen"><a href="#Chapter-4-3-Verfuegbare-Bedingungen">4.3. Verfügbare Bedingungen</a></h4>
+<p>
+   Zur Ausgabe-Steuerung stehen folgende Bedingungen zur Verfügung:
+</p>
+<ul>
+   <li>
+      <strong>true()</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert <em>true</em> ist.
+   </li>
+   <li>
+      <strong>false()</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert <em>false</em> ist.
+   </li>
+   <li>
+      <strong>empty()</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert leer ist. Dies lässt sich sowohl auf Zeichenketten
+      als auch auf Objekte anwenden.
+   </li>
+   <li>
+      <strong>notEmpty()</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert nicht leer ist. Dies lässt sich sowohl auf Zeichenketten
+      als auch auf Objekte anwenden.
+   </li>
+   <li>
+      <strong>matches(&lt;Zeichenkette&gt;)</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert mit dem übergebenen Wert übereinstimmt. Der Vergleich lässt
+      sich mit Zeichenketten und Ziffern durchführen.
+   </li>
+   <li>
+      <strong>contains(&lt;Zeichenkette&gt;)</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert im übergebenen Wert enthalten ist.
+   </li>
+   <li>
+      <strong>longerThan(&lt;Zahl&gt;)</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert mehr Zeichen besitzt als im übergebenen Wert definiert wurde.
+   </li>
+   <li>
+      <strong>shorterThan(&lt;Zahl&gt;)</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert weniger Zeichen besitzt als im übergebenen Wert definiert wurde.
+   </li>
+   <li>
+      <strong>length(&lt;Zahl&gt;)</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert exakt die Anzahl an Zeichen besitzt die im übergebenen Wert
+      definiert wurde.
+   </li>
+   <li>
+      <strong>between(&lt;Zahl&gt;,&lt;Zahl&gt;)</strong>:
+      Die Prüfung ist erfolgreich wenn der zu prüfende Wert eine definierte Anzahl von Zeichen besitzt (Miminal- und
+      Maximal-Werte eingeschlossen).
+   </li>
+</ul>
+<div class="warn">
+   Mehrere Argumente werden jeweils durch ein Komma getrennt, Zeichenketten mit Leerzeichen müssen mit einfachen
+   Anführungszeichen umschlossen werden!
+</div>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_161" />

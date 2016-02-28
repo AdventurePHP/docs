@@ -554,4 +554,435 @@ Document::addTemplateExpression('VENDOR\..\expression\GetStringTemplateExpressio
 </p>
 </gen:highlight>
 
+<h3 id="Chapter-4-Conditional-display"><a href="#Chapter-4-Conditional-display">4. Conditional display</a></h3>
+<p>
+   Conditional display is a common use case in web applications. The APF offers two tag implementations that cover simple
+   and also complex use cases.
+</p>
+<p>
+   <em>&lt;cond:placeholder /&gt;</em> dislays content in case the condition is met and <em>&lt;cond:template /&gt;</em>
+   covers more complex conditional display use cases.
+</p>
+<div class="hint">
+   Both <em>&lt;cond:placeholder /&gt;</em> and <em>&lt;cond:template /&gt;</em> combine output definition and condition
+   directly within the template. This not only improves readability but also helps to keep controller code clean.
+</div>
+<p>
+   The following chapters describe usage of both tags based on comprehensive examples.
+</p>
+
+<h4 id="Chapter-4-1-Place-holder"><a href="#Chapter-4-1-Place-holder">4.1. Place holder</a></h4>
+<p>
+   The signature if the <em>&lt;cond:placeholder /&gt;</em> tag is as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:placeholder name="" [condition=""]&gt;
+   ... ${content} ...
+&lt;/cond:placeholder&gt;
+</gen:highlight>
+<strong>Attribute description:</strong>
+<ul>
+   <li>
+      <strong>name</strong>:
+      Name of the place holder. Can be used to access the element e.g. by controller.
+      (<strong>Zeichen:</strong> [A-Za-z0-9-_])
+   </li>
+   <li>
+      <strong>condition</strong> (optional):
+      Definition of the display condition (<strong>Default:</strong>
+      <em>notEmpty()</em>). Details on all available conditions can be taken from
+      <a href="#Chapter-4-3-Available-conditions">chapter 4.3</a>.
+   </li>
+   <li>
+      <strong>&#36;{content}</strong>:
+      Using the (inner) <em>content</em> place holder the content set within a controller can be positioned within the
+      conditional place holder.
+   </li>
+</ul>
+<p>
+   The follwing example shows a teaser template that has an optional sub line. Using the
+   <em>&lt;cond:placeholder /&gt;</em> tag template definition is quite simple:
+</p>
+<gen:highlight type="apf-xml">
+&lt;h2 class="..."&gt;${headline}&lt;/h2&gt;
+&lt;cond:placeholder name="sub-headline"&gt;
+   &lt;h3 class="..."&gt;${content}&lt;/h3&gt;
+&lt;/cond:placeholder&gt;
+&lt;p&gt;
+   ${content}
+&lt;/p&gt;
+</gen:highlight>
+<p>
+   The <em>&lt;cond:placeholder /&gt;</em> tag just behaves like a &quot;normaler&quot; place holder within templates
+   (see <int:link pageid="046" anchor="Chapter-2-1-Placeholder" />). Hence, you can combine it with other place holders
+   setting data within your controller:
+</p>
+<gen:highlight type="php">
+class TeaserController extends BaseDocumentController {
+
+   public function transformContent() {
+      $teaser = $this->getTeaser();
+      $this->setPlaceHolders([
+         'headline' => $teaser->getHeadline(),
+         'sub-headline' => $teaser->getSubHeadline(),
+         'content' => $teaser->getContent()
+      ]);
+   }
+
+}
+</gen:highlight>
+<p>
+   The sub line is displayed in case method <em>getSubHeadline()</em> returns a non-empty content.
+</p>
+<p>
+   In case you want to display the sub line only in case it contains a minimum length of 5 and a maximum number of
+   20 characters you can easily achieve this by adapting the template definition as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;h2 class="..."&gt;${headline}&lt;/h2&gt;
+&lt;cond:placeholder name="sub-headline" condition="between(5,20)"&gt;
+   &lt;h3 class="..."&gt;${content}&lt;/h3&gt;
+&lt;/cond:placeholder&gt;
+&lt;p&gt;
+   ${content}
+&lt;/p&gt;
+</gen:highlight>
+<div class="hint">
+   Please refer to <a href="#Chapter-4-3-Available-conditions">chapter 4.3</a> for a complete list of available
+   conditions.
+</div>
+<p>
+   Within a <em>&lt;cond:placeholder /&gt;</em> tag the
+   <a href="#Chapter-2-Available-functionality">extended templating syntax</a> can be used as known for other use cases.
+   This means that you can easily display lists or objects using <em>&#36;{content}</em>.
+</p>
+<p>
+   The next example extends above teaser example by an optional link - represented by an object - referring to
+   additional content:
+</p>
+<gen:highlight type="apf-xml">
+&lt;h2 class="..."&gt;${headline}&lt;/h2&gt;
+&lt;cond:placeholder name="sub-headline"&gt;
+   &lt;h3 class="..."&gt;${content}&lt;/h3&gt;
+&lt;/cond:placeholder&gt;
+&lt;p&gt;
+   ${content}
+&lt;/p&gt;
+&lt;cond:placeholder name="link"&gt;
+   &lt;a href="${content->getUrl()}"&gt;${content->getLabel()}&lt;/a&gt;
+&lt;/cond:placeholder&gt;
+</gen:highlight>
+<p>
+   To fill the template, the controller code needs some adaption:
+</p>
+<gen:highlight type="php">
+class TeaserController extends BaseDocumentController {
+
+   public function transformContent() {
+      $teaser = $this->getTeaser();
+      $this->setPlaceHolders([
+         'headline' => $teaser->getHeadline(),
+         'sub-headline' => $teaser->getSubHeadline(),
+         'content' => $teaser->getContent(),
+         'link' => $teaser->getMoreLink()
+      ]);
+   }
+
+}
+</gen:highlight>
+<p>
+   In case method <em>getMoreLink()</em> would return an associative array with offsets <em>more-link</em> and
+   <em>more-label</em> you can also use the following template markup:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:placeholder name="link"&gt;
+   &lt;a href="${content['more-link']}"&gt;${content['more-label']}&lt;/a&gt;
+&lt;/cond:placeholder&gt;
+</gen:highlight>
+<p>
+   Scenarions become more sophisticated in case you want to display a link to the start page if the teaser link is
+   not there. The following template code shows how to either display the more link if it's present or a link to the
+   start page:
+</p>
+<gen:highlight type="apf-xml">
+   &lt;cond:placeholder name="link" condition="empty()"&gt;
+   &lt;a href="/"&gt;Startseite&lt;/a&gt;
+&lt;/cond:placeholder&gt;
+&lt;cond:placeholder name="link"&gt;
+   &lt;a href="${content->getUrl()}"&gt;${content->getLabel()}&lt;/a&gt;
+&lt;/cond:placeholder&gt;
+</gen:highlight>
+
+<h4 id="Chapter-4-2-Template"><a href="#Chapter-4-2-Template">4.2. Template</a></h4>
+<p>
+   The signature of the <em>&lt;cond:template /&gt;</em> tag is as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="" expression="" [condition=""]&gt;
+   ...
+&lt;/cond:template&gt;
+</gen:highlight>
+<strong>Attribute description:</strong>
+<ul>
+   <li>
+      <strong>content-mapping</strong>:
+      Defines which content of the <strong>parent document</strong> should be used to generate the output. Evaluation
+      is conducted using the extended templating syntax (see <a href="#Chapter-2-Available-functionality">chapter 2</a>).
+      The result of this evaluation is pushed to data attribute <em>content</em> for further usage.
+   </li>
+   <li>
+      <strong>expression</strong>:
+      Based on attribute <em>expression</em> the comparison value is calculated. This value will be matched against the
+      condition defined in attribute <em>condition</em> to decide whether or not to display the content.  Evaluation
+      is conducted using the extended templating syntax (see <a href="#Chapter-2-Available-functionality">chapter 2</a>).
+   </li>
+   <li>
+      <strong>condition</strong> (optional):
+      Defines the condition deciding on whether or not the content is displayed (<strong>Default:</strong>
+      <em>notEmpty()</em>). Details on all available conditions can be taken from
+      <a href="#Chapter-4-3-Available-conditions">chapter 4.3</a>.
+   </li>
+</ul>
+<div class="warn">
+   Above tag attributes can also be read as follows: <em>content-mapping</em> definines the display context and
+   <em>expression</em> evaluated the value that is matched against the <em>condition</em> to control content display.
+</div>
+<p>
+   Template fragments - such as the <int:link pageid="046" anchor="Chapter-2-3-Template">&lt;html:template /&gt;</int:link>
+   tag - are designed to display self-repeating or conditional content. Using the <em>&lt;html:template /&gt;</em> tag
+   the controller is responsible to evaluate conditions and control output generation. Using the
+   <em>&lt;cond:template /&gt;</em> tag display logic can be delegated to the template completely and in turn keeps
+   controller code slim.
+</p>
+<p>
+   <em>&lt;cond:template /&gt;</em> is capable of constructing complex conditional output scenarios directly within
+   templates. In case the teaser described in <a href="#Chapter-4-1-Place-holder">chapter 4.1</a> should only be
+   displayed in case it has been approved you can manage this with the following template setup:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="teaser" expression="content-&gt;displayIt()" condition="true()"&gt;
+   &lt;h2 class="..."&gt;${content-&gt;getHeadline()}&lt;/h2&gt;
+   &lt;cond:template content-mapping="content" expression="content-&gt;getSubHeadline()" condition="notEmpty()"&gt;
+      &lt;h3 class="..."&gt;${content-&gt;getSubHeadline()}&lt;/h3&gt;
+   &lt;/cond:template&gt;
+   &lt;p&gt;${content-&gt;getText()}&lt;/p&gt;
+   &lt;cond:template content-mapping="content-&gt;getMoreLink()" expression="content" condition="notEmpty()"&gt;
+      &lt;a href="${content-&gt;getUrl()}"&gt;${content-&gt;getLabel()}&lt;/a&gt;
+   &lt;/cond:template&gt;
+&lt;/cond:template&gt;
+</gen:highlight>
+<div class="hint">
+   Naming of variables and/or data attributes can be defined at your convenience. Please note that names of data attributes
+   must be equal in controller and template!
+</div>
+<p>
+   As display control is completely delegated to the template you can easily work with
+   <int:link pageid="164">view models</int:link> within your controller. This not only helps to define a clear data
+   structure but also allows encapsulation of associated logic into <em>domain objects</em> or <em>view models</em>
+   respectively. In turn, testability increases and so does the quality of your software.
+</p>
+<p>
+   Displaying the teaser the following controller code is required:
+</p>
+<gen:highlight type="php">
+class TeaserController extends BaseDocumentController {
+
+   public function transformContent() {
+      $this->setData('teaser', $this->getTeaser());
+   }
+
+}
+</gen:highlight>
+<p>
+   Method <em>getTeaser()</em> returns an instance of class <em>Teaser</em> containing the following functions:
+</p>
+<gen:highlight type="php">
+class Teaser {
+
+   public function displayIt() { ... }
+   public function getHeadline() { ... }
+   public function getSubHeadline() { ... }
+   public function getText() { ... }
+   public function getMoreLink() { ... }
+
+}
+</gen:highlight>
+<p>
+   <em>getMoreLink()</em> returns an instance of class <em>MoreLink</em> containing the following methods:
+</p>
+<gen:highlight type="php">
+class MoreLink {
+
+   public function getUrl() { ... }
+   public function getLabel() { ... }
+
+}
+</gen:highlight>
+<div class="hint">
+   All methods can be used for displaying content or defining conditions or mappings according to the extended templating
+   syntax described in <a href="#Chapter-2-Available-functionality">chapter 2</a>.
+</div>
+<p>
+   Outer tag definition
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="teaser" expression="content-&gt;displayIt()" condition="true()"&gt;
+   ...
+&lt;/cond:template&gt;
+</gen:highlight>
+<p>
+   defines the teaser container:
+</p>
+<ul>
+   <li>
+      Attribute <em>content-mapping</em> defines which content should be assigned to variable <em>content</em> within
+      the template for further processing and content display (display <em>context</em>). Tn this case data attribute
+      <em>teaser</em> from the <strong>parent document</strong> should be used containing an instance of class
+      <em>Teaser</em> injected by the controller.
+   </li>
+   <li>
+      Attribute <em>expression</em> evaluates the value that should be compared with the condition defined in attribute
+      <em>condition</em>. Based on the <em>content-mapping</em> data attribute <em>content</em> can be used within this
+      expression.
+      <br />
+      Above example used method <em>displayIt()</em> of class <em>Teaser</em> returning a boolean value.
+   </li>
+   <li>
+      Attribute <em>condition</em> specifies the condition which deciding whether or not to display the content of the
+      template. In case condition <em>true()</em> matches - or in other words: <em>displayIt()</em> returns value
+      <em>true</em> -, the template is going to be displayed.
+   </li>
+</ul>
+<p>
+   Within the outer template definition, two additional <em>&lt;cond:template /&gt;</em> tags are defined to deal with
+   the optional sub line and the continuative link.
+</p>
+<p>
+   The sub line is wrapped with the following tag definition:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="content" expression="content-&gt;getSubHeadline()" condition="notEmpty()"&gt;
+   &lt;h3 class="..."&gt;${content-&gt;getSubHeadline()}&lt;/h3&gt;
+&lt;/cond:template&gt;
+</gen:highlight>
+<p>
+   In case method <em>getSubHeadline()</em> returns a non-empty content the headline is displayed including the
+   surrounding HTML markup. The tag definition can be interpreted as follows:
+</p>
+<ul>
+   <li>
+      The sub line (display <em>context</em>) is taken from data attribute <em>content</em> of the <strong>parent
+      element</strong>. This is defined with attribute <em>content-mapping</em>. The effective content is an instance of
+      class <em>Teaser</em>.
+   </li>
+   <li>
+      <em>expression</em> defines that the result returned by <em>getSubHeadline()</em> will be used for output control.
+   </li>
+   <li>
+      Based on condition <em>notEmpty()</em> the template checks whether or not the sub line is present. If the string
+      is not empty the sub line is displayed including the surrounding HTML markup.
+   </li>
+</ul>
+<p>
+   Template definition of the continuative link is pretty much the same. Here, the <em>content-mapping</em> has been used
+   to map the instance of class <em>MoreLink</em> to data attribute <em>content</em> returned by <em>geMoreLink()</em>.
+   This not only eases condition definition but also output generation within the template.
+</p>
+<p>
+   Displaying the link based on existence of the <em>MoreLink</em> instance within the <em>Teaser</em> class as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;cond:template content-mapping="content-&gt;getMoreLink()" expression="content" condition="notEmpty()"&gt;
+   &lt;a href="${content-&gt;getUrl()}"&gt;${content-&gt;getLabel()}&lt;/a&gt;
+&lt;/cond:template&gt;
+</gen:highlight>
+<p>
+   The tag definition can be interpreted as follows:
+</p>
+<ul>
+   <li>
+      Content (display <em>context</em>) is assigned the return value of <em>getMoreLink()</em> of the <em>Teaser</em>
+      instance of data attribute <em>content</em> within the <strong>parent element</strong>. The named method either
+      returns an instance of class <em>MoreLink</em> oder <em>null</em>.
+   </li>
+   <li>
+      Decision on whether or not to display the link should also be based on the return value of <em>getMoreLink()</em>.
+      This is defined in attirbute <em>expression</em> directly referring to the <em>content</em> data attribute.
+   </li>
+   <li>
+      The condition defined within attribute <em>condition</em> checks whether the continuative link is present (data
+      attribute <em>content</em> contains an instance <em>MoreLink</em>) and displays the template.
+   </li>
+</ul>
+<div class="hint">
+   The nesting level of <em>&lt;cond:template /&gt;</em> tags is not limited. This allows definition of any level of
+   complexity regarding conditional output.
+</div>
+<div class="hint">
+   Using the extended expression syntax described in <a href="#Chapter-2-Available-functionality">chapter 2</a> you can
+   also access data defined outside of the template. In case the controller sets an additional data attribute
+   <em>headline-color</em> you can use it as follows:
+<gen:highlight type="apf-xml">
+&lt;cond:template ...&gt;
+   &lt;h2
+      class="${this->getParentObject()->getParentObject()->getData('headline-color')}"&gt;
+      ...
+   &lt;/h2&gt;
+   ...
+&lt;/cond:template&gt;
+</gen:highlight>
+</div>
+
+<h4 id="Chapter-4-3-Available-conditions"><a href="#Chapter-4-3-Available-conditions">4.3. Available conditions</a></h4>
+<p>
+   Please refer to the following list for all existing conditions:
+</p>
+<ul>
+   <li>
+      <strong>true()</strong>:
+      Check returns true in case the value to evaluate is <em>true</em>.
+   </li>
+   <li>
+      <strong>false()</strong>:
+      Check returns true in case the value to evaluate is <em>false</em>.
+   </li>
+   <li>
+      <strong>empty()</strong>:
+      Check returns true in case the value to evaluate is empty. This check both applies to strings and objects.
+   </li>
+   <li>
+      <strong>notEmpty()</strong>:
+      Check returns true in case the value to evaluate is not empty. This check both applies to strings and objects.
+   </li>
+   <li>
+      <strong>matches(&lt;string&gt;)</strong>:
+      Check returns true in case the value to evaluate matches the given string. This check both applies to strings and
+      numbers.
+   </li>
+   <li>
+      <strong>contains(&lt;string&gt;)</strong>:
+      Check returns true in case the value to evaluate contains the given value.
+   </li>
+   <li>
+      <strong>longerThan(&lt;number&gt;)</strong>:
+      Check returns true in case the value to evaluate has more characters as defined within the given value.
+   </li>
+   <li>
+      <strong>shorterThan(&lt;number&gt;)</strong>:
+      Check returns true in case the value to evaluate has less characters as defined within the given value.
+   </li>
+   <li>
+      <strong>length(&lt;number&gt;)</strong>:
+      Check returns true in case the value to evaluate has exactly the number of characters defined in the given value.
+   </li>
+   <li>
+      <strong>between(&lt;number&gt;,&lt;number&gt;)</strong>:
+      Check returns true in case the value to evaluate has a number of characters between the given minimum and maximum
+      number (minimum and maximum values included).
+   </li>
+</ul>
+<div class="warn">
+   Multiple arguments are separated by comma, strings including blanks must be delimited by simple quotes!
+</div>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_161" />
