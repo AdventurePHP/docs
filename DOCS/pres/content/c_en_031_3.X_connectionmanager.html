@@ -72,23 +72,44 @@ $driver = &$cM->getConnection('section-name');
    The Adventure PHP Framework comes with three different abstraction layers:
 </p>
 <ul>
-  <li>MySQLx: MySQL driver. Based on the mysql_* functions.</li>
   <li>SQLite: SQLite driver. Based on the sqlite_* functions. Needs PHP > 5.0.0!</li>
   <li>MySQLi: MySQLi driver. Based on the mysqli_* functions. Needs PHP > 5.0.0!</li>
 </ul>
 
-<h4 id="Chapter-4-1-MySQL-driver"><a href="#Chapter-4-1-MySQL-driver">4.1. MySQL driver</a></h4>
+<h4 id="Chapter-4-1-SQLite-driver"><a href="#Chapter-4-1-SQLite-driver">4.2. SQLite driver</a></h4>
 <p>
-   In order to create an instance of the MySQL abstraction class the following configuration has to
-   be included in the config file mentioned above:
+   Any SQLite abstraction layer instance can be configured by
 </p>
 <gen:highlight type="ini">
-[MySQL]
+[SQLite]
+Name = "/path/to/my/database.sqlite"
+Type = "APF\core\database\SQLiteHandler"
+DebugMode = "true|false"
+</gen:highlight>
+<p>
+   Please note, that host, user and password don't have to be configured, due to the fact, that SQLite
+   is an integrated database engine. Creating an instance of the driver class looks like this:
+</p>
+<gen:highlight type="php">
+use APF\core\database\ConnectionManager;
+$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
+$SQLite = &$cM->getConnection('SQLite');
+</gen:highlight>
+
+<h4 id="Chapter-4-2-MySQLi-driver"><a href="#Chapter-4-2-MySQLi-driver">4.3. MySQLi driver</a></h4>
+<p>
+   The <em>MySQLi</em> driver supports execution of textual statements and statements stored in sql files.
+</p>
+<p>
+   In order to create an instance of the MySQLi driver, the following configuration is necessary:
+</p>
+<gen:highlight type="ini">
+[MySQLi]
 Host = "host"
 User = "user"
 Pass = "pass"
 Name = "name"
-Type = "APF\core\database\MySQLxHandler"
+Type = "APF\core\database\MySQLiHandler"
 [Port = "3306"]
 [Socket = "/tmp/mysql.sock"]
 [DebugMode = "true|false"]
@@ -126,71 +147,8 @@ Type = "APF\core\database\MySQLxHandler"
 <p>
    Both params are optional and can be defined alternately. There is no need to specify both params at the same time.
 </p>
-<div class="hint">
-   Details on the configuration param values can be taken from the MySQL documentation within
-   chapter
-   <a class="external" href="http://dev.mysql.com/doc/refman/5.0/en/charset-connection.html" title="Connection Character Sets and Collations (MySQL 5.0)">Connection Character Sets and Collations (MySQL 5.0)</a>.
-</div>
 <p>
-   Afterwards, the instance of the abstraction layer can be created using the following lines of code:
-</p>
-<gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
-$MySQL = &$cM->getConnection('MySQL');
-</gen:highlight>
-<p>
-   Due to performance issues, the connection manager only creates singleton drivers.
-</p>
-
-<h4 id="Chapter-4-2-SQLite-driver"><a href="#Chapter-4-2-SQLite-driver">4.2. SQLite driver</a></h4>
-<p>
-   Any SQLite abstraction layer instance can be configured by
-</p>
-<gen:highlight type="ini">
-[SQLite]
-Name = "/path/to/my/database.sqlite"
-Type = "APF\core\database\SQLiteHandler"
-DebugMode = "true|false"
-</gen:highlight>
-<p>
-   Please note, that host, user and password don't have to be configured, due to the fact, that SQLite
-   is an integrated database engine. Creating an instance of the driver class looks like this:
-</p>
-<gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
-$SQLite = &$cM->getConnection('SQLite');
-</gen:highlight>
-
-<h4 id="Chapter-4-3-MySQLi-driver"><a href="#Chapter-4-3-MySQLi-driver">4.3. MySQLi driver</a></h4>
-<p>
-   The <em>MySQLi</em> driver is merely identical to the implementation of the <em>MySQLx</em>
-   driver. It supports execution of textual statements and statements stored in sql files.
-</p>
-<p>
-   In order to create an instance of the MySQLi driver, the following configuration is necessary:
-</p>
-<gen:highlight type="ini">
-[MySQLi]
-Host = "host"
-User = "user"
-Pass = "pass"
-Name = "name"
-Type = "APF\core\database\MySQLiHandler"
-[Port = "3306"]
-[Socket = "/tmp/mysql.sock"]
-[DebugMode = "true|false"]
-[Charset = ""]
-[Collation = ""]
-</gen:highlight>
-<p>
-   The configuration of port/socket, charset and collation applies the same conditions to as a
-   <a href="#Chapter-4-1-MySQL-driver">MySQLx</a>-connection.
-</p>
-<p>
-   Compared to the <em>MySQLx</em> driver the current implementation provides methods to execute statements with bind
-   parameters. These are:
+   The following methods allow to execute statements with bind parameters:
 </p>
 <ul>
    <li>executeTextBindStatement()</li>
@@ -243,7 +201,8 @@ FROM notepad
 WHERE
    save_date BETWEEN [date_from] AND [date_until]
 </gen:highlight>
-<h4 id="Chapter-4-4-PDO-Driver"><a href="#Chapter-4-4-PDO-Driver">4.4. PDO Driver</a></h4>
+
+<h4 id="Chapter-4-3-PDO-Driver"><a href="#Chapter-4-3-PDO-Driver">4.4. PDO Driver</a></h4>
 <p>
    You may also use a <em>PDO</em>-driver instance. To use it, an additional configuration parameter is needed:
 </p>
@@ -269,7 +228,8 @@ PDO = "MySQL"
    With the current state only the <em>PDO</em>_MYSQL-Driver is supported.
 </div>
 <p>
-    To configure ports/sockets, charset and collation use the documentation chapter of <a href="#Chapter-4-1-MySQL-driver">MySQLx</a>
+    To configure ports/sockets, charset and collation use the documentation chapter of
+   <a href="#Chapter-4-2-MySQLi-driver">MySQLi</a>.
 </p>
 <p>
     A special feature of the <em>PDO</em>-driver is, that the <em>execute*()</em>-methods returns a PDOStatement, therefore it is possible
@@ -280,7 +240,7 @@ PDO = "MySQL"
     in the statement there is a <em>prepareStatement()</em>-method. There is no need to call the <em>execute</em>-method of the PDOStatement object.
 </div>
 <p>
-    In addition to the methods of the <em>MySQLx</em>-driver there are additional methods implemented.
+    In addition to the methods of the <em>MySQLi</em>-driver there are additional methods implemented.
 </p>
 <ul>
     <li>beginTransaction()</li>
@@ -379,7 +339,7 @@ DEFAULT_load_all_entries_for_category.sql
 <p>
    After creating a statement file under the appropriate path it can be used by invoking the
    <em>executeStatement()</em> or <em>executeBindStatement()</em> (only for
-   <a href="#Chapter-4-3-MySQLi-driver">MySQLi connections</a>) methods on the current connection:
+   <a href="#Chapter-4-2-MySQLi-driver">MySQLi connections</a>) methods on the current connection:
 </p>
 <gen:highlight type="php">
 use APF\core\database\ConnectionManager;
@@ -429,7 +389,7 @@ WHERE somefield = '[somefield]';
 <p>
    In order to create services or objects respectively with the <em>DIServiceManager</em> a configuration is required.
    A database connection can be defined by a configuration section including all relevant information just as any other
-   service. To create an instance of the <a href="#Chapter-4-3-MySQLi-driver">MySQLiHandler</a> the following definition
+   service. To create an instance of the <a href="#Chapter-4-2-MySQLi-driver">MySQLiHandler</a> the following definition
    can be used:
 </p>
 <gen:highlight type="ini">

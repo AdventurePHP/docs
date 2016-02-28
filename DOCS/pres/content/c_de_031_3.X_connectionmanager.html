@@ -78,22 +78,44 @@ $driver = &$cm->getConnection('Sektions-Name');
    Das Framework liefert drei Treiberschichten mit:
 </p>
 <ul>
-  <li>MySQLx: MySQL-Treiberschicht. Setzt auf die mysql_*-Funktionen auf</li>
   <li>SQLite: SQLite-Treiberschicht. Setzt auf die sqlite_*-Funktionen. Hier ist PHP > 5.0.0 notwendig!</li>
   <li>MySQLi: MySQLi-Treiberschicht. Setzt auf die mysqli_*-Funktionen auf</li>
 </ul>
 
-<h4 id="Chapter-4-1-MySQL-Treiberschicht"><a href="#Chapter-4-1-MySQL-Treiberschicht">4.1. MySQL-Treiberschicht</a></h4>
+<h4 id="Chapter-4-1-SQLite-Treiberschicht"><a href="#Chapter-4-1-SQLite-Treiberschicht">4.2. SQLite-Treiberschicht</a></h4>
+<p>Eine SQLite Treiberschicht kann mit dem Konfigurationseintrag</p>
+<gen:highlight type="ini">
+[SQLite]
+Name = "/path/to/my/database.sqlite"
+Type = "APF\core\database\SQLiteHandler"
+DebugMode = "true|false"
+</gen:highlight>
+und den Code-Zeilen
+<gen:highlight type="php">
+use APF\core\database\ConnectionManager;
+$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
+$SQLite = &$cm->getConnection('SQLite');
+</gen:highlight>
 <p>
-   Um eine Instanz des MySQL-Treibers erstellen zu können, ist folgende Konfiguration notwendig:
+   instanziiert werden. Bitte beachten Sie, dass im Fall von SQLite Host, User und Passwort nicht
+   konfiguriert werden müssen, da SQLite eine integrierte Datenbank-Engine ist.
+</p>
+
+<h4 id="Chapter-4-2-MySQLi-Treiberschicht"><a href="#Chapter-4-2-MySQLi-Treiberschicht">4.3. MySQLi-Treiberschicht</a></h4>
+<p>
+   Der <em>MySQLi</em>-Treiber unterstützt das Ausführen von dynamisch zusammengesetzten Statements und Statements, die
+   in SQL-Dateien abgelegt sind.
+</p>
+<p>
+   Um eine Instanz des MySQLi-Treibers erstellen zu können, ist folgende Konfiguration notwendig:
 </p>
 <gen:highlight type="ini">
-[MySQL]
+[MySQLi]
 Host = "host"
 User = "user"
 Pass = "pass"
 Name = "name"
-Type = "APF\core\database\MySQLxHandler"
+Type = "APF\core\database\MySQLiHandler"
 [Port = "3306"]
 [Socket = "/tmp/mysql.sock"]
 [DebugMode = "true|false"]
@@ -132,72 +154,8 @@ Type = "APF\core\database\MySQLxHandler"
    Die beiden Parameter sind optional und können bei Bedarf auch wechselseitig gesetzt werden, das
    Vorhandensein beider ist nicht erforderlich.
 </p>
-<div class="hint">
-   Details zu den verfügbaren Werten für die Konfiguration findet sich in der
-   MySQL-Dokumentation im Kapitel
-   <a class="external" href="http://dev.mysql.com/doc/refman/5.0/en/charset-connection.html" title="Connection Character Sets and Collations (MySQL 5.0)">Connection Character Sets and Collations (MySQL 5.0)</a>.
-</div>
 <p>
-   Anschließend kann die Treiber-Instanz mit den Code-Zeilen
-</p>
-<gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
-$MySQL = &$cm->getConnection('MySQL');
-</gen:highlight>
-<p>
-   erzeugt werden. Die Treiberschicht wird aus Performance-Gründen dabei immer als
-   Singleton-Objekt erstellt.
-</p>
-
-<h4 id="Chapter-4-2-SQLite-Treiberschicht"><a href="#Chapter-4-2-SQLite-Treiberschicht">4.2. SQLite-Treiberschicht</a></h4>
-<p>Eine SQLite Treiberschicht kann mit dem Konfigurationseintrag</p>
-<gen:highlight type="ini">
-[SQLite]
-Name = "/path/to/my/database.sqlite"
-Type = "APF\core\database\SQLiteHandler"
-DebugMode = "true|false"
-</gen:highlight>
-und den Code-Zeilen
-<gen:highlight type="php">
-use APF\core\database\ConnectionManager;
-$cm = &$this->getServiceObject('APF\core\database\ConnectionManager');
-$SQLite = &$cm->getConnection('SQLite');
-</gen:highlight>
-<p>
-   instanziiert werden. Bitte beachten Sie, dass im Fall von SQLite Host, User und Passwort nicht
-   konfiguriert werden müssen, da SQLite eine integrierte Datenbank-Engine ist.
-</p>
-
-<h4 id="Chapter-4-3-MySQLi-Treiberschicht"><a href="#Chapter-4-3-MySQLi-Treiberschicht">4.3. MySQLi-Treiberschicht</a></h4>
-<p>
-   Der <em>MySQLi</em>-Treiber ist weitestgehend identisch mit der Implementierung des
-   <em>MySQLx</em>-Treibers. Er unterstützt das Ausführen von dynamisch zusammengesetzten
-   Statements und Statements, die in SQL-Dateien abgelegt sind.
-</p>
-<p>
-   Um eine Instanz des MySQLi-Treibers erstellen zu können, ist folgende Konfiguration notwendig:
-</p>
-<gen:highlight type="ini">
-[MySQLi]
-Host = "host"
-User = "user"
-Pass = "pass"
-Name = "name"
-Type = "APF\core\database\MySQLiHandler"
-[Port = "3306"]
-[Socket = "/tmp/mysql.sock"]
-[DebugMode = "true|false"]
-[Charset = ""]
-[Collation = ""]
-</gen:highlight>
-<p>
-   Für die Konfiguration des Ports/Sockets, des Zeichensatz und der Collation gelten die selben Bedingungen wie
-   für eine <a href="#Chapter-4-1-MySQL-Treiberschicht">MySQLx</a>-Connection.
-</p>
-<p>
-   Über die Funktion des <em>MySQLx</em>-Treibers hinaus implementiert er Methoden, die es
-   erlauben, Statements mit Bind-Parametern gegen die Datenbank auszuführen. Diese sind:
+   Die folgenden Methoden erlauben die Nutzung von Statements mit Bind-Parametern gegen die Datenbank auszuführen:
 </p>
 <ul>
    <li>executeTextBindStatement()</li>
@@ -258,7 +216,7 @@ WHERE
 <p>
    enthält.
 </p>
-<h4 id="Chapter-4-4-PDO-Treiberschicht"><a href="#Chapter-4-4-PDO-Treiberschicht">4.4. PDO Treiberschicht</a></h4>
+<h4 id="Chapter-4-3-PDO-Treiberschicht"><a href="#Chapter-4-3-PDO-Treiberschicht">4.4. PDO Treiberschicht</a></h4>
 <p>
    Neben den übrigen Treibern lässt sich ebenfalls eine <em>PDO</em>-Treiber Instanz erstellen. Dabei wird ein
    zusätzlicher Konfigurationsparameter benötigt:
@@ -287,7 +245,7 @@ PDO = "MySQL"
 </div>
 <p>
    Für die Konfiguration des Ports/Sockets, des Zeichensatz und der Collation gelten die selben Bedingungen wie
-   für eine <a href="#Chapter-4-1-MySQL-Treiberschicht">MySQLx</a>-Connection.
+   für eine <a href="#Chapter-4-2-MySQLi-Treiberschicht">MySQLi</a>-Connection.
 </p>
 <p>
     Die Besonderheit beim <em>PDO</em>-Treiber sind, dass die <em>execute*()</em>-Methoden ein PDOStatement zurückliefern,
@@ -299,7 +257,7 @@ PDO = "MySQL"
     werden, dafür dient die <em>prepareStatement()</em>-Methode. Außerdem muss die <em>execute</em>-Methode des PDOStatement Objekts nicht mehr aufgerufen werden.
 </div>
 <p>
-    Zusätzlich zu den Methoden aus dem <em>MySQLx</em>-Treiber sind weitere Methoden implementiert.
+    Zusätzlich zu den Methoden aus dem <em>MySQLi</em>-Treiber sind weitere Methoden implementiert.
 </p>
 <ul>
     <li>beginTransaction()</li>
@@ -404,7 +362,7 @@ DEFAULT_load_all_entries_for_category.sql
 <p>
    Nach dem Anlegen einer Statement-Datei unter dem für die aktuelle Anwendung relevanten Pfad, kann
    diese über die Methode <em>executeStatement()</em> bzw. <em>executeBindStatement()</em> (nur für
-   <a href="#Chapter-4-3-MySQLi-Treiberschicht">MySQLi-Connections</a>) genutzt werden:
+   <a href="#Chapter-4-2-MySQLi-Treiberschicht">MySQLi-Connections</a>) genutzt werden:
 </p>
 <gen:highlight type="php">
 use APF\core\database\ConnectionManager;
@@ -456,7 +414,7 @@ WHERE somefield = '[somefield]';
    Um Services bzw. Objekte mit dem <em>DIServiceManager</em> erzeugen zu können, müssen diese zunächst durch eine
    Konfiguration beschrieben werden. Eine Datenbank-Verbindung lässt sich wie auch andere Services durch eine
    Konfigurations-Sektion mit den gewünschten Inhalten erstellen. Um eine Instanz des
-   <a href="#Chapter-4-3-MySQLi-Treiberschicht">MySQLiHandler</a> zu beziehen ist folgende Definition notwendig:
+   <a href="#Chapter-4-2-MySQLi-Treiberschicht">MySQLiHandler</a> zu beziehen ist folgende Definition notwendig:
 </p>
 <gen:highlight type="ini">
 [mysql-connection]
