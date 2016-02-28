@@ -1,0 +1,122 @@
+<doku:title parent="100" tags="migration,3.1,3.2" title="Migration von 3.1 auf 3.2" urlname="Migration-von-3-1-auf-3-2">
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 3.1), die notwendig sind
+   um Ihre Applikation auf die Version 3.2 zu portieren.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Version 3.2 ist in sehr großen Teilen komplett kompatibel mit der Vorgänger-Version. Neben der Ausführung der
+   automatisierten Migration fallen lediglich kleiner Anpassungen an, die in
+   <a href="#Chapter-3-Manuelle-Schritte">Kapitel 3</a> beschrieben werden.
+</p>
+<div class="hint">
+   Mit dem Erscheinen dieses Release wird die Weiterentwicklung der Version 3.1 eingestellt. Security- und Bug-Fixes
+   werden bis Mittw 2017 verfügbar sein.
+</div>
+<p>
+   In diesem Artikel erfahren Sie, wie Sie eine bestehende Anwendung auf APF-Version 3.2 aktualisieren können. Wie
+   bereits von den vorangegangenen Versionen gewohnt, kann die Migration auch in diesem Release weitestgehend automatisiert
+   erfolgen. Zu diesem Zweck liegen zwei Migrations-Skripten bei: <em>migrate-code.sh</em> für die Aktualisierung von
+   HTML- und PHP-Dateien und <em>migrate-config.sh</em> für Konfigurations-Dateien.
+</p>
+<div class="hint">
+   Das APF-Team empfiehlt, die Nutzung der Migrations-Skripten einer manuellen Migration vorzuziehen. Dies spart Zeit
+   und Kosten und stellt sicher, dass alle relevanten Stellen erfasst wurden.
+</div>
+<p>
+   Die folgenden Kapitel stellen die notwendigen Schritte zum Umstieg auf Version 3.2 zusammen.
+</p>
+
+<h3 id="Chapter-2-Automatisierte-Migration"><a href="#Chapter-2-Automatisierte-Migration">2. Automatisierte Migration</a></h3>
+<p>
+   Die Migration mit Hilfe eines mitgelieferten Migrations-Skripts erledigen. In diesem Release wurden Änderungen an
+   Code- und Konfigurations-Dateien vorgenommen, die mit Hilfe der Skripte <em>migrate-code.sh</em> und
+   <em>migrate-config.sh</em> auf Ihre bestehende Applikation übertragen werden können.
+</p>
+<div class="warn">
+   Bitte stellen Sie sicher, dass Sie vor der Migration alle unter <int:link pageid="165" /> beschriebenen Schritte
+   durchgeführt haben. Setzen Sie eine noch ältere Version ein, migrieren Sie bitte zuerst <em>vollständig</em> auf die
+   Version 3.1. Hinweise zur jeweiligen Migration finden Sie auf der Seite <int:link pageid="100" />.
+</div>
+<div class="err">
+   Bitte erstellen Sie vor der Ausführung der Skripten eine Sicherungskopie Ihrer Anwendung um bei Bedarf Inhalte wieder
+   herstellen zu können!
+</div>
+<p>
+   Sofern Sie auf Windows entwickeln, installieren Sie bitte eine aktuelle Version von <em>cygwin</em> (Download unter
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Eine Migration auf Basis eines
+   Windows-Batch-Script wird nicht angeboten.
+</p>
+<p>
+   Um Ihre Quell-Code-Dateien auf den neuesten Stand zu bringen, führen Sie das Skript bitte wie folgt aus:
+</p>
+<div class="warn">
+   Bitte wechseln Sie vor der Ausführung in das Code-Verzeichnis Ihrer Applikation um unerwartete Ergebnisse
+   zu vermeiden.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-code.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.2 automatic code migration          #
+#############################################
+
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.6.12.
+
+#############################################
+
+Starting migration ...
+* Migrate place holder methods ...
+
+#############################################
+
+Migration done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+<p>
+   Um Ihre Konfigurations-Dateien auf den neuesten Stand zu bringen, führen Sie das Skript bitte wie folgt aus:
+</p>
+<div class="warn">
+   Bitte wechseln Sie vor der Ausführung in das Konfigurations-Verzeichnis Ihrer Applikation um unerwartete Ergebnisse
+   zu vermeiden.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-config.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.2 automatic configuration migration #
+#############################################
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 5.6.12.
+
+#############################################
+
+Starting configuration migration ...
+
+#############################################
+
+Migration done! Please check your configuration and follow instructions within migration documentation!
+</gen:highlight>
+
+<h3 id="Chapter-3-Manuelle-Schritte"><a href="#Chapter-3-Manuelle-Schritte">3. Manuelle Schritte</a></h3>
+<p>
+   Das Migrations-Skript kann leider nicht alle Projekt-spezifischen Konstrukte migrieren. Die folgenden Kapitel
+   zeigen, welche manuellen Schritte notwendig sind um bestehenden Code mit der Version 3.2 einsetzen zu können:
+</p>
+
+<h4 id="Chapter-3-1-API-Aenderung-Platzhalter"><a href="#Chapter-3-1-API-Aenderung-Platzhalter">3.1. API-Änderung der Platzhalter</a></h4>
+<p>
+   In der Version 3.2 wurden im Rahmen des <em>Issues #284</em> die Methoden <em>setPlaceHolderIfExist()</em> und
+   <em>setPlaceHoldersIfExist()</em> aus den Klassen <em>Document</em> und <em>BaseDocumentController</em>. Dies erhöht
+   die Performance für das Setzen von Platzhaltern deutlich.
+</p>
+<p>
+   Bei der Aktualisierung auf die neue Version werden die Methoden durch die automatische Migration bereits aus dem
+   Quellcode Ihres Projektes entfernt. Bitte stellen Sie sicher, dass die Methoden auch aus Code, der APF-Funktionalität
+   überschreibt entfernt wird.
+</p>
+<p>
+   Nutzen Sie statt dessen die Methoden <em>setPlaceHolder()</em> und <em>setPlaceHolders()</em>, die ab der Version
+   3.2 keine <em>InvalidArgumentException</em> mehr werfen, wenn der Platzhalter nicht gefunden werden kann.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_166" />
