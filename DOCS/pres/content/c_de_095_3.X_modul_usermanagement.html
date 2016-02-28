@@ -664,4 +664,48 @@ class MyUmgtManager extends UmgtManager {
 }
 </gen:highlight>
 
+<h4 id="Chapter-4-3-Passwort-vergessen"><a href="#Chapter-4-3-Passwort-vergessen">4.3. Passwort vergessen</a></h4>
+<p>
+    Das UMGT stellt nun auch die Möglichkeit einer Passwort vergessen-Funktion zur Verfügung. Es werden dazu zwei
+    vorgefertigte Templates mitgeliefert:
+</p>
+<ul>
+    <li>modules/usermanagement/pres/templates/login/forgot_pw.html</li> und
+    <li>modules/usermanagement/pres/templates/login/reset_pw.html</li>
+</ul>
+<p>
+    <em>forgot_pw.html</em> stellt ein Formular zur Eingabe der E-Mail-Adresse zur Verfügung und über
+    <em>reset_pw.html</em> kann das Passwort anschliessend geändert werden.
+</p>
+<p>
+    Für die Passwortänderung muss der Benutzer einen Link bestätigen, der an das E-Mail-Postfach gesendet wurde. Dieser
+    Link hat eine einstellbare Gültigkeit (Standard: 24 Stunden). Im zweiten Schritt kann dann das Passwort geändert
+    werden. Es wird anschliessend nochmals eine Bestätigung an die E-Mail-Adresse gesendet, dass die Passwortänderung
+    erfolgreich war.
+</p>
+<p>
+    Für den E-Mail-Versand wird der APF-interne <em>mailSender</em> verwendet. Es ist daher die Erweiterung der
+    Konfiguration vom Mail-Sender notwendig:
+</p>
+<gen:highlight type="ini">
+    [UmgtForgotPassword]
+    Mail.SenderName = "Beispiel Absender - Passwort vergessen"
+    Mail.SenderEMail = "mail@adresse.tld"
+    Mail.ReturnPath = "return@adresse.tld"
+    Mail.ContentType = "text/html; charset=UTF-8"
+</gen:highlight>
+<p>
+    Um die Gültigkeit des Bestätigungs-Links zu ändern, nutzen Sie einfach die Konfigurations-Datei:
+    <em>{ENVIRONMENT}_forgotpw.ini</em> unter dem Namespace <em>/APF/config/modules/usermanagement/pres/{CONTEXT}/</em>.
+    Über den Parameter <em>hash.lifetime</em> können Sie die Gültigkeit in Sekunden angeben. Bitte beachten Sie, dass
+    Ihre Gültigkeit in vollen Stunden angegeben ist.
+</p>
+<gen:highlight type="ini">
+    [Default]
+    hash.lifetime = "86400"
+</gen:highlight>
+<p>
+    Alle Text-Meldungen der Templates sowie der E-Mails können Sie via der *.labels-Konfiguration vom UMGT anpassen.
+</p>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_095" />
