@@ -1,4 +1,5 @@
-<doku:title parent="119" tags="benchmark,performance,entwicklung" title="Benchmark" urlname="Benchmark">
+<doku:title parent="119" tags="benchmark,performance,entwicklung" title="Benchmark" urlname="Benchmark"
+            xmlns:int="http://www.w3.org/1999/html">
    Mit dem BenchmarkTimer können Sie bereits zur Entwicklungszeit auf die Performance der Anwendung achten. Das APF
    hat hierzu bereits alles vorbereitet und Sie können sich mit nur einer Zeile einen umfassenden Bericht ausgeben
    lassen.
@@ -22,9 +23,7 @@
    Code vor und nach dem zu messenden Events einzufügen:
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\benchmark\BenchmarkTimer;
-$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+$t = &Singleton::getInstance(BenchmarkTimer::class);
 $t->start('MyEvent');
 
 //
@@ -42,18 +41,14 @@ $t->stop('MyEvent');
    folgenden Code zu verwenden:
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\benchmark\BenchmarkTimer;
-$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+$t = &Singleton::getInstance(BenchmarkTimer::class);
 $t->start('MyEvent');
 
 //
 // Zu messender PHP-Code
 //
 
-use APF\core\singleton\Singleton;
-use APF\core\benchmark\BenchmarkTimer;
-$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+$t = &Singleton::getInstance(BenchmarkTimer::class);
 $t->stop('MyEvent');
 </gen:highlight>
 <p>
@@ -62,25 +57,20 @@ $t->stop('MyEvent');
 
 <h3 id="Chapter-2-Reports"><a href="#Chapter-2-Reports">2. Generieren eines Reports</a></h3>
 <p>
-   Da das Framework im <em>Postback-Modus</em> arbeitet und es im Allgemeinen nur eine zentrale
-   Datei (zumeist <em>index.php</em>) gibt, ist das generieren von Reports durch ein
+   Das APF empfielt die Nutzung des Bootstrap-Konzeptes, bei dem eine einzige Datei den Einstieg in die Applikation
+   bildet. Dies ist zumeist die Datei <em>index.php</em>. Dies ermöglicht es auf sehr einfache Weise einen Reports durch
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\benchmark\BenchmarkTimer;
-$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+$t = &Singleton::getInstance(BenchmarkTimer::class);
 echo $t->createReport();
 </gen:highlight>
 <p>
-   am Ende der <em>index.php</em> zu bewerkstelligen. Möchte der Entwickler selbst entscheiden, wann
-   der Report angezeigt wird um auch im Live-Betrieb ein Gefühl für die Performance der
-   Applikation behalten zu können kann das durch das Einfügen des Codes
+   am Ende der <em>index.php</em> zu genrieren. Möchten Sie selbst entscheiden, wann der Report angezeigt wird um auch
+   im Live-Betrieb ein Gefühl für die Performance der Applikation behalten zu können kann das durch das Einfügen des Codes
 </p>
 <gen:highlight type="php">
 if(isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true'){
-   use APF\core\singleton\Singleton;
-   use APF\core\benchmark\BenchmarkTimer;
-   $t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+   $t = &Singleton::getInstance(BenchmarkTimer::class);
    echo $t->createReport();
 }
 </gen:highlight>
@@ -89,29 +79,146 @@ if(isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true'
 </p>
 <img src="http://media.adventure-php-framework.org/content/benchmark_report_example.png" alt="Benchmark Report Prozess Baum" />
 <p>
-   Um einen aktuellen Report anzeigen zu lassen, bitte
+   Um einen aktuellen Report für diese Seite anzeigen zu lassen, bitte
    <int:link pageid="004" anchor="bottom" params="/benchmarkreport/true">hier</int:link> klicken.
 </p>
 
 <h3 id="Chapter-3-Performance-Tweek"><a href="#Chapter-3-Performance-Tweek">3. Performance-Tweek</a></h3>
 <p>
-   Um die Performance des APF zu verbessern ist es möglich, den Benchmarker zu deaktivieren. Dies kann genutzt werden,
-   um die Abarbeitungszeit eines Requests zu steigern. Empirische Werte mit Tests an der vorliegenden Webseite zeigen
-   eine Steigerung um bis zu 25% bei deaktivierten Benchmarker. Da der Benchmarker in Produktions-Umgebungen keine
-   notwendige Funktion erfüllt, ist das Abschalten des Tools mit keinen Nachteilen verbunden.
+   Um die Performance des APF zu verbessern ist es möglich den <em>BenchmarkTimer</em> zu deaktivieren. Dies kann
+   genutzt werden, um die Abarbeitungszeit eines Requests zu steigern. Empirische Werte mit Tests an der vorliegenden
+   Webseite zeigen eine Steigerung um bis zu 15% in deaktiviertem Zustand. Da der <em>BenchmarkTimer</em> in einer
+   Produktions-Umgebungen keine essentielle Funktion erfüllt, ist das Abschalten mit keinen Nachteilen verbunden.
 </p>
 <p>
    Das Abschalten kann in der Bootstrap-Datei mit folgendem Code erledigt werden:
 </p>
 <gen:highlight type="php">
-use APF\core\singleton\Singleton;
-use APF\core\benchmark\BenchmarkTimer;
-$t = &Singleton::getInstance('APF\core\benchmark\BenchmarkTimer');
+$t = &Singleton::getInstance(BenchmarkTimer::class);
 $t->disable();
 </gen:highlight>
 <div class="hint">
    Um eine möglichst effiziente Abschaltung zu erziehlen, sollten die in der Codebox gezeigten
    Zeilen direkt nach dem Einbinden der <em>APF/core/bootstrap.php</em> platziert werden.
 </div>
+
+<h3 id="Chapter-4-Erweiterung"><a href="#Chapter-4-Erweiterung">4. Erweiterung</a></h3>
+<div class="hint">
+   Bitte beachten Sie, dass dieses Feature erst ab Version 3.2 zur Verfügung steht.
+</div>
+<p>
+   Zur Aufnahme der effektiven Zeiten der einzelnen Mess-Punkte nutzt der <em>BenchmarkTimer</em> intern eine
+   Implementierung des Interfaces <em>StopWatch</em>. Das APF liefert dazu die <em>DefaultStopWatch</em> mit, die
+   Mess-Punkte basierend auf der Klasse <em>DefaultProcess</em> aufzeichnet. Dabei werden der vergebende Name, der
+   Hierarchie-Level des Prozesses und die verbrauchte Zeit gespeichert.
+</p>
+<p>
+   Zur Generierung eines Berichts wird dient eine Implementierung des Interfaces <em>Report</em>. Im Auslieferungszustand
+   sind zwei Formen enthalten: der <em>HtmlReport</em> zeigt die Ergebnisse in einem aufbereiteten HTML-Format an und
+   <em>PlainTextReport</em> generiert eine einfache textuelle Ausgabe.
+</p>
+<p>
+   In den folgenden Kapiteln erfahren Sie wie das Messen der Zeiten sowie die Erzeugung der Berichte beinflusst und
+   erweitert werden kann.
+</p>
+
+<h4 id="Chapter-4-1-Stoppuhr"><a href="#Chapter-4-1-Stoppuhr">4.1. Stoppuhr</a></h4>
+<p>
+   Möchten Sie zur Untersützung eines speziellen Anwendungsfalls die Implementierug der Stoppuhr auszutauschen, dann
+   lässt sich dies nach dem Einbinden der <em>APF/core/bootstrap.php</em> durch Konfiguration wie folgt vornehmen:
+</p>
+<gen:highlight type="php">
+BenchmarkTimer::$watchClass = MyStopWatch::class;
+</gen:highlight>
+<p>
+   Der <em>BenchmarkTimer</em> nutzt nun die Klasse <em>MyStopWatch</em> um die Messpunkte aufzuzeichnen.
+</p>
+<div class="hint">
+   Bitte beachten Sie, dass die Klasse <em>MyStopWatch</em> das Interface <em>StopWatch</em> implementieren muss um zur
+   API des <em>BenchmarkTimer</em> kompatibel zu sein. Das Interface gestaltet sich wie folgt:
+<gen:highlight type="php">
+interface StopWatch {
+
+   public function start($name = null);
+
+   public function enable();
+
+   public function disable();
+
+   public function stop($name);
+
+   public function createReport(Report $report = null);
+
+   public function getTotalTime();
+
+}
+</gen:highlight>
+   Details zum Interface entnehmen Sie bitte der <int:link pageid="002" />.
+</div>
+
+<h4 id="Chapter-4-2-Report"><a href="#Chapter-4-2-Report">4.2. Bericht</a></h4>
+<p>
+   Bei der Generierung eines Berichts greift der <em>BenchmarkTimer</em> auf eine Implementierung des
+   <em>Report</em>-Interfaces zurück. Die Methode <em>compile()</em> erhält dazu die Liste der aufgenommenen Mess-Punkte
+   und gibt den fertigen Bericht zurück.
+</p>
+<p>
+   Im Auslieferungszustand erzeugt der <em>BenchmarkTimer</em> bei Aufruf der Methode <em>createReport()</em> einen
+   HTML-Bericht basiend auf der Klasse <em>HtmlReport</em>. Möchten Sie das Format der Ausgabe anpassen, können Sie
+   jederzeit der Methode <em>createReport</em> eine eigene Implementierung mitgeben:
+</p>
+<gen:highlight type="php">
+echo $t->createReport(new PlainTextReport());
+</gen:highlight>
+<p>
+   Der Bericht wird nun als einfacher Text ausgegeben.
+</p>
+<p>
+   Möchten Sie die Ausgabe der Messpunkte für einen speziellen Anwendungsfall aufbereiten, lässt sich dies sehr einfach
+   mit einer eigenen Implementierung des <em>Report</em>-Interfaces erreichen.
+</p>
+<p>
+   Die folgende Code-Box zeigt eine Beispiel-Implementierung zur Gruppierung der Messpunkte <em>onParseTime()</em>,
+   <em>onAfterAppend()</em> und <em>transform()</em>:
+</p>
+<gen:highlight type="php">
+class SummaryPlainTextReport implements Report {
+
+   public function compile(array $processes) {
+
+      $onParseTime = 0;
+      $onAfterAppend = 0;
+      $transform = 0;
+
+      foreach (array_slice($processes, 1) as $process) {
+         /* @var $process Process */
+         if (strpos($process->getName(), '::onParseTime()') !== false) {
+            $onParseTime += $process->getDuration();
+         } else if (strpos($process->getName(), '::onAfterAppend()') !== false) {
+            $onAfterAppend += $process->getDuration();
+         } else if (strpos($process->getName(), '::transform()') !== false) {
+            $transform += $process->getDuration();
+         }
+      }
+
+      $buffer = $processes[0]->getName() . ' ' . $processes[0]->getDuration() . 's' . PHP_EOL;
+      $buffer .= 'Sum onParseTime() ' . $onParseTime . 's' . PHP_EOL;
+      $buffer .= 'Sum onAfterAppend() ' . $onAfterAppend . 's' . PHP_EOL;
+      $buffer .= 'Sum transform() ' . $transform . 's' . PHP_EOL;
+
+      return $buffer;
+   }
+
+}
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass die abgedruckte Implementierung nur als Beispiel dient und durch die einfache Aufsummierung
+   keine mathematisch korrekten Werte liefert.
+</div>
+<p>
+   Zur Nutzung des neuen Formats übergeben Sie der Methode <em>createReport()</em> einfach eine Instanz der Klasse
+   <em>SummaryPlainTextReport</em>.
+</p>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_004" />
 <p id="bottom" />
