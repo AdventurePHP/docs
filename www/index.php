@@ -1,5 +1,6 @@
 <?php
 use APF\core\benchmark\BenchmarkTimer;
+use APF\core\benchmark\HtmlReport;
 use APF\core\configuration\ConfigurationManager;
 use APF\core\configuration\provider\ini\IniConfigurationProvider;
 use APF\core\database\config\StatementConfigurationProvider;
@@ -120,7 +121,9 @@ echo $fC->start('DOCS\pres\templates', 'main');
 /* @var $t BenchmarkTimer */
 $t = Singleton::getInstance(BenchmarkTimer::class);
 if (isset($_REQUEST['benchmarkreport']) && $_REQUEST['benchmarkreport'] == 'true') {
-   echo $t->createReport();
+   $report = new HtmlReport();
+   $report->setCriticalTime(0.15);
+   echo $t->createReport($report);
 }
 echo '<!-- rendering time: ' . $t->getTotalTime() . 's -->';
 
