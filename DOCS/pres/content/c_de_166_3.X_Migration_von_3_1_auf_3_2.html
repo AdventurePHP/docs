@@ -119,4 +119,31 @@ Migration done! Please check your configuration and follow instructions within m
    3.2 keine <em>InvalidArgumentException</em> mehr werfen, wenn der Platzhalter nicht gefunden werden kann.
 </p>
 
+<h4 id="Chapter-3-2-BenchmarkTimer-Report"><a href="#Chapter-3-2-BenchmarkTimer-Report">3.2. BenchmarkTimer-Report</a></h4>
+<p>
+   Mit dem <em>Issues #214</em> wurde die Performance des <em>BenchmarkTimer</em> deutlich verbessert. Um eine
+   bessere Erweiterbarkeit der Komponente zu gewährleisten wurden die Funktion zur Aufnahme der Messpunkte und zur
+   Generierung von Berichten ausgelagert. Für die Aufzeichnung der einzenen Messpunkte ist nun die <em>DefaultStopWatch</em>
+   zuständig und der <em>HtmlReport</em> generiert die Ausgabe des Berichts.
+</p>
+<p>
+   Zur Erleichterung der Analyse konnten im HTML-Bericht bereits vor Version 3.2 die kritischen Zeiten rot markiert werden.
+   Die Anpassung der Zeiten konnten mit der Methode <em>setCriticalTime()</em> vorgenommen werden:
+</p>
+<gen:highlight type="php">
+$t = Singleton::getInstance(BenchmarkTimer::class);
+$t->setCriticalTime(0.15);
+echo $t->createReport();
+</gen:highlight>
+<p>
+   Da die Ausgabe des Berichts nun in einer eigenen Komponente statt findet - dem <em>HtmlReport</em> - muss die Definition
+   der kritischen Zeit auch dort vorgenommen werden. Passen Sie deshalb alle oben beschriebenen vorkommen wie folgt an:
+</p>
+<gen:highlight type="php">
+$t = Singleton::getInstance(BenchmarkTimer::class);
+$report = new HtmlReport();
+$report->setCriticalTime(0.15);
+echo $t->createReport($report);
+</gen:highlight>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_166" />

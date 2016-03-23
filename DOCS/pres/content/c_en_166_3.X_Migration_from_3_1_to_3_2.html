@@ -114,4 +114,31 @@ Migration done! Please check your configuration and follow instructions within m
    <em>InvalidArgumentException</em> as of release 3.2 in case a place holder has not been found.
 </p>
 
+<h4 id="Chapter-3-2-BenchmarkTimer-report"><a href="#Chapter-3-2-BenchmarkTimer-report">3.2. BenchmarkTimer report</a></h4>
+<p>
+   With <em>issues #214</em> performance of the <em>BenchmarkTimer</em> has been significantly improved. To ensure
+   better extensibility the measuring and report generation functionality have been separated. Measuring events is now
+   delivered by <em>DefaultStopWatch</em> and <em>HtmlReport</em> takes responsiblity for report generation.
+</p>
+<p>
+   To ease analysis of the HTML reports even before version 3.2 critical times are marked red. To adapt the default
+   threshold for critical times you can use method <em>setCriticalTime()</em>:
+</p>
+<gen:highlight type="php">
+$t = Singleton::getInstance(BenchmarkTimer::class);
+$t->setCriticalTime(0.15);
+echo $t->createReport();
+</gen:highlight>
+<p>
+   Since report generation is now part of a separate component - <em>HtmlReport</em> - definition of critical times
+   must be done with this new component. For this reason, please adapt all above code snippets as described in the
+   subsequent code box:
+</p>
+<gen:highlight type="php">
+$t = Singleton::getInstance(BenchmarkTimer::class);
+$report = new HtmlReport();
+$report->setCriticalTime(0.15);
+echo $t->createReport($report);
+</gen:highlight>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_166" />
