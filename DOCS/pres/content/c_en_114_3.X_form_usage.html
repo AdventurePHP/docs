@@ -1474,4 +1474,523 @@ $this->getForm('log-in')->getFormElementByName('username')->reset();
    might be different to the standard implementation in <em>AbstractFormControl</em>.
 </div>
 
+<h3 id="Chapter-10-Filling-DTOs-and-Models"><a href="#Chapter-10-Filling-DTOs-and-Models">10. Filling DTOs and Models</a></h3>
+<div class="hint">
+   Please note that this feature is not available before version 3.2!
+</div>
+<p>
+   In order to read out form
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="address">
+   <form:text name="street" />
+   <form:text name="number" />
+   <form:text name="zip" />
+   <form:text name="city" />
+   <form:button name="submit" value="Weiter" />
+</html:form>
+</gen:highlight>
+<p>
+   and fill the respective values into a DTO or a Model you may use the follwing controller code:
+</p>
+<gen:highlight type="php">
+$model = new AddressModel();
+$model->setStreet($form->getFormElementByName('street')->getValue());
+$model->setNumber($form->getFormElementByName('number')->getValue());
+$model->setZip($form->getFormElementByName('zip')->getValue());
+$model->setCity($form->getFormElementByName('city')->getValue());
+</gen:highlight>
+<p>
+   Especially for complex forms this leads to a huge amount of controller code. A more elgant approach is to delegate
+   mapping to the form itself:
+</p>
+<gen:highlight type="php">
+$model = new AddressModel();
+$form->fillModel($model);
+</gen:highlight>
+<p>
+   The following chapters provide an introduction to this feature and contain in-depth use cases.
+</p>
+
+<h4 id="Chapter-10-1-Concept"><a href="#Chapter-10-1-Concept">10.1. Concept</a></h4>
+<p>
+   Assignment of values within method <em>fillModel()</em> is based on the assumption that the name of a form control
+   corresponds to the name of the DTO or Model property.
+</p>
+<p>
+   This convention limits complexity of DTO or Model implementation and avoids creation of mapping tables (e.g. form
+   field -&gt; DTO/Model method).
+</p>
+<p>
+   Calling method <em>fillModel()</em> the form assigns values to properties of the DTO or Model based on form controls
+   matching the name of the properties. In case a Model defines a property called <em>$street</em> the form evaluates
+   corresponding field <em>street</em> to fill the Model property.
+</p>
+<p>
+   The mapping implementation is not restricted to properties with a public setter method but injects values based on
+   PHP's <em>Reflection</em> API. Given DTO
+</p>
+<gen:highlight type="php">
+class AddressModel {
+
+   private $street;
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   can be easily filled from the following form:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="address">
+   <form:text name="street" />
+   ...
+   <form:button name="submit" value="Next" />
+</html:form>
+</gen:highlight>
+<div class="hint">
+   DTO or Model properties can be defined with any type of visibility. Mapping works for both <em>private</em> and
+   <em>protected</em> properties as well as for <em>public</em> ones.
+</div>
+<p>
+   Since each form control complies with interface <em>FormControl</em> values can be retrieved by <em>getValue()</em>.
+   Depending on implementation, this method either returns the value to be written to the DTO or Model or it's object
+   representation (e.g. <em>SelectBoxOptionTag</em> for select box tags).
+</p>
+<p>
+   In case you are using a DTO or Model win conjunction with an O/R mapper (e.g. <int:link pageid="063" />) or any
+   external API the value's data format must be form-independent (e.g. <em>String</em> or <em>Integer</em>). Translation
+   of form-dependent object representations into simple data types is managed by so-called <em>FormValueMapper</em>.
+</p>
+<p>
+   In case a mapper implementation takes responsibility for a given form field - this is evaluated by <em>applies()</em>
+   - the mappers' <em>getValue()</em> method is used within <em>fillModel()</em> to evaluate the form-independent value.
+</p>
+<p>
+   Within APF's default configuration there are already several mappers registered to handle all shipped field types:
+</p>
+<ul>
+   <li>
+      <strong>StandardValueMapper</strong>
+      (String-based fields as well as date and time selection components)
+   </li>
+   <li>
+      <strong>RadioButtonValueMapper</strong>
+      (Radio buttons)
+   </li>
+   <li>
+      <strong>SelectBoxValueMapper</strong>
+      (Select boxes)
+   </li>
+   <li>
+      <strong>MultiSelectBoxValueMapper</strong>
+      (Multi select boxes)
+   </li>
+</ul>
+<p>
+   Method <em>fillModel()</em> supports applying an optional list of fields to be processed during mapping. This is
+   helpful in case a single DTO or Model is used for a multi-step form and not all fields are contained in the current
+   step.
+</p>
+<p>
+   The list can also be used in case you intend to fill only certain fields or you want to prevent data getting
+   overwritten.
+</p>
+<p>
+   In case the current step within a registration process only asky for your address filling the <em>AddressModel</em>
+   can be limited to the current set of fields as follows:
+</p>
+<gen:highlight type="php">
+$model = new AddressModel();
+$form->fillModel($model, ['street', 'number', 'ZIP', 'city']);
+</gen:highlight>
+<div class="hint">
+   In case a <em>FormException</em> is emitted during filling a single property this is not stopping the mapping process.
+   Catching all such exception guarantees that filling the model is completed in any case, however, error analysis my
+   become more complex. During implementation decision has been taken to catch exceptions to allow easy re-use of
+   existing models with forms.
+</div>
+
+<h4 id="Chapter-10-2-Usage"><a href="#Chapter-10-2-Usage">10.2. Usage</a></h4>
+<p>
+   This chapter talks about usage of <em>fillModel()</em> within your application.
+</p>
+
+<h5 id="Chapter-10-2-1-Filling-DTOs"><a href="#Chapter-10-2-1-Filling-DTOs">10.2.1. Filling DTOs</a></h5>
+<p>
+   The following form may be used to let users authenticate against a web site. It contains two fields for entering user
+   name and password as well as a check box to store authentication permanently:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="log-in">
+   <form:text name="user" />
+   <form:text name="pass" />
+   <form:checkbox name="stay_logged_in" value="yes" />
+   ...
+   <form:button name="submit" value="Log-in" />
+</html:form>
+</gen:highlight>
+<p>
+   Assuming you are using an API that expects DTO class <em>LoginData</em> to authenticate a user, it is necessary
+   to fill the respective DTO within the controller and pass it onto the API. Using <em>fillModel()</em> this is as
+   follows:
+</p>
+<gen:highlight type="php">
+class LoginController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = $this->getForm('log-in');
+
+      if ($form->isSent() && $form->isValid()) {
+         $model = new LoginData();
+         $form->fillModel($model);
+         $this->executeLogIn($model);
+      }
+
+   }
+
+   protected function executeLogIn(LoginData $data) {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   Please find the structure of the DTO within the subsequent code box:
+</p>
+<gen:highlight type="php">
+class LoginData {
+
+   private $user;
+   private $pass;
+   private $stay_logged_in;
+
+   public function getUser() {
+      return $this->user;
+   }
+
+   public function getPass() {
+      return $this->pass;
+   }
+
+   public function getStayLoggedIn() {
+      return $this->stay_logged_in;
+   }
+
+}
+</gen:highlight>
+<div class="hint">
+   Please note, that filling DTOs the name of the form field must exactly match the name of the DTO property. Further,
+   not all characters are allows as part of property names in PHP classes (e.g. "-").
+</div>
+
+<h5 id="Chapter-10-2-2-Filling-multiple-DTOs"><a href="#Chapter-10-2-2-Filling-multiple-DTOs">10.2.2. Filling multiple DTOs</a></h5>
+<p>
+   Semantically, sign-up forms normally contain several types of data: personal data such as name and date of birth,
+   home address, and electronic contact data such as e-mail and phone number.
+</p>
+<p>
+   In case the data model of your application or an API provides such kind of data segregation you can directly re-use
+   existing DTOs or Models the same way as described in <a href="#Chapter-10-2-1-Filling-DTOs">chapter 10.2.1</a>.
+</p>
+<p>
+   The following code box describes a sign-up form with three parts: personal data, postal address, and e-mail as
+   communication data:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="sign-up">
+
+   <form:text name="firstName" />
+   <form:text name="lastName" />
+
+   <form:text name="street" />
+   <form:text name="number" />
+   <form:text name="zip" />
+   <form:text name="city" />
+
+   <form:text name="email" />
+
+   <form:button name="sign-up" value="Sign up"/>
+</html:form>
+</gen:highlight>
+<p>
+   For this example, let's assume your application defines a DTO for each of the parts described above:
+</p>
+<gen:highlight type="php">
+class PersonalData {
+
+   private $firstName;
+   private $lastName;
+
+   public function getFirstName() {
+      return $this->firstName;
+   }
+
+   public function getLastName() {
+      return $this->lastName;
+   }
+
+}
+
+class PostalAddress {
+
+   private $street;
+   private $number;
+   private $zip;
+   private $city;
+
+   public function getStreet() {
+      return $this->street;
+   }
+
+   public function getNumber() {
+      return $this->number;
+   }
+
+   public function getZip() {
+      return $this->zip;
+   }
+
+   public function getCity() {
+      return $this->city;
+   }
+
+}
+
+class CommunicationData {
+
+   private $email;
+
+   public function getEmail() {
+      return $this->email;
+   }
+
+}
+</gen:highlight>
+<p>
+   Filling above DTOs and conduct the sign-up can be easily achieved with the subsequent controller:
+</p>
+<gen:highlight type="php">
+class SignUpController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = $this->getForm('sign-up');
+
+      if ($form->isSent() && $form->isValid()) {
+         $personal = new PersonalData();
+         $address = new PostalAddress();
+         $communication = new CommunicationData();
+         $form
+               ->fillModel($personal)
+               ->fillModel($address)
+               ->fillModel($communication);
+         $this->signUp($personal, $address, $communication);
+      }
+
+   }
+
+   protected function signUp(PersonalData $personal, PostalAddress $address, CommunicationData $communication) {
+      ...
+   }
+
+}
+</gen:highlight>
+
+<h5 id="Chapter-10-2-3-Filling-dedicated-fields"><a href="#Chapter-10-2-3-Filling-dedicated-fields">10.2.3. Filling dedicated fields</a></h5>
+<p>
+   Provided, ZIP code is already captured at the beginning of a sign-up process it has already been stored within the
+   DTO or Model at an earlier stage. In case the user hits the sign-up form described in
+   <a href="#Chapter-10-2-2-Filling-multiple-DTOs">chapter 10.2.2</a> ZIP code should only be displayed but not written
+   to the DTO or Model again.
+</p>
+<p>
+   This might be necessary in case ZIP code is essentiel to the sign-up and has been validated earlier in the process.
+</p>
+<p>
+   In case you want to store all data except ZIP within your DTO you may want to use the follwing controller code:
+</p>
+<gen:highlight type="php">
+$personal = new PersonalData();
+$address = new PostalAddress();
+$communication = new CommunicationData();
+$form
+      ->fillModel($personal)
+      ->fillModel($address, ['street', 'number', 'city'])
+      ->fillModel($communication);
+</gen:highlight>
+<p>
+   Applying a list of fields to be mapped to the model the <em>PostalAddress</em> instance will only be filled with the
+   content of <em>street</em>, <em>number</em>, and <em>city</em>. The content of the <em>$zip</em> property remains
+   as-is.
+</p>
+<div class="hint">
+   With dynamic forms the list of available fields can be assembled as follows:
+<gen:highlight type="php">
+$names = [];
+foreach ($form->getFormElementsByTagName('form:text') as &$field) {
+   $names[] = $field->getAttribute('name');
+}
+
+$model = new AddressModel();
+$form->fillModel($model, names);
+</gen:highlight>
+</div>
+
+<h4 id="Chapter-10-3-Extension"><a href="#Chapter-10-3-Extension">10.3. Extension</a></h4>
+<p>
+   Writing custom form tags that are not returning the desired data format with <em>getValue()</em> it is necessary to
+   introduce a custom translator (<em>mapper</em>) and to register it with the form tag (see concept in
+   <a href="#Chapter-10-1-Concept">chapter 10.1</a>). This approach has also been applied with APF's select field since
+   <em>getValue()</em> returns an instance of the selected option (class <em>SelectBoxOptionTag</em>) just as
+   <em>getSelectedOption()</em> does. However, the DTO or Model property requires the effective value.
+</p>
+<p>
+   Interface <em>FormValueMapper</em> describes the structure of the translator of form values for a dedicated form control
+   into an independent (primitive) data format:
+</p>
+<gen:highlight type="php">
+interface FormValueMapper {
+
+   public static function applies(FormControl $control);
+
+   public static function getValue(FormControl $control);
+
+}
+</gen:highlight>
+<p>
+   As an example for a custom <em>FormValueMapper</em> the following tag should be used displaying a select box of
+   existing users:
+</p>
+<gen:highlight type="php">
+class UserSelectionTag extends AbstractFormControl {
+
+   public function getValue() {
+      return $this->getSelectedUser();
+   }
+
+   /**
+    * @return UmgtUser
+    */
+   public function getSelectedUser() {
+      $user = new UmgtUser();
+      $user->setObjectId($this->getSelectedUserId());
+
+      return $user;
+   }
+
+   /**
+    * @return int
+    */
+   protected function getSelectedUserId() {
+      return ...;
+   }
+
+}
+</gen:highlight>
+<p>
+   Methods <em>getValue()</em> and <em>getSelectedUser()</em> return an instance of the currently selected user. This is
+   helpful for controller implementation as the result can be directly used without conversion with components such as
+   the <em>UmgtManager</em> (see <int:link pageid="142" />).
+</p>
+<p>
+   In case you are using a DTO or Model that can only handle simple data types you are required to write a mapper.
+</p>
+<p>
+   Implementation of method <em>applies()</em> defines for which field type the mapper is responsible for:
+</p>
+<gen:highlight type="php">
+class UserSelectionTagFormValueMapper implements FormValueMapper {
+
+   public static function applies(FormControl $control) {
+      return $control instanceof UserSelectionTag;
+   }
+
+   ...
+}
+</gen:highlight>
+<p>
+   In this case, the mapper is only used with <em>UserSelectionTag</em> fields.
+</p>
+<div class="warn">
+   Please note, that inappropriately framed definitions of responsibility may lead to wrong results! Hence, please
+   define exact conditions within <em>applies()</em>.
+</div>
+<p>
+   Translation of the returned value is defined in method <em>getValue()</em>:
+</p>
+<gen:highlight type="php">
+class UserSelectionTagFormValueMapper implements FormValueMapper {
+
+   public static function applies(FormControl $control) {
+      return $control instanceof UserSelectionTag;
+   }
+
+   public static function getValue(FormControl $control) {
+      /* @var $control UserSelectionTag */
+      $user = $control->getSelectedUser();
+
+      return $user === null ? null : $user->getObjectId();
+   }
+
+}
+</gen:highlight>
+<p>
+   Method <em>getValue()</em> evaluates the currently selected user and returns it's internal ID. In case no user is
+   selected <em>null</em> is returned instead.
+</p>
+<p>
+   In order to make the form use the newly created mapper it must be registered with the form. This can be done with the
+   following code snippet:
+</p>
+<gen:highlight type="php">
+HtmlFormTag::addFormValueMapper(UserSelectionTagFormValueMapper::class);
+</gen:highlight>
+<div class="hint">
+   <em>FormValueMapper</em> can be registered once for the entire application such as tags (see
+   <int:link pageid="147" anchor="Chapter-3-DOM-structure"/>). For this reason, you can put your statements into your
+   bootstrap file (e.g. <em>index.php</em>).
+</div>
+<p>
+   Using custom mappers it might be necessary to adapt the standard configuration. In case you intend to exclusively use
+   <em>UserSelectionTagFormValueMapper</em> and <em>StandardValueMapper</em> please add the folowing code to your
+   bootstrap file:
+</p>
+<gen:highlight type="php">
+HtmlFormTag::clearFormValueMappers();
+HtmlFormTag::addFormValueMapper(UserSelectionTagFormValueMapper::class);
+HtmlFormTag::addFormValueMapper(StandardValueMapper::class);
+</gen:highlight>
+<div class="hint">
+   The mapping mechanism described here can also be used in an inverted way. If you want to work with an object
+   representation within your DTO or Model you can also create instances from simple data types with the following
+   <em>FormValueMapper</em> implementation:
+<gen:highlight type="php">
+class SelectBoxToUserFormValueMapper implements FormValueMapper {
+
+   public static function applies(FormControl $control) {
+      return $control instanceof SelectBoxTag && $control->getAttribute('user');
+   }
+
+   public static function getValue(FormControl $control) {
+      /* @var $control SelectBoxTag */
+      $option = $control->getSelectedOption();
+
+      if ($option === null) {
+         return null;
+      }
+
+      $user = new UmgtUser();
+      $user->setObjectId($option->getValue());
+
+      return $user;
+   }
+
+}
+</gen:highlight>
+   Your DTO or Model now contains a <em>UmgtUser</em> instance within the desired property.
+</div>
+
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_114" />
