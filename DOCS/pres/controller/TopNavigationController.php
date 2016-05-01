@@ -43,11 +43,12 @@ class TopNavigationController extends BaseDocumentController {
          $buffer .= '<li>';
          $title = $urlMan->getPageTitle($naviNode, $this->language, $version);
          if ($pageId === $naviNode) {
-            $buffer .= '<span>' . $title . '</span>';
+            $class = ' class="selected"';
          } else {
-            $link = $urlMan->generateLink($naviNode, $this->language, $version);
-            $buffer .= '<a href="' . $link . '" title="' . $title . '">' . $title . '</a>';
+            $class = '';
          }
+         $link = $urlMan->generateLink($naviNode, $this->language, $version);
+         $buffer .= '<a href="' . $link . '" title="' . $title . '"' . $class . '>' . $title . '</a>';
          $buffer .= '</li>' . PHP_EOL;
       }
 
