@@ -1012,36 +1012,124 @@ class MoreLink {
    Anführungszeichen umschlossen werden!
 </div>
 
-<h3 id="Chapter-5-Generierung-von-Listen"><a href="#Chapter-5-Generierung-von-Listen">5. Generierung von Listen</a></h3>
+<h3 id="Chapter-5-Iterative-Ausgabe"><a href="#Chapter-5-Iterative-Ausgabe">5. Iterative Ausgabe</a></h3>
 <p>
    Ein weiterer häufiger Anwendungsfall in Web-Anwendungen ist die Ausgabe von sich wiederholenden Inhalten. Das APF
    bietet für die Realisierung von beliebigen Listen eine einfache Umsetzung mit Hilfe von Templates an.
 </p>
-<p>
-   Der <em>&lt;loop:template /&gt;</em>-Tag erlaubt die Ausgabe von sich wiederholenden Inhalten. Das Ausgabe-Formate -
-   z.B. eine unsortierte Liste mit Listen-Einträgen - lässt sich mit Hilfe des umliegenden HTML-Codes und des Inhalts
-   des Templates definieren.
-</p>
 <div class="hint">
-   Der <em>&lt;loop:template /&gt;</em>-Tag ist für einfache Anwendungsfälle gedacht. Für komplexere Anwendungsfälle
-   bietet sich der <int:link pageid="078" anchor="Chapter-1-Iterator">Iterator-Tag</int:link> an.
+   Bitte beachten Sie, dass der <em>&lt;loop:template /&gt;</em>-Tag für einfache Anwendungsfälle gedacht ist.
+   Für komplexere Anwendungsfälle wie beispielsweise der Ausgabe von verschachtelten Listen empfiehlt das APF-Team die
+   Nutzung des <int:link pageid="078" anchor="Chapter-1-Iterator">Iterator-Tags</int:link>.
 </div>
+<p>
+   Der <em>&lt;loop:template /&gt;</em>-Tag erlaubt die Definition eines HTML-Gerüsts, das das Aussehen eines
+   Listen-Elements repräsentiert. Das HTML-Markup einer unsortierte Liste lässt sich damit durch den umliegenden
+   HTML-Codes (Beginn und Ende der Liste) und des Inhalts des Schleifen-Templates definieren.
+</p>
 <p>
    Die Signatur des Tags gestaltet sich wie folgt:
 </p>
-<gen:highlight type="php">
+<gen:highlight type="apf-xml">
 &lt;loop:template content-mapping="" [name=""]&gt;
-   &lt;p&gt;
-      ${content-&gt;getFoo()}
-      &lt;br /&gt;
-      ${content['bar']}
-      &lt;br /&gt;
-      ${static-place-holder}
-   &lt;/p&gt;
+   ...
 &lt;/loop:template&gt;
 </gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+   <li>
+      <strong>content-mapping</strong>:
+      Definiert, welcher Inhalt aus dem Template zur Ausgabe genutzt werden soll. Die Evaluierung wird dabei mit Hilfe
+      der erweiterten Templating-Syntax (siehe <a href="#Chapter-2-Verfuegbare-Funktionen">Kapitel 2</a>) vorgenommen.
+      Das Ergebnis steht innerhalb des Tags dann im Data-Attribut <em>content</em> zur weiteren Nutzung zur Verfügung.
+   </li>
+   <li>
+      <strong>name</strong>:
+      Name des Templates. Über den Namen kann auf das Element zugegriffen werden.
+      (<strong>Zeichen:</strong> [A-Za-z0-9-_]).
+   </li>
+</ul>
 <p>
-   ...
+   Möchten Sie eine unsortierte Liste von Links generieren, so lässt sich das Template wie folgt definieren:
 </p>
+<gen:highlight type="apf-xml">
+<ul>
+<loop:template name="list" content-mapping="items">
+   <li><a href="${content['url']}">${content['title']}</a></li>
+</loop:template>
+</ul>
+</gen:highlight>
+<p>
+   Zur Ausgabe der Liste ist folgender Controller-Code nötig:
+</p>
+<gen:highlight type="php">
+$template = $this->getTemplate('list');
+$template->setData(
+      'items',
+      [
+            ['url' => '/shop', 'title' => 'Web-Shop'],
+            ['url' => '/about', 'title' => 'Über uns'],
+            ['url' => '/contact', 'title' => 'Kontakt-Formular']
+      ]
+);
+$template->transformOnPlace();
+</gen:highlight>
+<p>
+   Neben der Ausgabe von sich wiederholenden Inhalten können im Template auch statische Platzhalter definiert werden.
+   Soll jedes Listen-Element eine bestimmte, dynamische CSS-Klasse erhalten, so kann dies wie folgt erreicht werden:
+</p>
+<gen:highlight type="apf-xml">
+<ul>
+<loop:template name="list" content-mapping="items">
+   <li class="${css-class}"><a href="${content['url']}">${content['title']}</a></li>
+</loop:template>
+</ul>
+</gen:highlight>
+<p>
+   Im Controller kann das als ganz normaler Platzhalter injiziert werden:
+</p>
+<gen:highlight type="php">
+$template = $this->getTemplate('list');
+$template->setData(
+      'items',
+      [
+            ['url' => '/shop', 'title' => 'Web-Shop'],
+            ['url' => '/about', 'title' => 'Über uns'],
+            ['url' => '/contact', 'title' => 'Kontakt-Formular']
+      ]
+);
+$template->setPlaceHolder('css-class', 'foo');
+
+$template->transformOnPlace();
+</gen:highlight>
+<p>
+   Neben den beschriebenen Möglichkeiten lassen sich alle Funktionalitäten des
+   <int:link pageid="046" anchor="Chapter-2-3-Template"><em>&lt;html:template /&gt;</em></int:link>-Tags nutzen. Zur
+   Ausgabe von Inhalten können Sie neben dem Zugriff auf Array-Offsets auch den Zugriff auf Objekte nutzen. Details
+   hierzu entnehmen Sie bitte <a href="#Chapter-3-Erweiterung-der-Syntax">Kapitel 3</a>.
+</p>
+<div class="hint">
+   Injizieren Sie im Controller per
+<gen:highlight type="php">
+$this->setData(
+      'items',
+      [
+            ['url' => '/shop', 'title' => 'Web-Shop'],
+            ['url' => '/about', 'title' => 'Über uns'],
+            ['url' => '/contact', 'title' => 'Kontakt-Formular']
+      ]
+);
+</gen:highlight>
+   Inhalt in das Eltern-Dokument, so kann dieser mit folgender Templating-Syntax zur Ausgabe der Liste genutzt werden:
+<gen:highlight type="apf-xml">
+<ul>
+   <loop:template
+         name="list"
+         content-mapping="this->getParentObject()->getData('items')">
+      <li><a href="${content['url']}">${content['title']}</a></li>
+   </loop:template>
+</ul>
+</gen:highlight>
+</div>
 
 <core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_161" />
