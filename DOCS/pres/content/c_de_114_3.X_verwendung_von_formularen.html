@@ -1219,7 +1219,67 @@ class GermanUmlautsFilter extends AbstractFormFilter {
    Die folgenden Kapitel beschreiben die möglichen Anwendungsfälle und die zugehörige Implementierung.
 </p>
 
-<h4 id="Chapter-8-1-Manipulation-der-Sichtbarkeit-per-Controller"><a href="#Chapter-8-1-Manipulation-der-Sichtbarkeit-per-Controller">8.1. Manipulation der Sichtbarkeit per Controller</a></h4>
+<h4 id="Chapter-8-1-Manipulation-der-Sichtbarkeit-im-Template"><a href="#Chapter-8-1-Manipulation-der-Sichtbarkeit-im-Template">8.1. Manipulation der Sichtbarkeit im Template</a></h4>
+<div class="hint">
+   Bitte beachten Sie, dass dieses Feature erst mit der Version 3.3 zur Verfügung steht.
+</div>
+<p>
+   Die unter <int:link pageid="113" /> beschriebenen Formular-Elemente unterstützen die Definition der Sichtbarkeit direkt
+   im Template. Hierzu steht Ihnen das Attribut <em>hidden</em> zur Verfügung. Ist dieses auf den Wert <em>true</em> gesetzt,
+   wird das Formular-Feld nicht ausgegeben und die gegebenenfalls definierte Validierung ausser Kraft gesetzt.
+   Ist das Attribut nicht definiert oder mit dem Standard-Wert <em>false</em> belegt, wird das Formular-Feld wie
+   gewohnt angezeigt und validiert.
+</p>
+<div class="hint">
+   Standardmäßig ist jedes Formular-Element zunächst sichtbar.
+</div>
+<p>
+   Im folgenden Formular ist die Checkbox <em>stay-logged-in</em> zunächst ausgeblendet:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="log-in"&gt;
+   &lt;label for="user-name"&gt;Benutzer-Name:&lt;/label&gt;
+   &lt;form:select name="user-name" id="user-name" /&gt;
+
+   &lt;label for="password"&gt;Passwort:&lt;/label&gt;:
+   &lt;form:text name="password" id="password" /&gt;
+
+   &lt;label for="stay-logged-in"&gt;Eingeloggt bleiben?&lt;/label&gt;:
+      &lt;form:checkbox
+      name="stay-logged-in"
+      id="stay-logged-in"
+      hidden="true"
+   /&gt;
+
+   &lt;form:button name="log-in" value="Anmelden" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Soll die Checkbox unter gewissen Umständen eingeblendet werden, so kann diese im Controller wie folgt vorgenommen
+   werden:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class LoginController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = &$this->getForm('log-in');
+
+      $checkbox = &$form->getFormElementByName('stay-logged-in');
+      $checkbox->show();
+
+      ...
+
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-8-2-Manipulation-der-Sichtbarkeit-per-Controller"><a href="#Chapter-8-2-Manipulation-der-Sichtbarkeit-per-Controller">8.2. Manipulation der Sichtbarkeit per Controller</a></h4>
 <p>
    Zur Definition und Manipulation der Sichtbarkeit besitzt die Klasse <em>AbstractFormControl</em> die folgenden Methoden
 </p>
@@ -1231,7 +1291,7 @@ class GermanUmlautsFilter extends AbstractFormFilter {
 <p>
    Da alle Formular-Elemente von dieser ableiten, steht die Sichtbarkeits-Definition grundsätzlich in jedem
    Element zur Verfügung. Weitere Hinweise finden Sie im Kapitel
-   <a href="#Chapter-8-4-Unterstuetzte-Formular-Elemente">Unterstützte Formular-Elemente</a>.
+   <a href="#Chapter-8-5-Unterstuetzte-Formular-Elemente">Unterstützte Formular-Elemente</a>.
 </p>
 <p>
    Die Methode <em>isVisible()</em> kann dazu genutzt werden um den aktuellen Status zu in einem Controller oder
@@ -1289,13 +1349,13 @@ class LoginController extends BaseDocumentController {
    Bei der Anzeige des Formulars ist die Checkbox nun nicht mehr sichtbar und damit für den Anwender nicht mehr nutzbar.
 </p>
 <p>
-   Bitte beachten Sie die Hinweise in <a href="#Chapter-8-5-Implementierung-von-eigenen-Formular-Elementen">Kapitel 8.5</a>
+   Bitte beachten Sie die Hinweise in <a href="#Chapter-8-6-Implementierung-von-eigenen-Formular-Elementen">Kapitel 8.5</a>
    zur Implementierung von eigenen Formular-Elementen unter Nutzung der Sichtbarkeits-Definition.
 </p>
 
-<h4 id="Chapter-8-2-Ausblenden-von-abhaengigen-Elementen"><a href="#Chapter-8-2-Ausblenden-von-abhaengigen-Elementen">8.2. Ausblenden von abhaengigen Elementen</a></h4>
+<h4 id="Chapter-8-3-Ausblenden-von-abhaengigen-Elementen"><a href="#Chapter-8-3-Ausblenden-von-abhaengigen-Elementen">8.3. Ausblenden von abhaengigen Elementen</a></h4>
 <p>
-   Nachteil der in <a href="#Chapter-8-1-Manipulation-der-Sichtbarkeit-per-Controller">Kapitel 8.1</a> beschriebenen
+   Nachteil der in <a href="#Chapter-8-2-Manipulation-der-Sichtbarkeit-per-Controller">Kapitel 8.1</a> beschriebenen
    Vorgehensweise: das Label-Element der Checkbox weiterhin angezeigt wird. Dies lässt sich sehr einfach dadurch umgehen,
    dass das als HTML-Tag definierte Label als APF-Formular-Tag ausgeführt wird. Dieser lässt sich dann mit Hilfe des
    Attributes <em>dependent-controls</em> als abhängiges Element der Checkbox markieren und wird beim Ausblenden der
@@ -1335,11 +1395,11 @@ class LoginController extends BaseDocumentController {
 stay-logged-in-label|password
 </gen:highlight>
 
-<h4 id="Chapter-8-3-Ausblenden-von-Gruppen"><a href="#Chapter-8-3-Ausblenden-von-Gruppen">8.3. Ausblenden von Gruppen</a></h4>
+<h4 id="Chapter-8-4-Ausblenden-von-Gruppen"><a href="#Chapter-8-4-Ausblenden-von-Gruppen">8.4. Ausblenden von Gruppen</a></h4>
 <p>
    Eine noch elegantere Möglichkeit zur Steuerung der Sichtbarkeit von Formular-Elementen ist die Nutzung von Gruppen.
    Dies ermöglicht zum einen das Aus- und Einblenden von mehreren Formular-Elementen gleichzeitig und unterstützt auch
-   das Ausblenden des zugehörigen HTML-Codes, das bei der in <a href="#Chapter-8-2-Ausblenden-von-abhaengigen-Elementen">Kapitel 8.2</a>
+   das Ausblenden des zugehörigen HTML-Codes, das bei der in <a href="#Chapter-8-3-Ausblenden-von-abhaengigen-Elementen">Kapitel 8.2</a>
    beschriebenen Variante nicht möglich ist.
 </p>
 <p>
@@ -1404,8 +1464,30 @@ class LoginController extends BaseDocumentController {
 
 }
 </gen:highlight>
+<p>
+   Soll die Gruppe standardmäßig zunächst ausgeblendet werden, so kann dies über das Attribut <em>hidden</em> bereits im
+   template definiert werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:group name="stay-logged-in-group" hidden="true"&gt;
+   &lt;p&gt;
+      &lt;form:label for="stay-logged-in"&gt;Stay logged-in?&lt;/form:label&gt;:
+      &lt;form:checkbox
+         name="stay-logged-in"
+         id="stay-logged-in"
+      /&gt;
+   &lt;/p&gt;
+&lt;/form:group&gt;
+</gen:highlight>
+<p>
+   Um die Gruppe unter bestimmten bedingungen wieder einzublenden, lässt sich folgender Controller-Code nutzen:
+</p>
+<gen:highlight type="php">
+$group = &$form->getFormElementByName('stay-logged-in-group');
+$group->show();
+</gen:highlight>
 
-<h4 id="Chapter-8-4-Unterstuetzte-Formular-Elemente"><a href="#Chapter-8-4-Unterstuetzte-Formular-Elemente">8.4. Unterstützte Formular-Elemente</a></h4>
+<h4 id="Chapter-8-5-Unterstuetzte-Formular-Elemente"><a href="#Chapter-8-5-Unterstuetzte-Formular-Elemente">8.5. Unterstützte Formular-Elemente</a></h4>
 <p>
    Die Sichtbarkeits-Definition wird nicht von allen Formular-Elementen unterstützt. Dies hat den Grund, dass für
    bestimmte Elemente wie z.B. der <int:link pageid="113" anchor="Chapter-3-4-Hidden">&lt;form:hidden /&gt;</int:link>-Tag
@@ -1434,7 +1516,7 @@ class LoginController extends BaseDocumentController {
    <li><em>&lt;form:group /&gt;</em></li>
 </ul>
 
-<h4 id="Chapter-8-5-Implementierung-von-eigenen-Formular-Elementen"><a href="#Chapter-8-5-Implementierung-von-eigenen-Formular-Elementen">8.5. Implementierung von eigenen Formular-Elementen</a></h4>
+<h4 id="Chapter-8-6-Implementierung-von-eigenen-Formular-Elementen"><a href="#Chapter-8-6-Implementierung-von-eigenen-Formular-Elementen">8.6. Implementierung von eigenen Formular-Elementen</a></h4>
 <p>
    Die Definition der Sichtbarkeit ist in der Klasse <em>AbstractFormControl</em> verankert und steht damit jedem
    Formular-Element-Typ zur Verfügung. Da die Auswirkung der Sichtbarkeit jedoch jedes Element selbst definiert muss bei
@@ -1444,7 +1526,7 @@ class LoginController extends BaseDocumentController {
 <p>
    Der Sichtbarkeits-Status wird in der Klassenvariablen <em>AbstractFormControl::$isVisible</em> verwaltet. Der Wert
    <em>true</em> entspricht dabei dem Status <em>sichtbar</em>, bei <em>false</em> werden die in
-   <a href="#Chapter-8-4-Unterstuetzte-Formular-Elemente">Kapitel 8.4.</a> nicht angezeigt.
+   <a href="#Chapter-8-5-Unterstuetzte-Formular-Elemente">Kapitel 8.4.</a> nicht angezeigt.
 </p>
 <p>
    Soll der Sichtbarkeits-Status bei der Ausgabe Ihres Formular-Elements beachtet werden, so können Sie die folgende

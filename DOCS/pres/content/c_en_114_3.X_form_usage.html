@@ -1181,7 +1181,61 @@ class GermanUmlautsFilter extends AbstractFormFilter {
    The following chapters describe the use cases and the respective implementation.
 </p>
 
-<h4 id="Chapter-8-1-Manipulation-of-the-visibility-via-controller"><a href="#Chapter-8-1-Manipulation-of-the-visibility-via-controller">8.1. Manipulation of the visibility via controller</a></h4>
+<h4 id="Chapter-8-1-Manipulation-of-the-visibility-by-template"><a href="#Chapter-8-1-Manipulation-of-the-visibility-by-template">8.1. Manipulation of the visibility by template</a></h4>
+<div class="hint">
+   Pleae note that this feature is available in version 3.3 and above.
+</div>
+<p>
+   Form controls described under <int:link pageid="113" /> support visibility definition directly within the template.
+   To define visibility, please use attribute <em>hidden</em>. In case the value is set to <em>true</em>, the form control
+   is not rendered and validation is omitted. In case the attribute is not specified of set to default value <em>false</em>
+   the field will be displayed and validated as always.
+</p>
+<div class="hint">
+   By default, each control is visible.
+</div>
+<p>
+   Within the following form definition checkbox <em>stay-logged-in</em> is hidden by default:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="log-in"&gt;
+   &lt;label for="user-name"&gt;User name:&lt;/label&gt;
+   &lt;form:select name="user-name" id="user-name" /&gt;
+
+   &lt;label for="password"&gt;Password:&lt;/label&gt;:
+   &lt;form:text name="password" id="password" /&gt;
+
+   &lt;label for="stay-logged-in"&gt;Stay logged-in?&lt;/label&gt;:
+   &lt;form:checkbox name="stay-logged-in" id="stay-logged-in" hidden="true"/&gt;
+
+   &lt;form:button name="log-in" value="Log-in" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   In case the checkbox should be displayed under certain circumstances you may want to use the following controller code:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class LoginController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = &$this->getForm('log-in');
+
+      $checkbox = &$form->getFormElementByName('stay-logged-in');
+      $checkbox->show();
+
+      ...
+
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-8-2-Manipulation-of-the-visibility-via-controller"><a href="#Chapter-8-2-Manipulation-of-the-visibility-via-controller">8.2. Manipulation of the visibility via controller</a></h4>
 <p>
    <em>AbstractFormControl</em> class defines the
 </p>
@@ -1193,7 +1247,7 @@ class GermanUmlautsFilter extends AbstractFormFilter {
 <p>
    methods to define and manipulate visibility. Since all form controls are derived from this class, the visibility
    feature is theoretically present for all form controls. Please note the list of supported controls in
-   <a href="#Chapter-8-4-Supported-controls">chapter 8.4</a>.
+   <a href="#Chapter-8-5-Supported-controls">chapter 8.4</a>.
 </p>
 <p>
    <em>isVisible()</em> can be used to query the current visibility status within a document controller or within a tag.
@@ -1250,13 +1304,13 @@ class LoginController extends BaseDocumentController {
    When the form is displayed the checkbox is not visible anymore and users cannot interact with it.
 </p>
 <p>
-   Please note the hints in <a href="#Chapter-8-5-Implementation-of-custom-controls">chapter 8.5</a> on the implementation
+   Please note the hints in <a href="#Chapter-8-6-Implementation-of-custom-controls">chapter 8.5</a> on the implementation
    of custom form controls respecting the visibility definition.
 </p>
 
-<h4 id="Chapter-8-2-Hiding-dependent-controls"><a href="#Chapter-8-2-Hiding-dependent-controls">8.2. Hiding dependent controls</a></h4>
+<h4 id="Chapter-8-3-Hiding-dependent-controls"><a href="#Chapter-8-3-Hiding-dependent-controls">8.3. Hiding dependent controls</a></h4>
 <p>
-   One problem of the code described in <a href="#Chapter-8-1-Manipulation-of-the-visibility-via-controller">chapter 8.1.</a>
+   One problem of the code described in <a href="#Chapter-8-2-Manipulation-of-the-visibility-via-controller">chapter 8.1.</a>
    is: the label element describing the checkbox' meaning is still present. You can avoid that by defining the label as
    an APF form tag. It can then be referred to as a dependent control within the checkbox' tag definition using the
    <em>dependent-controls</em> attribute. In case you hide the checkbox the label tag will be hidden, too.
@@ -1294,11 +1348,11 @@ class LoginController extends BaseDocumentController {
 stay-logged-in-label|password
 </gen:highlight>
 
-<h4 id="Chapter-8-3-Hide-group"><a href="#Chapter-8-3-Hide-group">8.3. Hide a group</a></h4>
+<h4 id="Chapter-8-4-Hide-group"><a href="#Chapter-8-4-Hide-group">8.4. Hide a group</a></h4>
 <p>
    A more sophisticated is to control visibility of form controls using groups. This allows showing and hiding of
    several form controls at the same time and let's you also control surrounding HTML code which is not possible with
-   the approach described in <a href="#Chapter-8-2-Hiding-dependent-controls">chapter 8.2</a>.
+   the approach described in <a href="#Chapter-8-3-Hiding-dependent-controls">chapter 8.2</a>.
 </p>
 <p>
    Defining a group you can use the <int:link pageid="113" anchor="Chapter-3-23-Group">&lt;form:group /&gt;</int:link>
@@ -1361,8 +1415,30 @@ class LoginController extends BaseDocumentController {
 
 }
 </gen:highlight>
+<p>
+   In case above group should be hidden by default, attribute <em>hidden</em> can be set to <em>true</em> within the
+   template directly:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:group name="stay-logged-in-group" hidden="true"&gt;
+   &lt;p&gt;
+      &lt;form:label for="stay-logged-in"&gt;Stay logged-in?&lt;/form:label&gt;:
+      &lt;form:checkbox
+         name="stay-logged-in"
+         id="stay-logged-in"
+      /&gt;
+   &lt;/p&gt;
+&lt;/form:group&gt;
+</gen:highlight>
+<p>
+   In order to display the group under certain circumstances, the following controller code can be used:
+</p>
+<gen:highlight type="php">
+$group = &$form->getFormElementByName('stay-logged-in-group');
+$group->show();
+</gen:highlight>
 
-<h4 id="Chapter-8-4-Supported-controls"><a href="#Chapter-8-4-Supported-controls">8.3. Supported controls</a></h4>
+<h4 id="Chapter-8-5-Supported-controls"><a href="#Chapter-8-5-Supported-controls">8.5. Supported controls</a></h4>
 <p>
    Defining the visibility state is not supported by all form control types. This is because elements like the
    <int:link pageid="113" anchor="Chapter-3-4-Hidden">&lt;form:hidden /&gt;</int:link> tag do not generate visible
@@ -1391,7 +1467,7 @@ class LoginController extends BaseDocumentController {
    <li><em>&lt;form:group /&gt;</em></li>
 </ul>
 
-<h4 id="Chapter-8-5-Implementation-of-custom-controls"><a href="#Chapter-8-5-Implementation-of-custom-controls">8.5. Implementation of custom controls</a></h4>
+<h4 id="Chapter-8-6-Implementation-of-custom-controls"><a href="#Chapter-8-6-Implementation-of-custom-controls">8.6. Implementation of custom controls</a></h4>
 <p>
    The definition of the visibility definition is structurally defined within the <em>AbstractFormControl</em> class and
    is thus present to all form controls. As the behaviour of what should happen when a form control is marked hidden is
@@ -1401,7 +1477,7 @@ class LoginController extends BaseDocumentController {
 <p>
    The visibility status is held with the <em>AbstractFormControl::$isVisible</em> class variable. <em>true</em> means
    that the control is <em>visible</em>, <em>false</em> indicates that the controls listed in
-   <a href="#Chapter-8-4-Supported-controls">chapter 8.4</a> are not displayed.
+   <a href="#Chapter-8-5-Supported-controls">chapter 8.4</a> are not displayed.
 </p>
 <p>
    To respect the visibility status with custom form controls, the subsequent code can be used as a template:
