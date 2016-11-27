@@ -113,7 +113,7 @@ $fC = Singleton::getInstance(Frontcontroller::class);
 $fC->setContext(null);
 $fC->setLanguage('de');
 
-$fC->registerAction('DOCS\biz', 'setModel');
+$fC->addAction('DOCS\biz', 'setModel');
 
 echo $fC->start('DOCS\pres\templates', 'main');
 
