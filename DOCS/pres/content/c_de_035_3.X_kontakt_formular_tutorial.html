@@ -465,122 +465,99 @@ class ContactFormController extends BaseDocumentController {
 namespace APF\modules\contact\biz;
 
 use APF\core\configuration\ConfigurationException;
+use APF\core\http\mixins\GetRequestResponse;
 use APF\core\loader\RootClassLoader;
 use APF\core\pagecontroller\APFObject;
 use APF\core\pagecontroller\IncludeException;
 use APF\modules\contact\data\ContactMapper;
 use APF\tools\link\LinkGenerator;
 use APF\tools\link\Url;
-use APF\tools\mail\mailSender;
+use APF\tools\mail\MessageBuilder;
+use APF\tools\mail\Recipient;
 
 class ContactManager extends APFObject {
 
+   use GetRequestResponse;
+
    public function sendContactForm(ContactFormData $formData) {
 
-      // set up the mail sender
-      $mail = & $this->getAndInitServiceObject('APF\tools\mail\mailSender', 'ContactForm');
-      /* @var $mail mailSender */
-
       $recipient = $this->getMapper()->loadRecipientById($formData->getRecipientId());
-      /* @var $recipient ContactFormRecipient */
-
-      $mail->setRecipient($recipient->getEmailAddress(), $recipient->getName());
-      $mail->setContent(
-         $this->getNotificationText(
-            array(
-               'sender-name' => $formData->getSenderName(),
-               'sender-email' => $formData->getSenderEmail(),
-               'sender-subject' => $formData->getSubject(),
-               'sender-message' => $formData->getMessage(),
-               'recipient-name' => $recipient->getName(),
-               'recipient-email' => $recipient->getEmailAddress()
-            )
-         )
-      );
-
-      $mail->setSubject($formData->getSubject());
 
       // send mail to notify the recipient
-      $mail->sendMail();
-
-      $mail->clearRecipients();
-      $mail->clearCCRecipients();
-      $mail->clearContent();
-
-      $mail->setRecipient($formData->getSenderEmail(), $formData->getSenderName());
-
-      $mail->setContent(
-         $this->getConfirmationText(
-            array(
-               'sender-name' => $formData->getSenderName(),
-               'sender-email' => $formData->getSenderEmail(),
-               'sender-subject' => $formData->getSubject(),
-               'sender-message' => $formData->getMessage(),
-               'recipient-name' => $recipient->getName(),
-               'recipient-email' => $recipient->getEmailAddress()
-            )
-         )
+      $content = $this->getNotificationText(
+            [
+                  'sender-name' => $formData->getSenderName(),
+                  'sender-email' => $formData->getSenderEmail(),
+                  'sender-subject' => $formData->getSubject(),
+                  'sender-message' => $formData->getMessage(),
+                  'recipient-name' => $recipient->getName(),
+                  'recipient-email' => $recipient->getEmailAddress()
+            ]
       );
 
-      $mail->setSubject($formData->getSubject());
+      /* @var $builder MessageBuilder */
+      $builder = $this->getServiceObject(MessageBuilder::class);
+      $message = $builder->createMessage('ContactForm', $formData->getSubject(), $content);
+
+      $message->addRecipient(new Recipient($recipient->getName(), $recipient->getEmailAddress()));
+
+      $message->send();
+
+      // ---------------------------------------------------------------------------------------------------------------
 
       // send mail to notify the sender
-      $mail->sendMail();
+      $content = $this->getConfirmationText(
+            [
+                  'sender-name' => $formData->getSenderName(),
+                  'sender-email' => $formData->getSenderEmail(),
+                  'sender-subject' => $formData->getSubject(),
+                  'sender-message' => $formData->getMessage(),
+                  'recipient-name' => $recipient->getName(),
+                  'recipient-email' => $recipient->getEmailAddress()
+            ]
+      );
+
+      $message = $builder->createMessage('ContactForm', $formData->getSubject(), $content);
+
+      $message->addRecipient(new Recipient($formData->getSenderName(), $formData->getSenderEmail()));
+
+      $message->send();
 
       // redirect to the thanks page to avoid F5 bugs!
-      $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(array('contactview' => 'thanks')));
+      $link = LinkGenerator::generateUrl(Url::fromCurrent()->mergeQuery(['contactview' => 'thanks']));
       $this->getResponse()->forward($link);
    }
 
-   public function loadRecipients() {
-      return $this->getMapper()->loadRecipients();
-   }
-
    private function &getMapper() {
-      return $this->getServiceObject('APF\modules\contact\data\ContactMapper');
+      return $this->getServiceObject(ContactMapper::class);
    }
 
-   private function getNotificationText(array $values = array()) {
+   private function getNotificationText(array $values = []) {
 
       $config = $this->getConfiguration('APF\modules\contact', 'mail_templates.ini');
-      $section = $config->getSection($this->getLanguage());
-      if ($section === null) {
+
+      if (!$config->hasSection($this->getLanguage())) {
          throw new ConfigurationException('Configuration section "' . $this->getLanguage() . '" is not present within '
                . 'the contact form module configuration loading the email templates. Please '
                . 'review your configuration!');
       }
 
+      $section = $config->getSection($this->getLanguage())->getSection('notification');
+
       return $this->fillPlaceHolders(
-         $this->getEmailTemplateContent(
-            $section->getValue('notification.namespace'),
-            $section->getValue('notification.template')
-         ),
-         $values
+            $this->getEmailTemplateContent(
+                  $section->getValue('namespace'),
+                  $section->getValue('template')
+            ),
+            $values
       );
    }
 
-   private function getConfirmationText(array $values = array()) {
-      $config = $this->getConfiguration('APF\modules\contact', 'mail_templates.ini');
-      $section = $config->getSection($this->getLanguage());
-      if ($section === null) {
-         throw new ConfigurationException('Configuration section "' . $this->getLanguage() . '" is not present within '
-               . 'the contact form module configuration loading the email templates. Please '
-               . 'review your configuration!');
-      }
-
-      return $this->fillPlaceHolders(
-         $this->getEmailTemplateContent(
-            $section->getValue('confirmation.namespace'),
-            $section->getValue('confirmation.template')
-         ),
-         $values
-      );
-   }
-
-   private function fillPlaceHolders($text, array $values = array()) {
+   private function fillPlaceHolders($text, array $values = []) {
       foreach ($values as $key => $value) {
          $text = str_replace('{' . $key . '}', $value, $text);
       }
+
       return $text;
    }
 
@@ -598,6 +575,30 @@ class ContactManager extends APFObject {
       }
       throw new IncludeException('Email template file "' . $file . '" cannot be loaded. '
             . 'Please review your contact module configuration!');
+   }
+
+   private function getConfirmationText(array $values = []) {
+      $config = $this->getConfiguration('APF\modules\contact', 'mail_templates.ini');
+
+      if (!$config->hasSection($this->getLanguage())) {
+         throw new ConfigurationException('Configuration section "' . $this->getLanguage() . '" is not present within '
+               . 'the contact form module configuration loading the email templates. Please '
+               . 'review your configuration!');
+      }
+
+      $section = $config->getSection($this->getLanguage())->getSection('confirmation');
+
+      return $this->fillPlaceHolders(
+            $this->getEmailTemplateContent(
+                  $section->getValue('namespace'),
+                  $section->getValue('template')
+            ),
+            $values
+      );
+   }
+
+   public function loadRecipients() {
+      return $this->getMapper()->loadRecipients();
    }
 
 }
