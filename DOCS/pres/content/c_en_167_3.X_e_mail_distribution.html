@@ -1,0 +1,183 @@
+<doku:title parent="119" tags="e-mail,mail,distribution" title="E-mail distribution" urlname="E-mail-distribution">
+   This page describes the e-mail distribution API offered by the APF.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   The APF offers a custom API to send e-mails. The object oriented interfaces eases sending e-mails compared to
+   native PHP function <em>mail()</em> and allows writing clearly structured code around sending e-mails.
+</p>
+<p>
+   The API consists of two components:
+</p>
+<ul>
+   <li>
+      <strong>Message</strong>:
+      Represents an e-mail message including all attributes such as sender, recipient, content type and content..
+   </li>
+   <li>
+      <strong>MailAddress</strong>:
+      Represents a sender as well as well as a recipient.
+   </li>
+</ul>
+<p>
+   Both classes allow e-mail distribution in compliance with <a class="external" href="https://tools.ietf.org/html/rfc2822">RFC2822</a>
+   and support all message options described in <a class="external" href="https://tools.ietf.org/html/rfc5321">RFC5321</a>.
+</p>
+
+<h3 id="Chapter-2-Distribution"><a href="#Chapter-2-Distribution">2. Distribution</a></h3>
+<p>
+   Sending a simple text e-mail can be accomplished with <em>Message</em> and <em>MailAddress</em> as follows:
+</p>
+<gen:highlight type="php">
+$sender = new MailAddress('Sender name', 'sender@example.com');
+$subject = 'Subject';
+$content = 'Content of the message';
+
+$message = new Message($sender, $subject, $content);
+
+$message->addRecipient(new MailAddress('Empfänger-Name', 'recipient@example.com'));
+
+$message->send();
+</gen:highlight>
+<p>
+   Creating a message, sender, subject, and content of the message are rquired. Recipients and others can be added as
+   needed afterwards.
+</p>
+
+<h3 id="Chapter-3-Further-use-cases"><a href="#Chapter-3-Further-use-cases">3. Further use cases</a></h3>
+<p>
+   The following chapters contain further examples on configuration and distribution options using the APF e-mail API.
+</p>
+
+<h4 id="Chapter-3-1-Definition-of-recipients"><a href="#Chapter-3-1-Definition-of-recipients">3.1. Definition of recipients</a></h4>
+<p>
+   Class <em>Message</em> supports three types pf recipients: direct recipients (TO), copy recipients (CC) and
+   blind copy recipients (BCC). The following code block describes how to add all three types to an e-mail:
+</p>
+<gen:highlight type="php">
+$message->addRecipient(new MailAddress('Recipient name', 'recipient@example.com'));
+
+$message->addCopyRecipient(new MailAddress('Recipient name', 'recipient@example.com'));
+
+$message->addBlindCopyRecipient(new MailAddress('Recipient name', 'recipient@example.com'));
+</gen:highlight>
+<p>
+   To add multiple recipients at once, you may want to use the following code:
+</p>
+<gen:highlight type="php">
+$recipients = [
+   new MailAddress('recipient one', 'recipient.one@example.com'),
+   new MailAddress('recipient two', 'recipient.two@example.com')
+];
+
+$message->setRecipients($recipients);
+
+$message->setCopyRecipients($recipients);
+
+$message->setBlindCopyRecipients($recipients);
+</gen:highlight>
+<p>
+   To retrieve the current list of recipients you can use the following functions:
+</p>
+<gen:highlight type="php">
+$recipients = $message->getRecipients();
+
+$copyRecipients = $message->getCopyRecipients();
+
+$blindCopyRecipients = $message->getBlindCopyRecipients();
+</gen:highlight>
+<p>
+   In case you intend to delete the current list of recipients - e.g. to send a message to multiple, independent recipients
+   or groups - you may want to use the follwing code snippet:
+</p>
+
+<gen:highlight type="php">
+$message = new Message(...);
+
+// Send to group 1
+$message->addRecipient(new MailAddress('...', 'recipient.one@e-mail.de'));
+$message->send();
+
+$message->clearRecipients()
+      ->clearCopyRecipients()
+      ->clearBlindCopyRecipients();
+
+// Send to group 2
+$message->send();
+$message->addRecipient(new MailAddress('...', 'recipient.two@e-mail.de'));
+
+$message->clearRecipients()
+      ->clearCopyRecipients()
+      ->clearBlindCopyRecipients();
+
+...
+</gen:highlight>
+<p>
+   In case you want to get a notification from the responsible mail server in case of any issue, you can define a
+   <em>Return Path</em>:
+</p>
+<gen:highlight type="php">
+$message->setReturnPath(new MailAddress('return postbox', 'return@example.com'));
+</gen:highlight>
+
+<h4 id="Chapter-3-2-Priority-definition"><a href="#Chapter-3-2-Priority-definition">3.2. Priority definition</a></h4>
+<p>
+   The priority of any given e-mail can be defined as follows:
+</p>
+<gen:highlight type="php">
+$message->setPriority(Message::PRIORITY_HIGH);
+$message->setPriority(Message::PRIORITY_NORMAL);
+$message->setPriority(Message::PRIORITY_LOW);
+</gen:highlight>
+
+<h4 id="Chapter-3-3-MIME-type-definition"><a href="#Chapter-3-3-MIME-type-definition">3.3. MIME type definition</a></h4>
+<p>
+   The MIME type - or the content type respectively - is defined as <em>plain/text; charset=UTF-8</em> by default. The
+   character set used is pre-filled from <int:link pageid="067" /> entry <em>Charset</em> within namespace <em>APF\core</em>.
+   Details on the basic framework configuration can be found under <int:link pageid="013" anchor="Chapter-6-Basic-configuration" />.
+</p>
+<p>
+   In case you want to change the content type of the present e-mail instance please use method <em>setContentType()</em>:
+</p>
+<gen:highlight type="php">
+$message->setContentType('text/html; charset=ISO-8859-1');
+</gen:highlight>
+
+<h4 id="Chapter-3-4-Pre-configured-messages"><a href="#Chapter-3-4-Pre-configured-messages">3.4. Pre-configured messages</a></h4>
+<p>
+   To ease migration to the new e-mail API introduced in release 3.3 the APF includes the <em>MessageBuilder</em>. This
+   component has been built to use a configuration file created for the <int:link pageid="020" version="2.X" /> (removed
+   in version 3.3) to create a pre-configured e-mail message.
+</p>
+<p>
+   The configuration file typically includes the following attributes (excerpt from the <int:link pageid="090" /> module):
+</p>
+<gen:highlight type="ini">
+[ContactForm]
+Mail.SenderName = "..."
+Mail.SenderEMail = "..."
+Mail.ReturnPath = "..."
+Mail.ContentType = "text/plain; charset=utf-8"
+</gen:highlight>
+<p>
+   The configuration contains sender, return path, and content type of the e-mail. Using the <em>MessageBuilder</em>,
+   those values are directly injected into the <em>Message</em> instance.
+</p>
+<p>
+   The following examples shows how to create a message (<em>Message</em>) using configuration
+   <em>DEFAULT_mailsender.ini</em> from namespace <em>APF\tools\mail</em>:
+</p>
+<gen:highlight type="php">
+$builder = $this->getServiceObject(MessageBuilder::class);
+$message = $builder->createMessage('ContactForm', $subject, $content);
+</gen:highlight>
+<p>
+   The first argument of method <em>createMessage()</em> refers to the configuration section to be used to configure the
+   message. In case you want to send several types of messages, simply define as many sections as needed and apply the
+   name of the section with each call of this method.
+</p>
+<p>
+   Details on how to define configuration files can be taken from <int:link pageid="134" />.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_167" />
