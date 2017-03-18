@@ -1,0 +1,131 @@
+<doku:title parent="100" tags="migration,3.2,3.3" title="Migration from 3.2 to 3.3" urlname="Migration-from-3-2-to-3-3">
+   This page describes the adaptions of your current software (up to and including release 3.2) necessary to upgrade it
+   to release 3.3.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   Version 3.3 is almost fully compatible with it's predecessor. After execution of the automatic migration only minor
+   adaptions are necessary as described in <a href="#Chapter-3-Manual-steps">chapter 3</a>.
+</p>
+<div class="hint">
+   As of the 3.3 release enhancement of version version 3.2 will be discontinued. Security and bug fixes will be available
+   until mid of 2017.
+</div>
+<p>
+   This article shows how to update your application to APF version 3.3. As you might already be familiar with from previous
+   versions migration can be done in an automated fashion for nearly all changes. For this reason, the release contains
+   two scripts: <em>migrate-code.sh</em> to update your HTML and PHP files and <em>migrate-config.sh</em> for configuration
+   files.
+</p>
+<div class="hint">
+   The APF team recommends to use the migration scripts rather than upgrading manually. This not only saves time and
+   money but also ensure that all relevant areas of your project code are covered.
+</div>
+<p>
+   The below chapters contain an in-depth description on how to switch to APF 3.3 and which kind of changes have to be
+   applied to your existing application(s) to run them based on this version.
+</p>
+
+<h3 id="Chapter-2-Automated-migration"><a href="#Chapter-2-Automated-migration">2. Automated migration</a></h3>
+<p>
+   Migration can be done using the migration script shipped along with the release. This release includes changes to
+   code, templates, and configuration files. Using <em>migrate-code.sh</em> and <em>migrate-config.sh</em> you can
+   easily be adapted your existing application to the new scheme.
+</p>
+<div class="warn">
+   Please be sure to execute all steps described under <int:link pageid="166" />. In case you are using an order version
+   of the APF, please <em>completely</em> migrate to version 3.2. Instructions can be taken from <int:link pageid="100" />.
+</div>
+<div class="err">
+   Please create a backup before execution of the scripts to be able to restore parts of your application if necessary!
+</div>
+<p>
+   In case your development environment is windows, please install the latest <em>cygwin</em> version (download under
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Migration for Windows Batch Scripts is
+   not supported.
+</p>
+<p>
+   To update the code files to the latest scheme, please execute the script as follows:
+</p>
+<div class="warn">
+   Please change to the code directory before execution to avoid unexpected results.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-code.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.3 automatic code migration          #
+#############################################
+
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 7.0.14.
+
+#############################################
+
+Starting migration ...
+* Migrate form-to-model-mapping API...
+
+#############################################
+
+Migration done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+<p>
+   To update the configuration files to the latest scheme, please execute the script as follows:
+</p>
+<div class="warn">
+   Please change to the configuration directory before execution to avoid unexpected results.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-config.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.3 automatic configuration migration #
+#############################################
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 7.0.14.
+
+#############################################
+
+Starting configuration migration ...
+
+#############################################
+
+Migration done! Please check your configuration and follow instructions within migration documentation!
+</gen:highlight>
+
+<h3 id="Chapter-3-Manual-steps"><a href="#Chapter-3-Manual-steps">3. Manual steps</a></h3>
+<p>
+   Unfortunately, not all components of your application can be migrated by the delivered scripts. This chapter lists
+   all changes to be applied by hand.
+</p>
+
+<h4 id="Chapter-3-1-API-change-standard-language"><a href="#Chapter-3-1-API-change-standard-language">3.1. API change standard language for DOM nodes</a></h4>
+<p>
+   In previous version of the APF DOM nodes have been initialized with a standard language:
+</p>
+<gen:highlight type="php">
+APFObject::$language = 'de';
+</gen:highlight>
+<p>
+   This complicated error analysis when using language and/or context dependent configurations. Details can be taken from
+   tracker entry <a href="http://tracker.adventure-php-framework.org/view.php?id=312" class="external">ID#312</a>.
+</p>
+<p>
+   In order to define a standard language please use method <em>setLanguage()</em> of the
+   <em>Frontcontroller</em> class:
+</p>
+<gen:highlight type="php">
+$fC = Singleton::getInstance(Frontcontroller::class);
+$fC->setLanguage('de');
+</gen:highlight>
+
+<h4 id="Chapter-3-2-Removal-of-the-mailSender-component"><a href="#Chapter-3-2-Removal-of-the-mailSender-component">3.2. Removal of the mailSender component</a></h4>
+<p>
+   In version 3.3 the <em>mailSender</em> component has been removed as it was marked as deprecated in release 3.0.
+   In order to send e-mails with the APF, please use class <em>Message</em> introduced in version 3.3.
+</p>
+<p>
+   Details can be taken from chapter <int:link pageid="168" />.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_169" />

@@ -1,0 +1,136 @@
+<doku:title parent="100" tags="migration,3.2,3.3" title="Migration von 3.2 auf 3.3" urlname="Migration-von-3-2-auf-3-3">
+   Diese Seite beschreibt die Anpassungen an bestehender Software (bis einschließlich Release 3.2), die notwendig sind
+   um Ihre Applikation auf die Version 3.3 zu portieren.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Version 3.3 ist in sehr großen Teilen komplett kompatibel mit der Vorgänger-Version. Neben der Ausführung der
+   automatisierten Migration fallen lediglich kleiner Anpassungen an, die in
+   <a href="#Chapter-3-Manuelle-Schritte">Kapitel 3</a> beschrieben werden.
+</p>
+<div class="hint">
+   Mit dem Erscheinen dieses Release wird die Weiterentwicklung der Version 3.2 eingestellt. Security- und Bug-Fixes
+   werden bis Ende 2017 verfügbar sein.
+</div>
+<p>
+   In diesem Artikel erfahren Sie, wie Sie eine bestehende Anwendung auf APF-Version 3.3 aktualisieren können. Wie
+   bereits von den vorangegangenen Versionen gewohnt, kann die Migration auch in diesem Release weitestgehend automatisiert
+   erfolgen. Zu diesem Zweck liegen zwei Migrations-Skripten bei: <em>migrate-code.sh</em> für die Aktualisierung von
+   HTML- und PHP-Dateien und <em>migrate-config.sh</em> für Konfigurations-Dateien.
+</p>
+<div class="hint">
+   Das APF-Team empfiehlt, die Nutzung der Migrations-Skripten einer manuellen Migration vorzuziehen. Dies spart Zeit
+   und Kosten und stellt sicher, dass alle relevanten Stellen erfasst wurden.
+</div>
+<p>
+   Die folgenden Kapitel stellen die notwendigen Schritte zum Umstieg auf Version 3.3 zusammen.
+</p>
+
+<h3 id="Chapter-2-Automatisierte-Migration"><a href="#Chapter-2-Automatisierte-Migration">2. Automatisierte Migration</a></h3>
+<p>
+   Die Migration mit Hilfe eines mitgelieferten Migrations-Skripts erledigen. In diesem Release wurden Änderungen an
+   Code- und Konfigurations-Dateien vorgenommen, die mit Hilfe der Skripte <em>migrate-code.sh</em> und
+   <em>migrate-config.sh</em> auf Ihre bestehende Applikation übertragen werden können.
+</p>
+<div class="warn">
+   Bitte stellen Sie sicher, dass Sie vor der Migration alle unter <int:link pageid="166" /> beschriebenen Schritte
+   durchgeführt haben. Setzen Sie eine noch ältere Version ein, migrieren Sie bitte zuerst <em>vollständig</em> auf die
+   Version 3.2. Hinweise zur jeweiligen Migration finden Sie auf der Seite <int:link pageid="100" />.
+</div>
+<div class="err">
+   Bitte erstellen Sie vor der Ausführung der Skripten eine Sicherungskopie Ihrer Anwendung um bei Bedarf Inhalte wieder
+   herstellen zu können!
+</div>
+<p>
+   Sofern Sie auf Windows entwickeln, installieren Sie bitte eine aktuelle Version von <em>cygwin</em> (Download unter
+   <a class="external" href="http://cygwin.com/install.html">cygwin.com</a>). Eine Migration auf Basis eines
+   Windows-Batch-Script wird nicht angeboten.
+</p>
+<p>
+   Um Ihre Quell-Code-Dateien auf den neuesten Stand zu bringen, führen Sie das Skript bitte wie folgt aus:
+</p>
+<div class="warn">
+   Bitte wechseln Sie vor der Ausführung in das Code-Verzeichnis Ihrer Applikation um unerwartete Ergebnisse
+   zu vermeiden.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-code.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.3 automatic code migration          #
+#############################################
+
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 7.0.14.
+
+#############################################
+
+Starting migration ...
+* Migrate form-to-model-mapping API...
+
+#############################################
+
+Migration done! Please check your code and follow instructions within migration documentation!
+</gen:highlight>
+<p>
+   Um Ihre Konfigurations-Dateien auf den neuesten Stand zu bringen, führen Sie das Skript bitte wie folgt aus:
+</p>
+<div class="warn">
+   Bitte wechseln Sie vor der Ausführung in das Konfigurations-Verzeichnis Ihrer Applikation um unerwartete Ergebnisse
+   zu vermeiden.
+</div>
+<gen:highlight type="code">
+$ /path/to/APF/migration/migrate-config.sh /cygdrive/c/xampp/php/php
+#############################################
+# APF 3.3 automatic configuration migration #
+#############################################
+Checking PHP executable available ... [OK]
+
+Using given php executable at /cygdrive/c/xampp/php/php. PHP Version: 7.0.14.
+
+#############################################
+
+Starting configuration migration ...
+
+#############################################
+
+Migration done! Please check your configuration and follow instructions within migration documentation!
+</gen:highlight>
+
+<h3 id="Chapter-3-Manuelle-Schritte"><a href="#Chapter-3-Manuelle-Schritte">3. Manuelle Schritte</a></h3>
+<p>
+   Das Migrations-Skript kann leider nicht alle Projekt-spezifischen Konstrukte migrieren. Die folgenden Kapitel
+   zeigen, welche manuellen Schritte notwendig sind um bestehenden Code mit der Version 3.3 einsetzen zu können:
+</p>
+
+<h4 id="Chapter-3-1-API-Aenderung-Standard-Sprache"><a href="#Chapter-3-1-API-Aenderung-Standard-Sprache">3.1. API-Änderung Standard-Sprache für DOM-Knoten</a></h4>
+<p>
+   In bisherigen Versionen wurde die Sprache eines APF-DOM-Knotens mit einem Standard-Wert belegt:
+</p>
+<gen:highlight type="php">
+APFObject::$language = 'de';
+</gen:highlight>
+<p>
+   Dies führte u.A. dazu, dass die Fehler-Analyse bei der Verwendung von Sprach- und/oder Kontext-Abhängigen
+   Konfigurationen erschwert wird. Details entnehmen Sie bitte der Beschreibung im Tracker-Eintrag
+   <a href="http://tracker.adventure-php-framework.org/view.php?id=312" class="external">ID#312</a>.
+</p>
+<p>
+   Um zukünftig eine Standard-Sprache festlegen zu können, nutzen Sie bitte die Methode <em>setLanguage()</em> des
+   <em>Frontcontroller</em>:
+</p>
+<gen:highlight type="php">
+$fC = Singleton::getInstance(Frontcontroller::class);
+$fC->setLanguage('de');
+</gen:highlight>
+
+<h4 id="Chapter-3-2-Entfernen-der-Komponente-mailSender"><a href="#Chapter-3-2-Entfernen-der-Komponente-mailSender">3.2. Entfernen der Komponente mailSender</a></h4>
+<p>
+   In der Version 3.3 wurde die im Release 3.0 als veraltet gekennzeichnete Komponente <em>mailSender</em> entfernt.
+   Um weiterhin E-Mails auf Basis des APF zu versenden, nutzen Sie ab Version 3.3 bitte die Klasse <em>Message</em>.
+</p>
+<p>
+   Details zur Verwendung lesen Sie bitte unter <int:link pageid="168" /> nach.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_169" />
