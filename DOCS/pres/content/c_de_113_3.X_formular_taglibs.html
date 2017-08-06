@@ -1524,31 +1524,23 @@ class SignUpController extends BaseDocumentController {
 
 <h4 id="Chapter-4-2-Aufbau-von-Validatoren"><a href="#Chapter-4-2-Aufbau-von-Validatoren">4.2. Aufbau von Validatoren</a></h4>
 <p>
-   Validatoren sind Klassen, die von <strong>AbstractFormValidator</strong> erben. Diese definiert das
-   Interface aller Formular-Validatoren. Das ist notwendig, damit diese als Observer an alle
-   Formular-Elemente geheftet werden können.
+   Validatoren sind Klassen, die <strong>FormValidator</strong> implementieren oder von <strong>AbstractFormValidator</strong>
+   erben. Die Implementierung des Interface ist notwendig, damit diese als Observer an alle Formular-Elemente geheftet
+   werden können.
 </p>
 <p>
    Das Interface eines Validators hat folgende gestalt:
 </p>
 <gen:highlight type="php">
-abstract class AbstractFormValidator extends APFObject {
+interface FormValidator extends ApplicationContext {
 
-   protected $control;
-   protected $button;
+   public function __construct(FormControl $control, FormControl $button, $type = null);
 
-   public function __construct(AbstractFormControl &$control, AbstractFormControl &$button){
-      $this->control = &$control;
-      $this->button = &$button;
-   }
+   public function validate($input);
 
-   public abstract function validate($input);
+   public function notify();
 
-   public abstract function notify();
-
-   public function isActive(){
-      return $this->button->isSent();
-   }
+   public function isActive();
 
 }
 </gen:highlight>
@@ -1576,12 +1568,8 @@ abstract class AbstractFormValidator extends APFObject {
    folgende Signatur:
 </p>
 <gen:highlight type="php">
-public function addValidator(AbstractFormValidator &$validator){
-   if($validator->isActive()){
-      if(!$validator->validate($this->getAttribute('value'))){
-         $validator->notify();
-      }
-   }
+public function addValidator(FormValidator $validator) {
+   $this->validators[] = $validator;
 }
 </gen:highlight>
 <p>
@@ -1598,8 +1586,8 @@ public function addValidator(AbstractFormValidator &$validator){
 
 <h4 id="Chapter-4-3-Implementierung-von-Validatoren"><a href="#Chapter-4-3-Implementierung-von-Validatoren">4.3. Implementierung von Validatoren</a></h4>
 <p>
-   Wie bereits im letzten Kapitel angesprochen, muss ein Validator von der Klasse
-   <strong>AbstractFormValidator</strong> erben. Das APF enthält daneben noch einige weitere
+   Wie bereits im letzten Kapitel angesprochen, muss ein Validator das Interface <strong>FormValidator</strong>
+   implementieren oder von <strong>AbstractFormValidator</strong> erben. Das APF enthält daneben noch einige weitere
    Basis-Klassen, die für die Implementierung von Validatoren verwendet werden können. Diese sind:
 </p>
 <ul>
@@ -1614,7 +1602,10 @@ public function addValidator(AbstractFormValidator &$validator){
    Für die Implementierung eines eigenen Validators muss folgendes beachtet werden:
 </p>
 <ul>
-   <li>Der Validator muss von von der Klasse <strong>AbstractFormValidator</strong> erben.</li>
+   <li>
+       Der Validator muss das Interface <strong>FormValidator</strong> implementieren oder von
+       <strong>AbstractFormValidator</strong> erben.
+   </li>
    <li>
       Mit Hilfe der Methode <strong>markAsInvalid()</strong> kann ein Formular-Element als
       invalide gekennzeichnet werden.
@@ -1900,37 +1891,27 @@ public function addValidator(AbstractFormValidator &$validator){
 
 <h4 id="Chapter-5-2-Aufbau-von-Filtern"><a href="#Chapter-5-2-Aufbau-von-Filtern">5.2. Aufbau von Filtern</a></h4>
 <p>
-   Formular-Filter sind eine Spezialisierung der APF-Filter-API. Als Interface steht die abstrakte
-   Klasse <strong>AbstractFormFilter</strong> zur Verfügung, die alle konkreten Formular-Filter
-   implementieren müssen.
+   Formular-Filter sind eine Spezialisierung der APF-Filter-API. Das Interface <strong>FormFilter</strong> definiert das
+   Aussehen eines Filters und <strong>AbstractFormFilter</strong> stellt eine Basis-Implementierung zur Verfügung.
 </p>
 <p>
    Ähnlich den im Kapitel 4.2 beschrieben Formular-Validatoren, müssen Formular-Validatoren einige
-   Formular-spezifische Methoden implementieren. Die Klasse <strong>AbstractFormFilter</strong> hat
+   Formular-spezifische Methoden implementieren. Das Interface <strong>FormFilter</strong> hat
    folgenden Aufbau:
 </p>
 <gen:highlight type="php">
-abstract class AbstractFormFilter extends AbstractFilter {
+interface FormFilter extends Filter, ApplicationContext {
 
-   protected $control;
-   protected $button;
+   public function __construct(FormControl $control, FormControl $button);
 
-   public function __construct(AbstractFormControl &$control, AbstractFormControl &$button){
-      $this->control = &$control;
-      $this->button = &$button;
-   }
-
-   public function isActive(){
-      return $this->button->isSent();
-   }
+   public function isActive();
 
 }
 </gen:highlight>
 <p>
-   Über den Konstruktor werden das zu filternde Form-Control und der Button, der als Trigger
-   fungiert injiziert. Die Methode <strong>filter()</strong> wird vom Formular-Element mit dem zu
-   filternden Inhalt versorgt und muss den Filter-Code enthalten. Als Rückgabe wird der gefilterte
-   Wert erwartet.
+   Über den Konstruktor werden das zu filternde Form-Control und der Button, der als Trigger fungiert injiziert. Die
+   Methode <strong>filter()</strong> (aus dem Interface <strong>Filter</strong>) wird vom Formular-Element mit dem zu
+   filternden Inhalt versorgt und muss den Filter-Code enthalten. Als Rückgabe wird der gefilterte Wert erwartet.
 </p>
 <p>
    Die Methode <strong>isActive()</strong> dienen dazu, dem Filter zu fragen, ob er ausgeführt werden
@@ -1947,11 +1928,14 @@ abstract class AbstractFormFilter extends AbstractFilter {
    folgende Signatur:
 </p>
 <gen:highlight type="php">
-public function addFilter(AbstractFormFilter &$filter){
-   if($filter->isActive()){
-      $value = $this->getAttribute('value');
+public function addFilter(FormFilter $filter) {
+
+   $this->filters[] = $filter;
+
+   if ($filter->isActive()) {
+      $value = $this->getValue();
       $filteredValue = $filter->filter($value);
-      $this->setAttribute('value',$filteredValue);
+      $this->setValue($filteredValue);
    }
 }
 </gen:highlight>
@@ -1974,14 +1958,17 @@ public function addFilter(AbstractFormFilter &$filter){
 
 <h4 id="Chapter-5-3-Implementierung-von-Filtern"><a href="#Chapter-5-3-Implementierung-von-Filtern">5.3. Implementierung von Filtern</a></h4>
 <p>
-   Wie bereits im letzten Kapitel angesprochen, muss ein Filter von der Klasse
-   <strong>AbstractFormFilter</strong> erben.
+   Wie bereits im letzten Kapitel angesprochen, muss ein Filter das Interface <strong>FormFilter</strong> implementieren
+   oder von <strong>AbstractFormFilter</strong> erben.
 </p>
 <p>
    Für die Implementierung eines eigenen Filters muss folgendes beachtet werden:
 </p>
 <ul>
-   <li>Der Filter muss von von der Klasse <strong>AbstractFormFilter</strong> erben.</li>
+   <li>
+      Der Filter muss Interface <strong>FormFilter</strong> implementieren oder von <strong>AbstractFormFilter</strong>
+      erben.
+   </li>
    <li>
       Über den Button (Methode: <strong>isSent()</strong>) kann der Entwickler abfragen, ob das
       Formular mit Klick auf diesen abgesendet wurde.
@@ -1991,12 +1978,6 @@ public function addFilter(AbstractFormFilter &$filter){
       <strong>AbstractFormFilter</strong> übernommen werden.
    </li>
 </ul>
-<div class="hint">
-   Auf Grund der Besonderheit, dass mit PHP >=5.2.10, bzw. >=5.3.0 die Signaturen von
-   überschriebenen abstrakten Methoden Zeichen-identisch sein müssen, muss darauf geachtet werden,
-   dass die Funktion <em>public function filter($input)</em> in der Filter-Implementierung exakt so
-   definiert wurde!
-</div>
 
 <h3 id="Chapter-6-Verwendung-von-Formularen"><a href="#Chapter-6-Verwendung-von-Formularen">6. Verwendung von Formularen</a></h3>
 <p>

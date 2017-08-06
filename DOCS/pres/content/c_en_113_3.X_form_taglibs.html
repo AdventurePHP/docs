@@ -1495,31 +1495,23 @@ class SignUpController extends BaseDocumentController {
 
 <h4 id="Chapter-4-2-Construction-of-validators"><a href="#Chapter-4-2-Construction-of-validators">4.2. Construction of validators</a></h4>
 <p>
-   Validators are classes, that are derived from <strong>AbstractFormValidator</strong>. This abstract
-   base class defines the structure of all form validators. This is necessary to be able to apply all
-   validators to form controls as an observer.
+   Validators are classes, that implement interface <strong>FormValidator</strong> or inherit from
+   <strong>AbstractFormValidator</strong>. This is necessary to be able to apply all validators to form controls as an
+   observer.
 </p>
 <p>
    The interface is as follows:
 </p>
 <gen:highlight type="php">
-abstract class AbstractFormValidator extends APFObject {
+interface FormValidator extends ApplicationContext {
 
-   protected $control;
-   protected $button;
+   public function __construct(FormControl $control, FormControl $button, $type = null);
 
-   public function __construct(AbstractFormControl &$control, AbstractFormControl &$button){
-      $this->control = &$control;
-      $this->button = &$button;
-   }
+   public function validate($input);
 
-   public abstract function validate($input);
+   public function notify();
 
-   public abstract function notify();
-
-   public function isActive(){
-      return $this->button->isSent();
-   }
+   public function isActive();
 
 }
 </gen:highlight>
@@ -1546,12 +1538,8 @@ abstract class AbstractFormValidator extends APFObject {
    function. The signature of this method is defined within <strong>AbstractFormControl</strong>:
 </p>
 <gen:highlight type="php">
-public function addValidator(AbstractFormValidator &$validator){
-   if($validator->isActive()){
-      if(!$validator->validate($this->getAttribute('value'))){
-         $validator->notify();
-      }
-   }
+public function addValidator(FormValidator $validator) {
+   $this->validators[] = $validator;
 }
 </gen:highlight>
 <p>
@@ -1567,8 +1555,8 @@ public function addValidator(AbstractFormValidator &$validator){
 
 <h4 id="Chapter-4-3-Implementation-of-validators"><a href="#Chapter-4-3-Implementation-of-validators">4.3. Implementation of validators</a></h4>
 <p>
-   As mentioned in the last chapters, a validator must inherit from the
-   <strong>AbstractFormValidator</strong> class. Besides, the APF includes two more base classes, that
+   As mentioned in the last chapters, a validator must either implement interface <strong>FormValidator</strong> or
+   inherit from <strong>AbstractFormValidator</strong>. Besides, the APF includes two more base classes, that
    can be used to implement text field or select box validators:
 </p>
 <ul>
@@ -1583,7 +1571,10 @@ public function addValidator(AbstractFormValidator &$validator){
    In order to implement custom validators, please remember the following topics:
 </p>
 <ul>
-   <li>Each validator must inherit from the <strong>AbstractFormValidator</strong> class.</li>
+   <li>
+       Each validator must either implement interface <strong>FormValidator</strong> or inherit from
+       <strong>AbstractFormValidator</strong>.
+   </li>
    <li>
       The method <strong>markAsInvalid()</strong> can be used to mark a form element as invalid.
    </li>
@@ -1865,35 +1856,26 @@ public function addValidator(AbstractFormValidator &$validator){
 
 <h4 id="Chapter-5-2-Construction-of-filters"><a href="#Chapter-5-2-Construction-of-filters">5.2. Construction of filters</a></h4>
 <p>
-   Form filters are special filters, that are built on the APF filter API. Each form filter must
-   implement the <strong>AbstractFormFilter</strong> class that acts as an interface for dedicated
-   form filter implementations.
+   Form filters are special filters, that are built on the APF filter API. Interface <strong>FormFilter</strong> defines
+   the structure of a form filter and <strong>AbstractFormFilter</strong> provides a basic implementation.
 </p>
 <p>
    Just like the form validators, form filters must implement some form-specific methods. The
-   <strong>AbstractFormFilter</strong> interface class is as follows:
+   <strong>FormFilter</strong> interface is as follows:
 </p>
 <gen:highlight type="php">
-abstract class AbstractFormFilter extends AbstractFilter {
+interface FormFilter extends Filter, ApplicationContext {
 
-   protected $control;
-   protected $button;
+   public function __construct(FormControl $control, FormControl $button);
 
-   public function __construct(AbstractFormControl &$control, AbstractFormControl &$button){
-      $this->control = &$control;
-      $this->button = &$button;
-   }
-
-   public function isActive(){
-      return $this->button->isSent();
-   }
+   public function isActive();
 
 }
 </gen:highlight>
 <p>
-   The constructor takes the control to filter and the button that triggers the element as arguments.
-   The <strong>filter()</strong> method is applied the content to filter included in the method. The
-   return param is expected to be the filtered content.
+   The constructor takes the control to filter and the button that triggers the element as arguments. The
+   <strong>filter()</strong> method (derived from interface <strong>Filter</strong>) is applied the content to filter
+   included in the method. The return param is expected to be the filtered content.
 </p>
 <p>
    <strong>isActive()</strong> returns <em>true</em> in case the filter should be executed and
@@ -1911,11 +1893,14 @@ abstract class AbstractFormFilter extends AbstractFilter {
    follows:
 </p>
 <gen:highlight type="php">
-public function addFilter(AbstractFormFilter &$filter){
-   if($filter->isActive()){
-      $value = $this->getAttribute('value');
+public function addFilter(FormFilter $filter) {
+
+   $this->filters[] = $filter;
+
+   if ($filter->isActive()) {
+      $value = $this->getValue();
       $filteredValue = $filter->filter($value);
-      $this->setAttribute('value',$filteredValue);
+      $this->setValue($filteredValue);
    }
 }
 </gen:highlight>
@@ -1957,11 +1942,6 @@ public function addFilter(AbstractFormFilter &$filter){
       used without adaption.
    </li>
 </ul>
-<div class="hint">
-   Due to the fact, that with PHP >=5.2.10 and >=5.3.0 respectively, the signatures of abstract
-   methods must be exactly equal to their implementations. Thus, please ensure, that the filter
-   classes have a method <em>public function filter($input)</em> defined as printed here literally!
-</div>
 
 <h3 id="Chapter-6-Usage-of-forms"><a href="#Chapter-6-Usage-of-forms">6. Usage of forms</a></h3>
 <p>
