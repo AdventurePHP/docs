@@ -110,7 +110,7 @@ Document::addTagLib(TrackingTag::class, 'tracking', 'pixel');
 
 /* @var $fC Frontcontroller */
 $fC = Singleton::getInstance(Frontcontroller::class);
-$fC->setContext(null);
+$fC->setContext('dummy');
 $fC->setLanguage('de');
 
 $fC->addAction('DOCS\biz', 'setModel');

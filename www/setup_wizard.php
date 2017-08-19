@@ -31,7 +31,7 @@ ConfigurationManager::registerProvider('sql', $sqlProvider);
 
 /* @var $fC Frontcontroller */
 $fC = &Singleton::getInstance(Frontcontroller::class);
-$fC->setContext(null);
+$fC->setContext('dummy');
 $fC->setLanguage('de');
 
 echo $fC->start('DEV\wizard\templates', 'main');
