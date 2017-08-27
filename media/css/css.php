@@ -24,5 +24,5 @@ $iniProvider->setOmitContext(true);
 
 $fC = Singleton::getInstance(Frontcontroller::class);
 /* @var $fC Frontcontroller */
-$fC->setContext(null);
+$fC->setContext('dummy');
 $fC->start(null, null); // no template, because we do not need one!
