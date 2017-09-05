@@ -1694,6 +1694,19 @@ TargetObject = "News"
    der Daten in das benötigte Format kümmern, dies kann jetzt das Domänen-Objekt automatisch erledigen.<br />
    Eine Übersicht der verfügbaren Event-Methoden finden Sie im Kapitel <a href="#Chapter-7-4-Event-Methoden">Event Methoden</a>
 </p>
+<div class="hint">
+   <p>
+      Bitte beachten Sie, dass die Verwendung der Methoden <em>HtmlFormTag::fillForm()</em> und <em>HtmlFormTag::fillModel()</em>
+      zum automatischen Befüllen von Formularen und DTOs/Models nur in Verbindung mit der Generierung von eigenen
+      Domänen-Objekten möglich ist. Das Formular-Feature basiert auf der Annahme, dass die Klassen-Variablen namentlich
+      mit den Formular-Feldern übereinstimmen. Die generische Implementierung <em>GenericDomainObject</em> erfüllt diese
+      Bedingung nicht, da die Werte in einem internen Array verwaltet werden.
+   </p>
+   <p>
+      Bitte beachten Sie beim Einsatz des Features auch die Hinweise unter
+      <int:link pageid="114" anchor="Chapter-10-Fuellen-von-DTOs-und-Models" />.
+   </p>
+</div>
 <p>
    Die folgenden Kapitel zeigen, wie eigene Domänen-Objekte konfiguriert, generiert und verwendet werden können, und welche Events sie unterstützen.
 </p>
@@ -1796,8 +1809,9 @@ $generator->generateServiceObjects();
    um diese im Fehlerfall wiederherstellen zu können!
 </div>
 <p>
-   Ein Beispiel für eine der erzeugten Dateien (hier für das Message-Objekt aus obiger Definition) könnte in etwa so aussehen:
+   Nachfolgend finden Sie ein Beispiel für die erzeugten Dateien für die obige DTO-Definition:
 </p>
+<strong>MessageBase.php</strong>
 <gen:highlight type="php">
 namespace APF\extensions\postbox\biz;
 
@@ -1808,6 +1822,7 @@ namespace APF\extensions\postbox\biz;
  * You can change class "Message" which will extend this base-class.
  */
 use APF\extensions\postbox\biz\AbstractMessage;
+
 class MessageBase extends AbstractMessage {
 
    public function __construct($objectName = null) {
@@ -1835,12 +1850,17 @@ class MessageBase extends AbstractMessage {
 }
 
 // DO NOT CHANGE THIS COMMENT! <*MessageBase:end*>
+</gen:highlight>
 
+<strong>Message.php</strong>
+<gen:highlight type="php">
+namespace APF\extensions\postbox\biz;
 /**
  * Domain object for "Message"
  * Use this class to add your own functions.
  */
 class Message extends MessageBase {
+
    /**
     * Call parent's function because the objectName needs to be set.
     */
@@ -1851,7 +1871,7 @@ class Message extends MessageBase {
 }
 </gen:highlight>
 <p>
-   Das Basisobjeckt <em>MessageBase</em> erbt vom, explizit in der Konfiguration definierten, Objekt <em>AbstractMessage</em>.
+   Das Basisobjeckt <em>MessageBase</em> erbt vom explizit in der Konfiguration definierten Objekt <em>AbstractMessage</em>.
    Auch um den Import der benötigten Datei hat der Generator sich natürlich selbst gekümmert.<br />
    In der <em>*_objects.ini</em> des O/R-Mapper wurden dem Message-Objekt die Eigenschaften <em>"Text"</em> und
    <em>"AuthorNameFallback"</em> gegeben, dementsprechend wurden für diese beiden Eigenschaften Getter- und
@@ -1877,7 +1897,7 @@ class Message extends MessageBase {
 <p>
    Der O/R-Mapper erkennt beim Laden von Daten automatisch anhand der Konfiguration, dass er ein spezielles Domänen-Objekt verwenden
    muss, und erzeugt dieses anstatt des <em>GenericDomainObject</em>. Laden Sie also ab sofort ein Message-Objekt aus der Datenbank,
-   erhalten Sie ein Objekt vom Typ "Message", auf welches sie ihre eigenen Funktionen anwenden können.
+   erhalten Sie ein Objekt vom Typ <em>Message</em>, auf welches sie ihre eigenen Funktionen anwenden können.
 </p>
 <p>
    Um ein neues Objekt zu erzeugen, binden Sie diese bitte mittels <em>use</em> ein um danach eine Instanz des Objektes

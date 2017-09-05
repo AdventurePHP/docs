@@ -1641,6 +1641,17 @@ TargetObject = "News"
    never needs to take care of converting the data to the correct format, the object can do it on it's own.
    An overview of available event-methods can be found in the chapter <a href="#Chapter-7-4-Event-methods">Event methods</a>.
 </p>
+<div class="hint">
+   <p>
+      Please note, that using <em>HtmlFormTag::fillForm()</em> and <em>HtmlFormTag::fillModel()</em> to automatically
+      fill forms and DTOs/modesl will only work in combination with generated domain objects. The form feature is based
+      on the assumption that the class variable names are the same as the form field names. Generic DTO implementation
+      <em>GenericDomainObject</em> does not support this since values are maintained in an internal array.
+   </p>
+   <p>
+      In order to use this feature, please also note chapter <int:link pageid="114" anchor="Chapter-10-Filling-DTOs-and-Models" />.
+   </p>
+</div>
 <p>
    The following chapters will show you how to configure, generate and use custom domain objects, and which events they support.
 </p>
@@ -1743,8 +1754,9 @@ $generator->generateServiceObjects();
    using the generator, in order to be able to restore them if any problem occurs!
 </div>
 <p>
-   An example for the generated file (this one is taken from the message object defined above) could look like this:
+   Please find below an example for the generated files:
 </p>
+<strong>MessageBase.php</strong>
 <gen:highlight type="php">
 namespace APF\extensions\postbox\biz;
 
@@ -1755,6 +1767,7 @@ namespace APF\extensions\postbox\biz;
  * You can change class "Message" which will extend this base-class.
  */
 use APF\extensions\postbox\biz\AbstractMessage;
+
 class MessageBase extends AbstractMessage {
 
    public function __construct($objectName = null) {
@@ -1782,12 +1795,16 @@ class MessageBase extends AbstractMessage {
 }
 
 // DO NOT CHANGE THIS COMMENT! <*MessageBase:end*>
+</gen:highlight>
 
+<strong>Message.php</strong>
+<gen:highlight type="php">
 /**
  * Domain object for "Message"
  * Use this class to add your own functions.
  */
 class Message extends MessageBase {
+
    /**
     * Call parent's function because the objectName needs to be set.
     */
@@ -1822,8 +1839,8 @@ class Message extends MessageBase {
 </p>
 <p>
    The o/r mapper recognizes itself, due to the configuration, that it needs to create a custom domain object when loading data.
-   That means, if you are loading any message (following the example above) from the database, you will now get a "Message"-object
-   instead of a <em>GenericDomainObject</em>, which will have all your custom methods.
+   That means, if you are loading any message (following the example above) from the database, you will now get a
+   <em>Message</em> object instead of a <em>GenericDomainObject</em>, which will have all your custom methods.
 </p>
 <p>
    Whenever you want to generate a new object, you just import the corresponding class using an appropriate  <em>use</em>
