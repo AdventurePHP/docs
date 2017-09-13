@@ -1,9 +1,9 @@
 $(document).ready(function () {
    $('.enlarge').lightBox({
-      imageBtnClose : 'http://media.adventure-php-framework.org/img/lightbox/lightbox-btn-close.gif',
-      imageLoading :  'http://media.adventure-php-framework.org/img/lightbox/lightbox-ico-loading.gif',
-      imageBtnPrev :  'http://media.adventure-php-framework.org/img/lightbox/lightbox-btn-prev.gif',
-      imageBtnNext :  'http://media.adventure-php-framework.org/img/lightbox/lightbox-btn-next.gif',
+      imageBtnClose : '/media/img/lightbox/lightbox-btn-close.gif',
+      imageLoading :  '/media/img/lightbox/lightbox-ico-loading.gif',
+      imageBtnPrev :  '/media/img/lightbox/lightbox-btn-prev.gif',
+      imageBtnNext :  '/media/img/lightbox/lightbox-btn-next.gif',
       keyToClose : 'c',
       keyToPrev: 'p',
       keyToNext: 'n',
