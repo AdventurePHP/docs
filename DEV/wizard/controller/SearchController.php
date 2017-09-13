@@ -87,9 +87,9 @@ class SearchController extends BaseDocumentController {
       // set page configuration to production values
       Registry::register('DOCS', 'Releases.LocalDir', $this->getLocalReleaseFolder());
       Registry::register('DOCS', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
-      Registry::register('DOCS', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
-      Registry::register('DOCS', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
-      Registry::register('DOCS', 'TrackerBaseURL', 'http://tracker.adventure-php-framework.org');
+      Registry::register('DOCS', 'ForumBaseURL', 'http://adventure-php-framework.org/forum');
+      Registry::register('DOCS', 'WikiBaseURL', 'http://adventure-php-framework.org/wiki');
+      Registry::register('DOCS', 'TrackerBaseURL', 'http://adventure-php-framework.org/tracker');
 
       // Register tags to avoid performance overhead
       Document::addTagLib(DocumentationLinkTag::class, 'doku', 'link');
