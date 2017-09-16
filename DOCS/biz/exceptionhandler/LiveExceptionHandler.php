@@ -5,7 +5,7 @@ use APF\core\exceptionhandler\DefaultExceptionHandler;
 
 class LiveExceptionHandler extends DefaultExceptionHandler {
 
-   public function handleException(\Exception $exception) {
+   public function handleException($exception) {
 
       // fill attributes
       $this->exceptionNumber = $exception->getCode();

@@ -79,11 +79,11 @@ OutputFilterChain::getInstance()->appendFilter(new ChainedUrlRewritingOutputFilt
 LinkGenerator::setLinkScheme(new RewriteLinkScheme());
 
 // configure page values
-Registry::register('DOCS', 'Releases.LocalDir', '/path/to/Build/RELEASES');
-Registry::register('DOCS', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
-Registry::register('DOCS', 'ForumBaseURL', 'http://forum.adventure-php-framework.org');
-Registry::register('DOCS', 'WikiBaseURL', 'http://wiki.adventure-php-framework.org');
-Registry::register('DOCS', 'TrackerBaseURL', 'http://tracker.adventure-php-framework.org');
+Registry::register('DOCS', 'Releases.LocalDir', '../files');
+Registry::register('DOCS', 'Releases.BaseURL', '/files');
+Registry::register('DOCS', 'ForumBaseURL', '/forum');
+Registry::register('DOCS', 'WikiBaseURL', '/wiki');
+Registry::register('DOCS', 'TrackerBaseURL', '/tracker');
 
 // special script kiddie error handler ;)
 GlobalErrorHandler::registerErrorHandler(new LiveErrorHandler());
@@ -107,6 +107,8 @@ Document::addTagLib(SidebarDisplayTag::class, 'sidebar', 'importdesign');
 Document::addTagLib(NewsDisplayTag::class, 'news', 'appendnode');
 Document::addTagLib(AntiSpamFormTag::class, 'form', 'antispam');
 Document::addTagLib(TrackingTag::class, 'tracking', 'pixel');
+
+Document::addTemplateExpression(\DOCS\pres\expression\BaseUrlExpression::class);
 
 /* @var $fC Frontcontroller */
 $fC = Singleton::getInstance(Frontcontroller::class);
