@@ -38,9 +38,6 @@ class MainController extends BaseDocumentController {
       // current title
       $this->setPlaceHolder('Title', $model->getTitle());
 
-      // current URI
-      $this->setPlaceHolder('URI', 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI']);
-
       // current date
       $TZDiff = date('O');
       $this->setPlaceHolder('Date', date('Y-m-d\TH:i:s') . substr($TZDiff, 0, 3) . ':' . substr($TZDiff, 3, 2));
