@@ -7,6 +7,8 @@ use DOCS\biz\UrlManager;
 
 class XmlSiteMapCreator extends APFObject {
 
+   const EOL = "\n";
+
    private $baseUrl = 'http://adventure-php-framework.org';
 
    public function createSitemap() {
@@ -23,20 +25,20 @@ class XmlSiteMapCreator extends APFObject {
       /* @var $urlMan UrlManager */
       $urlMan = &$this->getServiceObject(UrlManager::class);
 
-      $buffer = (string) '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
-      $buffer .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+      $buffer = '<?xml version="1.0" encoding="UTF-8"?>' . self::EOL;
+      $buffer .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . self::EOL;
 
       while ($data = $sql->fetchData($result)) {
          if ($data['PageID'] != '404') {
-            $buffer .= '   <url>' . PHP_EOL;
-            $buffer .= '      <loc>' . $this->baseUrl . $urlMan->generateLink($data['PageID'], $data['Language'], $data['Version']) . '</loc>' . PHP_EOL;
-            $buffer .= '      <lastmod>' . date('c', strtotime($data['ModificationTimestamp'])) . '</lastmod>' . PHP_EOL;
-            $buffer .= '      <changefreq>weekly</changefreq>' . PHP_EOL;
-            $buffer .= '   </url>' . PHP_EOL;
+            $buffer .= '   <url>' . self::EOL;
+            $buffer .= '      <loc>' . $this->baseUrl . $urlMan->generateLink($data['PageID'], $data['Language'], $data['Version']) . '</loc>' . self::EOL;
+            $buffer .= '      <lastmod>' . date('c', strtotime($data['ModificationTimestamp'])) . '</lastmod>' . self::EOL;
+            $buffer .= '      <changefreq>weekly</changefreq>' . self::EOL;
+            $buffer .= '   </url>' . self::EOL;
          }
       }
 
-      $buffer .= '</urlset>' . PHP_EOL;
+      $buffer .= '</urlset>' . self::EOL;
 
       return $buffer;
    }

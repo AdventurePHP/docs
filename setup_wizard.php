@@ -5,6 +5,8 @@ use APF\core\database\config\StatementConfigurationProvider;
 use APF\core\frontcontroller\Frontcontroller;
 use APF\core\loader\RootClassLoader;
 use APF\core\loader\StandardClassLoader;
+use APF\core\logging\Logger;
+use APF\core\registry\Registry;
 use APF\core\singleton\Singleton;
 
 // pre-define the root path of the root class loader (if necessary)
@@ -28,8 +30,19 @@ $sqlProvider->setOmitConfigSubFolder(true);
 $sqlProvider->setOmitContext(true);
 ConfigurationManager::registerProvider('sql', $sqlProvider);
 
+/* @var $l Logger */
+$l = Singleton::getInstance(Logger::class);
+$l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
+
+// configure logger for database debug messages
+$defaultWriter = $l->getLogWriter(
+      Registry::retrieve('APF\core', 'InternalLogTarget')
+);
+$l->addLogWriter('mysqli', clone $defaultWriter);
+$l->addLogWriter('searchlog', clone $defaultWriter);
+
 /* @var $fC Frontcontroller */
-$fC = &Singleton::getInstance(Frontcontroller::class);
+$fC = Singleton::getInstance(Frontcontroller::class);
 $fC->setContext('dummy');
 $fC->setLanguage('de');
 
