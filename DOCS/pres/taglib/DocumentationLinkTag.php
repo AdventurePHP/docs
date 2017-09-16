@@ -33,10 +33,10 @@ class DocumentationLinkTag extends Document {
    public function transform() {
 
       // remove blanks
-      $content = trim($this->content);
+      $content = trim(parent::transform());
 
       // initialize return value
-      $link = (string)'';
+      $link = '';
 
       // check, if content is present
       if (strlen($content) > 0) {
