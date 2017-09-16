@@ -19,7 +19,7 @@ class FaqController extends BaseDocumentController {
       // get forum database connection
       /* @var $cM ConnectionManager */
       $cM = &$this->getServiceObject(ConnectionManager::class);
-      $SQLForum = &$cM->getConnection('Forum');
+      $conn = &$cM->getConnection('Forum');
 
       // get configuration from the registry
       $forumBaseURL = Registry::retrieve('DOCS', 'ForumBaseURL');
@@ -33,28 +33,28 @@ class FaqController extends BaseDocumentController {
                        FROM `de_phpbb3_topics`
                        WHERE `forum_id` = \'6\'
                        ORDER BY topic_last_post_time DESC;';
-      $result = $SQLForum->executeTextStatement($select);
+      $result = $conn->executeTextStatement($select);
 
       // get template and pre-fill it
-      $templatePostsForum = &$this->getTemplate('PostsForum');
+      $template = &$this->getTemplate('PostsForum');
       $templateAuthorLabel = &$this->getTemplate('Author_' . $this->language);
       $templateCreationDateLabel = &$this->getTemplate('CreationDate_' . $this->language);
-      $templatePostsForum->setPlaceHolder('AuthorLabel', $templateAuthorLabel->transformTemplate());
-      $templatePostsForum->setPlaceHolder('CreationDateLabel', $templateCreationDateLabel->transformTemplate());
+      $template->setPlaceHolder('AuthorLabel', $templateAuthorLabel->transformTemplate());
+      $template->setPlaceHolder('CreationDateLabel', $templateCreationDateLabel->transformTemplate());
 
       // create post list
-      while ($data = $SQLForum->fetchData($result)) {
+      while ($data = $conn->fetchData($result)) {
 
          // fill template
-         $templatePostsForum->setPlaceHolder('Link', $forumBaseURL . '/' . $this->language . '/viewtopic.php?f=6&t=' . $data['topic_id']);
-         $templatePostsForum->setPlaceHolder('LinkText', utf8_encode($data['topic_title']));
-         $templatePostsForum->setPlaceHolder('Title', utf8_encode($data['topic_title']));
+         $template->setPlaceHolder('Link', $forumBaseURL . '/viewtopic.php?f=6&t=' . $data['topic_id']);
+         $template->setPlaceHolder('LinkText', utf8_encode($data['topic_title']));
+         $template->setPlaceHolder('Title', utf8_encode($data['topic_title']));
 
-         $templatePostsForum->setPlaceHolder('CreationDate', utf8_encode(date('Y-m-d, H:i:s', $data['topic_time'])));
-         $templatePostsForum->setPlaceHolder('Author', utf8_encode($data['topic_first_poster_name']));
+         $template->setPlaceHolder('CreationDate', utf8_encode(date('Y-m-d, H:i:s', $data['topic_time'])));
+         $template->setPlaceHolder('Author', utf8_encode($data['topic_first_poster_name']));
 
          // add current post to list
-         $this->setPlaceHolder('Entries', $templatePostsForum->transformTemplate(), true);
+         $this->setPlaceHolder('Entries', $template->transformTemplate(), true);
 
       }
 
