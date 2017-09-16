@@ -85,11 +85,11 @@ class SearchController extends BaseDocumentController {
       $l->addLogWriter('searchlog', clone $stdWriter);
 
       // set page configuration to production values
-      Registry::register('DOCS', 'Releases.LocalDir', $this->getLocalReleaseFolder());
-      Registry::register('DOCS', 'Releases.BaseURL', 'http://files.adventure-php-framework.org');
-      Registry::register('DOCS', 'ForumBaseURL', 'http://adventure-php-framework.org/forum');
-      Registry::register('DOCS', 'WikiBaseURL', 'http://adventure-php-framework.org/wiki');
-      Registry::register('DOCS', 'TrackerBaseURL', 'http://adventure-php-framework.org/tracker');
+      Registry::register('DOCS', 'Releases.LocalDir', '../files');
+      Registry::register('DOCS', 'Releases.BaseURL', '/files');
+      Registry::register('DOCS', 'ForumBaseURL', '/forum');
+      Registry::register('DOCS', 'WikiBaseURL', '/wiki');
+      Registry::register('DOCS', 'TrackerBaseURL', '/tracker');
 
       // Register tags to avoid performance overhead
       Document::addTagLib(DocumentationLinkTag::class, 'doku', 'link');
@@ -125,20 +125,6 @@ class SearchController extends BaseDocumentController {
          $indexer->importArticles();
       }
 
-   }
-
-   private function getLocalReleaseFolder() {
-
-      // read index.php and gather "'DOCS', 'Releases.LocalDir'"
-      $folder = null;
-      foreach (file('index.php') as $line) {
-         if (strpos($line, '\'Releases.LocalDir\'') !== false) {
-            preg_match('/Registry::register\(\'(.+)\', \'(.+)\', \'(.+)\'\);/', $line, $matches);
-            $folder = $matches[3];
-         }
-      }
-
-      return $folder;
    }
 
 } 
