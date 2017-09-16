@@ -86,7 +86,7 @@ class SearchController extends BaseDocumentController {
 
       // set page configuration to production values
       Registry::register('DOCS', 'Releases.LocalDir', '../files');
-      Registry::register('DOCS', 'Releases.BaseURL', '/files');
+      Registry::register('DOCS', 'FilesBaseURL', '/files');
       Registry::register('DOCS', 'ForumBaseURL', '/forum');
       Registry::register('DOCS', 'WikiBaseURL', '/wiki');
       Registry::register('DOCS', 'TrackerBaseURL', '/tracker');

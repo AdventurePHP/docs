@@ -42,7 +42,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
 
    public function __construct() {
       $this->releasesLocalDir = Registry::retrieve('DOCS', 'Releases.LocalDir');
-      $this->releasesBaseURL = Registry::retrieve('DOCS', 'Releases.BaseURL');
+      $this->releasesBaseURL = Registry::retrieve('DOCS', 'FilesBaseURL');
    }
 
    /**
