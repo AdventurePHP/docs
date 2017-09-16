@@ -8,15 +8,14 @@ use APF\core\loader\StandardClassLoader;
 use APF\core\singleton\Singleton;
 
 // pre-define the root path of the root class loader (if necessary)
-$dir = dirname(dirname($_SERVER['SCRIPT_FILENAME']));
-$apfClassLoaderRootPath = $dir . '/APF';
-$apfClassLoaderConfigurationRootPath = $dir . '/config/APF';
-include('../APF/core/bootstrap.php');
+$apfClassLoaderRootPath = __DIR__ . './APF';
+$apfClassLoaderConfigurationRootPath = __DIR__ . '/config/APF';
+include('./APF/core/bootstrap.php');
 
-RootClassLoader::addLoader(new StandardClassLoader('DEV', $dir . '/DEV', $dir . '/config/DEV'));
+RootClassLoader::addLoader(new StandardClassLoader('DEV', __DIR__ . '/DEV', __DIR__ . '/config/DEV'));
 
 // Define class loader for documentation page resources
-RootClassLoader::addLoader(new StandardClassLoader('DOCS', $dir . '/DOCS', $dir . '/config/DOCS'));
+RootClassLoader::addLoader(new StandardClassLoader('DOCS', __DIR__ . '/DOCS', __DIR__ . '/config/DOCS'));
 
 /* @var $iniProvider IniConfigurationProvider */
 $iniProvider = ConfigurationManager::retrieveProvider('ini');
