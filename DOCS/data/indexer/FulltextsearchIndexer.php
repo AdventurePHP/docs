@@ -36,7 +36,7 @@ class FulltextsearchIndexer extends APFObject {
     * @private
     * @var string Content dir.
     */
-   private $contentFolder = '../DOCS/pres/content';
+   private $contentFolder = './DOCS/pres/content';
 
    private $charset;
 
@@ -303,11 +303,14 @@ class FulltextsearchIndexer extends APFObject {
       $model->setVersionId($version);
       $model->setPageContentFileName('c_' . $lang . '_' . $fileName . '.html');
       $model->setAttribute('page.language', $lang);
+      $model->setAttribute('content.filepath', './DOCS/pres');
 
       Document::addTagLib('DOCS\pres\taglib\DocumentationLinkTag', 'doku', 'link');
       Document::addTagLib('DOCS\pres\taglib\DocumentationTitleTag', 'doku', 'title');
       Document::addTagLib('DOCS\pres\taglib\GenericHighlightTag', 'gen', 'highlight');
       Document::addTagLib('DOCS\pres\taglib\InternalLinkTag', 'int', 'link');
+
+      Document::addTemplateExpression(\DOCS\pres\expression\BaseUrlExpression::class);
 
       // create a page
       $currentPage = new Page();

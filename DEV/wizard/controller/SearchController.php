@@ -85,7 +85,7 @@ class SearchController extends BaseDocumentController {
       $l->addLogWriter('searchlog', clone $stdWriter);
 
       // set page configuration to production values
-      Registry::register('DOCS', 'Releases.LocalDir', '../files');
+      Registry::register('DOCS', 'Releases.LocalDir', './files');
       Registry::register('DOCS', 'FilesBaseURL', '/files');
       Registry::register('DOCS', 'ForumBaseURL', '/forum');
       Registry::register('DOCS', 'WikiBaseURL', '/wiki');
@@ -116,7 +116,7 @@ class SearchController extends BaseDocumentController {
 
       $indexer = new FulltextsearchIndexer();
       $indexer->setContext($this->getContext());
-      $indexer->setContentFolder('../DOCS/pres/content');
+      $indexer->setContentFolder('./DOCS/pres/content');
 
       // execute desired job
       if ($job == self::CREATE_INDEX) {
