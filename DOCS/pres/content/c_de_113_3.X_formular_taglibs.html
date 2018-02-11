@@ -1312,7 +1312,7 @@ class SignUpController extends BaseDocumentController {
    Der Formular-Element-Tag besitzt folgende Signatur:
 </p>
 <gen:highlight type="apf-xml">
-   &lt;form:html5-number name="" [value=""]/&gt;
+&lt;form:html5-number name="" [value=""]/&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
@@ -1346,7 +1346,7 @@ class SignUpController extends BaseDocumentController {
    Der Formular-Element-Tag besitzt folgende Signatur:
 </p>
 <gen:highlight type="apf-xml">
-   &lt;form:html5-tel name="" [value=""]/&gt;
+&lt;form:html5-tel name="" [value=""]/&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
@@ -1381,7 +1381,7 @@ class SignUpController extends BaseDocumentController {
    Der Formular-Element-Tag besitzt folgende Signatur:
 </p>
 <gen:highlight type="apf-xml">
-   &lt;form:html5-email name="" [value=""]/&gt;
+&lt;form:html5-email name="" [value=""]/&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
@@ -1417,7 +1417,7 @@ class SignUpController extends BaseDocumentController {
    Der Formular-Element-Tag besitzt folgende Signatur:
 </p>
 <gen:highlight type="apf-xml">
-   &lt;form:html5-url name="" [value=""]/&gt;
+&lt;form:html5-url name="" [value=""]/&gt;
 </gen:highlight>
 <strong>Beschreibung der Attribute:</strong>
 <ul>
@@ -1442,6 +1442,177 @@ class SignUpController extends BaseDocumentController {
    Weitere Informationen finden Sie unter
    <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/url">mozilla.org</a>.
 </div>
+
+<h4 id="Chapter-3-36-Block"><a href="#Chapter-3-36-Block">3.36. Formular-Block</a></h4>
+<p>
+   Der <em>&lt;form:block/&gt;</em>-Tag erlaubt die Definition von wiederverwendbaren Blöcken - bestehend aus beliebigem
+   HTML-Markup und APF-Tags -, die sich innerhalb eines Formulars oder einer Applikation wiederholen. Durch die Definition
+   eines Block-Templates lassen sich mehrfach verwendete Strukturen elegant auslagern und bei Bedarf zentral anpassen.
+</p>
+<p>
+   Inbesondere bei der Verwendung von Frontend-Frameworks wie z.B. Twitter Bootstrap hilft die Definition von
+   Formular-Blöcken <em>boilerplate-Code</em> zu vermeiden und Formular-Felder inklusive umschließendem HTML-Markup
+   zentral zu definieren.
+</p>
+<p>
+   Ein Formular-Block wird duch ein APF-Template repräsentiert, das beliebiges HTML-Markup und die gewünschten
+   Formular-Elemente beinhaltet. Um einen Block mehrfach und mit unterschiedlicher Konfiguration einsetzen zu können,
+   lassen sich innerhalb des Templates dynamische Platzhalter definieren. Diese werden zur Laufzeit mit den gewünschten
+   Werten ersetzt werden.
+</p>
+<p>
+   Der Formular-Block-Tag besitzt folgende Signatur:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:block
+   namespace="..."
+   template="..."
+   [block-abc=...
+   block-xyz=...]
+/&gt;
+</gen:highlight>
+<strong>Beschreibung der Attribute:</strong>
+<ul>
+   <li>
+      <strong>namespace</strong>: Ein mit "\" getrennter Namespace-Pfad. (<strong>Zeichen</strong>: [A-Za-z0-9_\])
+   </li>
+   <li>
+      <strong>template</strong>: Name eines Templates. (<strong>Zeichen</strong>: [A-Za-z0-9-_])
+   </li>
+   <li>
+      <strong>block-*</strong>: dynamische Platzhalter zur Konfiguration des Formular-Blocks.
+      (<strong>Zeichen</strong>: [A-Za-z0-9-_])
+   </li>
+</ul>
+
+<h5 id="Chapter-3-36-1-Template"><a href="#Chapter-3-36-1-Template">3.36.1. Template-Definition</a></h5>
+<p>
+   Der folgende <em>Formular-Block</em> definiert ein Text-Feld inkl. zugehörigem Label und einem
+   <em>&lt;form:listener /&gt;</em>-Tag zur Ausgabe von Feld-basierten Fehlermeldungen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;div class="..."&gt;
+   &lt;form:label name="${name}-label" for="${name}" class="..."&gt;${label}&lt;/form:label&gt;
+   &lt;div class="..."&gt;
+      &lt;form:text name="${name}" id="${name}" class="..."/&gt;
+      &lt;form:listener name="${name}-listener" control="${name}"&gt;
+         &lt;span class="..."&gt;${listener}&lt;/span&gt;
+      &lt;/form:listener&gt;
+   &lt;/div&gt;
+&lt;/div&gt;
+</gen:highlight>
+<p>
+   Die Platzhalter <em>&#36;{name}</em>, <em>&#36;{label}</em> und <em>&#36;{listener}</em> dienen der dynamischen
+   Konfiguration der jeweils definierten Formular-Felder für den jeweiligen Anwendungsfall.
+</p>
+
+<h5 id="Chapter-3-36-2-Formular-Definition"><a href="#Chapter-3-36-2-Formular-Definition">3.36.2. Formular-Definition</a></h5>
+<p>
+   Der in <a href="#Chapter-3-36-1-Template">Kapitel 3.36.1</a> definierte Formular-Block lässt sich wie folgt zur
+   Abfrage der postalischen Adresse in einem Anmelde-Formular einsetzen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="sign-up"&gt;
+
+   &lt;h2&gt;Anmeldung&lt;/h2&gt;
+
+   ...
+
+   &lt;form:block
+         namespace="VENDOR\path\to\signup\templates"
+         template="form-block-1"
+         block-name="street"
+         block-label="Straße"
+         block-listener="Bitte geben Sie eine Straße ein!"
+   /&gt;
+
+   &lt;form:block
+         namespace="VENDOR\path\to\signup\templates"
+         template="form-block-1"
+         block-name="number"
+         block-label="Hausnummer"
+         block-listener="Bitte geben Sie eine Hausnummer ein!"
+   /&gt;
+
+   &lt;form:block
+         namespace="VENDOR\path\to\signup\templates"
+         template="form-block-1"
+         block-name="zip"
+         block-label="PLZ"
+         block-listener="Bitte geben Sie eine Postleitzahl ein!"
+   /&gt;
+
+   &lt;form:block
+         namespace="VENDOR\path\to\signup\templates"
+         template="form-block-1"
+         block-name="city"
+         block-label="Stadt"
+         block-listener="Bitte geben Sie eine Stadt ein!"
+   /&gt;
+
+   &lt;form:button name="send" value="Save"/&gt;
+
+   &lt;form:addvalidator
+         class="APF\tools\form\validator\TextLengthValidator"
+         control="street|number|zip|city"
+         button="send"
+   /&gt;
+
+   ...
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Im Attribute <em>namespace</em> des <em>&lt;form:block /&gt;</em>-Tags wird der Namespace bzw. der Pfad angegeben,
+   unter dem das Block-Template zu finden ist. Die Definition erfolgt analog zum
+   <int:link pageid="046" anchor="Chapter-1-2-Importdesign">&lt;core:importdesign /&gt;</int:link>-Tag.
+</p>
+<p>
+   Das Attribut <em>template</em> definiert - ebenfalls analog zum
+   <int:link pageid="046" anchor="Chapter-1-2-Importdesign">&lt;core:importdesign /&gt;</int:link>-Tag - den Namen des
+   APF-Templates, in dem der wiederverwendbare Formular-Block definiert ist (siehe
+   <a href="#Chapter-3-36-1-Template">Kapitel 3.36.1</a>).
+</p>
+<p>
+   Die mit dem Präxix <em>block-</em> beginnenden Attribute dienen der dynamischen Konfiguration eines Blocks. Sie stehen
+   innerhalb des Block-Templates als dynamische Platzhalter zur Verfügung. Mit dem Tag-Attribut <em>block-name</em>
+   definieren Sie beispielsweise den Platzhalter <em>&#36;{name}</em> innerhalb des Block-Templates. Pro
+   <em>&lt;form:block /&gt;</em>-Tag lassen sich eine beliebige Anzahl solcher Platzhalter definieren.
+</p>
+<p>
+   Im obigen Code-Block werden die Platzhalter <em>&#36;{name}</em>, <em>&#36;{label}</em> und <em>&#36;{listener}</em>
+   definiert um die dynamische Beschriftung der Felder sowie der Labels zu gewährleisten und einen Hinweistext bei
+   Fehleingabe anzuzeigen.
+</p>
+<p>
+   Aus der Tag-Definition
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:block
+      namespace="VENDOR\path\to\signup\templates"
+      template="form-block-1"
+      block-name="street"
+      block-label="Straße"
+      block-listener="Bitte geben Sie eine Straße ein!"
+/&gt;
+</gen:highlight>
+<p>
+   wird zur Laufzeit der folgende APF-Template-Code generiert und geladen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;div class="..."&gt;
+   &lt;form:label name="street-label" for="street" class="..."&gt;Straße&lt;/form:label&gt;
+   &lt;div class="..."&gt;
+      &lt;form:text name="street" id="street" class="..."/&gt;
+      &lt;form:listener name="street-listener" control="street"&gt;
+         &lt;span class="..."&gt;Bitte geben Sie eine Straße ein!&lt;/span&gt;
+      &lt;/form:listener&gt;
+   &lt;/div&gt;
+&lt;/div&gt;
+</gen:highlight>
+<p>
+   Die dynamisch generierten Felder - z.B. das Text-Feld <em>street</em> - stehen wie statisch definierte Felder in
+   Formular und Controller zur Verfügung.
+</p>
 
 <h3 id="Chapter-4-Validierung"><a href="#Chapter-4-Validierung">4. Validierung</a></h3>
 <p>
