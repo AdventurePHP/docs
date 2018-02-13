@@ -1408,6 +1408,174 @@ class SignUpController extends BaseDocumentController {
    <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/url">mozilla.org</a>.
 </div>
 
+<h4 id="Chapter-3-36-Block"><a href="#Chapter-3-36-Block">3.36. Form block</a></h4>
+<p>
+   The <em>&lt;form:block/&gt;</em> tag is intended to define re-usable blocks - arbitrary HTML markup and APF tags - that can
+   be used multiple times within a single form or application. Defining blocks, recurring structures can be centralized
+   to ease adaption.
+</p>
+<p>
+   Using front-end frameworks such as Twitter Bootstrap, using form blocks helps to avoid <em>boilerplate code</em> and
+   lets you define form field definition including surrounding markup.
+</p>
+<p>
+   A form block is represented by an APF template containing arbitrary HTML markup as well as the desired form components.
+   In order to adapt the form block to the respective use case, the block template may contain any number of dynamic
+   place holders. Based on the tag definition, place holders are replaced on runtime to pre-configure the form block for
+   the respective use case.
+</p>
+<p>
+   The form block tag signature is as follows:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:block
+   namespace="..."
+   template="..."
+   [block-abc=...
+   block-xyz=...]
+/&gt;
+</gen:highlight>
+<strong>Description of the attributes:</strong>
+<ul>
+   <li>
+      <strong>namespace</strong>: Namespace path separated by &quot;\&quot;. (<strong>Allowed characters</strong>: [A-Za-z0-9_\])
+   </li>
+   <li>
+      <strong>template</strong>: Name of the desired template. (<strong>Allowed characters</strong>: [A-Za-z0-9-_])
+   </li>
+   <li>
+      <strong>block-*</strong>: dynamic place holders to configure the form block.
+      (<strong>Allowed characters</strong>: [A-Za-z0-9-_])
+   </li>
+</ul>
+
+<h5 id="Chapter-3-36-1-Template-definition"><a href="#Chapter-3-36-1-Template-definition">3.36.1. Template definition</a></h5>
+<p>
+   The following <em>form block</em> defines a text field including a label as well as a <em>&lt;form:listener /&gt;</em>
+   tag to display field-related error messages:
+</p>
+<gen:highlight type="apf-xml">
+&lt;div class="..."&gt;
+   &lt;form:label name="${name}-label" for="${name}" class="..."&gt;${label}&lt;/form:label&gt;
+   &lt;div class="..."&gt;
+      &lt;form:text name="${name}" id="${name}" class="..."/&gt;
+      &lt;form:listener name="${name}-listener" control="${name}"&gt;
+         &lt;span class="..."&gt;${listener}&lt;/span&gt;
+      &lt;/form:listener&gt;
+   &lt;/div&gt;
+&lt;/div&gt;
+</gen:highlight>
+<p>
+   Place holders <em>&#36;{name}</em>, <em>&#36;{label}</em>, and <em>&#36;{listener}</em> are used to dynamically
+   configure the form controls for the respective use case.
+</p>
+
+<h5 id="Chapter-3-36-2-Form-definition"><a href="#Chapter-3-36-2-Form-definition">3.36.2. Form definition</a></h5>
+<p>
+   The form block defined in <a href="#Chapter-3-36-1-Template-definition">chapter 3.36.1</a> can be used to request
+   a user's postal address within a sign-up form:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="sign-up"&gt;
+
+   &lt;h2&gt;Sign-up&lt;/h2&gt;
+
+   ...
+
+   &lt;form:block
+         namespace="VENDOR\path\to\signup\templates"
+         template="form-block-1"
+         block-name="street"
+         block-label="Street"
+         block-listener="Please provide a valid street!"
+   /&gt;
+
+   &lt;form:block
+         namespace="VENDOR\path\to\signup\templates"
+         template="form-block-1"
+         block-name="number"
+         block-label="Number"
+         block-listener="Please provide a valid house number!"
+   /&gt;
+
+   &lt;form:block
+         namespace="VENDOR\path\to\signup\templates"
+         template="form-block-1"
+         block-name="zip"
+         block-label="ZIP"
+         block-listener="Please provide a valid ZIP code!"
+   /&gt;
+
+   &lt;form:block
+         namespace="VENDOR\path\to\signup\templates"
+         template="form-block-1"
+         block-name="city"
+         block-label="City"
+         block-listener="Please provide a valid city!"
+   /&gt;
+
+   &lt;form:button name="send" value="Sign-up"/&gt;
+
+   &lt;form:addvalidator
+         class="APF\tools\form\validator\TextLengthValidator"
+         control="street|number|zip|city"
+         button="send"
+   /&gt;
+
+   ...
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Attribute <em>namespace</em> of the <em>&lt;form:block /&gt;</em> tags defines the namespace or path where the block
+   template resides. Definition of namespaces is according to the
+   <int:link pageid="046" anchor="Chapter-1-2-Importdesign">&lt;core:importdesign /&gt;</int:link> tag.
+</p>
+<p>
+   Attribute <em>template</em> defines the name of the APF template defining the re-usable form block (see
+   <a href="#Chapter-3-36-1-Template-definition">chapter 3.36.1</a>) - again the same way as
+   see <int:link pageid="046" anchor="Chapter-1-2-Importdesign">&lt;core:importdesign /&gt;</int:link> tag.
+</p>
+<p>
+   All attributes starting with prefix <em>block-</em> are designed to dynamically configure the block. Within the block
+   template, all attributes are available as dynamic place holders. For instance, tag attribute <em>block-name</em>
+   defines place holder <em>&#36;{name}</em> within the block template. You can define any number of such place holders
+   per <em>&lt;form:block /&gt;</em> tag.
+</p>
+<p>
+   Above blocks defines place holders <em>&#36;{name}</em>, <em>&#36;{label}</em>, and <em>&#36;{listener}</em> to
+   ensure dynamic labelling of the form fields as well as to display an appropriate error message.
+</p>
+<p>
+   Tag definition
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:block
+      namespace="VENDOR\path\to\signup\templates"
+      template="form-block-1"
+      block-name="street"
+      block-label="Street"
+      block-listener="Please provide a valid street!"
+/&gt;
+</gen:highlight>
+<p>
+   is transformed into the follwing APF code at runtime:
+</p>
+<gen:highlight type="apf-xml">
+&lt;div class="..."&gt;
+   &lt;form:label name="street-label" for="street" class="..."&gt;Street&lt;/form:label&gt;
+   &lt;div class="..."&gt;
+      &lt;form:text name="street" id="street" class="..."/&gt;
+      &lt;form:listener name="street-listener" control="street"&gt;
+         &lt;span class="..."&gt;Please provide a valid street!&lt;/span&gt;
+      &lt;/form:listener&gt;
+   &lt;/div&gt;
+&lt;/div&gt;
+</gen:highlight>
+<p>
+   All fields dynamically generated - i.e. text field <em>street</em> - are handled the same way as statically defined
+   form controls. You can access and manipulate any of the fields the same way from your form or controller.
+</p>
+
 <h3 id="Chapter-4-Validation"><a href="#Chapter-4-Validation">4. Validation</a></h3>
 <p>
    Validators are applied by an own tag, that follows
