@@ -274,8 +274,8 @@ class FormController extends BaseDocumentController {
    Bei der Validierung von Formularen werden monierte Felder üblicherweise farblich markiert und der
    Benutzer mit einem Hinweistext benachrichtigt. Für diese Aufgaben können die Tags
    <strong>&lt;form:error /&gt;</strong> (globale Formular-Fehlermeldungen) und
-   <strong>&lt;form:listener /&gt;</strong> verwendet werden. Alternativ dazu ist ein Platzhalter-Tag
-   verfügbar, das im Controller mit einem entsprechenden Wert belegt werden kann.
+   <strong>&lt;form:listener /&gt;</strong> verwendet werden. Alternativ dazu können Sie einen Platzhalter-Tag nutzen und
+   diesen im Controller mit einem entsprechenden Wert belegen.
 </p>
 
 <h5 id="Chapter-3-2-1-Form-Error"><a href="#Chapter-3-2-1-Form-Error">3.2.1. Form-Error</a></h5>
@@ -319,9 +319,9 @@ class FormController extends BaseDocumentController {
 
 <h5 id="Chapter-3-2-2-Listener"><a href="#Chapter-3-2-2-Listener">3.2.2. Listener</a></h5>
 <p>
-   Der <strong>&lt;form:listener /&gt;</strong>-Tag dient dazu Feld-speziefische Fehler anzuzeigen. Wie
+   Der <em>&lt;form:listener /&gt;</em>-Tag dient dazu Feld-speziefische Fehler anzuzeigen. Wie
    in der Einleitung zum Kapitel 3 angesprochen, wird bei fehlgeschlagener Validierung die Methode
-   <strong>notify()</strong> aufgerufen. Diese benachrichtigt alle Listener, die sich auf das
+   <em>notify()</em> aufgerufen. Diese benachrichtigt alle Listener, die sich auf das
    entsprechende Control registriert haben und diese geben dann bei der Transformation den definierten
    Inhalt aus.
 </p>
@@ -367,6 +367,35 @@ class FormController extends BaseDocumentController {
    Innerhalb des <strong>&lt;form:listener /&gt;</strong>-Tags können gemäß
    <int:link pageid="113" anchor="Chapter-3-18-Listener">Listener</int:link> noch weitere Tags zur
    Definition der Inhalte verwendet werden.
+</p>
+
+<h5 id="Chapter-3-2-3-HTML-Validation-Marker"><a href="#Chapter-3-2-3-HTML-Validation-Marker">3.2.3. HTML-Markierung</a></h5>
+<p>
+   Möchten Sie zusätzlich zum <a href="#Chapter-3-2-2-Listener">&lt;form:listener /&gt;</a>-Tag weitere HTML-Elemente -
+   beispielsweise einen umschließenden <em>&lt;div /&gt;</em>-Container - mit einer CSS-Klasse versehen, so steht Ihnen
+   die erweiterte Template-Funktion
+</p>
+<gen:highlight type="apf-xml">
+&#36;{validationMarker(control name[, content])}
+</gen:highlight>
+<p>
+   zur Verfügung. Ist das im ersten Argument referenzierte Feld als invalide markiert, wird die in
+   <em>AbstractFormValidator::$DEFAULT_MARKER_CLASS</em> definierten CSS-Klasse (<em>apf-form-error</em>) ausgegeben.
+   Möchten Sie eine eigene CSS-Klasse verwenden, so lässt sich hierzu das zweite Argument nutzen.
+</p>
+<p>
+   Der folgende Code-Block definiert einen Marker für den umliegenden Container, der bei fehlgeschlagener Validierung
+   des Feldes <em>name</em> mit der Klasse <em>my-form-error</em> annotiert wird:
+</p>
+<gen:highlight type="apf-xml">
+&lt;div class="form-wrapper &#36;{validationMarker(name, my-form-error)}"&gt;
+   &lt;form:label for="name"&gt;Name&lt;/form:label&gt;
+   &lt;form:text name="name" id="name" /&gt;
+&lt;/div&gt;
+</gen:highlight>
+<p>
+   Zur Markierung von umliegenden HTML-Strukturen lassen sich beliebig viele solcher Marker definieren - wahlweise auch
+   mit unterschiedlichen CSS-Klassen für unterschiedliche Anwendungsfälle.
 </p>
 
 <h4 id="Chapter-3-3-Nachtraegliche-Validierung"><a href="#Chapter-3-3-Nachtraegliche-Validierung">3.3. Nachträgliche Validierung im Controller</a></h4>
