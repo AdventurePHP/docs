@@ -1,0 +1,2625 @@
+<doku:title parent="119" tags="forumlare,form,aufbau,validierung,manipulation,befuellung,auslesen,dynamische formulare,controller" title="Verwendung von Formularen" urlname="Verwendung-von-Formularen">
+  Diese Dokumentationsseite beschreibt den Aufbau und die Verwendung von Formularen so wie die
+  Möglichkeiten, die sich aus dem APF-Formular-Modell ergeben. Dazu zählen die Validierung 
+  und das Vorausfüllen, sowie die Möglichkeit, Formular-Elemente (=Objekte) im Controller
+  zu manipulieren, zu befüllen oder diese auszulesen. Weiterhin wird die dynamische
+  Formular-Erstellung beschrieben.
+</doku:title>
+<p>
+   Das Adventure PHP Framework beinhaltet eine sehr umfangreiche Formular-Unterstützung die auf dem
+   Taglibs-Konzept basiert. Die Grundlagen und vorhandenen Taglibs sind im Abschnitt <int:link pageid="113" /> beschrieben.
+   Dieses Kapitel beschäftigt sich nun mit der Verwendung von Formularen, der dynamischen Formular-Generierung
+   und der Erweiterung der Formular-Taglibs.
+</p>
+
+<h3 id="Chapter-1-Formulare-und-Controller"><a href="#Chapter-1-Formulare-und-Controller">1. Formulare &amp; Controller</a></h3>
+<p>
+   Formulare sind - genau wie Template-Fragmente - Elemente, die im DOM-Baum existieren, jedoch bei der
+   Transformation nicht automatisch ausgegeben werden. Hierzu bedarf es eines Document-Controller. Der
+   Grund dafür ist simple: nahezu jedes Formular ist an Aktionen geknüpft, die mit dem Absenden
+   des Formulars ausgeführt werden sollen (z.B. Speichern der Daten).
+</p>
+<p>
+   Um ein Formular mit Hilfe eines Document-Controller auszugeben, ist folgender Code notwendig:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class FormController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('Search');
+      $form->transformOnPlace();
+   }
+}
+</gen:highlight>
+<p>
+   In der Variable <strong>$form</strong> steht dabei eine Instanz der Klasse
+   <strong>HtmlFormTag</strong> zur Verfügung, die ein APF-Formular mit all seinen Elementen und
+   Funktionen kapselt. Mit Hilfe dieser Referenz auf das Formular-Objekt im DOM-Baum kann das Formular
+   ausgegeben, manipuliert, befüllt und angepasst werden. Details dazu können den folgenden Kapiteln
+   entnommen werden.
+</p>
+
+<h3 id="Chapter-2-API-der-Formular-Taglibs"><a href="#Chapter-2-API-der-Formular-Taglibs">2. API der Formular-Taglibs</a></h3>
+<p>
+   Im vorangegangenen Abschnitt wurde beschrieben, wie ein Formular in einem Document-Controller
+   referenziert werden kann. In diesem Kapitel beschäftigen wir uns nun mit der API der
+   Formular-Taglibs, die Aufschluss darüber gibt, welche Möglichkeiten die Formular-Integration des
+   APF bietet.
+</p>
+<div class="hint">
+   Für die Entwicklung ist es stets ratsam, die <int:link pageid="002"/>
+   der eingesetzten Version parallel zur Entwicklungsumgebung geöffnet zu haben. Dies erleichtert
+   die Arbeit, da jede Taglib ihre eigene API mitbringt, die in der API-DOkumentation genau
+   beschrieben ist.
+</div>
+<p>
+   Grundlage für alle Formular-Elemente ist die Klasse <strong>AbstractFormControl</strong>. Diese
+   implementiert Basis-Funktionalitäten für alle konkreten Formular-Elemente und definiert die
+   Struktur eines Formular-Elements. Da die Formular-Elemente als Taglibs ausgeführt sind, unterliegen
+   sie dem <int:link pageid="098" chapter="Chapter-2-1-Ablaufdiagramm">Lifecycle des Page-Controllers</int:link>.
+   Das bedeutet, dass sie darüber hinaus alle Methoden einer &quot;normalen&quot; Taglib
+   implementieren müssen.
+</p>
+<div class="hint">
+   Formular-Elemente kennen jeweils ihren Validitäts-Status selbst. Damit kann jedes Element nach seinem Status
+   gefragt werden. Für das Formular selbst bedeutet das, dass die Methode <strong>isValid()</strong> den Status
+   von jedem Element abfragt und daraus einen kumulierten Wert erzeugt.
+</div>
+<p>
+   Die Klasse <strong>AbstractFormControl</strong> implementierten folgende Methoden:
+</p>
+<ul>
+   <li>
+      <strong>isValid():</strong> Die Funktion ermöglicht es, den Validitäts-Status der
+      Formular-Elements abzufragen. Intern oder auch von aussen.
+   </li>
+   <li>
+      <strong>markAsInvalid():</strong> Markiert ein Element als invalid.
+   </li>
+   <li>
+      <strong>markAsValid():</strong> Markiert ein Element als valide.
+   </li>
+   <li>
+      <strong>markAsSent():</strong> Markiert ein Element als abgesendet (relevant für Formulare
+      und Buttons).
+   </li>
+   <li>
+      <strong>isSent():</strong> Prüft, ob ein Formular abgesendet wurde.
+   </li>
+   <li>
+      <strong>isChecked():</strong> Gibt zurück, ob eine Checkbox angehakt wurde oder nicht.
+   </li>
+   <li>
+      <strong>check():</strong> Hakt eine Checkbox an.
+   </li>
+   <li>
+      <strong>uncheck():</strong> Deaktiviert eine Checkbox.
+   </li>
+   <li>
+      <strong>getValue():</strong> Gibt den Inhalt eines Elements zurück. Normalerweise ist dies der Inhalt des
+      "value"-Attribut, außer bei Sonderfällen wie z.B. Textareas, bei denen Usereingaben im Inhaltsbereich
+      des Tags stehen.
+   </li>
+   <li>
+      <strong>setValue():</strong> Setzt den Inhalt eines Elements. Normalerweise ist dies der Inhalt des
+      "value"-Attribut, außer bei Sonderfällen wie z.B. Textareas, bei denen Usereingaben im Inhaltsbereich
+      des Tags stehen.
+   </li>
+   <li>
+      <strong>isFilled():</strong> Gibt bei ausgefülltem Textfeld oder ausgefüllter Textarea <em>true</em> zurück,
+          andernfalls <em>false</em>. Dies funktioniert nur bei Textfeldern und Textareas (form:text und form:area).
+   </li>
+   <li>
+      <strong>isSelected():</strong> Gibt bei einer Auswahl in einem Single- oder Multiselect <em>true</em> zurück,
+          andernfalls <em>false</em>. Es muss dazu eine Option, welche einen Wert enthält, selektiert werden. Wird ein
+          Wert selektiert, welcher ledigiglich <em>""</em> liefert, wird ebenfalls <em>false</em> von dieser
+          Methode zurück gegeben. Dies funktioniert bei einfachen sowie mehrfachen Auswahlfeldern (form:select und
+          form:multiselect).
+   </li>
+   <li>
+      <strong>isVisible():</strong> Gibt den Sichtbarkeits-Status des Elements zurück. <em>true</em> referenziert auf
+      ein sichtbares Element, <em>false</em> markiert ein Element, das bei der Ausgabe nicht angezeigt wird.
+   </li>
+   <li>
+      <strong>hide():</strong> Versteckt ein Formular-Feld für die Ausgabe.
+   </li>
+   <li>
+      <strong>show():</strong> Setzt den Sichtbarkeits-Status des Elements auf <em>true</em>.
+   </li>
+   <li>
+      <strong>reset():</strong> Setzt ein Formular-Element auf seinen ursprünglichen Zustand zurück. Details zur
+      Verwendung entnehmen Sie bitte <a href="#Chapter-9-Zuruecksetzen-von-Formularen">Kapitel 9</a>.
+   </li>
+   <li>
+      <strong>addFilter():</strong> Fügt einen Filter zu einem Element hinzu.
+   </li>
+   <li>
+      <strong>addValidator():</strong> Fügt einen Validator zu einem Element hinzu.
+   </li>
+   <li>
+      <strong>getFilters():</strong> Liefert die beim Formular-Feld registrierten Filter. Diese Information kann
+      insbesondere für die Generierung von Java-Script-Anweisungen für Client-seitige Filterung genutzt werden.
+   </li>
+   <li>
+      <strong>getValidators():</strong> Liefert die beim Formular-Feld registrierten Validatoren. Diese Information kann
+      insbesondere für die Generierung von Java-Script-Anweisungen für Client-seitige Validatoren genutzt werden.
+   </li>
+   <li>
+      <strong>addAttribute():</strong> Kann genutzt werden, um zu einem Attribut eines Tags weiteren
+      Inhalt hinzuzufügen. Dies wird beim Benachrichtigen eines Formular-Elements innerhalb der
+      Validierung genutzt.
+   </li>
+   <li>
+      <strong>notifyValidationListeners():</strong> Benachrichtigt alle Listener eines
+      Formular-Elements, dass dieses invalid ist.
+   </li>
+   <li>
+      <strong>presetValue():</strong> Die Methode stellt Presetting von Formular-Elementen für
+      einfache Text-Felder zur Verfügung. Diese kann bei der Erweiterung von Formular-Elementen
+      entweder mit einer eigenen Logik überschrieben oder direkt genutzt werden.
+   </li>
+   <li>
+      <strong>setPlaceHolder():</strong> Die Methode implementiert eine generische Funktion zum
+      setzen eines Platzhalters in einem Formular-Element. Wichtig hierbei ist, dass das Kind-Tag
+      <strong>*:placeholder</strong> heißt.
+   </li>
+   <li>
+      <strong>addAttributeToWhitelist():</strong> Fügt das übergebene Attribut zur Whitelist des
+      aktuellen Formular-Elements hinzu. Damit wird dieses auch in den HTML-Quelltext geschrieben.
+   </li>
+</ul>
+<p>
+   Mit Hilfe dieser Funktionen wird der Entwickler darin untrstützt, eigene Formular-Elemente zu
+   erstellen. Mehr dazu in Kapitel 7.
+</p>
+<div class="hint">
+   <p>
+      Im Zusammenhang mit der Einführung der Client-Validierung wurde ein Attribut-Whitelisting für Formular-Taglibs
+      eingeführt. Dieses sorgt dafür, dass nur XHTML-kompatible Attribute in den Quelltext geschrieben werden.
+      Proprietäre Attribute - etwa zur Steuerung der Validierung - werden nicht beachtet.
+   <p>
+   <p>
+      Bei der Erstellung einer eigenen Formular-Taglib muss da daher darauf geachtet werden, dass
+      zusätzlich notwendige Attribute in die Whitelist aufgenommen werden. Hierzu empiehlt es
+      sich, den Konstruktor der Taglib zu nutzen:
+   </p>
+<gen:highlight type="php">
+class SpecialFormControlTag extends AbstractFormControl {
+   public function __construct() {
+      $this->attributeWhiteList[] = 'name';
+      $this->attributeWhiteList[] = 'accesskey';
+   }
+}
+</gen:highlight>
+</div>
+
+<h3 id="Chapter-3-Validierung"><a href="#Chapter-3-Validierung">3. Validierung</a></h3>
+<p>
+   Die Validierung von Formular-Elementen wird über die Taglib <strong>form:addvalidator</strong>
+   und die Implementierung der Validatoren auf das Klick-Event eines Buttons ausgeführt. Zeitlich
+   gesehen erfolgt die Validierung bei der Ausführung der <strong>onAfterAppend()</strong>-Methode.
+   Das ist nach der Analyse-Phase (hier wird die Methode <strong>onParseTime()</strong> jeder Taglib
+   ausgeführt) und damit steht der DOM-Baum der Formular-Elemente vollständig zur Verfügung.
+</p>
+<p>
+   In der <strong>onAfterAppend()</strong>-Methode des <strong>form:addvalidator</strong>-Tags wird
+   dann der Validator erzeugt, mit den notwendigen Informationen (Button und Formular-Control)
+   ausgestattet und dem Element übergeben. Das Element führt den Validator dann bei aktivem Status
+   aus und prüft das Ergebnis. Im Negativfall wird die <strong>notify()</strong>-Methode des
+   Validators aufgerufen.
+</p>
+
+<h4 id="Chapter-3-1-Abfragen-des-Validierungs-Status"><a href="#Chapter-3-1-Abfragen-des-Validierungs-Status">3.1. Abfragen des Validierungs-Status</a></h4>
+<p>
+   Da die einzelnen Formular-Elemente ab der neuen Implementierung selbst kennen, muss die Methode
+   <em>isValid()</em> des Formulars den Status jedes einzelnen Elements erfragen. In einem
+   Document-Controller kann der Zustand eines Formulars damit wie folgt abgefragt werden:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class FormController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('MyForm');
+      if($form->isSent()){
+         echo 'Form was send');
+      }
+      if($form->isValid()){
+         echo 'Form is valid';
+      }
+   }
+}
+</gen:highlight>
+<p>
+   Ebenso ist es möglich, den Status eines definierten Elements zu erfragen:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class FormController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('MyForm');
+      $searchField = &$form->getFormElementByName('searchterm');
+      if($searchField->isValid()){
+         echo 'Search field is valid';
+      }
+   }
+}
+</gen:highlight>
+<p>
+   Um den Klick-Status eines Buttons abzufragen, kann folgender Code genutzt werden:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class FormController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('MyForm');
+      $button = &$form->getFormElementByID('button');
+      if($button->isSent()){
+         echo 'Search button was clicked';
+      }
+   }
+}
+</gen:highlight>
+<div class="hint">
+   Weitere Methoden der Formular-Elemente finden sich in der<int:link pageid="002" /> der Klassen
+   <strong>HtmlFormTag</strong>, <strong>AbstractFormControl</strong> und den Taglibs der jeweiligen Formular-Elemente
+   (z.B. <strong>TextFieldTag</strong>).
+</div>
+
+<h4 id="Chapter-3-2-Ausgabe-von-Validator-Fehlermeldungen"><a href="#Chapter-3-2-Ausgabe-von-Validator-Fehlermeldungen">3.2. Ausgabe von Validator-Fehlermeldungen</a></h4>
+<p>
+   Bei der Validierung von Formularen werden monierte Felder üblicherweise farblich markiert und der
+   Benutzer mit einem Hinweistext benachrichtigt. Für diese Aufgaben können die Tags
+   <strong>&lt;form:error /&gt;</strong> (globale Formular-Fehlermeldungen) und
+   <strong>&lt;form:listener /&gt;</strong> verwendet werden. Alternativ dazu können Sie einen Platzhalter-Tag nutzen und
+   diesen im Controller mit einem entsprechenden Wert belegen.
+</p>
+
+<h5 id="Chapter-3-2-1-Form-Error"><a href="#Chapter-3-2-1-Form-Error">3.2.1. Form-Error</a></h5>
+<p>
+   Der <strong>&lt;form:error /&gt;</strong> gibt immer dann seinen Inhalt aus, wenn das Formular nicht
+   valide ist. Dazu fragt er das Formular bei der Transformation nach seinem Status:
+</p>
+<em>Template:</em>
+<gen:highlight type="apf-xml">
+&lt;html:form name="product-form"&gt;
+   &lt;form:error&gt;
+      Please fill in the mandatory fields!
+   &lt;/form:error&gt;
+   &lt;form:text name="code" minlength="5" maxlength="5"/&gt;
+   &lt;form:text name="title" minlength="20"/&gt;
+   &lt;form:area name="description" minlength="30"/&gt;
+   &lt;form:button name="send" value="Save" /&gt;
+   &lt;form:addvalidator
+      class="APF\tools\form\validator\TextLengthValidator"
+      control="code|title|description"
+      button="send"
+   /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<em>Controller:</em>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class FormController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('product-form');
+      $form->transformOnPlace();
+   }
+}
+</gen:highlight>
+<p>
+   Innerhalb des <strong>&lt;form:error /&gt;</strong>-Tags können gemäß
+   <int:link pageid="113" anchor="Chapter-3-19-Error">Anzeige von Formular-Fehlern</int:link>
+   noch weitere Tags zur Definition der Inhalte verwendet werden.
+</p>
+
+<h5 id="Chapter-3-2-2-Listener"><a href="#Chapter-3-2-2-Listener">3.2.2. Listener</a></h5>
+<p>
+   Der <em>&lt;form:listener /&gt;</em>-Tag dient dazu Feld-speziefische Fehler anzuzeigen. Wie
+   in der Einleitung zum Kapitel 3 angesprochen, wird bei fehlgeschlagener Validierung die Methode
+   <em>notify()</em> aufgerufen. Diese benachrichtigt alle Listener, die sich auf das
+   entsprechende Control registriert haben und diese geben dann bei der Transformation den definierten
+   Inhalt aus.
+</p>
+<p>
+   Im folgenden Beispiel wird bei fehgeschlagener Validierung jeweils eine Feld-spezifische Meldung
+   angezeigt:
+</p>
+<em>Template:</em>
+<gen:highlight type="apf-xml">
+&lt;html:form name="product-form"&gt;
+   &lt;form:listener control="code"&gt;
+      Please fill in a five letter product code!
+   &lt;/form:listener&gt;
+   &lt;form:text name="code" minlength="5" maxlength="5"/&gt;
+   &lt;form:listener control="title"&gt;
+      Please fill in a title with at least 20 characters!
+   &lt;/form:listener&gt;
+   &lt;form:text name="title" minlength="20"/&gt;
+   &lt;form:listener control="description"&gt;
+      Please provide a verbose product description!
+   &lt;/form:listener&gt;
+   &lt;form:area name="description" minlength="30"/&gt;
+   &lt;form:button name="send" value="Save" /&gt;
+   &lt;form:addvalidator
+      class="APF\tools\form\validator\TextLengthValidator"
+      control="code|title|description"
+      button="send"
+   /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<em>Controller:</em>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class FormController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('product-form');
+      $form->transformOnPlace();
+   }
+}
+</gen:highlight>
+<p>
+   Innerhalb des <strong>&lt;form:listener /&gt;</strong>-Tags können gemäß
+   <int:link pageid="113" anchor="Chapter-3-18-Listener">Listener</int:link> noch weitere Tags zur
+   Definition der Inhalte verwendet werden.
+</p>
+
+<h5 id="Chapter-3-2-3-HTML-Validation-Marker"><a href="#Chapter-3-2-3-HTML-Validation-Marker">3.2.3. HTML-Markierung</a></h5>
+<p>
+   Möchten Sie zusätzlich zum <a href="#Chapter-3-2-2-Listener">&lt;form:listener /&gt;</a>-Tag weitere HTML-Elemente -
+   beispielsweise einen umschließenden <em>&lt;div /&gt;</em>-Container - mit einer CSS-Klasse versehen, so steht Ihnen
+   die erweiterte Template-Funktion
+</p>
+<gen:highlight type="apf-xml">
+&#36;{validationMarker(control name[, content])}
+</gen:highlight>
+<p>
+   zur Verfügung. Ist das im ersten Argument referenzierte Feld als invalide markiert, wird die in
+   <em>AbstractFormValidator::$DEFAULT_MARKER_CLASS</em> definierten CSS-Klasse (<em>apf-form-error</em>) ausgegeben.
+   Möchten Sie eine eigene CSS-Klasse verwenden, so lässt sich hierzu das zweite Argument nutzen.
+</p>
+<p>
+   Der folgende Code-Block definiert einen Marker für den umliegenden Container, der bei fehlgeschlagener Validierung
+   des Feldes <em>name</em> mit der Klasse <em>my-form-error</em> annotiert wird:
+</p>
+<gen:highlight type="apf-xml">
+&lt;div class="form-wrapper &#36;{validationMarker(name, my-form-error)}"&gt;
+   &lt;form:label for="name"&gt;Name&lt;/form:label&gt;
+   &lt;form:text name="name" id="name" /&gt;
+&lt;/div&gt;
+</gen:highlight>
+<p>
+   Zur Markierung von umliegenden HTML-Strukturen lassen sich beliebig viele solcher Marker definieren - wahlweise auch
+   mit unterschiedlichen CSS-Klassen für unterschiedliche Anwendungsfälle.
+</p>
+
+<h4 id="Chapter-3-3-Nachtraegliche-Validierung"><a href="#Chapter-3-3-Nachtraegliche-Validierung">3.3. Nachträgliche Validierung im Controller</a></h4>
+<p>
+   In einigen Situationen kann es einfacher bzw. schneller sein, eine Formular-Validierung im
+   Controller durchzuführen anstatt einen eigenen Validator zu schreiben. Um auch in diesen Fällen
+   eine Markierung der Formular-Felder zu ermöglichen wurde in <strong>Version 1.14</strong> eine
+   neue Methode für Formular-Felder eingeführt.
+</p>
+<p>
+   Als Beispiel soll im folgenden Formular das Feld <em>searchterm</em> nach einer eigenen Regel
+   im Controller validiert werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="search"&gt;
+   &lt;label for="searchterm"&gt;Suchbegriff:&lt;/label&gt;
+   &lt;form:text id="searchterm" name="searchterm" value="" /&gt;
+   &lt;form:button name="search" value="GO" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Der passende Controller beinhaltet folgenden Code zur Prüfung, dass das Suchfeld den Buchstaben
+   <em>e</em> nicht enthält:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class SearchController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = &$this->getForm('search');
+      $searchTerm = &$form->getFormElementById('searchterm')
+
+      if(stripos($searchTerm->getValue(), 'e') !== false) {
+         $searchTerm->markAsInvalid();
+         $searchTerm->appendCssClass(AbstractFormValidator::$DEFAULT_MARKER_CLASS);
+      }
+
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Beim Abschicken des Formulars mit einem Wort, das den Buchstaben <em>e</em> beinhaltet, wird das
+   Feld <em>searchterm</em> technisch als invalid markiert und erhält die Standard-CSS-Klasse, die 
+   zur optischen Markierung eingesetzt wird. Sofern eine eigene Klasse genutzt werden soll, kann
+   diese entweder im Controller fest definiert werden oder aus einem Attribut des Formular-Feldes
+   bezogen werden (z.B. <em>valmarkerclass</em>).
+</p>
+
+<h3 id="Chapter-4-Auslesen-von-Formularen"><a href="#Chapter-4-Auslesen-von-Formularen">4. Auslesen von Formularen</a></h3>
+<p>
+   Eine häufige Aufgabe beim Handling von Formularen stellt das Auslesen von Werte dar. Hierzu
+   können im Document-Controller folgende Methoden genutzt werden:
+</p>
+<ul>
+   <li>
+      <strong>getFormElementByID():</strong> Liefert ein Formular-Element an Hand seiner ID
+      (Attribut: <em>id</em>).
+   </li>
+   <li>
+      <strong>getFormElementByName():</strong> Liefert ein Formular-Element an Hand seines Namens
+      (Attribut: <em>name</em>).
+   </li>
+   <li>
+      <strong>getFormElementsByTagName():</strong> Liefert eine Liste von Formular-Elementen an
+      Hand des Tag-Namens (z.B. <em>form:text</em>).
+   </li>
+   <li>
+      <strong>getFormElementsByType():</strong> Liefert eine Liste von Formular-Elementen an
+      Hand der Implementierung oder des Interfaces (z.B. <em>APF\tools\form\taglib\TextAreaTag</em>).
+   </li>
+</ul>
+
+<h4 id="Chapter-4-1-Auswahl-per-Name"><a href="#Chapter-4-1-Auswahl-per-Name">4.1. Auswahl per Name</a></h4>
+<p>
+   Sollen die im Formular des Kapitels 3.2.2. beschriebenen Felder zum Abspeichern des Formulars
+   ausgelesen werden, kann dies mit Hilfe des folgenden Controller-Codes erreicht werden:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class FormController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('product-form');
+
+      if($form->isSent() && $form->isValid()){
+
+         $code = &$form->getFormElementByName('code');
+         echo 'product code: '.$code->getValue();
+
+         $title = &$form->getFormElementByName('title');
+         echo 'product title: '.$title->getValue();
+
+         $description = &$form->getFormElementByName('description');
+         echo 'product desc: '.$description->getValue();
+      }
+      
+   }
+}
+</gen:highlight>
+<div class="hint">
+   Bei Textareas wird der Inhalt nicht im Attribut <strong>value</strong> gespeichert, sondern
+   im Inhalt des Tags. Dies entspriche exakt der Vorgehensweise der Tag-Definition in HTML.
+</div>
+<p>
+   Da das Formular nichts anderes darstellt als einen DOM-Baum von Formular-Elementen, kann ein
+   Platzhalter in einem Error-Tag über zwei Stufen adressiert werden. Zu erst wird die Instanz des
+   Error-Tags bezogen und von dort der Platzhalter. Als Beispiel nutzen wir folgendes Formular:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="product-form"&gt;
+   &lt;form:error name="error"&gt;
+      &lt;html:placeholder name="ph1" /&gt;
+   &lt;/form:error&gt;
+   ...
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Um nun den Platzhalter innerhalb des <strong>&lt;form:error /&gt;</strong>-Tags zu füllen, kann
+   folgender Controller-Code genutzt werden:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class FormController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('product-form');
+      $error = &$form->getFormElementByName('error');
+
+      // simple way:
+      $error->setPlaceHolder('ph1','My placeholder value');
+
+      // alternative way:
+      $placeHolder = $error->getFormElementByName('ph1');
+      $placeHolder->setContent('My placeholder value');
+   }
+}
+</gen:highlight>
+<div class="hint">
+   Um ein Formular-Element per ID auszuwählen, kann die gleiche Vorgehensweise wie bei der Auswahl
+   nach Name verwendet werden.
+</div>
+
+<h4 id="Chapter-4-2-Auswahl-per-Tag"><a href="#Chapter-4-2-Auswahl-per-Tag">4.2. Auswahl per Tag</a></h4>
+<p>
+   In manchen Fällen kann es nützlich sein, die gewünschten Formular-Elemente per Tag-Namen zu
+   selektieren. Hierzu steht die Methode <strong>getFormElementsByTagName()</strong> zur Verfügung.
+   Diese liefert eine Liste mit Referenzen auf Formular-Elemente des übergebenen Tag-Namens.
+</p>
+<p>
+   Im Zusammenspiel mit dem <int:link pageid="063" anchor="Chapter-4-3-Speichern-von-Objekten" />
+   kann die Methode genutzt werden um Formular-Felder auszulesen und direkt in ein
+   <strong>GenericDomainObject</strong> zu speichern. Hierzu kann folgender Code genutzt werden:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class EditController extends BaseDocumentController {
+   public function transformContent(){
+      $form = &$this->getForm('...');
+      $textFields = &$form->getFormElementsByTagName('form:text');
+      $user = new GenericDomainObject('User');
+      $count = count($textFields);
+      for($i = 0; $i < $count; $i++){
+         $user->setProperty(
+            $textFields[$i]->getAttribute('name'),
+            $textFields[$i]->getValue()
+         );
+      }
+   }
+}
+</gen:highlight>
+<p>
+   Bei der Anwendung ist zu beachten, dass die Methode jeweils nur diejenigen Elemente zurückliefert,
+   die ausgehend vom verwendeten Element, als direkte Kind-Knoten vorhanden sind.
+</p>
+<p>
+   Zusätzlich dazu steht Ihnen die Methode <em>getFormElementsByType()</em> zur Verfügung, die eine Liste von
+   Formular-Elementen an Hand ihrer Tag-Klasse oder des implementierten Interfaces selektiert.
+</p>
+
+<h3 id="Chapter-5-Manipulation-von-Formularen"><a href="#Chapter-5-Manipulation-von-Formularen">5. Manipulation von Formularen</a></h3>
+<p>
+   Die Implementierung der Formular-TagLibs des Frameworks bringt einige Möglichkeiten zur
+   Manipulation von Formularelementen oder deren Werte mit. Die folgenden Kapitel zeigen häufig
+   auftretende Anwendungsbeispiele.
+</p>
+
+<h4 id="Chapter-5-1-Vorbefuellung"><a href="#Chapter-5-1-Vorbefuellung">5.1. Vorbefüllung von Formularen</a></h4>
+<p>
+   Zur Vorbefüllung von Formularen (z.B. in einem Bearbeiten-Dialog) können Methoden
+</p>
+<ul>
+   <li><strong>getFormElementByName()</strong>,</li>
+   <li><strong>getFormElementByTagName()</strong> oder</li>
+   <li><strong>getFormElementByID()</strong></li>
+</ul>
+<p>
+   eingesetzt werden um eine Referenz auf ein Formular-Element zu beziehen. Anschließend stehen
+   die Standard-Methode
+</p>
+<ul>
+   <li><strong>getAttribute()</strong></li>
+</ul>
+<p>
+   bzw.
+</p>
+<ul>
+   <li><strong>setAttribute()</strong></li>
+</ul>
+<p>
+   zur Verfügung.
+</p>
+<p>
+   Die folgenden Codebox definiert ein Beispiel-Formular, das im anschließend abgedruckten
+   PHP-Code befüllt wird:
+</p>
+<em>Template:</em>
+<gen:highlight type="apf-xml">
+&lt;html:form name="UserEdit" method="post"&gt;
+   &lt;strong&gt;FirstName&lt;/strong&gt;:
+   &lt;form:text name="FirstName" /&gt;
+   &lt;br /&gt;
+   &lt;strong&gt;LastName&lt;/strong&gt;:
+   &lt;form:text name="LastName" /&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;form:button name="Edit" value="Save" /&gt;
+   &lt;form:hidden name="userid" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<em>Controller:</em>
+<gen:highlight type="php">
+$form = &$this->getForm('UserEdit');
+
+$userID = &$form->getFormElementByName('userid');
+$userID->setAttribute('value','...');
+
+$firstName = &$form->getFormElementByName('FirstName');
+$fFirstName->setAttribute('value','...');
+
+$lastName = &$form->getFormElementByName('LastName');
+$lastName->setAttribute('value','...');
+</gen:highlight>
+
+<h4 id="Chapter-5-2-Befuellen-von-Select-Feldern"><a href="#Chapter-5-2-Befuellen-von-Select-Feldern">5.2. Befüllen von Select-Feldern</a></h4>
+<p>
+   Die Behandlung Select- und Multiselect-Feldern unterscheidet sich ein wenig von einfachen
+   Formular-Elementen. Das Framework stellt jedoch auch hier Methoden zur Verfügung, mit denen das
+   Befüllen von Feldern vereinfacht wird. Im nachfolgend aufgeführten Code wird ein Formular
+   vorausgefüllt, das zusätzlich zu den Standard-Text-Felder auch Auswahlfelder beinhaltet:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="UserCreate" method="post"&gt;
+   &lt;strong&gt;Salutation&lt;/strong&gt;:
+   &lt;form:select name="Salutation" /&gt;
+   &lt;br /&gt;
+   &lt;strong&gt;FirstName&lt;/strong&gt;:
+   &lt;form:text name="FirstName" /&gt;
+   &lt;br /&gt;
+   &lt;strong&gt;LastName&lt;/strong&gt;:
+   &lt;form:text name="LastName" /&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;strong&gt;Groups&lt;/strong&gt;:
+   &lt;br /&gt;
+   &lt;form:multiselect name="Group" /&gt;
+   &lt;br /&gt;
+   &lt;br /&gt;
+   &lt;form:button name="Edit" value="Save" /&gt;
+   &lt;form:hidden name="userid" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Der folgende PHP-Code befüllt das Formular:
+</p>
+<gen:highlight type="php">
+$form = &$this->getForm('UserCreate');
+$salutations = array(...);
+$salutation = &$form->getFormElementByName('Salutation');
+for($i = 0; $i < count($salutations); $i++){
+   $salutation->addOption($salutations[$i]['DisplayName'], $salutations[$i]['Value']);
+}
+$goups = array(...);
+$group = &$form->getFormElementByName('Groups');
+for($i = 0; $i < count($groups); $i++){
+   $group->addOption($groups[$i]['DisplayName'], $groups[$i]['Value']);
+}
+</gen:highlight>
+<div class="hint">
+   Sollen beim Befüllen eines Multiselect-Feldes bestimmte Optionen bereits vorausgewählt
+   sein, so kann die Methode <strong>setOption2Selected()</strong> verwendet werden.
+</div>
+<p>
+   Der folgende Code zeigt, wie ein Multiselect-Feld zunächst mit Berechtigungen gefüllt und
+   anschließend gemäß den Applikationsinformationen vorselektiert wird. Das Beispiel
+   ist aus dem im Release mitgelieferten <int:link pageid="095" />-Modul entnommen.
+</p>
+<gen:highlight type="php">
+$form = &$this->getForm('PermissionSetEdit');
+
+// load permissions and fill the select field
+$allPermissions = $uM->loadPermissionList();
+$permField = &$form->getFormElementByName('Permission[]');
+for($i = 0; $i < count($allPermissions); $i++){
+   $permField->addOption($allPermissions[$i]->getProperty('DisplayName'),$allPermissions[$i]->getProperty('PermissionID'));
+}
+
+// preselect the options
+$selectedPermissions = $uM->loadPermissionsOfPermissionSet($permSet);
+for($i = 0; $i < count($selectedPermissions); $i++){
+   $permField->setOption2Selected($selectedPermissions[$i]->getProperty('PermissionID'));
+}
+</gen:highlight>
+
+<h4 id="Chapter-5-3-Auslesen-von-Formular-Elementen"><a href="#Chapter-5-3-Auslesen-von-Formular-Elementen">5.3. Auslesen von Formular-Elementen</a></h4>
+<p>
+   Das Auslesen von Formular-Elementen gestaltet sich ähnlich wie das Befüllen. Eine
+   Besonderheit stellen auch hier die Einfach- und Mehrfachselektionsfelder dar. Das folgende Code-Beispiel
+   zeigt, wie die Werte des unter 3.1 dargestellten Formulars im Document-Controller ausgelesen werden
+   können:
+</p>
+<gen:highlight type="php">
+$form = &$this->getForm('UserEdit');
+
+$userID = &$form->getFormElementByName('userid');
+echo $userID->getValue();
+
+$firstName = &$form->getFormElementByName('FirstName');
+echo $firstName->getValue();
+
+$lastName = &$form->getFormElementByName('LastName');
+echo $lastName->getValue();
+</gen:highlight>
+<p>
+   Um die selektierten Optionen eines Einfach- oder Mehrfachselektionsfeldes auszulesen, stehen die
+   Methoden <strong>getSelectedOption()</strong> und <strong>getSelectedOptions()</strong> zur
+   Verfügung. Die folgende Codebox zeigt den Anwendungsfall:
+</p>
+<gen:highlight type="php">
+$form = &$this->getForm('UserCreate');
+
+$salutations = array(...);
+$salutation = &$form->getFormElementByName('Salutation');
+for($i = 0; $i < count($salutations); $i++){
+   $salutation->addOption($salutations[$i]['Value'],$salutations[$i]['DisplayName']);
+}
+
+$option = &$salutation->getSelectedOption();
+echo $option->getAttribute('value').', '.$option->getContent();
+
+$groups = array(...);
+$group = &$form->getFormElementByName('Groups[]');
+for($i = 0; $i < count($groups); $i++){
+   $group->addOption($groups[$i]['Value'],$groups[$i]['DisplayName']);
+}
+
+$selectedGroups = &$group->getSelectedOptions();
+for($i = 0; $i < count($selectedGroups); $i++){
+   echo $selectedGroups[$i]->getAttribute('value').', '.$selectedGroups[$i]->getContent();
+}
+</gen:highlight>
+
+<div class="warn">
+   Die Auswertung von dynamisch befüllten Select-Feldern funktioniert nur dann, wenn diese in allen Anwendungsfällen
+   zuerst mit den gewünschten Optionen versehen werden. Ist dies nicht der Falls, so liefern die Methoden
+   <em>getSelectedOption()</em> bzw. <em>getSelectedOptions()</em> kein Ergebnis. Dies ist insbesondere dann wichtig,
+   wenn eine Auswertung bei Absenden des Formulars stattfindet. In diesem Fall muss die Befüllung unabhängig vom
+   Zustand des Formulars vorgenommen werden.
+</div>
+
+<h3 id="Chapter-6-Dynamische-Formulare"><a href="#Chapter-6-Dynamische-Formulare">6. Dynamische Formulare</a></h3>
+<p>
+   In einigen Anwendungsfällen ist es notwenig, Formulare dynamisch nach Anforderung zu erstellen.
+   Hierzu besitzt die Implementierung der Formular-TagLib (<em>HtmlFormTag</em>) die Methoden
+</p>
+<ul>
+  <li>addFormElement()</li>
+  <li>addFormContent()</li>
+  <li>addFormContentBeforeMarker()</li>
+  <li>addFormContentAfterMarker()</li>
+  <li>addFormElementBeforeMarker()</li>
+  <li>addFormElementAfterMarker()</li>
+</ul>
+<p>
+   Die ersten beiden Funktionen lassen sich dazu nutzen, Inhalte oder konkrete Formular-Elemente
+   an das Ende des Formulars anzuhängen. Die zu letzt genannten Methoden sind dazu gedacht, Inhalte
+   oder Formular-Elemente an konkreten Stellen zu platzieren. Zur Positionierung steht das
+   <strong>&lt;form:marker /&gt;</strong>-Tag zur Verfügung. Das Tag selbst generiert keine Ausgabe,
+   sondern dient lediglich als Positionierungshilfe.
+</p>
+<p>
+   Die folgenden Kapitel sollen zeigen, wie ein dynamisches Formular zur Eingabe von Form-Koordinaten
+   (Dreieck, Quadrat, ...) realisiert werden kann. Je nach Auswahl des Typs sollen die jeweils notwenigen
+   Felder angezeigt werden. Bei Auswahl des Typs "square" werden vier Felder angezeigt ...
+</p>
+<img src="/media/content/dynamic_forms_02.png" alt="APF - Dynamische Formular-Generierung; Auswahl des Typs square" />
+<p>
+   ... und bei Auswahl von "triangle" drei:
+</p>
+<img src="/media/content/dynamic_forms_01.png" alt="APF - Dynamische Formular-Generierung; Auswahl des Typs triangle" />
+
+<h4 id="Chapter-6-1-Formular-Definition"><a href="#Chapter-6-1-Formular-Definition">6.1. Formular-Definition</a></h4>
+<p>
+   Bei der Definition des Formulars sollte bereits bedacht werden, welche Art der Formular-Generierung
+   angestrebt wird. Kommen die Methoden <em>addFormElement()</em> und/oder <em>addFormContent()</em>
+   zum Einsatz, ist keinen Marker erforderlich. In diesem Beispiel wird jedoch ein Marker eingesetzt, da
+   das Formular bereits Inhalte besitzt, die nach den dynamisch erzeugten Elementen angezeigt werden
+   sollen.
+</p>
+<p>
+   Die folgende Code-Box zeigt das notwenige Formular mit einem Auswahlfeld. Bei der Implementierung
+   wurde auf CSS-Formatierung verzichtet um die wesentlichen Elemente besser hervorheben zu können.
+   Das Formular besteht dabei aus einem statisch definierten Auswahlfeld, das den Typ der geometrischen
+   Form vorgibt und aus einem Marker-Tag, der als Positionierungshilfe für die dynamisch erzeugten
+   Felder dient. Weiterhin wird ein Document-Controller definiert, der die gewünschten Felder
+   dynamisch an der Stelle des Markers hinzufügt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;@controller
+   class="VENDOR\..\SelectController"
+@&gt;
+&lt;html:form name="type" method="post"&gt;
+  &lt;table&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+        Please choose the desired form type:
+        &lt;form:select name="type"&gt;
+          &lt;select:option value="triangle"&gt;triangle&lt;/select:option&gt;
+          &lt;select:option value="square"&gt;square&lt;/select:option&gt;
+        &lt;/form:select&gt;
+      &lt;/td&gt;
+      &lt;td&gt;
+        &lt;form:button name="submit" value="send" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;
+        &lt;form:marker name="fields" /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+
+<h4 id="Chapter-6-2-Controller"><a href="#Chapter-6-2-Controller">6.2. Controller</a></h4>
+<p>
+   Der Document-Controller übernimmt im beschriebenen Beispiel die Generierung der abhängigen
+   Formularfelder, die je nach Auswahl angezeigt werden sollen. Hierzu wird im Controller zunächst
+   definiert, welche Formular-Felder für welchen Typ angezeigt werden. Anschließend wird
+   das Typ-Feld ausgewertet und das Formular mit Inhalten und Text-Feldern gemäß Typ
+   ergänzt. Die folgende Code-Box zeigt die Implementierung des Document-Controllers:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class SelectController extends BaseDocumentController {
+
+   // specify form element container
+   private $formElements = array();
+
+   public function __construct(){
+
+      // define form elements for the triangle
+      $this->formElements['triangle'][] = array('label' => 'coord 1','name' => 'coordone');
+      $this->formElements['triangle'][] = array('label' => 'coord 2','name' => 'coordtwo');
+      $this->formElements['triangle'][] = array('label' => 'coord 3','name' => 'coordthree');
+
+      // define form elements for the square
+      $this->formElements['square'][] = array('label' => 'coord 1','name' => 'coordone');
+      $this->formElements['square'][] = array('label' => 'coord 2','name' => 'coordtwo');
+      $this->formElements['square'][] = array('label' => 'coord 3','name' => 'coordthree');
+      $this->formElements['square'][] = array('label' => 'coord 4','name' => 'coordfour');
+
+   }
+
+   public function transformContent(){
+
+      // get form reference
+      $form = &$this->getForm('type');
+
+      // get current decision
+      $Select = &$form->getFormElementByName('type');
+      $Option = &$Select->getSelectedOption();
+      if($Option === null){
+         $CurrentType = 'triangle';
+      }
+      else{
+         $CurrentType = $Option->getAttribute('value');
+      }
+
+      // add form elements
+      for($i = 0; $i < count($this->formElements[$CurrentType]); $i++){
+
+         // add label
+         $form->addFormContentBeforeMarker('fields',$this->formElements[$CurrentType][$i]['label'].': ');
+
+         // add text field (name attribute is present to enable validation and presetting!)
+         $currentElement = &$form->addFormElementBeforeMarker(
+                                'fields',
+                                'form:text',
+                                array('name' => $this->formElements[$CurrentType][$i]['name'])
+                             );
+
+         // configure further form element attributes
+         $currentElement->setAttribute('style','width: 200px;');
+
+         // add a line break
+         $form->addFormContentBeforeMarker('fields','');
+
+      }
+
+      // display form
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-6-3-Dynamische-Filter-und-Validatoren"><a href="#Chapter-6-3-Dynamische-Filter-und-Validatoren">6.3. Dynamische Filter und Validatoren</a></h4>
+<p>
+   Wie im Kapitel <int:link pageid="113" anchor="Chapter-4-2-Aufbau-von-Validatoren">Aufbau von Validatoren</int:link>
+   und <int:link pageid="113" anchor="Chapter-5-2-Aufbau-von-Filtern">Aufbau von Filtern</int:link>
+   besprochen wurde, werden Validatoren und Filter als <strong>Observer</strong> an Formular-Elemente
+   geheftet. Bei dynamischen Formularen kann durch &quot;Simulation&quot; der
+   <strong>&lt;form:addvalidator /&gt;</strong>- und <strong>&lt;form:addfilter /&gt;</strong>-Tags
+   ebenso verfahren werden. Für die konkrete Anwendung bedeutet das, dass nach der Definition eines
+   dynamischen Formular-Feldes der gewünschte Validator oder Filter über die Methoden
+   <strong>addValidator()</strong> bzw. <strong>addFilter()</strong> angeheftet werden kann. Dies gestaltet sich in
+   Code ausgedrückt im Kontext des in den letzten Kapiteln besprochenen Beispiels wie folgt:
+</p>
+<gen:highlight type="php">
+// gather button instance of the form
+$button = &$form->getFormElementByName('submit');
+
+// create dynamic form elements
+for($i = 0; $i < count($this->formElements[$CurrentType]); $i++){
+
+   // add label
+   $form->addFormContentBeforeMarker('fields',$this->formElements[$CurrentType][$i]['label'].': ');
+
+   // add text field (name attribute is present to enable validation and presetting!)
+   $currentElement = &$form->addFormElementBeforeMarker(
+                           'fields',
+                           'form:text',
+                           array('name' => $this->formElements[$CurrentType][$i]['name'])
+                       );
+
+   // configure further form element attributes
+   $currentElement->setAttribute('style','width: 200px;');
+
+   // add filter to the current element
+   $filter = new NoSpecialCharactersFilter($currentElement,$button);
+   $currentElement->addFilter($filter);
+
+   // add validator to the current element
+   $validator = new TextLengthValidator($currentElement,$button);
+   $currentElement->addValidator($validator);
+
+   // add a line break
+   $form->addFormContentBeforeMarker('fields','');
+
+}
+</gen:highlight>
+<div class="hint">
+   Bei der Definition von dynamischen Validatoren und Filtern muss die Reihenfolge beachtet werden.
+   Damit keine unerwünschten Validierungs-Ergebnisse auftreten, müssen Filter stets 
+   <em>vor</em> Validatoren ausgeführt werden.
+</div>
+<div class="warn">
+   Bitte beachten Sie, dass Prüfungen eines Formulars per
+   <gen:highlight type="php">$form->isValid()</gen:highlight>
+   erst nach dem Hinzufügen von dynamischen Validatoren und Filtern erfolgen dürfen. Andernfalls werden fehlerhafte
+   Inhalte nicht erkannt.
+</div>
+
+<h4 id="Chapter-6-4-Weitere-Hinweise"><a href="#Chapter-6-4-Weitere-Hinweise">6.4. Weitere Hinweise</a></h4>
+<p>
+   Ein APF-Formular-Element benötigt bereits bei der Erstellung des Objekts die Information über
+   den Namen des Feldes. Ist dieser nicht bekannt, kann es nicht vorausgefüllt oder validiert werden.
+   Um die Presetting und Validierung von Formular-Elementen nutzen zu können besitzen die Methoden
+   <em>addFormElement()</em>, <em>addFormElementBeforeMarker()</em> und <em>addFormElementBeforeMarker()</em>
+   einen optionalen, dritten Parameter. Dieser erwartet eine assoziative Liste von Tag-Attributen, die
+   dem Formular-Tag bei der Erstellung mitgegeben werden. Es daher sinnvoll, der Methode mindestens
+   den Namen des Feldes in der Form
+</p>
+<gen:highlight type="php">
+array(
+      'name' => 'current_name'
+     )
+</gen:highlight>
+<p>
+   als drittes Argument mitzugeben. Dies kann unter Umständen auch für die spätere
+   Adressierung der Objekte über die Methoden <em>getFormElementByName()</em> und
+   <em>getFormElementByID()</em> von Interesse sein.
+</p>
+
+<h3 id="Chapter-7-Erweiterung-von-Formular-Elementen"><a href="#Chapter-7-Erweiterung-von-Formular-Elementen">7. Erweiterung von Formular-Elementen</a></h3>
+<p>
+   Das APF-Konzept des Page-Controllers erlaubt es, eigene Taglibs zu schreiben um wiederverwendbare
+   Elemente zu schaffen. Dies setzt sich auch bei den Formularen fort. Eigene Formular-Elemente
+   können bequem mit dem <em>&lt;core:addtaglib /&gt;</em>-Tag in ein bestehendes Formular eingebunden werden.
+</p>
+<p>
+   Die Besonderheit der Formular-Taglibs bzw. Formular-Elemente ist, dass diese die abstrakte Klasse
+   <em>AbstractFormControl</em> erweitern, bzw. das Interface <em>FormControl</em> implementieren. Sie genügen damit
+   einem erweiterten Tag-Interface, das vom <em>&lt;html:form /&gt;</em>-Tag behandelt werden kann. Die Erweiterung des
+   Funktions-Umfangs besteht insbesondere in der Validierung und Filterung.
+</p>
+<div class="warn">
+   <p>
+      Bitte beachten Sie, dass der <em>&lt;html:form /&gt;</em>-Tag nur solche Tags als Formular-Elemente behandelt, die
+      auch das <em>FormControl</em>-Interface implementieren. Alle anderen Tags werden nicht in Validierung, Filterung und
+      die Abfrage des Status einbezogen.
+   </p>
+   <p>
+      Dies ermöglicht den Einsatz von beliebigen Tags innerhalb von Formularen, die grundsätzlich keine Formular-Funktion
+      erfüllen (z.B. Beschriftung von Feldern).
+   </p>
+</div>
+<p>
+   Die folgenden drei Kapitel beschreiben die Erstellung von eigenen Formular-Elementen, Validatoren
+   und Filter und geben Beispiele für die Implementierung.
+</p>
+
+<h4 id="Chapter-7-1-Formular-Felder"><a href="#Chapter-7-1-Formular-Felder">7.1. Formular-Felder</a></h4>
+<p>
+   Wie bereits angedeutet, ist eine Formular-Element im APF durch die abstrakten Basis-Klasse
+   <strong>AbstractFormControl</strong> definiert. Um ein neues Formular-Element zu implementieren, muss diese
+   nun um die gewünschten Funktionen erweitert werden.
+</p>
+<p>
+   Als Beispiel soll im Folgenden ein Formular-Element besprochen werden, das zum Schutz eines
+   Formulars ein verstecktes Text-Feld erzeugt und das im darauffolgenden Kapitel mit einem speziellen
+   Validator belegt werden kann. Ist das Feld gefüllt, ist davon auszugehen, dass es sich um eine
+   automatisierte Anfrage handelt. Ist das Feld nicht gefüllt, wird das Formular als valide
+   betrachtet, sofern alle anderen Felder ebenfalls valide sind. In diversen Blog-Einträgen werden
+   diese Art von Felder auch als
+   <a class="external" href="http://nedbatchelder.com/text/stopbots.html" title="Stopping spambots with hashes and honeypots">honeypot fields</a>
+   bezeichnet.
+</p>
+<p>
+   Beginnen wir zunächst mit dem Rumpf des Elements. Wie zuvor beschrieben soll ein Text-Feld
+   ausgeben werden, das via CSS versteckt wird. Um diese Funktion zu gewährleisten, muss das neue
+   Formular-Element bei der Transformation die entsprechende HTML-Ausgabe zurückliefern:
+</p>
+<gen:highlight type="php">
+class HoneypotFormControlTag extends AbstractFormControl {
+   public function transform(){
+      $htmlCode  = (string)'&lt;input ';
+      $htmlCode .= $this->getAttributesAsString($this->attributes);
+      $htmlCode .= 'type="text" ';
+      $htmlCode .= 'style="margin: 0px; padding: 0px; display: none; height: 0px; width: 0px;"';
+      $htmlCode .= ' /&gt;';
+      return $htmlCode;
+   }
+}
+</gen:highlight>
+<p>
+   Da die Rückgabe des Validitäts-Status, die Möglichkeit Validatoren und Filter
+   anzuheften und Presetting der eingegebenen Werte beim Absenden bereits in der Klasse
+   <strong>AbstractFormControl</strong> enthalten ist, stellt die oben gezeigte Klasse bereits den
+   vollständig Funktionsumfang dar.
+</p>
+<p>
+   Um das neue Element in einem Formular verwenden zu können, muss dieses mit Hilfe des
+   <strong>&lt;core:addtaglib /&gt;</strong>-Tags im Formular bekannt gemacht werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="VENDOR\..\HoneypotFormControlTag"
+   prefix="form"
+   name="honeypot"
+/&gt;
+&lt;html:form name="CheckedForm"&gt;
+   ...
+   &lt;form:honeypot name="check" /&gt;
+   ...
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Die eigentliche Funktionalität des <strong>honepot field</strong> steckt in der Validierung.
+   Diese wird im nächsten Kapitel besprochen.
+</p>
+
+<h4 id="Chapter-7-2-Validatoren"><a href="#Chapter-7-2-Validatoren">7.2. Validatoren</a></h4>
+<p>
+   Validatoren werden ab dem Release <strong>1.11</strong> von Formular-Elementen getrennt
+   definiert und diesen als Observer mitgegeben. Um diesen Mechanismus zu unterstützen, muss das
+   Formular-Element jedoch darauf vorbereitet sein. Im Fall des im vorangegangenen Kapitels
+   beschriebenen Honeypot-Feldes ist die Validierungs-Funktionalität bereits durch die
+   Basis-Klasse <strong>AbstractFormControl</strong> definiert. Bei der Validierung wird dem Validator der
+   Inhalt des Attributs <strong>value</strong> übergeben und dieser kann entsprechend darauf
+   reagieren.
+</p>
+<p>
+   Der zu erstellende <strong>HoneypotValidator</strong> ist im Wesentlichen ein Text-Feld-Validator,
+   daher kann die im APF-Release enthaltene Klasse <strong>TextFieldValidator</strong> als Basis
+   für die Implementierung verwendet werden. Diese leitet von
+   <strong>AbstractFormValidator</strong> ab, der Basis-Klasse für alle Formular-Validatoren.
+</p>
+<p>
+   Jeder Validator implementiert die Methode <strong>validate()</strong>, die den zu validierenden
+   Inhalt entgegen nimmt. In unserem Fall erhält die Funktion den Inhalt des Honeypot-Feldes.
+   Dieses muss im Positiv-Fall leer sein, sofern dort Zeichen enthalten ist, muss das Feld als invalid
+   gekennzeichnet werden. Hierzu kann folgender Code verwendet werden:
+</p>
+<gen:highlight type="php">
+class HoneypotValidator extends TextFieldValidator {
+   public function validate($input){
+      if(empty($input)){
+         return true;
+      }
+      return false;
+   }
+   ...
+}
+</gen:highlight>
+<p>
+   Da die Klasse <strong>TextFieldValidator</strong> bereits die Benachrichtigung eines &quot;echten&quot;
+   Text-Feldes übernimmt wird das Feld im Fehlerfall mit einer CSS-Klasse versehen, die zur
+   optischen Markierung genutzt werden kann. Dies ist im aktuellen Anwendungsfall nicht erforderlich
+   und muss daher unterdrückt werden. Hierzu überschreiben wir die Methode
+   <strong>notify()</strong> der Klasse <strong>TextFieldValidator</strong>, die aufgerufen wird,
+   sofern ein Feld nicht erfolgreich validiert werden konnte:
+</p>
+<gen:highlight type="php">
+class HoneypotValidator extends TextFieldValidator {
+   public function validate($input){
+      if(empty($input)){
+         return true;
+      }
+      return false;
+   }
+
+   public function notify(){
+      $this->control->markAsInvalid();
+      $this->notifyValidationListeners($this->control);
+   }
+}
+</gen:highlight>
+<p>
+   Die Methode enthält im Gegensatz zur Implementierung in der Klasse <strong>TextFieldValidator</strong> die Zeile
+</p>
+<gen:highlight type="php">
+$this->markControl($this->control);
+</gen:highlight>
+<p>
+   nicht. Damit haben wir das optische Markieren des fehlerhaften Formular-Feldes ausgeschaltet.
+</p>
+<p>
+   Die Anwendung des Validators gestaltet sich dann im Zusammenhang mit dem Honeypot-Textfeld wie folgt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:addtaglib
+   class="VENDOR\..\HoneypotFormControlTag"
+   prefix="form"
+   name="honeypot"
+/&gt;
+&lt;html:form name="CheckedForm"&gt;
+   &lt;form:honeypot name="check" /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
+   &lt;form:addvalidator
+      class="...\HoneypotValidator"
+      control="check"
+      button="send"
+   /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Der Validator kann durch die eigentständige Definition auch auf andere Text-Felder angewendet
+   werden, die Text-Validierung unterstützen. Hierzu zählen alle im Release mitgelieferten
+   Text- und Text-Area-Taglibs.
+</p>
+
+<h4 id="Chapter-7-3-Filter"><a href="#Chapter-7-3-Filter">7.3. Filter</a></h4>
+<p>
+   Für das Honeypot-Feld wird kein Validator benötigt. Aus diesem Grund soll in diesem
+   Kapitel ein Filter implementiert werden, mit dem deutsche Umlaute durch die Laut-Entsprechungen
+   (z.B. ä -> ae) ersetzt werden.
+</p>
+<p>
+   Der <strong>GermanUmlautsFilter</strong> implementiert dabei die Klasse
+   <strong>AbstractFormFilter</strong> - die wie der <strong>AbstractFormValidator</strong> bei den
+   Validatoren - das Interface eines Formular-Filters beschreibt.
+</p>
+<p>
+   Jeder Filter implementiert dabei die Methode <strong>filter()</strong>. Diese nimmt den zu
+   filternden Inhalt entgegen, führt die gewünschte Funktion aus und gibt den gefilterten
+   Inhalt wieder zurück.
+</p>
+<p>
+   Das Grundgerüst des Filters kann damit durch folgenden Code beschrieben werden:
+</p>
+<gen:highlight type="php">
+class GermanUmlautsFilter extends AbstractFormFilter {
+   public function filter($input){
+      return $input;
+   }
+}
+</gen:highlight>
+<p>
+   Die Funktionalität des Filters besteht aus einem einfachen Aufruf der Funktion <strong>str_replace()</strong>:
+</p>
+<gen:highlight type="php">
+class GermanUmlautsFilter extends AbstractFormFilter {
+   public function filter($input){
+      return str_replace(
+         array('ä','ö','ü','Ä','Ö','Ü','ß'),
+         array('ae','oe','ue','Ae','Oe','Ue','ss'),
+         $input
+      );
+   }
+}
+</gen:highlight>
+<p>
+   Die Anwendung des Filters gestaltet sich dann im Zusammenhang mit einem Text-Feld oder einer
+   Text-Area wie folgt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="UmlautsForm"&gt;
+   &lt;form:text name="name" /&gt;
+   &lt;form:area name="comment" /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
+   &lt;form:addfilter
+      class="...\GermanUmlautsFilter"
+      control="name|comment"
+      button="send"
+   /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+
+<h4 id="Chapter-7-4-MultiFileUpload"><a href="#Chapter-7-4-MultiFileUpload">7.4. MultiFileUpload</a></h4>
+<p>
+   Seitens des APF wird ein weiteres Tool zum Erzeugen von Datei-Uploads mit Vorschau-Funktion sowie prozentualer
+   Fortschrittanzeige angeboten: der MultiFileUpload.
+   Ausführliche Informationen dazu entnehmen Sie bitte der Dokumentation im Wiki:
+   <a class="wiki" href="${getBaseUrl(WikiBaseURL)}/MultiFileUpload" title="MultiFileUpload im Wiki">MultiFileUpload im Wiki</a>.
+</p>
+
+<h3 id="Chapter-8-Sichtbarkeit-von-Formular-Elementen"><a href="#Chapter-8-Sichtbarkeit-von-Formular-Elementen">8. Sichtbarkeit von Formular-Elementen</a></h3>
+<p>
+   Formular-Elemente besitzten ein Sichtbarkeitsmerkmal. Dieses wird bei der Transformation dazu genutzt zu entscheiden,
+   ob ein Formular-Element dargestellt wird oder nicht. Dies ermöglicht Ihnen das aus- bzw. einblenden von
+   Formular-Elemente via <int:link pageid="006"/>.
+</p>
+<p>
+   Zusätzlich zum Sichtbarkeits-Status lassen sich pro Formular-Element abhängige Elemente definieren, die beim
+   Ausblenden ebenso ausgeblendet werden. So lassen sich - in gewissen Grenzen - ganz einfach
+   <a href="#Chapter-6-Dynamische-Formulare">dynamische Formulare</a> erzeugen.
+</p>
+<p>
+   Die folgenden Kapitel beschreiben die möglichen Anwendungsfälle und die zugehörige Implementierung.
+</p>
+
+<h4 id="Chapter-8-1-Manipulation-der-Sichtbarkeit-im-Template"><a href="#Chapter-8-1-Manipulation-der-Sichtbarkeit-im-Template">8.1. Manipulation der Sichtbarkeit im Template</a></h4>
+<div class="hint">
+   Bitte beachten Sie, dass dieses Feature erst mit der Version 3.3 zur Verfügung steht.
+</div>
+<p>
+   Die unter <int:link pageid="113" /> beschriebenen Formular-Elemente unterstützen die Definition der Sichtbarkeit direkt
+   im Template. Hierzu steht Ihnen das Attribut <em>hidden</em> zur Verfügung. Ist dieses auf den Wert <em>true</em> gesetzt,
+   wird das Formular-Feld nicht ausgegeben und die gegebenenfalls definierte Validierung ausser Kraft gesetzt.
+   Ist das Attribut nicht definiert oder mit dem Standard-Wert <em>false</em> belegt, wird das Formular-Feld wie
+   gewohnt angezeigt und validiert.
+</p>
+<div class="hint">
+   Standardmäßig ist jedes Formular-Element zunächst sichtbar.
+</div>
+<p>
+   Im folgenden Formular ist die Checkbox <em>stay-logged-in</em> zunächst ausgeblendet:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="log-in"&gt;
+   &lt;label for="user-name"&gt;Benutzer-Name:&lt;/label&gt;
+   &lt;form:select name="user-name" id="user-name" /&gt;
+
+   &lt;label for="password"&gt;Passwort:&lt;/label&gt;:
+   &lt;form:text name="password" id="password" /&gt;
+
+   &lt;label for="stay-logged-in"&gt;Eingeloggt bleiben?&lt;/label&gt;:
+      &lt;form:checkbox
+      name="stay-logged-in"
+      id="stay-logged-in"
+      hidden="true"
+   /&gt;
+
+   &lt;form:button name="log-in" value="Anmelden" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Soll die Checkbox unter gewissen Umständen eingeblendet werden, so kann diese im Controller wie folgt vorgenommen
+   werden:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class LoginController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = &$this->getForm('log-in');
+
+      $checkbox = &$form->getFormElementByName('stay-logged-in');
+      $checkbox->show();
+
+      ...
+
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+
+<h4 id="Chapter-8-2-Manipulation-der-Sichtbarkeit-per-Controller"><a href="#Chapter-8-2-Manipulation-der-Sichtbarkeit-per-Controller">8.2. Manipulation der Sichtbarkeit per Controller</a></h4>
+<p>
+   Zur Definition und Manipulation der Sichtbarkeit besitzt die Klasse <em>AbstractFormControl</em> die folgenden Methoden
+</p>
+<ul>
+   <li><em>hide()</em></li>
+   <li><em>show()</em></li>
+   <li><em>isVisible()</em></li>
+</ul>
+<p>
+   Da alle Formular-Elemente von dieser ableiten, steht die Sichtbarkeits-Definition grundsätzlich in jedem
+   Element zur Verfügung. Weitere Hinweise finden Sie im Kapitel
+   <a href="#Chapter-8-5-Unterstuetzte-Formular-Elemente">Unterstützte Formular-Elemente</a>.
+</p>
+<p>
+   Die Methode <em>isVisible()</em> kann dazu genutzt werden um den aktuellen Status zu in einem Controller oder
+   einem Tag zu erfragen. <em>show()</em> setzt das Element auf den Status <em>sichtbar</em>, <em>hide()</em> versteckt
+   es.
+</p>
+<div class="hint">
+   Standardmäßig ist jedes Formular-Element zunächst sichtbar.
+</div>
+<p>
+   Als Beispiel soll uns das in der Code-Box abgebildete Login-Formular dienen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="log-in"&gt;
+   &lt;label for="user-name"&gt;Benutzer-Name:&lt;/label&gt;
+   &lt;form:select name="user-name" id="user-name" /&gt;
+
+   &lt;label for="password"&gt;Passwort:&lt;/label&gt;:
+   &lt;form:text name="password" id="password" /&gt;
+
+   &lt;label for="stay-logged-in"&gt;Eingeloggt bleiben?&lt;/label&gt;:
+   &lt;form:checkbox name="stay-logged-in" id="stay-logged-in" /&gt;
+
+   &lt;form:button name="log-in" value="Anmelden" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Wie aus der Code-Box zu entnehmen ist, beinhaltet das Formular je ein Feld für Benutzer-Namen und Passwort sowie
+   ein Feld, das die dahinterliegende Applikation dazu veranlasst eine permanente Anmeldung zu erzeugen.
+</p>
+<p>
+   Um die Checkbox zur Aktivierung der permanenten Anmeldung auszublenden kann folgender Controller-Code verwendet werden:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class LoginController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = &$this->getForm('log-in');
+
+      $checkbox = &$form->getFormElementByName('stay-logged-in');
+      $checkbox->hide();
+
+      ...
+
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Bei der Anzeige des Formulars ist die Checkbox nun nicht mehr sichtbar und damit für den Anwender nicht mehr nutzbar.
+</p>
+<p>
+   Bitte beachten Sie die Hinweise in <a href="#Chapter-8-6-Implementierung-von-eigenen-Formular-Elementen">Kapitel 8.5</a>
+   zur Implementierung von eigenen Formular-Elementen unter Nutzung der Sichtbarkeits-Definition.
+</p>
+
+<h4 id="Chapter-8-3-Ausblenden-von-abhaengigen-Elementen"><a href="#Chapter-8-3-Ausblenden-von-abhaengigen-Elementen">8.3. Ausblenden von abhaengigen Elementen</a></h4>
+<p>
+   Nachteil der in <a href="#Chapter-8-2-Manipulation-der-Sichtbarkeit-per-Controller">Kapitel 8.1</a> beschriebenen
+   Vorgehensweise: das Label-Element der Checkbox weiterhin angezeigt wird. Dies lässt sich sehr einfach dadurch umgehen,
+   dass das als HTML-Tag definierte Label als APF-Formular-Tag ausgeführt wird. Dieser lässt sich dann mit Hilfe des
+   Attributes <em>dependent-controls</em> als abhängiges Element der Checkbox markieren und wird beim Ausblenden der
+   Checkbox ebenso ausgeblendet.
+</p>
+<p>
+   Die Definition des Formulars erweitert sich dadurch wie folgt:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="log-in"&gt;
+   &lt;label for="user-name"&gt;User name:&lt;/label&gt;
+   &lt;form:select name="user-name" id="user-name" /&gt;
+
+   &lt;label for="password"&gt;Password:&lt;/label&gt;:
+   &lt;form:text name="password" id="password" /&gt;
+
+   &lt;form:label name="stay-logged-in-label" for="stay-logged-in"&gt;Stay logged-in?&lt;/form:label&gt;:
+   &lt;form:checkbox
+      name="stay-logged-in"
+      id="stay-logged-in"
+      dependent-controls="stay-logged-in-label"
+   /&gt;
+
+   &lt;form:button name="log-in" value="Anmelden" /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Die Definition von abhängigen Elementen ist rekursiv möglich. Wird beispielsweise das Passwort-Feld als abhängiges
+   Element des Label-Tags definiert, so werden beim Ausblenden der Checkbox sie selbst, der Label-Tag und das
+   Passwort-Feld ausgeblendet.
+</p>
+<p>
+   Möchten Sie pro Feld mehrere abhängige Felder referenzieren, so trennen Sie die Namen der Felder jeweils mit einem
+   <em>|</em> (Pipe-Zeichen). Beispiel:
+</p>
+<gen:highlight type="code">
+stay-logged-in-label|password
+</gen:highlight>
+
+<h4 id="Chapter-8-4-Ausblenden-von-Gruppen"><a href="#Chapter-8-4-Ausblenden-von-Gruppen">8.4. Ausblenden von Gruppen</a></h4>
+<p>
+   Eine noch elegantere Möglichkeit zur Steuerung der Sichtbarkeit von Formular-Elementen ist die Nutzung von Gruppen.
+   Dies ermöglicht zum einen das Aus- und Einblenden von mehreren Formular-Elementen gleichzeitig und unterstützt auch
+   das Ausblenden des zugehörigen HTML-Codes, das bei der in <a href="#Chapter-8-3-Ausblenden-von-abhaengigen-Elementen">Kapitel 8.2</a>
+   beschriebenen Variante nicht möglich ist.
+</p>
+<p>
+   Zur Definition einer Gruppe lässt sich der <int:link pageid="113" anchor="Chapter-3-23-Group">&lt;form:group /&gt;</int:link>-Tag
+   einsetzen. Dieser generiert selbst keine Ausgabe, sondern stellt lediglich die darin definierten Formular-Elemente und
+   das zugehörige HTML dar.
+</p>
+<p>
+   Die Formular-Definition kann damit wie folgt angepasst werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="log-in"&gt;
+   &lt;p&gt;
+      &lt;label for="user-name"&gt;User name:&lt;/label&gt;
+      &lt;form:select name="user-name" id="user-name" /&gt;
+   &lt;/p&gt;
+
+   &lt;p&gt;
+      &lt;label for="password"&gt;Password:&lt;/label&gt;:
+      &lt;form:text name="password" id="password" /&gt;
+   &lt;/p&gt;
+
+   &lt;form:group name="stay-logged-in-group"&gt;
+      &lt;p&gt;
+         &lt;form:label for="stay-logged-in"&gt;Stay logged-in?&lt;/form:label&gt;:
+         &lt;form:checkbox
+            name="stay-logged-in"
+            id="stay-logged-in"
+         /&gt;
+      &lt;/p&gt;
+   &lt;/form:group&gt;
+
+   &lt;p&gt;
+      &lt;form:button name="log-in" value="Anmelden" /&gt;
+   &lt;/p&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<div class="hint">
+   Bitte beachten Sie, dass das HTML-Markup um <em>&lt;p /&gt;</em>-Tags erweitert wurde um zu demonstrieren, dass sich
+   auch das zu den Formular-Elementen zugehörige HTML ausblenden lässt.
+</div>
+<p>
+   Das Ausblenden der Checkbox zur Aktivierung der permanenten Anmeldung lässt sich im Controller wie folgt realisieren:
+</p>
+<gen:highlight type="php">
+use APF\core\pagecontroller\BaseDocumentController;
+
+class LoginController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = &$this->getForm('log-in');
+
+      $group = &$form->getFormElementByName('stay-logged-in-group');
+      $group->hide();
+
+      ...
+
+      $form->transformOnPlace();
+
+   }
+
+}
+</gen:highlight>
+<p>
+   Soll die Gruppe standardmäßig zunächst ausgeblendet werden, so kann dies über das Attribut <em>hidden</em> bereits im
+   template definiert werden:
+</p>
+<gen:highlight type="apf-xml">
+&lt;form:group name="stay-logged-in-group" hidden="true"&gt;
+   &lt;p&gt;
+      &lt;form:label for="stay-logged-in"&gt;Stay logged-in?&lt;/form:label&gt;:
+      &lt;form:checkbox
+         name="stay-logged-in"
+         id="stay-logged-in"
+      /&gt;
+   &lt;/p&gt;
+&lt;/form:group&gt;
+</gen:highlight>
+<p>
+   Um die Gruppe unter bestimmten bedingungen wieder einzublenden, lässt sich folgender Controller-Code nutzen:
+</p>
+<gen:highlight type="php">
+$group = &$form->getFormElementByName('stay-logged-in-group');
+$group->show();
+</gen:highlight>
+
+<h4 id="Chapter-8-5-Unterstuetzte-Formular-Elemente"><a href="#Chapter-8-5-Unterstuetzte-Formular-Elemente">8.5. Unterstützte Formular-Elemente</a></h4>
+<p>
+   Die Sichtbarkeits-Definition wird nicht von allen Formular-Elementen unterstützt. Dies hat den Grund, dass für
+   bestimmte Elemente wie z.B. der <int:link pageid="113" anchor="Chapter-3-4-Hidden">&lt;form:hidden /&gt;</int:link>-Tag
+   keine sichtbare Darstellung besitzen und bei Elementen wie dem
+   <int:link pageid="113" anchor="Chapter-3-19-Error">&lt;form:error /&gt;</int:link>-Tag
+   eine Sichtbarkeit fachlich nicht sinnhaft ist.
+</p>
+<p>
+   Die folgende Liste zeigt die Tags, die die Definition der Sichtbarkeit unterstützen:
+</p>
+<ul>
+   <li><em>&lt;form:button /&gt;</em></li>
+   <li><em>&lt;form:imagebutton /&gt;</em></li>
+   <li><em>&lt;form:reset /&gt;</em></li>
+   <li><em>&lt;form:checkbox /&gt;</em></li>
+   <li><em>&lt;form:file /&gt;</em></li>
+   <li><em>&lt;form:label /&gt;</em></li>
+   <li><em>&lt;form:multiselect /&gt;</em></li>
+   <li><em>&lt;form:select /&gt;</em></li>
+   <li><em>&lt;form:password /&gt;</em></li>
+   <li><em>&lt;form:radio /&gt;</em></li>
+   <li><em>&lt;form:text /&gt;</em></li>
+   <li><em>&lt;form:area /&gt;</em></li>
+   <li><em>&lt;form:date /&gt;</em></li>
+   <li><em>&lt;form:time /&gt;</em></li>
+   <li><em>&lt;form:group /&gt;</em></li>
+</ul>
+
+<h4 id="Chapter-8-6-Implementierung-von-eigenen-Formular-Elementen"><a href="#Chapter-8-6-Implementierung-von-eigenen-Formular-Elementen">8.6. Implementierung von eigenen Formular-Elementen</a></h4>
+<p>
+   Die Definition der Sichtbarkeit ist in der Klasse <em>AbstractFormControl</em> verankert und steht damit jedem
+   Formular-Element-Typ zur Verfügung. Da die Auswirkung der Sichtbarkeit jedoch jedes Element selbst definiert muss bei
+   der Implementierung von eigenen Formular-Tags der Status bei der Erzeugung der Ausgabe beachtet werden oder bewusst
+   ignoriert werden.
+</p>
+<p>
+   Der Sichtbarkeits-Status wird in der Klassenvariablen <em>AbstractFormControl::$isVisible</em> verwaltet. Der Wert
+   <em>true</em> entspricht dabei dem Status <em>sichtbar</em>, bei <em>false</em> werden die in
+   <a href="#Chapter-8-5-Unterstuetzte-Formular-Elemente">Kapitel 8.4.</a> nicht angezeigt.
+</p>
+<p>
+   Soll der Sichtbarkeits-Status bei der Ausgabe Ihres Formular-Elements beachtet werden, so können Sie die folgende
+   Code-Box als Vorlage nutzen:
+</p>
+<gen:highlight type="php">
+class MyCustomFormTag extends AbstractFormControl {
+
+   ...
+
+   public function transform() {
+      if ($this->isVisible) {
+         return '...what ever your tag generates as its output...';
+      }
+      return '';
+   }
+
+   ...
+}
+</gen:highlight>
+<p>
+   Ein weiterer Anwendungsfall bei der Implementierung von eigenen Formular-Elementen ist das direkte Ausblenden von
+   benachbarten Formular-Elementen im Tag-Code. Dies kann notwendig sein, wenn Sie z.B. ein Formular-Element eine
+   direkte Abhängigkeit zu einem anderen besitzt.
+</p>
+<p>
+   Das Ausblenden aller in einem Formular enthaltenen Check-Boxen lässt sich beispielsweise wie folgt in einem eigenen
+   Formular-Tag abbilden:
+</p>
+<gen:highlight type="php">
+class MyCustomFormTag extends AbstractFormControl {
+
+   ...
+
+   public function onAfterAppend() {
+
+      $form = &$this->getForm();
+      $controls = $form->getFormElementsByTagName('form:checkbox');
+
+      foreach ($controls as $control) {
+         $control->hide();
+      }
+
+      ...
+
+   }
+
+   ...
+}
+</gen:highlight>
+
+<h3 id="Chapter-9-Zuruecksetzen-von-Formularen"><a href="#Chapter-9-Zuruecksetzen-von-Formularen">9. Zurücksetzen von Formularen</a></h3>
+<p>
+   Möchten Sie ein Formular nach dem Absenden auf seinen ursprünglichen Stand zurückzusetzen können Sie hierzu die
+   Methode <em>reset()</em> nutzen. Diese wird sowohl für ein komplettes Formular (<em>HtmlForm::reset()</em>) als
+   auch für ein einzelnes Element (<em>FormControl::reset()</em>) verfügbar.
+</p>
+<p>
+   Rufen Sie die Methode <em>reset()</em> auf der Instanz des Formulars auf, so wird jedes Formular-Element (Implementierung
+   des Interface <em>FormControl</em>) auf seinen ursprünglichen Zustand zurückgesetzt:
+</p>
+<gen:highlight type="php">
+$this->getForm('log-in')->reset();
+</gen:highlight>
+<p>
+   Soll ein einzelnes Formular-Element zurückgesetzt werden, können Sie dazu ebenfalls die Methode <em>reset()</em>
+   nutzen:
+</p>
+<gen:highlight type="php">
+$this->getForm('log-in')->getFormElementByName('username')->reset();
+</gen:highlight>
+<div class="warn">
+   Bitte implementieren Sie bei der Erstellung von eigenen Formular-Elementen auch die Methode <em>reset()</em> da
+   sich diese ggf. von der Standard-Implementierung in der Klasse <em>AbstractFormControl</em> unterscheidet.
+</div>
+
+<h3 id="Chapter-10-Fuellen-von-DTOs-und-Models"><a href="#Chapter-10-Fuellen-von-DTOs-und-Models">10. Füllen von DTOs und Models</a></h3>
+<p>
+   Um das Formular
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="address">
+   <form:text name="street" />
+   <form:text name="number" />
+   <form:text name="zip" />
+   <form:text name="city" />
+   <form:button name="submit" value="Weiter" />
+</html:form>
+</gen:highlight>
+<p>
+   auszulesen und in ein DTO oder Model zu schreiben können Sie folgende Vorgehensweise im Controller nutzen:
+</p>
+<gen:highlight type="php">
+$model = new AddressModel();
+$model->setStreet($form->getFormElementByName('street')->getValue());
+$model->setNumber($form->getFormElementByName('number')->getValue());
+$model->setZip($form->getFormElementByName('zip')->getValue());
+$model->setCity($form->getFormElementByName('city')->getValue());
+</gen:highlight>
+<p>
+   Gerade für komplexere Formulare erzeugt dies sehr viel Controller-Code. Eine weitaus elegantere Möglichkeit ist das
+   Mapping direkt dem Formular zu überlassen:
+</p>
+<gen:highlight type="php">
+$model = new AddressModel();
+$form->fillModel($model);
+</gen:highlight>
+<p>
+   Die folgenden Kapitel geben Ihnen eine Einführung zu diesem Feature erläutern Ihnen Anwendungsbeispiele.
+</p>
+
+<h4 id="Chapter-10-1-Konzept"><a href="#Chapter-10-1-Konzept">10.1. Konzept</a></h4>
+<p>
+   Die Zuweisung der Werte in der Methode <em>fillModel()</em> basieren auf der Annahme, dass der Name eines
+   Formular-Feldes mit den Namen der korrespondierenden Eigenschaft des DTOs bzw. Models übereinstimmt.
+</p>
+<p>
+   Diese Konvention hält die Komplexität der Implementierung von DTOs bzw. Models in Grenzen und macht den Aufbau einer
+   zusätzlichen Mapping-Tabelle (z.B. Formular-Feld -&gt; DTO/Model-Methode) überflüssig.
+</p>
+<p>
+   Bei Aufruf der Methode <em>fillModel()</em> weist das Formular daher den Eigenschaften des DTOs bzw. Models jeweils
+   den Wert desjenigen Formular-Feldes zu, dass den selben Namen trägt. Besitzt ein Model die Eigenschaft <em>$street</em>,
+   so wertet das Formular das korrespondierende Feld <em>street</em> aus um den entsprechenden Wert zu ermitteln.
+</p>
+<p>
+   Die Mapping-Implementierung ist dabei nicht auf das Vorhandensein einer öffentlichen Setter-Methode angewiesen,
+   sondern injiziert die Werte über die <em>Reflection</em>-API von PHP. Ein DTO
+</p>
+<gen:highlight type="php">
+class AddressModel {
+
+   private $street;
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   lässt sich daher sehr einfach aus dem folgenden Formular befüllen:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="address">
+   <form:text name="street" />
+   ...
+   <form:button name="submit" value="Weiter" />
+</html:form>
+</gen:highlight>
+<div class="hint">
+   Die Eigenschaften des DTOs bzw. Models können mit einer beliebigen Sichtbarkeit ausgestattet werden. Das Mapping
+   funktioniert sowohl mit als <em>private</em> und <em>protected</em> deklarierten Eigenschaften als auch mit
+   <em>public</em>.
+</div>
+<p>
+   Da jedes Formular-Feld dem Interface <em>FormControl</em> genügen muss, besitzt es zum Auslesen des Wertes die Methode
+   <em>getValue()</em>. Diese liefert je nach Implementierung des Formular-Tags entweder direkt den für das DTO bzw. Model
+   gewünschten Wert zurück oder eine Objekt-Repräsentation davon (z.B. <em>SelectBoxOptionTag</em> für Select-Box-Tags).
+</p>
+<p>
+   Nutzen Sie das DTO bzw. Model beispielsweise im Zusammenhang mit einem O/R-Mapper (z.B. <int:link pageid="063" />)
+   oder einer externen API, ist es notwendig, dass der Wert ein von der Formular-Implementierung unabhängiges
+   Datenformat besitzt (z.B. <em>String</em> oder <em>Integer</em>). Die Übersetzung der Objekt-Repräsentation in einen
+   einfachen Datentypen ist Aufgabe der so genannten <em>FormControlToModelMapper</em>.
+</p>
+<p>
+   Sofern die jeweilige Mapper-Implementierung für den vorliegenden Formular-Feld-Typ zuständig ist - evaluiert wird dies
+   mit Hilfe der Methode <em>applies()</em> - wird innerhalb von <em>fillModel()</em> die Funktion <em>getValue()</em>
+   des Mappers genutzt um den Format-neutralen Wert des übergebenden Formular-Feldes zu ermitteln.
+</p>
+<p>
+   Für das Mapping der mitgelieferten Standard-Feld-Typen gibt es bereits mehrere registrierte Mapper:
+</p>
+<ul>
+   <li>
+      <strong>StandardControlToModelMapper</strong>
+      (String-basierte Felder sowie Datums- und Zeit-Auswahl-Komponenten)
+   </li>
+   <li>
+      <strong>RadioButtonToModelMapper</strong>
+      (Radio-Buttons)
+   </li>
+   <li>
+      <strong>SelectBoxToModelMapper</strong>
+      (Select-Boxen)
+   </li>
+   <li>
+      <strong>MultiSelectBoxToModelMapper</strong>
+      (Multi-Select-Boxen)
+   </li>
+</ul>
+<p>
+   Die Methode <em>fillModel()</em> erlaubt die Übergabe einer optionalen Liste von zu verarbeitenden Feldern. Diese ist
+   hilfreich, wenn Sie ein Model befüllen wollen, bei dem nicht alle Felder im Formular vorhanden sind und ein DTO für
+   ein mehrstufiges Formular genutzt werden soll.
+</p>
+<p>
+   Die Liste lässt sich ebenfalls dazu nutzen, nur bestimmte Felder zu füllen um bereits vorhandene Daten nicht
+   überschrieben werden sollen.
+</p>
+<p>
+   Wird im aktuellen Schritt eines Anmelde-Prozesses lediglich die Adresse abgefragt, so kann die Befüllung des
+   <em>AddressModel</em> wir folgt darauf beschränkt werden:
+</p>
+<gen:highlight type="php">
+$model = new AddressModel();
+$form->fillModel($model, ['street', 'number', 'ZIP', 'city']);
+</gen:highlight>
+<div class="hint">
+   Tritt während der Befüllung eine <em>FormException</em> auf, so wird diese abgefangen und der Vorgang fortgeführt.
+   Diese Vorgehensweise bietet den Vorteil, dass die Befüllung eines Modells jederzeit ausgeführt werden kann, sorgt
+   jedoch für den Nachteil, dass sich die Fehlersuche komplexer gestaltel. Die Entscheidung zu Gunsten der beschriebenen
+   Vorgehensweise wurde getroffen um ein vorhandenes Model im Formular-Bereich einfach wiederverwenden zu können.
+</div>
+
+<h4 id="Chapter-10-2-Anwendung"><a href="#Chapter-10-2-Anwendung">10.2. Anwendung</a></h4>
+<p>
+   In diesem Kapitel erfahren Sie mehr über die Verwendung der Methode <em>fillModel()</em> innerhalb Ihrer Anwendung.
+</p>
+<div class="hint">
+   Sofern Ihre DTOs bzw. Models auf dem Generischen O/R Mapper basieren, beachten Sie bitte, dass das in diesem Kapitel
+   beschriebene Feature nur in Verbindung mit
+   <int:link pageid="063" anchor="Chapter-7-Eigene-Domaenen-Objekte">Eigene Domänen-Objekte</int:link> genutzt werden
+   kann.
+</div>
+
+<h5 id="Chapter-10-2-1-Fuellen-eines-DTO"><a href="#Chapter-10-2-1-Fuellen-eines-DTO">10.2.1. Füllen eines DTO</a></h5>
+<p>
+   Das folgenden Formular kann zur Anmeldung auf einer Webseite verwendet werden. Es beinhaltet jeweils ein Feld für die
+   Eingabe von Benutzer-Namen und Passwort so wie einer Checkbox um eine permanente Anmeldung zu speichern:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="log-in">
+   <form:text name="user" />
+   <form:text name="pass" />
+   <form:checkbox name="stay_logged_in" value="yes" />
+   ...
+   <form:button name="submit" value="Anmelden" />
+</html:form>
+</gen:highlight>
+<p>
+   Angenommen, Sie nutzen eine API zur Anmeldung eines Benutzers die eine DTO-Klasse <em>LoginData</em> erwartet, so
+   ist es notwendig zur Verarbeitung der Anmeldung im Controller das DTO zu füllen und an die API zu übergeben. Dies
+   lässt sich mit Hilfe der Methode <em>fillModel()</em> wie folgt erledigen:
+</p>
+<gen:highlight type="php">
+class LoginController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = $this->getForm('log-in');
+
+      if ($form->isSent() && $form->isValid()) {
+         $model = new LoginData();
+         $form->fillModel($model);
+         $this->executeLogIn($model);
+      }
+
+   }
+
+   protected function executeLogIn(LoginData $data) {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   Das zugehörige DTO gestaltet sich wie folgt:
+</p>
+<gen:highlight type="php">
+class LoginData {
+
+   private $user;
+   private $pass;
+   private $stay_logged_in;
+
+   public function getUser() {
+      return $this->user;
+   }
+
+   public function getPass() {
+      return $this->pass;
+   }
+
+   public function getStayLoggedIn() {
+      return $this->stay_logged_in;
+   }
+
+}
+</gen:highlight>
+<div class="hint">
+   Bitte beachten Sie, dass zur Befüllung des DTOs die Namen der Formular-Felder mit den Namen der DTO-Eigenschaften
+   übereinstimmen müssen.
+</div>
+<div class="warn">
+   Bitte beachten Sie, dass Bindestriche (&quot;-&quot;) nicht als Bestandteil einer PHP-Variable zulässig sind. Sofern Bindestriche
+   verwendet werden, konvertiert die Methode <em>fillModel()</em> die Feld-Namen in gültige PHP-Variablen-Namen. Hierzu
+   werden alle Bindestriche entfernt und die darauf folgende Buchstaben gemäß LCC-Schreibweise in Großbuchstaben
+   konvertiert. Aus dem Formular-Feld-Namen <em>foo-bar</em> ergibt sich demnach die PHP-Variable <em>fooBar</em>.
+</div>
+
+<h5 id="Chapter-10-2-2-Fuellen-mehrerer-DTOs"><a href="#Chapter-10-2-2-Fuellen-mehrerer-DTOs">10.2.2. Füllen mehrerer DTOs</a></h5>
+<p>
+   In einem Anmelde-Formular werden semantisch gesehen in der Regel mehrere Typen von Angaben abgefragt: persönliche
+   Daten wie Name und Geburtsdatum, Adresse des Wohnorts und elektronische Kontakt-Daten wie E-Mail oder Telefonnummer.
+</p>
+<p>
+   Sieht das Daten-Modell Ihrer Anwendung oder das einer genutzten API ebenfalls eine Trennung dieser Bereiche vor, so
+   können Sie die vorhandenen DTOs oder Models auf die gleiche Art befüllen wie in
+   <a href="#Chapter-10-2-1-Fuellen-eines-DTO">Kapitel 10.2.1</a> beschrieben.
+</p>
+<p>
+   Die folgende Code-Box zeigt ein Anmelde-Formular mit drei Bereichen: persönliche Daten, postalische Adresse und
+   E-Mail als Kommunikations-Datum:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="sign-up">
+
+   <form:text name="firstName" />
+   <form:text name="lastName" />
+
+   <form:text name="street" />
+   <form:text name="number" />
+   <form:text name="zip" />
+   <form:text name="city" />
+
+   <form:text name="email" />
+
+   <form:button name="sign-up" value="Anmelden"/>
+</html:form>
+</gen:highlight>
+<p>
+   Für dieses Beispiel nehmen wir an, dass Ihre Anwendung für jeden der drei Bereiche ein DTOs besitzt:
+</p>
+<gen:highlight type="php">
+class PersonalData {
+
+   private $firstName;
+   private $lastName;
+
+   public function getFirstName() {
+      return $this->firstName;
+   }
+
+   public function getLastName() {
+      return $this->lastName;
+   }
+
+}
+
+class PostalAddress {
+
+   private $street;
+   private $number;
+   private $zip;
+   private $city;
+
+   public function getStreet() {
+      return $this->street;
+   }
+
+   public function getNumber() {
+      return $this->number;
+   }
+
+   public function getZip() {
+      return $this->zip;
+   }
+
+   public function getCity() {
+      return $this->city;
+   }
+
+}
+
+class CommunicationData {
+
+   private $email;
+
+   public function getEmail() {
+      return $this->email;
+   }
+
+}
+</gen:highlight>
+<p>
+   Das Füllen der drei DTOs und das anschließende Anmelden eines Kunden kann im Controller wie folgt erreicht werden:
+</p>
+<gen:highlight type="php">
+class SignUpController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = $this->getForm('sign-up');
+
+      if ($form->isSent() && $form->isValid()) {
+         $personal = new PersonalData();
+         $address = new PostalAddress();
+         $communication = new CommunicationData();
+         $form
+               ->fillModel($personal)
+               ->fillModel($address)
+               ->fillModel($communication);
+         $this->signUp($personal, $address, $communication);
+      }
+
+   }
+
+   protected function signUp(PersonalData $personal, PostalAddress $address, CommunicationData $communication) {
+      ...
+   }
+
+}
+</gen:highlight>
+
+<h5 id="Chapter-10-2-3-Fuellen-von-bestimmten-Feldern"><a href="#Chapter-10-2-3-Fuellen-von-bestimmten-Feldern">10.2.3. Füllen von bestimmten Feldern</a></h5>
+<p>
+   Angenommen die Postleitzahl wird im User-Flow einer Anmeldung bereits zu Beginn des Prozesses abgefragt, so wird diese
+   bereits in diesem frühen Schritt in das DTO oder Model überführt. Kommt der Benutzer in einem weiteren Schritt dann
+   auf das Anmelde-Formular aus <a href="#Chapter-10-2-2-Fuellen-mehrerer-DTOs">Kapitel 10.2.2</a>, so soll die PLZ
+   lediglich angezeigt und nicht nochmals in das DTO übertragen werden.
+</p>
+<p>
+   Dies kann sinnvoll sein, da die PLZ zuvor bereits überprüft worden und für den Anmelde-Prozess essentiell ist.
+</p>
+<p>
+   Möchten Sie im Controller alle Informationen ausser der PLZ in die dafür vorgesehenen DTOs überführen, so lässt sich
+   das durch eine Code-Änderung im Controller sehr einfach bewerkstelligen:
+</p>
+<gen:highlight type="php">
+$personal = new PersonalData();
+$address = new PostalAddress();
+$communication = new CommunicationData();
+$form
+      ->fillModel($personal)
+      ->fillModel($address, ['street', 'number', 'city'])
+      ->fillModel($communication);
+</gen:highlight>
+<p>
+   Durch die Übergabe der zu befüllenden Felder wird die <em>PostalAddress</em>-Instanz lediglich mit den Inhalten der
+   Felder <em>street</em>, <em>number</em> und <em>city</em> befüllt. Der Inhalt der DTO-Variable <em>$zip</em> bleibt
+   unberührt.
+</p>
+<div class="hint">
+   Bei dynamischen Formularen lässt sich die Liste der vorhandenen Felder beispielsweise wie folgt zusammen setzen:
+<gen:highlight type="php">
+$names = [];
+foreach ($form->getFormElementsByTagName('form:text') as &$field) {
+   $names[] = $field->getAttribute('name');
+}
+
+$model = new AddressModel();
+$form->fillModel($model, names);
+</gen:highlight>
+</div>
+
+<h4 id="Chapter-10-3-Erweiterung"><a href="#Chapter-10-3-Erweiterung">10.3. Erweiterung</a></h4>
+<p>
+   Setzen Sie eigenen Formular-Tags ein, die bei Aufruf der Methode <em>getValue()</em> nicht den für ein DTO bzw. Model
+   gewünschten Wert zurückliefern ist es notwendig einen eigenen Übersetzer (<em>Mapper</em>) zu schreiben und zu
+   registrieren (siehe Konzept <a href="#Chapter-10-1-Konzept">Kapitel 10.1</a>). Diese Vorgehensweise nutzen
+   beispielsweise auch bei mit dem APF ausgelieferten Select-Feldern, da <em>getValue()</em> analog zu
+   <em>getSelectedOption()</em> eine Instanz der ausgewählten Option (Klasse <em>SelectBoxOptionTag</em>) zurück liefert.
+   Im DTO bzw. Model jedoch der effektive Wert benötigt wird.
+</p>
+<p>
+   Das Interface <em>FormControlToModelMapper</em> beschreibt die Struktur eines Übersetzer eines Formular-Elements in ein
+   unabhängiges Datenformat:
+</p>
+<gen:highlight type="php">
+interface FormControlToModelMapper {
+
+   public static function applies(FormControl $control);
+
+   public static function getValue(FormControl $control);
+
+}
+</gen:highlight>
+<p>
+   Als Beispiel für die Implementierung eines eigenen <em>FormControlToModelMapper</em> soll der folgende Tag genutzt werden,
+   der eine Auswahl-Liste für vorhandene Benutzer darstellt:
+</p>
+<gen:highlight type="php">
+class UserSelectionTag extends AbstractFormControl {
+
+   public function getValue() {
+      return $this->getSelectedUser();
+   }
+
+   /**
+    * @return UmgtUser
+    */
+   public function getSelectedUser() {
+      $user = new UmgtUser();
+      $user->setObjectId($this->getSelectedUserId());
+
+      return $user;
+   }
+
+   /**
+    * @return int
+    */
+   protected function getSelectedUserId() {
+      return ...;
+   }
+
+}
+</gen:highlight>
+<p>
+   Mit Hilfe der Methode <em>getValue()</em> bzw. <em>getSelectedUser()</em> lässt sich eine Instanz des aktuell
+   ausgewählten Benutzers abrufen. Im Controller ist das von Vorteil, da das Ergebnis bei Komponenten wie beispielsweise
+   dem <em>UmgtManager</em> (siehe <int:link pageid="142" />) direkt und ohne Konvertierung weiter verwendet werden kann.
+</p>
+<p>
+   Nutzen Sie ein DTO bzw. Model, das nur primitive Daten verarbeiten kann ist es notwendig einen Mapper zu schreiben.
+</p>
+<p>
+   Mit der Implementierung der Methode <em>applies()</em> legen Sie zunächst fest, für welchen Feldtyp sich der Mapper
+   zuständig fühlen soll:
+</p>
+<gen:highlight type="php">
+class UserSelectionTagToModelMapper implements FormControlToModelMapper {
+
+   public static function applies(FormControl $control) {
+      return $control instanceof UserSelectionTag;
+   }
+
+   ...
+}
+</gen:highlight>
+<p>
+   Mit der abgebildeten Implementierung erreichen Sie, dass der Mapper nur dann verwendet wird, wenn es sich beim
+   aktuellen Feld um ein <em>UserSelectionTag</em> handelt.
+</p>
+<div class="warn">
+   Bitte beachten Sie dass eine ungünstig formulierte Definition der Zuständigkeit das Gesamt-Ergebnis beeinflussen kann!
+   Achten Sie daher auf eine möglichst konkrete Bedingung in der Methode <em>applies()</em>.
+</div>
+<p>
+   Die Übersetzung des zurückgebenen Wertes lässt sich in der Methode <em>getValue()</em> steuern:
+</p>
+<gen:highlight type="php">
+class UserSelectionTagToModelMapper implements FormControlToModelMapper {
+
+   public static function applies(FormControl $control) {
+      return $control instanceof UserSelectionTag;
+   }
+
+   public static function getValue(FormControl $control) {
+      /* @var $control UserSelectionTag */
+      $user = $control->getSelectedUser();
+
+      return $user === null ? null : $user->getObjectId();
+   }
+
+}
+</gen:highlight>
+<p>
+   In der Methode <em>getValue()</em> wird das Formular-Element nach dem aktuell ausgewählten Benutzer gefragt und
+   dessen interne ID zurückgegeben. Ist kein Benutzer ausgewählt ist das Ergebniss <em>null</em>.
+</p>
+<p>
+   Um dem Formular mitzuteilen, welcher Mapper für die Übersetzung verwendet werden soll, muss dieser noch beim Formular
+   registriert werden. Dies lässt sich mit folgendem Code-Schnipsel erreichen:
+</p>
+<gen:highlight type="php">
+HtmlFormTag::addFormControlToModelMapper(UserSelectionTagToModelMapper::class);
+</gen:highlight>
+<div class="hint">
+   <em>FormControlToModelMapper</em> lassen wie Tags (siehe <int:link pageid="147" anchor="Chapter-3-DOM-Struktur"/>) für die
+   gesamte Applikation registrieren. Dies können Sie bequem in der Bootstrap-Datei (z.B. <em>index.php</em>) erledigen.
+</div>
+<p>
+   Für den Einsatz von eigenen Mappern kann es notwendig sein, die Standard-Konfiguration des APF anzupassen. Möchten Sie
+   beispielsweise ausschließlich den <em>UserSelectionTagToModelMapper</em> und den <em>StandardValueMapper</em>
+   verwenden, so nutzen Sie dazu bitte folgenden Code in Ihrer Bootstrap-Datei:
+</p>
+<gen:highlight type="php">
+HtmlFormTag::clearFormControlToModelMappers();
+HtmlFormTag::addFormControlToModelMapper(UserSelectionTagToModelMapper::class);
+HtmlFormTag::addFormControlToModelMapper(StandardValueMapper::class);
+</gen:highlight>
+<div class="hint">
+   Der beschriebene Mapping-Mechanismus lässt sich auch in umgekehrter Form nutzen. Möchten Sie in einem DTO bzw. Model
+   die Objekt-Repräsentationen von aktuellen Werten eines Formulars nutzen, so können Sie mit folgendem
+   <em>FormControlToModelMapper</em> aus einem primitiven Wert auch eine Instanz des gewünschten Typs erzeugen:
+<gen:highlight type="php">
+class UserSelectionTagToModelMapper implements FormControlToModelMapper {
+
+   public static function applies(FormControl $control) {
+      return $control instanceof SelectBoxTag && $control->getAttribute('user');
+   }
+
+   public static function getValue(FormControl $control) {
+      /* @var $control SelectBoxTag */
+      $option = $control->getSelectedOption();
+
+      if ($option === null) {
+         return null;
+      }
+
+      $user = new UmgtUser();
+      $user->setObjectId($option->getValue());
+
+      return $user;
+   }
+
+}
+</gen:highlight>
+   Im DTO bzw. Model steht im gewünschten Attribut dann eine <em>UmgtUser</em>-Instanz zur Verfügung.
+</div>
+
+<h3 id="Chapter-11-Fuellen-von-Formularen-mit-DTOs-und-Models"><a href="#Chapter-11-Fuellen-von-Formularen-mit-DTOs-und-Models">11. Füllen von Formularen mit DTOs und Models</a></h3>
+<div class="hint">
+   Bitte beachten Sie, dass dieses Feature erst mit der Version 3.3 verfügbar ist!
+</div>
+<p>
+   Um das Formular
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="address">
+   <form:text name="street" />
+   <form:text name="number" />
+   <form:text name="zip" />
+   <form:text name="city" />
+   <form:button name="submit" value="Weiter" />
+</html:form>
+</gen:highlight>
+<p>
+   mit Hilfe eines DTOs oder Models zu befüllen können Sie folgende Vorgehensweise im Controller nutzen:
+</p>
+<gen:highlight type="php">
+$model = new AddressModel();
+$form->getFormElementByName('street')->setValue($model->setStreet()));
+$form->getFormElementByName('number')->setValue($model->setNumber()));
+$form->getFormElementByName('zip')->setValue($model->setZip()));
+$form->getFormElementByName('city')->setValue($model->setCity()));
+</gen:highlight>
+<p>
+   Gerade für komplexere Formulare erzeugt dies sehr viel Controller-Code. Eine weitaus elegantere Möglichkeit ist das
+   Mapping direkt dem Formular zu überlassen:
+</p>
+<gen:highlight type="php">
+$model = new AddressModel();
+$form->fillForm($model);
+</gen:highlight>
+<p>
+   Die folgenden Kapitel geben Ihnen eine Einführung zu diesem Feature erläutern Ihnen Anwendungsbeispiele.
+</p>
+
+<h4 id="Chapter-11-1-Konzept"><a href="#Chapter-11-1-Konzept">11.1. Konzept</a></h4>
+<p>
+   Die Zuweisung der Werte in der Methode <em>fillForm()</em> basieren auf der Annahme, dass der Name eines
+   Formular-Feldes mit den Namen der korrespondierenden Eigenschaft des DTOs bzw. Models übereinstimmt.
+</p>
+<p>
+   Diese Konvention hält die Komplexität der Implementierung von DTOs bzw. Models in Grenzen und macht den Aufbau einer
+   zusätzlichen Mapping-Tabelle (z.B. Formular-Feld -&gt; DTO/Model-Methode) überflüssig.
+</p>
+<p>
+   Bei Aufruf der Methode <em>fillForm()</em> weist das Formular denjenigen Formular-Feldern jeweils die Werte
+   des DTOs bzw. Models zu, die den selben Namen tragen. Besitzt ein Model die Eigenschaft <em>$street</em>,
+   so weist das Formular dem korrespondierenden Feld <em>street</em> den Wert zu.
+</p>
+<p>
+   Die Mapping-Implementierung ist dabei nicht auf das Vorhandensein einer öffentlichen Getter-Methode angewiesen,
+   sondern liest die Werte über die <em>Reflection</em>-API von PHP. Ein DTO
+</p>
+<gen:highlight type="php">
+class AddressModel {
+
+   private $street;
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   lässt daher sehr einfach das folgende Formular befüllen:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="address">
+   <form:text name="street" />
+   ...
+   <form:button name="submit" value="Weiter" />
+</html:form>
+</gen:highlight>
+<div class="hint">
+   Die Eigenschaften des DTOs bzw. Models können mit einer beliebigen Sichtbarkeit ausgestattet werden. Das Mapping
+   funktioniert sowohl mit als <em>private</em> und <em>protected</em> deklarierten Eigenschaften als auch mit
+   <em>public</em>.
+</div>
+<p>
+   Da jedes Formular-Feld dem Interface <em>FormControl</em> genügen muss, besitzt es zum Setzen des Wertes die Methode
+   <em>setValue()</em>. Diese initialisiert je nach Implementierung des Formular-Tags das Feld mit einem einfachen oder
+   komplexen Datentyp (z.B. <em>SelectBoxOptionTag</em> für Select-Box-Tags).
+</p>
+<p>
+   Nutzen Sie das DTO bzw. Model beispielsweise im Zusammenhang mit einem O/R-Mapper (z.B. <int:link pageid="063" />)
+   oder einer externen API, ist es notwendig, dass der Wert ein von der Formular-Implementierung unabhängiges
+   Datenformat besitzt (z.B. <em>String</em> oder <em>Integer</em>). Die Übersetzung des einfachen Datentype in eine
+   Objekt-Repräsentation ist Aufgabe der so genannten <em>ModelToFormControlMapper</em>.
+</p>
+<p>
+   Sofern die jeweilige Mapper-Implementierung für den vorliegenden Formular-Feld-Typ zuständig ist - evaluiert wird dies
+   mit Hilfe der Methode <em>applies()</em> - wird innerhalb von <em>fillForm()</em> die Funktion <em>setValue()</em>
+   des Mappers genutzt um den Format-neutralen Wert in das jeweilige Formular-Feldes zu injizieren.
+</p>
+<p>
+   Für das Mapping der mitgelieferten Standard-Feld-Typen gibt es bereits mehrere registrierte Mapper:
+</p>
+<ul>
+   <li>
+      <strong>StandardModelToFormControlMapper</strong>
+      (String-basierte Felder sowie Datums- und Zeit-Auswahl-Komponenten)
+   </li>
+   <li>
+      <strong>ModelToRadioButtonMapper</strong>
+      (Radio-Buttons)
+   </li>
+   <li>
+      <strong>ModelToSelectBoxMapper</strong>
+      (Select-Boxen)
+   </li>
+   <li>
+      <strong>ModelToMultiSelectBoxMapper</strong>
+      (Multi-Select-Boxen)
+   </li>
+</ul>
+<p>
+   Die Methode <em>fillForm()</em> erlaubt die Übergabe einer optionalen Liste von zu verarbeitenden DTO- bzw.
+   Model-Felder. Diese ist hilfreich, wenn Sie ein Formular befüllen wollen, bei dem nicht alle Felder im Model vorhanden
+   sind und ein DTO für ein mehrstufiges Formular genutzt werden soll.
+</p>
+<p>
+   Die Liste lässt sich ebenfalls dazu nutzen, nur bestimmte Felder zu füllen um bereits vorhandene Daten nicht
+   überschrieben werden sollen.
+</p>
+<p>
+   Wird im aktuellen Schritt eines Anmelde-Prozesses lediglich die Adresse abgefragt, so kann die Befüllung des Formulars
+   durch das <em>AddressModel</em> wir folgt darauf beschränkt werden:
+</p>
+<gen:highlight type="php">
+$model = new AddressModel();
+$form->fillForm($model, ['street', 'number', 'ZIP', 'city']);
+</gen:highlight>
+<div class="hint">
+   Tritt während der Befüllung eine <em>FormException</em> auf, so wird diese abgefangen und der Vorgang fortgeführt.
+   Diese Vorgehensweise bietet den Vorteil, dass die Befüllung eines Formulars jederzeit ausgeführt werden kann, sorgt
+   jedoch für den Nachteil, dass sich die Fehlersuche komplexer gestaltel. Die Entscheidung zu Gunsten der beschriebenen
+   Vorgehensweise wurde getroffen um ein vorhandenes Model im Formular-Bereich einfach wiederverwenden zu können.
+</div>
+
+<h4 id="Chapter-11-2-Anwendung"><a href="#Chapter-11-2-Anwendung">11.2. Anwendung</a></h4>
+<p>
+   In diesem Kapitel erfahren Sie mehr über die Verwendung der Methode <em>fillForm()</em> innerhalb Ihrer Anwendung.
+</p>
+
+<div class="hint">
+   Sofern Ihre DTOs bzw. Models auf dem Generischen O/R Mapper basieren, beachten Sie bitte, dass das in diesem Kapitel
+   beschriebene Feature nur in Verbindung mit
+   <int:link pageid="063" anchor="Chapter-7-Eigene-Domaenen-Objekte">Eigene Domänen-Objekte</int:link> genutzt werden
+   kann.
+</div>
+
+<h5 id="Chapter-11-2-1-Fuellen-eines-Formulars"><a href="#Chapter-11-2-1-Fuellen-eines-Formulars">11.2.1. Füllen eines Formulars</a></h5>
+<p>
+   In einem Formular zur Bearbeitung von Benutzer-Daten werden semantisch gesehen mehrere Typen von Angaben zur
+   Aktualisierung angeboten: persönliche Daten wie Name und Geburtsdatum, Adresse des Wohnorts und elektronische
+   Kontakt-Daten wie E-Mail oder Telefonnummer.
+</p>
+<p>
+   Sieht das Daten-Modell Ihrer Anwendung oder das einer genutzten API ebenfalls eine Trennung dieser Bereiche vor, so
+   können Sie die vorhandenen DTOs oder Models direkt nutzen um ein Formular zu befüllen.
+</p>
+<p>
+   Die folgende Code-Box zeigt ein Formular zur Bearbeitung von Benutzer-Informationen mit drei Bereichen: persönliche
+   Daten, postalische Adresse und E-Mail als Kommunikations-Datum:
+</p>
+<gen:highlight type="apf-xml">
+<html:form name="edit">
+
+   <form:text name="firstName" />
+   <form:text name="lastName" />
+
+   <form:text name="street" />
+   <form:text name="number" />
+   <form:text name="zip" />
+   <form:text name="city" />
+
+   <form:text name="email" />
+
+   <form:button name="sign-up" value="Speichern"/>
+</html:form>
+</gen:highlight>
+<p>
+   Für dieses Beispiel nehmen wir an, dass Ihre Anwendung für jeden der drei Bereiche ein DTOs besitzt:
+</p>
+<gen:highlight type="php">
+class PersonalData {
+
+   private $firstName;
+   private $lastName;
+   private $password;
+
+   public function getFirstName() {
+      return $this->firstName;
+   }
+
+   public function getLastName() {
+      return $this->lastName;
+   }
+
+   public function getPassword() {
+      return $this->lastName;
+   }
+
+}
+
+class PostalAddress {
+
+   private $street;
+   private $number;
+   private $zip;
+   private $city;
+
+   public function getStreet() {
+      return $this->street;
+   }
+
+   public function getNumber() {
+      return $this->number;
+   }
+
+   public function getZip() {
+      return $this->zip;
+   }
+
+   public function getCity() {
+      return $this->city;
+   }
+
+}
+
+class CommunicationData {
+
+   private $email;
+
+   public function getEmail() {
+      return $this->email;
+   }
+
+}
+</gen:highlight>
+<p>
+   Das Füllen des Formulars kann mit Hilfe der drei DTOs im Controller wie folgt erreicht werden:
+</p>
+<gen:highlight type="php">
+class EditController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $form = $this->getForm('edit');
+
+      if ($form->isSent()) {
+         if ($form->isValid()) {
+            $personal = new PersonalData();
+            $address = new PostalAddress();
+            $communication = new CommunicationData();
+            $form
+                  ->fillModel($personal)
+                  ->fillModel($address)
+                  ->fillModel($communication);
+            $this->saveUserData($personal, $address, $communication);
+         } else {
+            $form->transformOnPlace();
+         }
+   } else {
+         $form
+               ->fillForm($this->loadPersonalData())
+               ->fillForm($this->loadAddress())
+               ->fillForm($this->loadCommunicationData());
+
+          $this->getResponse()->forward(...);
+      }
+
+   }
+
+   protected function saveUserData(PersonalData $personal, PostalAddress $address, CommunicationData $communication) {
+      ...
+   }
+
+   protected function loadPersonalData() {
+      ...
+   }
+
+   protected function loadAddress() {
+      ...
+   }
+
+   protected function loadCommunicationData() {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   Innerhalb der Methode <em>transformContent()</em> wird zur Befüllung des Formulars das in
+   <a href="#Chapter-10-2-2-Fuellen-mehrerer-DTOs">Kapitel 10.2.2</a> beschriebene Vorgehen zur Befüllung eines oder
+   mehrerer DTOs bzw. Models genutzt.
+</p>
+
+<h5 id="Chapter-11-2-2-Fuellen-von-bestimmten-Feldern"><a href="#Chapter-11-2-2-Fuellen-von-bestimmten-Feldern">11.2.2. Füllen von bestimmten Feldern</a></h5>
+<p>
+   Aus Sicherheitsgründen ist es ratsam, das Passwort-Feld in einem Bearbeiten-Dialog nicht mit dem gespeicherten Wert
+   vor zu befüllen. Möchten Sie trotzdem ein bestehendes DTO oder Model zur Befüllung nutzen, so erlaubt die Methode
+   <em>fillForm()</em> die Übergabe einer Liste von Felder, die befüllt werden sollen. Das Passwort lässt sich so leicht
+   ausschließen.
+</p>
+<p>
+   Möchten Sie im Controller alle Informationen außer des Passwort in die im Formular definierten Felder überführen, so
+   lässt sich das im Controller wie folgt erreichen:
+</p>
+<gen:highlight type="php">
+$personal = new PersonalData();
+$form->fillForm($personal, ['firstName', 'lastName']);
+</gen:highlight>
+<p>
+   Durch die Übergabe der zu befüllenden Felder werden lediglich die Inhalte der Felder <em>firstName</em> und
+   <em>lastName</em> aus der <em>PersonalData</em>-Instanz in das Formular übertragen.
+</p>
+
+<h4 id="Chapter-11-3-Erweiterung"><a href="#Chapter-11-3-Erweiterung">11.3. Erweiterung</a></h4>
+<p>
+   Setzen Sie eigenen Formular-Tags ein, das bei Aufruf der Methode <em>setValue()</em> einen anderen Wert zur
+   Initialisierung erwartet als der, der im DTO bzw. Model gespeichert ist, ist es notwendig einen eigenen Übersetzer
+   (<em>Mapper</em>) zu schreiben und zu registrieren (siehe Konzept <a href="#Chapter-11-1-Konzept">Kapitel 11.1</a>).
+   Diese Vorgehensweise nutzt beispielsweise auch das mit dem APF ausgelieferte Multi-Select-Feld, da die Methode
+   <em>setValue()</em> bzw. <em>setOption2Selected()</em> des <em>MultiSelectBoxTag</em> keine Liste von Werten, sondern
+   einen Einzel-Wert erwartet. Im DTO bzw. Model wird jedoch typischerweise eine Liste von selektierten Werten verwaltet.
+</p>
+<p>
+   Das Interface <em>ModelToFormControlMapper</em> beschreibt die Struktur eines Übersetzer eines Wertes aus einem DTO
+   bzw. Model in ein Formular-Element:
+</p>
+<gen:highlight type="php">
+interface ModelToFormControlMapper {
+
+   public static function applies(FormControl $control);
+
+   public static function setValue(FormControl &$control, $value);
+
+}
+</gen:highlight>
+<p>
+   Als Beispiel für die Implementierung eines eigenen <em>ModelToFormControlMapper</em> soll der folgende Tag genutzt werden,
+   der eine Auswahl-Liste für vorhandene Benutzer darstellt:
+</p>
+<gen:highlight type="php">
+class UserSelectionTag extends AbstractFormControl {
+
+   /**
+    * @param UmgtUser $value
+    */
+   public function &setValue($value) {
+      $id = $value->getObjectId();
+      $this->setSelectedUserId($id);
+
+      return $this;
+   }
+
+   /**
+    * @param int $id
+    */
+   protected function setSelectedUserId($id) {
+      ...
+   }
+
+}
+</gen:highlight>
+<p>
+   Mit Hilfe der Methode <em>setValue()</em> lässt sich der Tag mit der Instanz des aktuell ausgewählten Benutzers
+   befüllen. Im Controller ist das von Vorteil, da das Ergebnis bei Komponenten wie beispielsweise dem
+   <em>UmgtManager</em> (siehe <int:link pageid="142" />) direkt und ohne Konvertierung weiter verwendet werden kann.
+</p>
+<p>
+   Arbeitet das DTO bzw. Model mit einfachen Datentypen, so ist es notwendig einen Mapper zu schreiben, der das
+   einfache Datum in eine Instanz der Klasse <em>UmgtUser</em> übersetzt.
+</p>
+<p>
+   Mit der Implementierung der Methode <em>applies()</em> legen Sie zunächst fest, für welchen Feldtyp sich der Mapper
+   zuständig fühlen soll:
+</p>
+<gen:highlight type="php">
+class ModelToUserSelectionTagMapper implements ModelToFormControlMapper {
+
+   public static function applies(FormControl $control) {
+      return $control instanceof UserSelectionTag;
+   }
+
+   ...
+}
+</gen:highlight>
+<p>
+   Mit der abgebildeten Implementierung erreichen Sie, dass der Mapper nur dann verwendet wird, wenn es sich beim
+   aktuellen Feld um ein <em>UserSelectionTag</em> handelt.
+</p>
+<div class="warn">
+   Bitte beachten Sie dass eine ungünstig formulierte Definition der Zuständigkeit das Gesamt-Ergebnis beeinflussen kann!
+   Achten Sie daher auf eine möglichst konkrete Bedingung in der Methode <em>applies()</em>.
+</div>
+<p>
+   Die Übersetzung des einfachen Datentypen in eine Instanz der Klasse <em>UmgtUser</em> und die anschließende
+   Initialisierung des Tags über die Methode <em>setValue()</em> lässt sich wie folgt implementieren:
+</p>
+<gen:highlight type="php">
+class ModelToUserSelectionTagMapper implements ModelToFormControlMapper {
+
+   public static function applies(FormControl $control) {
+      return $control instanceof UserSelectionTag;
+   }
+
+   public static function setValue(FormControl $control, $value) {
+      $user = new UmgtUser();
+      $user->setObjectId($value);
+
+      /* @var $control UserSelectionTag */
+      $control->setValue($user);
+   }
+
+}
+</gen:highlight>
+<p>
+   In der Methode <em>setValue()</em> wird der vom DTO bzw. Model gelieferte Wert genutzt um eine Instanz von
+   <em>UmgtUser</em> zu erzeugen und zu befüllen. Anschließend wird die Instanz genutzt um das Formular-Element mit
+   dem aktuell ausgewählten Benutzer zu initialisieren.
+</p>
+<p>
+   Um dem Formular mitzuteilen, welcher Mapper für die Übersetzung verwendet werden soll, muss dieser noch beim Formular
+   registriert werden. Dies lässt sich mit folgendem Code-Schnipsel erreichen:
+</p>
+<gen:highlight type="php">
+HtmlFormTag::addModelToFormControlMapper(ModelToUserSelectionTagMapper::class);
+</gen:highlight>
+<div class="hint">
+   <em>ModelToFormControlMapper</em> lassen wie Tags (siehe <int:link pageid="147" anchor="Chapter-3-DOM-Struktur"/>) für die
+   gesamte Applikation registrieren. Dies können Sie bequem in der Bootstrap-Datei (z.B. <em>index.php</em>) erledigen.
+</div>
+<p>
+   Für den Einsatz von eigenen Mappern kann es notwendig sein, die Standard-Konfiguration des APF anzupassen. Möchten Sie
+   beispielsweise ausschließlich den <em>ModelToUserSelectionTagMapper</em> und den <em>StandardModelToFormControlMapper</em>
+   verwenden, so nutzen Sie dazu bitte folgenden Code in Ihrer Bootstrap-Datei:
+</p>
+<gen:highlight type="php">
+HtmlFormTag::clearFormControlToModelMappers();
+HtmlFormTag::addModelToFormControlMapper(ModelToUserSelectionTagMapper::class);
+HtmlFormTag::addModelToFormControlMapper(StandardModelToFormControlMapper::class);
+</gen:highlight>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_114" />
