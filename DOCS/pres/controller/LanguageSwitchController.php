@@ -20,12 +20,12 @@ class LanguageSwitchController extends BaseDocumentController {
    public function transformContent() {
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance(APFModel::class);
+      $model = Singleton::getInstance(APFModel::class);
       $lang = $model->getLanguage();
       $pageId = $model->getPageId();
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject(UrlManager::class);
+      $urlMan = $this->getServiceObject(UrlManager::class);
 
       $versionId = $model->getVersionId();
       $defaultVersionId = $model->getDefaultVersionId();

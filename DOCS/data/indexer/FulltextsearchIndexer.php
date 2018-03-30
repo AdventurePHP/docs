@@ -74,7 +74,7 @@ class FulltextsearchIndexer extends APFObject {
    public function importArticles() {
 
       /* @var $L Logger */
-      $L = &Singleton::getInstance(Logger::class);
+      $L = Singleton::getInstance(Logger::class);
 
       $config = $this->getConfig();
       $SQL = $this->getConnection($config);
@@ -158,9 +158,9 @@ class FulltextsearchIndexer extends APFObject {
     *
     * @return AbstractDatabaseHandler
     */
-   private function &getConnection(Configuration $config) {
+   private function getConnection(Configuration $config) {
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject(ConnectionManager::class);
+      $cM = $this->getServiceObject(ConnectionManager::class);
 
       return $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
    }
@@ -178,7 +178,7 @@ class FulltextsearchIndexer extends APFObject {
    public function createIndex() {
 
       /* @var $l Logger */
-      $l = &Singleton::getInstance(Logger::class);
+      $l = Singleton::getInstance(Logger::class);
 
       $config = $this->getConfig();
       $SQL = $this->getConnection($config);
@@ -298,7 +298,7 @@ class FulltextsearchIndexer extends APFObject {
 
       // fill the model
       /* @var $model APFModel */
-      $model = &Singleton::getInstance(APFModel::class);
+      $model = Singleton::getInstance(APFModel::class);
       $model->setAttribute('page.id', $pageId);
       $model->setVersionId($version);
       $model->setPageContentFileName('c_' . $lang . '_' . $fileName . '.html');

@@ -36,7 +36,7 @@ class SetModelAction extends AbstractFrontcontrollerAction {
    public function run() {
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance(APFModel::class);
+      $model = Singleton::getInstance(APFModel::class);
 
       $request = $this->getRequest();
 

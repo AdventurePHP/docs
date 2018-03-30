@@ -59,7 +59,7 @@ $sqlProvider->setOmitContext(true);
 ConfigurationManager::registerProvider('sql', $sqlProvider);
 
 /* @var $l Logger */
-$l = &Singleton::getInstance(Logger::class);
+$l = Singleton::getInstance(Logger::class);
 $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
 // configure logger for database debug messages

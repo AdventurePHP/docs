@@ -18,8 +18,8 @@ class FaqController extends BaseDocumentController {
 
       // get forum database connection
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject(ConnectionManager::class);
-      $conn = &$cM->getConnection('Forum');
+      $cM = $this->getServiceObject(ConnectionManager::class);
+      $conn = $cM->getConnection('Forum');
 
       // get configuration from the registry
       $forumBaseURL = Registry::retrieve('DOCS', 'ForumBaseURL');
@@ -36,9 +36,9 @@ class FaqController extends BaseDocumentController {
       $result = $conn->executeTextStatement($select);
 
       // get template and pre-fill it
-      $template = &$this->getTemplate('PostsForum');
-      $templateAuthorLabel = &$this->getTemplate('Author_' . $this->language);
-      $templateCreationDateLabel = &$this->getTemplate('CreationDate_' . $this->language);
+      $template = $this->getTemplate('PostsForum');
+      $templateAuthorLabel = $this->getTemplate('Author_' . $this->language);
+      $templateCreationDateLabel = $this->getTemplate('CreationDate_' . $this->language);
       $template->setPlaceHolder('AuthorLabel', $templateAuthorLabel->transformTemplate());
       $template->setPlaceHolder('CreationDateLabel', $templateCreationDateLabel->transformTemplate());
 

@@ -38,7 +38,7 @@ class ChangeLangAction extends AbstractFrontcontrollerAction {
       }
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject(UrlManager::class);
+      $urlMan = $this->getServiceObject(UrlManager::class);
       $forwardUrl = $urlMan->generateLink($targetPageId, $targetLang, $targetVersion);
 
       $this->getResponse()->forward($forwardUrl);

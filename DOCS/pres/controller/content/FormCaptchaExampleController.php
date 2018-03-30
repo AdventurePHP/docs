@@ -25,7 +25,7 @@ class FormCaptchaExampleController extends BaseDocumentController {
 
       // obtain a reference on the desired form (depends on the language of the document!)
       $language = $this->getDocument()->getLanguage();
-      $form = &$this->getForm('CaptchaExample_' . $language);
+      $form = $this->getForm('CaptchaExample_' . $language);
 
       // check if form is valid or not
       if ($form->isValid() == true) {

@@ -16,14 +16,14 @@ class XmlSiteMapCreator extends APFObject {
       $config = $this->getConfiguration('DOCS\biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject(ConnectionManager::class);
-      $sql = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      $cM = $this->getServiceObject(ConnectionManager::class);
+      $sql = $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       $select = 'SELECT * FROM search_articles ORDER BY PageID ASC';
       $result = $sql->executeTextStatement($select);
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject(UrlManager::class);
+      $urlMan = $this->getServiceObject(UrlManager::class);
 
       $buffer = '<?xml version="1.0" encoding="UTF-8"?>' . self::EOL;
       $buffer .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . self::EOL;

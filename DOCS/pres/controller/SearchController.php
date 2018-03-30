@@ -47,11 +47,11 @@ class SearchController extends BaseDocumentController {
       $searchTerm = $this->getRequest()->getParameter('search', '');
 
       // display form
-      $form = &$this->getForm('SearchV2');
+      $form = $this->getForm('SearchV2');
       $form->transformOnPlace();
 
       /* @var $l Logger */
-      $l = &Singleton::getInstance(Logger::class);
+      $l = Singleton::getInstance(Logger::class);
       $l->logEntry('searchlog', 'SearchString: "' . $searchTerm . '"', LogEntry::SEVERITY_INFO);
 
       // display results
@@ -60,7 +60,7 @@ class SearchController extends BaseDocumentController {
          $section = $this->getTemplate('Results');
 
          /* @var $m ApfSearchManager */
-         $m = &$this->getServiceObject(ApfSearchManager::class);
+         $m = $this->getServiceObject(ApfSearchManager::class);
 
          $this->displayResultList($m->loadSearchResult($searchTerm), $section, 'WebsiteResult');
          $this->displayResultList($m->loadWikiSearchResults($searchTerm), $section, 'WikiResult');
@@ -87,7 +87,7 @@ class SearchController extends BaseDocumentController {
       $buffer = (string) '';
 
       // get template
-      $template = &$this->getTemplate('Result');
+      $template = $this->getTemplate('Result');
 
       $count = count($list);
 
@@ -118,7 +118,7 @@ class SearchController extends BaseDocumentController {
       if ($count < 1) {
 
          // get template
-         $templateNoSearchResult = &$this->getTemplate('NoSearchResult_' . $this->getLanguage());
+         $templateNoSearchResult = $this->getTemplate('NoSearchResult_' . $this->getLanguage());
 
          // add message to buffer
          $buffer .= $templateNoSearchResult->transformTemplate();
@@ -145,7 +145,7 @@ class SearchController extends BaseDocumentController {
    private function getTitle(SearchResult $result) {
       if ($result instanceof PageSearchResult) {
          /* @var $urlMan UrlManager */
-         $urlMan = &$this->getServiceObject(UrlManager::class);
+         $urlMan = $this->getServiceObject(UrlManager::class);
 
          return $urlMan->getPageTitle($result->getPageId(), $result->getLanguage(), $result->getVersionId());
       } else if ($result instanceof WikiSearchResult) {
@@ -161,7 +161,7 @@ class SearchController extends BaseDocumentController {
    private function getUrl(SearchResult $result) {
       if ($result instanceof PageSearchResult) {
          /* @var $urlMan UrlManager */
-         $urlMan = &$this->getServiceObject(UrlManager::class);
+         $urlMan = $this->getServiceObject(UrlManager::class);
          $currentUrl = Url::fromCurrent(true);
          $baseUrl = $currentUrl->getScheme() . '://' . $currentUrl->getHost();
          $url = $urlMan->generateLink($result->getPageId(), $result->getLanguage(), $result->getVersionId());

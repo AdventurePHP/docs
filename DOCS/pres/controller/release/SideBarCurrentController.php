@@ -35,13 +35,13 @@ class SideBarCurrentController extends ReleaseBaseController {
       $normalizedUnstable = ReleaseBaseController::normalizeVersionNumber($unstableRelease);
       $normalizedStable = ReleaseBaseController::normalizeVersionNumber($stableRelease);
       if ($normalizedUnstable > $normalizedStable) {
-         $tmpl = &$this->getTemplate(self::$UNSTABLE);
+         $tmpl = $this->getTemplate(self::$UNSTABLE);
          $tmpl->setPlaceHolder('release', $this->buildLink($unstableRelease, self::$UNSTABLE_PAGEID));
          $tmpl->transformOnPlace();
       }
 
       // handle stable releases
-      $tmpl = &$this->getTemplate(self::$STABLE);
+      $tmpl = $this->getTemplate(self::$STABLE);
       $tmpl->setPlaceHolder('release', $this->buildLink($stableRelease, self::$STABLE_PAGEID));
       $tmpl->transformOnPlace();
 
@@ -94,10 +94,10 @@ class SideBarCurrentController extends ReleaseBaseController {
     */
    private function buildLink($release, $pageId) {
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject(UrlManager::class);
+      $urlMan = $this->getServiceObject(UrlManager::class);
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance(APFModel::class);
+      $model = Singleton::getInstance(APFModel::class);
 
       $link = $urlMan->generateLink($pageId, $this->language, $model->getDefaultVersionId());
 

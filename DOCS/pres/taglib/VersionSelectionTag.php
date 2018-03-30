@@ -11,7 +11,7 @@ class VersionSelectionTag extends Document {
    public function transform() {
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance(APFModel::class);
+      $model = Singleton::getInstance(APFModel::class);
 
       $currentVersion = $model->getVersionId();
       $pageVersions = $model->getPageVersions();
@@ -32,7 +32,7 @@ class VersionSelectionTag extends Document {
             . '<ul>';
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject(UrlManager::class);
+      $urlMan = $this->getServiceObject(UrlManager::class);
 
       // Options without version identifier are considered the default option. This is because of SEO reasons to not
       // generate duplicate content with pages having the same content but reachable under 2 urls (with and without

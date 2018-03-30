@@ -10,12 +10,12 @@ class SetupController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $form = &$this->getForm('database-setup');
+      $form = $this->getForm('database-setup');
 
       if ($form->isSent() && $form->isValid()) {
 
          /* @var $database SelectBoxTag */
-         $database = &$form->getFormElementByName('database');
+         $database = $form->getFormElementByName('database');
          $value = $database->getValue()->getValue();
 
          if ($value == 'all' || $value == 'comments') {
@@ -54,7 +54,7 @@ class SetupController extends BaseDocumentController {
     */
    private function getConnection($name) {
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject(ConnectionManager::class);
+      $cM = $this->getServiceObject(ConnectionManager::class);
 
       return $cM->getConnection($name);
    }

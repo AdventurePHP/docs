@@ -28,7 +28,7 @@ class QuickNaviContentTag extends Document {
 
       // get model
       /* @var $model APFModel */
-      $model = &Singleton::getInstance(APFModel::class);
+      $model = Singleton::getInstance(APFModel::class);
 
       // include the content of the model's content file in the current object
       $this->content .= file_get_contents(

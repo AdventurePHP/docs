@@ -209,7 +209,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     */
    protected function getAllReleases() {
       /* @var $t BenchmarkTimer */
-      $t = &Singleton::getInstance(BenchmarkTimer::class);
+      $t = Singleton::getInstance(BenchmarkTimer::class);
       $id = 'ReleaseBaseController::getAllReleases()';
       $t->start($id);
       $rawReleases = array_reverse(FilesystemManager::getFolderContent($this->releasesLocalDir));
@@ -245,8 +245,8 @@ abstract class ReleaseBaseController extends BaseDocumentController {
    protected function displayRelease($releaseNumber) {
 
       // get templates
-      $templateReleaseHead = &$this->getTemplate('ReleaseHead');
-      $templateReleaseFile = &$this->getTemplate('ReleaseFile');
+      $templateReleaseHead = $this->getTemplate('ReleaseHead');
+      $templateReleaseFile = $this->getTemplate('ReleaseFile');
 
       // ----------------------------------------------------------------------------------------
 
@@ -268,7 +268,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       $dokuFiles = FilesystemManager::getFolderContent($this->releasesLocalDir . '/' . $releaseNumber . '/' . $docsFolder);
 
       // choose new template for versions > 1.10
-      $templateOfflineDoku = &$this->getTemplate('OfflineDoku');
+      $templateOfflineDoku = $this->getTemplate('OfflineDoku');
 
       $templateOfflineDoku->setPlaceHolder('ReleaseVersion', $releaseNumber);
       $bufferOfflineDoku = (string) '';
@@ -311,7 +311,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       }
 
       // -- check version to be greater than 1.10, than display only one online api doku
-      $templateDocumentation = &$this->getTemplate('Documentation');
+      $templateDocumentation = $this->getTemplate('Documentation');
       $templateDocumentation->setPlaceHolder('DocsFolder', $docsFolder);
 
       $templateDocumentation->setPlaceHolder('ReleaseVersion', $releaseNumber);
@@ -325,10 +325,10 @@ abstract class ReleaseBaseController extends BaseDocumentController {
       $title .= $releaseNumber;
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject(UrlManager::class);
+      $urlMan = $this->getServiceObject(UrlManager::class);
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance(APFModel::class);
+      $model = Singleton::getInstance(APFModel::class);
       $link = $urlMan->generateLink(self::$REV_HISTORY_PAGEID, $this->language, $model->getDefaultVersionId());
       $templateDocumentation->setPlaceHolder(
             'HistoryLink',

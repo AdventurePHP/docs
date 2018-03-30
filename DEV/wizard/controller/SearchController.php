@@ -30,7 +30,7 @@ class SearchController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $form = &$this->getForm('index-maintenance');
+      $form = $this->getForm('index-maintenance');
 
       if ($form->isSent() && $form->isValid()) {
 
@@ -73,7 +73,7 @@ class SearchController extends BaseDocumentController {
    private function executeIndexer($job) {
 
       /* @var $l Logger */
-      $l = &Singleton::getInstance('APF\core\logging\Logger');
+      $l = Singleton::getInstance('APF\core\logging\Logger');
       $l->setLogThreshold(Logger::$LOGGER_THRESHOLD_ALL);
 
       $stdWriter = $l->getLogWriter(

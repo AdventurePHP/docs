@@ -27,27 +27,27 @@ class ApiDocumentationController extends ReleaseBaseController {
       $releases = $this->getAllReleases();
 
       // pre-fill the template
-      $tmpl = &$this->getTemplate('Release');
+      $tmpl = $this->getTemplate('Release');
       $tmpl->setPlaceHolder('ReleaseURL', $this->releasesBaseURL);
-      $tmpl_version = &$this->getTemplate('Version_' . $this->language);
+      $tmpl_version = $this->getTemplate('Version_' . $this->language);
       $tmpl->setPlaceHolder('Version', $tmpl_version->transformTemplate());
 
-      $tmpl_linkname1 = &$this->getTemplate('LinkName1_' . $this->language);
+      $tmpl_linkname1 = $this->getTemplate('LinkName1_' . $this->language);
       $tmpl->setPlaceHolder('LinkName1', $tmpl_linkname1->transformTemplate());
-      $tmpl_linkname2 = &$this->getTemplate('LinkName2_' . $this->language);
+      $tmpl_linkname2 = $this->getTemplate('LinkName2_' . $this->language);
       $tmpl->setPlaceHolder('LinkName2', $tmpl_linkname2->transformTemplate());
-      $tmpl_linkname3 = &$this->getTemplate('LinkName3_' . $this->language);
+      $tmpl_linkname3 = $this->getTemplate('LinkName3_' . $this->language);
       $tmpl->setPlaceHolder('LinkName3', $tmpl_linkname3->transformTemplate());
 
-      $tmpl_linktitle = &$this->getTemplate('LinkTitle_' . $this->language);
+      $tmpl_linktitle = $this->getTemplate('LinkTitle_' . $this->language);
       $tmpl->setPlaceHolder('LinkTitle', $tmpl_linktitle->transformTemplate());
 
       // prefill new template
-      $tmpl_new = &$this->getTemplate('Release_1.10');
+      $tmpl_new = $this->getTemplate('Release_1.10');
       $tmpl_new->setPlaceHolder('ReleaseURL', $this->releasesBaseURL);
       $tmpl_new->setPlaceHolder('Version', $tmpl_version->transformTemplate());
 
-      $tmpl_linkname = &$this->getTemplate('LinkName_' . $this->language);
+      $tmpl_linkname = $this->getTemplate('LinkName_' . $this->language);
       $tmpl_new->setPlaceHolder('LinkName', $tmpl_linkname->transformTemplate());
 
       $tmpl_new->setPlaceHolder('LinkTitle', $tmpl_linktitle->transformTemplate());

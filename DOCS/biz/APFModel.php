@@ -142,7 +142,7 @@ class APFModel extends Document {
    }
 
    public function getDefaultVersionId() {
-      return '3.X';
+      return '4.X';
    }
 
    /**
@@ -160,7 +160,7 @@ class APFModel extends Document {
       return $this->getAttribute(self::$LANG);
    }
 
-   public function setLanguage($lang) {
+   public function setLanguage(string $lang = null) {
       $this->setAttribute(self::$LANG, $lang);
    }
 

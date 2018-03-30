@@ -7,7 +7,7 @@ class IndexController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $form = &$this->getForm('index-adaption');
+      $form = $this->getForm('index-adaption');
 
       if ($form->isSent() && $form->isValid()) {
 

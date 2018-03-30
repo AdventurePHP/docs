@@ -44,7 +44,7 @@ final class UrlManager extends APFObject {
       }
 
       // select title from the database
-      $sql = &$this->getConnection();
+      $sql = $this->getConnection();
       // avoid injections!
       $pageId = $sql->escapeValue($pageId);
       $lang = $sql->escapeValue($lang);
@@ -56,7 +56,7 @@ final class UrlManager extends APFObject {
       $data = $sql->fetchData($result);
 
       /* @var $model APFModel */
-      $model = &Singleton::getInstance(APFModel::class);
+      $model = Singleton::getInstance(APFModel::class);
       $defaultVersionId = $model->getDefaultVersionId();
       if (empty($data['Title']) && $versionId != $defaultVersionId) {
          $title = $this->getPageTitle($pageId, $lang, $defaultVersionId);
@@ -75,9 +75,9 @@ final class UrlManager extends APFObject {
     *
     * @return DatabaseConnection The database connection.
     */
-   private function &getConnection() {
+   private function getConnection() {
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject(ConnectionManager::class);
+      $cM = $this->getServiceObject(ConnectionManager::class);
 
       return $cM->getConnection('FulltextSearch');
    }
@@ -113,13 +113,13 @@ final class UrlManager extends APFObject {
       // setup the basic part of the link
       $pageIdent = (string) $pageId;
       /* @var $model APFModel */
-      $model = &Singleton::getInstance(APFModel::class);
+      $model = Singleton::getInstance(APFModel::class);
       $urlLangIdent = $model->getUrlIdentifier($lang);
       $urlVersionIdent = $model->getVersionUrlIdentifier();
       $defaultVersionId = $model->getDefaultVersionId();
 
       // fetch the url name from the database using the fulltext search
-      $sql = &$this->getConnection();
+      $sql = $this->getConnection();
       // avoid injections!
       $pageId = $sql->escapeValue($pageId);
       $lang = $sql->escapeValue($lang);

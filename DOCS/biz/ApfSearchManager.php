@@ -42,8 +42,8 @@ class ApfSearchManager extends APFObject {
       $config = $this->getConfiguration('DOCS\biz', 'fulltextsearch.ini');
 
       /* @var $cM ConnectionManager */
-      $cM = &$this->getServiceObject(ConnectionManager::class);
-      $SQL = &$cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
+      $cM = $this->getServiceObject(ConnectionManager::class);
+      $SQL = $cM->getConnection($config->getSection('Database')->getValue('ConnectionKey'));
 
       // make search string save (sql injection)
       $searchString = $SQL->escapeValue($searchTerm);

@@ -2,10 +2,11 @@
 namespace DOCS\biz\exceptionhandler;
 
 use APF\core\exceptionhandler\DefaultExceptionHandler;
+use Throwable;
 
 class LiveExceptionHandler extends DefaultExceptionHandler {
 
-   public function handleException($exception) {
+   public function handleException(Throwable $exception) {
 
       // fill attributes
       $this->exceptionNumber = $exception->getCode();

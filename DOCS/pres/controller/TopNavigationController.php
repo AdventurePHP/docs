@@ -34,7 +34,7 @@ class TopNavigationController extends BaseDocumentController {
       }
 
       /* @var $urlMan UrlManager */
-      $urlMan = &$this->getServiceObject(UrlManager::class);
+      $urlMan = $this->getServiceObject(UrlManager::class);
 
       $version = $model->getVersionId();
 

@@ -26,7 +26,7 @@ class FormAntispamExampleController extends BaseDocumentController {
    public function transformContent() {
 
       // obtain a reference on the desired form (depends on the language of the document!)
-      $Form__AntiSpamExample = &$this->getForm('AntiSpamExample_' . $this->language);
+      $Form__AntiSpamExample = $this->getForm('AntiSpamExample_' . $this->language);
 
       // check if form is valid or not
       if ($Form__AntiSpamExample->isValid() == true) {
