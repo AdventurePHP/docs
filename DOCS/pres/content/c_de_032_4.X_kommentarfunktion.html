@@ -540,7 +540,6 @@ namespace APF\modules\comments\pres\controller;
 use APF\modules\comments\biz\ArticleComment;
 use APF\modules\comments\biz\ArticleCommentManager;
 use APF\tools\link\Url;
-use APF\tools\string\AdvancedBBCodeParser;
 use APF\tools\link\LinkGenerator;
 
 class CommentListingController extends CommentBaseDocumentController {
@@ -555,11 +554,6 @@ class CommentListingController extends CommentBaseDocumentController {
       $buffer = (string)'';
       $template = &$this->getTemplate('ArticleComment');
 
-      /* @var $bP AdvancedBBCodeParser */
-      $bP = &$this->getServiceObject('APF\tools\string\AdvancedBBCodeParser');
-      $bP->removeProvider('standard.font.color');
-      $bP->removeProvider('standard.font.size');
-
       $i = 1;
       foreach ($entries as $entry) {
 
@@ -568,7 +562,7 @@ class CommentListingController extends CommentBaseDocumentController {
          $template->setPlaceHolder('Name', $entry->getName());
          $template->setPlaceHolder('Date', \DateTime::createFromFormat('Y-m-d', $entry->getDate())->format('d.m.Y'));
          $template->setPlaceHolder('Time', $entry->getTime());
-         $template->setPlaceHolder('Comment', $bP->parseCode($entry->getComment()));
+         $template->setPlaceHolder('Comment', $entry->getComment());
 
          $buffer .= $template->transformTemplate();
       }
