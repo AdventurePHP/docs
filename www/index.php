@@ -110,8 +110,8 @@ Document::addTagLib(TrackingTag::class, 'tracking', 'pixel');
 
 Document::addTemplateExpression(\DOCS\pres\expression\BaseUrlExpression::class);
 
-/* @var $fC Frontcontroller */
-$fC = Singleton::getInstance(Frontcontroller::class);
+/* @var $fC FrontController */
+$fC = Singleton::getInstance(FrontController::class);
 $fC->setContext('dummy');
 $fC->setLanguage('de');
 

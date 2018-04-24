@@ -1,7 +1,7 @@
 <?php
 namespace DOCS\biz\actions\changelang;
 
-use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\frontcontroller\AbstractFrontControllerAction;
 use DOCS\biz\UrlManager;
 
 /**
@@ -11,7 +11,7 @@ use DOCS\biz\UrlManager;
  * @version
  * Version 0.1, 15.12.2009<br />
  */
-class ChangeLangAction extends AbstractFrontcontrollerAction {
+class ChangeLangAction extends AbstractFrontControllerAction {
 
    private static $LANG = 'lang';
    private static $PAGE_ID = 'page-id';

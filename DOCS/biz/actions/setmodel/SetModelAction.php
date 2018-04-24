@@ -1,7 +1,7 @@
 <?php
 namespace DOCS\biz\actions\setmodel;
 
-use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\frontcontroller\AbstractFrontControllerAction;
 use APF\core\http\Response;
 use APF\core\singleton\Singleton;
 use DOCS\biz\APFModel;
@@ -13,7 +13,7 @@ use DOCS\biz\APFModel;
  * @version
  * Version 0.1, 22.08.2008<br />
  */
-class SetModelAction extends AbstractFrontcontrollerAction {
+class SetModelAction extends AbstractFrontControllerAction {
 
    private static $ABOUT_PAGEID = '073';
 

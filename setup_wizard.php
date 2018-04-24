@@ -2,7 +2,7 @@
 use APF\core\configuration\ConfigurationManager;
 use APF\core\configuration\provider\ini\IniConfigurationProvider;
 use APF\core\database\config\StatementConfigurationProvider;
-use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\FrontController;
 use APF\core\loader\RootClassLoader;
 use APF\core\loader\StandardClassLoader;
 use APF\core\logging\Logger;
@@ -41,8 +41,8 @@ $defaultWriter = $l->getLogWriter(
 $l->addLogWriter('mysqli', clone $defaultWriter);
 $l->addLogWriter('searchlog', clone $defaultWriter);
 
-/* @var $fC Frontcontroller */
-$fC = Singleton::getInstance(Frontcontroller::class);
+/* @var $fC FrontController */
+$fC = Singleton::getInstance(FrontController::class);
 $fC->setContext('dummy');
 $fC->setLanguage('de');
 
