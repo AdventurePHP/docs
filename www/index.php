@@ -10,7 +10,7 @@ use APF\core\filter\ChainedUrlRewritingInputFilter;
 use APF\core\filter\ChainedUrlRewritingOutputFilter;
 use APF\core\filter\InputFilterChain;
 use APF\core\filter\OutputFilterChain;
-use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\FrontController;
 use APF\core\loader\RootClassLoader;
 use APF\core\loader\StandardClassLoader;
 use APF\core\logging\Logger;
