@@ -129,7 +129,7 @@ class SetModelAction extends AbstractFrontControllerAction {
 
       // check, if appropriate file exists
       if (!isset($contentFiles[0])) {
-         return $prefix . '_' . $language . '_404_2.X.html';
+         return $prefix . '_' . $language . '_404_4.X.html';
       } else {
          return basename($contentFiles[0]);
       }
