@@ -49,8 +49,8 @@ class LanguageSwitchController extends BaseDocumentController {
       $this->setPlaceHolder('link_de', $linkDe);
       $this->setPlaceHolder('link_en', $linkEn);
 
-      $this->setPlaceHolder('name_de', $nameDe);
-      $this->setPlaceHolder('name_en', $nameEn);
+      $this->setPlaceHolder('name_de', $nameDe === null ? '' : $nameDe);
+      $this->setPlaceHolder('name_en', $nameEn === null ? '' : $nameEn);
 
       // add css class to be able to do progressive enhancement
       // using js code by janek
