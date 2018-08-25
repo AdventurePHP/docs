@@ -160,7 +160,7 @@ class IteratorTestController extends BaseDocumentController {
             ]
       ];
 
-      $iterator = &$this->getIterator('products-list-simple');
+      $iterator = $this->getIterator('products-list-simple');
       $iterator->fillDataContainer($data);
       $iterator->transformOnPlace();
 
@@ -289,7 +289,7 @@ class IteratorTestController extends BaseDocumentController {
             new Article('Premium Mobiltelefon', '550€', 'premium.png')
       ];
 
-      $iterator = &$this->getIterator('products-list-objects');
+      $iterator = $this->getIterator('products-list-objects');
       $iterator->fillDataContainer($data);
       $iterator->transformOnPlace();
 
@@ -364,7 +364,7 @@ class ListController extends BaseDocumentController {
    public function transformContent() {
 
       // Iterator aus dem aktuellen Dokument beziehen
-      $iterator = &$this->getIterator('...');
+      $iterator = $this->getIterator('...');
 
       // Daten an den Iterator übergeben (Liste mit assoziativen Arrays oder Objekten)
       $iterator->fillDataContainer(array(
@@ -404,7 +404,7 @@ class ListController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $iterator = &$this->getIterator('...');
+      $iterator = $this->getIterator('...');
 
       $iterator->fillDataContainer(array(
          ...
@@ -510,7 +510,7 @@ class ProductsController extends BaseDocumentController {
 
       ...
 
-      $fallback = &$iterator->getFallbackContent();
+      $fallback = $iterator->getFallbackContent();
       $fallback->setPlaceHolder('count', '3');
 
       $iterator->transformOnPlace();
@@ -822,15 +822,15 @@ ActionClass = "APF\tools\media\actions\StreamMediaAction"
 class ExampleController extends BaseDocumentController {
 
    public function transformContent(){
-      $mediaStreamTag = &$this->getMediaStreamTagByID('PhoneIcon');
+      $mediaStreamTag = $this->getMediaStreamTagByID('PhoneIcon');
       $mediaStreamTag->setAttribute($mediaStreamTag->getAttribute('namespace').'\\'.$this->getContext());
    }
 
-   private function &getMediaStreamTagByID($id){
-      $children = &$this->getDocument()->getChildren();
-      foreach($children as $objectId => $DUMMY){
-         if(get_class($children[$objectId]) == 'MediaInclusionTag'){
-            return $children[$objectId];
+   private function getMediaStreamTagByID($id){
+      $children = $this->getDocument()->getChildren();
+      foreach($children as &$child){
+         if($child instanceof MediaInclusionTag){
+            return $child;
          }
       }
       throw new InvalidArgumentException('No media stream tag contained within the current document!');
@@ -844,20 +844,18 @@ class ExampleController extends BaseDocumentController {
 class ExampleController extends BaseDocumentController {
 
    public function transformContent() {
-      $FileTemplate = &$this->getTemplate('file');
-      $mediaStreamTag = &$this->getMediaStreamTagByID('FileIconID', $FileTemplate);
+      $FileTemplate = $this->getTemplate('file');
+      $mediaStreamTag = $this->getMediaStreamTagByID('FileIconID', $FileTemplate);
       $mediaStreamTag->setAttribute('extension', 'png');
       $mediaStreamTag->setAttribute('filebody', 'dateinameOhneEndung');
    }
 
-   private function &getMediaStreamTagByID($id, TemplateTag &$template) {
-      $children = &$template->getChildren();
+   private function getMediaStreamTagByID($id, TemplateTag &$template) {
+      $children = $template->getChildren();
 
-      foreach ($children as $objectId => $DUMMY) {
-         if (get_class($children[$objectId]) == 'MediaInclusionTag'
-             && $children[$objectId]->getAttribute('id') == $id
-         ) {
-            return $children[$objectId];
+      foreach ($children as &$child) {
+         if ($child instanceof MediaInclusionTag && $child->getAttribute('id') == $id) {
+            return $child;
          }
       }
       throw new InvalidArgumentException('No media stream tag contained within the current template "'
@@ -1057,7 +1055,7 @@ Den Attributen kommt dabei folgende Bedeutung zu:
 </p>
 <p>Das im Kapitel 4.1 aufgezeigte Template könn wie auch bisher mit</p>
 <gen:highlight type="php">
-$tmpl = &$this->getTemplate('ReusableTemplate');
+$tmpl = $this->getTemplate('ReusableTemplate');
 </gen:highlight>
 <p>adressiert werden.</p>
 

@@ -751,86 +751,6 @@ $update->run(false);
 </p>
 
 <h4 id="Chapter-4-1-Erzeugen-einer-Instanz"><a href="#Chapter-4-1-Erzeugen-einer-Instanz">4.1. Erzeugen einer Instanz</a></h4>
-<h5 id="Chapter-4-1-1-Klassische-Vorgehensweise"><a href="#Chapter-4-1-1-Klassische-Vorgehensweise">4.1.1. Klassische Vorgehensweise</a></h5>
-<div class="hint">
-   Bitte beachten Sie, dass die hier beschriebene Vorgehensweise mit der Version 1.17 als veraltet markiert wurde.
-   Für eine optimale Nutzung der Möglichkeiten des O/R-Mappers empfehlen wir Ihnen bereits mit Release 1.17 den Umstieg
-   auf die <a href="#Chapter-4-1-2-Erzeugung-via-DI">Erzeugung mit dem DIServiceManager</a>.
-</div>
-<p>
-   Die Instanz eines O/R-Mappers muss über die zugehörige Factory (<em>GenericORMapperFactory</em>)
-   erzeugt werden. Dies ist zum einen deshalb notwendig, um den konkreten O/R-Mapper vor der Verwendung
-   zu initialisieren und zum anderen, damit mehrere O/R-Mapper innerhalb einer Applikation verwendet
-   werden können. Letzteres ist in einfachen Anwendungen sicher nicht notwenig, in komplexeren
-   Konstrukten ist dies jedoch eine notwendige Anforderung.
-</p>
-<p>Die folgende Codebox zeigt einen typischen Aufruf eines O/R-Mappers:</p>
-<gen:highlight type="php">
-// Factory im relevanten Service-Mode erstellen
-$ormFact = &$this->getServiceObject(
-                  'APF\modules\genericormapper\data\GenericORMapperFactory'[,
-                  {SERVICE_OBJECT_TYPE}]
-                  );
-
-// Mapper von der Factory beziehen
-$orm = &$ormFact->getGenericORMapper(
-                  {CONFIG_NAMESPACE},
-                  {CONFIG_NAME_AFFIX},
-                  {CONNECTION_NAME}[,
-                  $logStatements = false]
-                  );
-</gen:highlight>
-<p>Die Platzhalter haben dabei folgende Bedeutung:</p>
-<ul>
-  <li>
-    <em>{SERVICE_OBJECT_TYPE}</em>: Art der Instanziierung der Factory. Dies bestimmt ebenfalls
-    den Service-Typ des erzeugten Mappers. Gültige Werte sind <em>NORMAL</em>, <em>SINGLETON</em>
-    und <em>SESSIONSINGLETON</em>, Standard ist <em>SINGLETON</em>. Details können dem Kapitel
-     <int:link pageid="107" anchor="Chapter-3-2-Service-Objekte" /> entnommen werden.
-  </li>
-  <li>
-    <em>{CONFIG_NAMESPACE}</em>: Namespace, unter dem die Konfigurationsdateien für den
-    O/R-Mapper liegen (siehe Kapitel 2.2).
-  </li>
-  <li>
-    <em>{CONFIG_NAME_AFFIX}</em>: Namenszusatz der Konfigurationsdateien (siehe Kapitel 2.1).
-  </li>
-  <li>
-    <em>{CONNECTION_NAME}</em>: Name der Datenbankverbindung, die für das Setup und die
-    produktive Verwendung genutzt werden soll.
-  </li>
-</ul>
-<div class="warn">
-   <p>
-      Bitte beachten Sie, dass die Factory den Service-Typ des Mappers (=Gültigkeitsbereich des Objekts) definiert. Soll
-      der GORM aus Performance-Gründen innerhalb einer Benutzer-Sitzung nur einmal erstellt werden - dies ist sinnvoll,
-      da Mapping- und Beziehungs-Tabellen nur einmal initialisiert werden -, so muss bei der Erzeugung der Factory der
-      dritte Paramater (<em>Service-Typ</em>) mit dem Wert <em>SESSIONSINGLETON</em> befüllt werden.
-   </p>
-   <p>
-      Für Entwicklungs-Umgebungen empfiehlt es sich den Service-Typ auf den Wert <em>SINGLETON</em>
-      einzustellen. Andernfalls werden Änderungen der Mapping- oder Beziehungs-Definitionen erst
-      nach Ablauf der Session aktiv.
-   </p>
-   <p>
-      Weitere Hinweise finden sich auf der Wiki-Seite
-      <a class="wiki" href="${getBaseUrl(WikiBaseURL)}/FAQ_Typische_Fehler_beim_GenericORMapper">Typische Fehler beim GenericORMapper</a>.
-   </p>
-</div>
-<p>
-   Wichtig ist dabei weiterhin, dass die Factory mit der Methode <em>getServiceObject()</em>
-   erzeugt wird, da es sonst zu unerwünschten Seiteneffekten hinsichtlich Konfiguration der Mapper
-   kommen kann.
-</p>
-<div class="hint">
-   Um Statement-Logging für Debug-Zwecke zu aktivieren, muss der optionale Parameter
-   <em>$logStatements</em> mit dem Wert <em>true</em> belegt werden. Diese Option sollte im Live-Betrieb
-   jedoch nicht verwendet werden! Details zum Parameter können der
-   <int:link pageid="002" />
-   entnommen werden.
-</div>
-
-<h5 id="Chapter-4-1-2-Erzeugung-via-DI"><a href="#Chapter-4-1-2-Erzeugung-via-DI">4.1.2. Erzeugung via DI</a></h5>
 <p>
    Um Konfigurationen und Abhängigkeiten zu kapseln wird empfohlen, den O/R-Mapper mit dem
    <int:link pageid="107" anchor="Chapter-4-DIServiceManager">DIServiceManager</int:link> zu erzeugt werden. Diese
@@ -916,7 +836,7 @@ conf.pass.value = "..."
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 </gen:highlight>
 <p>
    zu erzeugen.
@@ -962,7 +882,7 @@ $ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // Benutzer laden (1)
 $Crit = new GenericCriterionObject();
@@ -1027,7 +947,7 @@ echo $user;
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // Benutzer-List laden (1)
 $UserList = $ORM->loadObjectList('User');
@@ -1069,7 +989,7 @@ $UserList = $ORM->loadObjectListByIDs('User',array(1,2,3,4,5,6));
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // Benutzer-Liste laden
 $Crit = new GenericCriterionObject();
@@ -1144,7 +1064,7 @@ $GroupList = $ORM->loadRelatedObjects($UserList[$i],'Group2User',$Crit);
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // Benutzer selektieren
 $Crit = new GenericCriterionObject();
@@ -1171,7 +1091,7 @@ for($i = 0; $i < count($GroupList); $i++){
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // Benutzer selektieren
 $Crit = new GenericCriterionObject();
@@ -1210,7 +1130,7 @@ for($i = 0; $i < count($GroupList); $i++){
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // Gruppe selektieren
 $Group = $ORM->loadObjectByID('Group',1);
@@ -1241,7 +1161,7 @@ echo $ORM->loadRelationMultiplicity($Group,'Group2User');
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 $totalUsers = $orm->loadObjectCount('User');
 
@@ -1268,7 +1188,7 @@ $usersWithA = $orm->loadObjectCount('User',$crit);
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // Benutzer befuellen
 $user = new GenericDomainObject('User');
@@ -1307,7 +1227,7 @@ $orm->saveObject($user);
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // Applikation laden
 $app = $ORM->loadObjectByID('Application',1);
@@ -1435,7 +1355,7 @@ class UsermanagementManager extends APFObject {
    public function getUserList() {
 
       /* @var $ORM GenericORRelationMapper */
-      $ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+      $ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
       // Erzeugen des Kriterien-Objekts
       $Crit = new GenericCriterionObject();
@@ -1659,7 +1579,7 @@ $criterion->addPropertyIndicator('feld1',15,'<');
 use APF\modules\genericormapper\data\GenericORRelationMapper;
 
 /* @var $ORM GenericORRelationMapper */
-$ORM = & $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
+$ORM = $this->getDIServiceObject('VENDOR\data\mapper', 'OR-Mapper');
 
 // Zusaetzliche Objekt-Definitionen hinzuladen
 $ORM->addMappingConfiguration('APF\modules\usermanagement', 'umgt_2');
@@ -2081,16 +2001,6 @@ printChildObjects($objectTree);
    <em>SESSIONSINGLETON</em> oder <em>APPLICATIONSINGLETON</em> (Details siehe <int:link pageid="030" />). Dies steigert
    die Performance und spart rund 20% pro Aufruf.
 </p>
-<p>
-   Um den Mapper zu erzeugen nutzen Sie bitte die zweite Option der <em>APFObject::getServiceObject()</em>-Methode:
-</p>
-<gen:highlight type="php">
-$ormFact = &$this->getServiceObject(
-                  'APF\modules\genericormapper\data\GenericORMapperFactory',
-                  APFService::SERVICE_TYPE_SESSION_SINGLETON
-           );
-$orm = &$ormFact->getGenericORMapper(..., ...);
-</gen:highlight>
 <p>
    Bei der Erzeugung über den <em>DIServiceManager</em> setzen sie das Attribut <em>servicetype</em> bitte auf den
    gewünschten Wert. Beispiel:

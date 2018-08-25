@@ -301,7 +301,7 @@ durchgeführt werden kann:
 use APF\modules\usermanagement\biz\UmgtManager;
 
 // get the business object
-$uM = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$uM = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
 
 // retrieve the username and password from the request
 $username = $this->getRequest()->getParameter('user');
@@ -379,7 +379,7 @@ Bezeichnungen der Attribute. Auch diese müssen mit den Attribut-Namen der Objek
 entnommen werden.
 <gen:highlight type="php">
 // get the business object
-$uM = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$uM = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
 
 // create new user
 $user = new GenericDomainObject('User');
@@ -430,7 +430,7 @@ zugeschnitten und erwarten jeweils Objekte des Type <em>GenericDomainObject</em>
 Codebox zeigt einige typische Anwendungsfälle für das "Bearbeiten" von Beziehungen:
 <gen:highlight type="php">
 // get the business object
-$uM = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$uM = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
 
 // add user to group
 $user = $uM->loadUserByID(1);
@@ -468,39 +468,31 @@ $uM->detachUserFromRole($user,$role);
 </p>
 
 <h4 id="Chapter-3-2-Direkter-Zugriff"><a href="#Chapter-3-2-Direkter-Zugriff">3.2. Direkter Zugriff</a></h4>
-Sollte die API des <em>UmgtManager</em> nicht ausreichen, so kann der
-<em>GenericORMapper</em> direkt verwendet werden. Wichtig dabei ist, dass der gleiche Satz
-an Konfigurationsdateien benutzt werden. Die folgende Codebox zeigt, wie die Businesskomponente des
-Usermanagement-Moduls den O/R-Mapper erzeugt:
+<p>
+   Sollte die API des <em>UmgtManager</em> nicht ausreichen, so kann der <em>GenericORMapper</em> direkt verwendet
+   werden. Die folgende Codebox zeigt, wie mit Hilfe der Businesskomponente des Usermanagement-Moduls auf den O/R-Mapper
+   zugegriffen werden kann:
+</p>
 <gen:highlight type="php">
-$oRMFact = &$this->getServiceObject('APF\modules\genericormapper\data\GenericORMapperFactory');
-$oRM = &$oRMFact->getGenericORMapper(
-                       'APF\modules\usermanagement',
-                       'umgt',
-                       $connectionKey,
-                       $serviceMode);
+$umgt = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$orm = $umgt->getORMapper();
 </gen:highlight>
-Die Variablen <em>$connectionKey</em> und <em>$serviceMode</em> müssen jeweils
-mit den Inhalten der
-<a href="#Chapter-2-1-Konfiguration-Modul" title="Konfiguration des Moduls">Konfiguration des Moduls</a>
-ersetzt werden. Der <em>ServiceMode</em> ist dabei optional.
-<br />
-<br />
-Nach dem Erzeugen des Mappers kann dieser gemäß den Konfigurationsdateien des Moduls
-eingesetzt werden. Die folgende Code-Box zeigt, wie der O/R-Mapper dazu genutzt werden kann um die
-Benutzer einer Gruppe zu zählen. Die Variable <em>$oRM</em> wurde dabei wie oben
-erläutert erstellt.
+<p>
+   Nach dem Bezug des Mappers kann dieser gemäß den Konfigurationsdateien des Moduls eingesetzt werden. Die folgende
+   Code-Box zeigt, wie der O/R-Mapper dazu genutzt werden kann um die Benutzer einer Gruppe zu zählen. Die Variable
+   <em>$orm</em> wurde dabei wie oben erläutert erstellt.
+</p>
 <gen:highlight type="php">
-$group = $oRM->loadObjectByID('Group',1);
-$count = $oRM->loadRelationMultiplicity($group,'Group2User');
+$group = $orm->loadObjectByID('Group',1);
+$count = $orm->loadRelationMultiplicity($group,'Group2User');
 </gen:highlight>
 Um zu prüfen, ob ein Benutzer einer bestimmten Gruppe angehört oder ihm eine definierte
 Rolle zugeordnet ist, kann folgender Code dienen:
 <gen:highlight type="php">
 // test, if user is within group
-$group = $oRM->loadObjectByID('Group',1);
-$user = $oRM->loadObjectByID('User',2);
-if($oRM->isAssociated('Group2User',$group,$user)){
+$group = $orm->loadObjectByID('Group',1);
+$user = $orm->loadObjectByID('User',2);
+if($orm->isAssociated('Group2User',$group,$user)){
    echo 'user is in group';
 }
 else{
@@ -508,8 +500,8 @@ else{
 }
 
 // test, if user is associated with the desired role
-$role = $oRM->loadObjectByID('Role',3);
-if($oRM->isAssociated('Role2User',$role,$user)){
+$role = $orm->loadObjectByID('Role',3);
+if($orm->isAssociated('Role2User',$role,$user)){
    echo 'user is associated the desired role';
 }
 else{
@@ -579,7 +571,7 @@ class MyUmgtManager extends UmgtManager {
       return sha1($password);
    }
 }
-$umgt = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$umgt = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
 $user = $umgt->loadUserByID(5);
 </gen:highlight>
 <br />

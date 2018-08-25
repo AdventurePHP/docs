@@ -493,11 +493,11 @@ use VENDOR\tags\GalleryTag;
 class GalleryDataSourceTag extends Document {
 
    public function onAfterAppend() {
-      $provider = $this->getServiceObject(
+      $provider = &$this->getServiceObject(
          $this->getAttribute('class')
       );
       /* @var $parent GalleryTag */
-      $parent = $this->getParent();
+      $parent = &$this->getParentObject();
       $parent->setContentProvider($provider);
    }
 
@@ -669,12 +669,12 @@ class GalleryTag extends Document {
       <a class="wiki" href="${getBaseUrl(WikiBaseURL)}/Erweitertes_Templating/en">Extended templating</a>.
    </li>
    <li>
-      <strong>getParent()</strong>:
+      <strong>getParentObject()</strong>:
       Returns the instance of the father node within the DOM tree. In case no father is present, <em>null</em> is
       returned.
    </li>
    <li>
-      <strong>setParent()</strong>:
+      <strong>setParentObject()</strong>:
       Injects the father node of the current item.
    </li>
    <li>
@@ -945,7 +945,7 @@ class EntityEncodeTag extends Document {
    may use the following methods:
 </p>
 <ul>
-   <li><em>getParent()</em></li>
+   <li><em>getParentObject()</em></li>
    <li><em>getChildren()</em></li>
 </ul>
 <p>
@@ -980,8 +980,8 @@ use APF\core\pagecontroller\Document;
 
 class TemplateNameDisplayTag extends Document {
    public function transform() {
-      $template = $this->getParent();
-      $grandFather = $template->getParent();
+      $template = &$this->getParentObject();
+      $grandFather = &$template->getParentObject();
 
       $nodes = $grandFather->getChildren();
 
@@ -1162,14 +1162,14 @@ class NavigationNodeTag extends Document {
       }
 
       $content = $this->getContent();
-      $children = $this->getChildren();
-      foreach ($children as &$child) {
-         if ($child instanceof NavigationContentTag) {
+      $children = &$this->getChildren();
+      foreach ($children as $objectId => $DUMMY) {
+         if ($children[$objectId] instanceof NavigationContentTag) {
             // fill the navi:content place holder if we get him
-            $content = str_replace('<' . $child->getObjectId() . ' />', $buffer, $content);
+            $content = str_replace('<' . $objectId . ' />', $buffer, $content);
          } else {
             // replace parser marker to avoid direct tag output
-            $content = str_replace('<' . $child->getObjectId() . ' />', '', $content);
+            $content = str_replace('<' . $objectId . ' />', '', $content);
          }
       }
 
@@ -1194,14 +1194,14 @@ class NavigationItemTag extends Document {
 
    public function getOutput(NavigationNode $node) {
       $content = $this->getContent();
-      $children = $this->getChildren();
-      foreach ($children as &$child) {
-         if ($child instanceof ItemTemplateContentTag) {
+      $children = &$this->getChildren();
+      foreach ($children as $objectId => $DUMMY) {
+         if ($children[$objectId] instanceof ItemTemplateContentTag) {
             // fill the item:content place holder if we get him
-            $content = str_replace('<' . $child->getObjectId() . ' />', $child->setNode($node)->transform(), $content);
+            $content = str_replace('<' . $objectId . ' />', $children[$objectId]->setNode($node)->transform(), $content);
          } else {
             // replace parser marker to avoid direct tag output
-            $content = str_replace('<' . $child->getObjectId() . ' />', '', $content);
+            $content = str_replace('<' . $objectId . ' />', '', $content);
          }
       }
       return $content;

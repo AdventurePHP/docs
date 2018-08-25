@@ -287,7 +287,7 @@ The following example shows, how easily authentication can be done by URL values
 use APF\modules\usermanagement\biz\UmgtManager;
 
 // get the business object
-$uM = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$uM = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
 
 // retrieve the username and password from the request
 $username = $this->getRequest()->getParameter('user');
@@ -359,7 +359,7 @@ Details can be taken from the <int:link pageid="063" anchor="Chapter-2-3-1-Objec
 chapter on the o/r mapper documantation page.
 <gen:highlight type="php">
 // get the business object
-$uM = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$uM = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
 
 // create new user
 $user = new GenericDomainObject('User');
@@ -410,7 +410,7 @@ the <em>GenericDomainObject</em> as arguments. The following code boy describes 
 use cases:
 <gen:highlight type="php">
 // get the business object
-$uM = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$uM = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
 
 // add user to group
 $user = $uM->loadUserByID(1);
@@ -449,38 +449,33 @@ $uM->detachUserFromRole($user,$role);
 </p>
 
 <h4 id="Chapter-3-2-Direct-access"><a href="#Chapter-3-2-Direct-access">3.2. Direct access</a></h4>
-If the API of the <em>UmgtManager</em> does not support a special case, the
-<em>GenericORMapper</em> can be used to directly access the database. Please be aware to use
-the same configuration files, you took for the usermanagement setup to ensure data consistency. The
-next code example shows you how to create the OR mapper instance:
+<p>
+   If the API of the <em>UmgtManager</em> does not support a special case, the <em>GenericORMapper</em> can be used to
+   directly access the database. The following code box shows how to obtain the mapper instance from the user management
+   business component:
+</p>
 <gen:highlight type="php">
-$oRMFact = &$this->getServiceObject('APF\modules\genericormapper\data\GenericORMapperFactory');
-$oRM = &$oRMFact->getGenericORMapper(
-                       'APF\modules\usermanagement',
-                       'umgt',
-                       $connectionKey,
-                       $serviceMode);
+$umgt = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$orm = $umgt->getORMapper();
 </gen:highlight>
-The params <em>$connectionKey</em> and <em>$serviceMode</em> must be filled with the
-values of the
-<a href="#Chapter-2-1-Configuration-module" title="2.1. Configuration of the module">configuration file</a>
-of the usermanagement module. The <em>ServiceMode</em> directive is optional.
-<br />
-<br />
-After creating the mapper it can be used concerning the configuration files. The following source
-code example counts the users within on group. The <em>$oRM</em> contains a mapper instance
-as defined above.
+<p>
+   After creating the mapper it can be used concerning the configuration files. The following source
+   code example counts the users within on group. The <em>$orm</em> contains a mapper instance
+   as defined above.
+</p>
 <gen:highlight type="php">
-$group = $oRM->loadObjectByID('Group',1);
-$count = $oRM->loadRelationMultiplicity($group,'Group2User');
+$group = $orm->loadObjectByID('Group',1);
+$count = $orm->loadRelationMultiplicity($group,'Group2User');
 </gen:highlight>
-If you want to test, if a user is included in a dedicated group or if it has associated a dedicated
-role, the following code can be used:
+<p>
+   If you want to test, if a user is included in a dedicated group or if it has associated a dedicated
+   role, the following code can be used:
+</p>
 <gen:highlight type="php">
 // test, if user is within group
-$group = $oRM->loadObjectByID('Group',1);
-$user = $oRM->loadObjectByID('User',2);
-if($oRM->isAssociated('Group2User',$group,$user)){
+$group = $orm->loadObjectByID('Group',1);
+$user = $orm->loadObjectByID('User',2);
+if($orm->isAssociated('Group2User',$group,$user)){
    echo 'user is in group';
 }
 else{
@@ -488,8 +483,8 @@ else{
 }
 
 // test, if user is associated with the desired role
-$role = $oRM->loadObjectByID('Role',3);
-if($oRM->isAssociated('Role2User',$role,$user)){
+$role = $orm->loadObjectByID('Role',3);
+if($orm->isAssociated('Role2User',$role,$user)){
    echo 'user is associated the desired role';
 }
 else{
@@ -555,7 +550,7 @@ class MyUmgtManager extends UmgtManager {
       return sha1($password);
    }
 }
-$umgt = &$this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
+$umgt = $this->getDIServiceObject('APF\modules\usermanagement\biz', 'UmgtManager');
 $user = $umgt->loadUserByID(5);
 </gen:highlight>
 <h5 id="Chapter-4-1-2-Implementation-of-the-PasswordHashProvider"><a href="#Chapter-4-1-2-Implementation-of-the-PasswordHashProvider">4.1.2. Implementation of the PasswordHashProvider</a></h5>

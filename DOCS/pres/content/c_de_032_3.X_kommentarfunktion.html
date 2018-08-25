@@ -172,7 +172,7 @@ class ArticleCommentMapper extends APFObject {
 
    public function loadArticleCommentByID($commentId) {
 
-      $SQL = $this->getConnection();
+      $SQL = & $this->getConnection();
       $select = 'SELECT ArticleCommentID, Name, EMail, Comment, Date, Time
                     FROM article_comments
                     WHERE ArticleCommentID = \'' . $commentId . '\';';
@@ -182,7 +182,7 @@ class ArticleCommentMapper extends APFObject {
 
    public function saveArticleComment(ArticleComment $comment) {
 
-      $conn = $this->getConnection();
+      $conn = & $this->getConnection();
       if ($comment->getId() == null) {
          $insert = 'INSERT INTO article_comments
                        (Name, EMail, Comment, Date, Time, CategoryKey)
@@ -192,10 +192,10 @@ class ArticleCommentMapper extends APFObject {
       }
    }
 
-   private function getConnection() {
+   private function &getConnection() {
 
       /* @var $cM ConnectionManager */
-      $cM = $this->getServiceObject('APF\core\database\ConnectionManager');
+      $cM = & $this->getServiceObject('APF\core\database\ConnectionManager');
       $config = $this->getConfiguration('APF\modules\comments', 'comments.ini');
       $connectionKey = $config->getSection('Default')->getValue('Database.ConnectionKey');
       if ($connectionKey == null) {
@@ -365,7 +365,7 @@ conf.caching.value = "true"
    Um den Pager zu erzeugen bzw. zu verwenden lassen sich folgende Code-Zeilen nutzen:
 </p>
 <gen:highlight type="php">
-$pM = $this->getDIServiceObject('APF\modules\comments', 'CommentsPager');
+$pM = &$this->getDIServiceObject('APF\modules\comments', 'CommentsPager');
 </gen:highlight>
 <p>
    Nachdem die Konfiguration für den Pager angelegt ist, können wir die Methode <em>loadEntries()</em>
@@ -373,8 +373,8 @@ $pM = $this->getDIServiceObject('APF\modules\comments', 'CommentsPager');
 </p>
 <gen:highlight type="php">
 public function loadEntries() {
-   $pager = $this->getPagerManager();
-   $m = $this->getServiceObject('APF\modules\comments\data\ArticleCommentMapper');
+   $pager = & $this->getPagerManager();
+   $m = & $this->getServiceObject('APF\modules\comments\data\ArticleCommentMapper');
    return $pager->loadEntriesByAppDataComponent($m, 'loadArticleCommentByID', array('CategoryKey' => $this->categoryKey));
 }
 </gen:highlight>
@@ -390,9 +390,9 @@ public function loadEntries() {
 <gen:highlight type="php">
 public function loadEntries() {
 
-   $pager = $this->getPagerManager();
+   $pager = & $this->getPagerManager();
    $entries = $pager->loadEntries(array('CategoryKey' => $this->categoryKey));
-   $m = $this->getServiceObject('APF\modules\comments\data\ArticleCommentMapper');
+   $m = & $this->getServiceObject('APF\modules\comments\data\ArticleCommentMapper');
 
    $entryList = array();
 
@@ -520,7 +520,7 @@ public function loadEntries() {
    <em>&lt;core:importdesign /&gt;</em>-Tag handelt kann das Attribut wie folgt bezogen werden:
 </p>
 <gen:highlight type="php">
-$parent = $this->getDocument()->getParent();
+$parent = &$this->getDocument()->getParentObject();
 $categoryKey = $parent->getAttribute('categorykey', 'standard');
 </gen:highlight>
 <p>
@@ -547,12 +547,12 @@ class CommentListingController extends CommentBaseDocumentController {
    public function transformContent() {
 
       /* @var $m ArticleCommentManager */
-      $m = $this->getAndInitServiceObject('APF\modules\comments\biz\ArticleCommentManager', $this->getCategoryKey());
+      $m = &$this->getAndInitServiceObject('APF\modules\comments\biz\ArticleCommentManager', $this->getCategoryKey());
 
       $entries = $m->loadEntries();
 
-      $buffer = '';
-      $template = $this->getTemplate('ArticleComment');
+      $buffer = (string)'';
+      $template = &$this->getTemplate('ArticleComment');
 
       $i = 1;
       foreach ($entries as $entry) {
@@ -568,7 +568,7 @@ class CommentListingController extends CommentBaseDocumentController {
       }
 
       if (count($entries) < 1) {
-         $Template__NoEntries = $this->getTemplate('NoEntries');
+         $Template__NoEntries = &$this->getTemplate('NoEntries');
          $buffer = $Template__NoEntries->transformTemplate();
       }
 
@@ -706,23 +706,23 @@ class CommentCreateEntryController extends CommentBaseDocumentController {
 
    public function transformContent() {
 
-      $form = $this->getForm('AddComment');
+      $form = &$this->getForm('AddComment');
 
       if ($form->isSent() == true) {
 
          /* @var $m ArticleCommentManager */
-         $m = $this->getAndInitServiceObject('APF\modules\comments\biz\ArticleCommentManager', $this->getCategoryKey());
+         $m = &$this->getAndInitServiceObject('APF\modules\comments\biz\ArticleCommentManager', $this->getCategoryKey());
 
          if ($form->isValid() == true) {
 
             $articleComment = new ArticleComment();
-            $name = $form->getFormElementByName('Name');
+            $name = &$form->getFormElementByName('Name');
             $articleComment->setName($name->getAttribute('value'));
 
-            $email = $form->getFormElementByName('EMail');
+            $email = &$form->getFormElementByName('EMail');
             $articleComment->setEmail($email->getAttribute('value'));
 
-            $comment = $form->getFormElementByName('Comment');
+            $comment = &$form->getFormElementByName('Comment');
             $articleComment->setComment($comment->getContent());
 
             $m->saveEntry($articleComment);
@@ -736,11 +736,11 @@ class CommentCreateEntryController extends CommentBaseDocumentController {
 
    private function buildForm() {
 
-      $form = $this->getForm('AddComment');
+      $form = &$this->getForm('AddComment');
       $form->setAttribute('action', $_SERVER['REQUEST_URI'] . '#comments');
 
       $config = $this->getConfiguration('APF\modules\comments', 'language.ini');
-      $button = $form->getFormElementByName('Save');
+      $button = &$form->getFormElementByName('Save');
       $button->setAttribute('value', $config->getSection($this->getLanguage())->getValue('form.button'));
 
       $form->transformOnPlace();
@@ -767,7 +767,7 @@ class CommentCreateEntryController extends CommentBaseDocumentController {
 public function saveEntry(ArticleComment $articleComment) {
 
    /* @var $M ArticleCommentMapper */
-   $M = $this->getServiceObject('APF\modules\comments\data\ArticleCommentMapper');
+   $M = & $this->getServiceObject('APF\modules\comments\data\ArticleCommentMapper');
 
    $articleComment->setCategoryKey($this->categoryKey);
    $M->saveArticleComment($articleComment);
@@ -794,7 +794,7 @@ public function saveEntry(ArticleComment $articleComment) {
 <gen:highlight type="php">
 public function saveArticleComment(ArticleComment $comment) {
 
-   $conn = $this->getConnection();
+   $conn = & $this->getConnection();
    if ($comment->getId() == null) {
       $insert = 'INSERT INTO article_comments
                     (Name, EMail, Comment, Date, Time, CategoryKey)

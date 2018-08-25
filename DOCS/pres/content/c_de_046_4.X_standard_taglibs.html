@@ -312,11 +312,11 @@ class SampleController extends BaseDocumentController {
       $this->getLabel('headline')->setPlaceHolder('word', 'Überschrift');
 
       // Platzhalter in einem < html:getstring /> im Formular füllen:
-      $form = &$this->getForm('Form');
+      $form = $this->getForm('Form');
       $form->getLabel('intro-text')->setPlaceHolder('count', 'eine');
 
       // Platzhalter in einem < html:getstring /> in einem Template füllen:
-      $tmpl = &$this->getTemplate('Message');
+      $tmpl = $this->getTemplate('Message');
       $tmpl->getLabel('message')
            ->setPlaceHolder('user-name', 'Hans')
            ->setPlaceHolder('date', date('d.m.Y H:i:s'));
@@ -377,7 +377,7 @@ use APF\core\pagecontroller\BaseDocumentController;
 
 class SampleController extends BaseDocumentController {
    public function transformContent(){
-      $tmpl = &$this->getTemplate('MyTemplate');
+      $tmpl = $this->getTemplate('MyTemplate');
       $tmpl->setPlaceHolder('MyPlaceHolder', 'MyContent');
       $this->setPlaceHolder('Content', $tmpl->transformTemplate());
    }
@@ -408,7 +408,7 @@ class SampleController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $template = &$this->getTemplate('table-line');
+      $template = $this->getTemplate('table-line');
 
       $elements = ...;
 
@@ -446,13 +446,11 @@ use APF\core\pagecontroller\TemplateTagClearApproach;
 class DefaultTemplateTagClearApproach implements TemplateTagClearApproach {
 
    public function clear(TemplateTag &$node) {
-      $children = & $node->getChildren();
-      foreach ($children as $objectId => $DUMMY) {
-         if ($children[$objectId] instanceof PlaceHolderTag) {
-            $children[$objectId]->setContent('');
-         }
-         if ($children[$objectId] instanceof LanguageLabelTag) {
-            $children[$objectId]->clearPlaceHolders();
+      $node->clearPlaceHolders();
+
+      foreach ($node->getChildren() as &$child) {
+         if ($child instanceof LanguageLabelTag) {
+            $child->clearPlaceHolders();
          }
       }
    }
@@ -471,7 +469,7 @@ class SampleController extends BaseDocumentController {
 
    public function transformContent() {
 
-      $template = &$this->getTemplate('table-line');
+      $template = $this->getTemplate('table-line');
 
       $elements = ...;
 

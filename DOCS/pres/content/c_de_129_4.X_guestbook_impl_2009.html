@@ -439,7 +439,7 @@ class GuestbookImportTemplateTag extends ImportTemplateTag {
 
    public function onParseTime() {
 
-      $model = & $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
+      $model = $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
       $guestbookId = $this->getAttribute('gbid');
 
       // do not include the guestbook, if gbid is not set/existent
@@ -550,7 +550,7 @@ class GuestbookImportTemplateTag extends ImportTemplateTag {
 <gen:highlight type="php">
 class GuestbookController extends BaseDocumentController {
    public function transformContent(){
-      $gS = &$this->getDIServiceObject(
+      $gS = $this->getDIServiceObject(
          'APF\modules\guestbook2009\biz',
          'GuestbookService'
       );
@@ -647,10 +647,10 @@ class GuestbookListController extends GuestbookBaseController {
 
    public function transformContent() {
 
-      $gS = & $this->getGuestbookService();
+      $gS = $this->getGuestbookService();
       $entryList = $gS->loadPagedEntryList();
 
-      $tmpl_entry = & $this->getTemplate('entry');
+      $tmpl_entry = $this->getTemplate('entry');
       $buffer = (string) '';
       foreach ($entryList as $entry) {
 
@@ -978,7 +978,7 @@ class GuestbookLanguageLabelTag extends LanguageLabelTag {
 <gen:highlight type="php">
 class SearchController extends BaseDocumentController {
    public function transformContent(){
-      $form = &$this->getForm('search');
+      $form = $this->getForm('search');
       $form->transformOnPlace();
    }
 }
@@ -1045,23 +1045,23 @@ class GuestbookCreateEntryController extends GuestbookBaseController {
 
    public function transformContent() {
 
-      $form = & $this->getForm('create_entry');
+      $form = $this->getForm('create_entry');
 
       if ($form->isSent() && $form->isValid()) {
 
          // Fill domain objects by extracting the values
          // from the form elements directly.
-         $name = & $form->getFormElementByName('name');
-         $email = & $form->getFormElementByName('email');
-         $website = & $form->getFormElementByName('website');
+         $name = $form->getFormElementByName('name');
+         $email = $form->getFormElementByName('email');
+         $website = $form->getFormElementByName('website');
 
          $user = new User();
          $user->setName($name->getAttribute('value'));
          $user->setEmail($email->getAttribute('value'));
          $user->setWebsite($website->getAttribute('value'));
 
-         $title = & $form->getFormElementByName('title');
-         $text = & $form->getFormElementByName('text');
+         $title = $form->getFormElementByName('title');
+         $text = $form->getFormElementByName('text');
          $entry = new Entry();
          $entry->setTitle($title->getAttribute('value'));
          $entry->setText($text->getContent());
@@ -1215,18 +1215,18 @@ class GuestbookLoginController extends GuestbookBaseController {
 
    public function transformContent() {
 
-      $form = & $this->getForm('login');
+      $form = $this->getForm('login');
 
       if ($form->isSent() && $form->isValid()) {
 
-         $fieldUser = & $form->getFormElementByName('username');
-         $fieldPass = & $form->getFormElementByName('password');
+         $fieldUser = $form->getFormElementByName('username');
+         $fieldPass = $form->getFormElementByName('password');
          $user = new User();
          $user->setUsername($fieldUser->getAttribute('value'));
          $user->setPassword($fieldPass->getAttribute('value'));
 
          if (!$this->getGuestbookService()->validateCredentials($user)) {
-            $error = & $this->getTemplate('error');
+            $error = $this->getTemplate('error');
             $form->setPlaceHolder('error', $error->transformTemplate());
          }
       }
@@ -1369,10 +1369,10 @@ abstract class GuestbookBackendBaseController extends GuestbookBaseController {
    protected function displayEntrySelection($adminView) {
 
       // fill the select list
-      $form = & $this->getForm('selectentry');
+      $form = $this->getForm('selectentry');
 
       /* @var $select SelectBoxTag */
-      $select = & $form->getFormElementByName('entryid');
+      $select = $form->getFormElementByName('entryid');
 
       $entriesList = $this->getGuestbookService()->loadEntryListForSelection();
 
@@ -1468,32 +1468,32 @@ class GuestbookEditEntryController extends GuestbookBackendBaseController {
       } else {
 
          // pre-fill edit form by directly accessing the APF form objects
-         $gS = & $this->getGuestbookService();
-         $form = & $this->getForm('edit_entry');
+         $gS = $this->getGuestbookService();
+         $form = $this->getForm('edit_entry');
          if ($form->isSent() === false) {
 
             $entry = $gS->loadEntry($entryId);
             $editor = $entry->getEditor();
 
-            $name = & $form->getFormElementByName('name');
+            $name = $form->getFormElementByName('name');
             $name->setAttribute('value', $editor->getName());
 
-            $email = & $form->getFormElementByName('email');
+            $email = $form->getFormElementByName('email');
             $email->setAttribute('value', $editor->getEmail());
 
-            $website = & $form->getFormElementByName('website');
+            $website = $form->getFormElementByName('website');
             $website->setAttribute('value', $editor->getWebsite());
 
-            $title = & $form->getFormElementByName('title');
+            $title = $form->getFormElementByName('title');
             $title->setAttribute('value', $entry->getTitle());
 
-            $text = & $form->getFormElementByName('text');
+            $text = $form->getFormElementByName('text');
             $text->setContent($entry->getText());
 
-            $hiddenEntryId = & $form->getFormElementByName('entryid');
+            $hiddenEntryId = $form->getFormElementByName('entryid');
             $hiddenEntryId->setAttribute('value', $entry->getId());
 
-            $hiddenEditorId = & $form->getFormElementByName('editorid');
+            $hiddenEditorId = $form->getFormElementByName('editorid');
             $hiddenEditorId->setAttribute('value', $editor->getId());
 
          } else {
@@ -1504,27 +1504,27 @@ class GuestbookEditEntryController extends GuestbookBackendBaseController {
                $entry = new Entry();
                $editor = new User();
 
-               $name = & $form->getFormElementByName('name');
+               $name = $form->getFormElementByName('name');
                $editor->setName($name->getAttribute('value'));
 
-               $email = & $form->getFormElementByName('email');
+               $email = $form->getFormElementByName('email');
                $editor->setEmail($email->getAttribute('value'));
 
-               $website = & $form->getFormElementByName('website');
+               $website = $form->getFormElementByName('website');
                $editor->setWebsite($website->getAttribute('value'));
 
-               $title = & $form->getFormElementByName('title');
+               $title = $form->getFormElementByName('title');
                $entry->setTitle($title->getAttribute('value'));
 
-               $text = & $form->getFormElementByName('text');
+               $text = $form->getFormElementByName('text');
                $entry->setText($text->getContent());
 
                // retrieve the entry id from the hidden field
-               $hiddenEntryId = & $form->getFormElementByName('entryid');
+               $hiddenEntryId = $form->getFormElementByName('entryid');
                $entry->setId($hiddenEntryId->getAttribute('value'));
 
                // retrieve the editor id from the hidden field
-               $hiddenEditorId = & $form->getFormElementByName('editorid');
+               $hiddenEditorId = $form->getFormElementByName('editorid');
                $editor->setId($hiddenEditorId->getAttribute('value'));
 
                $entry->setEditor($editor);
@@ -1598,8 +1598,8 @@ class GuestbookDeleteEntryController extends GuestbookBackendBaseController {
          $this->displayEntrySelection('delete');
       } else {
 
-         $form_yes = & $this->getForm('delete_yes');
-         $form_no = & $this->getForm('delete_no');
+         $form_yes = $this->getForm('delete_yes');
+         $form_no = $this->getForm('delete_no');
 
          if ($form_no->isSent() || $form_yes->isSent()) {
 
@@ -1612,11 +1612,11 @@ class GuestbookDeleteEntryController extends GuestbookBackendBaseController {
             $this->getGuestbookService()->deleteEntry($entry);
          } else {
 
-            $hidden_yes_entryid = & $form_yes->getFormElementByName('entryid');
+            $hidden_yes_entryid = $form_yes->getFormElementByName('entryid');
             $hidden_yes_entryid->setAttribute('value', $entryId);
             $form_yes->transformOnPlace();
 
-            $hidden_no_entryid = & $form_no->getFormElementByName('entryid');
+            $hidden_no_entryid = $form_no->getFormElementByName('entryid');
             $hidden_no_entryid->setAttribute('value', $entryId);
             $form_no->transformOnPlace();
 
@@ -1683,10 +1683,10 @@ final class GuestbookService extends APFObject {
 <gen:highlight type="php">
 final class GuestbookService extends APFObject {
    public function loadGuestbook(){
-      $mapper = &$this->getMapper();
+      $mapper = $this->getMapper();
       return $mapper->loadGuestbook();
    }
-   private function &getMapper(){
+   private function getMapper(){
       return $this->getDIServiceObject('APF\modules\guestbook2009\data', 'GuestbookMapper');
    }
 }
@@ -1719,25 +1719,25 @@ final class GuestbookService extends APFObject {
 <gen:highlight type="php">
 public function loadPagedEntryList(){
 
-   $pager = & $this->getPager();
+   $pager = $this->getPager();
 
    /* @var $model GuestbookModel */
-   $model = & $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
+   $model = $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
    $entryIds = $pager->loadEntries(array('GuestbookID' => $model->getGuestbookId()));
 
    $entries = array();
-   $mapper = & $this->getMapper();
+   $mapper = $this->getMapper();
    foreach ($entryIds as $entryId) {
       $entries[] = $mapper->loadEntry($entryId);
    }
 
    return $entries;
 }
-private function &getPager(){
+private function getPager(){
    if ($this->pager === null) {
       /* @var $pMF PagerManagerFabric */
-      $pMF = & $this->getServiceObject('APF\modules\pager\biz\PagerManagerFabric');
-      $this->pager = & $pMF->getPagerManager($this->pagerConfigSection);
+      $pMF = $this->getServiceObject('APF\modules\pager\biz\PagerManagerFabric');
+      $this->pager = $pMF->getPagerManager($this->pagerConfigSection);
    }
 
    return $this->pager;
@@ -1754,12 +1754,12 @@ private function &getPager(){
 <gen:highlight type="php">
 public function validateCredentials(User $user) {
 
-   $mapper = & $this->getMapper();
+   $mapper = $this->getMapper();
    if ($mapper->validateCredentials($user)) {
 
       // log user in
       /* @var $model GuestbookModel */
-      $model = & $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
+      $model = $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
       $guestbookId = $model->getGuestbookId();
       $session = $this->getRequest()->getSession('APF\modules\guestbook2009\biz\\' . $guestbookId);
       $session->save('LoggedIn', 'true');
@@ -1787,7 +1787,7 @@ Eine weitere Aufgabe besteht in der Speicherung von Einträgen. Hier ergeben sic
 <gen:highlight type="php">
 public function saveEntry(Entry $entry) {
 
-   $mapper = & $this->getMapper();
+   $mapper = $this->getMapper();
    $mapper->saveEntry($entry);
 
    // Forward to the desired view to prevent F5-bugs.
@@ -1923,14 +1923,7 @@ $orm->saveObject($user);
    Die Variable <em>$orm</em> beinhaltet dabei eine Instanz des Mappers, der durch
 </p>
 <gen:highlight type="php">
-$ormFactory = &$this->getServiceObject(
-   'APF\modules\genericormapper\data\GenericORMapperFactory'
-);
-$orm = &$ormFactory->getGenericORMapper(
-   'APF\modules\guestbook2009\data',
-   'guestbook2009',
-   '...'
-);
+$orm = $this->getDIServiceObject('APF\modules\guestbook2009\data', 'GORM');
 </gen:highlight>
 <p>
    erzeugt wurde.
@@ -2044,7 +2037,7 @@ public function loadEntryListForSelection() {
 <gen:highlight type="php">
 private function getCurrentGuestbook(){
    /* @var $model GuestbookModel */
-   $model = & $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
+   $model = $this->getServiceObject('APF\modules\guestbook2009\biz\GuestbookModel');
 
    return $this->orm->loadObjectByID('Guestbook', $model->getGuestbookId());
 }
