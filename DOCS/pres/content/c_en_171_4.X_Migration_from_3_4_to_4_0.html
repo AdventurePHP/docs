@@ -1,0 +1,2308 @@
+<doku:title parent="100" tags="migration,3.4,4.0" title="Migration from 3.4 to 4.0" urlname="Migration-from-3-4-to-4-0">
+   This page describes the adaptions of your current software (up to and including release 3.4) necessary to upgrade it
+   to release 4.0.
+</doku:title>
+
+
+
+
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   This article shows how to update your application to APF version 4.0.
+</p>
+<p>
+   Version 4.0 is generally compatible with it's predecessor. <a href="#Chapter-2-Manual-steps">Chapter 2</a>
+   describes the necessary changes.
+</p>
+<div class="hint">
+   As of the 4.0 release enhancement of version version 3.4 will be discontinued. Security and bug fixes will be available
+   until mid of 2019.
+</div>
+
+<h3 id="Chapter-2-Manual-steps"><a href="#Chapter-2-Manual-steps">2. Manual steps</a></h3>
+<p>
+   This chapter describes how to manually migrate the code base of your application to version 4 of the APF.
+</p>
+<div class="warn">
+   Please note that based on the huge number of API changes (i.e. introduction of strong typing of arguments, removal
+   of the <em>&amp;</em> operator) automated migration is not feasible! The following chapters contain hints and tips
+   on how to migrate to the new version.
+</div>
+
+<h4 id="Chapter-2-1-Renaming-of-classes-and-methods"><a href="#Chapter-2-1-Renaming-of-classes-and-methods">2.1. Renaming of classes and methods</a></h4>
+<p>
+   With
+   <a href="https://adventure-php-framework.org/tracker/view.php?id=323" linkrewrite="false" class="external">Issue #323</a>
+   multiple classes and methods have been renamed to guarantee consistent naming.
+</p>
+<p>
+   Please adapt the following classes and methods within your application as described in below table:
+</p>
+<p>
+<table>
+   <thead>
+      <tr>
+         <td>APF 3.X</td>
+         <td>APF 4.0</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>Document::getParentObject()</td>
+         <td>Document::getParent()</td>
+      </tr>
+      <tr>
+         <td>Frontcontroller</td>
+         <td>FrontController (großes <em>C</em>!)</td>
+      </tr>
+      <tr>
+         <td>AbstractFrontcontrollerAction</td>
+         <td>AbstractFrontControllerAction (großes <em>C</em>!)</td>
+      </tr>
+      <tr>
+         <td>FrontcontrollerInput</td>
+         <td>FrontControllerActionParameters (großes <em>C</em>!)</td>
+      </tr>
+      <tr>
+         <td>AbstractFrontControllerAction::getInput()</td>
+         <td>AbstractFrontControllerAction::getParameters()</td>
+      </tr>
+   </tbody>
+</table>
+<div class="warn">
+   Please note that especially spelling of class <em>FrontController</em> is adapted withi your application. Otherwise,
+   your application might react in an irreproducible way (i.e. uninitialized or wrongly initialized classes).
+</div>
+
+<h4 id="Chapter-2-2-Adaption-of-method-signatures"><a href="#Chapter-2-2-Adaption-of-method-signatures">2.2. Adaption of method signatures</a></h4>
+<p>
+   With
+   <a href="https://adventure-php-framework.org/tracker/view.php?id=323" linkrewrite="false" class="external">Issue #323</a>
+   PHP 7 language features such as explicit typing for arguments has been introduced. This has generated several API
+   changes.
+</p>
+<p>
+   Please adapt relevant usages within your code base (if applicable).
+</p>
+<p>
+   The subsequent list shows all relevant changes:
+</p>
+<table>
+   <thead>
+      <tr>
+         <td>APF 3.X</td>
+         <td>APF 4.0</td>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td colspan="2"><strong>APF\core\benchmark\BenchmarkTimer</strong></td>
+      </tr>
+      <tr>
+         <td>public function start($name = null)</td>
+         <td>public function start(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function stop($name)</td>
+         <td>public function stop(string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\benchmark\DefaultProcess</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($name, $level)</td>
+         <td>public function __construct(string $name, int $level)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\benchmark\DefaultStopWatch</strong></td>
+      </tr>
+      <tr>
+         <td>public function start($name = null)</td>
+         <td>public function start(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function stop($name)</td>
+         <td>public function stop(string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\configuration\provider\BaseConfiguration</strong></td>
+      </tr>
+      <tr>
+         <td>public function getSection($name)</td>
+         <td>public function getSection(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function hasSection($name)</td>
+         <td>public function hasSection(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function getValue($name, $defaultValue = null)</td>
+         <td>public function getValue(string $name, string $defaultValue = null)</td>
+      </tr>
+      <tr>
+         <td>public function hasValue($name)</td>
+         <td>public function hasValue(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setSection($name, Configuration $section)</td>
+         <td>public function setSection(string $name, Configuration $section)</td>
+      </tr>
+      <tr>
+         <td>public function setValue($name, $value)</td>
+         <td>public function setValue(string $name, string $value)</td>
+      </tr>
+      <tr>
+         <td>public function removeSection($name)</td>
+         <td>public function removeSection(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function removeValue($name)</td>
+         <td>public function removeValue(string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function getPathParts($name)</td>
+         <td>protected function getPathParts(string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\configuration\provider\BaseConfigurationProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function setOmitContext($omitContext)</td>
+         <td>public function setOmitContext(bool $omitContext)</td>
+      </tr>
+      <tr>
+         <td>public function setActivateEnvironmentFallback($activateEnvironmentFallback)</td>
+         <td>public function setActivateEnvironmentFallback(bool $activateEnvironmentFallback)</td>
+      </tr>
+      <tr>
+         <td>public function setOmitEnvironment($omitEnvironment)</td>
+         <td>public function setOmitEnvironment(bool $omitEnvironment)</td>
+      </tr>
+      <tr>
+         <td>public function setOmitConfigSubFolder($omitConfigSubFolder)</td>
+         <td>public function setOmitConfigSubFolder(bool $omitConfigSubFolder)</td>
+      </tr>
+      <tr>
+         <td>public function setExtension($extension)</td>
+         <td>public function setExtension(string $extension)</td>
+      </tr>
+      <tr>
+         <td>public function setFolderPermission($folderPermission)</td>
+         <td>public function setFolderPermission(int $folderPermission)</td>
+      </tr>
+      <tr>
+         <td>protected function getFilePath($namespace, $context, $language, $environment, $name)</td>
+         <td>protected function getFilePath(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function createFilePath($fileName)</td>
+         <td>protected function createFilePath(string $fileName)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\configuration\provider\apc\ApcConfigurationProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($persistenceProviderExtension)</td>
+         <td>public function __construct(string $persistenceProviderExtension)</td>
+      </tr>
+      <tr>
+         <td>public function setExpireTime($expireTime)</td>
+         <td>public function setExpireTime(int $expireTime)</td>
+      </tr>
+      <tr>
+         <td>protected function remapConfigurationName($name)</td>
+         <td>protected function remapConfigurationName(string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function getStoreIdentifier($namespace, $context, $language, $environment, $name)</td>
+         <td>protected function getStoreIdentifier(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function loadConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function loadConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function saveConfiguration($namespace, $context, $language, $environment, $name, Configuration $config)</td>
+         <td>public function saveConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name, Configuration $config)</td>
+      </tr>
+      <tr>
+         <td>public function setExtension($extension)</td>
+         <td>public function setExtension(string $extension)</td>
+      </tr>
+      <tr>
+         <td>public function deleteConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function deleteConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function fetch($key)</td>
+         <td>protected function fetch(string $key)</td>
+      </tr>
+      <tr>
+         <td>protected function store($key, $config)</td>
+         <td>protected function store(string $key, $config)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\configuration\provider\db\DbConfigurationProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($connectionName)</td>
+         <td>public function __construct(string $connectionName)</td>
+      </tr>
+      <tr>
+         <td>public function loadConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function loadConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function saveConfiguration($namespace, $context, $language, $environment, $name, Configuration $config)</td>
+         <td>public function saveConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name, Configuration $config)</td>
+      </tr>
+      <tr>
+         <td>public function deleteConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function deleteConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\configuration\provider\ini\IniConfigurationProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function loadConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function loadConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function saveConfiguration($namespace, $context, $language, $environment, $name, Configuration $config)</td>
+         <td>public function saveConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name, Configuration $config)</td>
+      </tr>
+      <tr>
+         <td>public function deleteConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function deleteConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\configuration\provider\json\JsonConfigurationProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function loadConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function loadConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function saveConfiguration($namespace, $context, $language, $environment, $name, Configuration $config)</td>
+         <td>public function saveConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name, Configuration $config)</td>
+      </tr>
+      <tr>
+         <td>public function deleteConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function deleteConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\configuration\provider\mem\MemcachedConfigurationProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($persistenceProviderExtension, \Memcache $memcachedService)</td>
+         <td>public function __construct(string $persistenceProviderExtension, \Memcache $memcachedService)</td>
+      </tr>
+      <tr>
+         <td>public function setExpireTime($expireTime)</td>
+         <td>public function setExpireTime(int $expireTime)</td>
+      </tr>
+      <tr>
+         <td>public function loadConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function loadConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function saveConfiguration($namespace, $context, $language, $environment, $name, Configuration $config)</td>
+         <td>public function saveConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name, Configuration $config)</td>
+      </tr>
+      <tr>
+         <td>public function setExtension($extension)</td>
+         <td>public function setExtension(string $extension)</td>
+      </tr>
+      <tr>
+         <td>public function deleteConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function deleteConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\configuration\provider\php\PhpConfigurationProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function loadConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function loadConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function saveConfiguration($namespace, $context, $language, $environment, $name, Configuration $config)</td>
+         <td>public function saveConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name, Configuration $config)</td>
+      </tr>
+      <tr>
+         <td>public function deleteConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function deleteConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\configuration\provider\xml\XmlConfigurationProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function loadConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function loadConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function saveConfiguration($namespace, $context, $language, $environment, $name, Configuration $config)</td>
+         <td>public function saveConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name, Configuration $config)</td>
+      </tr>
+      <tr>
+         <td>public function deleteConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function deleteConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\database\AbstractDatabaseHandler</strong></td>
+      </tr>
+      <tr>
+         <td>public function setHost($host)</td>
+         <td>public function setHost(string $host)</td>
+      </tr>
+      <tr>
+         <td>public function setPort($port)</td>
+         <td>public function setPort(string $port)</td>
+      </tr>
+      <tr>
+         <td>public function setDatabaseName($name)</td>
+         <td>public function setDatabaseName(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setUser($user)</td>
+         <td>public function setUser(string $user)</td>
+      </tr>
+      <tr>
+         <td>public function setPass($pass)</td>
+         <td>public function setPass(string $pass)</td>
+      </tr>
+      <tr>
+         <td>public function setSocket($socket)</td>
+         <td>public function setSocket(string $socket)</td>
+      </tr>
+      <tr>
+         <td>public function setCharset($charset)</td>
+         <td>public function setCharset(string $charset)</td>
+      </tr>
+      <tr>
+         <td>public function setCollation($collation)</td>
+         <td>public function setCollation(string $collation)</td>
+      </tr>
+      <tr>
+         <td>public function setDebug($debug)</td>
+         <td>public function setDebug(string $debug)</td>
+      </tr>
+      <tr>
+         <td>public function setLogTarget($logTarget)</td>
+         <td>public function setLogTarget(string $logTarget)</td>
+      </tr>
+      <tr>
+         <td>public function init($initParam)</td>
+         <td>public function init(array $initParam)</td>
+      </tr>
+      <tr>
+         <td>protected function getPreparedStatement($namespace, $name, array $params = [])</td>
+         <td>protected function getPreparedStatement(string $namespace, string $name, array $params = [])</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\database\ConnectionManager</strong></td>
+      </tr>
+      <tr>
+         <td>public function &getConnection($connectionKey, $instanceId = 'default')</td>
+         <td>public function getConnection($connectionKey, $instanceId = 'default')</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\database\MySQLiHandler</strong></td>
+      </tr>
+      <tr>
+         <td>public function executeStatement($namespace, $statementFile, array $params = [], $logStatement = false)</td>
+         <td>public function executeStatement(string $namespace, string $statementFile, array $params = [], bool $logStatement = false)</td>
+      </tr>
+      <tr>
+         <td>public function escapeValue($value)</td>
+         <td>public function escapeValue(string $value)</td>
+      </tr>
+      <tr>
+         <td>public function executeTextStatement($statement, $logStatement = false)</td>
+         <td>public function executeTextStatement(string $statement, bool $logStatement = false)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\database\PDOHandler</strong></td>
+      </tr>
+      <tr>
+         <td>public function init($initParam)</td>
+         <td>public function init(array $initParam)</td>
+      </tr>
+      <tr>
+         <td>public function executeStatement($namespace, $statementFile, array $params = [], $logStatement = false)</td>
+         <td>public function executeStatement(string $namespace, string $statementFile, array $params = [], bool $logStatement = false)</td>
+      </tr>
+      <tr>
+         <td>public function executeTextStatement($statement, $logStatement = false)</td>
+         <td>public function executeTextStatement(string $statement, bool $logStatement = false)</td>
+      </tr>
+      <tr>
+         <td>public function escapeValue($value)</td>
+         <td>public function escapeValue(string $value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\database\SQLiteHandler</strong></td>
+      </tr>
+      <tr>
+         <td>public function executeTextStatement($statement, $logStatement = false)</td>
+         <td>public function executeTextStatement(string $statement, bool $logStatement = false)</td>
+      </tr>
+      <tr>
+         <td>public function executeStatement($namespace, $statementName, array $params = [], $logStatement = false)</td>
+         <td>public function executeStatement(string $namespace, string $statementName, array $params = [], bool $logStatement = false)</td>
+      </tr>
+      <tr>
+         <td>public function escapeValue($value)</td>
+         <td>public function escapeValue(string $value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\database\config\StatementConfigurationProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function loadConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function loadConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function saveConfiguration($namespace, $context, $language, $environment, $name, Configuration $config)</td>
+         <td>public function saveConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name, Configuration $config)</td>
+      </tr>
+      <tr>
+         <td>public function deleteConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function deleteConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\exceptionhandler\CLIExceptionHandler</strong></td>
+      </tr>
+      <tr>
+         <td>public function handleException($exception)</td>
+         <td>public function handleException(Throwable $exception)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\exceptionhandler\DefaultExceptionHandler</strong></td>
+      </tr>
+      <tr>
+         <td>public function handleException($exception)</td>
+         <td>public function handleException(Throwable $exception)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\exceptionhandler\ProductionExceptionHandler</strong></td>
+      </tr>
+      <tr>
+         <td>public function handleException($exception)</td>
+         <td>public function handleException(Throwable $exception)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\expression\ArrayAccessEvaluationExpression</strong></td>
+      </tr>
+      <tr>
+         <td>protected function check($expression, $previousResult)</td>
+         <td>protected function check(string $expression, $previousResult)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\expression\EvaluationExpressionBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($expression, $previousResult)</td>
+         <td>public function __construct(string $expression, $previousResult)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\expression\MethodEvaluationExpression</strong></td>
+      </tr>
+      <tr>
+         <td>protected function check($expression, $previousResult)</td>
+         <td>protected function check(string $expression, $previousResult)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\expression\ModelEvaluationExpression</strong></td>
+      </tr>
+      <tr>
+         <td>protected function check($expression, $previousResult)</td>
+         <td>protected function check(string $expression, $previousResult)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\filter\AbstractFilterChain</strong></td>
+      </tr>
+      <tr>
+         <td>public function &appendFilter(ChainedContentFilter $filter)</td>
+         <td>public function appendFilter(ChainedContentFilter $filter)</td>
+      </tr>
+      <tr>
+         <td>public function &prependFilter(ChainedContentFilter $filter)</td>
+         <td>public function prependFilter(ChainedContentFilter $filter)</td>
+      </tr>
+      <tr>
+         <td>public function &removeFilter($class)</td>
+         <td>public function removeFilter($class)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\frontcontroller\AbstractFrontControllerAction</strong></td>
+      </tr>
+      <tr>
+         <td>public function setActionName($name)</td>
+         <td>public function setActionName(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setActionNamespace($namespace)</td>
+         <td>public function setActionNamespace(string $namespace)</td>
+      </tr>
+      <tr>
+         <td>public function setType($type)</td>
+         <td>public function setType(string $type)</td>
+      </tr>
+      <tr>
+         <td>public function setKeepInUrl($keepInUrl)</td>
+         <td>public function setKeepInUrl(bool $keepInUrl)</td>
+      </tr>
+      <tr>
+         <td>public function setFrontController(Frontcontroller &$frontController)</td>
+         <td>public function setFrontController(FrontController $frontController)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\frontcontroller\FrontController</strong></td>
+      </tr>
+      <tr>
+         <td>public function start($namespace, $template)</td>
+         <td>public function start(string $namespace, string $template)</td>
+      </tr>
+      <tr>
+         <td>protected function runActions($type = Action::TYPE_PRE_PAGE_CREATE)</td>
+         <td>protected function runActions(string $type = Action::TYPE_PRE_PAGE_CREATE)</td>
+      </tr>
+      <tr>
+         <td>public function &getActionByName($actionName)</td>
+         <td>public function getActionByName(string $actionName)</td>
+      </tr>
+      <tr>
+         <td>public function addAction($namespace, $name, array $params = [], $urlToken = null)</td>
+         <td>public function addAction(string $namespace, string $name, array $params = [], string $urlToken = null)</td>
+      </tr>
+      <tr>
+         <td>protected function getActionNamespaceByURLString($namespaceUrlRepresentation)</td>
+         <td>protected function getActionNamespaceByURLString(string $namespaceUrlRepresentation)</td>
+      </tr>
+      <tr>
+         <td>protected function generateParamsFromInputConfig($config)</td>
+         <td>protected function generateParamsFromInputConfig(string $config = null)</td>
+      </tr>
+      <tr>
+         <td>public function registerActionUrlMappings($namespace, $name)</td>
+         <td>public function registerActionUrlMappings(string $namespace, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function getActionUrlMapping($tokenOrNamespace, $name = null)</td>
+         <td>public function getActionUrlMapping(string $tokenOrNamespace, string $name = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\frontcontroller\FrontControllerActionParameters</strong></td>
+      </tr>
+      <tr>
+         <td>public function setAction(Action &$action)</td>
+         <td>public function setAction(Action $action)</td>
+      </tr>
+      <tr>
+         <td>public function setParameter($name, $value)</td>
+         <td>public function setParameter(string $name, string $value)</td>
+      </tr>
+      <tr>
+         <td>public function getParameter($name, $default = null)</td>
+         <td>public function getParameter(string $name, string $default = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\http\Cookie</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($name, $expireTime = null, $domain = null, $path = null, $secure = null, $httpOnly = null)</td>
+         <td>public function __construct(string $name, int $expireTime = null, string $domain = null, string $path = null, bool $secure = false, bool $httpOnly = false)</td>
+      </tr>
+      <tr>
+         <td>public function setValue($value)</td>
+         <td>public function setValue(string $value)</td>
+      </tr>
+      <tr>
+         <td>public function getValue($default = null)</td>
+         <td>public function getValue(string $default = null)</td>
+      </tr>
+      <tr>
+         <td>public function setDomain($domain)</td>
+         <td>public function setDomain(string $domain)</td>
+      </tr>
+      <tr>
+         <td>public function setExpireTime($expireTime)</td>
+         <td>public function setExpireTime(int $expireTime)</td>
+      </tr>
+      <tr>
+         <td>public function setHttpOnly($httpOnly)</td>
+         <td>public function setHttpOnly(bool $httpOnly)</td>
+      </tr>
+      <tr>
+         <td>public function setPath($path)</td>
+         <td>public function setPath(string $path)</td>
+      </tr>
+      <tr>
+         <td>public function setSecure($secure)</td>
+         <td>public function setSecure(bool $secure)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\http\HeaderImpl</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($name, $value)</td>
+         <td>public function __construct(string $name, string $value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\http\RequestImpl</strong></td>
+      </tr>
+      <tr>
+         <td>public function hasParameter($name)</td>
+         <td>public function hasParameter(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function getParameter($name, $default = null)</td>
+         <td>public function getParameter(string $name, $default = null)</td>
+      </tr>
+      <tr>
+         <td>protected function getGenericParameter($name, $default, $type)</td>
+         <td>protected function getGenericParameter(string $name, $default, $type)</td>
+      </tr>
+      <tr>
+         <td>public function hasGetParameter($name)</td>
+         <td>public function hasGetParameter(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function getGetParameter($name, $default = null)</td>
+         <td>public function getGetParameter(string $name, $default = null)</td>
+      </tr>
+      <tr>
+         <td>public function hasPostParameter($name)</td>
+         <td>public function hasPostParameter(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function getPostParameter($name, $default = null)</td>
+         <td>public function getPostParameter(string $name, $default = null)</td>
+      </tr>
+      <tr>
+         <td>public function getSession($name)</td>
+         <td>public function getSession(string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function getGenericParameters($type)</td>
+         <td>protected function getGenericParameters(string $type)</td>
+      </tr>
+      <tr>
+         <td>public function setParameter($name, $value)</td>
+         <td>public function setParameter(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setGetParameter($name, $value)</td>
+         <td>public function setGetParameter(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setPostParameter($name, $value)</td>
+         <td>public function setPostParameter(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function deleteParameter($name)</td>
+         <td>public function deleteParameter(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function deleteGetParameter($name)</td>
+         <td>public function deleteGetParameter(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function deletePostParameter($name)</td>
+         <td>public function deletePostParameter(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function getUrl($absolute = false)</td>
+         <td>public function getUrl(bool $absolute = false)</td>
+      </tr>
+      <tr>
+         <td>public function getReferrerUrl($absolute = false)</td>
+         <td>public function getReferrerUrl(bool $absolute = false)</td>
+      </tr>
+      <tr>
+         <td>public function getCookie($name)</td>
+         <td>public function getCookie(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function hasCookie($name)</td>
+         <td>public function hasCookie(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function getHeader($name)</td>
+         <td>public function getHeader(string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\http\ResponseImpl</strong></td>
+      </tr>
+      <tr>
+         <td>public function setVersion($version)</td>
+         <td>public function setVersion(string $version)</td>
+      </tr>
+      <tr>
+         <td>public function setStatusCode($code)</td>
+         <td>public function setStatusCode(int $code)</td>
+      </tr>
+      <tr>
+         <td>public function setReasonPhrase($phrase)</td>
+         <td>public function setReasonPhrase(string $phrase)</td>
+      </tr>
+      <tr>
+         <td>public function setBody($body, $append = false)</td>
+         <td>public function setBody(string $body, bool $append = false)</td>
+      </tr>
+      <tr>
+         <td>public function send($exit = true)</td>
+         <td>public function send(bool $exit = true)</td>
+      </tr>
+      <tr>
+         <td>public function forward($url, $exitAfterForward = true)</td>
+         <td>public function forward(string $url, bool $exitAfterForward = true)</td>
+      </tr>
+      <tr>
+         <td>public function redirect($url, $permanent = false, $exitAfterForward = true)</td>
+         <td>public function redirect(string $url, bool $permanent = false, bool $exitAfterForward = true)</td>
+      </tr>
+      <tr>
+         <td>public function sendNotFound($exitAfterForward = true)</td>
+         <td>public function sendNotFound(bool $exitAfterForward = true)</td>
+      </tr>
+      <tr>
+         <td>public function sendServerError($exitAfterForward = true)</td>
+         <td>public function sendServerError(bool $exitAfterForward = true)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\http\Session</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($namespace)</td>
+         <td>public function __construct(string $namespace)</td>
+      </tr>
+      <tr>
+         <td>public function load($attribute, $default = null)</td>
+         <td>public function load(string $attribute, $default = null)</td>
+      </tr>
+      <tr>
+         <td>public function save($attribute, $value)</td>
+         <td>public function save(string $attribute, $value)</td>
+      </tr>
+      <tr>
+         <td>public function delete($attribute)</td>
+         <td>public function delete(string $attribute)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\loader\StandardClassLoader</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($vendorName, $rootPath, $configRootPath = null)</td>
+         <td>public function __construct(string $vendorName, string $rootPath, string $configRootPath = null)</td>
+      </tr>
+      <tr>
+         <td>public function load($class)</td>
+         <td>public function load(string $class)</td>
+      </tr>
+      <tr>
+         <td>public function setVendorName($name)</td>
+         <td>public function setVendorName(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setRootPath($rootPath)</td>
+         <td>public function setRootPath(string $rootPath)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\logging\entry\GraphiteLogEntry</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($target, $metric, $unit, $value, $severity)</td>
+         <td>public function __construct(string $target, string $metric, string $unit, string $value, string $severity)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\logging\entry\SimpleLogEntry</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($target, $message, $severity)</td>
+         <td>public function __construct(string $target, string $message, string $severity)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\logging\writer\DatabaseLogWriter</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($connectionName, $logTable)</td>
+         <td>public function __construct(string $connectionName, string $logTable)</td>
+      </tr>
+      <tr>
+         <td>public function setConnectionName($connectionName)</td>
+         <td>public function setConnectionName(string $connectionName)</td>
+      </tr>
+      <tr>
+         <td>public function setLogTable($logTable)</td>
+         <td>public function setLogTable(string $logTable)</td>
+      </tr>
+      <tr>
+         <td>public function setTarget($target)</td>
+         <td>public function setTarget(string $target)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\logging\writer\FileLogWriter</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($logDir)</td>
+         <td>public function __construct(string $logDir)</td>
+      </tr>
+      <tr>
+         <td>public function setLogDir($logDir)</td>
+         <td>public function setLogDir(string $logDir)</td>
+      </tr>
+      <tr>
+         <td>public function setHostPrefix($hostPrefix)</td>
+         <td>public function setHostPrefix(string $hostPrefix)</td>
+      </tr>
+      <tr>
+         <td>public function setLogFolderPermissions($logFolderPermissions)</td>
+         <td>public function setLogFolderPermissions(string $logFolderPermissions)</td>
+      </tr>
+      <tr>
+         <td>protected function getLogFileName($fileName)</td>
+         <td>protected function getLogFileName(string $fileName)</td>
+      </tr>
+      <tr>
+         <td>public function setTarget($target)</td>
+         <td>public function setTarget(string $target)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\logging\writer\GraphiteLogWriter</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($host, $port, $batchWrites = true)</td>
+         <td>public function __construct(string $host, int $port, bool $batchWrites = true)</td>
+      </tr>
+      <tr>
+         <td>public function setEntrySeparator($entrySeparator)</td>
+         <td>public function setEntrySeparator(string $entrySeparator)</td>
+      </tr>
+      <tr>
+         <td>public function setBatchWrites($batchWrites)</td>
+         <td>public function setBatchWrites(bool $batchWrites)</td>
+      </tr>
+      <tr>
+         <td>public function setTarget($target)</td>
+         <td>public function setTarget(string $target)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\logging\writer\StdOutLogWriter</strong></td>
+      </tr>
+      <tr>
+         <td>public function setTarget($target)</td>
+         <td>public function setTarget(string $target)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\pagecontroller\APFObject</strong></td>
+      </tr>
+      <tr>
+         <td>public function setServiceType($serviceType)</td>
+         <td>public function setServiceType(string $serviceType)</td>
+      </tr>
+      <tr>
+         <td>protected function &getDIServiceObject($namespace, $name)</td>
+         <td>protected function getDIServiceObject(string $namespace, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setContext($context)</td>
+         <td>public function setContext(string $context = null)</td>
+      </tr>
+      <tr>
+         <td>public function setLanguage($lang)</td>
+         <td>public function setLanguage(string $lang = null)</td>
+      </tr>
+      <tr>
+         <td>protected function &getServiceObject($class, array $arguments = [], $type = APFService::SERVICE_TYPE_SINGLETON, $instanceId = null)</td>
+         <td>protected function getServiceObject(string $class, array $arguments = [], string $type = APFService::SERVICE_TYPE_SINGLETON, string $instanceId = null)</td>
+      </tr>
+      <tr>
+         <td>protected function getConfiguration($namespace, $name)</td>
+         <td>protected function getConfiguration(string $namespace, string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function saveConfiguration($namespace, $name, Configuration $config)</td>
+         <td>protected function saveConfiguration(string $namespace, string $name, Configuration $config)</td>
+      </tr>
+      <tr>
+         <td>protected function deleteConfiguration($namespace, $name)</td>
+         <td>protected function deleteConfiguration(string $namespace, string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\pagecontroller\BaseDocumentController</strong></td>
+      </tr>
+      <tr>
+         <td>protected function setPlaceHolder($name, $value, $append = false)</td>
+         <td>protected function setPlaceHolder(string $name, string $value, bool $append = false)</td>
+      </tr>
+      <tr>
+         <td>public function setDocument(DomNode &$document)</td>
+         <td>public function setDocument(DomNode $document)</td>
+      </tr>
+      <tr>
+         <td>protected function setPlaceHolders(array $placeHolderValues, $append = false)</td>
+         <td>protected function setPlaceHolders(array $placeHolderValues, bool $append = false)</td>
+      </tr>
+      <tr>
+         <td>protected function &getForm($formName)</td>
+         <td>protected function getForm(string $formName)</td>
+      </tr>
+      <tr>
+         <td>protected function &getTemplate($name)</td>
+         <td>protected function getTemplate(string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function &getLabel($name)</td>
+         <td>protected function getLabel(string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function placeHolderExists($name)</td>
+         <td>protected function placeHolderExists(string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function templatePlaceHolderExists(TemplateTag &$template, $name)</td>
+         <td>protected function templatePlaceHolderExists(TemplateTag $template, string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function &getIterator($name)</td>
+         <td>protected function getIterator(string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function &setData($name, $data)</td>
+         <td>protected function setData(string $name, $data)</td>
+      </tr>
+      <tr>
+         <td>protected function getData($name, $default = null)</td>
+         <td>protected function getData(string $name, $default = null)</td>
+      </tr>
+      <tr>
+         <td>protected function &getNodeById($id)</td>
+         <td>protected function getNodeById(string $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\pagecontroller\DefaultTemplateTagClearApproach</strong></td>
+      </tr>
+      <tr>
+         <td>public function clear(TemplateTag &$node)</td>
+         <td>public function clear(TemplateTag $node)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\pagecontroller\Document</strong></td>
+      </tr>
+      <tr>
+         <td>public function hasAttribute($name)</td>
+         <td>public function hasAttribute(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function getRequiredAttribute($name)</td>
+         <td>public function getRequiredAttribute(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function getAttribute($name, $default = null)</td>
+         <td>public function getAttribute(string $name, string $default = null)</td>
+      </tr>
+      <tr>
+         <td>public function &setAttribute($name, $value)</td>
+         <td>public function setAttribute(string $name, string $value = null)</td>
+      </tr>
+      <tr>
+         <td>public function &setAttributes(array $attributes = [])</td>
+         <td>public function setAttributes(array $attributes = [])</td>
+      </tr>
+      <tr>
+         <td>public function &deleteAttribute($name)</td>
+         <td>public function deleteAttribute(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function &addAttribute($name, $value, $glue = '')</td>
+         <td>public function addAttribute(string $name, string $value, string $glue = '')</td>
+      </tr>
+      <tr>
+         <td>public function &getChildNodeIfExists($attributeName, $value, $tagLibClass)</td>
+         <td>public function getChildNodeIfExists(string $attributeName, string $value, string $tagLibClass)</td>
+      </tr>
+      <tr>
+         <td>public function &getChildNode($attributeName, $value, $tagLibClass)</td>
+         <td>public function getChildNode(string $attributeName, string $value, string $tagLibClass)</td>
+      </tr>
+      <tr>
+         <td>public function &getChildNodes($attributeName, $value, $tagLibClass)</td>
+         <td>public function getChildNodes(string $attributeName, string $value, string $tagLibClass)</td>
+      </tr>
+      <tr>
+         <td>public function &setPlaceHolders(array $placeHolderValues, $append = false)</td>
+         <td>public function setPlaceHolders(array $placeHolderValues, bool $append = false)</td>
+      </tr>
+      <tr>
+         <td>public function &setPlaceHolder($name, $value, $append = false)</td>
+         <td>public function setPlaceHolder(string $name, string $value, bool $append = false)</td>
+      </tr>
+      <tr>
+         <td>public function getPlaceHolder($name, $default = null)</td>
+         <td>public function getPlaceHolder(string $name, string $default = null)</td>
+      </tr>
+      <tr>
+         <td>public function getData($name, $default = null)</td>
+         <td>public function getData(string $name, $default = null)</td>
+      </tr>
+      <tr>
+         <td>public function &setData($name, $data)</td>
+         <td>public function setData(string $name, $data)</td>
+      </tr>
+      <tr>
+         <td>public function loadDesign($namespace, $design)</td>
+         <td>public function loadDesign(string $namespace, string $design)</td>
+      </tr>
+      <tr>
+         <td>protected function loadContentFromFile($namespace, $name)</td>
+         <td>protected function loadContentFromFile(string $namespace, string $name)</td>
+      </tr>
+      <tr>
+         <td>protected function getTemplateFilePath($namespace, $name)</td>
+         <td>protected function getTemplateFilePath(string $namespace, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setContent($content)</td>
+         <td>public function setContent(string $content)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($objectId)</td>
+         <td>public function setObjectId(string $objectId)</td>
+      </tr>
+      <tr>
+         <td>protected function getTagLibClass($prefix, $name)</td>
+         <td>protected function getTagLibClass(string $prefix, string $name)</td>
+      </tr>
+      <tr>
+         <td>public function &getNodeByIdIfExists($id)</td>
+         <td>public function getNodeByIdIfExists(string $id)</td>
+      </tr>
+      <tr>
+         <td>public function &getNodeById($id)</td>
+         <td>public function getNodeById(string $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\pagecontroller\LanguageLabelTag</strong></td>
+      </tr>
+      <tr>
+         <td>protected function replace($label)</td>
+         <td>protected function replace(string $label)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\pagecontroller\Page</strong></td>
+      </tr>
+      <tr>
+         <td>public function loadDesign($namespace, $design)</td>
+         <td>public function loadDesign(string $namespace, string $design)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\core\pagecontroller\TemplateTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &getLabel($name)</td>
+         <td>public function getLabel(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function &getForm($name)</td>
+         <td>public function getForm(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function &getTemplate($name)</td>
+         <td>public function getTemplate(string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\arraypager\biz\ArrayPagerManagerFabric</strong></td>
+      </tr>
+      <tr>
+         <td>public function &getArrayPagerManager($config)</td>
+         <td>public function getArrayPagerManager($config)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\htmlheader\biz\ConditionalDynamicCssNode</strong></td>
+      </tr>
+      <tr>
+         <td>public function  __construct($namespace, $filename, $condition, $url = null, $fcaction = true, $media = null)</td>
+         <td>public function __construct($namespace, $filename, $condition, $url = null, $fcAction = true, $media = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\htmlheader\biz\DynamicCssNode</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($url, $namespace, $filename, $fcaction = true, $media = null)</td>
+         <td>public function __construct($url, $namespace, $filename, $fcAction = true, $media = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\htmlheader\biz\DynamicJsNode</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($url, $namespace, $filename, $fcaction = null)</td>
+         <td>public function __construct($url, $namespace, $filename, $fcAction = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\htmlheader\biz\HtmlNode</strong></td>
+      </tr>
+      <tr>
+         <td>public function setPriority($priority)</td>
+         <td>public function setPriority(int $priority)</td>
+      </tr>
+      <tr>
+         <td>public function setAppendToBody($value)</td>
+         <td>public function setAppendToBody(bool $value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\news\biz\News</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\news\biz\NewsBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\postbox\biz\Message</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\postbox\biz\MessageBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\postbox\biz\MessageChannel</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\postbox\biz\MessageChannelBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\postbox\biz\PostboxFolder</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\postbox\biz\PostboxFolderBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\postbox\biz\RecipientList</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\extensions\postbox\biz\RecipientListBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\comments\data\ArticleCommentMapper</strong></td>
+      </tr>
+      <tr>
+         <td>public function loadArticleCommentByID($commentId)</td>
+         <td>public function loadArticleCommentByID(string $commentId)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\contact\data\ContactMapper</strong></td>
+      </tr>
+      <tr>
+         <td>public function loadRecipientById($id)</td>
+         <td>public function loadRecipientById(string $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\genericormapper\data\GenericDomainObject</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setDataComponent(GenericORRelationMapper &$orm)</td>
+         <td>public function setDataComponent(GenericORRelationMapper $orm)</td>
+      </tr>
+      <tr>
+         <td>public function loadRelatedObject($relationName, GenericCriterionObject $criterion = null)</td>
+         <td>public function loadRelatedObject(string $relationName, GenericCriterionObject $criterion = null)</td>
+      </tr>
+      <tr>
+         <td>public function loadRelatedObjects($relationName, GenericCriterionObject $criterion = null)</td>
+         <td>public function loadRelatedObjects(string $relationName, GenericCriterionObject $criterion = null)</td>
+      </tr>
+      <tr>
+         <td>public function createAssociation($relationName, GenericORMapperDataObject $targetObject)</td>
+         <td>public function createAssociation(string $relationName, GenericORMapperDataObject $targetObject)</td>
+      </tr>
+      <tr>
+         <td>public function deleteAssociation($relationName, GenericORMapperDataObject $targetObject)</td>
+         <td>public function deleteAssociation(string $relationName, GenericORMapperDataObject $targetObject)</td>
+      </tr>
+      <tr>
+         <td>public function deleteAssociations($relationName)</td>
+         <td>public function deleteAssociations(string $relationName)</td>
+      </tr>
+      <tr>
+         <td>public function addRelatedObject($relationName, GenericORMapperDataObject &$object)</td>
+         <td>public function addRelatedObject(string $relationName, GenericORMapperDataObject &$object)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\genericormapper\data\tools\GenericORMapperDomainObjectGenerator</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\UmgtManager</strong></td>
+      </tr>
+      <tr>
+         <td>public function setORMapper(GenericORRelationMapper &$orm)</td>
+         <td>public function setORMapper(GenericORRelationMapper $orm)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtApplication</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtApplicationBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtAuthToken</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtAuthTokenBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtGroup</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtGroupBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtPermission</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtPermissionBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtRole</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtRoleBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtUser</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtUserBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtVisibilityDefinition</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtVisibilityDefinitionBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtVisibilityDefinitionType</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\biz\model\UmgtVisibilityDefinitionTypeBase</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($objectName = null)</td>
+         <td>public function __construct(string $objectName = null)</td>
+      </tr>
+      <tr>
+         <td>public function getProperty($name)</td>
+         <td>public function getProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setProperty($name, $value)</td>
+         <td>public function setProperty(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProperties($properties = [])</td>
+         <td>public function setProperties(array $properties = [])</td>
+      </tr>
+      <tr>
+         <td>public function deleteProperty($name)</td>
+         <td>public function deleteProperty(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function setObjectId($id)</td>
+         <td>public function setObjectId(int $id)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\condition\UmgtGroupCondition</strong></td>
+      </tr>
+      <tr>
+         <td>public function matches($conditionKey, UmgtUser $user = null)</td>
+         <td>public function matches(string $conditionKey, UmgtUser $user = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\condition\UmgtLoggedInCondition</strong></td>
+      </tr>
+      <tr>
+         <td>public function matches($conditionKey, UmgtUser $user = null)</td>
+         <td>public function matches(string $conditionKey, UmgtUser $user = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\condition\UmgtLoggedOutCondition</strong></td>
+      </tr>
+      <tr>
+         <td>public function matches($conditionKey, UmgtUser $user = null)</td>
+         <td>public function matches(string $conditionKey, UmgtUser $user = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\condition\UmgtNotPermissionCondition</strong></td>
+      </tr>
+      <tr>
+         <td>public function matches($conditionKey, UmgtUser $user = null)</td>
+         <td>public function matches(string $conditionKey, UmgtUser $user = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\condition\UmgtNotRoleCondition</strong></td>
+      </tr>
+      <tr>
+         <td>public function matches($conditionKey, UmgtUser $user = null)</td>
+         <td>public function matches(string $conditionKey, UmgtUser $user = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\condition\UmgtPermissionCondition</strong></td>
+      </tr>
+      <tr>
+         <td>public function matches($conditionKey, UmgtUser $user = null)</td>
+         <td>public function matches(string $conditionKey, UmgtUser $user = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\condition\UmgtRoleCondition</strong></td>
+      </tr>
+      <tr>
+         <td>public function matches($conditionKey, UmgtUser $user = null)</td>
+         <td>public function matches(string $conditionKey, UmgtUser $user = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\condition\UserDependentContentConditionSet</strong></td>
+      </tr>
+      <tr>
+         <td>public function &addCondition(UserDependentContentCondition $condition)</td>
+         <td>public function addCondition(UserDependentContentCondition $condition)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\documentcontroller\UmgtBaseController</strong></td>
+      </tr>
+      <tr>
+         <td>protected function generateLink($linkParams, $baseURL = null)</td>
+         <td>protected function generateLink(array $linkParams = [], $baseURL = null)</td>
+      </tr>
+      <tr>
+         <td>protected function &getIcon(TemplateTag $template)</td>
+         <td>protected function getIcon(TemplateTag $template)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\modules\usermanagement\pres\documentcontroller\login\LoginController</strong></td>
+      </tr>
+      <tr>
+         <td>public function createAutoLogin($user)</td>
+         <td>public function createAutoLogin(UmgtUser $user)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tests\suites\core\frontcontroller\FakeIniProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function loadConfiguration($namespace, $context, $language, $environment, $name)</td>
+         <td>public function loadConfiguration(string $namespace, string $context = null, string $language = null, string $environment = null, string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tests\suites\core\logging\RecordingLogWriter</strong></td>
+      </tr>
+      <tr>
+         <td>public function setTarget($target)</td>
+         <td>public function setTarget(string $target)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tests\suites\tools\form\taglib\ButtonTagTest</strong></td>
+      </tr>
+      <tr>
+         <td>protected function &getForm($method)</td>
+         <td>protected function getForm($method)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tests\suites\tools\form\taglib\CheckBoxTagTest</strong></td>
+      </tr>
+      <tr>
+         <td>protected function &getFormWithCheckBox($name, $value, $checked)</td>
+         <td>protected function getFormWithCheckBox($name, $value, $checked)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tests\suites\tools\form\taglib\ImageButtonTagTest</strong></td>
+      </tr>
+      <tr>
+         <td>protected function &getForm($method)</td>
+         <td>protected function getForm($method)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tests\suites\tools\link\MultipleMappedActionsTestableLinkScheme</strong></td>
+      </tr>
+      <tr>
+         <td>public function addAction(AbstractFrontcontrollerAction $action)</td>
+         <td>public function addAction(AbstractFrontControllerAction $action)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\cache\CacheManagerFabric</strong></td>
+      </tr>
+      <tr>
+         <td>public function &getCacheManager($configSection)</td>
+         <td>public function getCacheManager($configSection)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\cache\key\AdvancedCacheKey</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($cacheKey, $cacheSubKey, $ttl = null)</td>
+         <td>public function __construct(string $cacheKey = null, string $cacheSubKey = null, $ttl = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\cache\key\SimpleCacheKey</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($cacheKey, $ttl = null)</td>
+         <td>public function __construct(string $cacheKey = null, $ttl = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\mixin\AddSelectBoxEntry</strong></td>
+      </tr>
+      <tr>
+         <td>protected function &addEntry(DomNode $tag)</td>
+         <td>protected function addEntry(DomNode $tag)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\mixin\FormControlFinder</strong></td>
+      </tr>
+      <tr>
+         <td>public function &getFormElementByID($id)</td>
+         <td>public function getFormElementByID(string $id)</td>
+      </tr>
+      <tr>
+         <td>public function &getMarker($markerName)</td>
+         <td>public function getMarker(string $markerName)</td>
+      </tr>
+      <tr>
+         <td>public function &getFormElementByName($name)</td>
+         <td>public function getFormElementByName(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function &getLabel($name)</td>
+         <td>public function getLabel(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function &getFormElementsByName($name)</td>
+         <td>public function getFormElementsByName(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function &getFormElementsByTagName($tagName)</td>
+         <td>public function getFormElementsByTagName(string $tagName)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\provider\csrf\EncryptedSIDHashProvider</strong></td>
+      </tr>
+      <tr>
+         <td>public function generateHash($salt)</td>
+         <td>public function generateHash(string $salt)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\AbstractFormControl</strong></td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td>public function &addAttributeToWhiteList($name)</td>
+         <td>public function addAttributeToWhiteList(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function &addAttributesToWhiteList(array $names)</td>
+         <td>public function addAttributesToWhiteList(array $names)</td>
+      </tr>
+      <tr>
+         <td>public function &appendCssClass($class)</td>
+         <td>public function appendCssClass(string $class)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\DateSelectorTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\DynamicFormElementMarkerTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &addContentBefore($content)</td>
+         <td>public function addContentBefore(string $content)</td>
+      </tr>
+      <tr>
+         <td>public function &addContentAfter($content)</td>
+         <td>public function addContentAfter(string $content)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\Html5DateFieldTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\Html5DateTimeLocalFieldTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\Html5MonthFieldTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\Html5TimeFieldTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\Html5WeekFieldTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\HtmlFormTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &addFormElement($elementType, array $elementAttributes = [])</td>
+         <td>public function addFormElement($elementType, array $elementAttributes = [])</td>
+      </tr>
+      <tr>
+         <td>protected function &createFormElement(DomNode &$parent, $elementType, array $elementAttributes = [])</td>
+         <td>protected function createFormElement(DomNode $parent, $elementType, array $elementAttributes = [])</td>
+      </tr>
+      <tr>
+         <td>public function &addFormElementBeforeMarker($markerName, $elementType, array $elementAttributes = [])</td>
+         <td>public function addFormElementBeforeMarker($markerName, $elementType, array $elementAttributes = [])</td>
+      </tr>
+      <tr>
+         <td>public function &addFormElementAfterMarker($markerName, $elementType, array $elementAttributes = [])</td>
+         <td>public function addFormElementAfterMarker($markerName, $elementType, array $elementAttributes = [])</td>
+      </tr>
+      <tr>
+         <td>public function addAttributeToWhitelist($name)</td>
+         <td>public function addAttributeToWhitelist(string $name)</td>
+      </tr>
+      <tr>
+         <td>public function fillModel(&$model, array $mapping = [])</td>
+         <td>public function fillModel($model, array $mapping = [])</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\SelectBoxTag</strong></td>
+      </tr>
+      <tr>
+         <td>protected function &getOrCreateGroup($groupLabel)</td>
+         <td>protected function getOrCreateGroup($groupLabel)</td>
+      </tr>
+      <tr>
+         <td>public function &getGroup($label)</td>
+         <td>public function getGroup($label)</td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\TextAreaTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\form\taglib\TimeSelectorTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function &setValue($value)</td>
+         <td>public function setValue($value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\html\taglib\GetIterator</strong></td>
+      </tr>
+      <tr>
+         <td>public function getIterator($name)</td>
+         <td>public function getIterator(string $name)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\html\taglib\HtmlIteratorTag</strong></td>
+      </tr>
+      <tr>
+         <td>public function fillDataContainer($data)</td>
+         <td>public function fillDataContainer(array $data = [])</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\link\BasicLinkScheme</strong></td>
+      </tr>
+      <tr>
+         <td>protected function getActionUrlRepresentation(AbstractFrontcontrollerAction $action, $urlRewriting)</td>
+         <td>protected function getActionUrlRepresentation(AbstractFrontControllerAction $action, $urlRewriting)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\link\DefaultLinkScheme</strong></td>
+      </tr>
+      <tr>
+         <td>public function formatActionLink(Url $url, $namespace, $name, array $params = [])</td>
+         <td>public function formatActionLink(Url $url, string $namespace, string $name, array $params = [])</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\link\RewriteLinkScheme</strong></td>
+      </tr>
+      <tr>
+         <td>public function formatActionLink(Url $url, $namespace, $name, array $params = [])</td>
+         <td>public function formatActionLink(Url $url, string $namespace, string $name, array $params = [])</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\link\Url</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($scheme, $host, $port, $path, array $query = [], $anchor = null)</td>
+         <td>public function __construct(string $scheme = null, string $host = null, int $port = null, string $path = null, array $query = [], string $anchor = null)</td>
+      </tr>
+      <tr>
+         <td>public function &setScheme($scheme)</td>
+         <td>public function setScheme(string $scheme = null)</td>
+      </tr>
+      <tr>
+         <td>public function &setHost($host)</td>
+         <td>public function setHost(string $host = null)</td>
+      </tr>
+      <tr>
+         <td>public function &setPort($port)</td>
+         <td>public function setPort(int $port = null)</td>
+      </tr>
+      <tr>
+         <td>public function &setPath($path)</td>
+         <td>public function setPath(string $path = null)</td>
+      </tr>
+      <tr>
+         <td>public function &setQuery(array $query)</td>
+         <td>public function setQuery(array $query = null)</td>
+      </tr>
+      <tr>
+         <td>public function &setAnchor($anchor)</td>
+         <td>public function setAnchor(string $anchor = null)</td>
+      </tr>
+      <tr>
+         <td>public function getQueryParameter($name, $default = null)</td>
+         <td>public function getQueryParameter(string $name, $default = null)</td>
+      </tr>
+      <tr>
+         <td>public function &mergeQuery(array $query)</td>
+         <td>public function mergeQuery(array $query)</td>
+      </tr>
+      <tr>
+         <td>public function &setQueryParameter($name, $value)</td>
+         <td>public function setQueryParameter(string $name, $value)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\mail\MailAddress</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($name, $email)</td>
+         <td>public function __construct(string $name = null, string $email = null)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\mail\Message</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct(MailAddress $sender, $subject, $content)</td>
+         <td>public function __construct(MailAddress $sender, string $subject, string $content)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\mail\MessageBuilder</strong></td>
+      </tr>
+      <tr>
+         <td>public function createMessage($section, $subject, $content)</td>
+         <td>public function createMessage(string $section, string $subject, string $content)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\soap\ExtendedSoapClientService</strong></td>
+      </tr>
+      <tr>
+         <td>public function executeRequest($action, $request, $oneWay = null)</td>
+         <td>public function executeRequest(string $action, string $request, bool $oneWay = null)</td>
+      </tr>
+      <tr>
+         <td>public function setLocation($location)</td>
+         <td>public function setLocation(string $location)</td>
+      </tr>
+      <tr>
+         <td>public function setWsdlUrl($wsdlUrl)</td>
+         <td>public function setWsdlUrl(string $wsdlUrl)</td>
+      </tr>
+      <tr>
+         <td>public function setHttpAuthUsername($username)</td>
+         <td>public function setHttpAuthUsername(string $username)</td>
+      </tr>
+      <tr>
+         <td>public function setHttpAuthPassword($password)</td>
+         <td>public function setHttpAuthPassword(string $password)</td>
+      </tr>
+      <tr>
+         <td>public function setEncoding($encoding)</td>
+         <td>public function setEncoding(string $encoding)</td>
+      </tr>
+      <tr>
+         <td>public function setCookie($name, $value)</td>
+         <td>public function setCookie(string $name, string $value)</td>
+      </tr>
+      <tr>
+         <td>public function setProxyHost($host)</td>
+         <td>public function setProxyHost(string $host)</td>
+      </tr>
+      <tr>
+         <td>public function setProxyPort($port)</td>
+         <td>public function setProxyPort(string $port)</td>
+      </tr>
+      <tr>
+         <td>public function setProxyUsername($username)</td>
+         <td>public function setProxyUsername(string $username)</td>
+      </tr>
+      <tr>
+         <td>public function setProxyPassword($password)</td>
+         <td>public function setProxyPassword(string $password)</td>
+      </tr>
+      <tr>
+         <td>public function setUserAgent($userAgent)</td>
+         <td>public function setUserAgent(string $userAgent)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\soap\WsdlObjectMapping</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($wsdlType = null, $phpClassName = null)</td>
+         <td>public function __construct(string $wsdlType = null, string $phpClassName = null)</td>
+      </tr>
+      <tr>
+         <td>public function setPhpClassName($phpClassName)</td>
+         <td>public function setPhpClassName(string $phpClassName)</td>
+      </tr>
+      <tr>
+         <td>public function setWsdlType($wsdlType)</td>
+         <td>public function setWsdlType(string $wsdlType)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\string\StringEncryptor</strong></td>
+      </tr>
+      <tr>
+         <td>public function getPasswordHash($password, $section = 'Standard')</td>
+         <td>public function getPasswordHash(string $password, string $section = 'Standard')</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\validation\EMailValidator</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($rule = self::RULE_SIMPLE)</td>
+         <td>public function __construct(string $rule = self::RULE_SIMPLE)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\validation\NumberScopeValidator</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($minValue = null, $maxValue = null, $onlyIntegersAccepted = false, $includeLowerEnd = false, $includeUpperEnd = false)</td>
+         <td>public function __construct(int $minValue = null, int $maxValue = null, bool $onlyIntegersAccepted = false, bool $includeLowerEnd = false, bool $includeUpperEnd = false)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\validation\PhoneNumberValidator</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($rule = self::STANDARD)</td>
+         <td>public function __construct(string $rule = self::STANDARD)</td>
+      </tr>
+      <tr>
+         <td colspan="2"><strong>APF\tools\validation\TextLengthValidator</strong></td>
+      </tr>
+      <tr>
+         <td>public function __construct($minLength, $maxLength, $mode = self::MODE_LAX)</td>
+         <td>public function __construct(int $minLength, int $maxLength, $mode = self::MODE_LAX)</td>
+      </tr>
+   </tbody>
+</table>
+
+<h4 id="Chapter-2-3-Generic-or-mapper"><a href="#Chapter-2-3-Generic-or-mapper">2.3. Generic o/r mapper w/ custom domain objects</a></h4>
+<p>
+   Sofern Sie den <int:link pageid="063" /> mit eigenen Domänen-Objekten nutzen, generieren Sie bitte die Domänen-Objekte
+   wie im Kapitel <int:link pageid="063" anchor="Chapter-7-2-Objektgenerierung">Objekt-Generierung</int:link> beschrieben
+   nochmals neu.
+</p>
+<p>
+   Dies ist insbesondere auch notwendig, wenn Sie vom
+   <a href="https://adventure-php-framework.org/tracker/view.php?id=337" linkrewrite="false" class="external">Issue #337</a>
+   betroffen sind.
+</p>
+
+<h4 id="Chapter-2-4-Migration-from-mcrypt-to-OpenSSL"><a href="#Chapter-2-4-Migration-from-mcrypt-to-OpenSSL">2.4 Migration from mcyrpt to OpenSSL</a></h4>
+<p>
+   Bis einschließlich der Version 3.4 setzt das APF zur Verschlüsselung von Benutzer-Attributen im Modul
+   <int:link pageid="142" /> auf das PHP-Modul <em>mcrypt</em>. Dieses ist ab PHP 7.2 nicht mehr verfügbar und von der
+   bisher eingesetzten Verschlüsselungs-Methode (<em>3DES/CBC</em>) wird aus Sicherheitsgründen abgeraten.
+</p>
+<p>
+   Aus den genannten Gründen nutzt das APF 4 daher nun das PHP-Modul <em>OpenSSL</em> und die Verschlüsselungs-Methode
+   <em>AES 128Bit/CBC</em>. Leider ist eine automatisierte Migration nicht möglich. Für das Update von APF 3.X auf die
+   Version 4 ist daher eine manuelle, zweistufige Daten-Migration notwendig.
+</p>
+<p>
+   Zur Vorbereitung der Migration entschlüsseln Sie bitte alle Benutzer-Attribute und schreiben diese zurück in die
+   Datenbank. Dies lässt sich mit folgendem Skript erledigen:
+</p>
+<gen:highlight type="php">
+use APF\core\service\DIServiceManager;
+use APF\modules\usermanagement\biz\model\UmgtUser;
+use APF\modules\usermanagement\biz\provider\UserFieldEncryptionProvider;
+use APF\modules\usermanagement\biz\UmgtManager;
+
+$context = '...';
+$language = '...';
+
+// Define fields to decrypt values during loading
+UserFieldEncryptionProvider::$encryptedFieldNames = [...];
+
+/* @var $umgt UmgtManager */
+$umgt = DIServiceManager::getServiceObject(
+      'APF\modules\usermanagement\biz',
+      'UmgtManager',
+      $context,
+      $language
+);
+
+// Load all users and (implicitly) decrypt values.
+/* @var $users UmgtUser[] */
+$users = $umgt->getORMapper()->loadObjectList('User');
+
+// Save all users w/ unencrypted values
+UserFieldEncryptionProvider::$encryptedFieldNames = null;
+
+foreach ($users as $user) {
+   $umgt->getORMapper()->saveObject($user);
+}
+</gen:highlight>
+<p>
+   Im Anschluss an das Update auf Version 4 können Sie die entsprechenden Attribute mit folgendem Skript wieder
+   verschlüsseln:
+</p>
+<gen:highlight type="php">
+use APF\core\service\DIServiceManager;
+use APF\modules\usermanagement\biz\model\UmgtUser;
+use APF\modules\usermanagement\biz\provider\UserFieldEncryptionProvider;
+use APF\modules\usermanagement\biz\UmgtManager;
+
+$context = '...';
+$language = '...';
+
+// Load all fields w/o decryption
+UserFieldEncryptionProvider::$encryptedFieldNames = null;
+
+/* @var $umgt UmgtManager */
+$umgt = DIServiceManager::getServiceObject(
+      'APF\modules\usermanagement\biz',
+      'UmgtManager',
+      $context,
+      $language
+);
+
+// Load all users
+/* @var $users UmgtUser[] */
+$users = $umgt->getORMapper()->loadObjectList('User');
+
+// Save all users w/ encrypted values
+UserFieldEncryptionProvider::$encryptedFieldNames = [...];
+
+foreach ($users as $user) {
+   $umgt->getORMapper()->saveObject($user);
+}
+</gen:highlight>
+<p>
+   Die Liste der zu ver- und entschlüsselnden Attribute passen Sie bitte der Konfiguration Ihrer Applikation an.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_171" />
