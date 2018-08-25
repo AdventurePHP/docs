@@ -1,0 +1,908 @@
+<doku:title parent="119" tags="request,response,cookie" title="Request-Verarbeitung" urlname="Request-Verarbeitung">
+   In diesem Kapitel erfahren Sie alles zur Verarbeitung einer Anfrage an eine APF-basierte Web-Applikation und die
+   Möglichkeiten Anfrage und Antwort zu manipulieren.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+   Die Verarbeitung einer Benutzer-Anfrage ist zentraler Bestandteil einer Web-Applikation. Die in diesem Bereich
+   anfallenden Aufgaben sind:
+</p>
+<ul>
+   <li>
+      <strong>Entgegennahme der Anfrage</strong>:
+      Dies findet idealerweise über einen zentralen Einstiegspunkt statt um zentrale Aufgaben wie Konfiguration,
+      Filterung und Logging einfach abbilden zu können (<em>DRY-</em> und <em>Bootstrapping</em>-Prinzip).
+   </li>
+   <li>
+      <strong>Prüfung und Verarbeitung der Benutzer-Eingaben</strong>:
+      In diesem Schritt werden die Inhalte beispielsweise zum Schutz gegen XSS oder SQL-Injection gefiltert.
+   </li>
+   <li>
+      <strong>Initialisierung der Anwendung</strong>:
+      Die Nutzer-Eingaben werden nun - insbesondere bei dynamischen Anwendungen - zur Initialisierung der Anwendung
+      genutzt um beispielsweise zu definieren, welche Seite angezeigt werden soll.
+   </li>
+   <li>
+      <strong>Generierung der Ausgabe</strong>:
+      Der Kern der Anwendung führt nun die notwendige Logik aus und kümmert sich um die Generierung der notwendigen
+      Ausgaben. Dies umfasst in der Regel das anzugeigende HTML oft aber auch andere dynamische Teile (Bilder, CSS,
+      Java Script, AJAX-Antworten).
+   </li>
+   <li>
+      <strong>Rückgabe der Antwort</strong>:
+      Im Anschluss an die Ausführung der Anwendung wird die generierte Antwort an den Besucher ausgeliefert. In diesem
+      Schritt finden oft zusätzliche Schritte wie die Filterung und/oder Aufbereitung der Ausgabe statt.
+   </li>
+</ul>
+<p>
+   Das APF unterstützt Sie in allen genannten Bereichen mit erprobten Lösungen, die auf anerkannten Software-Design-Pattern
+   basieren.
+</p>
+<p>
+   Für die <strong>Entgegennahme der Anfrage</strong> lässt sich das
+   <int:link pageid="048" anchor="Chapter-3-3-Erstellen-der-Bootstrap-Datei">Bootstrapping-Konzept</int:link> in
+   Verbindung mit dem <int:link pageid="012" /> nutzen. Letzterer kümmert sich um den kompletten <em>Lifecycle</em>
+   der Verarbeitung einer Benutzer-Anfrage und bietet viele Möglichkeiten eigene Funktionalitäten einzuhängen.
+</p>
+<p>
+   Die <strong>Prüfung und Verarbeitung von Benutzer-Eingaben</strong> kann sehr einfach mit Hilfe von <int:link pageid="137" />n
+   erledigt werden. Neben den vom APF mitgelieferten Implementierungen, die bereits einen Großteil der üblichen
+   Anwendungsfälle abdecken können diese sehr einfach erweitert oder ersetzt werden um die Anforderungen Ihrer Anwendung
+   anzudecken.
+</p>
+<p>
+   Für die <strong>Initialisierung der Anwendung</strong> steht das Konzept der <em>Front-Controller-Actions</em> zur Verfügung.
+   Die nach dem gleichnamigen Software-Entwurfsmuster benannten Komponenten lassen sich beispielsweise dazu einsetzen,
+   innerhalb der HMVC-Anwendung gemeinsam genutzte Informationen in einem Model zu sammeln. Details lassen sich im Kapitel
+   <int:link pageid="012" anchor="Chapter-3-Actions" /> nachlesen.
+</p>
+<p>
+   Zur <strong>Generierung der Ausgabe</strong> steht ein umfassendes Set an Hilfsmittel zur Verfügung. Hierzu zählt in
+   erster Linie der <int:link pageid="098" />, der basierend auf dem <em>HMVC-Pattern</em>, die Implementierung von
+   generischen und wiederverwendbaren Modulen unterstützt. Nutzen Sie die Übersicht auf der Seite <int:link pageid="119" />
+   für Details zu weiteren Tools. Für die <strong>Rückgabe der Antwort</strong> lassen sich
+   ebenfalls <int:link pageid="137" /> nutzen.
+</p>
+
+<h3 id="Chapter-2-Grundlagen"><a href="#Chapter-2-Grundlagen">2. Grundlagen</a></h3>
+<p>
+   Die Verarbeitung des HTTP-<em>Request</em>s und natürlich die Beantwortung durch einen HTTP-<em>Response</em> wird
+   durch den <int:link pageid="012" /> gesteuert. Dabei greifen sowohl der Front-Controller und dort registrierte Actions
+   als auch die verwendeten Input- und Output-<int:link pageid="137" /> auf die im APF vorhandene Abstraktion von
+   <em>Request</em> und <em>Response</em> zurück.
+</p>
+<p>
+   Die Abstraktion der von PHP gelieferten Mechanismen und Inhalte bietet mehrere Vorteile:
+</p>
+<ul>
+   <li>
+      Statt der Nutzung von globalen Arrays (z.B. <em>$_REQUEST</em>) und native Funktionen lässt sich eine
+      wohldefinierte, objektorientierte API nutzen.
+   </li>
+   <li>Oft benötigte Funktionalitäten (z.B. Auslesen von Parametern inkl. Rückgriff-Wert) sind bereits vorhanden.</li>
+   <li>
+      Vorhandene Stolpersteine im Umgang mit den von PHP gelieferten Mechnismen und Funktionen werden für Sie aus dem
+      Weg geräumt und durch eine klar strukturierte API nicht mehr zum Problem.
+   </li>
+</ul>
+<p>
+   Die Abstraktion von <em>Request</em> und <em>Response</em> im APF besteht aus mehreren Teilen: der gleichnamigen
+   Interface-Definition, den Implementierungen <em>RequestImpl</em> und <em>ResponseImpl</em> und dem Mixin (<em>Trait</em>)
+   <em>GetRequestResponse</em>.
+</p>
+<div class="hint">
+   Um die Implementierung von <em>Request</em> und <em>Response</em> auszutauschen, fügen Sie bitte folgendes
+   zu Ihrer Bootstrap-Datei nach dem Inkludieren der <em>APF/core/bootstrap.php</em> hinzu:
+<gen:highlight type="php">
+Frontcontroller::$requestImplClass = 'VENDOR\request\CustomRequestImpl';
+Frontcontroller::$responseImplClass = 'VENDOR\request\CustomResponseImpl';
+</gen:highlight>
+   Die Methoden <em>GetRequestResponse::getRequest()</em> und <em>GetRequestResponse::getResponse()</em> liefern dann
+   jeweils die von Ihnen definierte Implementierung statt <em>RequestImpl</em> und <em>ResponseImpl</em> zurück.
+</div>
+<p>
+   Die folgenden Kapitel beschreiben die Anwendung der <em>Request</em> und <em>Response</em> Abstraktion innerhalb
+   Ihrer Applikation.
+</p>
+
+<h3 id="Chapter-3-Der-Request"><a href="#Chapter-3-Der-Request">3. Der Request</a></h3>
+<p>
+   Das Interface <em>Request</em> beschreibt die Struktur einer HTTP-Anfrage an eine APF-basierte Applikation. Es
+   beinhaltet Konstanten für oft verwendete Definitionen sowie Methoden zur Abfrage und Manipulation von Inhalten. Der
+   folgende Code-Block zeigt die Definition des Interface (gekürzt):
+</p>
+<gen:highlight type="php">
+namespace APF\core\http;
+
+interface Request {
+
+   const METHOD_GET = 'GET';
+   const METHOD_POST = 'POST';
+
+   ...
+
+   const DEFAULT_PROTOCOL_IDENTIFIER = 'http';
+   const SECURE_PROTOCOL_IDENTIFIER = 'https';
+
+   ...
+
+   public function getParameter($name, $default = null);
+   public function getGetParameter($name, $default = null);
+   public function getPostParameter($name, $default = null);
+
+   public function getParameters();
+   public function getGetParameters();
+   public function getPostParameters();
+
+   public function setParameter($name, $value);
+   public function setGetParameter($name, $value);
+   public function setPostParameter($name, $value);
+
+   ...
+
+   public function getRequestUri();
+   public function getHost();
+   public function getPath();
+   public function getHeaders();
+   public function isSecure();
+   public function getUrl($absolute = false);
+   public function getReferrerUrl($absolute = false);
+   public function getCookies();
+   public function getCookie($name);
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   Die Implementierung des Interfaces - die Klasse <em>RequestImpl</em> - besitzt darüber hinaus noch eine Reihe von
+   Convenience Methoden zur Vereinfachung der Implementierung. Details hierzu erfahren Sie in den nächsten Kapiteln.
+</p>
+
+<h4 id="Chapter-3-1-Beziehen-des-Request"><a href="#Chapter-3-1-Beziehen-des-Request">3.1. Beziehen des Request</a></h4>
+<p>
+   Die Instanz des <em>Request</em>s ist innerhalb der Anwendung eindeutig. Aus diesem Grund wird diese über die
+   <em>Singleton</em>-Implementierung bezogen. Details hierzu finden Sie unter <int:link pageid="030" anchor="Chapter-1-Singleton"/>.
+</p>
+<p>
+   In allen Klassen, die von
+</p>
+<ul>
+   <li><em>APF\core\pagecontroller\Document</em>,</li>
+   <li><em>APF\core\pagecontroller\BaseDocumentController</em>,</li>
+   <li><em>APF\core\frontcontroller\AbstractFrontcontrollerAction</em> oder</li>
+   <li><em>APF\tools\form\validator\AbstractFormValidator</em></li>
+</ul>
+<p>
+   ableiten steht die statische Methode <em>getRequest()</em> zur Verfügung. In allen anderen Klassen lässt sich das
+   Trait <em>APF\core\http\mixins\GetRequestResponse</em> nutzen um die Funktionalität zur Verfügung zu stellen.
+</p>
+<p>
+   Möchten Sie die Instanz der aktuellen Anfrage beziehen, so lässt sich folgender Code nutzen:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+</gen:highlight>
+<p>
+   Die Variable <em>$request</em> beinhaltet nun eine Instanz der Klasse <em>RequestImpl</em>.
+</p>
+<p>
+   Möchten Sie die Instanz ausserhalb einer Klasse beziehen, so können Sie den nachfolgend abgedruckten Code nutzen:
+</p>
+<gen:highlight type="php">
+$request = Singleton::getInstance(RequestImpl::class);
+</gen:highlight>
+
+<h4 id="Chapter-3-2-Abfragen-von-Parametern"><a href="#Chapter-3-2-Abfragen-von-Parametern">3.2. Abfragen von Parametern</a></h4>
+<p>
+   Zur Abfrage von Parametern bietet die Klasse <em>RequestImpl</em> verschiedene Möglichkeiten. Möchten Sie einen
+   Parameter unabhängig von der Art der Anfrage (z.B. <em>GET</em> bzw. <em>POST</em>) abfragen, so bietet sich die
+   Nutzung der Funktion <em>getParameter()</em> an:
+</p>
+<gen:highlight type="php">
+$foo = $request->getParameter('foo');
+</gen:highlight>
+<p>
+   Die Methode <em>getParameter()</em> unterstützt zudem die Übergabe eines Standard- bzw. Rückgriffwertes sollte der
+   Parameter in der akuellen Anfrage nicht enthalten sein:
+</p>
+<gen:highlight type="php">
+$foo = $request->getParameter('foo', 'bar');
+</gen:highlight>
+<p>
+   Möchten Sie den Wert eines Parameters nur dann erhalten, wenn eine entsprechende Aufruf-Methode gewählt wurde (z.B.
+   <em>POST</em>), so können Sie dazu die Methode <em>getPostParameter()</em> nutzen:
+</p>
+<gen:highlight type="php">
+$foo = $request->getPostParameter('foo');
+</gen:highlight>
+<p>
+   Die Variable <em>$foo</em> wird nur dann einen Wert ungleich <em>null</em> enthalten, wenn der Parameter <em>foo</em>
+   in einer <em>POST</em>-Anfrage enthalten ist. Ebenso verhält es sich mit der Methode <em>getGetParameter()</em> bei
+   einer <em>GET</em>-Anfrage.
+</p>
+<p>
+   Möchten Sie einen Parameter nur im Fall eines <em>PUT</em>-Requests auswerten lässt sich auch ohne Convenience-Methode
+   folgender Code anwenden:
+</p>
+<gen:highlight type="php">
+$foo = $request->isPut() ? $request->getParameter('foo') : null;
+</gen:highlight>
+<p>
+   Zur Anfrage aller Parameter der aktuellen Anfrage lassen sich die Funktionen <em>getParameters()</em> bzw.
+   <em>getPostParameters()</em> und <em>getGetParameters()</em> einsetzen. Sie liefern ein assoziatives Array mit
+   den Namen der Parameter und deren Werte zurück.
+</p>
+<p>
+   Beabsichtigen Sie, alle <em>GET</em>-Parameter auszulesen, können Sie folgenden Code-Block nutzen:
+</p>
+<gen:highlight type="php">
+$params = $request->getGetParameters();
+</gen:highlight>
+<p>
+   Möchten Sie prüfen, ob die Parameter in der aktuellen Anfrage mitgesendet wurde, genügt folgende Prüfung:
+</p>
+<gen:highlight type="php">
+if($request->hasParameter('foo')) {
+   ...
+}
+</gen:highlight>
+<p>
+   Auch hier stehen Ihnen die Methoden <em>hasGetParameter()</em> und <em>hasPostParameter()</em> zur Prüfung von
+   Parametern in einer <em>GET</em>- bzw. <em>POST</em>-Anfrage zur Verfügung.
+</p>
+<div class="hint">
+   Sowohl <em>getGetParameter()</em> als auch <em>getPostParameter()</em> unterstützen die Übergabe von Standard- bzw.
+   Rückgriffwerten.
+</div>
+
+<h4 id="Chapter-3-3-Manipulation-des-Requests"><a href="#Chapter-3-3-Manipulation-des-Requests">3.3. Manipulation des Requests</a></h4>
+<p>
+   Möchten Sie Details Ihrer Anwendung nach aussen verstecken, bietet sich die Implementierung von geeigneten Input- und
+   Output-<int:link pageid="137" />n an. Mit deren Hilfe lassen sich interne Information in eine externe Repräsentation
+   umwandeln und bei Entgegennahme einer solchen Anfrage daraus der interne Zustand wiederherstellen.
+</p>
+<p>
+   Zur Manipulation des <em>Request</em>s bringen das gleichnamige Interface und die dazugehörige Implementierung
+   <em>RequestImpl</em> geeignete Methoden mit.
+</p>
+<p>
+   Soll innerhalb eines Filters bei jedem Request ein definierter Parameter gesetzt werden - beispielsweise die aktuelle
+   Anfrage-Zeit -, so lässt sich das mit Hilfe des folgenden Code-Blocks erledigen:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+$request->setParameter('request-time', time());
+</gen:highlight>
+<p>
+   Dabei lässt sich der Parameter mit Hilfe der Methode <em>getParameter()</em> wieder abrufen. Möchten Sie analog zu
+   der in <a href="#Chapter-3-2-Abfragen-von-Parametern">Kapitel 3.2</a> beschrieben Vorgehensweise Parameter für
+   konkrete Anfrage-Methoden definieren, so lässt sich dies mit Hilfe der Funktionen <em>setGetParameter()</em> und
+   <em>setPostParameter()</em> erledigen.
+</p>
+<p>
+   Das Löschen von Parametern kann entweder für konkrete Parameter oder für die komplette Anfrage erfolgen. Auch hier
+   ist eine Löschung an Hand der Anfrage-Methode möglich. Die folgende Code-Box zeigt das Löschen eines konkreten
+   Parameters:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+
+// Löschen eines einzelnen Request-Parameters
+$request->deleteParameter('foo');
+
+// Löschen eines GET Request-Parameters (POST Parameter bleibt erhalten)
+$request->deleteGetParameter('foo');
+
+// Löschen eines POST Request-Parameters (GET Parameter bleibt erhalten)
+$request->deletePostParameter('foo');
+</gen:highlight>
+<p>
+   Sollen mehrere, ausgewählte Parameter entfernt werden, so lässt sich folgendes Code-Beispiel nutzen:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+
+// Löschen mehrerer Request-Parameter
+$request->deleteParameters(['foo', 'bar', 'baz']);
+
+// Löschen mehrerer GET Request-Parameter (POST Parameter bleiben erhalten)
+$request->deleteGetParameter(['foo', 'bar', 'baz']);
+
+// Löschen mehrerer POST Request-Parameter (GET Parameter bleiben erhalten)
+$request->deletePostParameter(['foo', 'bar', 'baz']);
+</gen:highlight>
+<p>
+   Zum Löschen aller Parameter stehen folgende Funktionen zur Verfügung:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+
+// Löschen aller Request-Parameter
+$request->resetParameters();
+
+// Löschen aller GET Request-Parameter (POST Parameter bleiben erhalten)
+$request->resetGetParameters();
+
+// Löschen aller POST Request-Parameter (GET Parameter bleiben erhalten)
+$request->resetPostParameters();
+</gen:highlight>
+
+<h4 id="Chapter-3-4-Auslesen-von-Cookies"><a href="#Chapter-3-4-Auslesen-von-Cookies">3.4. Auslesen von Cookies</a></h4>
+<p>
+   Eine Anfrage kann eine beliebige Anzahl von <em>Cookie</em>s beinhalten. Zum Auslesen stehen Ihnen die Methode
+   <em>getCookies()</em> und <em>getCookie()</em> zur Verfügung. Erstere liefert alle mit der Anfrage mitgesendeten
+   HTTP-Cookies zurück, zweitere ein Konkretes.
+</p>
+<p>
+   Der folgende Code-Block zeigt Ihnen, wie sie den Wert eines Cookies auslesen können:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+$cookie = $request->getCookie('name_des_cookies');
+
+$value = null;
+if($cookie !== null){
+   $value = $cookie->getValue();
+}
+</gen:highlight>
+<p>
+   Ist das Cookie nicht vorhanden, gibt die Methode <em>getCookie()</em> den Wert <em>null</em> zurück. Möchten Sie zur
+   Vereinfachung der Implementierung den Standard-Wert verändern, nutzen Sie bitte das optionale Argument der Methode
+   <em>getValue()</em>.
+</p>
+<p>
+   Die Liste aller gesendeten Cookies lässt sich wie folgt ausgeben:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+
+foreach($request->getCookies() as $cookie) {
+   echo $cookie->getName() . ':' . $cookie->getValue() . PHP_EOL;
+}
+</gen:highlight>
+<div class="warn">
+   <p>
+      Die mit der Anfrage mitgesendeten Informationen eines Cookies beschränken sich auf den <strong>Namen</strong> und den
+      <strong>Wert</strong>. Angaben wie <em>Domain</em>, <em>Lebensdauer</em> und Informationen zur Sicherheit sind nicht
+      enthalten.
+   </p>
+   <p>
+      Dies bedeutet, dass ein per <em>getCookies()</em> bzw. <em>getCookie()</em> ausgelesenes Cookie nicht direkt im
+      <em>Response</em> zurück gesendet werden kann. Dies würde auf Grund der fehlenden Angaben entweder zu unerwünschtem
+      Verhalten oder zu Fehlern führen.
+   </p>
+   <p>
+      Bitte beachten Sie hierzu ebenso die Hinweise in <a href="#Chapter-4-5-Setzen-und-Loeschen-von-Cookies">Kapitel 4.5</a>.
+   </p>
+</div>
+
+<h4 id="Chapter-3-5-Auslesen-von-URL-und-Headern"><a href="#Chapter-3-5-Auslesen-von-URL-und-Headern">3.5. Auslesen von URL und Headern</a></h4>
+<p>
+   Über die aktuelle Anfrage lassen sich neben den in den vorangegangenen Kapiteln beschriebenen Inhalte auch die
+   aktuelle und die verweisende URL sowie die HTTP-Header der Anfrage auslesen.
+</p>
+<p>
+   Die aktuelle URL erhalten Sie mit Hilfe der Methoden <em>getUrl()</em> bzw. <em>getRequestUri()</em>, wobei
+   <em>getUrl()</em> eine Instanz der Klasse <em>Url</em> liefert und <em>getRequestUri()</em> lediglich eine
+   Zeichenkette. Das folgende Code-Beispiel zeigt die Nutzung der beiden Methoden:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+
+// Generieren einer Ziel-URL über die Url-Abstraktion
+$url = $request->getUrl();
+$successPageUrl = LinkGenerator::generateUrl($url->setQueryParameter('view', 'success'));
+
+// Generieren einer Ziel-URL über die Zeichenkette
+$url = Url::fromString($request->getRequestUri());
+$successPageUrl = LinkGenerator::generateUrl($url->setQueryParameter('view', 'success'));
+</gen:highlight>
+<p>
+   Details zur Generierung von Links erhalten Sie im Kapitel <int:link pageid="138" />.
+</p>
+<p>
+   Mit Hilfe der Funktionen <em>getReferrerUrl()</em> bzw. <em>getReferrer()</em> lassen sich die verweisenden Seiten
+   auslesen. Dabei gibt <em>getReferrerUrl()</em> analog zu <em>getUrl()</em> eine Instanz der Klasse <em>Url</em>
+   zurück, die sich direkt weiter verarbeiten lässt und <em>getReferrer()</em> lediglich eine Zeichenkette.
+</p>
+<p>
+   Die Header der aktuellen Anfrage lassen sich via <em>getHeaders()</em> bzw. <em>getHeader()</em> auslesen. Um
+   festzustellen, ob eine Anfrage mit einem bestimmten Zeichensatz beantwortet werden soll, kann folgender Code genutzt
+   werden:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+
+$requestedCharset = 'utf-8';
+$header = $request->getHeader('Accept-Charset');
+if($header !== null) {
+   $requestedCharset = $header->getValue();
+}
+</gen:highlight>
+<p>
+   Die Liste aller Header kann mit folgendem Code-Schnipsel ausgegeben werden:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+
+foreach($request->getHeaders() as $header) {
+   echo $header->getName() . ':' . $header->getValue() . PHP_EOL;
+}
+</gen:highlight>
+
+<h4 id="Chapter-3-6-Weitere-Methoden"><a href="#Chapter-3-6-Weitere-Methoden">3.6. Weitere Methoden</a></h4>
+<p>
+   Neben den bisher genannten Methoden stellt die <em>Request</em>-Implementierung <em>RequestImpl</em> noch weitere
+   Methoden zur einfachen Entwicklung von Web-Applikationen zur Verfügung. Die folgende Liste zeigt diese zusammen mit
+   einer Beschreibung auf.
+</p>
+<ul>
+   <li>
+      <strong>getSessionId()</strong>:
+      Gibt die aktuelle Session-ID zurück.
+   </li>
+   <li>
+      <strong>isSecure()</strong>:
+      Liefert <em>true</em>, sofern die Anfrage über eine sichere Verbindung (SSL, TLS) erfolgt ist.
+   </li>
+   <li>
+      <strong>getMethod()</strong>:
+      Mit Hilfe dieser Methode können Sie die Anfrage-Methode auslesen. Die Werte sind durch die Konstanten
+      <em>Request::METHOD_*</em> repräsentiert.
+   </li>
+   <li>
+      <strong>isGet()</strong>:
+      Gibt <em>true</em> zurück, wenn es sich um eine <em>GET</em>-Anfrage handelt.
+   </li>
+   <li>
+      <strong>isPost()</strong>:
+      Gibt <em>true</em> zurück, wenn es sich um eine <em>POST</em>-Anfrage handelt.
+   </li>
+   <li>
+      <strong>isPut()</strong>:
+      Gibt <em>true</em> zurück, wenn es sich um eine <em>PUT</em>-Anfrage handelt.
+   </li>
+   <li>
+      <strong>isDelete()</strong>:
+      Gibt <em>true</em> zurück, wenn es sich um eine <em>DELETE</em>-Anfrage handelt.
+   </li>
+   <li>
+      <strong>isAjax()</strong>:
+      Gibt <em>true</em> zurück, wenn es sich um eine <em>Ajax</em>-Anfrage (z.B. von einer Java-Script-Bibliothek)
+      handelt.
+   </li>
+   <li>
+      <strong>isImage()</strong>:
+      Gibt <em>true</em> zurück, wenn es sich um eine Bild-Anfrage handelt.
+   </li>
+   <li>
+      <strong>isHtml()</strong>:
+      Gibt <em>true</em> zurück, wenn es sich um eine einfache Anfrage handelt.
+   </li>
+   <li>
+      <strong>isGzipSupported()</strong>:
+      Diese Methode kann benutzt werden um abzufragen ob der Client <em>gzip-Kompression</em> unterstützt.
+   </li>
+   <li>
+      <strong>isDeflateSupported()</strong>:
+      Diese Methode kann benutzt werden um abzufragen ob der Client <em>deflate-Kompression</em> unterstützt.
+   </li>
+</ul>
+<p>
+   Details entnehmen Sie bitte der <int:link pageid="002" />.
+</p>
+
+<h3 id="Chapter-4-Der-Response"><a href="#Chapter-4-Der-Response">4. Der Response</a></h3>
+<p>
+   Analog zur Definition des <em>Request</em> beschreibt das Interface <em>Response</em> die Struktur der HTTP-Antwort
+   einer APF-basierten Applikation. Es beinhaltet Konstanten für oft verwendete Definitionen sowie Methoden zur Abfrage
+   und Manipulation von Inhalten. Der folgende Code-Block zeigt die Definition des Interface (gekürzt):
+</p>
+<gen:highlight type="php">
+interface Response {
+
+   const VERSION_1_0 = '1.0';
+   const VERSION_1_1 = '1.1';
+
+   ...
+
+   const CODE_OK = 200;
+
+   ...
+
+   const CODE_MOVED_PERMANENTLY = 301;
+   const CODE_FOUND = 302;
+   const CODE_SEE_OTHER = 303;
+   const CODE_NOT_MODIFIED = 304;
+   const CODE_USE_PROXY = 305;
+   const CODE_TEMPORARY_REDIRECT = 307;
+
+   ...
+
+   const CODE_UNAUTHORIZED = 401;
+
+   ...
+
+   public function getVersion();
+   public function setVersion($version);
+   public function getStatusCode();
+   public function setStatusCode($code);
+   public function getReasonPhrase();
+   public function setReasonPhrase($phrase);
+   public function getBody();
+   public function setBody($body, $append = false);
+
+   public function send($exit = true);
+
+   public function forward($url, $exitAfterForward = true);
+   public function redirect($url, $permanent = false, $exitAfterForward = true);
+   public function sendNotFound($exitAfterForward = true);
+   public function sendServerError($exitAfterForward = true);
+
+   public function isSent();
+
+   ...
+
+   public function getHeaders();
+   public function setHeader(Header $header);
+   public function deleteHeader(Header $header);
+
+   public function getCookies();
+   public function setCookie(Cookie $cookie);
+   public function deleteCookie(Cookie $cookie);
+</gen:highlight>
+<p>
+   Die Implementierung des Interfaces - die Klasse <em>ResponseImpl</em> - besitzt darüber hinaus noch eine Reihe von
+   Convenience Methoden zur Vereinfachung der Implementierung. Details hierzu erfahren Sie in den nächsten Kapiteln.
+</p>
+
+<h4 id="Chapter-4-1-Beziehen-des-Response"><a href="#Chapter-4-1-Beziehen-des-Response">4.1. Beziehen des Response</a></h4>
+<p>
+   Die Instanz des <em>Response</em>s ist innerhalb der Anwendung eindeutig. Aus diesem Grund wird diese über die
+   <em>Singleton</em>-Implementierung bezogen. Details hierzu finden Sie unter <int:link pageid="030" anchor="Chapter-1-Singleton"/>.
+</p>
+<p>
+   In allen Klassen, die von
+</p>
+<ul>
+   <li><em>APF\core\pagecontroller\Document</em>,</li>
+   <li><em>APF\core\pagecontroller\BaseDocumentController</em>,</li>
+   <li><em>APF\core\frontcontroller\AbstractFrontcontrollerAction</em> oder</li>
+   <li><em>APF\tools\form\validator\AbstractFormValidator</em></li>
+</ul>
+<p>
+   ableiten steht die statische Methode <em>getResponse()</em> zur Verfügung. In allen anderen Klassen lässt sich das
+   Trait <em>APF\core\http\mixins\GetRequestResponse</em> nutzen um die Funktionalität zur Verfügung zu stellen.
+</p>
+<p>
+   Möchten Sie die Instanz der aktuellen Anfrage beziehen, so lässt sich folgender Code nutzen:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+</gen:highlight>
+<p>
+   Die Variable <em>$response</em> beinhaltet nun eine Instanz der Klasse <em>ResponseImpl</em>.
+</p>
+<p>
+   Möchten Sie die Instanz ausserhalb einer Klasse beziehen, so können Sie den nachfolgend abgedruckten Code nutzen:
+</p>
+<gen:highlight type="php">
+$response = Singleton::getInstance(ResponseImpl::class);
+</gen:highlight>
+
+<h4 id="Chapter-4-2-Definition-der-Standard-Eigenschaften"><a href="#Chapter-4-2-Definition-der-Standard-Eigenschaften">4.2. Definition der Standard-Eigenschaften</a></h4>
+<p>
+   Jede Antwort einer HTTP-Kommunikation enthält definierte Bestandteile wie die Version des Protokolls, dem Antwort-Status
+   und einer Beschreibung des Status. Daneben gibt es weitere Meta-Informationen, die als Header verpackt sind.
+   Details zu Headern finden Sie in <a href="#Chapter-4-3-Definition-von-Headern">Kapitel 4.3</a>.
+</p>
+<p>
+   Die Version Ihrer Antwort lässt sich mit Hilfe der Methode <em>setVersion()</em> definieren. Ohne Änderung wird die
+   Antwort immer als Version <em>HTTP/1.1</em> gesendet. Möchten Sie eine andere Version definieren, lässt sich dies
+   wie folgt erledigen:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+$response->setVersion('1.0');
+</gen:highlight>
+<p>
+   Für Ihre Applikation interessanter ist die Definition des Status-Codes und der zugehörigen Beschreibung. Nehmen Sie
+   keine Änderung vor, wird Ihre Antwort beim Aufrufer als <em>HTTP/1.1 200 OK</em> ankommen. Möchten Sie durch einen
+   anderen Status Code einen besonderen Umstand (z.B. Seite nicht gefunden) ausdrücken, können Sie den Status wie folgt
+   ändern:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+$response->setStatusCode(Response::CODE_NOT_FOUND);
+</gen:highlight>
+<p>
+   Alle Standard-Codes werden automatisch in die zugehörige Beschreibung übersetzt. Bei einer 404-Antwort lautet diese
+   <em>Not Found</em>. Möchten Sie diese ändern um weitere Informationen an den Aufrufer zu senden, so nutzen Sie dazu
+   bitte die <em>setReasonPhrase()</em>:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+$response->setStatusCode(Response::CODE_NOT_FOUND);
+$response->setReasonPhrase('Page ' . $_SERVER['REQUEST_URI'] . ' not found!);
+</gen:highlight>
+<p>
+   Die zum Aufrufer gesendete Antwort lautet in diesem Fall:
+</p>
+<gen:highlight type="code">
+HTTP/1.1 404 Page /foo not found!
+</gen:highlight>
+
+<h4 id="Chapter-4-3-Definition-von-Headern"><a href="#Chapter-4-3-Definition-von-Headern">4.3. Definition von Headern</a></h4>
+<p>
+   Neben den Standard-Eigenschaften lässt sich eine HTTP-Antwort mit weiteren Meta-Eigenschaften in Form von HTTP-Headern
+   ausstatten. Für die Implementierung einer Web-Applikation sind hier besonders der in der Antwort zurückgelieferte
+   Datentyp (z.B. HTML, CSS, Bild), die Informationen zur Gültigkeit und Weiterleitungen interessant. Für die Umsetzung
+   von Weiterleitungen stehen die in <a href="#Chapter-4-6-Weiterleitungen">Kapitel 4.6</a> beschriebenen, spezielle
+   Methoden zur Verfügung.
+</p>
+<p>
+   Der Datentyp der zurückgelieferten Antwort lässt sich mit entweder mit Hilfe der Convenience-Methode
+   <em>setContentType()</em> oder per <em>setHeader()</em> definieren:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+
+// Benutzung der Convenience-Methode
+$response->setContentType('image/png');
+
+// Native Definition eines Headers
+$response->setHeader(new HeaderImpl(HeaderImpl::CONTENT_TYPE, 'image/png'));
+</gen:highlight>
+<p>
+   Mit Hilfe der nativen Definition von Headern lassen sich beliebige Meta-Daten in der HTTP-Antwort definieren. Die
+   folgende Code-Box zeigt einige gängige Beispiele:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+
+// Definiert das Datum der Anfrage
+$response->setHeader(new HeaderImpl('Date', date('%Y-%m-%d %H:%i:%s')));
+
+// Erlaubt das Zwischenspeichern der Antwort in Caches und Proxies
+$response->setHeader(new HeaderImpl('Cache-Control ', 'public'));
+
+// Definiert den Zeitpunkt der letzten Änderung
+$response->setHeader(new HeaderImpl('Last-Modified', $lastModificationDate));
+</gen:highlight>
+<div class="hint">
+   Möchten Sie einen bereits gesetzten Header überschreiben, so setzen Sie diesen einfach mit der Methode <em>setHeader()</em>.
+   Die neue Definition überschreibt dabei die alte.
+</div>
+<p>
+   Um einen bereits gesetzten Header zu entfernen nutzen Sie bitte die Methode <em>deleteHeader()</em>:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+$response->deleteHeader(new HeaderImpl('Date', null));
+</gen:highlight>
+<p>
+   Um alle bereits gesetzten Header zu entfernen, nutzen Sie bitte die Methode <em>resetHeaders()</em>:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+$response->resetHeaders();
+</gen:highlight>
+
+<h4 id="Chapter-4-4-Fuellen-des-Bodies"><a href="#Chapter-4-4-Fuellen-des-Bodies">4.4. Füllen des Bodies</a></h4>
+<p>
+   In der Regel beinhaltet die Antwort einer Anfrage einen Inhalt (z.B. HTML-Code). Um den <em>Response</em> mit Inhalt
+   zu füllen können Sie die Methode <em>setBody()</em> nutzen. Diese unterstützt sowohl das Setzen des Inhalts als auch
+   das Anhängen von weiteren Inhalten:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+
+// Definieren des Inhaltes (überschreibt den bisherigen Inhalt)
+$response->setBody('...');
+
+// Hinzufügen eines Inhaltes
+$response->setBody('...', true);
+</gen:highlight>
+<p>
+   Um den bis zu einem definierten Zeitpunkt im Ablauf der Applikation generierten Inhalt abzufragen, nutzen Sie bitte
+   die Funktion <em>getBody()</em>.
+</p>
+<div class="hint">
+   Die Definition des Inhalts wird bei der Ausführung des <int:link pageid="012" /> bereits für Sie übernommen. Das
+   explizite Setzen des Inhalts ist in der Regel nur in Front-Controller-Actions notwendig. Details hierzu entnehmen
+   Sie bitte <a href="#Chapter-4-7-Senden-der-Antwort">Kapitel 4.7</a>.
+</div>
+
+<h4 id="Chapter-4-5-Setzen-und-Loeschen-von-Cookies"><a href="#Chapter-4-5-Setzen-und-Loeschen-von-Cookies">4.5. Setzen und Löschen von Cookies</a></h4>
+<p>
+   Beabsichtigen Sie in Ihrer Applikation Inhalte in einem Cookie speichern, so lässt sich dazu die Methode
+   <em>setCookie()</em> nutzen. Hierzu konstruieren Sie zunächst das gewünschte Cookie und geben es der
+   <em>Response</em>-Instanz mit:
+</p>
+<gen:highlight type="php">
+$cookie = new Cookie('name_des_cookies', Cookie::DEFAULT_EXPIRATION_TIME, 'www.example.com');
+$cookie->setValue('Gewuenschter Wert');
+
+$response = $this->getResponse();
+$response->setCookie($cookie);
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass der Wert eines Cookies vom Typ string ist. Beabsichtigen Sie komplexere Strukturen zu
+   speichern, müssen Sie selbst für die De- und Encodierung sorgen. Hierzu können beispielsweise die Funktionen
+   <em>serialize()</em> und <em>unserialize()</em> genutzt werden.
+</div>
+<div class="hint">
+   Bitte beachten Sie weiterhin, dass die Größe von Cookies direkten Einfluss auf die Anfrage-Performance hat, da
+   Cookies im HTTP-Anfragen mitgeliefert werden. Achten Sie daher immer auf eine möglichst kleine Datenmenge. Die
+   Datenmenge kann beispielsweise durch ein eigenes, komprimiertes Datenformat oder durch Nutzung von
+   Komprimierungsfunktionen erreicht werden.
+</div>
+<p>
+   Möchten Sie ein bereits gesetztes Cookie verändern, so lässt sich dies mit Hilfe des folgenden Codes erledigen:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+$cookie = $request->getCookie('name_des_cookies');
+
+$cookie
+   ->setExpireTime(86400 * 2)
+   ->setDomain('other.example.com')
+   ->setPath('/foo/bar')
+   ->setHttpOnly(true)
+   ->setSecure(false);
+
+$response = $this->getResponse();
+$response->setCookie($cookie);
+</gen:highlight>
+<div class="warn">
+   <p>
+      Bitte beachten Sie, dass für ein bereits gesetztes Cookies nicht alle Informationen im Request mitgeliefert werden.
+      Aus diesem Grund sollten Sie - sofern gewünscht und relevant - bei der Wiederverwendung eines ausgelesenen Cookies
+      die Parameter
+   </p>
+   <ul>
+      <li>Cookie::expireTime</li>
+      <li>Cookie::domain</li>
+      <li>Cookie::path</li>
+      <li>Cookie::secure</li>
+      <li>Cookie::httpOnly</li>
+   </ul>
+   <p>
+      auf die gewünschten Werte setzen. Bitte nutzen Sie bei einem Update die selben Werte wie beim ersten Setzen.
+   </p>
+   <p>
+      Details hierzu entnehmen Sie bitte <a href="#Chapter-3-4-Auslesen-von-Cookies">Kapitel 3.4</a>.
+   </p>
+</div>
+<p>
+   Zum Löschen eines Cookies können Sie die Methode <em>Response::deleteCookie()</em> einsetzen. Dieses markiert das
+   übergebene Cookie für den Client als verfallen und zu löschen:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+$response->deleteCookie(new Cookie('name_des_cookies'));
+</gen:highlight>
+<div class="hint">
+   Bitte beachten Sie, dass die Werte des zu löschenden Cookies identisch mit den Werten zur Erstellungszeit sein müssen.
+   Dies bedeutet, dass beispielsweise Domain und Pfad vor dem Aufruf von <em>deleteCookie()</em> auf die entsprechenden
+   Werte gesetzt werden müssen.
+</div>
+
+<h4 id="Chapter-4-6-Weiterleitungen"><a href="#Chapter-4-6-Weiterleitungen">4.6. Weiterleitungen</a></h4>
+<p>
+   Ein typischer Anwendungsfall einer Web-Applikation ist das Weiterleiten auf diverse Ziel-Seiten - etwa einer
+   Login-Seite - und das Senden von HTTP-Status-Informationen.
+</p>
+<p>
+   Zur Weiterleitung einer Anfrage auf einer andere Ziel-Seite stehen Ihnen die Methoden <em>forward()</em> und
+   <em>redirect()</em> zur Verfügung. Mit Hilfe von <em>forward()</em> lassen sich Weiterleitungen mit einem Status-Code
+   <em>303</em> (<em>see other</em>) realisieren, wohingegen <em>redirect()</em> den Status-Code <em>301</em> bzw.
+   <em>302</em> zurück liefert.
+</p>
+<p>
+   Der folgende Code-Block zeigt typische Anwendungsfälle der beiden Methoden:
+</p>
+<gen:highlight type="php">
+$request = $this->getRequest();
+$response = $this->getResponse();
+
+$link = LinkGenerator::generateUrl(
+   $request->getUrl()->mergeQuery(array('param1' => '','param2' => 'new_value'))
+);
+
+// Verweis auf eine andere Seite
+$response->forward($link);
+
+// Temporäre Weiterleitung
+$response->redirect($link);
+
+// Permanente Weiterleitung
+$response->redirect($link, true);
+</gen:highlight>
+<div class="hint">
+   <p>
+      Die beiden Methoden <em>forward()</em> und <em>redirect()</em> brechen die weitere Code-Abarbeitung mit einem
+      <em>exit()</em> ab um <em>Code-Injection</em> zu verhindern (siehe
+      <a href="http://adamdoupe.com/blog/2011/04/20/overview-of-execution-after-redirect-web-application-vulnerabilities/">Overview of Execution After Redirect Web Application Vulnerabilities</a>).
+   </p>
+   <p>
+      Um dieses Verhalten in Unit-Tests abschalten zu können, bietet die Klasse <em>ResponseImpl</em> die Methoden
+      <em>deactivateExitAfterForward()</em> und <em>activateExitAfterForward()</em> um das Verhalten global aus, bzw.
+      einzuschalten:
+   </p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+
+// Verarbeitung nach Weiterleitung abbrechen
+$response->activateExitAfterForward();
+
+// Verarbeitung nach Weiterleitung weiter führen (z.B. für Unit-Tests)
+$response->deactivateExitAfterForward();
+</gen:highlight>
+   <p>
+      Um innerhalb eines konkreten Aufrufs von <em>forward()</em> oder <em>redirect()</em> einen Abbruch zu erreichen,
+      lassen sich die optionalen Parameter <em>$exitAfterForward</em> auf <em>false</em> setzen.
+   </p>
+</div>
+<p>
+   Mit Hilfe der Methoden <em>sendNotFound()</em> und <em>sendServerError()</em> lässt sich der Client über einen Fehler
+   in der Applikation informieren. <em>sendNotFound()</em> sendet Status-Code <em>404</em> um anzuzeigen, dass die
+   gewünschte Seite nicht gefunden wurde und <em>sendServerError()</em> sendet Status-Code <em>500</em> (Server-Fehler).
+</p>
+
+<h4 id="Chapter-4-7-Senden-der-Antwort"><a href="#Chapter-4-7-Senden-der-Antwort">4.7. Senden der Antwort</a></h4>
+<p>
+   Möchten Sie die Antwort einer Anfrage an den Client senden, lässt sich das auf zwei Arten erledigen: direkte Ausgabe
+   des <em>Response</em> per <em>echo</em> oder mit Hilfe der Methode <em>send()</em>.
+</p>
+<p>
+   Nutzen Sie die Funktion <em>echo</em>, so lässt sich der Text <em>Hallo Welt!</em> wie folgt an den Client senden:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+$response->setBody('Hallo Welt!');
+echo $response;
+</gen:highlight>
+<p>
+   Sofern Sie Kontrolle über die Request-Verarbeitung benötigen - beispielsweise um diese in einer Front-Controller-Action
+   zu beenden - bietet sich die Nutzung der Methode <em>send()</em> an:
+</p>
+<gen:highlight type="php">
+$response = $this->getResponse();
+$response->setBody('Hallo Welt!');
+$response->send();
+</gen:highlight>
+<p>
+   Möchten Sie den Response vor dem Senden an den Client in der Bootstrap-Datei manipulieren, so lässt sich das wie
+   folgt erreichen:
+</p>
+<gen:highlight type="php">
+$fC = Singleton::getInstance(Frontcontroller::class);
+$response = $fC->start('...', '...');
+
+$version = '3.0';
+$response->setBody('&lt;!-- Software-Version: ' . $version . ' --&gt;', true);
+$response->setHeader(new HeaderImpl('X-Software-Version', $version));
+
+echo $response;
+</gen:highlight>
+
+<h4 id="Chapter-4-8-Debugging"><a href="#Chapter-4-8-Debugging">4.8. Debugging</a></h4>
+<p>
+   Um den vollständigen Inhalt einer Antwort zu Debugging-Zwecken auszugeben lässt sich die Methode <em>dump()</em>
+   einsetzen. Diese lässt sich beispielsweise in der Bootstrap-Datei nutzen um alle gesendeten Header und den Inhalt
+   der Anfrage anzuzeigen:
+</p>
+<gen:highlight type="php">
+$fC = Singleton::getInstance(Frontcontroller::class);
+$response = $fC->start('...', '...');
+
+echo $response->dump();
+</gen:highlight>
+<div class="warn">
+   Bitte beachten Sie, dass die Seite im Browser ggf. nicht wie erwartet angezeigt wird, da zur Darstellung notwendige
+   HTTP-Header nicht gesendet werden. Benutzen Sie die Methode <em>dump()</em> daher nur zu Debugging-Zwecken.
+</div>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="de_163" />

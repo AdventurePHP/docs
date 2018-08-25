@@ -1,0 +1,180 @@
+<doku:title parent="119" tags="hello world,getting started,first web page,templates,index.php" title="Hello World!" urlname="Hello-World">
+   This Hello World! example helps you to get started with the Adventure PHP Framework (APF). It describes how to create
+   a simple web site with just one template and a bootstrap file.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   This chapter describes how you can create a simple <em>Hello World!</em> application and which mechanisms to use.
+   <a href="#Chapter-6-Further-documentation">Chapter 6</a> contains links on further reading.
+</p>
+
+<h3 id="Chapter-2-Preparation"><a href="#Chapter-2-Preparation">2. Preparation</a></h3>
+<p>
+   Before you start please make sure to have a local web server installed. You may want to use
+   <a class="external" href="http://www.apachefriends.org/de/xampp.html">XAMPP</a> that is built for development
+   environments. In case you already have a web server, just continue with the next step.
+</p>
+<p>
+   As a basis, please download a <em>apf-codepack-*</em> file from the <int:link pageid="008" /> page and extract it to
+   a folder under the <em>DOCUMENT_ROOT</em> of your web server.
+</p>
+<p>
+   Now we can start with development.
+</p>
+
+<h3 id="Chapter-3-Creating-the-bootstrap-file"><a href="#Chapter-3-Creating-the-bootstrap-file">3. Creating the bootstrap file</a></h3>
+<p>
+   Every web site or web application that is based on the Adventure PHP Framework needs to have a <em>bootstrap</em>
+   file. This file is the entry point for all requests and can be used to centrally define the configuration of your
+   application. The <em>Hello World!</em> application will not require further configuration.
+</p>
+<p>
+   In order to provide this entry point please create a file named <em>index.php</em> in parallel to the <em>APF</em>
+   folder of the <em>apf-codepack-*</em> file. The folder under the <em>DOCUMENT_ROOT</em> of your web server now
+   has the following structure:
+</p>
+<gen:highlight type="code">
+APF/
+   core/
+   extensions/
+   modules/
+   tools/
+index.php
+</gen:highlight>
+<p>
+   The minimal required content of a bootstrap file is described in chapter
+   <int:link pageid="013" anchor="Chapter-5-1-Aufbau-der-Bootstrap-Datei" />. For our example this code can be used
+   without any adaption. The content of the file is thus as follows:
+</p>
+<gen:highlight type="php">
+include('./APF/core/bootstrap.php');
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+
+echo $fC->start('...', '...');
+</gen:highlight>
+<p>
+   The arguments of the <em>start()</em> method depend on the structure of your application. Please attend to the
+   following chapter on how the template is created.
+</p>
+
+<h3 id="Chapter-4-Creating-the-template"><a href="#Chapter-4-Creating-the-template">4. Creating the template</a></h3>
+<p>
+   Each web site or application that is based on the APF starts with an initial template. In our <em>Hello World!</em>
+   application the initial template is also responsible for displaying content. Within more complex use cases further
+   templates may be included statically or dynamically.
+</p>
+<p>
+   As described in chapter <int:link pageid="154" /> PHP classes, templates, and configuration files are always
+   addressed absolutely. For this example, it means that the first argument of the <em>start()</em> method within the
+   bootstrap file takes the namespace of the template and the second the name of the template without the file extension.
+</p>
+<p>
+   In order to have a clean and self-explanatory code base structure it is recommended to create a separate area for
+   your application or web site. For this example this area will be named <em>world</em>. Below <em>world</em> we are
+   now creating a folder named <em>templates</em> that should contain all templates. The folder structure then is as
+   follows:
+</p>
+<gen:highlight type="code">
+APF/
+   core/
+   extensions/
+   modules/
+   tools/
+   world/
+         templates/
+index.php
+</gen:highlight>
+<p>
+   Our initial template takes the name <em>main.html</em>. With this we can complete the <em>index.php</em> as follows:
+</p>
+<gen:highlight type="php">
+include('./APF/core/bootstrap.php');
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+
+echo $fC->start('APF\world\templates', 'main');
+</gen:highlight>
+<p>
+   Now, please create a file <em>main.html</em> within the <em>APF/world/templates/</em> folder and fill with your
+   desired content (e.g. <em>Hello World!</em>) and call the <em>index.php</em> within your Browser. You'll now see the
+   content of the template file displayed in your browser.
+</p>
+<div class="hint">
+   Please note, that the folder structure suggested here is considered a guideline but can be defined freely. In order
+   to prevent issues when updating the APF you should not store components of your application within the <em>core</em>,
+   <em>tools</em>, <em>modules</em>, or <em>extensions</em> folders.
+</div>
+
+<h3 id="Chapter-5-Hello-World-for-advanced-beginners"><a href="#Chapter-5-Hello-World-for-advanced-beginners">5. Hello World! for advanced beginners</a></h3>
+<p>
+   Chapters 3 to 4 have presented a fully functional application. In order to create a more dynamic greeting we will now
+   allow the name to be passed via URL parameter. For this reason, we define a place holder within our main template
+   (see <int:link pageid="046" anchor="Chapter-2-1-Placeholder"/> for available tags):
+</p>
+<gen:highlight type="apf-xml">
+Hello &lt;html:placeholder name="name"/&gt;!
+</gen:highlight>
+<p>
+   Place holder <em>name</em> will be filled with the content of the URL parameter with the same name. Creating dynamic
+   content within the APF is done by a <int:link pageid="006" />.
+</p>
+<p>
+   In order to assign a controller the template must be added the following statement:
+</p>
+<gen:highlight type="apf-xml">
+&lt;@controller
+   class="APF\world\controller\SayHelloController"
+@&gt;
+Hello &lt;html:placeholder name="name"/&gt;!
+</gen:highlight>
+<p>
+   As you can take from the code box the PHP class is declared absolutely including it's namespace.
+</p>
+<p>
+   The implementation of the controller is as follows:
+</p>
+<gen:highlight type="php">
+namespace APF\world\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+
+class SayHelloController extends BaseDocumentController {
+
+   public function transformContent() {
+      $name = isset($_REQUEST['name']) ? $_REQUEST['name'] : 'World';
+      $this->setPlaceHolder('name', $name);
+   }
+
+}
+</gen:highlight>
+<p>
+   The first line of the <em>transformContent()</em> method defines the name to display. In case the URL parameter
+   <em>name</em> is present it's content is used. If not, <em>World</em> is used as the default value. The second line
+   fills place holder <em>name</em> with the appropriate name.
+</p>
+<p>
+   In case you call the <em>index.php</em> file with <em>name</em> containing <em>Harry</em> the web site will greet
+   you with <em>Hallo Harry!</em>.
+</p>
+<p>
+   More on the implementation and usage of controllers can be found in chapter <int:link pageid="006" />.
+</p>
+
+<h3 id="Chapter-6-Further-documentation"><a href="#Chapter-6-Further-documentation">6. Further documentation</a></h3>
+<p>
+   Tutorial <int:link pageid="048"/> presents a more complex example on how to create a web page. The Forum thread
+   <a class="forum" linkrewrite="false" href="${getBaseUrl(ForumBaseURL)}/viewtopic.php?f=6&amp;t=44">APF-Modul erstellen</a>
+   (German) and article <int:link pageid="129" /> contain examples on how to create more complex applications.
+</p>
+<p>
+   In case you are looking for another entry-level example please refer to <int:link pageid="111" />.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_014" />

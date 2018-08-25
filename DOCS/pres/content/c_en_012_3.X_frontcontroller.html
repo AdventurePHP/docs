@@ -1,0 +1,927 @@
+<doku:title parent="119" tags="frontcontroller,front-controller,front controller,classes,implementation,action,input,bootstrap,url manipulation,timing model" title="Front controller" urlname="Frontcontroller">
+   The Front-Controller implementation of the Adventure PHP Frameworks provides the possibility to
+   create generic actions in order to let the business tier be the driver for your web applications.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   As decribed in chapter <int:link pageid="013" anchor="Chapter-2-Principles-and-Paradigms"/> request processing of the
+   Adventure PHP Framework is designed with the <em>boot strapping</em> principle in mind. This means that all requests
+   to your web site or web application are processed by one central file. The APF clearly follows this paradigm to allow
+   central initialization, configuration, and request processing.
+</p>
+<p>
+   Within the boostrap file the <em>Frontcontroller</em> helps you to execute common tasks during the request processing
+   without additional coding. As a central and integrating component, the front controller
+</p>
+<ul>
+   <li>... picks up the requests,</li>
+   <li>... executes <int:link pageid="137">input and output filters</int:link>,</li>
+   <li>... manages and executes the <int:link pageid="098" />, and</li>
+   <li>... executes application logic (<em>Actions</em>) to support your application.</li>
+</ul>
+
+<h3 id="Chapter-2-Timing-model"><a href="#Chapter-2-Timing-model">2. Timing model</a></h3>
+<p>
+   The implementation of the <em>Frontcontroller</em> of the Adventure PHP Framework is based on the pattern definition
+   of
+   <a class="external" href="http://www.martinfowler.com/eaaCatalog/frontController.html" title="Martin Fowler">Martin Fowler</a>.
+   The APF uses the <int:link pageid="098" /> to provide a generic implementation of the <em>HMVC</em> pattern for
+   composition and creation of the presentation layer. For this reason, the implementation differs from classic <em>MVC</em>
+   frameworks where the front controller is only used for mapping the request to <em>one</em> controller.
+</p>
+<p>
+   The timing model displayed below describes the process of request management of the framework and the extension
+   points using <em>actions</em>.
+</p>
+<p>
+   <a id="FrontController-Timing-Model" title="Front-Controller timing model - zum Vergrößern klicken!" target="_blank" href="/media/content/frontcontroller_timing_model_2.X.png">
+      <img src="/media/content/frontcontroller_timing_model_2.X.png" alt="Front-Controller timing model" style="width: 46em;"/>
+   </a>
+</p>
+<p>
+   Since the front controller is used as a central instance for request handling there is only one instance of the
+   <em>Frontcontroller</em> class. Within the bootstrap file the instance is created using the <int:link pageid="030" />
+   implementation and started with the <em>start()</em> method.
+</p>
+<div class="hint">
+   Wiki page
+   <a class="wiki" href="${getBaseUrl(WikiBaseURL)}/Unterschied_Frontcontroller_und_Pagecontroller">Unterschied Front-Controller und Page-Controller</a>
+   (German) describes the difference between the front controller and page controller along with common use cases of
+   the front controller.
+</div>
+
+<h3 id="Chapter-3-Actions"><a href="#Chapter-3-Actions">3. Actions</a></h3>
+<p>
+   Front controller actions are intended to execute logic that is designed to run at a certain point in time. This is
+   true for several HMVC elements accessing the same data but the order of execution of those elements cannot be
+   determined at development time - e.g. because editors are able to change the order through a CMS at runtime.
+</p>
+<p>
+   Another use case is encapsulation and re-usability of logic that initializes an application (e.g. filling a
+   (view-)model) or executes view logic (e.g. check user permissions). Besides executing view logic
+   <em>TYPE_PRE_PAGE_CREATE</em> actions can also be used to deliver dynamic resources (e.g. images) or process tracking
+   data collected during the application run within the <em>TYPE_POST_TRANSFORM</em> phase.
+</p>
+
+<h4 id="Chapter-3-1-Definition"><a href="#Chapter-3-1-Definition">3.1. Definition</a></h4>
+<p>
+   The timing model in <a href="#Chapter-2-Timing-model">chapter 2</a> defines four different points in time where actions
+   are executed. These time slots can be used to solve different tasks within your application. The points in time
+   mentioned are defined as constants within the <em>AbstractFrontcontrollerAction</em>:
+</p>
+<ul>
+   <li>
+      <strong><em>TYPE_PRE_PAGE_CREATE</em></strong>: action is executed after execution of the
+      <int:link pageid="137">input filters</int:link> and prior to creation of the <int:link pageid="098" />.
+   </li>
+   <li>
+      <strong>TYPE_PRE_TRANSFORM</strong>: action is executed before transformation of the page (<em>transform()</em>)
+      by the <int:link pageid="098" />.
+   </li>
+   <li>
+      <strong>TYPE_POST_TRANSFORM</strong>: action is executed after transformation if the page (<em>transform()</em>)
+      and prior to execution of the <int:link pageid="137">output filters</int:link>.
+   </li>
+</ul>
+<p>
+   Further notes on the page controller and it's timing model can be found under <int:link pageid="098" /> or within
+   the <a class="wiki" href="${getBaseUrl(WikiBaseURL)}/Timing-Modell_des_Page-Controller">Wiki</a>
+   (German).
+</p>
+<p>
+   The above listed constants can be used to define the execution time when implementing actions as follows:
+</p>
+<gen:highlight type="php">
+class HeadlineImageGenerationAction extends AbstractFrontcontrollerAction {
+
+   // Define execution time at class declaration
+   protected $type = self::TYPE_PRE_PAGE_CREATE;
+
+   public function __construct() {
+
+      // Define execution time at object creation time
+      $this->type = self::TYPE_PRE_PAGE_CREATE
+   }
+
+   public function run() {
+      ...
+   }
+
+}
+</gen:highlight>
+<div class="hint">
+   Please note that execution time can only be defined during implementation of the action class filling the class
+   member <em>$this->type</em>. Changes on runtime are not allowed!
+</div>
+
+<h4 id="Chapter-3-2-Configuration"><a href="#Chapter-3-2-Configuration">3.2. Configuration</a></h4>
+<p>
+   The front controller of the APF offers two different types of actions:
+</p>
+<ul>
+   <li><em>Static</em> actions that are registered within the bootstrap file for all requests.</li>
+   <li><em>Dynamic</em> actions that are addressed via URL and executed on demand.</li>
+</ul>
+<p>
+   Static actions are normally used to initialize a view model that is used by several HMVC elements or in case the log-in
+   state of your users must be checked prior executing the main application for security reasons.
+</p>
+<p>
+   Dynamic actions are normally used to deliver dynamic components of your application (e.g. dynamically created images)
+   through one central bootstrap file of to execute view logic only in certain situations (e.g. execution of a search
+   query).
+</p>
+<p>
+   The following chapters describe the configuration and execution of static and dynamic actions.
+</p>
+
+<h5 id="Chapter-3-2-1-Static-Actions"><a href="#Chapter-3-2-1-Static-Actions">3.2.1. Static Actions</a></h5>
+<p>
+   <em>Static</em> actions can be registered within the bootstrap file <em>before</em> starting the front controller.
+   The order of execution directly depends on the order of registration.
+</p>
+<p>
+   The below code sample shows two actions that are registered as static actions. One initializes a view model and the
+   other one checks the user permissions:
+</p>
+<gen:highlight type="php">
+include('../apps/core/bootstrap.php');
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+
+...
+
+$fC->addAction('APF\site\actions', 'init-model');
+$fC->addAction('APF\site\actions', 'check-permissions');
+
+...
+</gen:highlight>
+<p>
+   <em>addAction()</em> takes two arguments: the namespace where the action configuration resides and the name of
+   the action. Details on the configuration and addressing of actions can be taken from
+   <a href="#Chapter-5-1-Configuration">chapter 5.1</a>.
+</p>
+<p>
+   <em>init-model</em> and <em>check-permissions</em> are now executed for each request and in the provided order.
+</p>
+<p>
+   In case an action should be configured for a certain use case or you wish to pass dynamic or static parameters you
+   may want to use the third argument of method <em>addAction()</em>:
+</p>
+<gen:highlight type="php">
+include('../apps/core/bootstrap.php');
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+
+...
+
+$fC->addAction(
+   'APF\site\actions',
+   'init-model',
+   [
+      'foo' => 'bar',
+      'baz' => $_REQUEST['baz']
+   ]
+);
+
+...
+</gen:highlight>
+
+<h5 id="Chapter-3-2-2-Dynamic-actions"><a href="#Chapter-3-2-2-Dynamic-actions">3.2.2. Dynamic actions</a></h5>
+<p>
+   <em>Dynamic</em> actions can be addressed using URL parameters and thus executed on demand. This mechanism is
+   provided by the <int:link pageid="137">input filters</int:link> shipped with the APF. They analyze the current URL,
+   extract the action instructions and apply them to the front controller.
+</p>
+<p>
+   As described in <int:link pageid="069" /> the APF ships two types of input filters: the <em>ChainedStandardInputFilter</em>
+   filters standard URLs and the <em>ChainedUrlRewritingInputFilter</em> resolves rewritten URLs to an internal
+   representation. The URL scheme of action instructions is as follows:
+</p>
+<gen:highlight type="code">
+{namespace}-action:{action-name}={param1}:{value1}|{param2}:{value2}|...
+</gen:highlight>
+<p>
+   <em>{namespace}</em> refers to the namespace of the action configuration file and <em>{action-name}</em> is the name
+   of the action. Parameter couples are separated by &quot;|&quot; (Pipe), name and value by &quot;:&quot;. Within one
+   URL you can add any number of action instructions along with standard request parameters. The following URL contains
+   two action instructions as well as further request parameters:
+</p>
+<gen:highlight type="code">
+?VENDOR_projects_projectone-action:setModel=pageid:1|lang:de&amp;news-page=3&amp;VENDOR_projects_projectone-action:stat=action:view|referer:32
+</gen:highlight>
+<div class="hint">
+   Please note, that the order of the action instructions within the URL defines the order of execution within a group
+   of <em>equally typed actions</em>! Details on types can be taken from <a href="#Chapter-3-1-Definition">chapter 3.1.</a>.
+</div>
+<p>
+   The schema for rewritten URLs has been designed to allow definition of action instructions and normal parameters as
+   well. For this reason the separator &quot;/~/&quot; is used to delimit action instructions from normal parameters and
+   action instructions from other action instructions. Addressing actions for rewritten URLs is as follows:
+</p>
+<gen:highlight type="code">
+/~/{namespace}-action/{config-name}/{param1}/{value1}/{param2}/{value2}/...
+</gen:highlight>
+<p>
+   The above example looks as follows for rewritten URLs:
+</p>
+<gen:highlight type="code">
+/~/VENDOR_projects_projectone-action/setModel/pageid/1/lang/de/~/news-page/3/~/VENDOR_projects_projectone-action/stat/action/view/referer/32
+</gen:highlight>
+<div class="hint">
+   The URL scheme is designed with generality in mind. In cas the URL layout does not meet your requirements for SEO or
+   other reasons you can easily change it using input filters. Action calls can be generated by <em>RewriteRule</em>s
+   as well as by adapting the input filters that are in charge of decoding the URL. Hints on implementing custom filters
+   can be found in the
+   <a class="wiki" href="${getBaseUrl(WikiBaseURL)}/Implementierung_von_eigenen_URL-Layouts">Wiki</a>
+   (German).
+</div>
+
+<h5 id="Chapter-3-2-3-Action-URL-mapping"><a href="#Chapter-3-2-3-Action-URL-mapping">3.2.3. Action URL mapping</a></h5>
+<div class="hint">
+   Please note, that the feature described in this chapter is available as of release 2.1.
+</div>
+<p>
+   The URL scheme described in <a href="#Chapter-3-2-2-Dynamic-actions">chapter 3.2.2</a> is designed as a general-purpose
+   format. At the same time, it might be inappropriate from an SEO point of view since action URLs may become very long
+   and ugly.
+</p>
+<p>
+   In order to shorten action URLs and make them more attractive you may register URL mappings for both static and dynamic
+   actions. These kind of aliases are used by shipped APF input filters <em>ChainedStandardInputFilter</em> and
+   <em>ChainedUrlRewritingInputFilter</em> to translate action instruction into an internal format. During link generation
+   using the <em>LinkGenerator</em> both <em>LinkScheme</em> implementations <em>DefaultLinkScheme</em> and
+   <em>RewriteLinkScheme</em> read all mappings registered with the <em>Frontcontroller</em> to convert action
+   instructions into an external format.
+</p>
+<div class="hint">
+   The number of <em>action mappings</em> is not limited from a technical point of view. You may define aliases for
+   several or all actions within a URL.
+</div>
+<p>
+   In case your search functionality used a front controller action the generated URL may be the following according to
+   the standard configuration:
+</p>
+<gen:highlight type="code">
+?VENDOR_components_search-action:executeSearch=type:faq
+</gen:highlight>
+<p>
+   In case you are using rewritten URLs (details see <int:link pageid="069" />) the <em>LinkGenerator</em> formats the
+   URL as follows:
+</p>
+<gen:highlight type="code">
+/~/VENDOR_components_search-action/executeSearch/type/faq
+</gen:highlight>
+<p>
+   To shorten the URL and make it more attractive the APF lets you define an <em>ActionUrlMapping</em>. Please add
+   the following lines to your bootstrap file (<em>index.php</em>) or adapt it as necessary:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\ActionUrlMapping;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+
+...
+
+$fC->addAction('VENDOR\components\search', 'executeSearch');
+$fC->registerActionUrlMapping(
+   new ActionUrlMapping('search', 'VENDOR\components\search', 'executeSearch')
+);
+
+...
+</gen:highlight>
+<p>
+   To generate short action URLs, please use the following code that used all aliases registered with the front
+   controller:
+</p>
+<gen:highlight type="php">
+use APF\tools\link\LinkGenerator;
+use APF\tools\link\Url;
+
+$link = LinkGenerator::generateActionUrl(
+      Url::fromCurrent(),
+      'VENDOR\components\search',
+      'executeSearch',
+      array('type' => 'faq')
+);
+</gen:highlight>
+<p>
+   Your search functionality is now triggered via
+</p>
+<gen:highlight type="code">
+?search=type:faq
+</gen:highlight>
+<p>
+   or
+</p>
+<gen:highlight type="code">
+/search/type/faq
+</gen:highlight>
+<p>
+   using rewritten URLs respectively.
+</p>
+<div class="warn">
+   Please be careful with defining aliases to avoid potential overlapping with normal URL parameters. In case of
+   ambiguous parameters correct analysis or generation of the URL cannot be guaranteed by the framework!
+</div>
+<p>
+   In addition to the classic approach of registering <em>action mappings</em> you may want to use two further options:
+   provide URL parameter on action registration (<em>Frontcontroller::addAction()</em>) or add one or more configuration
+   files.
+</p>
+<p>
+   In case your bootstrap file already defines static actions you may want to use the fourth parameter of the
+   <em>addAction()</em> method. Registration of an action including an URL alias is as follows:
+</p>
+<gen:highlight type="php">
+$fC->addAction('VENDOR\components\search', 'executeSearch', array(), 'search');
+</gen:highlight>
+<div class="hint">
+   Please note, that the third argument is optional. In case your action should be pre-configured at registration time
+   you can add any number or parameters as desired. You can access them via the <em>Input</em> object within your action.
+</div>
+<div class="warn">
+   Please be sure to register actions and mappings <strong>before</strong> starting the front controller via
+   <em>Frontcontroller::start()</em>!
+</div>
+<p>
+   To separate <em>Action-Mappings</em> and code you are also able to provide a configuration file to the front
+   controller that contains mappings.
+</p>
+<p>
+   For this reason, you may want to use method <em>registerActionUrlMappings()</em>. It takes namespace and name of the
+   configuration. The schema of the configuration is as follows:
+</p>
+<gen:highlight type="ini">
+[{Url-Token}]
+ActionNamespace = ""
+ActionName = ""
+</gen:highlight>
+<p>
+   The following code box contains the configuration section necessary for our search example:
+</p>
+<gen:highlight type="ini">
+; search <-> VENDOR_components_search-action:search
+[search]
+ActionNamespace = "VENDOR\components\search"
+ActionName = "executeSearch"
+</gen:highlight>
+<div class="hint">
+   Within one configuration file you may specify any number of <em>action mappings</em>. Further, the front controller
+   takes any number of URL mapping configurations. Thus, you are free to define the structure of your project configuration
+   files just as you like.
+</div>
+<p>
+   Registration of the <em>action mapping</em> described above can be done as follows within your bootstrap file:
+</p>
+<gen:highlight type="php">
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\ActionUrlMapping;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+
+...
+
+$fC->registerActionUrlMappings('VENDOR\components\search', 'url-mappings.ini');
+
+...
+</gen:highlight>
+<div class="hint">
+   Please be aware, that registration of <em>action mappings</em> must be defined within a separate configuration file.
+   This is because analysis of the URL happens before action execution according to the
+   <a href="#Chapter-2-Timing-model">timing model</a>.
+</div>
+<div class="warn">
+   Please be sure to register <em>action mappings</em> before starting the front controller.
+</div>
+
+<h4 id="Chapter-3-3-Action-creation-via-DI-container"><a href="#Chapter-3-3-Action-creation-via-DI-container">3.3. Action creation via DI container</a></h4>
+<p>
+   Besides creating actions by the front controller by providing the name of the action class you can also create actions
+   using the DI container. This approach is recommended with complex scenarios where actions make use of other application
+   components. Dependent objects can easily be injected by the <em>DIServiceManager</em>. Details on configuration and
+   usage can be found under <int:link pageid="107" anchor="Chapter-4-DIServiceManager" />.
+</p>
+<p>
+   Configuration of actions does not differ too much from normal action configuration (see <a href="#Chapter-3-2-Configuration">chapter 3.2.</a>).
+   In this case <em>ActionClass</em> is replaced by namespace and name of the service:
+</p>
+<gen:highlight type="ini">
+[{Action-Name}]
+ActionServiceNamespace = ""
+ActionServiceName = ""
+[InputClass = ""]
+[InputParams = ""]
+</gen:highlight>
+<ul>
+   <li>
+      <strong>ActionServiceNamespace</strong>:
+      Defines the namespace of the service configuration (example: <em>APF\project\biz\actions</em>)
+   </li>
+   <li>
+      <strong>ActionServiceName</strong>:
+      Defines the name of the service that describes the action (example: <em>initialize-model</em>)
+   </li>
+</ul>
+<p>
+   For the above example the front controller requires a configuration file
+   <em>config/project/biz/action/{CONTEXT}/{ENVIRONMENT}_serviceobjects.ini</em> that defines service
+   <em>initialize-model</em>. The content of the file may be as follows:
+</p>
+<gen:highlight type="ini">
+[initialize-model]
+class = "APF\project\biz\actions\LoadModelAction"
+servicetype = "NORMAL"
+
+init.model.method = "setModel"
+init.model.namespace = "APF\project\biz\model"
+init.model.name = "ApplicationModel"
+</gen:highlight>
+
+<h3 id="Chapter-4-Bootstrap-file"><a href="#Chapter-4-Bootstrap-file">4. Bootstrap file</a></h3>
+<p>
+   As noted in the <a href="#Chapter-1-Introduction">Introduction</a> the APF uses the <em>boot strapping</em> paradigm.
+   Within the bootstrap file the front controller plays a central role for request processing.
+</p>
+<p>
+   The below code box presents a minimal bootstrap file that can be used for any kind of applications as a start:
+</p>
+<gen:highlight type="php">
+include('./APF/core/bootstrap.php');
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+echo $fC->start('...', '...');
+</gen:highlight>
+<p>
+   The first line includes the <em>bootstrap.php</em> file that loads al necessary APF components and initially
+   configures the framework. In case your application requires a different configuration of various components you
+   can change settings prior starting the front controller.
+</p>
+<p>
+   The front controller can be configured with the following methods:
+</p>
+<ul>
+   <li>
+      <strong>setContext()</strong>:
+      Defines the context of the application and thus of all objects created by the APF within your application. This
+      parameter is merely used for <int:link pageid="134" />.
+   </li>
+   <li>
+      <strong>setLanguage()</strong>:
+      Defines the language of the application. This parameter can be used in multi-language applications to display
+      language-dependent content.
+   </li>
+</ul>
+<p>
+   Further configuration possibilities within the bootstrap file are described under
+   <int:link pageid="013" anchor="Chapter-5-1-Creating-the-bootstrap-file" />.
+</p>
+
+<h3 id="Chapter-5-Implementation-of-actions"><a href="#Chapter-5-Implementation-of-actions">5. Implementation of actions</a></h3>
+<p>
+   A front controller action within the APF consists of a configuration and a PHP class that inherits from
+   <em>AbstractFrontcontrollerAction</em>. The separation between implementation and configuration provides a clear
+   separation of the implementation from the outside view and enables you to resolve dependencies and configurations
+   transparently. Moreover, the abstraction of action instructions using the URL adds to the security of your application
+   since the internal structure of your application is not exposed to the outside.
+</p>
+<p>
+   Input parameters of an action are stored within an instance of the <em>FrontcontrollerInput</em> class or any class
+   that inherits from it. Through this class you are given the possibility to access all parameters within an action
+   that are either applied via URL or configuration.
+</p>
+
+<h4 id="Chapter-5-1-Configuration"><a href="#Chapter-5-1-Configuration">5.1. Configuration</a></h4>
+<p>
+   Each action is defined within a separate configuration section. Addressing an action, namespace and the name of the
+   configuration section is uses. The name of the configuration file is <em>{ENVIRONMENT}_actionconfig.ini</em> per
+   convention.
+</p>
+<p>
+   The configuration section contains the definition of the action implementation and an optional input implementation
+   as well as static configuration parameters - also optional. The configuration parameters can be used to configure
+   an action for a dedicated used case and thus use the code within multiple applications.
+</p>
+<p>
+   How configuration files are stored and all about the file name schema can be read about under <int:link pageid="134" />.
+</p>
+<p>
+   In case an action with namespace <em>APF\modules\captcha\biz</em> and namen <em>showCaptcha</em> is requested to be
+   executed by the front controller the configuration is expected to be stored under the namespace and within a
+   <em>{ENVIRONMENT}_actionconfig.ini</em> file. Assuming that the application is configured with context <em>projectone</em>
+   and other settings - e.g. the environment switch - are left as is, the configuration file path is expected as:
+</p>
+<gen:highlight type="code">
+/APF/config/modules/captcha/biz/projectone/DEFAULT_actionconfig.ini
+</gen:highlight>
+<p>
+   erwartet. The configuration file thereby contains the following content:
+</p>
+<gen:highlight type="ini">
+[showCaptcha]
+ActionClass = "APF\modules\captcha\biz\ShowCaptchaImageAction"
+</gen:highlight>
+<p>
+   The front controller uses this information to create an instance of the <em>ShowCaptchaImageAction</em> class
+   and execute it according to the timing configuration (see <a href="#Chapter-3-1-Definition">chapter 3.1</a>).
+</p>
+<p>
+   The scheme of an action configuration section is as follows:
+</p>
+<gen:highlight type="ini">
+[{Action name}]
+ActionClass = ""
+[InputClass = ""]
+[InputParams = ""]
+</gen:highlight>
+<p>
+   Please note the following list with explanations on the above parameters:
+</p>
+<ul>
+   <li>
+      <strong>Action name</strong>:
+      External reference name of the action. This name is both used within the URL as well as for static registration
+      of the action using the <em>addAction()</em> method (Example: <em>setModel</em>).
+   </li>
+   <li>
+      <strong>ActionClass</strong>:
+      Fully-qualified class name of the action implementation (Example: <em>APF\project\biz\actions\LoadModelAction</em>).
+   </li>
+   <li>
+      <strong>InputClass</strong>:
+      Fully-qualified class name of the input implementation (Example: <em>APF\project\biz\actions\DemositeModel</em>).
+      Default value in case this directive is not specified is <em>APF\core\frontcontroller\FrontcontrollerInput</em>.
+   </li>
+   <li>
+      <strong>InputParams</strong>:
+      Contains parameters that are injected into the input implementation when the action is created. Keys and values
+      are separated by &quot;:&quot; value couples by &quot;|&quot; (Example:
+      <em>login:true|headview:menu</em>). In case the configuration directive is not present, no initialization happens.
+   </li>
+</ul>
+<div class="hint">
+   Using a custom input implementation is recommended in case processing input parameters from the URL and the
+   configuration file should be encapsulated.
+</div>
+<div class="hint">
+   The input parameters defined within the <em>InputParams</em> directive can be overwritten by URL. This is
+   suitable for use cases where an action should act slightly different in certain use cases. The required logic is
+   already contained in the <em>Frontcontroller::addAction()</em> function.
+</div>
+
+<h4 id="Chapter-5-2-Action-implementation"><a href="#Chapter-5-2-Action-implementation">5.2. Action implementation</a></h4>
+<p>
+   A front controller action is defined by a PHP class that extends <em>AbstractFrontcontrollerAction</em>. To run the
+   logic, the <em>run()</em> must be implemented.
+</p>
+<p>
+   The following code shows an action that greets you with <em>Hello World!</em> and terminates the request:
+</p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetMeAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
+   }
+
+   public function run() {
+      echo 'Hello World!';
+      exit();
+   }
+
+}
+</gen:highlight>
+<p>
+   In case you call the bootstrap file defined in <a href="#Chapter-4-Bootstrap-file">chapter 4</a> using the URL
+</p>
+<gen:highlight type="code">
+?ACME_project-action:greetMe
+</gen:highlight>
+<p>
+   you will be greeted with <em>Hello World</em> - provided that you have created the necessary
+   <a href="#Chapter-5-1-Configuration">configuration</a>.
+</p>
+<div class="hint">
+   Please note, that the namespace provided within the URL does not have to match the namespace of the action
+   implementation! To depict this, the example consciously uses a different namespace.
+</div>
+<p>
+   Creating the actions context and language of the application are injected. For this reason, you can put any kind of
+   logic into actions. Context-dependent activities such as loading <int:link pageid="134" /> can be done as usual.
+   This is also true for accessing e.g. shared resources such as a view model.
+</p>
+<p>
+   Further examples of action implementations can be taken from <a href="#Chapter-8-Further-implementation-examples">chapter 8</a>.
+</p>
+
+<h4 id="Chapter-5-3-Input-implementation"><a href="#Chapter-5-3-Input-implementation">5.3. Input implementation</a></h4>
+<p>
+   Input classes encapsulate the input parameters of an action and are optional. In case an action definition contains
+   no dedicated input implementation the front controller uses the <em>FrontcontrollerInput</em> by default.
+</p>
+<div class="hint">
+   In case the input class is just picking and replaying the action parameters no separate implementation is required.
+   In those cases you can easily rely on the standard implementation <em>FrontcontrollerInput</em>.
+</div>
+<p>
+   In case you want to be greeted by the action from <a href="#Chapter-5-2-Action-implementation">chapter 5.2.</a> with
+   a personal note you can do this by changing the action to that:
+</p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetMeAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
+   }
+
+   public function run() {
+      $input = $this->getInput();
+
+      echo 'Hello ' . $input->getParameter('name') . '!';
+      exit();
+   }
+
+}
+</gen:highlight>
+<p>
+   The above code uses the <em>name</em> parameter within the <em>run()</em> method. Since there is no fallback defined,
+   the action call requires the parameter to be present. In case you now call the bootstrap file defined within
+   <a href="#Chapter-4-Bootstrap-file">chapter 4</a> using the URL
+</p>
+<gen:highlight type="code">
+?ACME_project-action:greetMe=name:Harry
+</gen:highlight>
+<p>
+   you will be greeted with <em>Hello Harry!</em> - provided that you have created the necessary
+   <a href="#Chapter-5-1-Configuration">configuration</a>.
+</p>
+<p>
+   In case no name is applied the greeting is incorrect. With a custom input implementation you are given the possibility
+   to implement an input parameter processing that takes care of a name being present. Please note the following code
+   that checks for the parameter to be present and if not falls back to a default value:
+</p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
+use APF\core\frontcontroller\FrontcontrollerInput;
+
+class GreetMeInput extends FrontcontrollerInput {
+   public function getName() {
+      return $this->getParameter('name', 'Welt');
+   }
+}
+</gen:highlight>
+<p>
+   Now let's change the action to the below way and you are greeted correctly with and without a parameter applied:
+</p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetMeAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
+   }
+
+   public function run() {
+      $input = $this->getInput();
+
+      echo 'Hallo ' . $input->getName() . '!';
+      exit();
+   }
+
+}
+</gen:highlight>
+
+<h3 id="Chapter-6-Action-management"><a href="#Chapter-6-Action-management">6. Action management</a></h3>
+
+<h4 id="Chapter-6-1-Activation-deactivation"><a href="#Chapter-6-1-Activation-deactivation">6.1. Activation/deactivation</a></h4>
+<p>
+   Besides the definition of the execution time (for details, please see <a href="#Chapter-3-1-Definition">chapter 3.1</a>)
+   the front controller provides another possibility to influence action execution. In case you intend to cancel
+   execution of an action under certain circumstances you can do so overwriting the
+   <em>AbstractFrontcontrollerAction::isActive()</em> method.
+</p>
+<p>
+   In case <em>isActive()</em> of your implementation returns <em>true</em> the <em>run()</em> method is executed,
+   with <em>false</em> execution is aborted. This enables you to not execute an action in case a particular action is
+   on the action stack or to only execute it when a dedicated action is present. Of course, you can apply any other
+   logic to this method.
+</p>
+<p>
+   The following example marks the action as active in case another action is not on the action stack:
+</p>
+<gen:highlight type="php">
+public function isActive() {
+   $captcha = $this->getFrontController()->getActionByName('showCaptcha');
+   return $captcha === null;
+}
+</gen:highlight>
+
+<h4 id="Chapter-6-2-Prioritization"><a href="#Chapter-6-2-Prioritization">6.2. Prioritization</a></h4>
+<div class="hint">
+   Please note, that this feature is available starting with release 2.1.
+</div>
+<p>
+   In certain situations it may become necessary to tweak the order of action execution. This holds true in case you
+   maintain two actions within your application: one to initialize it and one for execution of any application logic
+   (e.g. search). In case the search logic depends on an initialized application you should have the possibility to
+   ensure initialization takes place first.
+</p>
+<p>
+   For such cases the APF offers a feature to define the order of actions on the stack. At delivery status each action
+   takes priority <em>10</em>. In case an action is assigned a higher priority - <em>20</em> for instance - it is
+   executed first. In case an action takes a lower priority - e.g. <em>1</em> it is executed afterwards.
+</p>
+<p>
+   The front controller uses <em>AbstractFrontcontrollerAction::getPriority()</em> to determine the priority and to
+   sort them accordingly on the action stack. To change or influence your action's priority, please overwrite the
+   mentioned method. Example:
+</p>
+<gen:highlight type="php">
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class SearchAction extends AbstractFrontcontrollerAction {
+
+   ...
+
+   public function getPriority() {
+      return 9;
+   }
+
+   ...
+
+}
+</gen:highlight>
+<p>
+   In case <em>SearchAction</em> is executed together with an action to initialize the application, it comes second.
+</p>
+<div class="warn">
+   <p>
+      Please note, that the order of action is primary depending on it's type (<em>prepagecreate</em>,
+      <em>pretransform</em>, and <em>posttransform</em>) determining the execution slot as described in the
+      front controller <a href="#Chapter-2-Timing-model">timing model</a>.
+   </p>
+   <p>
+      Actions of the same type are sorted by the number returned by <em>getPriority()</em>. In case of equal priority
+      figures the point of time of the registration counts. For staticylly registered actions the order of registration
+      within the bootstrap file (<em>index.php</em>) is essential. For dynamic actions, the position within the URL
+      is key.
+   </p>
+</div>
+<p>
+   Due to the fact that the priority is returned by method <em>getPriority()</em> you are able to dynamically calculate
+   it based on various factors. In case your action should be executed earlier compared to another action in case the
+   related action is on the stack or not you may want to use the following code:
+</p>
+<gen:highlight type="php">
+public function getPriority() {
+   $relatedAction = $this->getFrontController()->getActionByName('relatedAction');
+   if ($relatedAction === null) {
+      return 12;
+   }
+
+   return $relatedAction->getPriority() - 1;
+}
+</gen:highlight>
+<p>
+   Using <em>getActions()</em> you can also determine the highest priority to calculate your actions priority:
+</p>
+<gen:highlight type="php">
+public function getPriority() {
+
+   $max = 0;
+
+   foreach ($this->getFrontController()->getActions() as $action) {
+      $max = max($max, $action->getPriority());
+   }
+
+   return $max + 1;
+}
+</gen:highlight>
+
+<h4 id="Chapter-6-3-Permission-Execution"><a href="#Chapter-6-3-Permission-Execution">6.3. Permission to execute</a></h4>
+<p>
+    By using the method <em>allowExecution()</em> you can affect the permission to execute the action. The behavior is
+    the same like the <a href="#Chapter-6-1-Activation-deactivation">isActive()</a> method. The action is only executed
+    if the method <em>allowExecution()</em> returns <em>true</em>.
+</p>
+<p>
+    The following example ensures that the action will only be executed when a User is logged in by the Usermanagement-module:
+</p>
+<gen:highlight type="php">
+use APF\modules\usermanagement\pres\condition\UserDependentContentConditionSet;
+
+public function allowExecution() {
+    $condSet = $this->getServiceObject('APF\modules\usermanagement\pres\condition\UserDependentContentConditionSet');
+    if ($condSet->conditionMatches($this->getContext(), 'logged-in', '')) {
+        return true;
+    } else {
+        return false;
+    }
+}
+</gen:highlight>
+
+<h3 id="Chapter-7-Generation-of-links"><a href="#Chapter-7-Generation-of-links">7. Generation of links</a></h3>
+<p>
+   The URL scheme of the APF is defined by <int:link pageid="137">input and output filters</int:link> and their
+   respective <int:link pageid="138" anchor="Chapter-2-3-LinkScheme">LinkScheme</int:link> implementations.
+</p>
+<p>
+   The input filers are - as described in <a href="#Chapter-3-2-2-Dynamic-actions">chapter 3.2.2.</a> - responsible for
+   analyzing the URL, extract the front controller instructions contained there and to hand them over to the front
+   controller. For this reaon, the APF ships the <em>ChainedStandardInputFilter</em> for simple URLs and the
+   <em>ChainedUrlRewritingInputFilter</em> for rewritten URLs.
+</p>
+<p>
+   Each <em>LinkScheme</em> implementation offers a <em>formatActionLink()</em> method that is an interface to
+   automatically and in correspondence to the input filter create action URLs. The APF ships the <em>DefaultLinkScheme</em>
+   for simple URLs and the <em>RewriteLinkScheme</em> for rewritten URLs.
+</p>
+<div class="warn">
+   <p>
+      Generating URLs with the <em>LinkGenerator::generateActionUrl()</em> method actions on the action stack are not
+      included within the URL automatically. This is because the developer needs to have the power to decide which
+      action should be represented within the URL to be executed automatically during the next request processing.
+   </p>
+   <p>
+      In case you intentionally want to add an action to the URL generated you can set the <em>$keepInUrl</em>. Example:
+   </p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetingAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
+      $this->setKeepInUrl(true);
+   }
+
+   ...
+
+}
+</gen:highlight>
+   <p>
+      In order to dynamically decide - e.g. by evaluation of one or more parameters of an view model of your application
+      - whether the action should be incluced in the URL or not you can directly overwrite the <em>getKeepInUrl()</em>
+      method. This method is used by the <em>LinkScheme</em> in action to explicitly include the action:
+   </p>
+<gen:highlight type="php">
+namespace ACME\project\actions;
+
+use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+
+class GreetingAction extends AbstractFrontcontrollerAction {
+
+   public function __construct() {
+      $this->type = self::TYPE_PRE_PAGE_CREATE;
+   }
+
+   public function getKeepInUrl() {
+      $model = $this->getViewModel();
+      return $model->getFoo() === true;
+   }
+
+   ...
+
+}
+</gen:highlight>
+</div>
+<p>
+   Details on the generation of URLs can be taken from chapter <int:link pageid="138" />.
+</p>
+
+<h3 id="Chapter-8-Further-implementation-examples"><a href="#Chapter-8-Further-implementation-examples">8. Further implementation examples</a></h3>
+<p>
+   Further implementation examples on dynamic image delivery, checking login state of users or switch the language
+   of the application can be taken from chapter <int:link pageid="056" />.
+</p>
+<p>
+   Another use case on actions is included in article <int:link pageid="082" lang="en"/>.
+</p>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_012" />

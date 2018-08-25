@@ -1,0 +1,175 @@
+<doku:title parent="119" tags="imagemanager,image" title="ImageManager" urlname="ImageManager">
+  The ImageManager component implements methods to edit pictures. Here JPEG and GIF are as well
+  supported as PNG images if the PHP GDLib is available in the correct version.
+</doku:title>
+<p>
+   The <strong>ImageManager</strong> component implements methods to edit pictures. Here JPEG and GIF
+   are as well supported as PNG images if the PHP GDLib is available in the correct version.
+</p>
+<p>
+   For image handling purposes, the two static methods
+</p>
+<ul>
+  <li>showImageAttributes() and</li>
+  <li>resizeImage()</li>
+</ul>
+<p>
+   are available.
+</p>
+
+<h3 id="Chapter-1-Displaying-image-attributes"><a href="#Chapter-1-Displaying-image-attributes">1. Displaying image attributes</a></h3>
+<p>
+   The method <strong>showImageAttributes()</strong> is intended to return the attributes of an image.
+   It returns an associative array or the value of a dedicated attribute. Hence, the code
+</p>
+<gen:highlight type="php">
+use APF\tools\image\ImageManager;
+$image = './images/my_new_dog.png';
+echo printObject(ImageManager::getImageAttributes($image));
+</gen:highlight>
+creates the output
+<gen:highlight type="code">
+Array
+(
+    [width] => 180
+    [height] => 104
+    [type] => png
+    [mimetype] => image/png
+    [bitdepth] => 8
+)
+</gen:highlight>
+<p>
+   If the second argument contains the name of the desired attribute, the return value contains the
+   value of the attribute directly. Thus, the code
+</p>
+<gen:highlight type="php">
+use APF\tools\image\ImageManager;
+$image = './images/my_new_dog.png';
+echo ImageManager::getImageAttributes($image,'type');
+</gen:highlight>
+<p>
+   creates the output
+</p>
+<gen:highlight type="code">
+png
+</gen:highlight>
+<p>
+   The following list describes the attributes available:
+</p>
+<ul>
+  <li><strong>width</strong>: the width of the image</li>
+  <li><strong>height</strong>: the height of the image</li>
+  <li><strong>type</strong>: the type of the image</li>
+  <li><strong>mimetype</strong>: the mime type of the image</li>
+  <li><strong>bitdepth</strong>: the bitdepth of the image</li>
+  <li><strong>colormode</strong>: the color mode (RGB or CMYK)</li>
+</ul>
+
+<h3 id="Chapter-2-Resize-images"><a href="#Chapter-2-Resize-images">2. Resize images</a></h3>
+<p>
+   In order to change the dimensions of an image, the <strong>resizeImage()</strong> method can be used.
+   To achieve this, the source image and the target dimensions must be applied as arguments. If no target
+   image is given or the param contains the value <em>null</em>, the resized image is flushed to STDOUT.
+   As an optional parameter, the quality of JPEG images can be set. The following code snippet shows,
+   how the <em>ImageManager</em> can be used to generate thumbnails:
+</p>
+<gen:highlight type="php">
+use APF\tools\image\ImageManager;
+$image = './images/my_new_dog.png';
+$picto = './images/my_new_dog_small.png';
+$attributes = ImageManager::getImageAttributes($image);
+$width = round((int)$attributes['width'] / 10,0); // resize to 10%
+$height = round((int)$attributes['height'] / 10,0); // resize to 10%
+ImageManager::resizeImage($image,$width,$height,$picto);
+</gen:highlight>
+<p>
+   If a JPEG image should be flushed to STDOUT after resizing, but the quality of the target image should
+   be set to a value of <em>90</em>, this can be done with the following code snippet:
+</p>
+<gen:highlight type="php">
+use APF\tools\image\ImageManager;
+$image = './images/my_old_dog.jpg';
+ImageManager::resizeImage($image,$width,$height,null,90);
+</gen:highlight>
+
+<h3 id="Chapter-3-Application-sample-ImageResizer"><a href="#Chapter-3-Application-sample-ImageResizer">3. Application sample: ImageResizer</a></h3>
+<p>
+   A typical application case for the <em>ImageManager</em> ist the delivery of images with dynamic sizes
+   via a front controller action. The following code depicts the content of the <em>run()</em> method of
+   the action, that additionally caches images, that were already delivered:
+</p>
+<gen:highlight type="php">
+use APF\tools\image\ImageManager;
+
+// gather the relevant params from the action input
+$image = urldecode($this->getInput()->getParameter('image'));
+$ext = $this->getInput()->getParameter('ext');
+$size = (int)$this->getInput()->getParameter('size');
+$path = $this->getInput()->getParameter('path');
+
+// check, if all attributes are there
+$imagePath = $path.'/'.$image.'.'.$ext;
+if($image == null){
+   trigger_error('[ShowImageAction::run()] No image name ("image") given
+   in frontcontroller input params!',E_USER_ERROR);
+   exit(1);
+}
+if($ext == null){
+   trigger_error('[ShowImageAction::run()] No image extension information
+   ("ext") given in frontcontroller input params!',E_USER_ERROR);
+   exit(1);
+}
+if(!file_exists($imagePath)){
+   trigger_error('[ShowImageAction::run()] The image "'.$imagePath.'" does not
+   exist. Please check your action call concerning the path, the name and
+   the extension of the image!');
+   exit(1);
+}
+
+// gather the image attributes
+$attributes = ImageManager::getImageAttributes($imagePath);
+
+// resize image
+if($size === 100){
+   $imageSource = file_get_contents($imagePath);
+}
+else{
+
+   // calculate the new width and height
+   $width = round(($size / 100) * intval($attributes['width']),0);
+   $height = round(($size / 100) * intval($attributes['height']),0);
+
+   // get cache manager
+   $cMF = $this->getServiceObject('APF\tools\cache\CacheManagerFabric');
+   $cM = $cMF->getCacheManager('imageresizer');
+
+   // try to load the file from cache
+   $cacheKey = md5($imagePath.$size);
+   $imageSource = $cM->getFromCache($cacheKey);
+   if($imageSource === null){
+
+      // resize image and catch the output
+      ob_start();
+      ImageManager::resizeImage($imagePath,$width,$height);
+      $imageSource = ob_get_contents();
+      ob_end_clean();
+
+      // write to cache
+      $cM->writeToCache($cacheKey,$imageSource);
+
+   }
+
+}
+
+// send header
+header('Content-Type: '.$attributes['mimetype']);
+header('Content-disposition: inline; filename="'.$image.'.'.$ext.'"');
+header('Content-Transfer-Encoding: binary');
+header('Content-Length: '.strlen($imageSource));
+
+// stream image and exit
+echo $imageSource;
+exit(0);
+</gen:highlight>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_025" />

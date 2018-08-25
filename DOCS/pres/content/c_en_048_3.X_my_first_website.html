@@ -1,0 +1,500 @@
+<doku:title parent="071" tags="tutorials,website,first website,beginner" title="My first website" urlname="My-first-website">
+   This tutorial outlines how easy it is to build up a web page with the APF framework. It contains installation of the
+   framework, creating the basic structure and displaying dynamic content.
+</doku:title>
+<h3 id="Chapter-1-Introduction"><a href="#Chapter-1-Introduction">1. Introduction</a></h3>
+<p>
+   The Adventure PHP Framework understands itself as a tool to create web pages and web applications. This tutorial
+   shows you how to create dynamic web pages efficiently. It is based in chapters <int:link pageid="013" />,
+   <int:link pageid="014" /> and <int:link pageid="111" /> which are recommended to read prior working through this
+   chapter.
+</p>
+
+<h3 id="Chapter-2-Requirements"><a href="#Chapter-2-Requirements">2. Requirements</a></h3>
+<p>
+   To be able to walk you through this tutorial using a real-life sample let us briefly define the requirements of the
+   web page to build.
+</p>
+<p>
+   The page should consist of three areas:
+</p>
+<ul>
+   <li>
+      <strong>Header:</strong>
+      The header area contains the logo of the page and the main navigation. Navigation may contain any number of items
+      but limited to the space designers reserved for this purpose.
+   </li>
+   <li>
+      <strong>Content area:</strong>
+      This area takes 100% of the page's width and has variable height containing the main content of the page..
+   </li>
+   <li>
+      <strong>Footer:</strong>
+      The lower area of the page is dedicated to common content and links (e.g. impress). Content is identical for all
+      pages.
+   </li>
+</ul>
+<p>
+   Location and view of the above described areas should be as outlined within the following wireframe:
+</p>
+<img src="/media/content/My-first-website-Tutorial.png" alt="Tutorial: My first website with the Adventure PHP Framework" />
+<p>
+   Logo and Navigation are placed side-by-side in the header area. Content and footer area both take 100% of the width
+   available but are placed one-above-the-other. At least they take a minimum height of the contained content.
+</p>
+<div class="hint">
+   This tutorial focuses on the technical implementation of web pages with the APF. Details on creating and using CSS
+   is consciously excluded.
+</div>
+
+<h3 id="Chapter-3-The-basis"><a href="#Chapter-3-The-basis">3. The basis</a></h3>
+<p>
+   To create a website with the APF a few basic configurations are necessary. This includes the installation and
+   configuration of the framework as well as creating the structure of folders and namespaces. The subsequent chapters
+   walk you through the basic setup step-by-step to quickly get to creating your web page.
+</p>
+
+<h4 id="Chapter-3-1-Installation-and-configuration"><a href="#Chapter-3-1-Installation-and-configuration">3.1. Installation and configuration</a></h4>
+<p>
+   Please create a new project with an IDE of your choice (the APF <int:link pageid="149" /> recommends <int:link pageid="131">PHPStorm</int:link>).
+   Based on the suggestions in chapter <int:link pageid="111" anchor="Chapter-4-Installation" /> please create the
+   following basic folder structure:
+</p>
+<gen:highlight type="code">
+/APF
+/htdocs
+       /images
+       /css
+       /js
+</gen:highlight>
+<p>
+   <em>APF</em> will be used for the installation of the framework and is not HTTP-accessible due to security reasons.
+   <em>htdocs</em> contains all resources that should be accessible from the outside like out bootstrap file, images,
+   CSS and Java-Script files.
+</p>
+<p>
+   Installing the Adventure PHP Framework means downloading a <em>apf-codepack-*</em> and <em>apf-configpack-*</em>
+   from <int:link pageid="008"/> and extracting the content to the <em>APF</em> folder. The above folder structure
+   thus extends itself as follows:
+</p>
+<gen:highlight type="code">
+/APF
+    /config
+    /core
+    /extensions
+    /modules
+    /tools
+/htdocs
+       /images
+       /css
+       /js
+</gen:highlight>
+<p>
+   The <em>config</em> folder contains sample configuration files that we will use later on. All other folders contain
+   the code base of the framework.
+</p>
+
+<h4 id="Chapter-3-2-Creating-the-application-structure"><a href="#Chapter-3-2-Creating-the-application-structure">3.2. Creating the application structure</a></h4>
+<p>
+   Similar to the folder structure of the APF code base we are now creating a separate area to store the code files
+   of our web page. The folder structure is thus extended as follows:
+</p>
+<gen:highlight type="code">
+/APF
+    /config
+    /core
+    /extensions
+    /modules
+    /tools
+/PAGE
+/htdocs
+       /images
+       /css
+       /js
+</gen:highlight>
+<p>
+   Folder <em>PAGE</em> now takes all code files we will create during the following chapters. Chapter
+   <int:link pageid="154" anchor="Chapter-3-StandardClassLoader" /> describes how you can separate framework components
+   from your custom application code. To do so we now define a custom <em>Vendor</em> named <em>PAGE</em> having an
+   own <em>StandardClassLoader</em> configured. The class loader then refers to the <em>/PAGE</em> directory instead of
+   <em>/APF</em>.
+</p>
+<p>
+   Within the application we'll also create templates and controllers within the following chapters. For this reason,
+   let's complete the folder structure as follows:
+</p>
+<gen:highlight type="code">
+/APF
+    /config
+    /core
+    /extensions
+    /modules
+    /tools
+/PAGE
+     /controller
+     /templates
+/htdocs
+       /images
+       /css
+       /js
+</gen:highlight>
+
+<h4 id="Chapter-3-3-Creating-the-bootstrap-file"><a href="#Chapter-3-3-Creating-the-bootstrap-file">3.3. Creating the bootstrap file</a></h4>
+<p>
+   The APF has been designed to work with one central bootstrap file that handles all incoming requests. This not only
+   eases implementation but also provides exactly one entry point to your application that can be secured accordingly.
+</p>
+<p>
+   A template of a simple <em>index.php</em> is described under <int:link pageid="013" anchor="Chapter-5-1-Creating-the-bootstrap-file" />.
+   For a start, we copy and paste the content to a newly created <em>index.php</em> file in <em>htdocs</em>:
+</p>
+<gen:highlight type="php">
+include('../APF/core/bootstrap.php');
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+echo $fC->start('...', '...');
+</gen:highlight>
+<p>
+   By default, a <em>ClassLoader</em> for vendor <em>APF</em> is registered. Due to the fact that we intend to separate
+   framework code from application code it is required to configure an additional class loader for vendor <em>PAGE</em>
+   with an appropriate configuration:
+</p>
+<gen:highlight type="php">
+include('../APF/core/bootstrap.php');
+
+use APF\core\loader\RootClassLoader;
+use APF\core\loader\StandardClassLoader;
+
+$classLoader = new StandardClassLoader('PAGE', '../PAGE');
+RootClassLoader::addLoader($classLoader);
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+echo $fC->start('...', '...');
+</gen:highlight>
+<p>
+   As described in chapter <int:link pageid="154" /> you can not only separate code registering a custom <em>ClassLoader</em>
+   but also configuration. Please note hints on using this within the following chapters.
+</p>
+
+<h4 id="Chapter-3-4-Creating-the-master-template"><a href="#Chapter-3-4-Creating-the-master-template">3.4. Creating the master template</a></h4>
+<p>
+   As a last step of the basic configuration we have to create a master template that acts as an entry point to our
+   application. Thus, please create <em>main.html</em> within folder <em>/PAGE/templates</em>. You may initially fill
+   the file with any kind of text content but this is not necessary.
+</p>
+<p>
+   Our <em>index.php</em> file now is extended as follows:
+</p>
+<gen:highlight type="php">
+include('../APF/core/bootstrap.php');
+
+use APF\core\loader\RootClassLoader;
+use APF\core\loader\StandardClassLoader;
+
+$classLoader = new StandardClassLoader('PAGE', '../PAGE');
+RootClassLoader::addLoader($classLoader);
+
+use APF\core\singleton\Singleton;
+use APF\core\frontcontroller\Frontcontroller;
+
+$fC = Singleton::getInstance(Frontcontroller::class);
+echo $fC->start('PAGE\templates', 'main');
+</gen:highlight>
+<p>
+   Calling the bootstrap file within your browser you either see a blank page or the content you've entered to the master
+   template. Basic installation and configuration is now finished.
+</p>
+
+<h3 id="Chapter-4-Creating-the-web-page-structure"><a href="#Chapter-4-Creating-the-web-page-structure">4. Creating the web page structure</a></h3>
+<p>
+   According to the requirements described in <a href="#Chapter-2-Requirements">chapter 2</a> the web page consists of
+   three areas: header, content area and footer. Within the following chapter we now create the necessary templates and
+   contents in a step-by-step fashion.
+</p>
+
+<h4 id="Chapter-4-1-Basic-template"><a href="#Chapter-4-1-Basic-template">4.1. Basic template</a></h4>
+<p>
+   The basic template <em>main.html</em> is considered a central entry point for your application but also contains the
+   basic structure of your web page or application. For this reason, we now fill the file with the basic HTML structure
+   for the above noted areas:
+</p>
+<gen:highlight type="apf-xml">
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>My Web Page</title>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+      <script type="text/javascript" src="/js/scripts.js"></script>
+   </head>
+   <body>
+      <header>
+         <img src="/images/header-logo.png" alt="My Web Page" />
+         <nav>
+            ...
+         </nav>
+      </header>
+      <section id="content">
+         ...
+      </section>
+      <footer>
+         ...
+      </footer>
+   </body>
+</html>
+</gen:highlight>
+<p>
+   Within the <em>&lt;nav /&gt;</em> tag the main navigation should be presented, <em>&lt;section id="content"/&gt;</em>
+   contains the content of the page and <em>&lt;footer /&gt;</em> is supposed to shows the footer.
+</p>
+<p>
+   The following chapters now fill these areas with the appropriate content. Creating the basic template is now done.
+</p>
+
+<h4 id="Chapter-4-2-URL-structure"><a href="#Chapter-4-2-URL-structure">4.2. URL structure</a></h4>
+<p>
+   After creating the master template it is recommended to decide which URL structure should be used for your project.
+   This for instance implies how dynamic pages are addressed to be shown within the content area or how navigational
+   elements are built.
+</p>
+<p>
+   In order to keep this tutorial simple and clear, the following chapters only dela with displaying dynamic content.
+   This can be done easily by a dedicated URL parameter that contains the unique identifier of the desired page. Therefor
+   we will use the <em>page</em> parameter. In case it is present, the page referred to by it's value should be displayed.
+   If not present, the start page will be shown.
+</p>
+<p>
+   The structure described within the last paragraph is used to display dynamic content within the content area. To keep
+   this tutorial simple the standard URL layout will be used that is fully supported by the APF. Details can be taken
+   from chapter <int:link pageid="069" anchor="Chapter-3-1-Standard-URLs"/>).
+</p>
+
+<h4 id="Chapter-4-3-Header"><a href="#Chapter-4-3-Header">4.3. Header</a></h4>
+<p>
+   The upper area of the page - the header - contains the logo of the page and the navigation. The latter one is
+   provided to visitors to reach the different pages of the web site.
+</p>
+<p>
+   To ease future enhancement of the page the navigation should be extracted to a separate template. For this reason,
+   we add the following tag to the <em>&lt;nav /&gt;</em> block of the master template:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:importdesign
+   namespace="PAGE\templates"
+   template="navi"
+/&gt;
+</gen:highlight>
+<p>
+   The <em>&lt;core:importdesign /&gt;</em> tag expects the <em>navi.html</em> file to be located under
+   <em>/PAGE/templates</em> containing the content of the navigation. The file itself will be filled with a static
+   navigation:
+</p>
+<gen:highlight type="apf-xml">
+<ul>
+   <li><a href="/">Home</a></li>
+   <li><a href="/?page=page1">Page 1</a></li>
+   <li><a href="/?page=page2">Page 2</a></li>
+   <li><a href="/?page=page3">Page 3</a></li>
+</ul>
+</gen:highlight>
+<p>
+   Clicking the first element the user is presented the start page. All other links lead to dedicated pages. As a
+   unique identifier alphanumeric values have been taken but you are free to choose different kind of values as desired.
+</p>
+
+<h4 id="Chapter-4-4-Footer"><a href="#Chapter-4-4-Footer">4.4. Footer</a></h4>
+<p>
+   Within the lower area of the page generic content is displayed and for instance a link to the impress of the page. As
+   for the <a href="#Chapter-4-3-Header">Header</a> also this content should be extracted to a separate template.
+</p>
+<p>
+   For this reason,
+   we add the following tag to the <em><&lt;footer /&gt;</em> block of the master template:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:importdesign
+   namespace="PAGE\templates"
+   template="footer"
+/&gt;
+</gen:highlight>
+<p>
+   The <em>&lt;core:importdesign /&gt;</em> tag expects the <em>footer.html</em> file to be located under
+   <em>/PAGE/templates</em> containing the content of the footer. The file itself will be filled with a static
+   content as follows:
+</p>
+<gen:highlight type="apf-xml">
+<p>
+   ...
+</p>
+<nav>
+   <ul>
+      <li><a href="/?page=impress">Impress</a></li>
+      <li><a href="/?page=contact">Contact</a></li>
+   </ul>
+</nav>
+</gen:highlight>
+<p>
+   The text denoted within the <em>&lt;p /&gt;</em> tags is meant to contain general information about the page. The below
+   navigation refers to legally compulsive pages such as the impress or offers the possibility to contact the site owner.
+</p>
+
+<h4 id="Chapter-4-5-Content-area"><a href="#Chapter-4-5-Content-area">4.5. Content area</a></h4>
+<p>
+   Let us now focus on the content area of the page. Display of the content should also be realized by a separate template
+   as done within all other previous chapters. This is because changes only affect the basic template and extracted
+   functionality can easily be re-used.
+</p>
+<p>
+   To display content within the main area please create template file <em>content.html</em> under <em>/PAGE/templates</em>
+   and fill with any kind of content.
+</p>
+<p>
+   The master template now is added the following lines within the <em>&lt;section /&gt;</em> tag:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:importdesign
+   namespace="PAGE\templates"
+   template="content"
+/&gt;
+</gen:highlight>
+<p>
+   Creating the web page structure is now done. <a href="#Chapter-5-Display-dynamic-content">Chapter 5</a>
+   describes different possibilities to display content.
+</p>
+
+<h3 id="Chapter-5-Display-dynamic-content"><a href="#Chapter-5-Display-dynamic-content">5. Display dynamic content</a></h3>
+<p>
+   <a href="#Chapter-4-Creating-the-web-page-structure">Chapter 4</a> described creating the basic structure of the page
+   as well as the URL layout. Based on these chapters we are now able to display dynamic content of the website.
+</p>
+<p>
+   The two following chapters contain two different implementations: content from simple text files and from an external
+   data source.
+</p>
+
+<h4 id="Chapter-5-1-Content-from-text-files"><a href="#Chapter-5-1-Content-from-text-files">5.1. Content from text files</a></h4>
+<p>
+   A very simple way to display dynamic content from text files within the content area of a page is to use the
+   <int:link pageid="046" anchor="Chapter-1-2-Importdesign">&lt;core:importdesign /&gt;</int:link> tag. It supports to
+   determine the name of the template via URL parameter.
+</p>
+<p>
+   In order to leverage from this existing functionality please fill <em>/PAGE/templates/content.html</em>
+   with the following content:
+</p>
+<gen:highlight type="apf-xml">
+&lt;core:importdesign
+   namespace="PAGE\content"
+   template="[page=start]"
+   incparam="page"
+/&gt;
+</gen:highlight>
+<p>
+   The tag definition already tells details about the setup: the dynamic content is expected to reside under
+   <em>/PAGE/content</em> and the URL parameter to determine the page template name is <em>page</em> as described in
+   <a href="#Chapter-4-2-URL-structure">chapter 4.2</a>.
+</p>
+<p>
+   To display content please generate folder <em>/PAGE/content</em> and create three files named
+   <em>start.html</em> (see navigation from <a href="#Chapter-4-3-Header">chapter 4.3</a>) and <em>impress.html</em>
+   as well as <em>contact.html</em> (see navigation from <a href="#Chapter-4-4-Footer">chapter 4.4</a>). You can now fill
+   them with the desired content.
+</p>
+<p>
+   Due to the fact that <em>&lt;core:importdesign /&gt;</em> both supports text as well as HTML/XML you can create static
+   and dynamic content. Moreover, you may want to use <int:link pageid="046">APF tags</int:link> or <int:link pageid="006" />
+   declarations.
+</p>
+
+<h4 id="Chapter-5-2-Content-from-the-database"><a href="#Chapter-5-2-Content-from-the-database">5.2. Content from the database</a></h4>
+<p>
+   Another option displaying content is using a data source. For this reason we want to use a simple database table that
+   stores a unique identifier and the content of the page.
+</p>
+<p>
+   The table can be created using the following SQL statement:
+</p>
+<gen:highlight type="apf-xml">
+CREATE TABLE pages (
+   page_id varchar(10) NOT NULL,
+   page_content text NOT NULL,
+   PRIMARY KEY (page_id)
+);
+</gen:highlight>
+<p>
+   To display the content stored within the above table please adapt file <em>content.html</em> located in
+   <em>/PAGE/templates</em>:
+</p>
+<gen:highlight type="apf-xml">
+&lt;@controller
+   class="PAGE\controller\ContentController"
+@&gt;
+</gen:highlight>
+<p>
+   The <em>&lt;@controller /&gt;</em> tag refers to a <int:link pageid="006" /> that is assigned to process the
+   template or the DOM node respectively. A simple implementation can be found within the following code box:
+</p>
+<gen:highlight type="php">
+namespace PAGE\controller;
+
+use APF\core\pagecontroller\BaseDocumentController;
+use APF\core\database\ConnectionManager;
+use APF\core\database\DatabaseConnection;
+
+class ContentController extends BaseDocumentController {
+
+   public function transformContent() {
+
+      $conn = $this->getConnection();
+
+      $pageId = $conn->escapeValue(
+         $this->getRequest()->getGetParameter('page', 'home')
+      );
+
+      $select = 'SELECT page_content
+                 FROM pages
+                 WHERE page_id = \'' . $pageId . '\'
+                 LIMIT 1';
+      $result = $conn->executeTextStatement($select);
+      $data = $conn->fetchData($result);
+
+      if($data !== false){
+         $this->getDocument()->setContent($data['page_content']);
+      }
+
+   }
+
+   /**
+    * @return DatabaseConnection
+    */
+   private function getConnection() {
+      /* @var $cM ConnectionManager */
+      $cM = $this->getServiceObject('APF\core\database\ConnectionManager');
+      return $cM->getConnection('content-database');
+   }
+
+}
+</gen:highlight>
+<div class="warn">
+   Please note that a database configuration must be created for the desired database prior to usage of the controller.
+   Details on usage and configuration of database connections with the APF can be read about in chapter
+   <int:link pageid="031" />.
+</div>
+
+<h3 id="Chapter-6-Further-reading"><a href="#Chapter-6-Further-reading">6. Further reading</a></h3>
+<p>
+   Having finished with this tutorial it is recommended to proceed as follows to get familiar with the APF:
+</p>
+<ul>
+   <li><int:link pageid="032" /></li>
+   <li><int:link pageid="129" lang="de" /> (German)</li>
+   <li><a class="forum" href="${getBaseUrl(ForumBaseURL)}/viewtopic.php?f=6&amp;t=44" linkrewrite="false">APF-Modul erstellen</a> (German)</li>
+</ul>
+
+<core:importdesign namespace="APF\modules\comments\pres\templates" template="comment" categorykey="en_048" />

@@ -10,7 +10,7 @@
    central initialization, configuration, and request processing.
 </p>
 <p>
-   Within the boostrap file the <em>Frontcontroller</em> helps you to execute common tasks during the request processing
+   Within the bootstrap file the <em>FrontController</em> helps you to execute common tasks during the request processing
    without additional coding. As a central and integrating component, the front controller
 </p>
 <ul>
@@ -22,7 +22,7 @@
 
 <h3 id="Chapter-2-Timing-model"><a href="#Chapter-2-Timing-model">2. Timing model</a></h3>
 <p>
-   The implementation of the <em>Frontcontroller</em> of the Adventure PHP Framework is based on the pattern definition
+   The implementation of the <em>FrontController</em> of the Adventure PHP Framework is based on the pattern definition
    of
    <a class="external" href="http://www.martinfowler.com/eaaCatalog/frontController.html" title="Martin Fowler">Martin Fowler</a>.
    The APF uses the <int:link pageid="098" /> to provide a generic implementation of the <em>HMVC</em> pattern for
@@ -40,7 +40,7 @@
 </p>
 <p>
    Since the front controller is used as a central instance for request handling there is only one instance of the
-   <em>Frontcontroller</em> class. Within the bootstrap file the instance is created using the <int:link pageid="030" />
+   <em>FrontController</em> class. Within the bootstrap file the instance is created using the <int:link pageid="030" />
    implementation and started with the <em>start()</em> method.
 </p>
 <div class="hint">
@@ -67,7 +67,7 @@
 <p>
    The timing model in <a href="#Chapter-2-Timing-model">chapter 2</a> defines four different points in time where actions
    are executed. These time slots can be used to solve different tasks within your application. The points in time
-   mentioned are defined as constants within the <em>AbstractFrontcontrollerAction</em>:
+   mentioned are defined as constants within the <em>AbstractFrontControllerAction</em>:
 </p>
 <ul>
    <li>
@@ -92,7 +92,7 @@
    The above listed constants can be used to define the execution time when implementing actions as follows:
 </p>
 <gen:highlight type="php">
-class HeadlineImageGenerationAction extends AbstractFrontcontrollerAction {
+class HeadlineImageGenerationAction extends AbstractFrontControllerAction {
 
    // Define execution time at class declaration
    protected $type = self::TYPE_PRE_PAGE_CREATE;
@@ -148,9 +148,9 @@ class HeadlineImageGenerationAction extends AbstractFrontcontrollerAction {
 include('../apps/core/bootstrap.php');
 
 use APF\core\singleton\Singleton;
-use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\FrontController;
 
-$fC = Singleton::getInstance(Frontcontroller::class);
+$fC = Singleton::getInstance(FrontController::class);
 
 ...
 
@@ -175,9 +175,9 @@ $fC->addAction('APF\site\actions', 'check-permissions');
 include('../apps/core/bootstrap.php');
 
 use APF\core\singleton\Singleton;
-use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\FrontController;
 
-$fC = Singleton::getInstance(Frontcontroller::class);
+$fC = Singleton::getInstance(FrontController::class);
 
 ...
 
@@ -257,7 +257,7 @@ $fC->addAction(
    actions. These kind of aliases are used by shipped APF input filters <em>ChainedStandardInputFilter</em> and
    <em>ChainedUrlRewritingInputFilter</em> to translate action instruction into an internal format. During link generation
    using the <em>LinkGenerator</em> both <em>LinkScheme</em> implementations <em>DefaultLinkScheme</em> and
-   <em>RewriteLinkScheme</em> read all mappings registered with the <em>Frontcontroller</em> to convert action
+   <em>RewriteLinkScheme</em> read all mappings registered with the <em>FrontController</em> to convert action
    instructions into an external format.
 </p>
 <div class="hint">
@@ -284,10 +284,10 @@ $fC->addAction(
 </p>
 <gen:highlight type="php">
 use APF\core\singleton\Singleton;
-use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\FrontController;
 use APF\core\frontcontroller\ActionUrlMapping;
 
-$fC = Singleton::getInstance(Frontcontroller::class);
+$fC = Singleton::getInstance(FrontController::class);
 
 ...
 
@@ -334,7 +334,7 @@ $link = LinkGenerator::generateActionUrl(
 </div>
 <p>
    In addition to the classic approach of registering <em>action mappings</em> you may want to use two further options:
-   provide URL parameter on action registration (<em>Frontcontroller::addAction()</em>) or add one or more configuration
+   provide URL parameter on action registration (<em>FrontController::addAction()</em>) or add one or more configuration
    files.
 </p>
 <p>
@@ -350,7 +350,7 @@ $fC->addAction('VENDOR\components\search', 'executeSearch', array(), 'search');
 </div>
 <div class="warn">
    Please be sure to register actions and mappings <strong>before</strong> starting the front controller via
-   <em>Frontcontroller::start()</em>!
+   <em>FrontController::start()</em>!
 </div>
 <p>
    To separate <em>Action-Mappings</em> and code you are also able to provide a configuration file to the front
@@ -384,10 +384,10 @@ ActionName = "executeSearch"
 </p>
 <gen:highlight type="php">
 use APF\core\singleton\Singleton;
-use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\FrontController;
 use APF\core\frontcontroller\ActionUrlMapping;
 
-$fC = Singleton::getInstance(Frontcontroller::class);
+$fC = Singleton::getInstance(FrontController::class);
 
 ...
 
@@ -459,9 +459,9 @@ init.model.name = "ApplicationModel"
 include('./APF/core/bootstrap.php');
 
 use APF\core\singleton\Singleton;
-use APF\core\frontcontroller\Frontcontroller;
+use APF\core\frontcontroller\FrontController;
 
-$fC = Singleton::getInstance(Frontcontroller::class);
+$fC = Singleton::getInstance(FrontController::class);
 echo $fC->start('...', '...');
 </gen:highlight>
 <p>
@@ -492,13 +492,13 @@ echo $fC->start('...', '...');
 <h3 id="Chapter-5-Implementation-of-actions"><a href="#Chapter-5-Implementation-of-actions">5. Implementation of actions</a></h3>
 <p>
    A front controller action within the APF consists of a configuration and a PHP class that inherits from
-   <em>AbstractFrontcontrollerAction</em>. The separation between implementation and configuration provides a clear
+   <em>AbstractFrontControllerAction</em>. The separation between implementation and configuration provides a clear
    separation of the implementation from the outside view and enables you to resolve dependencies and configurations
    transparently. Moreover, the abstraction of action instructions using the URL adds to the security of your application
    since the internal structure of your application is not exposed to the outside.
 </p>
 <p>
-   Input parameters of an action are stored within an instance of the <em>FrontcontrollerInput</em> class or any class
+   Input parameters of an action are stored within an instance of the <em>FrontControllerActionParameters</em> class or any class
    that inherits from it. Through this class you are given the possibility to access all parameters within an action
    that are either applied via URL or configuration.
 </p>
@@ -562,7 +562,7 @@ ActionClass = ""
    <li>
       <strong>InputClass</strong>:
       Fully-qualified class name of the input implementation (Example: <em>APF\project\biz\actions\DemositeModel</em>).
-      Default value in case this directive is not specified is <em>APF\core\frontcontroller\FrontcontrollerInput</em>.
+      Default value in case this directive is not specified is <em>APF\core\frontcontroller\FrontControllerActionParameters</em>.
    </li>
    <li>
       <strong>InputParams</strong>:
@@ -578,12 +578,12 @@ ActionClass = ""
 <div class="hint">
    The input parameters defined within the <em>InputParams</em> directive can be overwritten by URL. This is
    suitable for use cases where an action should act slightly different in certain use cases. The required logic is
-   already contained in the <em>Frontcontroller::addAction()</em> function.
+   already contained in the <em>FrontController::addAction()</em> function.
 </div>
 
 <h4 id="Chapter-5-2-Action-implementation"><a href="#Chapter-5-2-Action-implementation">5.2. Action implementation</a></h4>
 <p>
-   A front controller action is defined by a PHP class that extends <em>AbstractFrontcontrollerAction</em>. To run the
+   A front controller action is defined by a PHP class that extends <em>AbstractFrontControllerAction</em>. To run the
    logic, the <em>run()</em> must be implemented.
 </p>
 <p>
@@ -592,9 +592,9 @@ ActionClass = ""
 <gen:highlight type="php">
 namespace ACME\project\actions;
 
-use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\frontcontroller\AbstractFrontControllerAction;
 
-class GreetMeAction extends AbstractFrontcontrollerAction {
+class GreetMeAction extends AbstractFrontControllerAction {
 
    public function __construct() {
       $this->type = self::TYPE_PRE_PAGE_CREATE;
@@ -633,11 +633,11 @@ class GreetMeAction extends AbstractFrontcontrollerAction {
 <h4 id="Chapter-5-3-Input-implementation"><a href="#Chapter-5-3-Input-implementation">5.3. Input implementation</a></h4>
 <p>
    Input classes encapsulate the input parameters of an action and are optional. In case an action definition contains
-   no dedicated input implementation the front controller uses the <em>FrontcontrollerInput</em> by default.
+   no dedicated input implementation the front controller uses the <em>FrontControllerActionParameters</em> by default.
 </p>
 <div class="hint">
    In case the input class is just picking and replaying the action parameters no separate implementation is required.
-   In those cases you can easily rely on the standard implementation <em>FrontcontrollerInput</em>.
+   In those cases you can easily rely on the standard implementation <em>FrontControllerActionParameters</em>.
 </div>
 <p>
    In case you want to be greeted by the action from <a href="#Chapter-5-2-Action-implementation">chapter 5.2.</a> with
@@ -646,18 +646,16 @@ class GreetMeAction extends AbstractFrontcontrollerAction {
 <gen:highlight type="php">
 namespace ACME\project\actions;
 
-use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\frontcontroller\AbstractFrontControllerAction;
 
-class GreetMeAction extends AbstractFrontcontrollerAction {
+class GreetMeAction extends AbstractFrontControllerAction {
 
    public function __construct() {
       $this->type = self::TYPE_PRE_PAGE_CREATE;
    }
 
    public function run() {
-      $input = $this->getInput();
-
-      echo 'Hello ' . $input->getParameter('name') . '!';
+      echo 'Hello ' . $this->getParameters()->getParameter('name') . '!';
       exit();
    }
 
@@ -683,9 +681,9 @@ class GreetMeAction extends AbstractFrontcontrollerAction {
 <gen:highlight type="php">
 namespace ACME\project\actions;
 
-use APF\core\frontcontroller\FrontcontrollerInput;
+use APF\core\frontcontroller\FrontControllerActionParameters;
 
-class GreetMeInput extends FrontcontrollerInput {
+class GreetMeInput extends FrontControllerActionParameters {
    public function getName() {
       return $this->getParameter('name', 'Welt');
    }
@@ -697,18 +695,16 @@ class GreetMeInput extends FrontcontrollerInput {
 <gen:highlight type="php">
 namespace ACME\project\actions;
 
-use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\frontcontroller\AbstractFrontControllerAction;
 
-class GreetMeAction extends AbstractFrontcontrollerAction {
+class GreetMeAction extends AbstractFrontControllerAction {
 
    public function __construct() {
       $this->type = self::TYPE_PRE_PAGE_CREATE;
    }
 
    public function run() {
-      $input = $this->getInput();
-
-      echo 'Hallo ' . $input->getName() . '!';
+      echo 'Hallo ' . $this->getParameters()->getName() . '!';
       exit();
    }
 
@@ -722,7 +718,7 @@ class GreetMeAction extends AbstractFrontcontrollerAction {
    Besides the definition of the execution time (for details, please see <a href="#Chapter-3-1-Definition">chapter 3.1</a>)
    the front controller provides another possibility to influence action execution. In case you intend to cancel
    execution of an action under certain circumstances you can do so overwriting the
-   <em>AbstractFrontcontrollerAction::isActive()</em> method.
+   <em>AbstractFrontControllerAction::isActive()</em> method.
 </p>
 <p>
    In case <em>isActive()</em> of your implementation returns <em>true</em> the <em>run()</em> method is executed,
@@ -756,14 +752,14 @@ public function isActive() {
    executed first. In case an action takes a lower priority - e.g. <em>1</em> it is executed afterwards.
 </p>
 <p>
-   The front controller uses <em>AbstractFrontcontrollerAction::getPriority()</em> to determine the priority and to
+   The front controller uses <em>AbstractFrontControllerAction::getPriority()</em> to determine the priority and to
    sort them accordingly on the action stack. To change or influence your action's priority, please overwrite the
    mentioned method. Example:
 </p>
 <gen:highlight type="php">
-use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\frontcontroller\AbstractFrontControllerAction;
 
-class SearchAction extends AbstractFrontcontrollerAction {
+class SearchAction extends AbstractFrontControllerAction {
 
    ...
 
@@ -872,9 +868,9 @@ public function allowExecution() {
 <gen:highlight type="php">
 namespace ACME\project\actions;
 
-use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\frontcontroller\AbstractFrontControllerAction;
 
-class GreetingAction extends AbstractFrontcontrollerAction {
+class GreetingAction extends AbstractFrontControllerAction {
 
    public function __construct() {
       $this->type = self::TYPE_PRE_PAGE_CREATE;
@@ -893,9 +889,9 @@ class GreetingAction extends AbstractFrontcontrollerAction {
 <gen:highlight type="php">
 namespace ACME\project\actions;
 
-use APF\core\frontcontroller\AbstractFrontcontrollerAction;
+use APF\core\frontcontroller\AbstractFrontControllerAction;
 
-class GreetingAction extends AbstractFrontcontrollerAction {
+class GreetingAction extends AbstractFrontControllerAction {
 
    public function __construct() {
       $this->type = self::TYPE_PRE_PAGE_CREATE;
