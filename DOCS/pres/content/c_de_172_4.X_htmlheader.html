@@ -1,0 +1,421 @@
+<doku:title parent="119" tags="htmlheader,erweiterung" title="HTMLHeader-Erweiterung" urlname="htmlheader-erweiterung">
+    Diese Seite beschreibt die Verwendungsmöglichkeiten der HTMLHeader-Erweiterung.
+</doku:title>
+<h3 id="Chapter-1-Einleitung"><a href="#Chapter-1-Einleitung">1. Einleitung</a></h3>
+<p>
+    Die HTMLHeader-Erweiterung (nachfolgend HTMLHeader) dient dazu, beliebige HTML-Elemente nachträglich in den <em>head</em>-
+    Bereich einer Seite zu kopieren, JavaScript und CSS-Objekte an beliebiger Stelle innerhalb eines APF-Ordners
+    auszuliefern sowie JS- und CSS-Dateien zu einer Datei zusammenzufassen, zu minimieren, zu komprimieren und zu cachen.
+    Dies ermöglicht schnellere Ladezeiten komplexer JS- und CSS-Konstrukte. Zusätzlich können sämtliche JS-Knoten an das
+    Ende des Html-Body injiziert werden, was die gefühlte Ladezeit einer Seite nochmals erhöht.
+</p>
+
+<h3 id="Chapter-2-Head-Knoten-nachtraglich-hinzufugen"><a href="#Chapter-2-Head-Knoten-nachtraglich-hinzufugen">2. Head-Knoten nachträglich hinzufügen</a></h3>
+<p>
+    In dynamischen Anwendungen ist es oftmals notwendig von einem beliebigen Punkt aus nachträglich Daten im Html-Head
+    der Seite anzufügen, obwohl dieser eigentlich nicht im aktuellen Einflussbereich liegt. Der HTMLHeader wurde
+    zu genau diesem Zweck geschaffen. Mit ihm kann an jeder beliebigen Stelle der <em>head</em>-Bereich ergänzt werden, egal ob
+    aus einem Template heraus, von einem Manager oder durch einen Documentcontroller. Es können so ziemlich alle
+    möglichen HTML-Head-Elemente hinzugefügt werden, angefangen vom <em>title</em>-Tag bis hin zum Einbinden von Javascript-
+    und CSS-Dateien. Sollte ein benötigter Tag fehlen ist es problemlos möglich diesen nachträglich hinzuzufügen.
+</p>
+<p>
+    Die JS- und CSS-Dateien können dabei statisch definiert werden, oder mithilfe einer Action oder als Paket
+    ausgeliefert werden, deren URLs automatisch generiert werden.
+</p>
+<p>
+    Im <em>head</em>-Bereich der Webseite muss der <em>htmlheader:gethead</em> Tag platziert werden, welcher sich
+    mithilfe eines Output-Filters um die Ausgabe der nachträglich hinzugefügten Informationen kümmert:
+</p>
+<gen:highlight type="apf-xml" />
+<head>
+    <core:addtaglib
+            class="APF\extensions\htmlheader\pres\taglib\HtmlHeaderGetHeadTag"
+            prefix="htmlheader"
+            name="gethead"
+    />
+
+    <htmlheader:gethead />
+</head>
+</gen:highlight>
+
+<p>
+    Sofern Javascript Dateien <strong>an das Ende des Html-Body</strong> angefügt werden sollen später, so muss vor dem
+    schließenden <em>body</em>-Tag die getbodyjs-Taglib eingefügt werden:
+</p>
+<gen:highlight type="apf-xml" />
+<body>
+...
+<core:addtaglib
+        class="APF\extensions\htmlheader\pres\taglib\HtmlHeaderGetBodyJsTag"
+        prefix="htmlheader"
+        name="getbodyjs"
+/>
+
+<htmlheader:getbodyjs />
+</body>
+</gen:highlight>
+
+<h4 id="Chapter-2-1-In-Templates"><a href="#Chapter-2-1-In-Templates">2.1. In Templates</a></h4>
+<p>
+    Es stehen einige Taglibs zur Verfügung, mit welchen Informationen in Templates hinzugefügt werden können. Sollte
+    ein Anwendungsfall nicht abgedeckt sein, können problemlos eigene Taglibs geschrieben werden, welche intern die
+    API des HTMLHeader ansprechen. Die Taglibs befinden sich alle unter <em>extensions/htmlheader/pres/taglib</em>,
+    besitzen das Prefix "HtmlHeader" und müssen vor der Verwendung mittels <em>core:addtaglib</em> hinzugefügt werden.
+    In einem Core-Template würde das Bekanntmachen für <em>htmlheader:addcss</em> so aussehen:
+</p>
+<gen:highlight type="apf-xml" />
+<core:addtaglib
+        class="APF\extensions\htmlheader\pres\taglib\HtmlHeaderAddCssTag"
+        prefix="htmlheader"
+        name="addcss"
+/>
+[...]
+</gen:highlight>
+
+<h5 id="Chapter-2-1-1-Title-Tag"><a href="#Chapter-2-1-1-Title-Tag">2.1.1. Title-Tag</a></h5>
+<p>
+    Der Titel der Webseite (<em>title</em>) kann mithilfe der addtitle-Taglib definiert werden. Wenn das optionale
+    Attribut <em>append</em> auf <strong>true</strong> gesetzt wird, wird der Inhalt des Tags an einen eventuell bereits
+    existierenden Titel angehängt, andernfalls wird der vorhandene Titel ersetzt.
+</p>
+<gen:highlight type="apf-xml" />
+<htmlheader:addtitle append="true">
+    Mein Titel der Webseite
+</htmlheader:addtitle>
+</gen:highlight>
+
+<h5 id="Chapter-2-1-2-statischer-JS-CSS-Code"><a href="#Chapter-2-1-2-statischer-JS-CSS-Code">2.1.2. Statischer JS- & CSS-Code</a></h5>
+<p>
+    Statischer JS- und CSS-Code (inline, nicht in externer Datei ausgelagert) kann wie folgt hinzugefügt werden:
+</p>
+<gen:highlight type="apf-xml" />
+<htmlheader:addjscontent>
+    $('#foo').appendClass('bar');
+</htmlheader:addjscontent>
+</gen:highlight>
+
+<gen:highlight type="apf-xml" />
+<htmlheader:addcsscontent>
+    .exampleClass {
+        border: 1px solid red;
+    }
+</htmlheader:addcsscontent>
+</gen:highlight>
+
+<h5 id="Chapter-2-1-3-statische-JS-CSS-Dateien"><a href="#Chapter-2-1-3-statische-JS-CSS-Dateien">2.1.3. Statische JS- & CSS-Dateien</a></h5>
+<p>
+    Statische JS- und CSS-Dateien können wie folgt hinzugefügt werden:
+</p>
+<gen:highlight type="apf-xml" />
+<htmlheader:addstaticjs file="http://maps.google.com/maps/api/js?sensor=false" />
+</gen:highlight>
+
+<gen:highlight type="apf-xml" />
+<htmlheader:addstaticcss file="http://media.adventure-php-framework.org/css/apf.css" />
+</gen:highlight>
+
+<h5 id="Chapter-2-1-4-dynamische-JS-CSS-Dateien"><a href="#Chapter-2-1-4-dynamische-JS-CSS-Dateien">2.1.4. Dynamische JS- & CSS-Dateien</a></h5>
+<p>
+    Es besteht die Möglichkeit die URL der JS- und CSS-Dateien automatisch generieren zu lassen, und die Dateien über
+    eine FC-Action einbinden zu lassen, wenn diese sich z.B. außerhalb des von außen zugänglichen Bereichs befinden.
+</p>
+<p>
+    Hierfür stehen die beiden Taglibs <em>htmlheader:addcss</em> und <em>htmlheader:addjs</em> zur Verfügung. Die
+    Funktionsweise wird nur anhand der addjs-Taglib gezeigt, da addcss nach dem gleichen Schema funktioniert.
+</p>
+<p>
+    Zur Verfügung stehen die Attribute:
+</p>
+<ul>
+    <li><em>url</em>: Kann benutzt werden um Dateien von einem fremden Server einzubinden.</li>
+    <li><em>folder</em>: Wenn eine Datei von einem fremden Server eingebunden wird, wird hiermit der Namespace zur
+        Datei auf dem Server definiert, mit \ als / Trennung.</li>
+    <li><em>namespace</em>: Der Namespace der Datei, wenn diese auf dem selben Server liegt.</li>
+    <li><em>filename</em>: Der Dateiname ohne Dateiendung.</li>
+    <li><em>rewriting</em>: Optional. Anzugeben, wenn explizit eine URL generiert werden soll, die rewriting
+        an-/abgeschaltet hat. Standardmäßig wird die aktuelle Einstellung der Webseite verwendet.</li>
+    <li><em>fcaction</em>: Optional. Wenn keine FC-Action zum Ausliefern verwendet werden soll, diesen wert auf false
+        setzen. (Standard: true)</li>
+</ul>
+<p>
+    Beispiel: Einbinden einer JS-Datei des aktuellen Servers mithilfe einer FC-Action:
+</p>
+<gen:highlight type="apf-xml" />
+<htmlheader:addjs namespace="APF\sites\example\pres\frontend\static\js" filename="jquery.min" />
+</gen:highlight>
+
+<p>
+    Beispiel: Einbinden einer externen Datei mit deaktiviertem URL-Rewriting und ohne FC-Action an das Ende des
+    <em>body</em>-Bereichs:
+</p>
+<gen:highlight type="apf-xml" />
+<htmlheader:addjs
+        url="http://static/"
+        folder="js\anything"
+        filename="jquery.min"
+        rewriting="false"
+        fcaction="false"
+        appendtobody="true"
+/>
+</gen:highlight>
+
+<h5 id="Chapter-2-1-5-JS-CSS-Pakete"><a href="#Chapter-2-1-5-JS-CSS-Pakete">2.1.5. JS- & CSS-Pakete</a></h5>
+<p>
+    Mithilfe des im HTMLHeader integrierten JsCssPackagers können viele JS- oder CSS-Dateien zu je einer Datei
+    zusammengefasst werden. Für die Konfiguration dieses Verhaltens scrollen Sie bitte zum Kapitel 3. JS- & CSS-Pakete
+    definieren. Hier wird die Einbindung eines Pakets innerhalb eines Templates beschrieben.
+</p>
+<p>
+    Das <em>name</em>-Attribut entspricht dem Paketnamen, welcher in der Konfiguration als Sektionsname verwendet wird.
+    Mögliche type Angaben sind <em>js</em> und <em>css</em>.
+</p>
+<gen:highlight type="apf-xml" />
+<htmlheader:addpackage
+        name="form_clientvalidators_all"
+        type="js"
+/>
+</gen:highlight>
+
+<gen:highlight type="apf-xml" />
+<htmlheader:addpackage
+        name="mystylesheetpackage"
+        type="css"
+</gen:highlight>
+
+<h5 id="Chapter-2-1-6-Favicons"><a href="#Chapter-2-1-6-Favicons">2.1.6. CSS-Images (Favicons etc.)</a></h5>
+<p>
+    Um ein Favicon hinzuzufügen gibt es die Taglib <em>htmlheader:addcssimage</em>:
+</p>
+<gen:highlight type="apf-xml" />
+<htmlheader:addcssimage rel="icon" href="favicon.png" type="image/png" />
+</gen:highlight>
+
+<h5 id="Chapter-2-1-7-Reihenfolge"><a href="#Chapter-2-1-7-Reihenfolge">2.1.7. Reihenfolge beeinflussen</a></h5>
+<p>
+    Die Reihenfolge der JS- und CSS-Dateien und Pakete kann mit dem optionalen Attribut <em>priority</em> beeinflusst
+    werden. Je größer die angegebene Zahl (Integer) desto weiter oben wird die Datei eingefügt:
+</p>
+<gen:highlight type="apf-xml" />
+<htmlheader:addpackage name="admin" type="js" appendtobody="true" priority="100" />
+</gen:highlight>
+<div class="hint">
+    Wird das Attribut nicht angegeben, wird 0 als Standardwert gesetzt.
+</div>
+
+<h4 id="Chapter-2-2-In-Controllern"><a href="#Chapter-2-2-In-Controllern">2.2. In Controllern und anderen PHP-Dateien</a></h4>
+<p>
+    Die Erweiterung besteht aus einer Vielzahl von Html-Knoten ("Nodes") im Namespace APF\extensions\htmlheader\biz.
+    Die jeweils gewünschten Knoten müssen zuerst eingebunden werden, z.B. über:
+</p>
+<gen:highlight type="php">
+use APF\extensions\htmlheader\biz\DynamicJsNode;
+</gen:highlight>
+<p>
+    Es stehen folgende Nodes zur Verfügung:
+</p>
+<li>
+    <li>BaseUrlNode: Um <em>base href=""</em> zu definieren</li>
+    <li>CanonicalNode: Um <em>link rel="canonical" href=""</em> zu definieren</li>
+    <li>ConditionalDynamicCssNode</li>
+    <li>ConditionalStaticCssNode</li>
+    <li>CssContentNode</li>
+    <li>CssImageNode</li>
+    <li>CssPackageNode</li>
+    <li>DynamicCssNode</li>
+    <li>DynamicJsNode</li>
+    <li>HttpMetaNode</li>
+    <li>JsContentNode</li>
+    <li>JsPackageNode</li>
+    <li>LanguageMetaNode</li>
+    <li>RefreshNode</li>
+    <li>SimpleMetaNode</li>
+    <li>SimpleTitleNode</li>
+    <li>StaticCssNode</li>
+    <li>StaticJsNode</li>
+</ul>
+<p>
+    Anschließend wird eine Instanz des <em>HtmlHeaderManager</em> bezogen, welcher für die Speicherung der Knoten
+    zuständig ist:
+</p>
+<gen:highlight type="php">
+// Get an instance of HtmlHeaderManager:
+$HHM = $this->getServiceObject('APF\extensions\htmlheader\biz\HtmlHeaderManager');
+</gen:highlight>
+
+<p>
+    Nun kann eine Instanz jedes gewünschten Knoten erzeugt werden, und dem <em>HtmlHeaderManager</em> übergeben werden:
+</p>
+<gen:highlight type="php">
+use APF\extensions\htmlheader\biz\RefreshNode;
+
+// Add a refresh on index.php?test=abc, with a delay of 5 seconds:
+$HHM->addNode(new RefreshNode('index.php', 5, array("test" => "abc")));
+</gen:highlight>
+
+<gen:highlight type="php">
+use APF\extensions\htmlheader\biz\SimpleTitleNode;
+
+// Add a title
+$HHM->addNode(new SimpleTitleNode("Example title"));
+</gen:highlight>
+
+<gen:highlight type="php">
+use APF\extensions\htmlheader\biz\DynamicCssNode;
+
+//Get instance, configure in constructor and add to HtmlHeaderManager:
+$CssNode = new DynamicCssNode($url, $namespace, $filename, $rewriting, $fcaction);
+$HHM->addNode($CssNode);
+</gen:highlight>
+
+<gen:highlight type="php">
+use APF\extensions\htmlheader\biz\SimpleMetaNode;
+
+// Add a simple description meta tag
+$HHM->addNode(new SimpleMetaNode('description', $description));
+</gen:highlight>
+
+<gen:highlight type="php">
+use APF\extensions\htmlheader\biz\HttpMetaNode;
+
+// Add a http meta tag definition
+$HHM->addNode(new HttpMetaNode('content-type', 'text/html; charset=utf-8'));
+</gen:highlight>
+
+<gen:highlight type="php">
+use APF\extensions\htmlheader\biz\JsPackageNode;
+
+// Define and add a JsCSSPackager-Package (Javascript) to HHM
+$PackageNode = new JsPackageNode($url, $name, $type, $rewriting);
+$HHM->addPackage($PackageNode);
+</gen:highlight>
+
+<div class="hint">
+    Die Reihenfolge der Nodes lässt sich ebenfalls über die Methode <em>setPriority()</em> beeinflussen:
+</div>
+<gen:highlight type="php">
+use APF\extensions\htmlheader\biz\SimpleMetaNode;
+
+$node = new SimpleMetaNode('description', $description);
+$node->setPriority(20);
+$HHM->addNode($node);
+</gen:highlight>
+
+<div class="hint">
+    Die JavaScript-Nodes oder -Pakete können auch zum Ende des Body hinzugefügt werden. Nutzen Sie hierzu die Methode
+    <em>setAppendToBody()</em>:
+</div>
+<gen:highlight type="php">
+use APF\extensions\htmlheader\biz\JsPackageNode;
+
+$PackageNode = new JsPackageNode($url, $name, $type, $rewriting);
+$PackageNode->setAppendToBody(true);
+$HHM->addPackage($PackageNode);
+</gen:highlight>
+
+<h3 id="Chapter-3-JS-CSS-Pakete-definieren"><a href="#Chapter-3-JS-CSS-Pakete-definieren">3. JS- & CSS-Pakete definieren</a></h3>
+<p>
+    Sollen Pakete ausgeliefert werden, müssen diese vorher konfiguriert werden. Hierzu muss die Konfigurations-Datei
+    <em>config/extensions/htmlheader/biz/{CONTEXT}/{ENVIRONMENT}_JsCssPackager.ini</em> angelegt werden.<br />
+    Für jedes Paket muss dort eine Sektion angelegt werden, mit einem frei wählbaren Paketname als Sektionsname:
+</p>
+<gen:highlight type="ini">
+[administration]
+ClientCacheDays = "7"           ; How long should it be cached on client?
+ServerCacheMinutes = "10080"    ; How long should it be cached on server?
+EnableShrinking = "false"       ; Shrink the code in the package?
+PackageType = "js"              ; Possible types: 'js' and 'css'
+; The files the package contains. Filename without extension!
+Files.1.Namespace = "VENDOR\pres\js\jquery"
+Files.1.Filename = "jquery-3.3.1.min"
+Files.2.Namespace = "VENDOR\pres\js\popper"
+Files.2.Filename = "popper.min"
+Files.3.Namespace = "VENDOR\pres\js\bootstrap"
+Files.3.Filename = "bootstrap.min"
+</gen:highlight>
+<p>
+    Jedes Paket kann individuell mit Cachingzeiten konfiguriert werden, sowie Shrinking (de-)aktiviert werden. Beim
+    Shrinking werden unnötige Zeichen aus den Dateien entfernt, daraus resultiert meistens ein einzeiliger Code der
+    für Menschen schwer lesbar ist, jedoch vom Browser problemlos interpretiert werden kann.
+</p>
+<p>
+    In der Subsection <em>Files</em> wird für jede Datei eine Nummer angegeben (Mehrfachdefinition einer Zahl ist nicht
+    erlaubt und führt zu unerwünschten Resultaten), und jeweils Namespace und Dateiname ohne Dateiendung angegeben.
+</p>
+<div class="hint">
+    Selbiges gilt für CSS-Dateien, hier muss lediglich der PackageType auf "css" geändert werden.
+</div>
+<div class="warn">
+    Wenn serverseitiges Caching aktiviert wird, wird das fertige Paket einmal komprimiert (gzip) und einmal unkomprimiert
+    (für Clienten die kein gzip beherrschen) zwischengespeichert, damit dies beim nächsten Aufruf nicht erneut generiert
+    werden muss und direkt ausgeliefert werden kann. Hierfür wird der <em>CacheManager</em> des APF
+    verwendet.<br />
+    Für das Caching wird daher eine Konfiguration des CacheManagers benötigt. Der Packager verwendet den Cache mit
+    Name <em>jscsspackager_cache</em>, dieser muss in der CacheManager-Config definiert werden.
+    Es wird hierfür der TextCacheProvider empfohlen.<br />
+    Für weitere Informationen beachten Sie bitte die Dokumentation zum CacheManager: <int:link pageid="084" /&gt;.
+</div>
+
+<h3 id="Chapter-4-JS-CSS-Pakete-ausliefern"><a href="#Chapter-4-JS-CSS-Pakete-ausliefern">4. JS- & CSS-Dateien/Pakete ausliefern</a></h3>
+<p>
+    Um JS- & CSS-Dateien per FC-Action ausliefern zu können, beziehungsweise um entsprechende Pakete ausliefern zu
+    können, muss eine FrontController-Action konfiguriert werden. Unter
+    <em>config/extensions/htmlheader/{CONTEXT}/{ENVIRONMENT}_actionconfig.ini</em> muss daher folgende Konfiguration
+    abgelegt werden:
+</p>
+<gen:highlight type="ini">
+[JsCss]
+ActionClass = "APF\extensions\htmlheader\biz\actions\JsCssInclusionAction"
+</gen:highlight>
+
+<p>
+    Desweiteren können einfache JS- & CSS-Dateien ebenfalls geshrinkt (verkleinert) werden vor dem ausliefern, um
+    Bandbreite zu sparen. Dies kann in der Konfigurations-Datei
+    <em>config/extensions/htmlheader/biz/{CONTEXT}/{ENVIRONMENT}_JsCssInclusion.ini</em> festgelegt werden:
+</p>
+<gen:highlight type="ini">
+[General]
+EnableShrinking = "true"
+</gen:highlight>
+<div class="hint">
+    Diese Einstellung gilt nur für Dateien. Pakete können einzeln konfiguriert werden, beachten Sie dafür das
+    Kapitel 3. JS- & CSS-Pakete definieren.
+</div>
+<div class="warn">
+    Um Java-Script-Dateien in JS-Paketen zu verkleinern ist die externe Bibliothek <em>JsMin</em> erforderlich.
+    Diese ist unter <a href="https://github.com/rgrove/jsmin-php" class="external">https://github.com/rgrove/jsmin-php</a>
+    verfügbar.  Zur Aktivierung des Shrinking binden Sie bitte die Datei <em>JsMin.php</em> z. B. in Ihre
+    Bootstrap-Datei ein um die Klasse <em>JsMin</em> im globalen Namespace verfügbar zu machen.
+</div>
+
+<h3 id="Chapter-5-Aussehen-der-URLs"><a href="#Chapter-5-Aussehen-der-URLs">5. Aussehen der Action-URLs</a></h3>
+<p>
+    Im APF-Standardschema sehen die URLs für Dateien und Pakete, die mithilfe der Action eingebunden werden, wie folgt
+    aus:
+</p>
+<div class="hint">
+    Sofern ausschliesslich die HtmlHeader-Nodes verwendet werden, ist es nicht notwendig dieses Schema zu kennen. Dies
+    ist nur nötig wenn die URLs manuell eingefügt werden müssen, da die Nodes die URL automatisch generieren.
+</div>
+
+<p>
+    Ohne URL-Rewriting:
+</p>
+<gen:highlight type="code">
+// Einzelne Css-Datei (themes/default/css/menu.css)
+/index.php?extensions_htmlheader-action:JsCss=path:themes_default_css|type:css|file:menu
+
+// Einzelnes Paket (CSS)
+/index.php?extensions_htmlheader-action:JsCss=package:DefaultTheme.css
+</gen:highlight>
+
+<p>
+    Mit URL-Rewriting:
+</p>
+<gen:highlight type="code">
+// Einzelne Css-Datei (themes/default/css/menu.css)
+/~/extensions_htmlheader-action/JsCss/path/themes_default_css/type/css/file/menu
+
+// Einzelnes Paket (CSS)
+/~/extensions_htmlheader-action/JsCss/package/DefaultTheme.css
+</gen:highlight>
