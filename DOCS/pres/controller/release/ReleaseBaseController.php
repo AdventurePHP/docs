@@ -25,7 +25,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
     */
    public static $REV_HISTORY_PARAM = 'release';
    private static $REV_HISTORY_PAGEID = '126';
-   private static $PHP5_RELEASE_FILE_INDICATOR = '-php5';
+   private static $PHP7_RELEASE_FILE_INDICATOR = '-php7';
    private static $NOARCH_RELEASE_FILE_INDICATOR = '-noarch';
    private static $CODE_RELEASE_FILE_INDICATOR = '-codepack';
    private static $SNAPSHOT_RELEASE_FOLDER_NAME = 'snapshot';
@@ -401,7 +401,7 @@ abstract class ReleaseBaseController extends BaseDocumentController {
          }
 
          // allow PHP5 files
-         if (substr_count($file, self::$PHP5_RELEASE_FILE_INDICATOR) > 0) {
+         if (substr_count($file, self::$PHP7_RELEASE_FILE_INDICATOR) > 0) {
             $filteredList[] = $file;
             continue;
          }
