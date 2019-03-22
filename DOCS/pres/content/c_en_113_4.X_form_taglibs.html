@@ -694,22 +694,19 @@ class FormController extends BaseDocumentController {
 <div class="warn">
    Please note, that validators having the attribut <em>type</em> set to <em>special</em> do only
    notify special validators. In case the validator messages of the target control should be marked,
-   you can add another <em>EMailValidator</em>, that notifies listeners, that contain the necessary
-   markup.:
+   you may want to use a <em>&lt;form:error /&gt;</em> (see <a href="#Chapter-3-16-Error">chapter 3.16</a>):
 <gen:highlight type="apf-xml">
 &lt;html:form name="email_form" method="post"&gt;
-   &lt;form:listener control="email"&gt;
+   &lt;form:error&gt;
       &lt;div class="error-container"&gt;
-   &lt;/form:listener&gt;
-   &lt;form:listener control="email" validator="TextLengthValidator"&gt;
-      Please fill in the email field!
-   &lt;/form:listener&gt;
-   &lt;form:listener control="email" validator="EMailValidator"&gt;
-      Please fill in the email field with a correct email address!
-   &lt;/form:listener&gt;
-   &lt;form:listener control="email"&gt;
+         &lt;form:listener control="email" validator="TextLengthValidator"&gt;
+            Please fill in the email field!
+         &lt;/form:listener&gt;
+         &lt;form:listener control="email" validator="EMailValidator"&gt;
+            Please fill in the email field with a correct email address!
+         &lt;/form:listener&gt;
       &lt;/div&gt;
-   &lt;/form:listener&gt;
+   &lt;/form:error&gt;
    &lt;form:text name="email" /&gt;
    &lt;form:button name="send" value="Send" /&gt;
    &lt;form:addvalidator
@@ -724,11 +721,6 @@ class FormController extends BaseDocumentController {
       button="send"
       type="special"
    /&gt;
-   &lt;form:addvalidator
-      class="APF\tools\form\validator\EMailValidator"
-      control="email"
-      button="send"
-   /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
 </div>
@@ -740,6 +732,31 @@ class FormController extends BaseDocumentController {
 </gen:highlight>
    Details can be taken from chapter <int:link pageid="114" anchor="Chapter-3-2-3-HTML-validation-marker" />.
 </div>
+<p>
+   In case you want to use one single <em>&lt;form:listener /&gt;</em> tag to display error messages for multiple
+   fields, this can be done with the following template code:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="email_form" method="post"&gt;
+   &lt;form:listener&gt;
+      Please fill all fields marked in red with 3 to 16 characters!
+   &lt;/form:listener&gt;
+   &lt;form:text name="first-name" /&gt;
+   &lt;form:text name="last-name" /&gt;
+   &lt;form:text name="e-mail" /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
+   &lt;form:addvalidator
+      class="APF\tools\form\validator\TextLengthValidator"
+      control="first-name|last-name|e-mail"
+      button="send"
+      type="generic"
+   /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Generic <em>&lt;form:listener /&gt;</em> can be combined with <em>&lt;form:listener /&gt;</em> tags for special
+   validators as well as with field-based <em>&lt;form:listener /&gt;</em> tags.
+</p>
 
 <h4 id="Chapter-3-16-Error"><a href="#Chapter-3-16-Error">3.16. Display of form errors</a></h4>
 <p>

@@ -679,11 +679,10 @@ class FormController extends BaseDocumentController {
 }
 </gen:highlight>
 <p>
-   Das Attribut <em>validator</em> kann dann verwendet werden, wenn für das relevante
-   Formular-Feld <a href="#">spezielle Validator-Listener</a>
-   definitiert sind. Ein Anwendungs-Beispiel ist die Prüfung eines E-Mail-Feldes, für das
-   jeweils eine eigene Meldung für eine fehlende E-Mail-Adresse und eine syntaktisch nicht
-   korrekte Eingabe ausgegeben werden soll. Hierzu kann folgendes Template genutzt werden:
+   Das Attribut <em>validator</em> kann dann verwendet werden, wenn für das relevante Formular-Feld spezielle
+   Validator-Listener definitiert sind. Ein Anwendungs-Beispiel ist die Prüfung eines E-Mail-Feldes, für das
+   jeweils eine eigene Meldung für eine fehlende E-Mail-Adresse und eine syntaktisch nicht korrekte Eingabe ausgegeben
+   werden soll. Hierzu kann folgendes Template genutzt werden:
 </p>
 <gen:highlight type="apf-xml">
 &lt;html:form name="email_form" method="post"&gt;
@@ -713,21 +712,19 @@ class FormController extends BaseDocumentController {
    Bitte beachten Sie, dass Validatoren, die für das Attribut <em>type</em> den Wert
    <em>special</em> enthalten nur spezielle Validator-Listener benachrichtigen. Sofern die oben
    ausgegebenen Validator-Meldungen noch mit einer Markierung versehen werden sollen, bietet sich an,
-   einen <em>EMailValidator</em> zu definieren, deren Listener als Rahmen-gebende Elemente fungieren:
+   einen <em>&lt;form:error /&gt;</em>-Tag zu nutzen (siehe auch <a href="#Chapter-3-16-Error">Kapitel 3.16</a>):
 <gen:highlight type="apf-xml">
 &lt;html:form name="email_form" method="post"&gt;
-   &lt;form:listener control="email"&gt;
+   &lt;form:error&gt;
       &lt;div class="error-container"&gt;
-   &lt;/form:listener&gt;
-   &lt;form:listener control="email" validator="APF\tools\form\validator\TextLengthValidator"&gt;
-      Please fill in the email field!
-   &lt;/form:listener&gt;
-   &lt;form:listener control="email" validator="APF\tools\form\validator\EMailValidator"&gt;
-      Please fill in the email field with a correct email address!
-   &lt;/form:listener&gt;
-   &lt;form:listener control="email"&gt;
+         &lt;form:listener control="email" validator="APF\tools\form\validator\TextLengthValidator"&gt;
+            Please fill in the email field!
+         &lt;/form:listener&gt;
+         &lt;form:listener control="email" validator="APF\tools\form\validator\EMailValidator"&gt;
+            Please fill in the email field with a correct email address!
+         &lt;/form:listener&gt;
       &lt;/div&gt;
-   &lt;/form:listener&gt;
+   &lt;/form:error&gt;
    &lt;form:text name="email" /&gt;
    &lt;form:button name="send" value="Send" /&gt;
    &lt;form:addvalidator
@@ -742,11 +739,6 @@ class FormController extends BaseDocumentController {
       button="send"
       type="special"
    /&gt;
-   &lt;form:addvalidator
-      class="APF\tools\form\validator\EMailValidator"
-      control="email"
-      button="send"
-   /&gt;
 &lt;/html:form&gt;
 </gen:highlight>
 </div>
@@ -758,6 +750,31 @@ class FormController extends BaseDocumentController {
 </gen:highlight>
    zur Verfügung. Details entnehmen Sie bitte Kapitel <int:link pageid="114" anchor="Chapter-3-2-3-HTML-Validation-Marker" />.
 </div>
+<p>
+   Möchten Sie einen <em>&lt;form:listener /&gt;</em>-Tag zur Ausgabe einer Fehlermeldung für mehrere Felder nutzen, so
+   lässt sich dies mit folgendem Template-Code erreichen:
+</p>
+<gen:highlight type="apf-xml">
+&lt;html:form name="email_form" method="post"&gt;
+   &lt;form:listener&gt;
+      Please fill all fields marked in red with 3 to 16 characters!
+   &lt;/form:listener&gt;
+   &lt;form:text name="first-name" /&gt;
+   &lt;form:text name="last-name" /&gt;
+   &lt;form:text name="e-mail" /&gt;
+   &lt;form:button name="send" value="Send" /&gt;
+   &lt;form:addvalidator
+      class="APF\tools\form\validator\TextLengthValidator"
+      control="first-name|last-name|e-mail"
+      button="send"
+      type="generic"
+   /&gt;
+&lt;/html:form&gt;
+</gen:highlight>
+<p>
+   Generische <em>&lt;form:listener /&gt;</em> lassen sich mit <em>&lt;form:listener /&gt;</em> für spezielle Validatoren und
+   einfachen Feld-basierten <em>&lt;form:listener /&gt;</em>-Tags beliebig kombinieren.
+</p>
 
 <h4 id="Chapter-3-16-Error"><a href="#Chapter-3-16-Error">3.16. Anzeige von Formular-Fehlern</a></h4>
 <p>
