@@ -24,7 +24,7 @@ class SideBarCurrentController extends ReleaseBaseController {
    /**
     * @var string[] Stores all releases (cache)!
     */
-   private $allReleases;
+   private $allReleases = [];
 
    public function transformContent() {
 
